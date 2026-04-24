@@ -17,6 +17,10 @@ import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
+import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
+import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
+import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -363,44 +367,10 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             }
           />
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {categories.map((c) => (
-                <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-                  {c}
-                </span>
-              ))}
-              {tags.map((t) => (
-                <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {connections.length > 0 ? (
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interactions</p>
-              <div className="mt-3 space-y-2">
-                {connections.map((c) => (
-                  <Link
-                    key={c.title}
-                    href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}
-                    className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
-                  >
-                    <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
-                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
-                    {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchases</p>
-            <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <GameMetadataPanel categories={categories} tags={tags} />
+          <GameInteractionsPanel interactions={connections} />
+          <GamePurchasesPanel>
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
               {activeBoosts.length > 0 ? (
                 <div className="space-y-2">
                   {activeBoosts.map((b) => (
@@ -416,54 +386,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <p className="text-xs">No active purchases yet. Open the Shop tab to buy a boost.</p>
               )}
             </div>
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/50">
-            {featuredImage && (
-              <div className="relative aspect-video w-full bg-zinc-200 dark:bg-zinc-800">
-                <img src={featuredImage} alt={gameName ?? 'Diamond Veins'} className="h-full w-full object-cover" />
-              </div>
-            )}
-            <div className="p-5">
-              <h2 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">{gameName ?? 'The Diamond Veins of Kaspaland'}</h2>
-              {gameDescription && (
-                <p className="mb-4 border-l-2 border-emerald-500/40 bg-emerald-500/5 py-2 pl-3 pr-2 text-sm leading-relaxed text-zinc-600 dark:bg-emerald-500/10 dark:text-zinc-400">
-                  {gameDescription}
-                </p>
-              )}
-              {loreStory && (
-                <div className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  {loreExpanded ? (
-                    <div className="space-y-2">
-                      {loreStory.split(/\n\n+/).map((block, i) => {
-                        const line = block.trim();
-                        const isSubtitle = line.length <= 60 && line === line.toUpperCase() && /^[A-Z0-9\s]+$/.test(line);
-                        return isSubtitle ? (
-                          <h4
-                            key={i}
-                            className="border-b border-emerald-500/20 pb-1 pt-4 text-base font-bold uppercase tracking-wider text-emerald-600 first:pt-0 dark:text-emerald-400"
-                          >
-                            {line}
-                          </h4>
-                        ) : (
-                          <p key={i}>{line}</p>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p>{loreStory.slice(0, 320)}…</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setLoreExpanded((e) => !e)}
-                    className="mt-2 font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
-                  >
-                    {loreExpanded ? 'Show less' : 'Read full story'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          </GamePurchasesPanel>
+          <GameFeaturedPanel featuredImage={featuredImage} title={gameName ?? 'Diamond Veins'} description={gameDescription} loreStory={loreStory} />
 
           <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
             <button

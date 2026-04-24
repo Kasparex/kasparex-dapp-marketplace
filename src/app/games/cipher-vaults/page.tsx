@@ -66,7 +66,7 @@ function CipherVaultsContent() {
               </div>
             ) : (
               <div className="space-y-6">
-                <CipherVaultsDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
+                <CipherVaultsDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} game={game} gameName={game.name} />
               </div>
             )}
           </div>

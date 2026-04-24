@@ -14,6 +14,11 @@ import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import { GameTabs } from '@/components/games/layout/GameTabs';
+import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
+import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
+import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -107,6 +112,17 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
+  const tabs = useMemo(
+    () => [
+      { id: 'overview' as const, label: 'Overview', icon: <span>≡</span> },
+      { id: 'play' as const, label: 'Play', icon: <span>▶</span> },
+      { id: 'rewards' as const, label: 'Rewards', icon: <span>★</span>, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
+      { id: 'boosters' as const, label: 'Boosters', icon: <span>⚡</span>, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
+      { id: 'comments' as const, label: 'Comments', icon: <span>💬</span> },
+    ],
+    [boostersTip, boostersTone, rewardsTip, rewardsTone]
+  );
+
   return (
     <TooltipProvider>
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -128,26 +144,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-2 dark:border-zinc-800">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-                tab === t.id
-                  ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300'
-                  : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                {t.id === 'rewards' ? <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> : null}
-                {t.id === 'boosters' ? <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> : null}
-                <span>{t.label}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+        <GameTabs tabs={tabs} value={tab} onChange={setTab} />
 
         {tab === 'overview' && (
           <div className="space-y-6">
@@ -296,41 +293,10 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
           ]}
         />
 
-        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/50">
-          {props.featuredImage ? (
-            <div className="relative aspect-video w-full bg-zinc-200 dark:bg-zinc-800">
-              <img src={props.featuredImage} alt={props.gameName ?? 'Token Strategy'} className="h-full w-full object-cover" />
-            </div>
-          ) : null}
-          <div className="p-5">
-            <h2 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">{props.gameName ?? 'Token Strategy'}</h2>
-            {props.gameDescription ? (
-              <p className="mb-4 border-l-2 border-emerald-500/40 bg-emerald-500/5 py-2 pl-3 pr-2 text-sm leading-relaxed text-zinc-600 dark:bg-emerald-500/10 dark:text-zinc-400">
-                {props.gameDescription}
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-                {c}
-              </span>
-            ))}
-            {tags.map((t) => (
-              <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchased</p>
-          <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+        <GameMetadataPanel categories={categories} tags={tags} />
+        <GameInteractionsPanel interactions={connections} />
+        <GamePurchasesPanel>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {krexBoostActive && krexBoostUntil ? (
               <div className="space-y-1">
                 <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX booster active</p>
@@ -341,26 +307,14 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
               <p className="text-xs">No active purchases yet.</p>
             )}
           </div>
-        </div>
+        </GamePurchasesPanel>
 
-        {connections.length > 0 ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interconnections</p>
-            <div className="mt-3 space-y-2">
-              {connections.map((c) => (
-                <Link
-                  key={c.title}
-                  href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}
-                  className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
-                >
-                  <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
-                  <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
-                  {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        <GameFeaturedPanel
+          featuredImage={props.featuredImage}
+          title={props.gameName ?? 'Token Strategy'}
+          description={props.gameDescription}
+          loreStory={props.loreStory}
+        />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>
