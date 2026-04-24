@@ -14,6 +14,8 @@ import { WorkersPanel } from '@/components/game/diamond-veins/panels/WorkersPane
 import { UpgradesPanel } from '@/components/game/diamond-veins/panels/UpgradesPanel';
 import { RewardsPanel } from '@/components/game/diamond-veins/panels/RewardsPanel';
 import type { BonusType } from '@/lib/game/diamond-bonuses';
+import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import { useWalletDeck } from '@/hooks/useWalletDeck';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -40,9 +42,11 @@ interface MiningDashboardProps {
   featuredImage?: string;
   loreStory?: string;
   gameDescription?: string;
+  game?: any;
+  gameName?: string;
 }
 
-export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescription = '' }: MiningDashboardProps) {
+export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescription = '', game, gameName }: MiningDashboardProps) {
   const { state: walletState } = useKaspaWallet();
   const {
     tycon,
@@ -82,6 +86,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     buyPowerUpgrade,
   } = useDiamondMining();
 
+  const { data: deck } = useWalletDeck();
+
   const [tab, setTab] = useState<TabId>('overview');
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
@@ -102,6 +108,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const garageItem = (item: { id: string; name: string; price: number; priceKAS: number; type: BonusType; mult: number }) => ({
     ...item,
   });
+
+  const connections = (game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
+  const categories = (game?.categories ?? []) as string[];
+  const tags = (game?.tags ?? []) as string[];
+  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
 
   return (
     <GameTooltipProvider>
@@ -266,14 +277,111 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
         </div>
 
         <div className="flex flex-col space-y-6 lg:col-span-4">
+          <GameDeckPanel
+            resources={[
+              {
+                id: 'diamonds',
+                label: 'Diamonds',
+                value: Math.floor(diamonds).toLocaleString(),
+                hint: 'Click to open Mining',
+                accent: 'diamonds',
+                onClick: () => setTab('mining'),
+              },
+              {
+                id: 'grid',
+                label: 'GRID (pending)',
+                value: pendingGrid.toLocaleString(),
+                hint: 'Unified deck rewards',
+                accent: 'grid',
+                onClick: () => setTab('rewards'),
+              },
+              {
+                id: 'kas',
+                label: 'KAS',
+                value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
+                hint: 'L1 balance (KasWare/Kastle)',
+                accent: 'kas',
+                onClick: () => setTab('upgrades'),
+              },
+              {
+                id: 'krex',
+                label: 'KREX',
+                value: krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+                hint: `Tier ${krexTier} discounts`,
+                accent: 'krex',
+                onClick: () => setTab('upgrades'),
+              },
+            ]}
+            footer={
+              <span>
+                Values update live as you mine, refine, and buy boosts.
+              </span>
+            }
+          />
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <span key={c} className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                  {c}
+                </span>
+              ))}
+              {tags.map((t) => (
+                <span key={t} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {connections.length > 0 ? (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interactions</p>
+              <div className="mt-3 space-y-2">
+                {connections.map((c) => (
+                  <Link
+                    key={c.title}
+                    href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}
+                    className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+                  >
+                    <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{c.title}</p>
+                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{c.punch}</p>
+                    {c.requirement ? <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: {c.requirement}</p> : null}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchases</p>
+            <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+              {activeBoosts.length > 0 ? (
+                <div className="space-y-2">
+                  {activeBoosts.map((b) => (
+                    <div key={b.id} className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3">
+                      <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{b.name ?? b.type}</div>
+                      <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                        Ends {new Date(b.endTime).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs">No active purchases yet. Open the Upgrades tab to buy a boost.</p>
+              )}
+            </div>
+          </div>
+
           <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/50">
             {featuredImage && (
               <div className="relative aspect-video w-full bg-zinc-200 dark:bg-zinc-800">
-                <img src={featuredImage} alt="Diamond Veins of Kaspaland" className="h-full w-full object-cover" />
+                <img src={featuredImage} alt={gameName ?? 'Diamond Veins'} className="h-full w-full object-cover" />
               </div>
             )}
             <div className="p-5">
-              <h2 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">The Diamond Veins of Kaspaland</h2>
+              <h2 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">{gameName ?? 'The Diamond Veins of Kaspaland'}</h2>
               {gameDescription && (
                 <p className="mb-4 border-l-2 border-emerald-500/40 bg-emerald-500/5 py-2 pl-3 pr-2 text-sm leading-relaxed text-zinc-600 dark:bg-emerald-500/10 dark:text-zinc-400">
                   {gameDescription}

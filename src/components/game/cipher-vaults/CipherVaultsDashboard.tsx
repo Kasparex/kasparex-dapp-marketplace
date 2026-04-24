@@ -9,6 +9,8 @@ import { CipherGridLockedPreview } from './CipherGridLockedPreview';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import dynamic from 'next/dynamic';
+import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import { useWalletDeck } from '@/hooks/useWalletDeck';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -32,6 +34,7 @@ const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection
 export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', gameDescription = '' }: { featuredImage?: string; loreStory?: string; gameDescription?: string }) {
   const { state: walletState } = useKaspaWallet();
   const { state, tickets, canPayWithL1, startRun, submitRun, loadActiveRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
+  const { data: deck } = useWalletDeck();
 
   const [tab, setTab] = useState<TabId>('vaults');
   const [tierId, setTierId] = useState<CipherVaultTierId>('t1');
@@ -86,6 +89,7 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
   const runIdForActions = activeRunId ?? state.activeRun?.runId ?? null;
 
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
+  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
 
   return (
     <TooltipProvider>
@@ -478,6 +482,91 @@ export function CipherVaultsDashboard({ featuredImage = '', loreStory = '', game
       </div>
 
       <div className="flex flex-col space-y-6 lg:col-span-4">
+        <GameDeckPanel
+          resources={[
+            {
+              id: 'tickets',
+              label: 'Cipher Tickets',
+              value: tickets.available.toLocaleString(),
+              hint: 'Click to open Redeem',
+              accent: 'games',
+              onClick: () => setTab('redeem'),
+            },
+            {
+              id: 'refinement',
+              label: 'Refinement (unredeemed)',
+              value: redeemableRemaining.toLocaleString(),
+              hint: `${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket`,
+              accent: 'games',
+              onClick: () => setTab('redeem'),
+            },
+            {
+              id: 'grid',
+              label: 'GRID (pending)',
+              value: pendingGrid.toLocaleString(),
+              hint: 'Unified deck rewards',
+              accent: 'grid',
+              onClick: () => setTab('rewards'),
+            },
+          ]}
+          footer={<span>Values update live as you earn tickets and clear vaults.</span>}
+        />
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Metadata</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+              Puzzle
+            </span>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+              Tickets
+            </span>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+              Rewards
+            </span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Interactions</p>
+          <div className="mt-3 space-y-2">
+            <Link
+              href="/games/diamond-veins"
+              className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+            >
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Diamond Veins</p>
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">Farm refinement points to redeem more Cipher Tickets.</p>
+              <p className="mt-2 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Requirement: refinement points</p>
+            </Link>
+            <Link
+              href="/rewards-and-points"
+              className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+            >
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Rewards &amp; Points</p>
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">Claim / view unified GRID rewards on Kasplex L2.</p>
+            </Link>
+            <Link
+              href="/games/connections"
+              className="block rounded-2xl border border-zinc-200 bg-white p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800/50"
+            >
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Game Connections</p>
+              <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">See cross-game requirements and what to do next.</p>
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-500">Purchases</p>
+          <div className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3">
+              <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Entry</div>
+              <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                Pay with KAS or use tickets. One active run at a time.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/50">
           {featuredImage && (
             <div className="relative aspect-video w-full bg-zinc-200 dark:bg-zinc-800">

@@ -49,76 +49,72 @@ export function UpgradesPanel({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-100 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/60">
-        <div className="flex items-center justify-between border-b border-zinc-200 p-6 dark:border-zinc-800">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Garage Shop</h2>
-          <span className="rounded-full border border-zinc-300 bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-            Upgrades
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Garage Shop</h2>
+        <span className="rounded-full border border-zinc-300 bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+          Upgrades
+        </span>
+      </div>
+
+      {!canPayWithL1 && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+          Connect <strong>KasWare</strong> to pay with KREX or KAS.
         </div>
+      )}
 
-        <div className="p-6">
-          {!canPayWithL1 && (
-            <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-              Connect <strong>KasWare</strong> to pay with KREX or KAS.
-            </div>
-          )}
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {GARAGE_ITEMS.map((item) => {
+          const priceAfterDiscount = getPriceAfterDiscount(item.price);
+          const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
+          const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
+          const isBuying = buyingItemId === item.id;
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {GARAGE_ITEMS.map((item) => {
-              const priceAfterDiscount = getPriceAfterDiscount(item.price);
-              const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
-              const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
-              const isBuying = buyingItemId === item.id;
+          return (
+            <GameItemCard
+              key={item.id}
+              icon={<span className="text-3xl">{item.icon}</span>}
+              title={item.name}
+              category="Garage"
+              description={
+                <span>
+                  {item.desc}{' '}
+                  <span className="text-zinc-500 dark:text-zinc-500">
+                    · pool +{revenuePoolPct}%
+                  </span>
+                </span>
+              }
+              effects={[
+                { label: 'Per unit', value: item.desc },
+                { label: 'Type', value: item.type.toUpperCase() },
+              ]}
+              priceOptions={[
+                { currency: 'KAS', unitPrice: item.priceKAS, disabled: !canAffordKAS || kasBalanceLoading },
+                {
+                  currency: 'KREX',
+                  unitPrice: priceAfterDiscount,
+                  originalUnitPrice: item.price,
+                  disabled: !canAffordKREX,
+                },
+              ]}
+              defaultCurrency="KAS"
+              buyDisabled={!canPayWithL1 || isBuying}
+              buyLabel={isBuying ? '…' : 'Buy'}
+              onBuy={async ({ currency }) => {
+                if (currency === 'KREX') {
+                  await onBuyKrex(item);
+                  return;
+                }
+                await onBuyKas(item);
+              }}
+            />
+          );
+        })}
+      </div>
 
-              return (
-                <GameItemCard
-                  key={item.id}
-                  icon={<span className="text-3xl">{item.icon}</span>}
-                  title={item.name}
-                  category="Garage"
-                  description={
-                    <span>
-                      {item.desc}{' '}
-                      <span className="text-zinc-500 dark:text-zinc-500">
-                        · pool +{revenuePoolPct}%
-                      </span>
-                    </span>
-                  }
-                  effects={[
-                    { label: 'Per unit', value: item.desc },
-                    { label: 'Type', value: item.type.toUpperCase() },
-                  ]}
-                  priceOptions={[
-                    { currency: 'KAS', unitPrice: item.priceKAS, disabled: !canAffordKAS || kasBalanceLoading },
-                    {
-                      currency: 'KREX',
-                      unitPrice: priceAfterDiscount,
-                      originalUnitPrice: item.price,
-                      disabled: !canAffordKREX,
-                    },
-                  ]}
-                  defaultCurrency="KAS"
-                  buyDisabled={!canPayWithL1 || isBuying}
-                  buyLabel={isBuying ? '…' : 'Buy'}
-                  onBuy={async ({ currency }) => {
-                    if (currency === 'KREX') {
-                      await onBuyKrex(item);
-                      return;
-                    }
-                    await onBuyKas(item);
-                  }}
-                />
-              );
-            })}
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-emerald-500/10 bg-emerald-500/5 p-4">
-            <p className="text-center text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-              {revenuePoolPct}% of Garage revenue goes to the Diamond Veins rewards pool
-            </p>
-          </div>
-        </div>
+      <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/5 p-4">
+        <p className="text-center text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+          {revenuePoolPct}% of Garage revenue goes to the Diamond Veins rewards pool
+        </p>
       </div>
 
       <p className="text-center text-xs text-zinc-500 dark:text-zinc-500">

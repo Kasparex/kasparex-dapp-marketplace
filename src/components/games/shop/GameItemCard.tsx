@@ -105,7 +105,7 @@ export function GameItemCard(props: {
               {props.effects.map((e) => (
                 <div key={e.label} className="flex items-center justify-between rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
                   <span className="font-semibold text-zinc-600 dark:text-zinc-400">{e.label}</span>
-                  <span className="font-black tabular-nums text-zinc-900 dark:text-zinc-100">{e.value}</span>
+                  <span className="font-black tabular-nums text-emerald-700 dark:text-emerald-300">{e.value}</span>
                 </div>
               ))}
             </div>
@@ -128,7 +128,7 @@ export function GameItemCard(props: {
             </div>
           ) : null}
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Price</div>
               <div className="flex items-baseline gap-2">
@@ -144,12 +144,12 @@ export function GameItemCard(props: {
               {hasDiscount ? <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div> : null}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
               {options.length > 1 ? (
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="k-filter-select h-9 min-w-[110px]"
+                  className="k-filter-select h-9 min-w-[120px] -mt-0.5"
                 >
                   {options.map((o) => (
                     <option key={o.currency} value={o.currency} disabled={o.disabled}>

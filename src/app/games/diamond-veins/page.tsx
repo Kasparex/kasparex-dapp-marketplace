@@ -88,7 +88,7 @@ function DiamondVeinsContent() {
                 {/* Standard cross-game modules (Your rewards / Unified deck + Risk choice) */}
                 <GameModulesBar />
 
-                <MiningDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} />
+                <MiningDashboard featuredImage={featuredImage} loreStory={LORE_STORY} gameDescription={game.description} game={game} gameName={game.name} />
               </div>
             )}
           </div>
