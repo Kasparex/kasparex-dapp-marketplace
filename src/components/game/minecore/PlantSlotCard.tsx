@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import type { MinecoreState, PlantSlotState } from '@/lib/game/minecore';
 import { computePlantExpectedDiamonds } from '@/lib/game/minecore/compute';
@@ -44,25 +45,46 @@ function labelForStatus(status: PlantSlotState['status']) {
   return status;
 }
 
-function barToneClass(ratio: number) {
+function powerBarStyle(ratio: number): CSSProperties {
   const r = clamp01(ratio);
-  if (r < 0.15) return 'bg-red-500';
-  if (r < 0.45) return 'bg-amber-500';
-  return 'bg-emerald-500';
+  const hue = Math.round((1 - r) * 0 + r * 270);
+  const light = 42 + 18 * r;
+  return { backgroundColor: `hsl(${hue} 78% ${light}%)` };
 }
 
-function StatusCapsule(props: { label: string; value: string; ratio: number }) {
+function batteryBarStyle(ratio: number): CSSProperties {
+  const r = clamp01(ratio);
+  const hue = Math.round((1 - r) * 0 + r * 218);
+  const light = 40 + 20 * r;
+  return { backgroundColor: `hsl(${hue} 82% ${light}%)` };
+}
+
+function StatusCapsule(props: {
+  label: string;
+  value: string;
+  ratio: number;
+  tooltip: string;
+  variant: 'power' | 'battery';
+}) {
   const r = clamp01(props.ratio);
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-zinc-950/40">
-      <div className="flex items-center justify-between gap-2 px-3 py-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{props.label}</span>
-        <span className="text-xs font-black tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</span>
+    <Tooltip content={props.tooltip}>
+      <div className="cursor-help overflow-hidden rounded-xl border border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-zinc-950/40">
+        <div className="flex items-center justify-between gap-2 px-3 py-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{props.label}</span>
+          <span className="text-xs font-black tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</span>
+        </div>
+        <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-800">
+          <div
+            className="h-full transition-[width] duration-300"
+            style={{
+              width: `${Math.round(r * 100)}%`,
+              ...(props.variant === 'power' ? powerBarStyle(r) : batteryBarStyle(r)),
+            }}
+          />
+        </div>
       </div>
-      <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-800">
-        <div className={`h-full transition-[width] duration-300 ${barToneClass(r)}`} style={{ width: `${Math.round(r * 100)}%` }} />
-      </div>
-    </div>
+    </Tooltip>
   );
 }
 
@@ -91,7 +113,7 @@ export function PlantSlotCard(props: {
     cycle && now < cycle.endAtMs ? cycle.expectedDiamonds / Math.max(1, cycle.durationMs) : durationMs > 0 && expectedFromLogic > 0 ? expectedFromLogic / durationMs : 0;
 
   const powerRatio = batteryCap > 0 ? s.powerRemaining / batteryCap : 0;
-  const batteryLabel = s.setup.batteryId ? s.setup.batteryId.replace(/-/g, ' ') : 'Not installed';
+  const batteryLabel = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId]?.label ?? s.setup.batteryId : 'Not installed';
 
   const effects = [{ label: 'Status', value: labelForStatus(s.status) }];
 
@@ -106,26 +128,26 @@ export function PlantSlotCard(props: {
 
   const buyDisabled = s.status === 'MiningActive';
 
-  const expectedOverlay =
+  const titleAccessory =
     s.unlocked && expectedDiamonds > 0 ? (
       <div>
-        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-100 drop-shadow-sm">Expected</div>
-        <div className="text-xl font-black tabular-nums leading-tight text-yellow-300 drop-shadow-md sm:text-2xl">{expectedDiamonds.toLocaleString()}</div>
-        <div className="text-[9px] font-semibold text-yellow-100/90 drop-shadow-sm">Diamonds / cycle</div>
+        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-300">Expected</div>
+        <div className="text-lg font-black tabular-nums leading-tight text-yellow-500 dark:text-yellow-300 sm:text-xl">{expectedDiamonds.toLocaleString()}</div>
+        <div className="text-[9px] font-semibold text-yellow-700/90 dark:text-yellow-200/80">Diamonds / cycle</div>
       </div>
     ) : s.unlocked ? (
       <div>
-        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-100/80">Expected</div>
-        <div className="text-lg font-black tabular-nums text-yellow-200/90 sm:text-xl">—</div>
+        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-700/80 dark:text-yellow-300/80">Expected</div>
+        <div className="text-base font-black tabular-nums text-yellow-600/90 dark:text-yellow-200/90 sm:text-lg">—</div>
       </div>
     ) : null;
 
   return (
     <GameItemCard
       icon={<DiamondIcon className="h-5 w-5 text-sky-400" title="Diamonds" />}
-      mediaOverlay={expectedOverlay}
-      title={`Power Plant ${s.index + 1}`}
-      category="Power Plant"
+      titleAccessory={titleAccessory}
+      title={`Mining Plant ${s.index + 1}`}
+      category="Mining Plant"
       description={
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -140,8 +162,20 @@ export function PlantSlotCard(props: {
                 <div className="mt-0.5 font-mono text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-300">{flowPerSecond.toFixed(3)} D/s</div>
               </div>
             </Tooltip>
-            <StatusCapsule label="Power" value={`${s.powerRemaining.toLocaleString()} / ${batteryCap.toLocaleString()}`} ratio={powerRatio} />
-            <StatusCapsule label="Battery" value={batteryLabel} ratio={powerRatio} />
+            <StatusCapsule
+              variant="power"
+              label="Power"
+              value={`${s.powerRemaining.toLocaleString()} / ${batteryCap.toLocaleString()}`}
+              ratio={powerRatio}
+              tooltip="Operational reserve drawn from this plant’s power pool. Each started cycle consumes one unit; top up with KAS when empty. Bar runs red when depleted and violet when the pool is full."
+            />
+            <StatusCapsule
+              variant="battery"
+              label="Battery"
+              value={batteryLabel}
+              ratio={powerRatio}
+              tooltip="Installed battery pack and its rated capacity. The bar mirrors reserve level: red when empty, blue when the cell is topped up to full capacity."
+            />
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">

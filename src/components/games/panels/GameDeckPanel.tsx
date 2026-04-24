@@ -44,8 +44,9 @@ export function GameDeckPanel(props: {
           <Tooltip content={props.featured.tooltip ?? 'Click to open overview'}>
             <button
               type="button"
-              onClick={props.featured.onOpenOverview}
-              className="group relative block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40"
+              onClick={() => props.featured?.onOpenOverview?.()}
+              disabled={!props.featured?.onOpenOverview}
+              className="group relative block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 disabled:cursor-default dark:border-zinc-800 dark:bg-zinc-950/40"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

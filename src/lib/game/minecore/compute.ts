@@ -56,3 +56,9 @@ export function deriveState(state: MinecoreState, now: number): MinecoreState {
   return { ...state, plantSlots: nextSlots };
 }
 
+/** Wallet balance plus diamonds committed in active or completed-but-unextracted cycles (mirrors “total on-site” in DV mining hero). */
+export function computeMinecoreDiamondsDisplayTotal(state: MinecoreState): number {
+  const inPlants = state.plantSlots.reduce((acc, p) => (p.cycle ? acc + p.cycle.expectedDiamonds : acc), 0);
+  return state.diamondsBalance + inPlants;
+}
+

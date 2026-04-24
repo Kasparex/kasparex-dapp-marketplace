@@ -41,7 +41,7 @@ export default async function GamePage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <GameContent game={game} />
       <Footer />

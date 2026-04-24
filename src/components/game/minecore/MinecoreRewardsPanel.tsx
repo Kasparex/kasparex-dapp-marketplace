@@ -69,7 +69,7 @@ export function MinecoreRewardsPanel({
             {entries.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                  No refine checkpoints yet. Refine diamonds in the Rewards tab to create your first ledger row.
+                  No refine checkpoints yet. Refine diamonds in the Redeem tab to create your first ledger row.
                 </td>
               </tr>
             ) : (

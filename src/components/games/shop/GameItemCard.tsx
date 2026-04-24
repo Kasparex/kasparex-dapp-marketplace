@@ -27,8 +27,10 @@ export function GameItemCard(props: {
   icon?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
-  /** Optional overlay in the media area (e.g. top-right expected yield). */
+  /** Optional overlay in the media area. */
   mediaOverlay?: React.ReactNode;
+  /** Optional content aligned right in the title row (below media). */
+  titleAccessory?: React.ReactNode;
   title: string;
   category: string;
   description: React.ReactNode;
@@ -101,9 +103,10 @@ export function GameItemCard(props: {
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
+          <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
             {props.title}
           </h3>
+          {props.titleAccessory ? <div className="shrink-0 text-right">{props.titleAccessory}</div> : null}
         </div>
 
         <div className="mb-4 min-h-0 flex-grow">

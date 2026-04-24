@@ -59,7 +59,7 @@ export function MinecorePowerPanel(props: {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-        <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Power plants</h4>
+        <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Mining plants</h4>
         <ul className="space-y-2 text-sm">
           {state.plantSlots.map((p) => {
             const cap = p.setup.batteryId ? (MINECORE_BATTERIES[p.setup.batteryId]?.powerCapacity ?? 0) : 0;
@@ -74,7 +74,7 @@ export function MinecorePowerPanel(props: {
                 key={p.id}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
               >
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">Power Plant {p.index + 1}</span>
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">Mining Plant {p.index + 1}</span>
                 <span className="tabular-nums text-zinc-600 dark:text-zinc-400">
                   {p.unlocked ? (
                     <>

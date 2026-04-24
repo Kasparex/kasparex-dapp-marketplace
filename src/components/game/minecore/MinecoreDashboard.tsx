@@ -8,6 +8,10 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
+import { useKaspaBalance } from '@/hooks/useKaspaBalance';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useWalletDeck } from '@/hooks/useWalletDeck';
+import { computeMinecoreDiamondsDisplayTotal } from '@/lib/game/minecore/compute';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { InventoryPanel } from '@/components/game/minecore/InventoryPanel';
@@ -15,11 +19,13 @@ import { ShopPanel } from '@/components/game/minecore/ShopPanel';
 import { MinecoreArticle } from '@/components/game/minecore/MinecoreArticle';
 import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPanel';
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
+import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -29,7 +35,7 @@ const TABS = [
   { id: 'inventory', label: 'Inventory', icon: <IconSignal /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'fabrication', label: 'Build', icon: <IconBoosters /> },
-  { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+  { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -41,41 +47,92 @@ export function MinecoreDashboard(_props: {
   gameName?: string;
 }) {
   const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet } = useMinecore();
+  const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
+  const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
+  const { data: deck } = useWalletDeck();
   const [tab, setTab] = useState<TabId>('overview');
+  const [krexWizardOpen, setKrexWizardOpen] = useState(false);
 
-  const pendingGrid = 0;
+  const canPayWithL1 =
+    Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
+  const kasValid = typeof balanceInKas === 'number' && !Number.isNaN(balanceInKas);
+  const kasBalanceNum = kasValid ? balanceInKas : 0;
+  const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;
+
+  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
+  const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state));
+
+  const openOverview = () => {
+    setTab('overview');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
+
   const resources = useMemo(
     () => [
       {
         id: 'diamonds',
         label: 'Diamonds',
-        value: Math.floor(state.diamondsBalance).toLocaleString(),
+        value: diamondsDisplayTotal.toLocaleString(),
         subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} refinement pts`,
-        description: 'Main in-game currency',
-        tooltip: 'Diamonds are mined in Minecore and will be used across future Kasparex Games.',
+        description: 'In-game resource',
+        tooltip:
+          'Your in-game Diamonds total: wallet balance plus output committed in plant cycles (active or ready to extract). Refinement points accumulate when you Refine. Click to open Mining.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
       },
       {
         id: 'grid',
-        label: 'GRID (redeemable)',
-        value: Math.floor(state.gridRedeemableTotal).toLocaleString(),
-        description: 'Ecosystem reward token',
-        tooltip: 'Redeemable GRID is produced from refined diamond output under V1 rules.',
-        accent: 'grid' as const,
-        onClick: () => setTab('rewards' as const),
-      },
-      {
-        id: 'grid_pending',
         label: 'GRID (pending)',
         value: pendingGrid.toLocaleString(),
-        description: 'Unified deck view',
-        tooltip: 'This value is shown in the global deck in other games. Minecore will connect later.',
+        description: 'Reward token',
+        tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Redeem.',
         accent: 'grid' as const,
+        onClick: () => setTab('redeem' as const),
+      },
+      {
+        id: 'grid_redeemable',
+        label: 'GRID (redeemable)',
+        value: Math.floor(state.gridRedeemableTotal).toLocaleString(),
+        description: 'Reward token',
+        tooltip: 'Redeemable GRID produced from refinement under V1 rules. Click to open Redeem.',
+        accent: 'grid' as const,
+        onClick: () => setTab('redeem' as const),
+      },
+      {
+        id: 'kas',
+        label: 'KAS',
+        value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
+        description: 'Main fuel currency',
+        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot unlocks, shop, and power top-ups. Click to open Shop.',
+        accent: 'kas' as const,
+        onClick: () => setTab('shop' as const),
+      },
+      {
+        id: 'krex',
+        label: 'KREX',
+        value: krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+        description: 'Utility and power token',
+        tooltip: `Your KREX balance on L1. Tier ${krexTier} gives KAS-only shop discounts. Click to open the buy KREX wizard.`,
+        accent: 'krex' as const,
+        onClick: () => setKrexWizardOpen(true),
       },
     ],
-    [state.diamondsBalance, state.refinementPointsTotal, state.gridRedeemableTotal]
+    [
+      diamondsDisplayTotal,
+      state.refinementPointsTotal,
+      state.gridRedeemableTotal,
+      pendingGrid,
+      krexL1Balance,
+      krexTier,
+      canPayWithL1,
+      kasBalanceLoading,
+      kasBalanceNum,
+    ]
   );
 
   const connections = (_props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
@@ -84,24 +141,34 @@ export function MinecoreDashboard(_props: {
 
   return (
     <TooltipProvider>
+      <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="flex flex-col space-y-6 lg:col-span-8">
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-6">
+              <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
+              </span>
+              <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
+              <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
+                KAS
+              </span>
               <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
                 <DiamondIcon className="h-4 w-4 text-sky-400" />
                 Diamonds
               </span>
-              <span className="inline-flex items-center gap-2 font-bold tabular-nums text-amber-600 dark:text-amber-400">
-                <DiamondIcon className="h-4 w-4 text-sky-400" />
-                {Math.floor(state.diamondsBalance).toLocaleString()}
-              </span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                Refinement {Math.floor(state.refinementPointsTotal).toLocaleString()} pts
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
+              <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                {krexTier}
               </span>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Mine diamonds, refine output, redeem GRID. See <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards &amp; Points</Link>.
+              Earn on L1 · claim GRID on L2 via{' '}
+              <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                Rewards &amp; Points
+              </Link>
             </p>
           </div>
 
@@ -141,8 +208,12 @@ export function MinecoreDashboard(_props: {
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
-                    onTopUpWithKAS={async ({ amountKas, added }) => { void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas })); }}
-                    onRepairWithKAS={async ({ amountKas }) => { void (await actions.repairWithKAS(slot.index, amountKas)); }}
+                    onTopUpWithKAS={async ({ amountKas, added }) => {
+                      void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas }));
+                    }}
+                    onRepairWithKAS={async ({ amountKas }) => {
+                      void (await actions.repairWithKAS(slot.index, amountKas));
+                    }}
                     onQuickSetup={() => {
                       actions.installMachine(slot.index, 'pulse-drill');
                       actions.installBattery(slot.index, 'energy-cell');
@@ -157,23 +228,19 @@ export function MinecoreDashboard(_props: {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
-                      <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Power Plant</div>
-                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        Cost {state.nextSlotCostKas.toLocaleString()} KAS
-                      </div>
+                      <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
+                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Cost {state.nextSlotCostKas.toLocaleString()} KAS</div>
                     </div>
                     <Tooltip content="V1 mock action. This will wire into KAS payment later through the global payments SDK.">
-                      <button
-                        type="button"
-                        onClick={() => void actions.addSlot(state.nextSlotCostKas)}
-                        className="k-cta-games h-11 px-6 text-sm"
-                      >
+                      <button type="button" onClick={() => void actions.addSlot(state.nextSlotCostKas)} className="k-cta-games h-11 px-6 text-sm">
                         Add
                       </button>
                     </Tooltip>
                   </div>
                 </div>
               </div>
+
+              <MinecoreMiningSections state={state} />
             </div>
           )}
 
@@ -221,7 +288,6 @@ export function MinecoreDashboard(_props: {
                   await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 1 * quantity });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {
-                  // V1: treat as boost selection to keep state simple.
                   actions.setBoost(0, 'kas-overclock');
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
@@ -233,7 +299,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'fabrication' && <FabricationPanel state={state} onCraft={actions.craftRecipe} />}
 
-          {tab === 'rewards' && (
+          {tab === 'redeem' && (
             <div className="space-y-6">
               <MinecoreRewardsPanel
                 address={wallet.address ?? undefined}
@@ -244,11 +310,7 @@ export function MinecoreDashboard(_props: {
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Redeem</h3>
                 <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">V1: redeem refinement points into GRID redeemable.</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => actions.redeemGrid(Math.floor(state.refinementPointsTotal))}
-                    className="k-cta-games h-11 px-6 text-sm"
-                  >
+                  <button type="button" onClick={() => actions.redeemGrid(Math.floor(state.refinementPointsTotal))} className="k-cta-games h-11 px-6 text-sm">
                     Redeem all points
                   </button>
                   <button
@@ -267,8 +329,12 @@ export function MinecoreDashboard(_props: {
         <div className="flex flex-col space-y-6 lg:col-span-4">
           <GameDeckPanel
             resources={resources}
-            footer={<span>Minecore is the central loop. Timers persist across reloads.</span>}
-            featured={_props.featuredImage ? { image: _props.featuredImage, tooltip: 'Minecore' } : undefined}
+            footer={<span>Values update live as you mine, refine, and pay for slots.</span>}
+            featured={
+              _props.featuredImage
+                ? { image: _props.featuredImage, onOpenOverview: openOverview, tooltip: 'Click to open game overview' }
+                : undefined
+            }
           />
 
           <GameInteractionsPanel interactions={connections} />
@@ -285,4 +351,3 @@ export function MinecoreDashboard(_props: {
     </TooltipProvider>
   );
 }
-
