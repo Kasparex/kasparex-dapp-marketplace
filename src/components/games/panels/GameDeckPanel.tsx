@@ -62,9 +62,38 @@ export function GameDeckPanel(props: {
         {props.resources.map((r) => {
           const clickable = typeof r.onClick === 'function';
           const Row = clickable ? 'button' : 'div';
+          const Wrapper = r.tooltip ? Tooltip : null;
+          const wrapperProps = r.tooltip ? ({ content: r.tooltip } as const) : null;
           return (
             <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-              <Tooltip content={r.tooltip ?? ''} disabled={!r.tooltip}>
+              {Wrapper ? (
+                <Wrapper {...wrapperProps!}>
+                  <Row
+                    type={clickable ? 'button' : undefined}
+                    onClick={r.onClick}
+                    className={[
+                      'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+                      clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
+                    ].join(' ')}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
+                        <span className="truncate font-medium">{r.label}</span>
+                      </div>
+                      {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                      {r.subValue ? (
+                        <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
+                          {r.subValue}
+                        </div>
+                      ) : null}
+                    </div>
+                  </Row>
+                </Wrapper>
+              ) : (
                 <Row
                   type={clickable ? 'button' : undefined}
                   onClick={r.onClick}
@@ -89,7 +118,7 @@ export function GameDeckPanel(props: {
                     ) : null}
                   </div>
                 </Row>
-              </Tooltip>
+              )}
             </li>
           );
         })}
