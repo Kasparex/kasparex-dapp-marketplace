@@ -154,7 +154,7 @@ export function GamePayment({ game }: GamePaymentProps) {
                 console.error(err);
               }
             }}
-            className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+            className="k-cta-games h-11 px-6 disabled:opacity-60"
           >
             Connect Wallet
           </button>
@@ -232,7 +232,7 @@ export function GamePayment({ game }: GamePaymentProps) {
         <button
           onClick={handlePlay}
           disabled={isProcessing || success}
-          className="w-full px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] disabled:bg-zinc-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          className="k-cta-games h-11 w-full px-6 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isProcessing ? (
             <span className="flex items-center justify-center gap-2">

@@ -11,12 +11,11 @@ import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
-import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 
 const TABS = [
@@ -107,6 +106,16 @@ export function CipherVaultsDashboard({
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
   const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
 
+  const openOverview = () => {
+    setTab('overview');
+    setLoreExpanded(true);
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <TooltipProvider>
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -171,6 +180,18 @@ export function CipherVaultsDashboard({
                 .
               </p>
             </div>
+
+            <GameOverviewSections
+              gameName={gameName ?? "Krex’s Cipher Vaults"}
+              description={gameDescription}
+              loreStory={loreStory}
+              flow={[
+                'Start a vault run (KAS or a Cipher Ticket).',
+                'Solve the Cipher Grid within the move limit to clear a vault.',
+                'Clears record checkpoints and contribute to later GRID distribution.',
+                'Redeem refinement points into tickets via the Redeem tab.',
+              ]}
+            />
           </div>
         )}
 
@@ -242,7 +263,7 @@ export function CipherVaultsDashboard({
                         setStarting(false);
                       }
                     }}
-                    className="k-cta-primary h-12 px-5 text-sm disabled:opacity-50 disabled:grayscale"
+                    className="k-cta-games h-12 px-5 text-sm disabled:opacity-50 disabled:grayscale"
                   >
                     {starting ? 'Starting…' : 'Start run'}
                   </button>
@@ -408,7 +429,7 @@ export function CipherVaultsDashboard({
                 />
                 <button
                   type="button"
-                  className="k-cta-primary h-11 px-5 text-sm"
+                  className="k-cta-games h-11 px-5 text-sm"
                   onClick={async () => {
                     setToast(null);
                     try {
@@ -521,9 +542,14 @@ export function CipherVaultsDashboard({
             },
           ]}
           footer={<span>Values update live as you earn tickets and clear vaults.</span>}
+          featured={{
+            image: featuredImage || undefined,
+            title: gameName ?? "Krex’s Cipher Vaults",
+            description: gameDescription || undefined,
+            onOpenOverview: openOverview,
+            tooltip: 'Click to open game overview',
+          }}
         />
-
-        <GameMetadataPanel categories={categories} tags={tags} />
 
         <GameInteractionsPanel interactions={interactions} />
 
@@ -534,7 +560,7 @@ export function CipherVaultsDashboard({
           </div>
         </GamePurchasesPanel>
 
-        <GameFeaturedPanel featuredImage={featuredImage} title={gameName ?? "Krex’s Cipher Vaults"} description={gameDescription} loreStory={loreStory} />
+        <GameMetadataPanel categories={categories} tags={tags} />
 
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
           <button

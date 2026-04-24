@@ -18,7 +18,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
@@ -124,6 +124,15 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
     [boostersTip, boostersTone, rewardsTip, rewardsTone]
   );
 
+  const openOverview = () => {
+    setTab('overview');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <TooltipProvider>
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -184,6 +193,18 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
                 <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
               </div>
             ) : null}
+
+            <GameOverviewSections
+              gameName={props.gameName ?? 'Token Strategy'}
+              description={props.gameDescription}
+              loreStory={props.loreStory}
+              flow={[
+                'Pay entry once to start the mission chain.',
+                'Pick choices to shape Security/Power/Stealth stats.',
+                'Boosters (tier/deck/optional) multiply outcomes.',
+                'Claim rewards later via Rewards & Points.',
+              ]}
+            />
           </div>
         )}
 
@@ -292,9 +313,15 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
               onClick: () => setTab('boosters'),
             },
           ]}
+          featured={{
+            image: props.featuredImage || undefined,
+            title: props.gameName ?? 'Token Strategy',
+            description: props.gameDescription || undefined,
+            onOpenOverview: openOverview,
+            tooltip: 'Click to open game overview',
+          }}
         />
 
-        <GameMetadataPanel categories={categories} tags={tags} />
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -309,13 +336,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
             )}
           </div>
         </GamePurchasesPanel>
-
-        <GameFeaturedPanel
-          featuredImage={props.featuredImage}
-          title={props.gameName ?? 'Token Strategy'}
-          description={props.gameDescription}
-          loreStory={props.loreStory}
-        />
+        <GameMetadataPanel categories={categories} tags={tags} />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>

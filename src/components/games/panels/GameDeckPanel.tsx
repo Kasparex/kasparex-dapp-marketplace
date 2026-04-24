@@ -2,11 +2,13 @@
 
 import type { ReactNode } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type GameDeckResource = {
   id: string;
   label: string;
   value: string;
+  subValue?: string;
   hint?: string;
   icon?: ReactNode;
   accent?: 'games' | 'kas' | 'krex' | 'grid' | 'diamonds';
@@ -21,7 +23,18 @@ function accentValueClass(accent?: GameDeckResource['accent']) {
   return 'text-emerald-700 dark:text-emerald-300';
 }
 
-export function GameDeckPanel(props: { title?: string; resources: GameDeckResource[]; footer?: ReactNode }) {
+export function GameDeckPanel(props: {
+  title?: string;
+  resources: GameDeckResource[];
+  footer?: ReactNode;
+  featured?: {
+    image?: string;
+    title?: string;
+    description?: string;
+    onOpenOverview?: () => void;
+    tooltip?: string;
+  };
+}) {
   return (
     <GamePanelCard
       title={props.title ?? 'Game Deck'}
@@ -48,12 +61,52 @@ export function GameDeckPanel(props: { title?: string; resources: GameDeckResour
                   </div>
                   {r.hint ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.hint}</div> : null}
                 </div>
-                <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                <div className="text-right">
+                  <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                  {r.subValue ? <div className="mt-0.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-500">{r.subValue}</div> : null}
+                </div>
               </Row>
             </li>
           );
         })}
       </ul>
+
+      {props.featured?.image ? (
+        <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <div className="flex items-start gap-3">
+            <Tooltip content={props.featured.tooltip ?? 'Click to open overview'}>
+              <button
+                type="button"
+                onClick={props.featured.onOpenOverview}
+                className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={props.featured.image}
+                  alt={props.featured.title ?? 'Featured'}
+                  className="h-20 w-28 object-cover transition-transform group-hover:scale-[1.02]"
+                />
+              </button>
+            </Tooltip>
+            <div className="min-w-0">
+              {props.featured.title ? <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{props.featured.title}</div> : null}
+              {props.featured.description ? (
+                <div className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{props.featured.description}</div>
+              ) : null}
+              {props.featured.onOpenOverview ? (
+                <button
+                  type="button"
+                  onClick={props.featured.onOpenOverview}
+                  className="mt-2 text-xs font-bold uppercase tracking-wider text-emerald-700 hover:underline dark:text-emerald-300"
+                >
+                  Open overview
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {props.footer ? <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">{props.footer}</div> : null}
     </GamePanelCard>
   );

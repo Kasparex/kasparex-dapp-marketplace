@@ -18,7 +18,7 @@ export function UpgradesPanel({
   kasBalance,
   kasBalanceLoading,
   krexTier,
-  getPriceAfterDiscount,
+  getKasPriceAfterDiscount,
   buyingItemId,
   revenuePoolPct,
   onBuyKrex,
@@ -29,7 +29,7 @@ export function UpgradesPanel({
   kasBalance: number;
   kasBalanceLoading: boolean;
   krexTier: string;
-  getPriceAfterDiscount: (n: number) => number;
+  getKasPriceAfterDiscount: (n: number) => number;
   buyingItemId: string | null;
   revenuePoolPct: number;
   onBuyKrex: (item: (typeof GARAGE_ITEMS)[0]) => void;
@@ -83,9 +83,9 @@ export function UpgradesPanel({
             return sortBy === 'kas_low' ? da - db : db - da;
           })
           .map((item) => {
-          const priceAfterDiscount = getPriceAfterDiscount(item.price);
-          const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
-          const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
+          const kasPriceAfterDiscount = getKasPriceAfterDiscount(item.priceKAS);
+          const canAffordKREX = canPayWithL1 && krexL1Balance >= item.price;
+          const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= kasPriceAfterDiscount * 0.999;
           const isBuying = buyingItemId === item.id;
 
           return (
@@ -107,11 +107,15 @@ export function UpgradesPanel({
                 { label: 'Type', value: item.type.toUpperCase() },
               ]}
               priceOptions={[
-                { currency: 'KAS', unitPrice: item.priceKAS, disabled: !canAffordKAS || kasBalanceLoading },
+                {
+                  currency: 'KAS',
+                  unitPrice: kasPriceAfterDiscount,
+                  originalUnitPrice: item.priceKAS,
+                  disabled: !canAffordKAS || kasBalanceLoading,
+                },
                 {
                   currency: 'KREX',
-                  unitPrice: priceAfterDiscount,
-                  originalUnitPrice: item.price,
+                  unitPrice: item.price,
                   disabled: !canAffordKREX,
                 },
               ]}

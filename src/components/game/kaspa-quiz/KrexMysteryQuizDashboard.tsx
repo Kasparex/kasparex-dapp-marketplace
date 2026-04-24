@@ -18,7 +18,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
@@ -230,6 +230,15 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
     [boostersTip, boostersTone, rewardsTip, rewardsTone]
   );
 
+  const openOverview = () => {
+    setTab('overview');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <TooltipProvider>
     <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -301,6 +310,18 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 to connect clues to the world.
               </p>
             </div>
+
+            <GameOverviewSections
+              gameName={props.gameName ?? 'Mystery Quiz'}
+              description={props.gameDescription}
+              loreStory={props.loreStory}
+              flow={[
+                'Pay entry once to begin the case run.',
+                'Answer questions across levels to build score.',
+                'Boosters (tier/deck/optional) multiply results.',
+                'Claim rewards later via Rewards & Points.',
+              ]}
+            />
           </div>
         )}
 
@@ -368,7 +389,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 <button
                   type="button"
                   disabled={selected == null}
-                  className="k-cta-primary h-12 px-6 text-sm disabled:opacity-50 disabled:grayscale"
+                  className="k-cta-games h-12 px-6 text-sm disabled:opacity-50 disabled:grayscale"
                   onClick={() => {
                     if (selected == null) return;
                     const ok = selected === q.answerIndex;
@@ -398,7 +419,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                   <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Case closed. Final score: {score}.</p>
                   <button
                     type="button"
-                    className="k-cta-primary mt-4 h-12 w-full text-sm"
+                    className="k-cta-games mt-4 h-12 w-full text-sm"
                     onClick={() => {
                       setLevelIndex(0);
                       setQuestionIndex(0);
@@ -445,9 +466,15 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
               onClick: () => setTab('boosters'),
             },
           ]}
+          featured={{
+            image: props.featuredImage || undefined,
+            title: props.gameName ?? 'Mystery Quiz',
+            description: props.gameDescription || undefined,
+            onOpenOverview: openOverview,
+            tooltip: 'Click to open game overview',
+          }}
         />
 
-        <GameMetadataPanel categories={categories} tags={tags} />
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -462,13 +489,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
             )}
           </div>
         </GamePurchasesPanel>
-
-        <GameFeaturedPanel
-          featuredImage={props.featuredImage}
-          title={props.gameName ?? 'Mystery Quiz'}
-          description={props.gameDescription}
-          loreStory={props.loreStory}
-        />
+        <GameMetadataPanel categories={categories} tags={tags} />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>

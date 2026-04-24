@@ -140,7 +140,7 @@ export function CipherGridPuzzle({
           type="button"
           disabled={!solved}
           onClick={() => void onSolved(moves)}
-          className="k-cta-primary disabled:opacity-50 disabled:grayscale"
+          className="k-cta-games disabled:opacity-50 disabled:grayscale"
         >
           {solved ? 'Submit solution' : 'Solve to submit'}
         </button>

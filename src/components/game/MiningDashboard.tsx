@@ -20,7 +20,7 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GameTabs } from '@/components/games/layout/GameTabs';
 import { IconComments, IconOverview, IconPower, IconRewards, IconShop, IconWorkers } from '@/components/games/icons/TabIcons';
 
@@ -70,7 +70,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     krexL1Balance,
     kasBalance,
     krexTier,
-    getPriceAfterDiscount,
+    getKasPriceAfterDiscount,
     refineMinDiamonds,
     revenuePoolPct,
     buyingItemId,
@@ -120,6 +120,15 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
   const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
+
+  const openOverview = () => {
+    setTab('overview');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <GameTooltipProvider>
@@ -182,7 +191,19 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           )}
 
           {tab === 'overview' && (
-            <OverviewPanel tycon={tycon} stats={stats} miningAllowed={miningAllowed} />
+            <div className="space-y-6">
+              <OverviewPanel tycon={tycon} stats={stats} miningAllowed={miningAllowed} />
+              <GameOverviewSections
+                gameName={gameName ?? 'Diamond Veins'}
+                description={gameDescription}
+                loreStory={loreStory}
+                flow={[
+                  'Mine diamonds continuously (workers, power, boosts).',
+                  'Refine when you reach the minimum threshold to mint refinement points.',
+                  'Use checkpoints/points to claim GRID rewards later in Rewards & Points.',
+                ]}
+              />
+            </div>
           )}
           {tab === 'mining' && (
             <MiningPanel
@@ -230,7 +251,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               kasBalance={kasBalance}
               kasBalanceLoading={kasBalanceLoading}
               krexTier={krexTier}
-              getPriceAfterDiscount={getPriceAfterDiscount}
+              getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               buyingItemId={buyingItemId}
               revenuePoolPct={revenuePoolPct}
               onBuyKrex={async (item) => {
@@ -278,6 +299,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 id: 'diamonds',
                 label: 'Diamonds',
                 value: Math.floor(diamonds).toLocaleString(),
+                subValue: `${Math.floor(refinementPointsTotal ?? 0).toLocaleString()} refinement pts`,
                 hint: 'Click to open Mining',
                 accent: 'diamonds',
                 icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
@@ -313,9 +335,15 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 Values update live as you mine, refine, and buy boosts.
               </span>
             }
+            featured={{
+              image: featuredImage || undefined,
+              title: gameName ?? 'Diamond Veins',
+              description: gameDescription || undefined,
+              onOpenOverview: openOverview,
+              tooltip: 'Click to open game overview',
+            }}
           />
 
-          <GameMetadataPanel categories={categories} tags={tags} />
           <GameInteractionsPanel interactions={connections} />
           <GamePurchasesPanel>
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -335,7 +363,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               )}
             </div>
           </GamePurchasesPanel>
-          <GameFeaturedPanel featuredImage={featuredImage} title={gameName ?? 'Diamond Veins'} description={gameDescription} loreStory={loreStory} />
+          <GameMetadataPanel categories={categories} tags={tags} />
 
           <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
             <button

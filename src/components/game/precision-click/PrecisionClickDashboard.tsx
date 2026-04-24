@@ -17,7 +17,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
-import { GameFeaturedPanel } from '@/components/games/panels/GameFeaturedPanel';
+import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
@@ -99,6 +99,15 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
     ],
     [boostersTip, boostersTone, rewardsTip, rewardsTone]
   );
+
+  const openOverview = () => {
+    setTab('overview');
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      // ignore
+    }
+  };
 
   function spawnTarget() {
     const el = arenaRef.current;
@@ -222,6 +231,18 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
                 <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.loreStory}</p>
               </div>
             ) : null}
+
+            <GameOverviewSections
+              gameName={props.gameName ?? 'Precision Click'}
+              description={props.gameDescription}
+              loreStory={props.loreStory}
+              flow={[
+                'Pay entry once to unlock the training run.',
+                'Play 30-second sessions and aim for a high score.',
+                'Boosters (tier/deck/optional) multiply final score.',
+                'Claim rewards later via Rewards & Points.',
+              ]}
+            />
           </div>
         )}
 
@@ -281,7 +302,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
             >
               {!running ? (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <button type="button" className="k-cta-primary h-12 px-6 text-sm" onClick={() => setRunning(true)}>
+                  <button type="button" className="k-cta-games h-12 px-6 text-sm" onClick={() => setRunning(true)}>
                     Start 30s run
                   </button>
                 </div>
@@ -334,9 +355,15 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
               onClick: () => setTab('boosters'),
             },
           ]}
+          featured={{
+            image: props.featuredImage || undefined,
+            title: props.gameName ?? 'Precision Click',
+            description: props.gameDescription || undefined,
+            onOpenOverview: openOverview,
+            tooltip: 'Click to open game overview',
+          }}
         />
 
-        <GameMetadataPanel categories={categories} tags={tags} />
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -351,13 +378,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
             )}
           </div>
         </GamePurchasesPanel>
-
-        <GameFeaturedPanel
-          featuredImage={props.featuredImage}
-          title={props.gameName ?? 'Precision Click'}
-          description={props.gameDescription}
-          loreStory={props.loreStory}
-        />
+        <GameMetadataPanel categories={categories} tags={tags} />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>

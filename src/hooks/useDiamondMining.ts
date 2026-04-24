@@ -249,10 +249,12 @@ export function useDiamondMining() {
     return { points: refinementPoints, amount };
   }, [walletState.address]);
 
-  const getPriceAfterDiscount = useCallback(
-    (priceKrex: number) => {
+  const getKasPriceAfterDiscount = useCallback(
+    (priceKas: number) => {
       const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
-      return Math.max(0, Math.floor(priceKrex * (1 - discountPct / 100)));
+      const discounted = priceKas * (1 - discountPct / 100);
+      // Keep KAS pricing stable; UI will format to 4 decimals.
+      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
     },
     [krexTier]
   );
@@ -307,20 +309,19 @@ export function useDiamondMining() {
 
   const buyBoost = useCallback(
     async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
-      const priceAfterDiscount = getPriceAfterDiscount(priceKrex);
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) {
         console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
         return;
       }
-      if (krexL1Balance < priceAfterDiscount) {
+      if (krexL1Balance < priceKrex) {
         return;
       }
 
       setBuyingItemId(itemId);
 
       try {
-        const amountInSmallestUnit = Math.floor(priceAfterDiscount * Math.pow(10, KREX_DECIMALS));
+        const amountInSmallestUnit = Math.floor(priceKrex * Math.pow(10, KREX_DECIMALS));
         const inscribeJson = {
           p: 'KRC-20',
           op: 'transfer',
@@ -344,7 +345,7 @@ export function useDiamondMining() {
             detail: {
               type: 'garage-purchase',
               item: name,
-              cost: priceAfterDiscount,
+              cost: priceKrex,
               txHash,
               revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
               status: 'completed',
@@ -352,7 +353,7 @@ export function useDiamondMining() {
           })
         );
 
-        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', priceAfterDiscount);
+        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', priceKrex);
       } catch (err) {
         console.error('[Diamond Veins] Garage purchase failed:', err);
         throw err;
@@ -360,22 +361,23 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, getPriceAfterDiscount, applyGaragePurchase]
+    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, applyGaragePurchase]
   );
 
   const buyBoostWithKAS = useCallback(
     async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
+      const priceAfterDiscountKas = getKasPriceAfterDiscount(priceKAS);
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) {
         console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
         return;
       }
-      if (kasBalance < priceKAS) return;
+      if (kasBalance < priceAfterDiscountKas) return;
 
       setBuyingItemId(itemId);
 
       try {
-        const sompi = Math.round(priceKAS * SOMPI_PER_KAS);
+        const sompi = Math.round(priceAfterDiscountKas * SOMPI_PER_KAS);
         const to = DIAMOND_VEINS_GARAGE_ADDRESS.replace(/^kaspa:/i, '');
         const sent = await sendKaspaTransaction(walletState.provider!, {
           to,
@@ -391,7 +393,7 @@ export function useDiamondMining() {
             detail: {
               type: 'garage-purchase',
               item: name,
-              costKAS: priceKAS,
+              costKAS: priceAfterDiscountKas,
               txHash,
               revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
               status: 'completed',
@@ -399,7 +401,7 @@ export function useDiamondMining() {
           })
         );
 
-        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KAS', priceKAS);
+        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KAS', priceAfterDiscountKas);
         void refreshKasBalance();
       } catch (err) {
         console.error('[Diamond Veins] Garage KAS purchase failed:', err);
@@ -408,7 +410,7 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance, applyGaragePurchase]
+    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance, applyGaragePurchase, getKasPriceAfterDiscount]
   );
 
   const startMiningRun = useCallback((optionIndex: number) => {
@@ -461,7 +463,7 @@ export function useDiamondMining() {
     krexBalance,
     krexL1Balance,
     krexTier,
-    getPriceAfterDiscount,
+    getKasPriceAfterDiscount,
     refineMinDiamonds: REFINE_MIN_DIAMONDS,
     revenuePoolPct: Math.round(GARAGE_REVENUE_TO_POOL_PCT * 100),
     buyingItemId,
