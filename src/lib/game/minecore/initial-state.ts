@@ -50,6 +50,7 @@ export function createInitialMinecoreState(): MinecoreState {
     plantSlots: Array.from({ length: MINECORE_DEFAULT_PLANT_SLOTS }, (_, i) => createEmptySlot(i)),
     nextSlotCostKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
     nftSlots,
+    gridLedger: [],
     automation: { autoRestart: false, foremanActive: false },
     lastConnectedAt: null,
     lastConnectedAddress: null,

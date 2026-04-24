@@ -77,6 +77,16 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
       : base.automation,
     lastConnectedAt: typeof input.lastConnectedAt === 'number' ? input.lastConnectedAt : base.lastConnectedAt,
     lastConnectedAddress: typeof input.lastConnectedAddress === 'string' ? input.lastConnectedAddress : base.lastConnectedAddress,
+    gridLedger: Array.isArray(input.gridLedger)
+      ? (input.gridLedger.filter((e) => e && typeof e === 'object') as any[]).map((e) => ({
+          id: typeof e.id === 'string' ? e.id : `ledger_${Math.random().toString(36).slice(2)}`,
+          at: typeof e.at === 'number' ? e.at : 0,
+          refinementPoints: typeof e.refinementPoints === 'number' ? e.refinementPoints : 0,
+          diamondsRefined: typeof e.diamondsRefined === 'number' ? e.diamondsRefined : 0,
+          gridCheckpointScore: typeof e.gridCheckpointScore === 'number' ? e.gridCheckpointScore : 0,
+          note: typeof e.note === 'string' ? e.note : '',
+        }))
+      : base.gridLedger,
   };
 
   return deriveState(out, Date.now());

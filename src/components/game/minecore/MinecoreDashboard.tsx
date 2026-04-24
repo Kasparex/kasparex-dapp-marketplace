@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
@@ -11,17 +12,19 @@ import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { InventoryPanel } from '@/components/game/minecore/InventoryPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
-import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
+import { MinecoreArticle } from '@/components/game/minecore/MinecoreArticle';
+import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPanel';
+import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
-import { MINECORE_BATTERIES } from '@/lib/game/minecore/config';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
   { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
+  { id: 'power', label: 'Power', icon: <IconPower /> },
   { id: 'workers', label: 'Workers', icon: <IconWorkers /> },
   { id: 'inventory', label: 'Inventory', icon: <IconSignal /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
@@ -33,12 +36,11 @@ type TabId = (typeof TABS)[number]['id'];
 
 export function MinecoreDashboard(_props: {
   featuredImage?: string;
-  loreStory?: string;
   gameDescription?: string;
   game?: any;
   gameName?: string;
 }) {
-  const { state, actions, lastPaymentError, getKasPriceAfterDiscount } = useMinecore();
+  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet } = useMinecore();
   const [tab, setTab] = useState<TabId>('overview');
 
   const pendingGrid = 0;
@@ -80,22 +82,6 @@ export function MinecoreDashboard(_props: {
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
 
-  const miningStats = useMemo(() => {
-    const now = Date.now();
-    const active = state.plantSlots.filter((p) => p.cycle && now < p.cycle.endAtMs);
-    const flow = active.reduce((acc, p) => acc + (p.cycle ? p.cycle.expectedDiamonds / Math.max(1, p.cycle.durationMs) : 0), 0);
-
-    const cap = state.plantSlots.reduce((acc, p) => {
-      if (!p.unlocked || !p.setup.batteryId) return acc;
-      const b = MINECORE_BATTERIES[p.setup.batteryId];
-      return acc + (b?.powerCapacity ?? 0);
-    }, 0);
-    const used = active.length;
-    const efficiency = used <= cap || used === 0 ? 1 : cap / used;
-
-    return { flowPerSecond: flow, powerUsed: used, powerCap: cap, powerEfficiency: efficiency };
-  }, [state.plantSlots]);
-
   return (
     <TooltipProvider>
       <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
@@ -123,19 +109,18 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'overview' && (
             <div className="space-y-6">
-              <GameOverviewSections
-                gameName={_props.gameName ?? 'Minecore'}
-                description={_props.gameDescription}
-                loreStory={_props.loreStory}
-                featuredImage={_props.featuredImage}
-                flow={[
-                  'Craft parts and modules from ingredients.',
-                  'Unlock a plant slot with KAS and install machine, power, workers, and modules.',
-                  'Start a mining cycle, then extract diamonds when complete.',
-                  'Refine diamonds into points, then redeem output into GRID (V1 rules).',
-                  'Expand slots and upgrade parts to grow your mining complex.',
-                ]}
-              />
+              <GamePanelCard title={_props.gameName ?? 'Minecore'} hint={_props.gameDescription}>
+                <MinecoreArticle featuredImage={_props.featuredImage} gameName={_props.gameName} hint={_props.gameDescription} />
+              </GamePanelCard>
+              <GamePanelCard title="Game flow" hint="Core loop at a glance.">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
+                  <li>Craft parts and modules from ingredients.</li>
+                  <li>Unlock a plant slot with KAS and install machine, power, workers, and modules.</li>
+                  <li>Start a mining cycle, then extract diamonds when complete.</li>
+                  <li>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
+                  <li>Expand slots and upgrade parts to grow your mining complex.</li>
+                </ul>
+              </GamePanelCard>
             </div>
           )}
 
@@ -147,35 +132,12 @@ export function MinecoreDashboard(_props: {
                 </div>
               ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Flow rate</div>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{miningStats.flowPerSecond.toFixed(3)} D/s</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Power</div>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
-                    {miningStats.powerUsed.toFixed(0)} / {miningStats.powerCap.toFixed(0)}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Efficiency {(miningStats.powerEfficiency * 100).toFixed(0)}%</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Automation</div>
-                  <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                    {state.automation.autoRestart ? 'Auto-restart on' : 'Auto-restart off'}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Foreman active {state.automation.foremanActive ? 'Yes' : 'No'}
-                  </p>
-                </div>
-              </div>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 {state.plantSlots.map((slot) => (
                   <PlantSlotCard
                     key={slot.id}
+                    minecoreState={state}
                     slot={slot}
-                    diamondsBalance={state.diamondsBalance}
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
@@ -215,9 +177,19 @@ export function MinecoreDashboard(_props: {
             </div>
           )}
 
+          {tab === 'power' && (
+            <MinecorePowerPanel
+              state={state}
+              onDemoTopUpFirstPlant={() => {
+                actions.topUpPower(0, 5);
+              }}
+            />
+          )}
+
           {tab === 'workers' && (
             <WorkersPanel
               slots={state.nftSlots}
+              slottedMetadata={slottedMetadata}
               autoRestart={state.automation.autoRestart}
               foremanActive={state.automation.foremanActive}
               onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
@@ -262,24 +234,31 @@ export function MinecoreDashboard(_props: {
           {tab === 'fabrication' && <FabricationPanel state={state} onCraft={actions.craftRecipe} />}
 
           {tab === 'rewards' && (
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Redeem</h3>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">V1: redeem refinement points into GRID redeemable.</p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => actions.redeemGrid(Math.floor(state.refinementPointsTotal))}
-                  className="k-cta-games h-11 px-6 text-sm"
-                >
-                  Redeem all points
-                </button>
-                <button
-                  type="button"
-                  onClick={() => actions.refine(Math.min(100, Math.floor(state.diamondsBalance)))}
-                  className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
-                >
-                  Refine 100 diamonds
-                </button>
+            <div className="space-y-6">
+              <MinecoreRewardsPanel
+                address={wallet.address ?? undefined}
+                refinementPointsTotal={state.refinementPointsTotal}
+                localLedger={state.gridLedger ?? []}
+              />
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Redeem</h3>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">V1: redeem refinement points into GRID redeemable.</p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => actions.redeemGrid(Math.floor(state.refinementPointsTotal))}
+                    className="k-cta-games h-11 px-6 text-sm"
+                  >
+                    Redeem all points
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => actions.refine(Math.min(100, Math.floor(state.diamondsBalance)))}
+                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
+                  >
+                    Refine 100 diamonds
+                  </button>
+                </div>
               </div>
             </div>
           )}

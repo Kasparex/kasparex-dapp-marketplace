@@ -7,6 +7,7 @@ import {
   MINECORE_RECIPES,
 } from './config';
 import { computePlantDurationMs, computePlantExpectedDiamonds, computePlantReady, deriveSlotStatus } from './compute';
+import type { GridLedgerEntry } from '@/lib/game/engine';
 import type {
   MinecoreBatteryId,
   MinecoreEvent,
@@ -46,6 +47,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     },
     plantSlots: state.plantSlots.map(cloneSlot),
     nftSlots: state.nftSlots ? state.nftSlots.map((x) => ({ ...x })) : [],
+    gridLedger: [...(state.gridLedger ?? [])],
     automation: state.automation ? { ...state.automation } : { autoRestart: false, foremanActive: false },
   };
 
@@ -214,6 +216,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       s.diamondsBalance -= amt;
       const points = amt * MINECORE_REFINE_RATE;
       s.refinementPointsTotal += points;
+      const gridCheckpointScore = points;
+      const entry: GridLedgerEntry = {
+        id: `minecore_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
+        at: now,
+        refinementPoints: points,
+        diamondsRefined: amt,
+        gridCheckpointScore,
+        note: 'Minecore refine checkpoint — GRID distribution uses RewardManager / FeeRouter patterns on Kasplex L2.',
+      };
+      s.gridLedger = [...s.gridLedger, entry].slice(-200);
       return rederive(s, now);
     }
     case 'RedeemGrid': {

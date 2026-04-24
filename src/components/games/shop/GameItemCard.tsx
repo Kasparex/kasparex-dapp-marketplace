@@ -27,6 +27,8 @@ export function GameItemCard(props: {
   icon?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
+  /** Optional overlay in the media area (e.g. top-right expected yield). */
+  mediaOverlay?: React.ReactNode;
   title: string;
   category: string;
   description: React.ReactNode;
@@ -92,6 +94,9 @@ export function GameItemCard(props: {
             {props.category}
           </span>
         </div>
+        {props.mediaOverlay ? (
+          <div className="pointer-events-none absolute right-3 top-3 z-20 max-w-[55%] text-right sm:right-4 sm:top-4">{props.mediaOverlay}</div>
+        ) : null}
       </KxListingCardMedia>
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">

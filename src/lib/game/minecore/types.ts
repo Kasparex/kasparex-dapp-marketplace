@@ -1,3 +1,5 @@
+import type { GridLedgerEntry } from '@/lib/game/engine';
+
 export type MinecoreIngredient =
   | 'crystalDust'
   | 'alloyPlates'
@@ -85,6 +87,8 @@ export type MinecoreState = {
   plantSlots: PlantSlotState[];
   nextSlotCostKas: number;
   nftSlots: import('@/lib/game/engine').MiningSlot[];
+  /** Refine checkpoints for GRID audit trail (same shape as Diamond Veins). */
+  gridLedger: GridLedgerEntry[];
   automation: MinecoreAutomationState;
   lastConnectedAt: number | null;
   lastConnectedAddress: string | null;

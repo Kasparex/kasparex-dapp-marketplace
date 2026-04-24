@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createInitialMinecoreState, hydrateMinecoreState, applyMinecoreEvent, deriveState, type MinecoreState, type PlantSlotState } from '@/lib/game/minecore';
+import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -83,6 +84,27 @@ export function useMinecore() {
   }, []);
 
   const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
+  const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      for (const slot of derived.nftSlots ?? []) {
+        if (slot.nftId == null || !slot.collection) continue;
+        try {
+          const meta = await fetchNFTMetadata(slot.collection, slot.nftId);
+          if (!cancelled && meta) {
+            setSlottedMetadata((prev) => (prev[slot.nftId!] ? prev : { ...prev, [slot.nftId!]: meta }));
+          }
+        } catch {
+          // ignore
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [derived.nftSlots]);
 
   const payKasBestEffort = useCallback(
     async (params: { amountKas: number; skuId: string; purchaseType: 'slot' | 'unlock' | 'other' }) => {
@@ -260,6 +282,7 @@ export function useMinecore() {
 
   return {
     state: derived,
+    slottedMetadata,
     miningAllowed,
     wallet: {
       isConnected: walletState.isConnected,
