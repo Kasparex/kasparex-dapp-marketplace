@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
+import { GameItemCard } from '@/components/games/shop/GameItemCard';
 
 const GARAGE_ITEMS = [
   { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: '⚡', type: 'yield' as const, mult: 0.25 },
@@ -63,54 +64,51 @@ export function UpgradesPanel({
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {GARAGE_ITEMS.map((item) => {
               const priceAfterDiscount = getPriceAfterDiscount(item.price);
               const canAffordKREX = canPayWithL1 && krexL1Balance >= priceAfterDiscount;
               const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= item.priceKAS * 0.999;
-              const hasDiscount = priceAfterDiscount < item.price;
               const isBuying = buyingItemId === item.id;
 
               return (
-                <div
+                <GameItemCard
                   key={item.id}
-                  className="rounded-2xl border border-zinc-200 bg-white p-4 transition-colors dark:border-zinc-800 dark:bg-zinc-800/30"
-                >
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-200 text-xl dark:bg-zinc-700">{item.icon}</div>
-                      <div>
-                        <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{item.name}</h4>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.desc}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="text-zinc-500 dark:text-zinc-400">Pay:</span>
-                    {hasDiscount && <span className="text-zinc-400 line-through dark:text-zinc-500">{item.price} KREX</span>}
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-500">{priceAfterDiscount} KREX</span>
-                    <span className="text-zinc-400 dark:text-zinc-500">or</span>
-                    <span className="font-semibold text-amber-600 dark:text-amber-400">{item.priceKAS} KAS</span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={!canPayWithL1 || !canAffordKREX || isBuying}
-                      onClick={() => void onBuyKrex(item)}
-                      className="rounded-lg border border-emerald-500/40 bg-emerald-500/20 px-3 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-400"
-                    >
-                      {isBuying ? '…' : 'Pay KREX'}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!canPayWithL1 || kasBalanceLoading || !canAffordKAS || isBuying}
-                      onClick={() => void onBuyKas(item)}
-                      className="rounded-lg border border-amber-500/40 bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-400"
-                    >
-                      {isBuying ? '…' : 'Pay KAS'}
-                    </button>
-                  </div>
-                </div>
+                  icon={<span className="text-3xl">{item.icon}</span>}
+                  title={item.name}
+                  category="Garage"
+                  description={
+                    <span>
+                      {item.desc}{' '}
+                      <span className="text-zinc-500 dark:text-zinc-500">
+                        · pool +{revenuePoolPct}%
+                      </span>
+                    </span>
+                  }
+                  effects={[
+                    { label: 'Per unit', value: item.desc },
+                    { label: 'Type', value: item.type.toUpperCase() },
+                  ]}
+                  priceOptions={[
+                    { currency: 'KAS', unitPrice: item.priceKAS, disabled: !canAffordKAS || kasBalanceLoading },
+                    {
+                      currency: 'KREX',
+                      unitPrice: priceAfterDiscount,
+                      originalUnitPrice: item.price,
+                      disabled: !canAffordKREX,
+                    },
+                  ]}
+                  defaultCurrency="KAS"
+                  buyDisabled={!canPayWithL1 || isBuying}
+                  buyLabel={isBuying ? '…' : 'Buy'}
+                  onBuy={async ({ currency }) => {
+                    if (currency === 'KREX') {
+                      await onBuyKrex(item);
+                      return;
+                    }
+                    await onBuyKas(item);
+                  }}
+                />
               );
             })}
           </div>

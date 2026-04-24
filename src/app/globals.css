@@ -592,6 +592,17 @@
 .k-cta-primary:hover {
   filter: brightness(1.05);
 }
+.k-cta-games {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl font-bold text-sm uppercase tracking-wider transition-all;
+  background-color: rgb(16, 185, 129); /* emerald-500 */
+  color: #fff;
+}
+.k-cta-games:hover {
+  filter: brightness(1.05);
+}
+.dark .k-cta-games {
+  background-color: rgb(16, 185, 129); /* keep consistent on dark */
+}
 .k-cta-secondary {
   @apply inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider border transition-all text-zinc-300 border-zinc-600 hover:border-[#02abb8]/50 hover:text-white dark:text-zinc-400 dark:border-zinc-500;
 }
