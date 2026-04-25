@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777125266-ffe4455",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unified Framework: Add sorting and filtering to Boosters and Rewards tabs in all custom game dashboards (by Kasparex)",
+      "date": "2026-04-25T15:54:08+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777124502-84f0cca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unified sorting: add filter bar to Boosters and Workers tabs across all games (by Kasparex)",
