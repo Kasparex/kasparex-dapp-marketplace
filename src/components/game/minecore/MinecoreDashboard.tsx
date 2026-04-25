@@ -74,7 +74,7 @@ export function MinecoreDashboard(_props: {
     if (miningCategory !== 'all') {
       if (miningCategory === 'Unlocked') list = list.filter(s => s.unlocked);
       if (miningCategory === 'Locked') list = list.filter(s => !s.unlocked);
-      if (miningCategory === 'Active') list = list.filter(s => s.session.isMining);
+      if (miningCategory === 'Active') list = list.filter(s => s.status === 'MiningActive');
     }
     if (miningSort === 'price_asc') {
       list.sort((a, b) => a.unlockCostKas - b.unlockCostKas);
