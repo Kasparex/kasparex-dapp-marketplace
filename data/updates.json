@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777159449-25fb7c7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix Redeem tab style to match game panel consistency (by Kasparex)",
+      "date": "2026-04-26T01:23:52+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777158602-4856dcc",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix TS errors: add computeLiveBatteryChargeMs import and ModuleConfig type cast (by Kasparex)",
