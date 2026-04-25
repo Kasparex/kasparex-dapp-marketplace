@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { MiningSlot } from '@/lib/game/engine';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -9,6 +9,7 @@ import { WORKER_TIER_MULTIPLIERS, OPERATOR_TIER_MULTIPLIERS } from '@/lib/game/d
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { NFTSlotSelector } from '@/components/game/NFTSlotSelector';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 export function WorkersPanel(props: {
   slots: MiningSlot[];
@@ -21,6 +22,44 @@ export function WorkersPanel(props: {
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const foremanReady = props.slots.some((s) => s.type === 'foreman' && s.nftId != null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
+
+  const filteredSlots = useMemo(() => {
+    let list = props.slots.map((s, idx) => ({ ...s, originalIndex: idx }));
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(slot => {
+        const meta = slot.nftId !== null ? props.slottedMetadata[slot.nftId] : null;
+        return (
+          slot.type.toLowerCase().includes(q) ||
+          slot.nftId?.toString().includes(q) ||
+          meta?.name?.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'Active') list = list.filter(s => s.nftId !== null);
+      if (statusFilter === 'Empty') list = list.filter(s => s.nftId === null);
+      if (statusFilter === 'Worker') list = list.filter(s => s.type === 'worker');
+      if (statusFilter === 'Operator') list = list.filter(s => s.type === 'operator');
+      if (statusFilter === 'Foreman') list = list.filter(s => s.type === 'foreman');
+    }
+
+    // Recommended is original index
+    if (sortBy === 'price_asc') {
+      // In workers case, maybe sort by ID or yield? Let's do ID
+      list.sort((a, b) => (a.nftId ?? 0) - (b.nftId ?? 0));
+    } else if (sortBy === 'price_desc') {
+      list.sort((a, b) => (b.nftId ?? 0) - (a.nftId ?? 0));
+    }
+
+    return list;
+  }, [props.slots, searchQuery, statusFilter, sortBy, props.slottedMetadata]);
 
   return (
     <div className="space-y-6">
@@ -54,8 +93,19 @@ export function WorkersPanel(props: {
         <p className="text-xs text-amber-700 dark:text-amber-400">Assign a Foreman NFT below to unlock the auto-restart policy (or keep it off).</p>
       )}
 
+      <CardsFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={statusFilter}
+        onCategoryChange={setStatusFilter}
+        categories={['Active', 'Empty', 'Worker', 'Operator', 'Foreman']}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {props.slots.map((slot, idx) => {
+        {filteredSlots.map((slot) => {
+          const idx = slot.originalIndex;
           const meta = slot.nftId !== null ? props.slottedMetadata[slot.nftId] : null;
           const tier = slot.nftId !== null && slot.collection ? getNFTTier(slot.collection, slot.nftId, meta) : null;
           const tierKey = (tier ?? 'regular') as keyof typeof WORKER_TIER_MULTIPLIERS;
