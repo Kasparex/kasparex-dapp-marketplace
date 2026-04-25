@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777119094-8d05de0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: docs: add How it Works section to games and simplify reward deck (by Kasparex)",
+      "date": "2026-04-25T14:11:14+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777117084-50e53d0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: missing redeemGrid destructuring in MiningDashboard (by Kasparex)",
