@@ -6,6 +6,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
+import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
