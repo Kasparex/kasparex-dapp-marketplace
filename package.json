@@ -51,6 +51,7 @@
     "@tanstack/react-query": "^5.81.5",
     "@wagmi/core": "^2.22.1",
     "leaflet": "^1.9.4",
+    "lucide-react": "^1.11.0",
     "next": "15.4.10",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
