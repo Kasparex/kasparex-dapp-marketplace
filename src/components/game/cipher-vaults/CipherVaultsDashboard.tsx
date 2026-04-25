@@ -158,7 +158,9 @@ export function CipherVaultsDashboard({
           ]}
           value={tab}
           onChange={setTab}
-               {tab === 'overview' && (
+        />
+
+        {tab === 'overview' && (
           <div className="space-y-6">
             <GamePanelCard title="How to play" hint="Run → solve → checkpoint.">
               <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
