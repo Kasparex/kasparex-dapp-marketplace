@@ -281,6 +281,7 @@ export function PlantSlotCard(props: {
   ) : null;
 
   return (
+    <>
     <GameItemCard
       icon={
         <div
@@ -406,8 +407,9 @@ export function PlantSlotCard(props: {
         if (s.status === 'NeedsPower')      return props.onTopUpWithKAS({ amountKas: 1, added: 1 });
         if (s.status === 'NeedsRepair')     return props.onRepairWithKAS({ amountKas: 2 });
       }}
-    >
-      {/* ── Selection Modals ── */}
+    />
+
+    {/* ── Selection Modals ── */}
       <SelectionModal
         isOpen={activeModal === 'preset'}
         onClose={() => setActiveModal(null)}
@@ -540,6 +542,6 @@ export function PlantSlotCard(props: {
           );
         })}
       </SelectionModal>
-    </GameItemCard>
+    </>
   );
 }
