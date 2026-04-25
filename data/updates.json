@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777136019-5763c88",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: ui(games): chevron scroll tabs, emerald KAS accent, deck info modal, reward weight capsules, overview How-to-play (by Kasparex)",
+      "date": "2026-04-25T18:53:19+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777134768-b170306",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: ui(games): make tabs single-line horizontally scrollable across all game dashboards (by Kasparex)",
