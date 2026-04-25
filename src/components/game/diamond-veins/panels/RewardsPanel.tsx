@@ -8,12 +8,18 @@ import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 
 export function RewardsPanel({
   address,
+  diamondsBalance,
   refinementPointsTotal,
   localLedger,
+  onRefine,
+  onRedeem,
 }: {
   address: string | undefined;
+  diamondsBalance: number;
   refinementPointsTotal: number;
   localLedger: GridLedgerEntry[];
+  onRefine?: (amount: number) => void;
+  onRedeem?: (points: number) => void;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
 
@@ -35,7 +41,12 @@ export function RewardsPanel({
 
   return (
     <div className="space-y-6">
-      <RewardsRedeemSection diamondsBalance={refinementPointsTotal}>
+      <RewardsRedeemSection 
+        diamondsBalance={diamondsBalance} 
+        refinementPointsBalance={refinementPointsTotal}
+        onRefine={onRefine}
+        onRedeem={onRedeem}
+      >
 
       <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left text-sm">

@@ -109,6 +109,7 @@ export type GameEvent =
   | { type: 'UpgradePower'; addedMw: number }
   | { type: 'SetAutomation'; patch: Partial<AutomationState> }
   | { type: 'RegisterReceipt'; receiptId: string; at: number }
+  | { type: 'RedeemGrid'; points: number; at: number }
   | { type: 'HeartbeatConnect'; address: string; at: number }
   | { type: 'SyncVersion'; version: number };
 

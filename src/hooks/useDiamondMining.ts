@@ -445,6 +445,10 @@ export function useDiamondMining() {
     setTycon((s) => applyEvent(s, { type: 'UpgradePower', addedMw: 4 }));
   }, []);
 
+  const redeemGrid = useCallback((points: number) => {
+    setTycon((s) => applyEvent(s, { type: 'RedeemGrid', points, at: Date.now() }));
+  }, []);
+
   return {
     tycon,
     diamonds: tycon.diamonds,
@@ -496,5 +500,6 @@ export function useDiamondMining() {
     setAutoRestartMiningRun,
     buyExtraDrill,
     buyPowerUpgrade,
+    redeemGrid,
   };
 }

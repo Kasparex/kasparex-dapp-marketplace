@@ -153,6 +153,12 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       next.version = state.version + 1;
       return next;
     }
+    case 'RedeemGrid': {
+      if (state.refinementPointsTotal < event.points) return state;
+      next.refinementPointsTotal = state.refinementPointsTotal - event.points;
+      next.version = state.version + 1;
+      return next;
+    }
     case 'SyncVersion': {
       next.version = Math.max(state.version, event.version);
       return next;

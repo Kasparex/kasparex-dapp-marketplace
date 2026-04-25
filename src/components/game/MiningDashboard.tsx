@@ -274,7 +274,14 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             />
           )}
           {tab === 'rewards' && (
-            <RewardsPanel address={walletState.address ?? undefined} refinementPointsTotal={refinementPointsTotal} localLedger={gridLedger} />
+            <RewardsPanel 
+              address={walletState.address ?? undefined} 
+              diamondsBalance={diamonds}
+              refinementPointsTotal={refinementPointsTotal} 
+              localLedger={gridLedger} 
+              onRefine={refineDiamonds}
+              onRedeem={redeemGrid}
+            />
           )}
           {tab === 'comments' && (
             <div className="space-y-4">

@@ -343,25 +343,12 @@ export function MinecoreDashboard(_props: {
             <div className="space-y-6">
               <MinecoreRewardsPanel
                 address={wallet.address ?? undefined}
+                diamondsBalance={state.diamondsBalance}
                 refinementPointsTotal={state.refinementPointsTotal}
                 localLedger={state.gridLedger ?? []}
+                onRefine={actions.refine}
+                onRedeem={actions.redeemGrid}
               />
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Redeem</h3>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">V1: redeem refinement points into GRID redeemable.</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={() => actions.redeemGrid(Math.floor(state.refinementPointsTotal))} className="k-cta-games h-11 px-6 text-sm">
-                    Redeem all points
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => actions.refine(Math.min(100, Math.floor(state.diamondsBalance)))}
-                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-300"
-                  >
-                    Refine 100 diamonds
-                  </button>
-                </div>
-              </div>
             </div>
           )}
         </div>

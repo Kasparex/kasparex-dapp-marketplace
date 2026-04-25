@@ -9,12 +9,19 @@ import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 
 export function RewardsRedeemSection({
   diamondsBalance,
+  refinementPointsBalance,
+  onRefine,
+  onRedeem,
   children,
 }: {
   diamondsBalance: number;
+  refinementPointsBalance: number;
+  onRefine?: (amount: number) => void;
+  onRedeem?: (points: number) => void;
   children?: React.ReactNode;
 }) {
-  const [redeemAmount, setRedeemAmount] = useState<number | ''>('');
+  const [refineAmount, setRefineAmount] = useState<number | ''>('');
+  const [claimAmount, setClaimAmount] = useState<number | ''>('');
   const [l2Address, setL2Address] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -22,7 +29,10 @@ export function RewardsRedeemSection({
   const { state: kaspaWalletState } = useKaspaWallet();
 
   const handleVerify = async () => {
-    if (!l2Address.startsWith('kaspa:') && !l2Address.startsWith('0x')) return;
+    if (!l2Address.startsWith('kaspa:') && !l2Address.startsWith('0x')) {
+      alert('Please enter a valid L2 address (0x... or kaspa:...)');
+      return;
+    }
     setIsVerifying(true);
     
     try {
@@ -51,14 +61,26 @@ export function RewardsRedeemSection({
     }
   };
 
-  const handleClaim = (type: string) => {
+  const handleClaimAction = (type: 'GRID' | 'KREX') => {
     if (!isVerified) return alert('Please verify your L2 address first.');
-    alert(`Claim action for ${type} triggered with amount: ${redeemAmount}.`);
+    if (!claimAmount || claimAmount <= 0) return alert('Please enter an amount of points to claim.');
+    if (onRedeem) {
+      onRedeem(Number(claimAmount));
+    }
+    alert(`Claim action for ${type} triggered with ${claimAmount} points.`);
   };
 
-  const currentRedeem = typeof redeemAmount === 'number' ? redeemAmount : 0;
-  const gridReceived = currentRedeem * 100;
-  const krexReceived = currentRedeem * 10;
+  const currentClaimPoints = typeof claimAmount === 'number' ? claimAmount : 0;
+  const gridOutput = currentClaimPoints * 100;
+  const krexOutput = currentClaimPoints * 10;
+
+  const handleRefineAction = () => {
+    if (!refineAmount || refineAmount <= 0) return;
+    if (onRefine) {
+      onRefine(Number(refineAmount));
+      setRefineAmount('');
+    }
+  };
 
   return (
     <div className="space-y-6 mt-8">
@@ -94,108 +116,156 @@ export function RewardsRedeemSection({
         </div>
       </div>
 
-      {/* Diamonds and Refinement Points */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
+      {/* Redeem V1 - Claim Points to Tokens */}
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <IconRewards className="w-16 h-16" />
+        </div>
         <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-          Diamonds and Refinement Points
+          Claim Rewards (L2)
         </h3>
         <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          Total available diamonds for redemption:{' '}
-          <strong className="text-emerald-600 dark:text-emerald-400">{diamondsBalance.toLocaleString()}</strong>
+          Redeem your accumulated refinement points into GRID and KREX tokens on L2.
         </p>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+          <div className="space-y-3">
+            <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              Accumulated Points: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{refinementPointsBalance.toLocaleString()}</span>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                Points to claim
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max={refinementPointsBalance}
+                  value={claimAmount}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    if (isNaN(v)) setClaimAmount('');
+                    else setClaimAmount(Math.max(0, Math.min(refinementPointsBalance, v)));
+                  }}
+                  placeholder="Points amount"
+                  className="flex-1 h-11 rounded-xl border border-zinc-200 px-4 text-sm focus:border-emerald-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-emerald-500"
+                />
+                <button
+                  onClick={() => setClaimAmount(refinementPointsBalance)}
+                  className="px-3 h-11 text-xs font-bold rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  MAX
+                </button>
+              </div>
+            </div>
+          </div>
 
-        <div className="space-y-4 max-w-lg">
-          <div className="flex items-center gap-3 flex-wrap">
+          {/* GRID Pool */}
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-emerald-700 dark:text-emerald-400">GRID Output</h4>
+              <span className="text-[10px] font-bold text-zinc-500">1:100</span>
+            </div>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+              {gridOutput.toLocaleString()} <span className="text-xs font-bold opacity-70">GRID</span>
+            </div>
             <button
-              onClick={() => setRedeemAmount(100)}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+              onClick={() => handleClaimAction('GRID')}
+              disabled={!currentClaimPoints || currentClaimPoints <= 0}
+              className="w-full k-cta-games h-9 text-xs mt-3 disabled:opacity-50"
             >
-              Redeem 100
-            </button>
-            <button
-              onClick={() => setRedeemAmount(diamondsBalance)}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors"
-            >
-              Redeem All
+              Claim GRID
             </button>
           </div>
-          
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Amount to redeem
+
+          {/* KREX Pool */}
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-emerald-700 dark:text-emerald-400">KREX Output</h4>
+              <span className="text-[10px] font-bold text-zinc-500">1:10</span>
+            </div>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+              {krexOutput.toLocaleString()} <span className="text-xs font-bold opacity-70">KREX</span>
+            </div>
+            <button
+              onClick={() => handleClaimAction('KREX')}
+              disabled={!currentClaimPoints || currentClaimPoints <= 0}
+              className="w-full k-cta-games h-9 text-xs mt-3 disabled:opacity-50"
+            >
+              Claim KREX
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Refine Diamonds - Diamonds to Points */}
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-sm">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+          Refine Diamonds (L1)
+        </h3>
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          Convert your in-game Diamonds into Refinement Points to prepare for L2 claiming.
+        </p>
+
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-2 flex-1 min-w-[200px]">
+            <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+              Available: <span className="text-zinc-900 dark:text-zinc-100 font-bold">{diamondsBalance.toLocaleString()} Diamonds</span>
             </label>
             <input
               type="number"
               min="0"
               max={diamondsBalance}
-              value={redeemAmount}
+              value={refineAmount}
               onChange={(e) => {
                 const v = parseInt(e.target.value, 10);
-                if (isNaN(v)) setRedeemAmount('');
-                else setRedeemAmount(Math.max(0, Math.min(diamondsBalance, v)));
+                if (isNaN(v)) setRefineAmount('');
+                else setRefineAmount(Math.max(0, Math.min(diamondsBalance, v)));
               }}
-              placeholder="Enter amount"
+              placeholder="Enter diamonds to refine"
               className="w-full h-11 rounded-xl border border-zinc-200 px-4 text-sm focus:border-emerald-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-emerald-500"
             />
           </div>
-
-          <div className="flex flex-col gap-1 mt-4">
-            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-              Output Calculation:
-            </p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{gridReceived.toLocaleString()}</span> GRID
-            </p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{krexReceived.toLocaleString()}</span> KREX
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* GRID Pool */}
-        <div className="rounded-2xl border border-emerald-500/20 bg-white p-6 shadow-sm dark:border-emerald-500/10 dark:bg-zinc-900/60">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">GRID Pool</h4>
-            <span className="text-xs font-semibold text-zinc-500">1 Diamond = 100 GRID</span>
-          </div>
-          <div className="mb-4 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Available GRID:{' '}
-            <strong className="text-emerald-600 dark:text-emerald-400">
-              {(diamondsBalance * 100).toLocaleString()}
-            </strong>
-          </div>
           <button
-            onClick={() => handleClaim('GRID')}
-            disabled={!currentRedeem || currentRedeem <= 0}
-            className="w-full k-cta-games h-11 text-sm mt-2 disabled:opacity-50"
+            onClick={() => setRefineAmount(100)}
+            className="h-11 px-4 text-xs font-bold rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
           >
-            Claim {gridReceived.toLocaleString()} GRID
+            100
           </button>
-        </div>
-
-        {/* KREX Pool */}
-        <div className="rounded-2xl border border-emerald-500/20 bg-white p-6 shadow-sm dark:border-emerald-500/10 dark:bg-zinc-900/60">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">KREX Pool</h4>
-            <span className="text-xs font-semibold text-zinc-500">1 Diamond = 10 KREX</span>
-          </div>
-          <div className="mb-4 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Available KREX:{' '}
-            <strong className="text-emerald-600 dark:text-emerald-400">
-              {(diamondsBalance * 10).toLocaleString()}
-            </strong>
-          </div>
           <button
-            onClick={() => handleClaim('KREX')}
-            disabled={!currentRedeem || currentRedeem <= 0}
-            className="w-full k-cta-games h-11 text-sm mt-2 disabled:opacity-50"
+            onClick={() => setRefineAmount(diamondsBalance)}
+            className="h-11 px-4 text-xs font-bold rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
           >
-            Claim {krexReceived.toLocaleString()} KREX
+            ALL
+          </button>
+          <button
+            onClick={handleRefineAction}
+            disabled={!refineAmount || refineAmount <= 0}
+            className="k-cta-games h-11 px-8 text-sm disabled:opacity-50"
+          >
+            Refine Now
           </button>
         </div>
       </div>
+
+      {children}
+
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-100 p-6 text-center dark:border-zinc-800 dark:bg-zinc-900/50 flex flex-col items-center">
+        <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">Looking for more benefits?</h3>
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+          Visit the global rewards page to see all available perks and multi-game benefits.
+        </p>
+        <Link
+          href="/rewards-and-points"
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-zinc-900 px-6 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          Go to Global Rewards
+        </Link>
+      </div>
+    </div>
+  );
+}
 
       {children}
 

@@ -53,7 +53,7 @@ export function CardsFilterBar({
   const currentCategoryLabel = category === 'all' ? 'All Categories' : category;
 
   return (
-    <div className="flex items-center gap-3 w-full mb-4 overflow-x-auto pb-1 no-scrollbar flex-nowrap">
+    <div className="flex items-center gap-3 w-full mb-6 overflow-visible flex-nowrap">
       {/* Search */}
       <div className="flex-1 min-w-[200px]">
         <input
@@ -61,72 +61,72 @@ export function CardsFilterBar({
           placeholder="Search items..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="k-filter-select h-10 w-full border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-zinc-950 text-sm"
+          className="h-10 w-full border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-zinc-950 text-sm outline-none transition-all"
         />
       </div>
-
-      {/* Category Dropdown */}
-      <div className="relative flex-shrink-0 overflow-visible" ref={categoryRef}>
-          <button
-            type="button"
-            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-            className="k-control-btn min-w-[160px]"
-          >
-            <span className="truncate">{currentCategoryLabel}</span>
-            <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {isCategoryOpen && (
-            <div data-sort-dropdown className="absolute left-0 top-full mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
-              <button
-                type="button"
-                onClick={() => {
-                  onCategoryChange('all');
-                  setIsCategoryOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                  category === 'all'
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
-                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                All Categories
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => {
-                    onCategoryChange(c);
-                    setIsCategoryOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                    category === c
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
-                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-      {/* Sorting Dropdown */}
-      <div className="relative flex-shrink-0 overflow-visible" ref={sortRef}>
-        <button
-          type="button"
-          onClick={() => setIsSortOpen(!isSortOpen)}
-          className="k-control-btn min-w-[160px]"
-        >
-          <span className="truncate">{currentSortLabel}</span>
-          <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+ 
+       {/* Category Dropdown */}
+       <div className="relative flex-shrink-0" ref={categoryRef}>
+           <button
+             type="button"
+             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+             className="flex h-10 min-w-[160px] items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+           >
+             <span className="truncate">{currentCategoryLabel}</span>
+             <svg className={`w-4 h-4 ml-auto transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+             </svg>
+           </button>
+           
+           {isCategoryOpen && (
+             <div data-sort-dropdown className="absolute left-0 top-full mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
+               <button
+                 type="button"
+                 onClick={() => {
+                   onCategoryChange('all');
+                   setIsCategoryOpen(false);
+                 }}
+                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                   category === 'all'
+                     ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
+                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                 }`}
+               >
+                 All Categories
+               </button>
+               {categories.map((c) => (
+                 <button
+                   key={c}
+                   type="button"
+                   onClick={() => {
+                     onCategoryChange(c);
+                     setIsCategoryOpen(false);
+                   }}
+                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                     category === c
+                       ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
+                       : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                   }`}
+                 >
+                   {c}
+                 </button>
+               ))}
+             </div>
+           )}
+         </div>
+ 
+       {/* Sorting Dropdown */}
+       <div className="relative flex-shrink-0" ref={sortRef}>
+         <button
+           type="button"
+           onClick={() => setIsSortOpen(!isSortOpen)}
+           className="flex h-10 min-w-[160px] items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+         >
+           <span className="truncate">{currentSortLabel}</span>
+           <svg className={`w-4 h-4 ml-auto transition-transform ${isSortOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+           </svg>
+         </button>
 
         {isSortOpen && (
           <div data-sort-dropdown className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden">
