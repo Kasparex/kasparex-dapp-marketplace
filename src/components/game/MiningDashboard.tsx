@@ -91,6 +91,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     setAutoRestartMiningRun,
     buyExtraDrill,
     buyPowerUpgrade,
+    redeemGrid,
   } = useDiamondMining();
 
   const [tab, setTab] = useState<TabId>('overview');
