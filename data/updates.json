@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777155367-ebb5627",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Restore children support to RewardsRedeemSection and fix build errors (by Kasparex)",
+      "date": "2026-04-26T00:15:02+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777153326-ac41153",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Implement diamond accumulation persistence across mining cycles (by Kasparex)",
