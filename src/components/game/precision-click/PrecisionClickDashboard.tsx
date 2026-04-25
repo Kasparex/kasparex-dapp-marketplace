@@ -320,6 +320,11 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
 
       <div className="flex flex-col space-y-6 lg:col-span-4">
         <GameDeckPanel
+          rewardWeight={{
+            value: `×${booster.toFixed(2)}`,
+            subValue: 'Hub boost multiplier',
+            onClick: () => setTab('boosters'),
+          }}
           resources={[
             {
               id: 'tier',

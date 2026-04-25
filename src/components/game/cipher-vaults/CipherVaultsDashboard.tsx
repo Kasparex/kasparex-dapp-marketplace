@@ -158,14 +158,15 @@ export function CipherVaultsDashboard({
           ]}
           value={tab}
           onChange={setTab}
-        />
-
-        {tab === 'overview' && (
+               {tab === 'overview' && (
           <div className="space-y-6">
-            <GamePanelCard title="How it works" hint="Run → solve → checkpoint.">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Krex left encrypted vaults across Kaspaland. Start a run (pay with KAS or a Cipher Ticket). Solve the Cipher Grid within the move limit to record a checkpoint for future GRID distribution.
-              </p>
+            <GamePanelCard title="How to play" hint="Run → solve → checkpoint.">
+              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
+                <li>Start a vault run by paying with KAS or spending a Cipher Ticket.</li>
+                <li>Solve the Cipher Grid within the move limit — each swap counts as one move.</li>
+                <li>A verified clear records a checkpoint, contributing to future GRID distribution.</li>
+                <li>Earn Cipher Tickets by redeeming Diamond Veins refinement points ({CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket).</li>
+              </ul>
             </GamePanelCard>
 
             <GamePanelCard title="Diamond Veins bridge" hint="Convert refinement points into tickets.">
@@ -182,7 +183,7 @@ export function CipherVaultsDashboard({
             </GamePanelCard>
 
             <GameOverviewSections
-              gameName={gameName ?? "Krex’s Cipher Vaults"}
+              gameName={gameName ?? "Krex's Cipher Vaults"}
               description={gameDescription}
               loreStory={loreStory}
               featuredImage={featuredImage || undefined}
@@ -547,6 +548,11 @@ export function CipherVaultsDashboard({
 
       <div className="flex flex-col space-y-6 lg:col-span-4">
         <GameDeckPanel
+          rewardWeight={{
+            value: tickets.available.toLocaleString(),
+            subValue: `${redeemableRemaining.toLocaleString()} redeemable pts`,
+            onClick: () => setTab('redeem'),
+          }}
           resources={[
             {
               id: 'tickets',
@@ -559,11 +565,11 @@ export function CipherVaultsDashboard({
             },
             {
               id: 'refinement',
-              label: 'Cipher Tickets',
+              label: 'Redeemable Points',
               value: redeemableRemaining.toLocaleString(),
-              description: 'From refinement points',
+              description: 'From Diamond Veins refinement',
               tooltip: `Mine diamonds, convert them into refinement points, and redeem tickets to enter Cipher Vaults without paying KAS. (${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket). Click to open Redeem.`,
-              accent: 'games',
+              accent: 'diamonds',
               onClick: () => setTab('redeem'),
             },
           ]}

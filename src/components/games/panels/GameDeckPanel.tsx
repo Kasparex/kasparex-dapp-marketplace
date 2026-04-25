@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -17,12 +18,73 @@ export type GameDeckResource = {
 };
 
 function accentValueClass(accent?: GameDeckResource['accent']) {
-  if (accent === 'kas') return 'text-amber-600 dark:text-amber-400';
+  // KAS now uses emerald instead of amber/yellow
+  if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'krex') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'grid') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'diamonds') return 'text-amber-600 dark:text-amber-400';
+  if (accent === 'diamonds') return 'text-sky-600 dark:text-sky-400';
   if (accent === 'purple') return 'text-purple-500 dark:text-purple-400';
   return 'text-emerald-700 dark:text-emerald-300';
+}
+
+/** Modal explaining each Game Deck capsule as a visual flow */
+function DeckInfoModal({ onClose }: { onClose: () => void }) {
+  const items = [
+    { emoji: '💎', label: 'Reward Weight', desc: 'Your accumulated in-game score (diamonds + points). Higher weight = larger share of GRID distribution.' },
+    { emoji: '🪙', label: 'GRID', desc: 'On-chain reward token (Kasplex L2). Claim it via Rewards & Points after your weight is snapshotted.' },
+    { emoji: '🔷', label: 'KREX', desc: 'Utility token. Holding KREX unlocks higher tiers with KAS discounts, shop perks, and hub boost multipliers.' },
+    { emoji: '⬡', label: 'KAS', desc: 'Kaspa L1 currency. Used to pay for slot unlocks, shop items, vault entries, and power top-ups.' },
+    { emoji: '⚡', label: 'Hub Boost', desc: 'Multiplier on your score. Comes from KREX tier, NFT deck, and optional timed boosters.' },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          aria-label="Close deck info"
+        >
+          ✕
+        </button>
+
+        <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Game Deck — How it works</h3>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          The deck tracks your key resources. Values update live as you play.
+        </p>
+
+        <div className="mt-5 space-y-3">
+          {items.map((item, i) => (
+            <div key={item.label} className="flex gap-3">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-base dark:border-zinc-700 dark:bg-zinc-800">
+                {item.emoji}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{item.label}</p>
+                <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{item.desc}</p>
+              </div>
+              {i < items.length - 1 && (
+                <div className="pointer-events-none" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-zinc-600 dark:text-zinc-400">
+          <strong className="text-emerald-700 dark:text-emerald-300">Loop:</strong>{' '}
+          Play → Earn Reward Weight → Snapshot → Claim GRID on L2 via{' '}
+          <a href="/rewards-and-points" className="underline text-emerald-700 dark:text-emerald-300">Rewards &amp; Points</a>.
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function GameDeckPanel(props: {
@@ -34,100 +96,116 @@ export function GameDeckPanel(props: {
     onOpenOverview?: () => void;
     tooltip?: string;
   };
+  /** Prepends a standard "Reward Weight / Combined reward potential" capsule */
+  rewardWeight?: { value: string; subValue?: string; onClick?: () => void };
 }) {
+  const [deckInfoOpen, setDeckInfoOpen] = useState(false);
+
+  // Prepend standard reward weight capsule if provided and not already present
+  const resources: GameDeckResource[] = [
+    ...(props.rewardWeight && !props.resources.some((r) => r.id === 'reward_weight')
+      ? [{
+          id: 'reward_weight',
+          label: 'Reward Weight',
+          value: props.rewardWeight.value,
+          subValue: props.rewardWeight.subValue,
+          description: 'Combined reward potential',
+          tooltip: 'Your total reward weight determines your share of GRID distribution. Click to view details.',
+          accent: 'diamonds' as const,
+          onClick: props.rewardWeight.onClick,
+        }]
+      : []),
+    ...props.resources,
+  ];
+
   return (
-    <GamePanelCard
-      title={props.title ?? 'Game Deck'}
-      hint="Values update live as you play."
-    >
-      {props.featured?.image ? (
-        <div className="mb-4">
-          <Tooltip content={props.featured.tooltip ?? 'Click to open overview'}>
-            <button
-              type="button"
-              onClick={() => props.featured?.onOpenOverview?.()}
-              disabled={!props.featured?.onOpenOverview}
-              className="group relative block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 disabled:cursor-default dark:border-zinc-800 dark:bg-zinc-950/40"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={props.featured.image}
-                alt="Featured"
-                className="aspect-video w-full object-cover transition-transform group-hover:scale-[1.02]"
-              />
-            </button>
-          </Tooltip>
-        </div>
-      ) : null}
+    <>
+      {deckInfoOpen && <DeckInfoModal onClose={() => setDeckInfoOpen(false)} />}
+      <GamePanelCard
+        title={props.title ?? 'Game Deck'}
+        hint="Values update live as you play."
+        right={
+          <button
+            type="button"
+            onClick={() => setDeckInfoOpen(true)}
+            aria-label="About Game Deck capsules"
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 transition-colors hover:border-emerald-400 hover:text-emerald-600 dark:border-zinc-600 dark:text-zinc-400 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
+          >
+            i
+          </button>
+        }
+      >
+        {props.featured?.image ? (
+          <div className="mb-4">
+            <Tooltip content={props.featured.tooltip ?? 'Click to open overview'}>
+              <button
+                type="button"
+                onClick={() => props.featured?.onOpenOverview?.()}
+                disabled={!props.featured?.onOpenOverview}
+                className="group relative block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 disabled:cursor-default dark:border-zinc-800 dark:bg-zinc-950/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={props.featured.image}
+                  alt="Featured"
+                  className="aspect-video w-full object-cover transition-transform group-hover:scale-[1.02]"
+                />
+              </button>
+            </Tooltip>
+          </div>
+        ) : null}
 
-      <ul className="space-y-0">
-        {props.resources.map((r) => {
-          const clickable = typeof r.onClick === 'function';
-          const Row = clickable ? 'button' : 'div';
-          const Wrapper = r.tooltip ? Tooltip : null;
-          const wrapperProps = r.tooltip ? ({ content: r.tooltip } as const) : null;
-          return (
-            <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-              {Wrapper ? (
-                <Wrapper {...wrapperProps!}>
-                  <Row
-                    type={clickable ? 'button' : undefined}
-                    onClick={r.onClick}
-                    className={[
-                      'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
-                      clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
-                    ].join(' ')}
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
-                        <span className="truncate font-medium">{r.label}</span>
-                      </div>
-                      {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
+        <ul className="space-y-0">
+          {resources.map((r) => {
+            const clickable = typeof r.onClick === 'function';
+            const Row = clickable ? 'button' : 'div';
+            const Wrapper = r.tooltip ? Tooltip : null;
+            const wrapperProps = r.tooltip ? ({ content: r.tooltip } as const) : null;
+            const innerContent = (
+              <>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
+                    <span className="truncate font-medium">{r.label}</span>
+                  </div>
+                  {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
+                </div>
+                <div className="text-right">
+                  <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                  {r.subValue ? (
+                    <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
+                      {r.subValue}
                     </div>
-                    <div className="text-right">
-                      <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
-                      {r.subValue ? (
-                        <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
-                          {r.subValue}
-                        </div>
-                      ) : null}
-                    </div>
+                  ) : null}
+                </div>
+              </>
+            );
+
+            const rowClassName = [
+              'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+              clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
+            ].join(' ');
+
+            return (
+              <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                {Wrapper ? (
+                  <Wrapper {...wrapperProps!}>
+                    <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+                      {innerContent}
+                    </Row>
+                  </Wrapper>
+                ) : (
+                  <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+                    {innerContent}
                   </Row>
-                </Wrapper>
-              ) : (
-                <Row
-                  type={clickable ? 'button' : undefined}
-                  onClick={r.onClick}
-                  className={[
-                    'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
-                    clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
-                  ].join(' ')}
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
-                      <span className="truncate font-medium">{r.label}</span>
-                    </div>
-                    {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
-                    {r.subValue ? (
-                      <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
-                        {r.subValue}
-                      </div>
-                    ) : null}
-                  </div>
-                </Row>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
 
-      {props.footer ? <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">{props.footer}</div> : null}
-    </GamePanelCard>
+        {props.footer ? <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">{props.footer}</div> : null}
+      </GamePanelCard>
+    </>
   );
 }
-
