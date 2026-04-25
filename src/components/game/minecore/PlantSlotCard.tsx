@@ -65,13 +65,14 @@ function SelectionModal(props: {
   title: string;
   children: React.ReactNode;
 }) {
+  const { isOpen, onClose } = props;
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') props.onClose();
+      if (e.key === 'Escape') onClose();
     };
-    if (props.isOpen) window.addEventListener('keydown', handleEscape);
+    if (isOpen) window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [props.isOpen, props.onClose]);
+  }, [isOpen, onClose]);
 
   if (!props.isOpen || typeof window === 'undefined') return null;
 

@@ -12,11 +12,13 @@ export function RewardsRedeemSection({
   refinementPointsBalance,
   onRefine,
   onRedeem,
+  children,
 }: {
   diamondsBalance: number;
   refinementPointsBalance: number;
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number) => void;
+  children?: React.ReactNode;
 }) {
   const [refineAmount, setRefineAmount] = useState<number | ''>('');
   const [redeemPoints, setRedeemPoints] = useState<number | ''>('');
@@ -210,6 +212,7 @@ export function RewardsRedeemSection({
           </div>
         </div>
       </div>
+      {children}
     </div>
   );
 }
