@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_MACHINES, MINECORE_RECIPES } from '@/lib/game/minecore/config';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -17,6 +19,10 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
 };
 
 export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipeId: string) => void }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
+
   const canAfford = (requires: Record<string, number>) => {
     for (const [k, v] of Object.entries(requires)) {
       const have = props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0;
@@ -24,6 +30,20 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
     }
     return true;
   };
+
+  const recipes = MINECORE_RECIPES.filter((r) => r.kind === 'machine').map(r => ({ ...r, category: 'Machine' }));
+  const categories = Array.from(new Set(recipes.map((i) => i.category)));
+
+  const filteredItems = recipes
+    .filter((item) => {
+      if (category !== 'all' && item.category !== category) return false;
+      if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // we don't have price, just return 0
+      return 0;
+    });
 
   return (
     <div className="space-y-6">
@@ -42,8 +62,17 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
       </GamePanelCard>
 
       <GamePanelCard title="Build machines" hint="Machine cards show required ingredients and your current progress.">
+        <CardsFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          category={category}
+          onCategoryChange={setCategory}
+          categories={categories}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
-          {MINECORE_RECIPES.filter((r) => r.kind === 'machine').map((r) => {
+          {filteredItems.map((r) => {
             const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
             const effects = [
               { label: 'Duration', value: `${Math.round(cfg.durationMs / 60000)} min` },

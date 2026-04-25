@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
+import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 
 export function RewardsPanel({
   address,
@@ -88,6 +89,8 @@ export function RewardsPanel({
         </table>
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-500">{remote ? 'Showing server ledger when available.' : 'Showing device ledger until server sync.'}</p>
+
+      <RewardsRedeemSection diamondsBalance={refinementPointsTotal} />
     </div>
   );
 }

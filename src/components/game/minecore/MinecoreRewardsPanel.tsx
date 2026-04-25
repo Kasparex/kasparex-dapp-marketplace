@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
+import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 
 export function MinecoreRewardsPanel({
   address,
@@ -90,6 +91,8 @@ export function MinecoreRewardsPanel({
       <p className="text-xs text-zinc-500 dark:text-zinc-500">
         {remote?.length ? 'Showing server ledger when available.' : 'Showing device ledger until Minecore server sync is enabled.'}
       </p>
+
+      <RewardsRedeemSection diamondsBalance={refinementPointsTotal} />
     </div>
   );
 }

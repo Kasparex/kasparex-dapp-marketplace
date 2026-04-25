@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { IconBoosters, IconBot, IconSignal } from '@/components/games/icons/TabIcons';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const GARAGE_ITEMS = [
   { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: <IconBoosters />, type: 'yield' as const, mult: 0.25 },
@@ -37,7 +38,21 @@ export function UpgradesPanel({
 }) {
   const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
   const kasBalanceNum = kasValid ? kasBalance : 0;
-  const [sortBy, setSortBy] = useState<'recommended' | 'kas_low' | 'kas_high'>('recommended');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
+
+  const categories = Array.from(new Set(GARAGE_ITEMS.map((i) => i.type)));
+
+  const filteredItems = [...GARAGE_ITEMS].filter(item => {
+    if (category !== 'all' && item.type !== category) return false;
+    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'price_asc') return a.priceKAS - b.priceKAS;
+    if (sortBy === 'price_desc') return b.priceKAS - a.priceKAS;
+    return 0; // recommended
+  });
 
   return (
     <div className="space-y-6">
@@ -65,24 +80,18 @@ export function UpgradesPanel({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Sort</div>
-        <select value={sortBy} onChange={(e) => setSortBy((e.target.value as any) ?? 'recommended')} className="k-filter-select h-10 min-w-[220px]">
-          <option value="recommended">Recommended</option>
-          <option value="kas_low">Price: low → high (KAS)</option>
-          <option value="kas_high">Price: high → low (KAS)</option>
-        </select>
-      </div>
+      <CardsFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        categories={categories}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {[...GARAGE_ITEMS]
-          .sort((a, b) => {
-            if (sortBy === 'recommended') return 0;
-            const da = a.priceKAS;
-            const db = b.priceKAS;
-            return sortBy === 'kas_low' ? da - db : db - da;
-          })
-          .map((item) => {
+        {filteredItems.map((item) => {
           const kasPriceAfterDiscount = getKasPriceAfterDiscount(item.priceKAS);
           const canAffordKREX = canPayWithL1 && krexL1Balance >= item.price;
           const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= kasPriceAfterDiscount * 0.999;
