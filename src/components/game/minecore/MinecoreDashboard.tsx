@@ -163,38 +163,50 @@ export function MinecoreDashboard(_props: {
   return (
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
-      <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="flex flex-col space-y-6 lg:col-span-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
-            <div className="flex flex-wrap items-center gap-6">
-              <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
-              </span>
-              <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
-              <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
-                {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
-                KAS
-              </span>
-              <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
-                <DiamondIcon className="h-4 w-4 text-sky-400" />
-                Reward Weight
-              </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{(diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString()}</span>
-              <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-                {krexTier}
-              </span>
-            </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Earn on L1 · claim GRID on L2 via{' '}
-              <Link href="/rewards-and-points" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
-                Rewards &amp; Points
-              </Link>
-            </p>
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
+          <div className="flex flex-wrap items-center gap-6">
+            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
+            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
+            </span>
+            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
+            <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
+              {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
+              KAS
+            </span>
+            <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
+              <DiamondIcon className="h-4 w-4 text-sky-400" />
+              Reward Weight
+            </span>
+            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{(diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString()}</span>
+            <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+              {krexTier}
+            </span>
           </div>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Earn on L1 · claim GRID on L2 via{' '}
+            <Link href="/rewards-and-points" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
+              Rewards &amp; Points
+            </Link>
+          </p>
+        </div>
 
-          <GameTabs tabs={TABS} value={tab} onChange={setTab} />
-
+        <UnifiedGameLayout
+          tabs={TABS as any}
+          currentTab={tab}
+          onTabChange={setTab}
+          resources={resources}
+          game={{
+            name: _props.gameName ?? 'Minecore',
+            featuredImage: _props.featuredImage,
+            connections,
+            categories,
+            tags,
+          }}
+          onOpenOverview={openOverview}
+          deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
+        >
           {tab === 'overview' && (
             <div className="space-y-6">
               <GamePanelCard title={_props.gameName ?? 'Minecore'} hint={_props.gameDescription}>
@@ -342,31 +354,7 @@ export function MinecoreDashboard(_props: {
               />
             </div>
           )}
-        </div>
-
-        <div className="flex flex-col space-y-6 lg:col-span-4">
-          <GameDeckPanel
-            resources={resources}
-            footer={<span>Values update live as you mine, refine, and pay for slots.</span>}
-            featured={
-              _props.featuredImage
-                ? { image: _props.featuredImage, onOpenOverview: openOverview, tooltip: 'Click to open game overview' }
-                : undefined
-            }
-          />
-
-          <GameInteractionsPanel interactions={connections} />
-
-          <GamePurchasesPanel>
-            <div className="text-xs text-zinc-600 dark:text-zinc-400">
-              Slot unlocks and expansions are paid with KAS. Boost items are V1 stubs and will expand with KREX and GRID utility.
-            </div>
-          </GamePurchasesPanel>
-
-          <GameMetadataPanel categories={categories} tags={tags} />
-
-          <GamesPlayAdRail />
-        </div>
+        </UnifiedGameLayout>
       </div>
     </TooltipProvider>
   );
