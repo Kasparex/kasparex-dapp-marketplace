@@ -3,16 +3,20 @@
 import type { CSSProperties } from 'react';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import type { MinecoreState, PlantSlotState } from '@/lib/game/minecore';
-import { computePlantExpectedDiamonds } from '@/lib/game/minecore/compute';
+import {
+  computeLiveBatteryChargeMs,
+  computeLiveDiamonds,
+  computeFlowRatePerMin,
+  computePlantExpectedDiamonds,
+  getBatteryCapacityMs,
+} from '@/lib/game/minecore/compute';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { MINECORE_BATTERIES, MINECORE_MACHINES } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_WORKERS } from '@/lib/game/minecore/config';
 
-function clamp01(n: number) {
-  if (n <= 0) return 0;
-  if (n >= 1) return 1;
-  return n;
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function clamp01(n: number) { return n <= 0 ? 0 : n >= 1 ? 1 : n; }
 
 function formatDuration(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -26,121 +30,196 @@ function formatDuration(ms: number) {
 
 function statusBadge(status: PlantSlotState['status']) {
   const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-black uppercase tracking-wide';
-  if (status === 'MiningActive') return `${base} border border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300`;
+  if (status === 'MiningActive')    return `${base} border border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300`;
   if (status === 'ExtractionReady') return `${base} border border-sky-500/30 bg-sky-500/15 text-sky-800 dark:text-sky-300`;
-  if (status === 'ReadyToMine') return `${base} border border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`;
+  if (status === 'ReadyToMine')     return `${base} border border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`;
   if (status === 'SetupIncomplete') return `${base} border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300`;
+  if (status === 'BatteryEmpty')    return `${base} border border-orange-500/30 bg-orange-500/15 text-orange-800 dark:text-orange-300`;
   if (status === 'NeedsPower' || status === 'NeedsRepair') return `${base} border border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-300`;
   return `${base} border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`;
 }
 
 function labelForStatus(status: PlantSlotState['status']) {
-  if (status === 'EmptySlot') return 'Empty slot';
+  if (status === 'EmptySlot')       return 'Empty slot';
   if (status === 'SetupIncomplete') return 'Setup incomplete';
-  if (status === 'ReadyToMine') return 'Ready';
-  if (status === 'MiningActive') return 'Mining active';
+  if (status === 'ReadyToMine')     return 'Ready';
+  if (status === 'MiningActive')    return 'Mining active';
+  if (status === 'BatteryEmpty')    return 'Battery empty';
   if (status === 'ExtractionReady') return 'Extraction ready';
-  if (status === 'NeedsRepair') return 'Needs repair';
-  if (status === 'NeedsPower') return 'Needs power';
+  if (status === 'NeedsRepair')     return 'Needs repair';
+  if (status === 'NeedsPower')      return 'Needs power';
   return status;
 }
 
-function powerBarStyle(ratio: number): CSSProperties {
-  const r = clamp01(ratio);
-  const hue = Math.round((1 - r) * 0 + r * 270);
-  const light = 42 + 18 * r;
-  return { backgroundColor: `hsl(${hue} 78% ${light}%)` };
-}
+// ── Sub-components ───────────────────────────────────────────────────────────
 
-function batteryBarStyle(ratio: number): CSSProperties {
-  const r = clamp01(ratio);
-  const hue = Math.round((1 - r) * 0 + r * 218);
-  const light = 40 + 20 * r;
-  return { backgroundColor: `hsl(${hue} 82% ${light}%)` };
-}
-
-function StatusCapsule(props: {
+/** ✓ / ✗ row for the setup checklist */
+function CheckRow(props: {
+  installed: boolean;
   label: string;
-  value: string;
-  ratio: number;
+  value?: string;
+  stat?: string;
   tooltip: string;
-  variant: 'power' | 'battery';
 }) {
-  const r = clamp01(props.ratio);
   return (
     <Tooltip content={props.tooltip}>
-      <div className="cursor-help overflow-hidden rounded-xl border border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-zinc-950/40">
-        <div className="flex items-center justify-between gap-2 px-3 py-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{props.label}</span>
-          <span className="text-xs font-black tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</span>
-        </div>
-        <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-800">
-          <div
-            className="h-full transition-[width] duration-300"
-            style={{
-              width: `${Math.round(r * 100)}%`,
-              ...(props.variant === 'power' ? powerBarStyle(r) : batteryBarStyle(r)),
-            }}
-          />
-        </div>
+      <div className="flex items-center gap-2 py-1 cursor-help">
+        <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+          {props.installed ? '✓' : '✗'}
+        </span>
+        <span className={`text-xs font-semibold w-14 flex-shrink-0 ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
+          {props.label}
+        </span>
+        <span className={`text-xs truncate flex-1 ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600'}`}>
+          {props.value ?? '—'}
+        </span>
+        {props.stat ? (
+          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex-shrink-0">{props.stat}</span>
+        ) : null}
       </div>
     </Tooltip>
   );
 }
 
+/** Color-coded horizontal bar with label + value */
+function ResourceBar(props: {
+  label: string;
+  value: string;
+  ratio: number;
+  variant: 'battery' | 'power' | 'cycle';
+  warning?: string | null;
+}) {
+  const r = clamp01(props.ratio);
+
+  let barColor: string;
+  if (props.variant === 'cycle') {
+    barColor = 'bg-emerald-500';
+  } else if (props.variant === 'battery') {
+    barColor = r > 0.6 ? 'bg-emerald-500' : r > 0.2 ? 'bg-amber-500' : 'bg-rose-500';
+  } else {
+    barColor = r > 0.4 ? 'bg-sky-500' : 'bg-rose-500';
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{props.label}</span>
+        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.value}</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div
+          className={`h-full rounded-full transition-[width] duration-700 ${barColor}`}
+          style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
+        />
+      </div>
+      {props.warning ? (
+        <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">{props.warning}</div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Discrete dot indicator for power fuel units */
+function PowerDots(props: { current: number; max: number }) {
+  const safeMax = Math.max(1, Math.min(props.max, 10));
+  const dots = Array.from({ length: safeMax }, (_, i) => i < props.current);
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Power units</span>
+        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.current} / {safeMax}</span>
+      </div>
+      <div className="flex gap-1">
+        {dots.map((filled, i) => (
+          <div
+            key={i}
+            className={`h-2.5 flex-1 rounded-sm transition-colors ${filled ? 'bg-sky-500' : 'bg-zinc-200 dark:bg-zinc-800'}`}
+          />
+        ))}
+      </div>
+      {props.current <= 0 && (
+        <div className="text-[11px] font-semibold text-rose-500 dark:text-rose-400">No power units — top up to start next cycle</div>
+      )}
+    </div>
+  );
+}
+
+/** Inline warning banner */
+function WarningBanner(props: { level: 'warn' | 'error'; message: string }) {
+  const cls = props.level === 'error'
+    ? 'rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400'
+    : 'rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400';
+  return <div className={cls}>{props.message}</div>;
+}
+
+// ── Main card ────────────────────────────────────────────────────────────────
+
 export function PlantSlotCard(props: {
   minecoreState: MinecoreState;
   slot: PlantSlotState;
+  now: number;
   onUnlock: () => void;
   onStart: () => void;
   onExtract: () => void;
   onTopUpWithKAS: (args: { amountKas: number; added: number }) => void | Promise<void>;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
+  onRefillBattery: () => void | Promise<void>;
   onQuickSetup: () => void;
 }) {
-  const s = props.slot;
-  const now = Date.now();
+  const s   = props.slot;
+  const now = props.now;
 
-  const cycle = s.cycle;
-  const progress = cycle ? clamp01((now - cycle.startAtMs) / Math.max(1, cycle.endAtMs - cycle.startAtMs)) : 0;
-  const remainingMs = cycle ? Math.max(0, cycle.endAtMs - now) : 0;
+  // ── Live computed values ─────────────────────────────────────────────────
+  const cycle              = s.cycle;
+  const cycleProgress      = cycle ? clamp01((now - cycle.startAtMs) / Math.max(1, cycle.endAtMs - cycle.startAtMs)) : 0;
+  const cycleRemainingMs   = cycle ? Math.max(0, cycle.endAtMs - now) : 0;
 
-  const batteryCap = s.setup.batteryId ? (MINECORE_BATTERIES[s.setup.batteryId]?.powerCapacity ?? 0) : 0;
-  const durationMs = s.setup.machineId ? (MINECORE_MACHINES[s.setup.machineId]?.durationMs ?? 0) : 0;
-  const expectedFromLogic = computePlantExpectedDiamonds(props.minecoreState, s);
-  const expectedDiamonds = cycle ? cycle.expectedDiamonds : expectedFromLogic;
-  const flowPerSecond =
-    cycle && now < cycle.endAtMs ? cycle.expectedDiamonds / Math.max(1, cycle.durationMs) : durationMs > 0 && expectedFromLogic > 0 ? expectedFromLogic / durationMs : 0;
+  const liveChargeMs    = computeLiveBatteryChargeMs(s, now);
+  const capacityMs      = getBatteryCapacityMs(s);
+  const batteryRatio    = capacityMs > 0 ? liveChargeMs / capacityMs : 0;
+  const batteryLow      = batteryRatio < 0.2 && batteryRatio > 0;
+  const batteryEmpty    = liveChargeMs <= 0 && cycle != null;
+  const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId
+    ? liveChargeMs / (MINECORE_MACHINES[s.setup.machineId]?.powerConsumptionFactor ?? 1)
+    : 0;
 
-  const powerRatio = batteryCap > 0 ? s.powerRemaining / batteryCap : 0;
-  const batteryLabel = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId]?.label ?? s.setup.batteryId : 'Not installed';
+  const liveDiamonds    = computeLiveDiamonds(s, now);
+  const flowPerMin      = computeFlowRatePerMin(s, now);
+  const expectedDiamonds = cycle ? cycle.expectedDiamonds : computePlantExpectedDiamonds(props.minecoreState, s);
 
-  const effects = [{ label: 'Status', value: labelForStatus(s.status) }];
+  // ── Config lookups ───────────────────────────────────────────────────────
+  const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
+  const batteryConfig   = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId] : null;
+  const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
+  const powerDotMax     = batteryConfig?.powerCapacity ?? 5;
 
+  // ── Action label ─────────────────────────────────────────────────────────
   const actionLabel =
-    !s.unlocked ? `Unlock ${s.unlockCostKas.toLocaleString()} KAS` :
+    !s.unlocked             ? `Unlock ${s.unlockCostKas.toLocaleString()} KAS` :
     s.status === 'SetupIncomplete' ? 'Quick setup' :
-    s.status === 'ReadyToMine' ? 'Start' :
+    s.status === 'ReadyToMine'     ? 'Start' :
     s.status === 'ExtractionReady' ? 'Extract' :
-    s.status === 'NeedsPower' ? 'Top up power' :
-    s.status === 'NeedsRepair' ? 'Repair' :
-    'Mining active';
+    s.status === 'BatteryEmpty'    ? 'Extract (partial)' :
+    s.status === 'NeedsPower'      ? 'Top up power' :
+    s.status === 'NeedsRepair'     ? 'Repair' :
+    'Mining…';
 
   const buyDisabled = s.status === 'MiningActive';
 
-  const titleAccessory =
-    s.unlocked && expectedDiamonds > 0 ? (
-      <div>
-        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-600 dark:text-yellow-300">Expected</div>
-        <div className="text-lg font-black tabular-nums leading-tight text-yellow-500 dark:text-yellow-300 sm:text-xl">{expectedDiamonds.toLocaleString()}</div>
-        <div className="text-[9px] font-semibold text-yellow-700/90 dark:text-yellow-200/80">Diamonds / cycle</div>
+  // ── Title accessory — live diamond display ───────────────────────────────
+  const titleAccessory = s.unlocked ? (
+    <div className="text-right">
+      <div className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">
+        {cycle ? 'Mined' : 'Expected'}
       </div>
-    ) : s.unlocked ? (
-      <div>
-        <div className="text-[9px] font-black uppercase tracking-widest text-yellow-700/80 dark:text-yellow-300/80">Expected</div>
-        <div className="text-base font-black tabular-nums text-yellow-600/90 dark:text-yellow-200/90 sm:text-lg">—</div>
+      <div className="text-lg font-black tabular-nums leading-tight text-amber-500 dark:text-amber-300 sm:text-xl">
+        {(cycle ? liveDiamonds : expectedDiamonds).toLocaleString()}
       </div>
-    ) : null;
+      <div className="text-[9px] font-semibold text-amber-700/80 dark:text-amber-200/70">
+        {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Diamonds / cycle'}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <GameItemCard
@@ -150,80 +229,118 @@ export function PlantSlotCard(props: {
       category="Mining Plant"
       description={
         <div className="space-y-3">
+          {/* Status badge */}
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
-            {cycle ? <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{formatDuration(remainingMs)} left</span> : null}
+            {cycle && s.status === 'MiningActive' && (
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                {formatDuration(cycleRemainingMs)} left
+              </span>
+            )}
           </div>
 
-          <div className="grid gap-2">
-            <Tooltip content="Instantaneous diamond output for this plant (same formula as the active cycle).">
-              <div className="rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
-                <div className="font-semibold text-zinc-600 dark:text-zinc-400">Flow rate</div>
-                <div className="mt-0.5 font-mono text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-300">{flowPerSecond.toFixed(3)} D/s</div>
-              </div>
-            </Tooltip>
-            <StatusCapsule
-              variant="power"
-              label="Power"
-              value={`${s.powerRemaining.toLocaleString()} / ${batteryCap.toLocaleString()}`}
-              ratio={powerRatio}
-              tooltip="Operational reserve drawn from this plant’s power pool. Each started cycle consumes one unit; top up with KAS when empty. Bar runs red when depleted and violet when the pool is full."
+          {/* ── Setup checklist ── */}
+          <div className="rounded-xl border border-zinc-100 bg-white/60 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1">Setup</div>
+            <CheckRow
+              installed={!!s.setup.machineId}
+              label="Machine"
+              value={machineConfig?.label}
+              stat={machineConfig ? `⚡ ×${machineConfig.powerConsumptionFactor} drain` : undefined}
+              tooltip={machineConfig ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} battery drain rate.` : 'No machine installed. Go to Build tab to craft one.'}
             />
-            <StatusCapsule
-              variant="battery"
+            <CheckRow
+              installed={!!s.setup.batteryId}
               label="Battery"
-              value={batteryLabel}
-              ratio={powerRatio}
-              tooltip="Installed battery pack and its rated capacity. The bar mirrors reserve level: red when empty, blue when the cell is topped up to full capacity."
+              value={batteryConfig?.label}
+              stat={batteryConfig ? formatDuration(batteryConfig.chargeCapacityMs) : undefined}
+              tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Go to Build tab to craft one.'}
+            />
+            <CheckRow
+              installed={!!s.setup.workerId}
+              label="Worker"
+              value={workerConfig?.label}
+              stat={workerConfig ? `×${workerConfig.multiplier} output` : undefined}
+              tooltip={workerConfig ? `${workerConfig.label}: applies ×${workerConfig.multiplier} multiplier to diamond output.` : 'No worker assigned. Deploy a KREXPRIME or PixelKrex NFT in the Workers tab.'}
+            />
+            <CheckRow
+              installed={s.setup.moduleIds.length > 0}
+              label="Modules"
+              value={s.setup.moduleIds.length > 0 ? s.setup.moduleIds.join(', ') : 'None'}
+              tooltip="Optional modules boost output and reduce repair chance."
             />
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Tooltip content="Machine tier sets base output and duration.">
-              <div className="rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
-                <div className="font-semibold text-zinc-600 dark:text-zinc-400">Machine</div>
-                <div className="mt-0.5 font-mono text-zinc-800 dark:text-zinc-200">{s.setup.machineId ?? 'Not set'}</div>
-              </div>
-            </Tooltip>
-            <Tooltip content="Worker tier applies a multiplier to expected diamonds (see compute).">
-              <div className="rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
-                <div className="font-semibold text-zinc-600 dark:text-zinc-400">Worker</div>
-                <div className="mt-0.5 font-mono text-zinc-800 dark:text-zinc-200">{s.setup.workerId ?? 'Not set'}</div>
-              </div>
-            </Tooltip>
-            <Tooltip content="Modules improve output and reduce failures later.">
-              <div className="rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30 sm:col-span-2">
-                <div className="font-semibold text-zinc-600 dark:text-zinc-400">Modules</div>
-                <div className="mt-0.5 font-mono text-zinc-800 dark:text-zinc-200">{s.setup.moduleIds.length ? s.setup.moduleIds.join(', ') : 'None'}</div>
-              </div>
-            </Tooltip>
-          </div>
+          {/* ── Status warnings ── */}
+          {s.status === 'SetupIncomplete' && (
+            <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
+          )}
+          {batteryEmpty && (
+            <WarningBanner level="error" message="⚡ Battery depleted — mining paused. Extract partial diamonds or refill and continue." />
+          )}
+          {batteryLow && !batteryEmpty && (
+            <WarningBanner level="warn" message={`⚡ Battery low — ${formatDuration(batteryRuntimeMs)} remaining. Refill to avoid halting.`} />
+          )}
+          {s.status === 'NeedsPower' && (
+            <WarningBanner level="error" message="🔴 No power units — top up to start the next cycle." />
+          )}
+          {s.status === 'NeedsRepair' && (
+            <WarningBanner level="error" message="🔧 Plant damaged — repair required before resuming." />
+          )}
 
-          {cycle ? (
-            <div className="rounded-xl border border-zinc-100 bg-white/60 p-3 dark:border-zinc-800 dark:bg-zinc-950/30">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Cycle progress</div>
-                <div className="font-mono text-[11px] text-zinc-500 dark:text-zinc-400">{Math.round(progress * 100)}%</div>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                <div className="h-full bg-emerald-500" style={{ width: `${Math.round(progress * 100)}%` }} />
-              </div>
+          {/* ── Resource bars ── */}
+          {s.unlocked && (
+            <div className="space-y-3">
+              {/* Battery charge bar */}
+              {capacityMs > 0 && (
+                <ResourceBar
+                  label={`Battery charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} left` : ''}`}
+                  value={`${Math.round(batteryRatio * 100)}%`}
+                  ratio={batteryRatio}
+                  variant="battery"
+                />
+              )}
+
+              {/* Cycle progress bar */}
+              {cycle && (
+                <ResourceBar
+                  label={`Cycle progress — ${formatDuration(cycleRemainingMs)} left`}
+                  value={`${Math.round(cycleProgress * 100)}%`}
+                  ratio={cycleProgress}
+                  variant="cycle"
+                />
+              )}
+
+              {/* Power units dots */}
+              <PowerDots current={s.powerRemaining} max={powerDotMax} />
             </div>
-          ) : null}
+          )}
+
+          {/* ── Refill battery button (shown when low/empty) ── */}
+          {s.unlocked && s.setup.batteryId && (batteryLow || batteryEmpty || s.status === 'NeedsPower') && (
+            <button
+              type="button"
+              onClick={() => props.onRefillBattery()}
+              className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-500/20 dark:border-sky-400/30 dark:text-sky-300 dark:hover:bg-sky-500/20"
+            >
+              ⚡ Refill Battery — 2.5 KAS
+            </button>
+          )}
         </div>
       }
-      effects={effects}
+      effects={[]}
       hidePricing={true}
       priceOptions={[{ currency: 'KAS', unitPrice: 0 }]}
       buyLabel={actionLabel}
       buyDisabled={buyDisabled}
       onBuy={async () => {
-        if (!s.unlocked) return props.onUnlock();
+        if (!s.unlocked)                    return props.onUnlock();
         if (s.status === 'SetupIncomplete') return props.onQuickSetup();
-        if (s.status === 'ReadyToMine') return props.onStart();
+        if (s.status === 'ReadyToMine')     return props.onStart();
         if (s.status === 'ExtractionReady') return props.onExtract();
-        if (s.status === 'NeedsPower') return props.onTopUpWithKAS({ amountKas: 1, added: 1 });
-        if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: 2 });
+        if (s.status === 'BatteryEmpty')    return props.onExtract();
+        if (s.status === 'NeedsPower')      return props.onTopUpWithKAS({ amountKas: 1, added: 1 });
+        if (s.status === 'NeedsRepair')     return props.onRepairWithKAS({ amountKas: 2 });
       }}
     />
   );

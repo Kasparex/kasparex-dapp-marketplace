@@ -83,6 +83,43 @@ export function useMinecore() {
     setMc((s) => applyMinecoreEvent(s, ev));
   }, []);
 
+  // Foreman / Automation logic: auto-restart & auto-refill
+  useEffect(() => {
+    if (!mc.automation.autoRestart && !mc.automation.foremanActive) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const s = mcRef.current;
+      
+      for (const slot of s.plantSlots) {
+        if (!slot.unlocked) continue;
+        const status = deriveState(s, now).plantSlots[slot.index].status;
+
+        // 1. Auto-refill battery if Foreman is active and we have Energy Cells
+        if (s.automation.foremanActive && (status === 'BatteryEmpty' || (slot.cycle && status === 'MiningActive' && deriveState(s, now).plantSlots[slot.index].status === 'BatteryEmpty'))) {
+           // check inventory for energy cells
+           if (s.ingredients.energyCells > 0) {
+             dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
+             dispatch({ type: 'RefillBattery', slotIndex: slot.index, at: now });
+             continue; // handled refill
+           }
+        }
+
+        // 2. Auto-restart if cycle is finished and we have power
+        if (s.automation.autoRestart && status === 'ExtractionReady') {
+          dispatch({ type: 'Extract', slotIndex: slot.index, at: now });
+          // If still has power units, it will be ReadyToMine next tick
+        }
+        
+        if (s.automation.autoRestart && status === 'ReadyToMine') {
+          dispatch({ type: 'StartMining', slotIndex: slot.index, at: now });
+        }
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [mc.automation.autoRestart, mc.automation.foremanActive, dispatch]);
+
   const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
 
@@ -246,6 +283,24 @@ export function useMinecore() {
     dispatch({ type: 'Refine', at: Date.now(), amount });
   }, [dispatch]);
 
+  const refillBattery = useCallback((slotIndex: number) => {
+    dispatch({ type: 'RefillBattery', slotIndex, at: Date.now() });
+  }, [dispatch]);
+
+  const refillBatteryWithKAS = useCallback(
+    async (slotIndex: number, amountKas: number) => {
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(amountKas),
+        skuId: 'minecore:battery:refill',
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'RefillBattery', slotIndex, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+  );
+
   const redeemGrid = useCallback((points: number) => {
     dispatch({ type: 'RedeemGrid', at: Date.now(), points });
   }, [dispatch]);
@@ -311,6 +366,8 @@ export function useMinecore() {
       removeNFT,
       setAutomation,
       purchaseIngredientWithKAS,
+      refillBattery,
+      refillBatteryWithKAS,
     },
     getKasPriceAfterDiscount,
   };

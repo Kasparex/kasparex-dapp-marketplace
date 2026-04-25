@@ -38,6 +38,8 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
         : null,
     powerRemaining: typeof input.powerRemaining === 'number' ? input.powerRemaining : base.powerRemaining,
     needsRepair: typeof input.needsRepair === 'boolean' ? input.needsRepair : base.needsRepair,
+    batteryChargeMs: typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : base.batteryChargeMs,
+    batterySnapshotAt: typeof input.batterySnapshotAt === 'number' ? input.batterySnapshotAt : base.batterySnapshotAt,
   };
 }
 

@@ -25,6 +25,8 @@ function createEmptySlot(index: number): PlantSlotState {
     cycle: null,
     powerRemaining: 0,
     needsRepair: false,
+    batteryChargeMs: 0,
+    batterySnapshotAt: 0,
   };
 }
 

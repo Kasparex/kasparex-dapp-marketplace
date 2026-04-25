@@ -89,7 +89,7 @@ export function MinecoreDashboard(_props: {
   const kasBalanceNum = kasValid ? balanceInKas : 0;
   const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;
 
-  const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state));
+  const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state, nowTick));
 
   const openOverview = () => {
     setTab('overview');
@@ -246,6 +246,7 @@ export function MinecoreDashboard(_props: {
                     key={slot.id}
                     minecoreState={state}
                     slot={slot}
+                    now={nowTick}
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
@@ -254,6 +255,9 @@ export function MinecoreDashboard(_props: {
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slot.index, amountKas));
+                    }}
+                    onRefillBattery={async () => {
+                      void (await actions.refillBatteryWithKAS(slot.index, 2.5));
                     }}
                     onQuickSetup={() => {
                       actions.installMachine(slot.index, 'pulse-drill');
@@ -288,8 +292,12 @@ export function MinecoreDashboard(_props: {
           {tab === 'power' && (
             <MinecorePowerPanel
               state={state}
+              now={nowTick}
               onDemoTopUpFirstPlant={() => {
                 actions.topUpPower(0, 5);
+              }}
+              onRefillBattery={(idx) => {
+                actions.refillBatteryWithKAS(idx, 2.5);
               }}
             />
           )}
