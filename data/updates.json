@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777111315-f6c2d50",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Enhance game interface styling, rewards tokens (by Kasparex)",
+      "date": "2026-04-25T12:01:33+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777107334-b3688a2",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Feat: Add CardsFilterBar and RewardsRedeemSection to game panels (by Kasparex)",
