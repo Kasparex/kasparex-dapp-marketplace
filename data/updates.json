@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777114139-795536c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Finalize Kasparex Games UI: unify rewards section with real-time calc, standardized horizontal sorting bar, revert branding colors, and clean up text formatting (by Kasparex)",
+      "date": "2026-04-25T12:48:42+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777111315-f6c2d50",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Enhance game interface styling, rewards tokens (by Kasparex)",
