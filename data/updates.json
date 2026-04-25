@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777137381-d5adfd1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: ui(games): add drag-to-scroll on tab strip (by Kasparex)",
+      "date": "2026-04-25T19:16:04+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777136321-b7e80d3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(cipher-vaults): fix broken JSX - GameTabs tag was not closed before overview block (by Kasparex)",
