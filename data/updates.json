@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777142141-9b3a19a",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat(minecore): overhaul mining system - live diamonds, battery drain, and setup checklist UI (by Kasparex)",
+      "date": "2026-04-25T20:35:25+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777138732-88409e3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(games): fix tab clicks broken by pointer capture - use window mouse listeners instead (by Kasparex)",
