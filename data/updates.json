@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777134768-b170306",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: ui(games): make tabs single-line horizontally scrollable across all game dashboards (by Kasparex)",
+      "date": "2026-04-25T18:32:31+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777126943-28a32c7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Restore missing state vars in KrexMysteryQuizDashboard (by Kasparex)",
