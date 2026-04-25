@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777149678-8e69483",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix PlantSlotCard TypeScript interface error (by Kasparex)",
+      "date": "2026-04-25T22:40:56+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777149351-39e3705",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Install lucide-react dependency (by Kasparex)",
