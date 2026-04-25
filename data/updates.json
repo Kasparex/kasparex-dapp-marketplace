@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777155882-1b29160",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix SelectionModal type error in PlantSlotCard (by Kasparex)",
+      "date": "2026-04-26T00:24:22+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777155367-ebb5627",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Restore children support to RewardsRedeemSection and fix build errors (by Kasparex)",
