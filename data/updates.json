@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777123318-cc8f4dd",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unify game framework: merge inventory into build, add sorting to all dynamic game tabs, and fix reward weight consistency (by Kasparex)",
+      "date": "2026-04-25T15:21:40+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777121863-b0ee0e9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: add missing refining state in MiningDashboard (by Kasparex)",
