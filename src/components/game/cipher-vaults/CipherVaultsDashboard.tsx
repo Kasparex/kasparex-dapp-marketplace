@@ -18,6 +18,7 @@ import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -59,10 +60,11 @@ export function CipherVaultsDashboard({
   const [puzzle, setPuzzle] = useState<{ size: number; initial: number[]; target: number[]; moveLimit: number } | null>(null);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [redeemablePoints, setRedeemablePoints] = useState(0);
-  const [redeemAmount, setRedeemAmount] = useState(CIPHER_TICKET_REDEEM_RATE_POINTS);
-  const [toast, setToast] = useState<string | null>(null);
-  const [loreExpanded, setLoreExpanded] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
     if (!walletState.isConnected) return;
@@ -463,6 +465,17 @@ export function CipherVaultsDashboard({
                 Your verified clears are recorded as a local+server ledger. Future GRID distribution can use these checkpoints.
               </p>
             </div>
+            
+            <CardsFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              categories={['t1', 't2', 't3']}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+
             <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80">
@@ -474,14 +487,34 @@ export function CipherVaultsDashboard({
                   </tr>
                 </thead>
                 <tbody>
-                  {(state.ledger?.length ?? 0) === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                        No clears yet. Start a vault run in the Vaults tab.
-                      </td>
-                    </tr>
-                  ) : (
-                    [...(state.ledger ?? [])].reverse().map((e) => (
+                  {(() => {
+                    let list = [...(state.ledger ?? [])];
+                    if (searchQuery) {
+                      const q = searchQuery.toLowerCase();
+                      list = list.filter(e => e.tierId.toLowerCase().includes(q) || e.entryTxHash?.toLowerCase().includes(q));
+                    }
+                    if (category !== 'all') {
+                      list = list.filter(e => e.tierId === category);
+                    }
+                    if (sortBy === 'price_asc') {
+                      list.sort((a, b) => a.moves - b.moves);
+                    } else if (sortBy === 'price_desc') {
+                      list.sort((a, b) => b.moves - a.moves);
+                    } else {
+                      list.sort((a, b) => new Date(b.solvedAt).getTime() - new Date(a.solvedAt).getTime());
+                    }
+
+                    if (list.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
+                            No clears match your filters.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return list.map((e) => (
                       <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                         <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.solvedAt).toLocaleString()}</td>
                         <td className="p-3 text-zinc-800 dark:text-zinc-200">{e.tierId}</td>
@@ -490,8 +523,8 @@ export function CipherVaultsDashboard({
                         </td>
                         <td className="p-3 font-mono text-xs text-zinc-500 dark:text-zinc-500">{e.entryTxHash ? e.entryTxHash.slice(0, 10) + '…' : 'ticket'}</td>
                       </tr>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>

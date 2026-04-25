@@ -21,6 +21,7 @@ import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -186,13 +187,11 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const { nftStatus } = useNFTStatus();
   const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('kaspa-quiz');
   const levels = useMemo(() => buildLevels(), []);
-  const [tab, setTab] = useState<TabId>('play');
-  const [levelIndex, setLevelIndex] = useState(0);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [correct, setCorrect] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
 
   const hasAnyNFT =
     Boolean(nftStatus?.hasKREXPRIME) ||
@@ -315,6 +314,15 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
 
         {tab === 'boosters' && (
           <div className="space-y-6">
+            <CardsFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              categories={['KRC-20', 'XP']}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
             <KrexBoosterCard gameId="kaspa-quiz" title="KREX booster" />
           </div>
         )}
