@@ -67,10 +67,10 @@ export type MachineConfig = {
 };
 
 export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
-  'pulse-drill':        { id: 'pulse-drill',        label: 'Pulse Drill',        durationMs: 10 * 60_000,      baseOutput: 50,   powerConsumptionFactor: 0.5 },
-  'crystal-extractor':  { id: 'crystal-extractor',  label: 'Crystal Extractor',  durationMs: 30 * 60_000,      baseOutput: 180,  powerConsumptionFactor: 1.0 },
-  'deep-vein-rig':      { id: 'deep-vein-rig',      label: 'Deep Vein Rig',      durationMs: 60 * 60_000,      baseOutput: 420,  powerConsumptionFactor: 2.0 },
-  'quantum-fracturer':  { id: 'quantum-fracturer',  label: 'Quantum Fracturer',  durationMs: 6 * 60 * 60_000,  baseOutput: 3200, powerConsumptionFactor: 4.0 },
+  'pulse-drill':        { id: 'pulse-drill',        label: 'Pulse Drill',        durationMs: 10 * 60_000,      baseOutput: 50,   powerConsumptionFactor: 1.0 },
+  'crystal-extractor':  { id: 'crystal-extractor',  label: 'Crystal Extractor',  durationMs: 30 * 60_000,      baseOutput: 180,  powerConsumptionFactor: 1.5 },
+  'deep-vein-rig':      { id: 'deep-vein-rig',      label: 'Deep Vein Rig',      durationMs: 60 * 60_000,      baseOutput: 420,  powerConsumptionFactor: 2.5 },
+  'quantum-fracturer':  { id: 'quantum-fracturer',  label: 'Quantum Fracturer',  durationMs: 6 * 60 * 60_000,  baseOutput: 3200, powerConsumptionFactor: 6.0 },
 };
 
 export type BatteryConfig = {

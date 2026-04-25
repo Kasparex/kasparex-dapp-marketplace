@@ -223,7 +223,7 @@ export function PlantSlotCard(props: {
   const s   = props.slot;
   const now = props.now;
 
-  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'preset' | null>(null);
+  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle              = s.cycle;
@@ -334,6 +334,20 @@ export function PlantSlotCard(props: {
               tooltip={workerConfig ? `${workerConfig.label}: applies ×${workerConfig.multiplier} multiplier to diamond output.` : 'No worker assigned. Click to assign one.'}
               onClick={() => !buyDisabled && setActiveModal('worker')}
             />
+            <CheckRow
+              installed={s.setup.moduleIds.length > 0}
+              label="Modules"
+              value={s.type === 'standard' ? 'Locked (Upgrade Plant)' : (s.setup.moduleIds.length > 0 ? `${s.setup.moduleIds.length} active` : 'No modules')}
+              stat={s.type === 'standard' ? 'LOCKED' : undefined}
+              tooltip={s.type === 'standard' ? 'Standard plants do not support modules. Upgrade to Premium or Advanced to unlock module slots.' : 'Specialized hardware to boost output or reduce failure rates.'}
+              onClick={() => {
+                if (s.type === 'standard') {
+                  setActiveModal('preset');
+                } else if (!buyDisabled) {
+                  setActiveModal('modules');
+                }
+              }}
+            />
           </div>
 
           {/* ── Status warnings ── */}
@@ -369,8 +383,8 @@ export function PlantSlotCard(props: {
               {/* Battery charge bar */}
               {capacityMs > 0 && (
                 <ResourceBar
-                  label={`Battery charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} left` : ''}`}
-                  value={`${Math.round(batteryRatio * 100)}%`}
+                  label={`Charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} runtime` : ''}`}
+                  value={`${Math.floor(liveChargeMs / 60000)}m / ${Math.floor(capacityMs / 60000)}m`}
                   ratio={batteryRatio}
                   variant="battery"
                 />
@@ -542,6 +556,27 @@ export function PlantSlotCard(props: {
           );
         })}
       </SelectionModal>
+      {activeModal === 'modules' && (
+        <SelectionModal
+          title="Install Modules"
+          description="Select hardware to optimize output. Higher tiers unlock more slots."
+          items={Object.values(MINECORE_MODULES).map(m => ({
+            id: m.id,
+            label: m.label,
+            description: `Boost: +${(m.outputBonus * 100).toFixed(0)}%, Fail: -${(m.failureReduction * 100).toFixed(0)}%`,
+            owned: props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0,
+            selected: s.setup.moduleIds.includes(m.id as MinecoreModuleId),
+          }))}
+          onSelect={(id) => {
+            const current = s.setup.moduleIds;
+            const next = current.includes(id as any) 
+              ? current.filter(x => x !== id)
+              : [...current, id as any].slice(0, s.type === 'premium' ? 2 : 4);
+            props.onInstallPart('modules', next);
+          }}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
     </>
   );
 }

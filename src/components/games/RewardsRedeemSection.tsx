@@ -12,21 +12,19 @@ export function RewardsRedeemSection({
   refinementPointsBalance,
   onRefine,
   onRedeem,
-  children,
 }: {
   diamondsBalance: number;
   refinementPointsBalance: number;
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number) => void;
-  children?: React.ReactNode;
 }) {
+  const [refineAmount, setRefineAmount] = useState<number | ''>('');
+  const [redeemPoints, setRedeemPoints] = useState<number | ''>('');
+  const [targetToken, setTargetToken] = useState<'GRID' | 'KREX'>('GRID');
+  
   const [l2Address, setL2Address] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-
-  const [swapFrom, setSwapFrom] = useState<'diamonds' | 'points'>('diamonds');
-  const [swapAmount, setSwapAmount] = useState<number | ''>('');
-  const [swapTo, setSwapTo] = useState<'points' | 'GRID' | 'KREX'>('points');
 
   const { state: kaspaWalletState } = useKaspaWallet();
 
@@ -56,183 +54,161 @@ export function RewardsRedeemSection({
     }
   };
 
-  const maxAmount = swapFrom === 'diamonds' ? diamondsBalance : refinementPointsBalance;
-  const currentAmount = typeof swapAmount === 'number' ? swapAmount : 0;
-
-  let output = 0;
-  if (swapFrom === 'diamonds') output = currentAmount; // 1:1 to points
-  else if (swapTo === 'GRID')  output = currentAmount * 100;
-  else if (swapTo === 'KREX')  output = currentAmount * 10;
-
-  const handleSwap = () => {
-    if (!currentAmount || currentAmount <= 0) return;
-    if (swapFrom === 'diamonds') {
-      if (onRefine) onRefine(currentAmount);
-      setSwapFrom('points');
-      setSwapTo('GRID');
-    } else {
-      if (!isVerified) return alert('Verify L2 wallet first.');
-      if (onRedeem) onRedeem(currentAmount);
-    }
-    setSwapAmount('');
-  };
+  const refineOutput = typeof refineAmount === 'number' ? refineAmount * 1 : 0;
+  const redeemOutput = typeof redeemPoints === 'number' ? (targetToken === 'GRID' ? redeemPoints * 100 : redeemPoints * 10) : 0;
 
   return (
     <div className="space-y-6">
-      {/* ── Wallet Verification ── */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60 shadow-sm">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Icons.Wallet className="w-5 h-5 text-sky-500" />
-              L2 Verification
-            </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              Verify your L2 address to claim rewards. Requires a 0.1 KAS fee.
-            </p>
-          </div>
-          {isVerified && (
-            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-              <Icons.CheckCircle2 className="w-3 h-3" />
-              Verified
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <input
-            type="text"
-            placeholder="L2 Address (kaspa:... or 0x...)"
-            value={l2Address}
-            onChange={(e) => setL2Address(e.target.value)}
-            disabled={isVerified}
-            className="flex-1 min-w-[200px] h-11 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm focus:border-sky-500 outline-none dark:border-zinc-800 dark:bg-zinc-950 disabled:opacity-50"
-          />
-          <button
-            onClick={handleVerify}
-            disabled={isVerified || !l2Address || isVerifying}
-            className="h-11 px-6 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
-          >
-            {isVerifying ? 'Verifying…' : isVerified ? 'Done' : 'Verify Now'}
-          </button>
-        </div>
-      </div>
-
-      {/* ── Unified Swap Panel ── */}
-      <div className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/80 shadow-xl relative">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Reward Swap</h3>
-          <div className="flex gap-4">
-             <div className="text-right">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Bag</div>
-                <div className="text-sm font-black text-amber-500">{diamondsBalance.toLocaleString()} D</div>
-             </div>
-             <div className="text-right border-l border-zinc-100 dark:border-zinc-800 pl-4">
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Points</div>
-                <div className="text-sm font-black text-emerald-500">{refinementPointsBalance.toLocaleString()} P</div>
-             </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {/* FROM */}
-          <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-100 dark:border-zinc-800">
-            <div className="flex justify-between mb-2">
-              <span className="text-xs font-bold text-zinc-500 uppercase">From</span>
-              <span className="text-xs font-bold text-zinc-400">Balance: {maxAmount.toLocaleString()}</span>
+      {/* ── SECTION 1: DIAMOND REFINEMENT ── */}
+      <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-950 shadow-2xl">
+        <div className="relative z-10 rounded-[22px] bg-zinc-50 p-6 dark:bg-zinc-900/40">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Diamond Refinement</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Convert mined diamonds into persistent points.</p>
             </div>
-            <div className="flex items-center gap-4">
-              <input
-                type="number"
-                value={swapAmount}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (isNaN(v)) setSwapAmount('');
-                  else setSwapAmount(Math.max(0, Math.min(maxAmount, v)));
-                }}
-                placeholder="0.0"
-                className="bg-transparent text-2xl font-black text-zinc-900 dark:text-zinc-100 outline-none flex-1 min-w-0"
-              />
+            <div className="text-right">
+              <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Available</div>
+              <div className="text-2xl font-black text-amber-500">{diamondsBalance.toLocaleString()} D</div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 items-end">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Amount to Refine</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={refineAmount}
+                  onChange={(e) => setRefineAmount(e.target.value === '' ? '' : Math.max(0, Math.min(diamondsBalance, parseInt(e.target.value, 10))))}
+                  placeholder="0"
+                  className="h-14 w-full rounded-2xl border border-zinc-200 bg-white px-5 text-xl font-black outline-none transition-all focus:border-amber-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                />
+                <button 
+                  onClick={() => setRefineAmount(diamondsBalance)}
+                  className="absolute right-3 top-3 h-8 rounded-lg bg-zinc-100 px-3 text-[10px] font-black uppercase hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                >
+                  Max
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-2">
+                <span className="text-[10px] font-black uppercase text-zinc-400">Ratio 1:1</span>
+                <span className="text-sm font-black text-emerald-500">+{refineOutput.toLocaleString()} Points</span>
+              </div>
               <button
-                onClick={() => setSwapFrom(swapFrom === 'diamonds' ? 'points' : 'diamonds')}
-                className="flex items-center gap-2 bg-white dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm"
+                onClick={() => {
+                  if (onRefine && typeof refineAmount === 'number') onRefine(refineAmount);
+                  setRefineAmount('');
+                }}
+                disabled={!refineAmount || refineAmount <= 0}
+                className="h-14 w-full rounded-2xl bg-amber-500 font-black uppercase tracking-widest text-white shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40"
               >
-                <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-                  {swapFrom === 'diamonds' ? <Icons.Gem className="w-3 h-3 text-white" /> : <Icons.Zap className="w-3 h-3 text-white" />}
-                </div>
-                <span className="text-sm font-black uppercase">{swapFrom}</span>
+                Refine Now
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* DIVIDER */}
-          <div className="relative h-2 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-100 dark:border-zinc-800" /></div>
-            <button
-              onClick={() => {
-                if (swapFrom === 'diamonds') { setSwapFrom('points'); setSwapTo('GRID'); }
-                else { setSwapFrom('diamonds'); setSwapTo('points'); }
-              }}
-              className="relative z-10 p-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-full shadow-md hover:scale-110 transition-transform"
-            >
-              <Icons.ArrowDown className="w-4 h-4 text-zinc-500" />
-            </button>
+      {/* ── SECTION 2: TOKEN REDEMPTION ── */}
+      <div className="group relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-950 shadow-2xl">
+        <div className="relative z-10 rounded-[22px] bg-zinc-50 p-6 dark:bg-zinc-900/40">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Point Redemption</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Claim your rewards to an L2 wallet.</p>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Balance</div>
+              <div className="text-2xl font-black text-emerald-500">{refinementPointsBalance.toLocaleString()} P</div>
+            </div>
           </div>
 
-          {/* TO */}
-          <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-950 p-4 border border-zinc-100 dark:border-zinc-800">
-            <div className="flex justify-between mb-2">
-              <span className="text-xs font-bold text-zinc-500 uppercase">To (Estimated)</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 flex-1">
-                {output.toLocaleString()}
+          <div className="space-y-4">
+            {/* L2 Verification Row */}
+            <div className={`rounded-2xl border p-4 transition-colors ${isVerified ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">1. Link L2 Wallet</span>
+                {isVerified && <span className="text-[9px] font-black uppercase text-emerald-500 flex items-center gap-1"><Icons.CheckCircle2 className="w-3 h-3" /> Linked</span>}
               </div>
-              <div className="flex gap-1 bg-white dark:bg-zinc-800 p-1 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                {(swapFrom === 'diamonds' ? ['points'] : ['GRID', 'KREX']).map((t) => (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="kaspa:... or 0x..."
+                  value={l2Address}
+                  onChange={(e) => setL2Address(e.target.value)}
+                  disabled={isVerified}
+                  className="flex-1 h-11 rounded-xl border border-zinc-100 bg-zinc-50 px-4 text-xs font-medium outline-none dark:border-zinc-800 dark:bg-zinc-900/50"
+                />
+                {!isVerified && (
                   <button
-                    key={t}
-                    onClick={() => setSwapTo(t as any)}
-                    className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg transition-all ${
-                      swapTo === t ? 'bg-sky-500 text-white' : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-700'
-                    }`}
+                    onClick={handleVerify}
+                    disabled={isVerifying || !l2Address}
+                    className="px-4 h-11 rounded-xl bg-sky-500 text-white text-[10px] font-black uppercase hover:bg-sky-600 transition-colors"
                   >
-                    {t}
+                    {isVerifying ? 'Wait…' : 'Verify'}
                   </button>
-                ))}
+                )}
               </div>
+            </div>
+
+            {/* Redemption Flow */}
+            <div className="grid gap-4 sm:grid-cols-2 items-end">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">2. Select Token</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['GRID', 'KREX'] as const).map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setTargetToken(t)}
+                      className={`h-11 rounded-xl font-black text-xs transition-all ${targetToken === t ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'bg-white dark:bg-zinc-800 text-zinc-500 border border-zinc-100 dark:border-zinc-700'}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">3. Amount</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={redeemPoints}
+                    onChange={(e) => setRedeemPoints(e.target.value === '' ? '' : Math.max(0, Math.min(refinementPointsBalance, parseInt(e.target.value, 10))))}
+                    placeholder="0"
+                    className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm font-black outline-none dark:border-zinc-800 dark:bg-zinc-950"
+                  />
+                  <button 
+                    onClick={() => setRedeemPoints(refinementPointsBalance)}
+                    className="absolute right-2 top-2 h-7 rounded bg-zinc-100 px-2 text-[9px] font-black uppercase dark:bg-zinc-800"
+                  >
+                    All
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  if (onRedeem && typeof redeemPoints === 'number') onRedeem(redeemPoints);
+                  setRedeemPoints('');
+                }}
+                disabled={!isVerified || !redeemPoints || redeemPoints <= 0}
+                className="h-14 w-full rounded-2xl bg-emerald-600 font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40"
+              >
+                {redeemPoints ? `Receive ${redeemOutput.toLocaleString()} ${targetToken}` : 'Redeem Points'}
+              </button>
+              <p className="mt-3 text-center text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                Ratio 1 P : {targetToken === 'GRID' ? '100' : '10'} {targetToken}
+              </p>
             </div>
           </div>
         </div>
-
-        <button
-          onClick={handleSwap}
-          disabled={!currentAmount || (swapFrom === 'points' && !isVerified)}
-          className="mt-6 w-full h-14 rounded-2xl bg-sky-500 text-white font-black text-lg uppercase tracking-wider shadow-lg shadow-sky-500/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:grayscale"
-        >
-          {swapFrom === 'diamonds' ? 'Refine Diamonds' : `Redeem to ${swapTo}`}
-        </button>
-
-        {swapFrom === 'points' && !isVerified && (
-          <p className="mt-3 text-center text-[11px] font-bold text-rose-500 uppercase tracking-widest">
-            Verify L2 Wallet to Redeem
-          </p>
-        )}
-      </div>
-
-      {children}
-
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase mb-2">Global Rewards</h3>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-          Claimed tokens can be used across the Kasparex ecosystem.
-        </p>
-        <Link
-          href="/rewards-and-points"
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-6 text-xs font-bold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-        >
-          View Benefits Directory
-        </Link>
       </div>
     </div>
   );

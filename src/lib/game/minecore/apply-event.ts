@@ -171,10 +171,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       }
       if (ev.part.kind === 'battery') {
         slot.setup.batteryId = ev.part.id;
-        // Immediately fill charge to new battery's capacity
+        // When installing a battery, it starts full
         const b = ev.part.id ? MINECORE_BATTERIES[ev.part.id] : null;
         if (b) {
-          slot.powerRemaining   = Math.max(slot.powerRemaining, b.powerCapacity);
           slot.batteryChargeMs  = b.chargeCapacityMs;
           slot.batterySnapshotAt = now;
         } else {
@@ -201,14 +200,14 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const expectedDiamonds = computePlantExpectedDiamonds(s, slot);
       if (durationMs <= 0 || expectedDiamonds <= 0) return rederive(s, now);
 
-      slot.powerRemaining -= 1; // consume 1 fuel unit
-      // Snapshot battery at cycle start — charge begins draining from now
+      // PERSISTENCE: Ensure battery charge is up-to-date before starting new drain
+      slot.batteryChargeMs   = computeLiveBatteryChargeMs(slot, ev.at);
       slot.batterySnapshotAt = ev.at;
-      // batteryChargeMs stays as-is (remaining charge from previous state / refill)
-      // If battery wasn't explicitly refilled, ensure it's set to capacity
-      if (slot.batteryChargeMs <= 0) {
-        slot.batteryChargeMs = getBatteryCapacityMs(slot);
-      }
+
+      // Ensure we have some charge to start at all
+      if (slot.batteryChargeMs <= 0) return rederive(s, now);
+
+      slot.powerRemaining -= 1; // consume 1 fuel unit
 
       slot.cycle = {
         startAtMs:        ev.at,
@@ -240,7 +239,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const extracted = computeLiveDiamonds(slot, ev.at);
       s.diamondsBalance += extracted;
       slot.cycle = null;
-      // Reset battery snapshot (charge stays at whatever remained)
+
+      // PERSISTENCE: Update battery charge to exactly what is left now
+      slot.batteryChargeMs   = computeLiveBatteryChargeMs(slot, ev.at);
       slot.batterySnapshotAt = ev.at;
 
       // Auto-Refine

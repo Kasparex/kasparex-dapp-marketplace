@@ -59,8 +59,10 @@ export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): n
   if (!slot.cycle || slot.cycle.endAtMs <= slot.cycle.startAtMs) {
     return slot.batteryChargeMs;
   }
-  // Only drain if cycle is actually running (not yet ended)
-  const elapsed      = Math.max(0, now - slot.batterySnapshotAt);
+  // Only drain if cycle is actually running or ended (awaiting extraction)
+  // But stop draining at the cycle's end point.
+  const drainUntil   = slot.cycle ? Math.min(now, slot.cycle.endAtMs) : now;
+  const elapsed      = Math.max(0, drainUntil - slot.batterySnapshotAt);
   const powerFactor  = getPlantPowerFactor(slot);
   return Math.max(0, slot.batteryChargeMs - elapsed * powerFactor);
 }
