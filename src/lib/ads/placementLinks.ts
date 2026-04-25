@@ -50,6 +50,18 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'CrowdKAS listing, halo header right',
   },
   {
+    slotId: 'HALO_GAMES_RIGHT',
+    title: 'Games halo',
+    href: '/games#ad-slot-games-halo',
+    placement: 'Kasparex Games listing, halo header right',
+  },
+  {
+    slotId: 'GAMES_PLAY_RAIL_RIGHT',
+    title: 'Games play rail',
+    href: '/games/minecore#ad-slot-games-play-rail',
+    placement: 'Game pages, right column bottom (e.g. Minecore / Diamond Veins)',
+  },
+  {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     title: 'vBlog article aside',
     href: '/vblog#ad-slot-vblog-article-aside-bottom',

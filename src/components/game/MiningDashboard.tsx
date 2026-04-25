@@ -15,11 +15,11 @@ import { UpgradesPanel } from '@/components/game/diamond-veins/panels/UpgradesPa
 import { RewardsPanel } from '@/components/game/diamond-veins/panels/RewardsPanel';
 import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GameTabs } from '@/components/games/layout/GameTabs';
 import { IconComments, IconOverview, IconPower, IconRewards, IconShop, IconWorkers } from '@/components/games/icons/TabIcons';
@@ -93,8 +93,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     buyPowerUpgrade,
   } = useDiamondMining();
 
-  const { data: deck } = useWalletDeck();
-
   const [tab, setTab] = useState<TabId>('overview');
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [loreExpanded, setLoreExpanded] = useState(false);
@@ -119,8 +117,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const connections = (game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
-
   const openOverview = () => {
     setTab('overview');
     try {
@@ -308,15 +304,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 onClick: () => setTab('mining'),
               },
               {
-                id: 'grid',
-                label: 'GRID (pending)',
-                value: pendingGrid.toLocaleString(),
-                description: 'Reward token',
-                tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
-                accent: 'grid',
-                onClick: () => setTab('rewards'),
-              },
-              {
                 id: 'kas',
                 label: 'KAS',
                 value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
@@ -396,6 +383,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               </div>
             )}
           </div>
+
+          <GamesPlayAdRail />
         </div>
 
         {lastRefineClaim && (

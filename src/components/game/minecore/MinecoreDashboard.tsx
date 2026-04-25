@@ -10,7 +10,6 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { computeMinecoreDiamondsDisplayTotal } from '@/lib/game/minecore/compute';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
@@ -23,6 +22,7 @@ import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMinin
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
@@ -49,7 +49,6 @@ export function MinecoreDashboard(_props: {
   const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet } = useMinecore();
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
-  const { data: deck } = useWalletDeck();
   const [tab, setTab] = useState<TabId>('overview');
   const [krexWizardOpen, setKrexWizardOpen] = useState(false);
 
@@ -59,7 +58,6 @@ export function MinecoreDashboard(_props: {
   const kasBalanceNum = kasValid ? balanceInKas : 0;
   const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;
 
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
   const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state));
 
   const openOverview = () => {
@@ -84,15 +82,6 @@ export function MinecoreDashboard(_props: {
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
-      },
-      {
-        id: 'grid',
-        label: 'GRID (pending)',
-        value: pendingGrid.toLocaleString(),
-        description: 'Reward token',
-        tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Redeem.',
-        accent: 'grid' as const,
-        onClick: () => setTab('redeem' as const),
       },
       {
         id: 'grid_redeemable',
@@ -346,6 +335,8 @@ export function MinecoreDashboard(_props: {
           </GamePurchasesPanel>
 
           <GameMetadataPanel categories={categories} tags={tags} />
+
+          <GamesPlayAdRail />
         </div>
       </div>
     </TooltipProvider>

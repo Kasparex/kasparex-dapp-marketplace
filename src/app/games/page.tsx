@@ -13,6 +13,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
+import { AdSlider } from '@/components/ads/AdSlider';
 
 function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -158,24 +159,41 @@ function GamesContent() {
                 <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.15),transparent_70%)] rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.1),transparent_70%)] rounded-full blur-3xl" />
               </div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  Games
+              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    Games
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
+                    Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Games</span>
+                  </h1>
+                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+                    Play and discover games on Kaspa. Connect a wallet to start.
+                  </p>
+                  <a href="#content" className="k-cta-primary">
+                    Browse games
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </a>
                 </div>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-                  Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Games</span>
-                </h1>
-                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
-                  Play and discover games on Kaspa. Connect a wallet to start.
-                </p>
-                <a href="#content" className="k-cta-primary">
-                  Browse games
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </a>
+                <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
+                  <div className="relative opacity-90 pointer-events-none">
+                    <div className="w-48 h-56 rounded-2xl border-2 border-emerald-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-emerald-500/10 rotate-3 transform" />
+                    <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+                    <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
+                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Game</span>
+                    </div>
+                  </div>
+                  <div
+                    id="ad-slot-games-halo"
+                    className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+                  >
+                    <AdSlider slotId="HALO_GAMES_RIGHT" />
+                  </div>
+                </div>
               </div>
             </div>
             <div id="content" className="scroll-mt-4" />

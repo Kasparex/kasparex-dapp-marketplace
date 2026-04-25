@@ -1,10 +1,10 @@
 'use client';
 
-import { GamesPlayShell } from '@/components/games/GamesPlayShell';
 import { GameInfoPanel } from '@/components/games/GameInfoPanel';
 import { RelatedGames } from '@/components/games/RelatedGames';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { GamePayment } from '@/components/games/GamePayment';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import type { Game } from '@/lib/games/games';
 
 interface GameContentProps {
@@ -13,7 +13,7 @@ interface GameContentProps {
 
 export function GameContent({ game }: GameContentProps) {
   return (
-    <GamesPlayShell>
+    <main className="min-w-0 flex-1 p-4 sm:p-6 lg:px-16 lg:py-12">
       <div className="mb-6">
         <div className="mb-4 flex items-center gap-3">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{game.name}</h1>
@@ -44,7 +44,13 @@ export function GameContent({ game }: GameContentProps) {
         <CommentsSection articleId={`game:${game.slug || game.id}`} />
       </div>
 
+      <div className="mt-8 flex justify-end">
+        <div className="w-full max-w-sm">
+          <GamesPlayAdRail />
+        </div>
+      </div>
+
       <RelatedGames currentGame={game} />
-    </GamesPlayShell>
+    </main>
   );
 }

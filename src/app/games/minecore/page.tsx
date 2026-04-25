@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { GamesPlayShell } from '@/components/games/GamesPlayShell';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGameBySlugFromRegistry } from '@/lib/games/registry';
 
@@ -42,8 +41,8 @@ function MinecoreContent() {
 
       <Header />
 
-      <GamesPlayShell>
-        <div className="mx-auto w-full max-w-7xl">
+      <main className="relative z-10 flex-1 p-4 lg:p-8">
+        <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
           <div className="mb-6">
             <Link
               href="/games"
@@ -77,7 +76,7 @@ function MinecoreContent() {
             </div>
           )}
         </div>
-      </GamesPlayShell>
+      </main>
 
       <Footer />
     </div>
