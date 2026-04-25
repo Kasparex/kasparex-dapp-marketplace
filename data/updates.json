@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777151018-e4e0a7b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Update Shop images and fix AddSlot TypeScript error (by Kasparex)",
+      "date": "2026-04-25T23:03:23+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777150496-34abaa9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix PlantSlotCard JSX nesting error (by Kasparex)",
