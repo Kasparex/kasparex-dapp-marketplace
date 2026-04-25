@@ -187,6 +187,12 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const { nftStatus } = useNFTStatus();
   const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('kaspa-quiz');
   const levels = useMemo(() => buildLevels(), []);
+  const [tab, setTab] = useState<TabId>('play');
+  const [levelIndex, setLevelIndex] = useState(0);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState(0);
   const [finished, setFinished] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
