@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777159747-91b8459",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Force deploy trigger (by Kasparex)",
+      "date": "2026-04-26T01:28:50+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777159706-95b37d7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Trigger Vercel redeploy (by Kasparex)",
