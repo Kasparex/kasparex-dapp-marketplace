@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777149351-39e3705",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Install lucide-react dependency (by Kasparex)",
+      "date": "2026-04-25T22:35:35+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777148856-0f51bd8",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Minecore Phase 2: Presets, Selection Modals, and Unified Rewards (by Kasparex)",
