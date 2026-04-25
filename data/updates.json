@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777153326-ac41153",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Implement diamond accumulation persistence across mining cycles (by Kasparex)",
+      "date": "2026-04-25T23:41:46+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777153210-f19276e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix game logic, battery persistence, add module selection, and overhaul Redeem tab (by Kasparex)",
