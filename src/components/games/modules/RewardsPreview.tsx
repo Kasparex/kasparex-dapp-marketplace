@@ -6,7 +6,6 @@ import { useWalletDeck } from '@/hooks/useWalletDeck';
 export function RewardsPreview(props: { showLink?: boolean; className?: string }) {
   const { data, isLoading, isFetching, refetch } = useWalletDeck();
 
-  const pendingGrid = data?.rewards?.pendingGrid ?? 0;
   const diamonds = data?.diamonds?.balance ?? 0;
   const showLink = Boolean(props.showLink);
 
@@ -36,12 +35,18 @@ export function RewardsPreview(props: { showLink?: boolean; className?: string }
 
       <div className="mt-3 grid grid-cols-2 gap-6">
         <div>
-          <div className="text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-500">Pending GRID</div>
-          <div className="mt-1 text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{isLoading ? '…' : pendingGrid.toFixed(2)}</div>
-        </div>
-        <div>
           <div className="text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-500">Diamonds</div>
           <div className="mt-1 text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{isLoading ? '…' : diamonds.toLocaleString()}</div>
+        </div>
+        <div>
+          <div className="text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-500">GRID claims</div>
+          <p className="mt-1 text-sm leading-snug text-zinc-600 dark:text-zinc-400">
+            Pending totals and claims live on{' '}
+            <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+              Rewards &amp; Points
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>
