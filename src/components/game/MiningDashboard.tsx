@@ -93,6 +93,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
+  const [refining, setRefining] = useState(false);
 
   const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
   const kasBalanceNum = kasValid ? kasBalance : 0;
