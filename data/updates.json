@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777143117-0d0cde3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(minecore): fix build error - undefined nowTick and improper imports (by Kasparex)",
+      "date": "2026-04-25T20:51:40+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777142141-9b3a19a",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat(minecore): overhaul mining system - live diamonds, battery drain, and setup checklist UI (by Kasparex)",
