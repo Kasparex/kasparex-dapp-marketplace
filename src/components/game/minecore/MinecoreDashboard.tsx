@@ -116,15 +116,6 @@ export function MinecoreDashboard(_props: {
         onClick: () => setTab('mining' as const),
       },
       {
-        id: 'points_redeemable',
-        label: 'Points (redeemable)',
-        value: Math.floor(state.gridRedeemableTotal).toLocaleString(),
-        description: 'Reward points',
-        tooltip: 'Redeemable Points produced from refinement under V1 rules. Click to open Redeem.',
-        accent: 'purple' as const, // Different color for points
-        onClick: () => setTab('redeem' as const),
-      },
-      {
         id: 'grid_token',
         label: 'GRID',
         value: gridL1Balance.toLocaleString(),

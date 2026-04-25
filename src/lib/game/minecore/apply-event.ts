@@ -251,7 +251,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (pts <= 0) return rederive(s, now);
       if (s.refinementPointsTotal < pts) return rederive(s, now);
       s.refinementPointsTotal -= pts;
-      s.gridRedeemableTotal += pts * MINECORE_GRID_REDEEM_RATE;
+      // We no longer need gridRedeemableTotal, the claim action will be handled by the UI/SDK
       return rederive(s, now);
     }
     default:

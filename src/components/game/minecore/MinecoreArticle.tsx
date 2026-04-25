@@ -209,6 +209,27 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
 
       <hr />
 
+      <h2>How the reward system works</h2>
+      <p>
+        Minecore uses a multi-layered reward system designed for gas efficiency and cross-game synergy:
+      </p>
+      <ul className="list-none pl-0 space-y-4">
+        <li>
+          <strong className="text-zinc-900 dark:text-zinc-100 block">1. Extraction & Auto-Refine (L1)</strong>
+          When you extract Diamonds from a completed cycle, they are automatically converted into <strong>Refinement Points</strong>. This is an off-chain, zero-gas process that records your progress.
+        </li>
+        <li>
+          <strong className="text-zinc-900 dark:text-zinc-100 block">2. Reward Weight (Balance)</strong>
+          Your &quot;Reward Weight&quot; is the combined total of your raw Diamonds and earned Refinement Points. Points are valuable because they determine your <strong>Kasparex Rank</strong> and eligibility for ecosystem tiers.
+        </li>
+        <li>
+          <strong className="text-zinc-900 dark:text-zinc-100 block">3. Token Claims (L2)</strong>
+          Once you are ready, you can claim your Points as real <strong>GRID</strong> or <strong>KREX</strong> tokens on the Kasplex L2 network. Using a &quot;Points&quot; buffer allows you to save up rewards and pay gas fees only once for a large batch.
+        </li>
+      </ul>
+
+      <hr />
+
       <h2>Summary</h2>
       <p>
         Minecore is a system of building, managing, and optimizing mining operations within a discovered underground network powered by BlockDAG energy.
