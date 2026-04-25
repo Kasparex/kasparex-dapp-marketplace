@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777125821-a9865f1",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Resolve build error in CipherVaults and complete unified sorting in Diamond Veins Rewards (by Kasparex)",
+      "date": "2026-04-25T16:03:19+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777125266-ffe4455",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unified Framework: Add sorting and filtering to Boosters and Rewards tabs in all custom game dashboards (by Kasparex)",
