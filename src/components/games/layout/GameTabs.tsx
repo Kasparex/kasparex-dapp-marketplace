@@ -35,6 +35,13 @@ export function GameTabs<T extends string>(props: {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
+  // Drag-scroll state (stored in refs to avoid re-renders mid-drag)
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartScrollLeft = useRef(0);
+  // Track total drag distance so we can suppress click if user actually dragged
+  const dragDistance = useRef(0);
+
   const updateScrollState = useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
@@ -61,6 +68,46 @@ export function GameTabs<T extends string>(props: {
     el.scrollBy({ left: dir === 'left' ? -160 : 160, behavior: 'smooth' });
   }, []);
 
+  // ── Drag-to-scroll handlers ──────────────────────────────────────────────
+  const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = stripRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    dragStartX.current = e.pageX - el.offsetLeft;
+    dragStartScrollLeft.current = el.scrollLeft;
+    dragDistance.current = 0;
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = stripRef.current;
+    if (!isDragging.current || !el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - dragStartX.current;
+    dragDistance.current = Math.abs(walk);
+    el.scrollLeft = dragStartScrollLeft.current - walk;
+  }, []);
+
+  const stopDrag = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    isDragging.current = false;
+    el.style.cursor = '';
+    el.style.userSelect = '';
+  }, []);
+
+  // Suppress tab click if user dragged more than a few pixels
+  const onClickCapture = useCallback((e: React.MouseEvent) => {
+    if (dragDistance.current > 5) {
+      e.stopPropagation();
+      e.preventDefault();
+      dragDistance.current = 0;
+    }
+  }, []);
+  // ────────────────────────────────────────────────────────────────────────
+
   const chevronBase =
     'absolute top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition-opacity hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100';
 
@@ -78,11 +125,16 @@ export function GameTabs<T extends string>(props: {
         </button>
       )}
 
-      {/* Scrollable tab strip */}
+      {/* Scrollable + drag-scrollable tab strip */}
       <div
         ref={stripRef}
-        className={`flex gap-2 overflow-x-auto transition-[padding] ${canScrollLeft ? 'pl-9' : ''} ${canScrollRight ? 'pr-9' : ''}`}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+        className={`flex gap-2 overflow-x-auto select-none transition-[padding] ${canScrollLeft ? 'pl-9' : ''} ${canScrollRight ? 'pr-9' : ''}`}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', cursor: 'grab' } as React.CSSProperties}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={stopDrag}
+        onMouseLeave={stopDrag}
+        onClickCapture={onClickCapture}
       >
         {props.tabs.map((t) => (
           <button
@@ -132,4 +184,3 @@ export function GameTabs<T extends string>(props: {
     </div>
   );
 }
-
