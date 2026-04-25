@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777116305-ed009d5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: overhaul redeem flow, fix sorting bar visibility and verification payment (by Kasparex)",
+      "date": "2026-04-25T13:24:49+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777114372-237b9d9",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix type error in Minecore filtering logic: use status === 'MiningActive' (by Kasparex)",
