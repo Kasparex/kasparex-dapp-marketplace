@@ -253,8 +253,9 @@ export function PlantSlotCard(props: {
   const actionLabel =
     !s.unlocked             ? `Unlock ${s.unlockCostKas.toLocaleString()} KAS` :
     s.status === 'SetupIncomplete' ? 'Quick setup' :
+    (s.diamondsAccumulated > 0 && s.status !== 'MiningActive') ? `Extract ${s.diamondsAccumulated} D` :
     s.status === 'ReadyToMine'     ? 'Start' :
-    s.status === 'ExtractionReady' ? 'Extract' :
+    s.status === 'ExtractionReady' ? `Extract ${(s.diamondsAccumulated + liveDiamonds).toLocaleString()} D` :
     s.status === 'BatteryEmpty'    ? 'Extract (partial)' :
     s.status === 'NeedsPower'      ? `Top up — 1 KAS` :
     s.status === 'NeedsRepair'     ? 'Repair' :
@@ -269,11 +270,16 @@ export function PlantSlotCard(props: {
   const titleAccessory = s.unlocked ? (
     <div className="text-right">
       <div className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">
-        {cycle ? 'Mined' : 'Expected'}
+        {cycle ? 'Current' : 'Expected'}
       </div>
       <div className="text-lg font-black tabular-nums leading-tight text-amber-500 dark:text-amber-300 sm:text-xl">
         {(cycle ? liveDiamonds : expectedDiamonds).toLocaleString()}
       </div>
+      {s.diamondsAccumulated > 0 && (
+        <div className="text-[9px] font-black text-amber-600/80 dark:text-amber-400/80 uppercase">
+          + {s.diamondsAccumulated.toLocaleString()} Stored
+        </div>
+      )}
       <div className="text-[9px] font-semibold text-amber-700/80 dark:text-amber-200/70">
         {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Diamonds / cycle'}
       </div>

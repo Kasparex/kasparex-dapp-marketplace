@@ -131,7 +131,7 @@ export function deriveState(state: MinecoreState, now: number): MinecoreState {
 /** Wallet balance plus diamonds locked in active cycles. */
 export function computeMinecoreDiamondsDisplayTotal(state: MinecoreState, now: number): number {
   const inPlants = state.plantSlots.reduce(
-    (acc, p) => (p.cycle ? acc + computeLiveDiamonds(p, now) : acc),
+    (acc, p) => acc + p.diamondsAccumulated + (p.cycle ? computeLiveDiamonds(p, now) : 0),
     0,
   );
   return state.diamondsBalance + inPlants;

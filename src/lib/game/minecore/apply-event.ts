@@ -149,6 +149,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         needsRepair:      false,
         batteryChargeMs:  0,
         batterySnapshotAt: now,
+        diamondsAccumulated: 0,
       };
       s.plantSlots.push(newSlot);
       s.nextSlotCostKas = Math.max(MINECORE_DEFAULT_NEXT_SLOT_COST_KAS, s.nextSlotCostKas);
@@ -191,7 +192,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'StartMining': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      if (slot.cycle) return rederive(s, now);
+      
+      // COMMIT OLD CYCLE IF PRESENT
+      if (slot.cycle) {
+        slot.diamondsAccumulated += computeLiveDiamonds(slot, ev.at);
+        // Also update battery persistence while we're at it
+        slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, ev.at);
+        slot.batterySnapshotAt = ev.at;
+        slot.cycle = null;
+      }
+
       if (!computePlantReady(slot)) return rederive(s, now);
       if (slot.powerRemaining <= 0) return rederive(s, now);
       if (slot.needsRepair) return rederive(s, now);
@@ -230,14 +240,18 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
     case 'Extract': {
       const slot = s.plantSlots[ev.slotIndex];
-      if (!slot || !slot.unlocked || !slot.cycle) return rederive(s, now);
-      // Allow extraction when: cycle ended OR battery is empty (BatteryEmpty status)
+      if (!slot || !slot.unlocked) return rederive(s, now);
+      
       const liveStatus = deriveSlotStatus(s, slot, ev.at);
-      if (liveStatus !== 'ExtractionReady' && liveStatus !== 'BatteryEmpty') return rederive(s, now);
+      const hasSomething = slot.diamondsAccumulated > 0 || (slot.cycle && (liveStatus === 'ExtractionReady' || liveStatus === 'BatteryEmpty'));
+      if (!hasSomething) return rederive(s, now);
 
-      // Proportional extraction — full if cycle completed, partial if battery died
-      const extracted = computeLiveDiamonds(slot, ev.at);
-      s.diamondsBalance += extracted;
+      // Proportional extraction — sum accumulated + current live
+      const currentCycleDiamonds = computeLiveDiamonds(slot, ev.at);
+      const totalToExtract = slot.diamondsAccumulated + currentCycleDiamonds;
+      
+      s.diamondsBalance += totalToExtract;
+      slot.diamondsAccumulated = 0;
       slot.cycle = null;
 
       // PERSISTENCE: Update battery charge to exactly what is left now

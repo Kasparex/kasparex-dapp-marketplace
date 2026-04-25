@@ -28,6 +28,7 @@ function createEmptySlot(index: number): PlantSlotState {
     needsRepair: false,
     batteryChargeMs: 0,
     batterySnapshotAt: 0,
+    diamondsAccumulated: 0,
   };
 }
 

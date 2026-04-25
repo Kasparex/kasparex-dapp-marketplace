@@ -66,6 +66,8 @@ export type PlantSlotState = {
   batteryChargeMs:   number;
   /** Timestamp (ms) when batteryChargeMs was last written (cycle start or refill). */
   batterySnapshotAt: number;
+  /** Diamonds earned in previous cycles but not yet extracted. */
+  diamondsAccumulated: number;
 };
 
 export type MinecoreAutomationState = {
