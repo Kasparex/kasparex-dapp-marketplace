@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777120333-6d0d955",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: feat: complete unification of game framework and layout (by Kasparex)",
+      "date": "2026-04-25T14:31:53+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777119094-8d05de0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: docs: add How it Works section to games and simplify reward deck (by Kasparex)",
