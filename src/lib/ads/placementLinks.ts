@@ -59,7 +59,7 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     slotId: 'GAMES_PLAY_RAIL_RIGHT',
     title: 'Games play rail',
     href: '/games/minecore#ad-slot-games-play-rail',
-    placement: 'Game pages, right column bottom (e.g. Minecore / Diamond Veins)',
+    placement: 'All Kasparex game play dashboards, right column bottom (unified layout)',
   },
   {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',

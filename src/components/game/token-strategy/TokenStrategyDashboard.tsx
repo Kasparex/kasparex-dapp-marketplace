@@ -10,7 +10,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
@@ -18,6 +17,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
@@ -83,8 +83,6 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   const { tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('token-strategy');
-  const { data: deck, isLoading: deckLoading } = useWalletDeck();
-
   const missions = useMemo(() => buildMissions(), []);
   const [tab, setTab] = useState<TabId>('play');
   const [missionIndex, setMissionIndex] = useState(0);
@@ -108,9 +106,8 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
-  const rewardsTone = deckLoading ? 'info' : pendingGrid > 0 ? 'ok' : 'info';
-  const rewardsTip = deckLoading ? 'Checking your unified deck…' : pendingGrid > 0 ? 'You have pending GRID in your unified deck.' : 'No pending GRID right now.';
+  const rewardsTone = 'info' as const;
+  const rewardsTip = 'Rewards tab shows deck preview. Claim GRID on Rewards & Points.';
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
@@ -122,7 +119,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
       { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
-    [boostersTip, boostersTone, rewardsTip, rewardsTone]
+    [boostersTip, boostersTone]
   );
 
   const openOverview = () => {
@@ -284,15 +281,6 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
         <GameDeckPanel
           resources={[
             {
-              id: 'grid',
-              label: 'GRID (pending)',
-              value: pendingGrid.toLocaleString(),
-              description: 'Reward token',
-              tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
-              accent: 'grid',
-              onClick: () => setTab('rewards'),
-            },
-            {
               id: 'tier',
               label: 'KREX Tier',
               value: tier,
@@ -346,6 +334,8 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Boosters are optional. Rewards are unified via the Kasparex deck.</p>
           </div>
         </div>
+
+        <GamesPlayAdRail />
       </div>
     </div>
     </TooltipProvider>

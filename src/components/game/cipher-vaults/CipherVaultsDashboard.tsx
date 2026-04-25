@@ -10,11 +10,11 @@ import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
@@ -47,7 +47,6 @@ export function CipherVaultsDashboard({
 }: { featuredImage?: string; loreStory?: string; gameDescription?: string; game?: any; gameName?: string }) {
   const { state: walletState } = useKaspaWallet();
   const { state, tickets, canPayWithL1, startRun, submitRun, loadActiveRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
-  const { data: deck } = useWalletDeck();
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
   const interactions = (game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
@@ -105,8 +104,6 @@ export function CipherVaultsDashboard({
   const runIdForActions = activeRunId ?? state.activeRun?.runId ?? null;
 
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
-
   const openOverview = () => {
     setTab('overview');
     setLoreExpanded(true);
@@ -535,15 +532,6 @@ export function CipherVaultsDashboard({
               accent: 'games',
               onClick: () => setTab('redeem'),
             },
-            {
-              id: 'grid',
-              label: 'GRID (pending)',
-              value: pendingGrid.toLocaleString(),
-              description: 'Reward token',
-              tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
-              accent: 'grid',
-              onClick: () => setTab('rewards'),
-            },
           ]}
           footer={<span>Values update live as you earn tickets and clear vaults.</span>}
           featured={{
@@ -592,6 +580,8 @@ export function CipherVaultsDashboard({
             </div>
           )}
         </div>
+
+        <GamesPlayAdRail />
       </div>
     </div>
     </TooltipProvider>

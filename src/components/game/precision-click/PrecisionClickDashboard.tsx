@@ -9,7 +9,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
@@ -17,6 +16,7 @@ import { GameTabs } from '@/components/games/layout/GameTabs';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
+import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
@@ -46,8 +46,6 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
   const { tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('precision-click');
-  const { data: deck, isLoading: deckLoading } = useWalletDeck();
-
   const hasAnyNFT =
     Boolean(nftStatus?.hasKREXPRIME) ||
     Boolean(nftStatus?.hasPIXELKREX) ||
@@ -84,9 +82,8 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
-  const rewardsTone = deckLoading ? 'info' : pendingGrid > 0 ? 'ok' : 'info';
-  const rewardsTip = deckLoading ? 'Checking your unified deck…' : pendingGrid > 0 ? 'You have pending GRID in your unified deck.' : 'No pending GRID right now.';
+  const rewardsTone = 'info' as const;
+  const rewardsTip = 'Rewards tab shows deck preview. Claim GRID on Rewards & Points.';
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
@@ -387,6 +384,8 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Boosters are optional. Rewards are unified via the Kasparex deck.</p>
           </div>
         </div>
+
+        <GamesPlayAdRail />
       </div>
     </div>
     </TooltipProvider>

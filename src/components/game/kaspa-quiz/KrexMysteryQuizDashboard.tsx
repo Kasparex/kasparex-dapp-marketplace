@@ -10,7 +10,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
-import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
@@ -185,8 +184,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const { tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { multiplier: krexBoosterMult, isActive: krexBoostActive, until: krexBoostUntil, txHash: krexBoostTx } = useKrexBoosters('kaspa-quiz');
-  const { data: deck, isLoading: deckLoading } = useWalletDeck();
-
   const levels = useMemo(() => buildLevels(), []);
   const [tab, setTab] = useState<TabId>('play');
   const [levelIndex, setLevelIndex] = useState(0);
@@ -214,9 +211,8 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const pendingGrid = deck?.rewards?.pendingGrid ?? 0;
-  const rewardsTone = deckLoading ? 'info' : pendingGrid > 0 ? 'ok' : 'info';
-  const rewardsTip = deckLoading ? 'Checking your unified deck…' : pendingGrid > 0 ? 'You have pending GRID in your unified deck.' : 'No pending GRID right now.';
+  const rewardsTone = 'info' as const;
+  const rewardsTip = 'Rewards tab shows deck preview. Claim GRID on Rewards & Points.';
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
@@ -228,7 +224,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
       { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
-    [boostersTip, boostersTone, rewardsTip, rewardsTone]
+    [boostersTip, boostersTone]
   );
 
   const openOverview = () => {
@@ -433,15 +429,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         <GameDeckPanel
           resources={[
             {
-              id: 'grid',
-              label: 'GRID (pending)',
-              value: pendingGrid.toLocaleString(),
-              description: 'Reward token',
-              tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
-              accent: 'grid',
-              onClick: () => setTab('rewards'),
-            },
-            {
               id: 'tier',
               label: 'KREX Tier',
               value: tier,
@@ -497,6 +484,8 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
             </p>
           </div>
         </div>
+
+        <GamesPlayAdRail />
       </div>
     </div>
     </TooltipProvider>
