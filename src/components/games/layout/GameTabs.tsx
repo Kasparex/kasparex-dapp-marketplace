@@ -19,14 +19,14 @@ export function GameTabs<T extends string>(props: {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // Drag state in refs — no re-renders during the drag itself
+  // All drag state in refs — zero re-renders during the drag
   const dragging = useRef(false);
   const startX = useRef(0);
   const startScroll = useRef(0);
   const lastX = useRef(0);
   const velocity = useRef(0);
   const rafId = useRef<number | null>(null);
-  const dragMoved = useRef(0); // total px moved — used to suppress clicks
+  const totalMoved = useRef(0); // total px moved — suppresses click if > threshold
 
   // ── Scroll-state tracker ─────────────────────────────────────────────────
   const updateScrollState = useCallback(() => {
@@ -49,11 +49,11 @@ export function GameTabs<T extends string>(props: {
     };
   }, [updateScrollState]);
 
-  // ── Momentum / inertia after release ────────────────────────────────────
+  // ── Momentum ─────────────────────────────────────────────────────────────
   const runMomentum = useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
-    velocity.current *= 0.88; // friction coefficient
+    velocity.current *= 0.88;
     if (Math.abs(velocity.current) < 0.5) {
       rafId.current = null;
       return;
@@ -62,77 +62,90 @@ export function GameTabs<T extends string>(props: {
     rafId.current = requestAnimationFrame(runMomentum);
   }, []);
 
-  // ── Pointer-event drag handlers ──────────────────────────────────────────
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  // ── Global move / up handlers attached on mousedown, removed on mouseup ──
+  const stopDrag = useCallback(() => {
+    if (!dragging.current) return;
+    dragging.current = false;
     const el = stripRef.current;
-    if (!el) return;
-    // Cancel any ongoing momentum
-    if (rafId.current !== null) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
+    if (el) el.style.cursor = '';
+    if (Math.abs(velocity.current) > 2) {
+      rafId.current = requestAnimationFrame(runMomentum);
     }
-    dragging.current = true;
-    dragMoved.current = 0;
-    startX.current = e.clientX;
-    lastX.current = e.clientX;
-    startScroll.current = el.scrollLeft;
-    velocity.current = 0;
-    el.setPointerCapture(e.pointerId);
-    el.style.cursor = 'grabbing';
-  }, []);
+    window.removeEventListener('mousemove', onWindowMouseMove);
+    window.removeEventListener('mouseup', onWindowMouseUp);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runMomentum]);
 
-  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  // These need to be stable references so we can remove them
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onWindowMouseMove = useCallback((e: MouseEvent) => {
     if (!dragging.current) return;
     const el = stripRef.current;
     if (!el) return;
     const dx = e.clientX - startX.current;
-    dragMoved.current = Math.abs(dx);
-    // Track instantaneous velocity for momentum
+    totalMoved.current = Math.abs(dx);
     velocity.current = e.clientX - lastX.current;
     lastX.current = e.clientX;
     el.scrollLeft = startScroll.current - dx;
   }, []);
 
-  const onPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const el = stripRef.current;
-    if (!el || !dragging.current) return;
-    dragging.current = false;
-    el.style.cursor = '';
-    try { el.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
-    // Kick off momentum if moving fast enough
-    if (Math.abs(velocity.current) > 2) {
-      rafId.current = requestAnimationFrame(runMomentum);
-    }
-  }, [runMomentum]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onWindowMouseUp = useCallback(() => {
+    stopDrag();
+  }, [stopDrag]);
 
-  // Suppress click on child buttons if the user actually dragged
+  const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Only primary button
+    if (e.button !== 0) return;
+    const el = stripRef.current;
+    if (!el) return;
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    dragging.current = true;
+    totalMoved.current = 0;
+    startX.current = e.clientX;
+    lastX.current = e.clientX;
+    startScroll.current = el.scrollLeft;
+    velocity.current = 0;
+    el.style.cursor = 'grabbing';
+    // Attach window listeners so drag works even outside the element
+    window.addEventListener('mousemove', onWindowMouseMove);
+    window.addEventListener('mouseup', onWindowMouseUp);
+  }, [onWindowMouseMove, onWindowMouseUp]);
+
+  // Suppress tab button onClick if the user genuinely dragged
   const onClickCapture = useCallback((e: React.MouseEvent) => {
-    if (dragMoved.current > 6) {
+    if (totalMoved.current > 6) {
       e.stopPropagation();
       e.preventDefault();
-      dragMoved.current = 0;
+      totalMoved.current = 0;
     }
   }, []);
 
-  // Cleanup RAF on unmount
-  useEffect(() => () => { if (rafId.current !== null) cancelAnimationFrame(rafId.current); }, []);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+      window.removeEventListener('mousemove', onWindowMouseMove);
+      window.removeEventListener('mouseup', onWindowMouseUp);
+    };
+  }, [onWindowMouseMove, onWindowMouseUp]);
 
   return (
     <div className="relative border-b border-zinc-200 pb-2 dark:border-zinc-800">
-      {/* Drag-scrollable tab strip — touch-action: pan-x lets touch scroll naturally */}
+      {/* Drag-scrollable tab strip */}
       <div
         ref={stripRef}
-        className={`flex gap-2 overflow-x-auto select-none transition-[padding] ${canScrollLeft ? 'pl-2' : ''} ${canScrollRight ? 'pr-2' : ''}`}
+        className="flex gap-2 overflow-x-auto select-none"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           cursor: 'grab',
           touchAction: 'pan-x',
         } as React.CSSProperties}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onMouseDown={onMouseDown}
         onClickCapture={onClickCapture}
       >
         {props.tabs.map((t) => (
@@ -146,7 +159,7 @@ export function GameTabs<T extends string>(props: {
                 : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
             }`}
           >
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 pointer-events-none">
               {t.icon ? (
                 <span className="inline-flex h-4 w-4 items-center justify-center">{t.icon}</span>
               ) : null}
@@ -159,7 +172,7 @@ export function GameTabs<T extends string>(props: {
         ))}
       </div>
 
-      {/* Subtle edge fades when overflow is present */}
+      {/* Edge fade hints */}
       {canScrollLeft && (
         <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white dark:from-zinc-950" />
       )}
