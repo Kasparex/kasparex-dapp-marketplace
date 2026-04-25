@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777126077-f8c1c7d",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix: Resolve missing toast state in CipherVaults build (by Kasparex)",
+      "date": "2026-04-25T16:07:37+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777125821-a9865f1",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix: Resolve build error in CipherVaults and complete unified sorting in Diamond Veins Rewards (by Kasparex)",
