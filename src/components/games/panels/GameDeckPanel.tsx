@@ -18,11 +18,10 @@ export type GameDeckResource = {
 };
 
 function accentValueClass(accent?: GameDeckResource['accent']) {
-  // KAS now uses emerald instead of amber/yellow
-  if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300';
+  if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300'; // changed to emerald per request
   if (accent === 'krex') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'grid') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'diamonds') return 'text-sky-600 dark:text-sky-400';
+  if (accent === 'diamonds') return 'text-amber-600 dark:text-amber-400'; // restored to original yellow
   if (accent === 'purple') return 'text-purple-500 dark:text-purple-400';
   return 'text-emerald-700 dark:text-emerald-300';
 }
