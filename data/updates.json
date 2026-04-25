@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777124502-84f0cca",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unified sorting: add filter bar to Boosters and Workers tabs across all games (by Kasparex)",
+      "date": "2026-04-25T15:41:20+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777123318-cc8f4dd",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unify game framework: merge inventory into build, add sorting to all dynamic game tabs, and fix reward weight consistency (by Kasparex)",
