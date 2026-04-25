@@ -154,10 +154,20 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       return rederive(s, now);
     }
 
+    case 'ChangePlantType': {
+      const slot = s.plantSlots[ev.slotIndex];
+      if (!slot || !slot.unlocked) return rederive(s, now);
+      slot.type = ev.plantType;
+      slot.status = deriveSlotStatus(s, slot, now);
+      return rederive(s, now);
+    }
+
     case 'InstallPart': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      if (ev.part.kind === 'machine') slot.setup.machineId = ev.part.id;
+      if (ev.part.kind === 'machine') {
+        slot.setup.machineId = ev.part.id;
+      }
       if (ev.part.kind === 'battery') {
         slot.setup.batteryId = ev.part.id;
         // Immediately fill charge to new battery's capacity

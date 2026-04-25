@@ -27,6 +27,7 @@ import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSig
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import * as Icons from 'lucide-react';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -104,12 +105,12 @@ export function MinecoreDashboard(_props: {
     () => [
       {
         id: 'diamonds',
-        label: 'Reward Weight',
-        value: (diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString(),
-        subValue: `${diamondsDisplayTotal.toLocaleString()} Diamonds + ${Math.floor(state.refinementPointsTotal).toLocaleString()} Points`,
-        description: 'Combined reward potential',
+        label: 'Diamonds',
+        value: diamondsDisplayTotal.toLocaleString(),
+        subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} Refinement Points`,
+        description: 'Mined diamonds ready to refine',
         tooltip:
-          'Your total reward weight: Diamonds in bag plus earned Refinement Points. Click to open Mining.',
+          'Mined diamonds ready to refine into Points. Click to open Mining.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -174,10 +175,10 @@ export function MinecoreDashboard(_props: {
               KAS
             </span>
             <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
-              <DiamondIcon className="h-4 w-4 text-sky-400" />
-              Reward Weight
+              <Icons.Gem className="h-4 w-4 text-sky-400" />
+              Diamonds
             </span>
-            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{(diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString()}</span>
+            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
             <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
               {krexTier}
             </span>
@@ -263,9 +264,13 @@ export function MinecoreDashboard(_props: {
                       actions.installMachine(slot.index, 'pulse-drill');
                       actions.installBattery(slot.index, 'energy-cell');
                       actions.installWorker(slot.index, 'worker');
-                      actions.setBoost(slot.index, 'none');
-                      actions.setModules(slot.index, []);
                     }}
+                    onInstallPart={(kind, id) => {
+                      if (kind === 'machine') actions.installMachine(slot.index, id);
+                      if (kind === 'battery') actions.installBattery(slot.index, id);
+                      if (kind === 'worker')  actions.installWorker(slot.index, id);
+                    }}
+                    onChangePlantType={(type, cost) => actions.changePlantType(slot.index, type, cost)}
                   />
                 ))}
 

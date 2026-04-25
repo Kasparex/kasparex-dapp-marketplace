@@ -5,6 +5,7 @@ import type {
   MinecoreMachineId,
   MinecoreModuleId,
   MinecoreWorkerId,
+  PlantType,
 } from './types';
 
 export const MINECORE_STORAGE_PREFIX = 'minecore-state';
@@ -18,6 +19,38 @@ export const MINECORE_GRID_REDEEM_RATE = 1; // 1 point -> 1 GRID redeemable (V1 
 
 /** Cost in KAS to fully refill a plant's battery (KREX tier discount applied at call site). */
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
+
+export type PlantPreset = {
+  type: PlantType;
+  label: string;
+  costKas: number;
+  icon: string;
+  description: string;
+};
+
+export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
+  standard: {
+    type: 'standard',
+    label: 'Standard Plant',
+    costKas: 0,
+    icon: 'Hammer',
+    description: 'Basic mining operations. Affordable and reliable.',
+  },
+  premium: {
+    type: 'premium',
+    label: 'Premium Plant',
+    costKas: 50,
+    icon: 'ShieldCheck',
+    description: 'Upgraded infrastructure. Supports higher-tier machines.',
+  },
+  advanced: {
+    type: 'advanced',
+    label: 'Advanced Complex',
+    costKas: 250,
+    icon: 'Zap',
+    description: 'Industrial-scale mining. Unlocks maximum output and specialized rigs.',
+  },
+};
 
 export type MachineConfig = {
   id: MinecoreMachineId;

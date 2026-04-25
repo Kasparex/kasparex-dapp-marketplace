@@ -305,6 +305,21 @@ export function useMinecore() {
     dispatch({ type: 'RedeemGrid', at: Date.now(), points });
   }, [dispatch]);
 
+  const changePlantType = useCallback(
+    async (slotIndex: number, plantType: any, costKas: number) => {
+      if (costKas > 0) {
+        const paid = await payKasBestEffort({
+          amountKas: getKasPriceAfterDiscount(costKas),
+          skuId: `minecore:upgrade:${slotIndex}:${plantType}`,
+          purchaseType: 'other',
+        });
+        if (!paid.ok) return;
+      }
+      dispatch({ type: 'ChangePlantType', at: Date.now(), slotIndex, plantType });
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+  );
+
   const craftRecipe = useCallback((recipeId: string) => {
     dispatch({ type: 'CraftRecipe', at: Date.now(), recipeId });
   }, [dispatch]);
@@ -368,6 +383,7 @@ export function useMinecore() {
       purchaseIngredientWithKAS,
       refillBattery,
       refillBatteryWithKAS,
+      changePlantType,
     },
     getKasPriceAfterDiscount,
     nowTick,

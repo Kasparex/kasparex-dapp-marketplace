@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_MACHINES, MINECORE_RECIPES } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_RECIPES } from '@/lib/game/minecore/config';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
@@ -33,12 +33,15 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
     return true;
   };
 
-  const recipes = MINECORE_RECIPES.filter((r) => r.kind === 'machine').map(r => ({ ...r, category: 'Machine' }));
-  const categories = Array.from(new Set(recipes.map((i) => i.category)));
+  const recipes = MINECORE_RECIPES.map((r) => ({
+    ...r,
+    category: r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
+  }));
+  const categories = ['All', 'Machine', 'Battery', 'Module'];
 
   const filteredItems = recipes
     .filter((item) => {
-      if (category !== 'all' && item.category !== category) return false;
+      if (category !== 'all' && category !== 'All' && item.category !== category) return false;
       if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     })
@@ -96,7 +99,7 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
         </GamePanelCard>
       </div>
 
-      <GamePanelCard title="Fabrication blueprints" hint="Machine cards show required ingredients and your current progress.">
+      <GamePanelCard title="Fabrication blueprints" hint="Build tools and power units from raw materials.">
         <CardsFilterBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -108,11 +111,26 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
         />
         <div className="grid gap-4 sm:grid-cols-2">
           {filteredItems.map((r) => {
-            const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
-            const effects = [
-              { label: 'Duration', value: `${Math.round(cfg.durationMs / 60000)} min` },
-              { label: 'Base output', value: `${cfg.baseOutput.toLocaleString()} diamonds` },
-            ];
+            const isMachine = r.kind === 'machine';
+            const isBattery = r.kind === 'battery';
+            
+            const effects: any[] = [];
+            
+            if (isMachine) {
+              const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
+              if (cfg) {
+                effects.push({ label: 'Duration', value: `${Math.round(cfg.durationMs / 60000)} min` });
+                effects.push({ label: 'Base output', value: `${cfg.baseOutput.toLocaleString()} diamonds`, color: 'amber' });
+                effects.push({ label: 'Power drain', value: `⚡ ×${cfg.powerConsumptionFactor}` });
+              }
+            } else if (isBattery) {
+              const cfg = MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES];
+              if (cfg) {
+                effects.push({ label: 'Capacity', value: `${Math.round(cfg.chargeCapacityMs / 60000)} min` });
+                effects.push({ label: 'Fuel units', value: `${cfg.powerCapacity} units`, color: 'amber' });
+                effects.push({ label: 'Efficiency', value: `×${cfg.efficiency} bonus` });
+              }
+            }
 
             const reqLines = Object.entries(r.requires).map(([k, v]) => {
               const need = Number(v ?? 0);
@@ -126,8 +144,8 @@ export function FabricationPanel(props: { state: MinecoreState; onCraft: (recipe
               <GameItemCard
                 key={r.id}
                 title={r.title}
-                category="Machine"
-                description="Build instantly from ingredients. Install the machine into a plant slot after crafting."
+                category={r.category}
+                description={isMachine ? "Install into a plant slot to begin mining cycles." : "Powers your machines. High capacity batteries last longer."}
                 effects={[...effects, ...reqLines]}
                 buyLabel={canAfford(r.requires as any) ? 'Build' : 'Missing'}
                 buyDisabled={!canAfford(r.requires as any)}

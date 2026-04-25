@@ -19,6 +19,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     index,
     unlocked: typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked,
     unlockCostKas: typeof input.unlockCostKas === 'number' ? input.unlockCostKas : base.unlockCostKas,
+    type: typeof input.type === 'string' ? (input.type as any) : base.type,
     status: typeof input.status === 'string' ? (input.status as any) : base.status,
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,

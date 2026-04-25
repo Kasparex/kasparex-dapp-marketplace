@@ -12,7 +12,15 @@ import {
 } from '@/lib/game/minecore/compute';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_WORKERS } from '@/lib/game/minecore/config';
+import {
+  MINECORE_BATTERIES,
+  MINECORE_MACHINES,
+  MINECORE_PLANT_PRESETS,
+  MINECORE_WORKERS,
+} from '@/lib/game/minecore/config';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import * as Icons from 'lucide-react';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -51,6 +59,46 @@ function labelForStatus(status: PlantSlotState['status']) {
   return status;
 }
 
+function SelectionModal(props: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') props.onClose();
+    };
+    if (props.isOpen) window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [props.isOpen, props.onClose]);
+
+  if (!props.isOpen || typeof window === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={props.onClose}
+    >
+      <div
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-md w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{props.title}</h3>
+          <button onClick={props.onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <Icons.X className="w-5 h-5 text-zinc-500" />
+          </button>
+        </div>
+        <div className="p-6 max-h-[70vh] overflow-y-auto space-y-3 custom-scrollbar">
+          {props.children}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 /** ✓ / ✗ row for the setup checklist */
@@ -60,22 +108,29 @@ function CheckRow(props: {
   value?: string;
   stat?: string;
   tooltip: string;
+  onClick?: () => void;
 }) {
   return (
     <Tooltip content={props.tooltip}>
-      <div className="flex items-center gap-2 py-1 cursor-help">
+      <div
+        className="flex items-center gap-2 py-2 px-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer transition-colors group"
+        onClick={props.onClick}
+      >
         <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
           {props.installed ? '✓' : '✗'}
         </span>
         <span className={`text-xs font-semibold w-14 flex-shrink-0 ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
           {props.label}
         </span>
-        <span className={`text-xs truncate flex-1 ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600'}`}>
-          {props.value ?? '—'}
+        <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
+          {props.value ?? 'Tap to assign…'}
         </span>
         {props.stat ? (
-          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 flex-shrink-0">{props.stat}</span>
+          <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded uppercase">
+            {props.stat}
+          </span>
         ) : null}
+        <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
       </div>
     </Tooltip>
   );
@@ -137,9 +192,6 @@ function PowerDots(props: { current: number; max: number }) {
           />
         ))}
       </div>
-      {props.current <= 0 && (
-        <div className="text-[11px] font-semibold text-rose-500 dark:text-rose-400">No power units — top up to start next cycle</div>
-      )}
     </div>
   );
 }
@@ -161,13 +213,16 @@ export function PlantSlotCard(props: {
   onUnlock: () => void;
   onStart: () => void;
   onExtract: () => void;
-  onTopUpWithKAS: (args: { amountKas: number; added: number }) => void | Promise<void>;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
   onRefillBattery: () => void | Promise<void>;
   onQuickSetup: () => void;
+  onInstallPart: (kind: any, id: any) => void;
+  onChangePlantType: (type: any, cost: number) => void;
 }) {
   const s   = props.slot;
   const now = props.now;
+
+  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'preset' | null>(null);
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle              = s.cycle;
@@ -200,11 +255,14 @@ export function PlantSlotCard(props: {
     s.status === 'ReadyToMine'     ? 'Start' :
     s.status === 'ExtractionReady' ? 'Extract' :
     s.status === 'BatteryEmpty'    ? 'Extract (partial)' :
-    s.status === 'NeedsPower'      ? 'Top up power' :
+    s.status === 'NeedsPower'      ? `Top up — 1 KAS` :
     s.status === 'NeedsRepair'     ? 'Repair' :
     'Mining…';
 
   const buyDisabled = s.status === 'MiningActive';
+
+  const preset = MINECORE_PLANT_PRESETS[s.type ?? 'standard'];
+  const IconComponent = (Icons as any)[preset.icon] ?? Icons.CircleDot;
 
   // ── Title accessory — live diamond display ───────────────────────────────
   const titleAccessory = s.unlocked ? (
@@ -223,51 +281,56 @@ export function PlantSlotCard(props: {
 
   return (
     <GameItemCard
-      icon={<DiamondIcon className="h-5 w-5 text-sky-400" title="Diamonds" />}
+      icon={
+        <div
+          className="cursor-pointer group relative"
+          onClick={() => setActiveModal('preset')}
+        >
+          <div className="absolute inset-0 bg-sky-500/10 rounded-full scale-125 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <IconComponent className="h-5 w-5 text-sky-400 group-hover:text-sky-300 transition-colors relative z-10" />
+        </div>
+      }
       titleAccessory={titleAccessory}
       title={`Mining Plant ${s.index + 1}`}
-      category="Mining Plant"
+      category={preset.label}
       description={
         <div className="space-y-3">
-          {/* Status badge */}
+          {/* Status badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
-            {cycle && s.status === 'MiningActive' && (
-              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                {formatDuration(cycleRemainingMs)} left
+            {props.minecoreState.automation.autoRestart && (
+              <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
+                Auto ON
               </span>
             )}
           </div>
 
           {/* ── Setup checklist ── */}
-          <div className="rounded-xl border border-zinc-100 bg-white/60 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1">Setup</div>
+          <div className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1 px-2 pt-1">Setup</div>
             <CheckRow
               installed={!!s.setup.machineId}
               label="Machine"
               value={machineConfig?.label}
-              stat={machineConfig ? `⚡ ×${machineConfig.powerConsumptionFactor} drain` : undefined}
-              tooltip={machineConfig ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} battery drain rate.` : 'No machine installed. Go to Build tab to craft one.'}
+              stat={machineConfig ? `⚡ ×${machineConfig.powerConsumptionFactor}` : undefined}
+              tooltip={machineConfig ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} battery drain rate.` : 'No machine installed. Click to assign one.'}
+              onClick={() => !buyDisabled && setActiveModal('machine')}
             />
             <CheckRow
               installed={!!s.setup.batteryId}
               label="Battery"
               value={batteryConfig?.label}
-              stat={batteryConfig ? formatDuration(batteryConfig.chargeCapacityMs) : undefined}
-              tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Go to Build tab to craft one.'}
+              stat={batteryConfig ? `${Math.round(batteryConfig.chargeCapacityMs / 60000)}m` : undefined}
+              tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Click to assign one.'}
+              onClick={() => !buyDisabled && setActiveModal('battery')}
             />
             <CheckRow
               installed={!!s.setup.workerId}
               label="Worker"
               value={workerConfig?.label}
-              stat={workerConfig ? `×${workerConfig.multiplier} output` : undefined}
-              tooltip={workerConfig ? `${workerConfig.label}: applies ×${workerConfig.multiplier} multiplier to diamond output.` : 'No worker assigned. Deploy a KREXPRIME or PixelKrex NFT in the Workers tab.'}
-            />
-            <CheckRow
-              installed={s.setup.moduleIds.length > 0}
-              label="Modules"
-              value={s.setup.moduleIds.length > 0 ? s.setup.moduleIds.join(', ') : 'None'}
-              tooltip="Optional modules boost output and reduce repair chance."
+              stat={workerConfig ? `×${workerConfig.multiplier}` : undefined}
+              tooltip={workerConfig ? `${workerConfig.label}: applies ×${workerConfig.multiplier} multiplier to diamond output.` : 'No worker assigned. Click to assign one.'}
+              onClick={() => !buyDisabled && setActiveModal('worker')}
             />
           </div>
 
@@ -291,16 +354,6 @@ export function PlantSlotCard(props: {
           {/* ── Resource bars ── */}
           {s.unlocked && (
             <div className="space-y-3">
-              {/* Battery charge bar */}
-              {capacityMs > 0 && (
-                <ResourceBar
-                  label={`Battery charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} left` : ''}`}
-                  value={`${Math.round(batteryRatio * 100)}%`}
-                  ratio={batteryRatio}
-                  variant="battery"
-                />
-              )}
-
               {/* Cycle progress bar */}
               {cycle && (
                 <ResourceBar
@@ -308,6 +361,16 @@ export function PlantSlotCard(props: {
                   value={`${Math.round(cycleProgress * 100)}%`}
                   ratio={cycleProgress}
                   variant="cycle"
+                />
+              )}
+
+              {/* Battery charge bar */}
+              {capacityMs > 0 && (
+                <ResourceBar
+                  label={`Battery charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} left` : ''}`}
+                  value={`${Math.round(batteryRatio * 100)}%`}
+                  ratio={batteryRatio}
+                  variant="battery"
                 />
               )}
 
@@ -335,13 +398,147 @@ export function PlantSlotCard(props: {
       buyDisabled={buyDisabled}
       onBuy={async () => {
         if (!s.unlocked)                    return props.onUnlock();
-        if (s.status === 'SetupIncomplete') return props.onQuickSetup();
+        if (s.status === 'SetupIncomplete') return setActiveModal('machine');
         if (s.status === 'ReadyToMine')     return props.onStart();
         if (s.status === 'ExtractionReady') return props.onExtract();
         if (s.status === 'BatteryEmpty')    return props.onExtract();
         if (s.status === 'NeedsPower')      return props.onTopUpWithKAS({ amountKas: 1, added: 1 });
         if (s.status === 'NeedsRepair')     return props.onRepairWithKAS({ amountKas: 2 });
       }}
-    />
+    >
+      {/* ── Selection Modals ── */}
+      <SelectionModal
+        isOpen={activeModal === 'preset'}
+        onClose={() => setActiveModal(null)}
+        title="Upgrade Plant"
+      >
+        {Object.values(MINECORE_PLANT_PRESETS).map((p) => {
+          const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
+          const isCurrent = s.type === p.type;
+          return (
+            <button
+              key={p.type}
+              onClick={() => {
+                if (!isCurrent) props.onChangePlantType(p.type, p.costKas);
+                setActiveModal(null);
+              }}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center gap-4 ${
+                isCurrent
+                  ? 'border-sky-500 bg-sky-500/10'
+                  : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700'
+              }`}
+            >
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-sky-500" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-zinc-900 dark:text-zinc-100">{p.label}</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">{p.description}</div>
+                {p.costKas > 0 && !isCurrent && (
+                  <div className="text-[10px] font-black text-sky-600 uppercase mt-1">Upgrade: {p.costKas} KAS</div>
+                )}
+              </div>
+              {isCurrent && <Icons.Check className="w-5 h-5 text-sky-500" />}
+            </button>
+          );
+        })}
+      </SelectionModal>
+
+      <SelectionModal
+        isOpen={activeModal === 'machine'}
+        onClose={() => setActiveModal(null)}
+        title="Assign Machine"
+      >
+        {Object.values(MINECORE_MACHINES).map((m) => {
+          const owned = props.minecoreState.owned.machines[m.id] ?? 0;
+          const isInstalled = s.setup.machineId === m.id;
+          return (
+            <button
+              key={m.id}
+              disabled={owned <= 0 && !isInstalled}
+              onClick={() => {
+                props.onInstallPart('machine', m.id);
+                setActiveModal(null);
+              }}
+              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
+                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
+              } disabled:opacity-40`}
+            >
+              <div>
+                <div className="font-bold text-sm">{m.label}</div>
+                <div className="text-[10px] text-zinc-500">{m.baseOutput} D · {formatDuration(m.durationMs)}</div>
+              </div>
+              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
+            </button>
+          );
+        })}
+        <button
+          onClick={() => { props.onInstallPart('machine', null); setActiveModal(null); }}
+          className="w-full p-2 text-xs font-bold text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+        >
+          Remove Machine
+        </button>
+      </SelectionModal>
+
+      <SelectionModal
+        isOpen={activeModal === 'battery'}
+        onClose={() => setActiveModal(null)}
+        title="Assign Battery"
+      >
+        {Object.values(MINECORE_BATTERIES).map((b) => {
+          const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
+          const isInstalled = s.setup.batteryId === b.id;
+          return (
+            <button
+              key={b.id}
+              disabled={owned <= 0 && !isInstalled}
+              onClick={() => {
+                props.onInstallPart('battery', b.id);
+                setActiveModal(null);
+              }}
+              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
+                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
+              } disabled:opacity-40`}
+            >
+              <div>
+                <div className="font-bold text-sm">{b.label}</div>
+                <div className="text-[10px] text-zinc-500">{formatDuration(b.chargeCapacityMs)} charge · {b.powerCapacity} units</div>
+              </div>
+              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
+            </button>
+          );
+        })}
+      </SelectionModal>
+
+      <SelectionModal
+        isOpen={activeModal === 'worker'}
+        onClose={() => setActiveModal(null)}
+        title="Assign Worker"
+      >
+        {Object.values(MINECORE_WORKERS).map((w) => {
+          const owned = props.minecoreState.owned.workers[w.id] ?? 0;
+          const isInstalled = s.setup.workerId === w.id;
+          return (
+            <button
+              key={w.id}
+              disabled={owned <= 0 && !isInstalled}
+              onClick={() => {
+                props.onInstallPart('worker', w.id);
+                setActiveModal(null);
+              }}
+              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
+                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
+              } disabled:opacity-40`}
+            >
+              <div>
+                <div className="font-bold text-sm">{w.label}</div>
+                <div className="text-[10px] text-zinc-500">×{w.multiplier} Output multiplier</div>
+              </div>
+              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
+            </button>
+          );
+        })}
+      </SelectionModal>
+    </GameItemCard>
   );
 }

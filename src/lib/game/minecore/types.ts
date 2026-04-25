@@ -15,6 +15,8 @@ export type MinecoreWorkerId   = 'worker' | 'operator';
 export type MinecoreModuleId   = 'cooling-module' | 'stability-module' | 'aria-sensor' | 'vector-drill-chip';
 export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
 
+export type PlantType = 'standard' | 'premium' | 'advanced';
+
 export type PlantCardStatus =
   | 'EmptySlot'
   | 'SetupIncomplete'
@@ -54,6 +56,7 @@ export type PlantSlotState = {
   index:            number;
   unlocked:         boolean;
   unlockCostKas:    number;
+  type:             PlantType;
   status:           PlantCardStatus;
   setup:            PlantSetup;
   cycle:            PlantCycle | null;
@@ -89,6 +92,7 @@ export type MinecoreState = {
 export type MinecoreEvent =
   | { type: 'ConnectWallet';    address: string; at: number }
   | { type: 'UnlockSlot';       slotIndex: number; at: number }
+  | { type: 'ChangePlantType';  slotIndex: number; at: number; plantType: PlantType }
   | { type: 'AddSlot';          at: number }
   | { type: 'CraftRecipe';      at: number; recipeId: string }
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }

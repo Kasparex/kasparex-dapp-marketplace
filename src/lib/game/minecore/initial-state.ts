@@ -14,6 +14,7 @@ function createEmptySlot(index: number): PlantSlotState {
     index,
     unlocked: false,
     unlockCostKas: MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
+    type: 'standard',
     status: 'EmptySlot',
     setup: {
       machineId: null,
