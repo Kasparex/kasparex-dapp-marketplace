@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777150496-34abaa9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix PlantSlotCard JSX nesting error (by Kasparex)",
+      "date": "2026-04-25T22:54:40+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777149678-8e69483",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix PlantSlotCard TypeScript interface error (by Kasparex)",
