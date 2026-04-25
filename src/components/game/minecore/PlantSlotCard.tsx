@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
-import type { MinecoreState, PlantSlotState } from '@/lib/game/minecore';
+import type { MinecoreState, PlantSlotState, MinecoreModuleId } from '@/lib/game/minecore';
 import {
   computeLiveBatteryChargeMs,
   computeLiveDiamonds,
@@ -15,8 +15,10 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
+  MINECORE_MODULES,
   MINECORE_PLANT_PRESETS,
   MINECORE_WORKERS,
+  type ModuleConfig,
 } from '@/lib/game/minecore/config';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -570,7 +572,7 @@ export function PlantSlotCard(props: {
       >
         <p className="text-xs text-zinc-500 mb-4 px-1">Select hardware to optimize output. Higher tiers unlock more slots.</p>
         <div className="space-y-2">
-          {Object.values(MINECORE_MODULES).map(m => {
+          {(Object.values(MINECORE_MODULES) as ModuleConfig[]).map(m => {
             const owned = props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0;
             const isSelected = s.setup.moduleIds.includes(m.id as MinecoreModuleId);
             return (

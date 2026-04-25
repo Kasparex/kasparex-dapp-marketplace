@@ -11,6 +11,7 @@ import {
   computePlantExpectedDiamonds,
   computePlantReady,
   computeLiveDiamonds,
+  computeLiveBatteryChargeMs,
   getBatteryCapacityMs,
   deriveSlotStatus,
 } from './compute';
@@ -302,7 +303,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const amt = Math.max(0, Math.floor(ev.amount));
       if (amt <= 0 || s.diamondsBalance < amt) return rederive(s, now);
       s.diamondsBalance -= amt;
-      const points            = amt * MINECORE_REFINE_RATE;
+      const points = amt * MINECORE_REFINE_RATE;
       s.refinementPointsTotal += points;
       const entry: GridLedgerEntry = {
         id:                 `minecore_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
