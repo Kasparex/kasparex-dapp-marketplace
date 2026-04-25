@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777153210-f19276e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix game logic, battery persistence, add module selection, and overhaul Redeem tab (by Kasparex)",
+      "date": "2026-04-25T23:39:47+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777151018-e4e0a7b",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Update Shop images and fix AddSlot TypeScript error (by Kasparex)",
