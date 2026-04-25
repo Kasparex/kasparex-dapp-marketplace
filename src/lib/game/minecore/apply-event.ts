@@ -142,6 +142,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         unlocked:         false,
         unlockCostKas:    MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
         status:           'EmptySlot',
+        type:             'standard',
         setup:            { machineId: null, batteryId: null, workerId: null, moduleIds: [], boostId: 'none' },
         cycle:            null,
         powerRemaining:   0,

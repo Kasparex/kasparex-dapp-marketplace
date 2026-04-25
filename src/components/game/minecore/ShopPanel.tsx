@@ -29,6 +29,7 @@ export function ShopPanel(props: {
           key="crystalDust"
           title="Crystal Dust"
           category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
           description="Basic crystal substrate used in fabrication."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(0.5), originalUnitPrice: 0.5 },
@@ -52,6 +53,7 @@ export function ShopPanel(props: {
           key="alloyPlates"
           title="Alloy Plates"
           category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_6d286f563d3647e1bffa064743a964dc~mv2.jpg"
           description="Structural plates for rigs and modules."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 },
@@ -75,6 +77,7 @@ export function ShopPanel(props: {
           key="circuitMesh"
           title="Circuit Mesh"
           category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
           description="Control mesh for machine interfaces."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1.5), originalUnitPrice: 1.5 },
@@ -99,6 +102,7 @@ export function ShopPanel(props: {
           key="energyCells"
           title="Energy Cells"
           category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
           description="Compact energy units used in power systems."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(3), originalUnitPrice: 3 },
@@ -123,6 +127,7 @@ export function ShopPanel(props: {
           key="kas-overclock"
           title="KAS Overclock"
           category="Boost"
+          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
           description="Increase the next cycle output for one plant. V1 mock boost."
           effects={[{ label: 'Output', value: '+100%' }]}
           priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(5), originalUnitPrice: 5 }]}
@@ -143,6 +148,7 @@ export function ShopPanel(props: {
           key="krex-boost"
           title="KREX Boost"
           category="Boost"
+          imageSrc="https://static.wixstatic.com/media/de4185_82bfb57dc94e463788ab6bccd155249e~mv2.jpg"
           description="Apply a yield multiplier. Later this will read your KREX tier and holdings."
           effects={[{ label: 'Output', value: '+50%' }]}
           priceOptions={[{ currency: 'KREX', unitPrice: 25 }]}
@@ -164,6 +170,7 @@ export function ShopPanel(props: {
           key="power-topup"
           title="Power Top-up"
           category="Utility"
+          imageSrc="https://static.wixstatic.com/media/de4185_1584ecece1e5489dbf13f7d111c44d99~mv2.jpg"
           description="Add 1 power to a selected plant. V1 mock utility."
           effects={[{ label: 'Power', value: '+1' }]}
           priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1), originalUnitPrice: 1 }]}
@@ -185,6 +192,7 @@ export function ShopPanel(props: {
           key="repair"
           title="Stability Patch"
           category="Repair"
+          imageSrc="https://static.wixstatic.com/media/de4185_c5a695694e8f4cae8ba74e2b46b786eb~mv2.jpg"
           description="Repair a plant marked as Needs repair. V1 mock utility."
           effects={[{ label: 'Repair', value: 'Clear' }]}
           priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 }]}
