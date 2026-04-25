@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777138732-88409e3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(games): fix tab clicks broken by pointer capture - use window mouse listeners instead (by Kasparex)",
+      "date": "2026-04-25T19:38:35+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777137952-4fb11ca",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: ui(games): remove tab chevrons, improve drag-scroll with momentum; restore diamonds amber accent (by Kasparex)",
