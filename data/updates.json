@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777107334-b3688a2",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Feat: Add CardsFilterBar and RewardsRedeemSection to game panels (by Kasparex)",
+      "date": "2026-04-25T10:55:07+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777074455-6de30f0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Minecore: games shell, deck KAS/KREX, mining sections, plant UI, redeem tab (by Kasparex)",
