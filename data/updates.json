@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777114372-237b9d9",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix type error in Minecore filtering logic: use status === 'MiningActive' (by Kasparex)",
+      "date": "2026-04-25T12:52:35+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777114139-795536c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Finalize Kasparex Games UI: unify rewards section with real-time calc, standardized horizontal sorting bar, revert branding colors, and clean up text formatting (by Kasparex)",
