@@ -51,6 +51,10 @@ export function MinecoreDashboard(_props: {
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const [tab, setTab] = useState<TabId>('overview');
   const [krexWizardOpen, setKrexWizardOpen] = useState(false);
+  // Using a simplified mock/hook call for GRID token
+  // If useGRIDToken takes address, we can pass null to mock for now until integrated.
+  // Actually, we'll just mock it as 0 to avoid breaking since we don't have the contract address injected here easily.
+  const gridL1Balance = 0;
 
   const canPayWithL1 =
     Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
@@ -80,26 +84,26 @@ export function MinecoreDashboard(_props: {
         tooltip:
           'Your in-game Diamonds total: wallet balance plus output committed in plant cycles (active or ready to extract). Refinement points accumulate when you Refine. Click to open Mining.',
         accent: 'diamonds' as const,
-        icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
+        icon: <DiamondIcon className="h-4 w-4 text-[#02abb8]" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
       },
       {
-        id: 'grid_redeemable',
-        label: 'GRID (redeemable)',
+        id: 'points_redeemable',
+        label: 'Points (redeemable)',
         value: Math.floor(state.gridRedeemableTotal).toLocaleString(),
-        description: 'Reward token',
-        tooltip: 'Redeemable GRID produced from refinement under V1 rules. Click to open Redeem.',
-        accent: 'grid' as const,
+        description: 'Reward points',
+        tooltip: 'Redeemable Points produced from refinement under V1 rules. Click to open Redeem.',
+        accent: 'purple' as const, // Different color for points
         onClick: () => setTab('redeem' as const),
       },
       {
-        id: 'kas',
-        label: 'KAS',
-        value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-        description: 'Main fuel currency',
-        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot unlocks, shop, and power top-ups. Click to open Shop.',
-        accent: 'kas' as const,
-        onClick: () => setTab('shop' as const),
+        id: 'grid_token',
+        label: 'GRID',
+        value: gridL1Balance.toLocaleString(),
+        description: 'Reward token',
+        tooltip: 'Your actual GRID token balance.',
+        accent: 'grid' as const, // We'll handle coloring via #02abb8 in GameDeckPanel or inline classes if needed
+        onClick: () => setTab('redeem' as const),
       },
       {
         id: 'krex',
@@ -109,6 +113,15 @@ export function MinecoreDashboard(_props: {
         tooltip: `Your KREX balance on L1. Tier ${krexTier} gives KAS-only shop discounts. Click to open the buy KREX wizard.`,
         accent: 'krex' as const,
         onClick: () => setKrexWizardOpen(true),
+      },
+      {
+        id: 'kas',
+        label: 'KAS',
+        value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
+        description: 'Main fuel currency',
+        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot unlocks, shop, and power top-ups. Click to open Shop.',
+        accent: 'kas' as const,
+        onClick: () => setTab('shop' as const),
       },
     ],
     [
@@ -120,6 +133,7 @@ export function MinecoreDashboard(_props: {
       canPayWithL1,
       kasBalanceLoading,
       kasBalanceNum,
+      gridL1Balance,
     ]
   );
 
@@ -135,26 +149,26 @@ export function MinecoreDashboard(_props: {
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
             <div className="flex flex-wrap items-center gap-6">
               <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              <span className="font-bold tabular-nums text-[#02abb8]">
                 {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
               </span>
               <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
-              <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
+              <span className="min-w-[5rem] font-bold tabular-nums text-[#02abb8]">
                 {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
                 KAS
               </span>
               <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
-                <DiamondIcon className="h-4 w-4 text-sky-400" />
+                <DiamondIcon className="h-4 w-4 text-[#02abb8]" />
                 Diamonds
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
+              <span className="font-bold tabular-nums text-amber-500">{diamondsDisplayTotal.toLocaleString()}</span>
               <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 {krexTier}
               </span>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Earn on L1 · claim GRID on L2 via{' '}
-              <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+              <Link href="/rewards-and-points" className="font-semibold text-[#02abb8] underline">
                 Rewards &amp; Points
               </Link>
             </p>

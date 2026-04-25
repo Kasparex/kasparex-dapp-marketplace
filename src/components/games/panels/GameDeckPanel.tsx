@@ -12,15 +12,16 @@ export type GameDeckResource = {
   description?: string;
   tooltip?: string;
   icon?: ReactNode;
-  accent?: 'games' | 'kas' | 'krex' | 'grid' | 'diamonds';
+  accent?: 'games' | 'kas' | 'krex' | 'grid' | 'diamonds' | 'purple';
   onClick?: () => void;
 };
 
 function accentValueClass(accent?: GameDeckResource['accent']) {
-  if (accent === 'kas') return 'text-amber-600 dark:text-amber-400';
-  if (accent === 'krex') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'grid') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'diamonds') return 'text-amber-600 dark:text-amber-400';
+  if (accent === 'kas') return 'text-[#02abb8]';
+  if (accent === 'krex') return 'text-[#02abb8]';
+  if (accent === 'grid') return 'text-[#02abb8]';
+  if (accent === 'diamonds') return 'text-amber-500';
+  if (accent === 'purple') return 'text-purple-500 dark:text-purple-400';
   return 'text-emerald-700 dark:text-emerald-300';
 }
 

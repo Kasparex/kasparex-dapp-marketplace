@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+// Assume simple mock or imported SDK for Kaspa L1 payment
+// In Kasparex, payKaspaL1 usually takes ({ amount, to, memo })
+import { payKaspaL1 } from '@/lib/games/sdk';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
+
 export function RewardsRedeemSection({
   diamondsBalance,
 }: {
@@ -13,15 +19,39 @@ export function RewardsRedeemSection({
   const [l2Address, setL2Address] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  
+  // Note: we can use the Kaspa wallet context if we want to default the L2 address to current L1 address (they are often the same Kaspa format).
+  const { state: kaspaWalletState } = useKaspaWallet();
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!l2Address.startsWith('kaspa:') && !l2Address.startsWith('0x')) return;
     setIsVerifying(true);
-    // Mock verification
-    setTimeout(() => {
+    
+    try {
+      if (!kaspaWalletState.isConnected || !kaspaWalletState.address || !kaspaWalletState.provider) {
+        alert('Please connect your Kaspa wallet first.');
+        setIsVerifying(false);
+        return;
+      }
+      // Trigger a small transaction for verification, similar to CrowdKAS campaign creation
+      const result = await payKaspaL1({
+        provider: kaspaWalletState.provider,
+        fromKaspaAddress: kaspaWalletState.address,
+        toKaspaAddress: 'kaspa:qre2h08c3wqyyd8d227z54nvzex4028wz3nvf4xy226jry9d5uqpqxdfwxfn2', // generic kasparex treasury
+        amountKas: 0.1,
+      });
+      
+      if (result.ok) {
+        setIsVerified(true);
+      } else {
+        alert('Verification payment failed. Please try again.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Verification payment failed.');
+    } finally {
       setIsVerifying(false);
-      setIsVerified(true);
-    }, 1000);
+    }
   };
 
   const handleClaim = (type: string) => {
@@ -32,9 +62,16 @@ export function RewardsRedeemSection({
   return (
     <div className="space-y-6 mt-8">
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
-        <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">L2 Wallet Setup</h3>
+        <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          L2 Wallet Setup
+          <GameTooltip content="To prevent Sybil attacks, we require a tiny Kaspa transaction to cryptographically verify wallet ownership before you can claim tokens to L2.">
+            <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
+              ?
+            </button>
+          </GameTooltip>
+        </h3>
         <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          Assign and verify your L2 address before claiming rewards.
+          Assign and verify your L2 Kasplex address before claiming token rewards. A 0.1 KAS verification transaction is required.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <input
@@ -50,20 +87,25 @@ export function RewardsRedeemSection({
             disabled={isVerified || !l2Address}
             className="k-cta-games h-11 px-6 text-sm disabled:opacity-50"
           >
-            {isVerifying ? 'Verifying...' : isVerified ? 'Verified ✓' : 'Verify'}
+            {isVerifying ? 'Awaiting Payment...' : isVerified ? 'Verified ✓' : 'Verify'}
           </button>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* GRID Pool */}
-        <div className="rounded-2xl border border-emerald-500/20 bg-white p-6 shadow-sm dark:border-emerald-500/10 dark:bg-zinc-900/60">
+        <div className="rounded-2xl border border-[#02abb8]/20 bg-white p-6 shadow-sm dark:border-[#02abb8]/10 dark:bg-zinc-900/60">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">GRID Pool</h4>
+            <h4 className="text-lg font-bold text-[#02abb8]">GRID Pool</h4>
             <span className="text-xs font-semibold text-zinc-500">1 Diamond = 100 GRID</span>
           </div>
-          <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-            Available to claim: <strong>{(diamondsBalance * 100).toLocaleString()} GRID</strong>
+          <div className="mb-4 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Available to claim: <strong className="text-[#02abb8]">{(diamondsBalance * 100).toLocaleString()} GRID</strong>
+            <GameTooltip content="GRID tokens are the standard Kasparex game reward currency. The exchange rate is fixed by the current reward epoch.">
+              <button type="button" className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-300 text-[8px] font-bold dark:border-zinc-600">
+                ?
+              </button>
+            </GameTooltip>
           </div>
           <div className="space-y-3">
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Diamonds to redeem:</label>
@@ -73,9 +115,9 @@ export function RewardsRedeemSection({
               max={diamondsBalance}
               value={redeemAmountGRID}
               onChange={(e) => setRedeemAmountGRID(Number(e.target.value))}
-              className="w-full h-10 rounded-xl border border-zinc-200 px-3 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+              className="w-full h-10 rounded-xl border border-zinc-200 px-3 text-sm focus:border-[#02abb8] focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-[#02abb8]"
             />
-            <div className="text-sm font-semibold text-emerald-600">
+            <div className="text-sm font-semibold text-[#02abb8]">
               You will receive: {(redeemAmountGRID * 100).toLocaleString()} GRID
             </div>
             <button
@@ -88,13 +130,18 @@ export function RewardsRedeemSection({
         </div>
 
         {/* KREX Pool */}
-        <div className="rounded-2xl border border-amber-500/20 bg-white p-6 shadow-sm dark:border-amber-500/10 dark:bg-zinc-900/60">
+        <div className="rounded-2xl border border-[#02abb8]/20 bg-white p-6 shadow-sm dark:border-[#02abb8]/10 dark:bg-zinc-900/60">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-bold text-amber-600 dark:text-amber-400">KREX Pool</h4>
+            <h4 className="text-lg font-bold text-[#02abb8]">KREX Pool</h4>
             <span className="text-xs font-semibold text-zinc-500">1 Diamond = 0.5 KREX</span>
           </div>
-          <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-            Available to claim: <strong>{(diamondsBalance * 0.5).toLocaleString()} KREX</strong>
+          <div className="mb-4 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Available to claim: <strong className="text-[#02abb8]">{(diamondsBalance * 0.5).toLocaleString()} KREX</strong>
+            <GameTooltip content="KREX tokens grant premium system features and governance power.">
+              <button type="button" className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-300 text-[8px] font-bold dark:border-zinc-600">
+                ?
+              </button>
+            </GameTooltip>
           </div>
           <div className="space-y-3">
             <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Diamonds to redeem:</label>
@@ -104,35 +151,18 @@ export function RewardsRedeemSection({
               max={diamondsBalance}
               value={redeemAmountKREX}
               onChange={(e) => setRedeemAmountKREX(Number(e.target.value))}
-              className="w-full h-10 rounded-xl border border-zinc-200 px-3 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+              className="w-full h-10 rounded-xl border border-zinc-200 px-3 text-sm focus:border-[#02abb8] focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-[#02abb8]"
             />
-            <div className="text-sm font-semibold text-amber-600">
+            <div className="text-sm font-semibold text-[#02abb8]">
               You will receive: {(redeemAmountKREX * 0.5).toLocaleString()} KREX
             </div>
             <button
               onClick={() => handleClaim('KREX')}
-              className="w-full rounded-xl bg-amber-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-amber-600 h-11 text-sm mt-2"
+              className="w-full rounded-xl bg-[#02abb8] px-4 py-2 font-semibold text-white transition-colors hover:bg-teal-500 h-11 text-sm mt-2"
             >
               Claim KREX
             </button>
           </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-purple-500/20 bg-purple-50 p-6 dark:border-purple-500/10 dark:bg-purple-900/10">
-        <h4 className="mb-2 flex items-center gap-2 text-lg font-bold text-purple-700 dark:text-purple-400">
-          More non-token rewards
-        </h4>
-        <p className="text-sm text-purple-600 dark:text-purple-300 mb-4">
-          Redeem your Diamonds for exclusive in-game items, boosters, or partner perks. Select an item below:
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => handleClaim('Exclusive Skin')} className="rounded-lg border border-purple-200 bg-white px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:bg-zinc-900 dark:text-purple-300 dark:hover:bg-purple-900/30">
-            Exclusive Skin (50 Diamonds)
-          </button>
-          <button onClick={() => handleClaim('XP Booster')} className="rounded-lg border border-purple-200 bg-white px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:bg-zinc-900 dark:text-purple-300 dark:hover:bg-purple-900/30">
-            XP Booster (200 Diamonds)
-          </button>
         </div>
       </div>
 

@@ -35,6 +35,8 @@ export function RewardsPanel({
 
   return (
     <div className="space-y-6">
+      <RewardsRedeemSection diamondsBalance={refinementPointsTotal} />
+
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
         <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
           Refinement &amp; GRID checkpoints
@@ -89,8 +91,6 @@ export function RewardsPanel({
         </table>
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-500">{remote ? 'Showing server ledger when available.' : 'Showing device ledger until server sync.'}</p>
-
-      <RewardsRedeemSection diamondsBalance={refinementPointsTotal} />
     </div>
   );
 }
