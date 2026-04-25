@@ -563,27 +563,40 @@ export function PlantSlotCard(props: {
           );
         })}
       </SelectionModal>
-      {activeModal === 'modules' && (
-        <SelectionModal
-          title="Install Modules"
-          description="Select hardware to optimize output. Higher tiers unlock more slots."
-          items={Object.values(MINECORE_MODULES).map(m => ({
-            id: m.id,
-            label: m.label,
-            description: `Boost: +${(m.outputBonus * 100).toFixed(0)}%, Fail: -${(m.failureReduction * 100).toFixed(0)}%`,
-            owned: props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0,
-            selected: s.setup.moduleIds.includes(m.id as MinecoreModuleId),
-          }))}
-          onSelect={(id) => {
-            const current = s.setup.moduleIds;
-            const next = current.includes(id as any) 
-              ? current.filter(x => x !== id)
-              : [...current, id as any].slice(0, s.type === 'premium' ? 2 : 4);
-            props.onInstallPart('modules', next);
-          }}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+      <SelectionModal
+        isOpen={activeModal === 'modules'}
+        onClose={() => setActiveModal(null)}
+        title="Install Modules"
+      >
+        <p className="text-xs text-zinc-500 mb-4 px-1">Select hardware to optimize output. Higher tiers unlock more slots.</p>
+        <div className="space-y-2">
+          {Object.values(MINECORE_MODULES).map(m => {
+            const owned = props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0;
+            const isSelected = s.setup.moduleIds.includes(m.id as MinecoreModuleId);
+            return (
+              <button
+                key={m.id}
+                onClick={() => {
+                  const current = s.setup.moduleIds;
+                  const next = current.includes(m.id as any) 
+                    ? current.filter(x => x !== m.id)
+                    : [...current, m.id as any].slice(0, s.type === 'premium' ? 2 : 4);
+                  props.onInstallPart('modules', next);
+                }}
+                className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
+                  isSelected ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
+                }`}
+              >
+                <div>
+                  <div className="font-bold text-sm">{m.label}</div>
+                  <div className="text-[10px] text-zinc-500">Boost: +{(m.outputBonus * 100).toFixed(0)}% · Fail: -{(m.failureReduction * 100).toFixed(0)}%</div>
+                </div>
+                <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
+              </button>
+            );
+          })}
+        </div>
+      </SelectionModal>
     </>
   );
 }
