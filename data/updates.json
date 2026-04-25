@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777148856-0f51bd8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Minecore Phase 2: Presets, Selection Modals, and Unified Rewards (by Kasparex)",
+      "date": "2026-04-25T22:27:17+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777143117-0d0cde3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(minecore): fix build error - undefined nowTick and improper imports (by Kasparex)",
