@@ -46,6 +46,7 @@ export interface Game {
   playCount?: number;
   likeCount?: number;
   favoriteCount?: number;
+  shopItems?: any[];
 }
 
 export const gameTypes: Record<GameType, { name: string }> = {

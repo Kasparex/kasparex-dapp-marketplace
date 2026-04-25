@@ -147,7 +147,6 @@ export function MinecoreDashboard(_props: {
     [
       diamondsDisplayTotal,
       state.refinementPointsTotal,
-      state.gridRedeemableTotal,
       krexL1Balance,
       krexTier,
       canPayWithL1,
