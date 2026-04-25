@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777117084-50e53d0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: missing redeemGrid destructuring in MiningDashboard (by Kasparex)",
+      "date": "2026-04-25T13:37:42+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777116530-ae96c73",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: auto-refine, one-click claim and consolidated reward weight balance (by Kasparex)",
