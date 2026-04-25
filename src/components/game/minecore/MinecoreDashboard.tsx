@@ -46,7 +46,7 @@ export function MinecoreDashboard(_props: {
   game?: any;
   gameName?: string;
 }) {
-  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet } = useMinecore();
+  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet, nowTick } = useMinecore();
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const [tab, setTab] = useState<TabId>('overview');

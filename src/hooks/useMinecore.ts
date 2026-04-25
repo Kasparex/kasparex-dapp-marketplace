@@ -370,6 +370,7 @@ export function useMinecore() {
       refillBatteryWithKAS,
     },
     getKasPriceAfterDiscount,
+    nowTick,
   };
 }
 

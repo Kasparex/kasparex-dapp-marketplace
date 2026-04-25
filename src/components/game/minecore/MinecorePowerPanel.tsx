@@ -2,7 +2,7 @@
 
 import type { MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_BATTERIES, MINECORE_MACHINES } from '@/lib/game/minecore/config';
-import { computePlantExpectedDiamonds } from '@/lib/game/minecore/compute';
+import { computePlantExpectedDiamonds, computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs } from '@/lib/game/minecore/compute';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 
 export function MinecorePowerPanel(props: {
@@ -26,7 +26,6 @@ export function MinecorePowerPanel(props: {
     totalRemaining += Math.min(cap, Math.max(0, p.powerRemaining));
     
     // Use the same compute functions as the card for consistency
-    const { computeFlowRatePerMin } = require('@/lib/game/minecore/compute');
     const flowPerMin = computeFlowRatePerMin(p, now);
     if (flowPerMin > 0) {
       activeDraw += 1;
@@ -69,7 +68,6 @@ export function MinecorePowerPanel(props: {
         <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Mining plants</h4>
         <ul className="space-y-2 text-sm">
           {state.plantSlots.map((p) => {
-            const { computeLiveBatteryChargeMs, getBatteryCapacityMs, computeFlowRatePerMin } = require('@/lib/game/minecore/compute');
             const liveCharge = computeLiveBatteryChargeMs(p, now);
             const capMs = getBatteryCapacityMs(p);
             const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
