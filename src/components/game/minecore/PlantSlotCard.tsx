@@ -214,6 +214,7 @@ export function PlantSlotCard(props: {
   onStart: () => void;
   onExtract: () => void;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
+  onTopUpWithKAS: (args: { amountKas: number; added: number }) => void | Promise<void>;
   onRefillBattery: () => void | Promise<void>;
   onQuickSetup: () => void;
   onInstallPart: (kind: any, id: any) => void;
