@@ -53,19 +53,20 @@ export function CardsFilterBar({
   const currentCategoryLabel = category === 'all' ? 'All Categories' : category;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Search */}
+    <div className="flex items-center gap-3 w-full mb-4 overflow-x-auto pb-1 no-scrollbar flex-nowrap">
+      {/* Search */}
+      <div className="flex-1 min-w-[200px]">
         <input
           type="text"
           placeholder="Search items..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="k-filter-select h-10 w-full md:w-64 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 focus:ring-1 focus:ring-[#02abb8] focus:border-[#02abb8] bg-white dark:bg-zinc-950 text-sm"
+          className="k-filter-select h-10 w-full border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-zinc-950 text-sm"
         />
+      </div>
 
-        {/* Category Dropdown */}
-        <div className="relative flex-shrink-0 overflow-visible" ref={categoryRef}>
+      {/* Category Dropdown */}
+      <div className="relative flex-shrink-0 overflow-visible" ref={categoryRef}>
           <button
             type="button"
             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
@@ -87,7 +88,7 @@ export function CardsFilterBar({
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   category === 'all'
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
@@ -103,7 +104,7 @@ export function CardsFilterBar({
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                     category === c
-                      ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
                       : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                   }`}
                 >
@@ -113,10 +114,9 @@ export function CardsFilterBar({
             </div>
           )}
         </div>
-      </div>
 
-      <div className="flex items-center gap-3 relative flex-shrink-0 overflow-visible" ref={sortRef}>
-        {/* Sorting Dropdown */}
+      {/* Sorting Dropdown */}
+      <div className="relative flex-shrink-0 overflow-visible" ref={sortRef}>
         <button
           type="button"
           onClick={() => setIsSortOpen(!isSortOpen)}
@@ -140,7 +140,7 @@ export function CardsFilterBar({
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   sortBy === option.value
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >

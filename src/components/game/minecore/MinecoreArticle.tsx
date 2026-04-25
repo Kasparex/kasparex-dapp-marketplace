@@ -7,7 +7,7 @@
 export function MinecoreArticle(props: { featuredImage?: string; gameName?: string; hint?: string }) {
   const name = props.gameName ?? 'Minecore';
   return (
-    <article className="prose prose-zinc max-w-none dark:prose-invert prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-lg prose-h2:font-black prose-h3:mt-0 prose-h3:mb-2 prose-h3:text-sm prose-h3:font-bold prose-h3:uppercase prose-h3:tracking-wide prose-h3:text-zinc-500 dark:prose-h3:text-zinc-400 prose-p:my-3 prose-p:leading-relaxed prose-hr:my-8 prose-hr:border-zinc-200 dark:prose-hr:border-zinc-800 prose-li:my-1">
+    <article className="prose prose-zinc max-w-none dark:prose-invert prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-lg prose-h2:font-bold prose-h3:mt-0 prose-h3:mb-2 prose-h3:text-sm prose-h3:font-semibold prose-h3:uppercase prose-h3:tracking-wide prose-h3:text-zinc-500 dark:prose-h3:text-zinc-400 prose-p:my-3 prose-p:leading-relaxed prose-hr:my-8 prose-hr:border-zinc-200 dark:prose-hr:border-zinc-800 prose-li:my-1">
       {props.featuredImage ? (
         <div className="not-prose mb-8 grid gap-5 md:grid-cols-2">
           <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
@@ -15,7 +15,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
             <img src={props.featuredImage} alt={name} className="aspect-video w-full object-cover" />
           </div>
           <div className="flex flex-col justify-center space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {props.hint ? <p className="font-medium text-zinc-700 dark:text-zinc-300">{props.hint}</p> : null}
+            {props.hint ? <p className="text-zinc-700 dark:text-zinc-300">{props.hint}</p> : null}
             <p>Use the tabs to craft parts, run power plants, assign NFT workers, and redeem refinement output.</p>
           </div>
         </div>
@@ -58,24 +58,24 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>Mining plants</h2>
       <p>Mining plants are the core operational units inside Minecore. They act as controlled interfaces between the operator and the underground system.</p>
       <p>Each plant is assembled from multiple components:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>
-          <strong>Machine</strong> — defines extraction capability and base output
+          Machine: defines extraction capability and base output
         </li>
         <li>
-          <strong>Power system</strong> — supplies energy required for operation
+          Power system: supplies energy required for operation
         </li>
         <li>
-          <strong>Worker slot</strong> — NFT workers increase efficiency and performance
+          Worker slot: NFT workers increase efficiency and performance
         </li>
         <li>
-          <strong>Modules</strong> — enhance stability, output, or introduce special effects
+          Modules: enhance stability, output, or introduce special effects
         </li>
         <li>
-          <strong>Boost layer</strong> — adds multipliers powered by KREX or supported by KAS
+          Boost layer: adds multipliers powered by KREX or supported by KAS
         </li>
         <li>
-          <strong>Ingredients</strong> — required to craft and maintain all components
+          Ingredients: required to craft and maintain all components
         </li>
       </ul>
       <p>Vector designed the first machines capable of interacting with the veins. His ongoing work continues to expand the available tools and upgrades.</p>
@@ -85,7 +85,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
 
       <h2>Operation flow</h2>
       <p>
-        <strong>Craft → Build → Mine → Extract Diamonds → Refine → Redeem for GRID → Expand</strong>
+        Craft | Build | Mine | Extract Diamonds | Refine | Redeem for GRID | Expand
       </p>
       <p>
         Operators gather materials, craft components, build plants, run mining cycles, extract Diamonds, refine them into usable output, convert that output into GRID, and reinvest into stronger
@@ -97,7 +97,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>Timers and production</h2>
       <p>Each mining plant runs on timed extraction cycles.</p>
       <p>During an active cycle:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>A progress bar tracks completion</li>
         <li>A timer displays remaining duration</li>
         <li>Output is calculated dynamically</li>
@@ -109,7 +109,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>Materials and crafting</h2>
       <p>Minecore includes a fabrication layer where raw materials are transformed into usable components.</p>
       <p>Materials include:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Crystal Dust</li>
         <li>Alloy Plates</li>
         <li>Circuit Mesh</li>
@@ -124,12 +124,12 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
 
       <h2>Power and fuel</h2>
       <p>All mining operations require energy to function.</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>
-          <strong>KAS</strong> acts as the primary fuel
+          KAS acts as the primary fuel
         </li>
         <li>
-          <strong>Energy components</strong> support stability and efficiency
+          Energy components support stability and efficiency
         </li>
       </ul>
       <p>ARIA manages power distribution across accessible sectors, but not all zones can be fully stabilized.</p>
@@ -140,7 +140,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>Boosts and multipliers</h2>
       <p>KREX introduces a boost layer that enhances mining performance.</p>
       <p>Boosts can:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Increase output</li>
         <li>Reduce cycle time</li>
         <li>Improve efficiency</li>
@@ -160,7 +160,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>External interference</h2>
       <p>Certain sectors show signs of interference linked to the Null Gang.</p>
       <p>These zones may contain:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Unstable outputs</li>
         <li>Corrupted materials</li>
         <li>Increased machine degradation</li>
@@ -172,13 +172,13 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>The deeper layer</h2>
       <p>Beyond mapped sectors, Minecore exhibits patterns that cannot be fully explained.</p>
       <p>Operators have reported:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Unexpected efficiency spikes</li>
         <li>Hidden sector access</li>
         <li>Unexplained system responses</li>
       </ul>
       <p>
-        These behaviors are associated with a deeper system logic, often referred to as <strong>The Silent Protocol</strong>.
+        These behaviors are associated with a deeper system logic, often referred to as The Silent Protocol.
       </p>
 
       <hr />
@@ -186,7 +186,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>Expansion</h2>
       <p>Minecore is designed as a scalable system.</p>
       <p>Players expand by:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Unlocking new sectors</li>
         <li>Building additional plants</li>
         <li>Upgrading infrastructure</li>
@@ -199,7 +199,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
       <h2>System integration</h2>
       <p>Diamonds mined in Minecore are used across other Kasparex Games.</p>
       <p>They act as a universal in-game currency for:</p>
-      <ul>
+      <ul className="list-none pl-0">
         <li>Unlocking content</li>
         <li>Entering game modes</li>
         <li>Activating systems</li>

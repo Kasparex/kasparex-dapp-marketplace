@@ -35,28 +35,7 @@ export function MinecoreRewardsPanel({
 
   return (
     <div className="space-y-6">
-      <RewardsRedeemSection diamondsBalance={refinementPointsTotal} />
-
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
-          Refinement &amp; GRID checkpoints
-          <GameTooltip content="Each refine creates a checkpoint row. GRID distribution on Kasplex L2 uses RewardManager / FeeRouter patterns elsewhere in Kasparex — this ledger is your local and server audit trail.">
-            <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
-              ?
-            </button>
-          </GameTooltip>
-        </h3>
-        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-          Total refinement points:{' '}
-          <strong className="text-emerald-600 dark:text-emerald-400">{refinementPointsTotal.toLocaleString()}</strong>
-        </p>
-        <Link
-          href="/rewards-and-points"
-          className="inline-flex rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-        >
-          Open Rewards &amp; Points
-        </Link>
-      </div>
+      <RewardsRedeemSection diamondsBalance={refinementPointsTotal}>
 
       <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left text-sm">
@@ -93,6 +72,7 @@ export function MinecoreRewardsPanel({
       <p className="text-xs text-zinc-500 dark:text-zinc-500">
         {remote?.length ? 'Showing server ledger when available.' : 'Showing device ledger until Minecore server sync is enabled.'}
       </p>
+      </RewardsRedeemSection>
     </div>
   );
 }

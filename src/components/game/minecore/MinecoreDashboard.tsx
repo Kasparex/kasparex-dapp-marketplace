@@ -26,6 +26,7 @@ import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -56,6 +57,33 @@ export function MinecoreDashboard(_props: {
   // Actually, we'll just mock it as 0 to avoid breaking since we don't have the contract address injected here easily.
   const gridL1Balance = 0;
 
+  const [miningSearch, setMiningSearch] = useState('');
+  const [miningCategory, setMiningCategory] = useState('all');
+  const [miningSort, setMiningSort] = useState('recommended');
+
+  const filteredSlots = useMemo(() => {
+    let list = [...state.plantSlots];
+    if (miningSearch) {
+      const q = miningSearch.toLowerCase();
+      list = list.filter(slot => 
+        slot.setup.machineId?.toLowerCase().includes(q) || 
+        slot.id.toLowerCase().includes(q) ||
+        (slot.index + 1).toString().includes(q)
+      );
+    }
+    if (miningCategory !== 'all') {
+      if (miningCategory === 'Unlocked') list = list.filter(s => s.unlocked);
+      if (miningCategory === 'Locked') list = list.filter(s => !s.unlocked);
+      if (miningCategory === 'Active') list = list.filter(s => s.session.isMining);
+    }
+    if (miningSort === 'price_asc') {
+      list.sort((a, b) => a.unlockCostKas - b.unlockCostKas);
+    } else if (miningSort === 'price_desc') {
+      list.sort((a, b) => b.unlockCostKas - a.unlockCostKas);
+    }
+    return list;
+  }, [state.plantSlots, miningSearch, miningCategory, miningSort]);
+
   const canPayWithL1 =
     Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
   const kasValid = typeof balanceInKas === 'number' && !Number.isNaN(balanceInKas);
@@ -84,7 +112,7 @@ export function MinecoreDashboard(_props: {
         tooltip:
           'Your in-game Diamonds total: wallet balance plus output committed in plant cycles (active or ready to extract). Refinement points accumulate when you Refine. Click to open Mining.',
         accent: 'diamonds' as const,
-        icon: <DiamondIcon className="h-4 w-4 text-[#02abb8]" title="Diamonds" />,
+        icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
       },
       {
@@ -102,7 +130,7 @@ export function MinecoreDashboard(_props: {
         value: gridL1Balance.toLocaleString(),
         description: 'Reward token',
         tooltip: 'Your actual GRID token balance.',
-        accent: 'grid' as const, // We'll handle coloring via #02abb8 in GameDeckPanel or inline classes if needed
+        accent: 'grid' as const,
         onClick: () => setTab('redeem' as const),
       },
       {
@@ -149,26 +177,26 @@ export function MinecoreDashboard(_props: {
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
             <div className="flex flex-wrap items-center gap-6">
               <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
-              <span className="font-bold tabular-nums text-[#02abb8]">
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
               </span>
               <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
-              <span className="min-w-[5rem] font-bold tabular-nums text-[#02abb8]">
+              <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
                 {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
                 KAS
               </span>
               <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
-                <DiamondIcon className="h-4 w-4 text-[#02abb8]" />
+                <DiamondIcon className="h-4 w-4 text-sky-400" />
                 Diamonds
               </span>
-              <span className="font-bold tabular-nums text-amber-500">{diamondsDisplayTotal.toLocaleString()}</span>
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
               <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 {krexTier}
               </span>
             </div>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Earn on L1 · claim GRID on L2 via{' '}
-              <Link href="/rewards-and-points" className="font-semibold text-[#02abb8] underline">
+              <Link href="/rewards-and-points" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
                 Rewards &amp; Points
               </Link>
             </p>
@@ -201,8 +229,18 @@ export function MinecoreDashboard(_props: {
                 </div>
               ) : null}
 
+              <CardsFilterBar
+                searchQuery={miningSearch}
+                onSearchChange={setMiningSearch}
+                category={miningCategory}
+                onCategoryChange={setMiningCategory}
+                categories={['Unlocked', 'Locked', 'Active']}
+                sortBy={miningSort}
+                onSortChange={setMiningSort}
+              />
+
               <div className="grid gap-4 sm:grid-cols-2">
-                {state.plantSlots.map((slot) => (
+                {filteredSlots.map((slot) => (
                   <PlantSlotCard
                     key={slot.id}
                     minecoreState={state}

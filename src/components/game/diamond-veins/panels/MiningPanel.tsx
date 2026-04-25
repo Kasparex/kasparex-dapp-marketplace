@@ -6,6 +6,9 @@ import type { TyconGameState } from '@/lib/game/engine';
 import { DIAMOND_COMMODITY_KEYS, type DiamondCommodity } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useState } from 'react';
+
 const DIAMOND_LABELS: Record<DiamondCommodity, string> = {
   chronoShard: 'Chrono Shard (CSD)',
   auroraCore: 'Aurora Core (ACD)',
@@ -36,6 +39,10 @@ export function MiningPanel({
   miningRunOptions: readonly { label: string; durationMs: number; mult: number }[];
   onStartMiningRun: (i: number) => void;
 }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
+
   const veinIconClass: Record<DiamondCommodity, string> = {
     chronoShard: 'text-sky-400',
     auroraCore: 'text-violet-400',
@@ -49,6 +56,16 @@ export function MiningPanel({
 
   return (
     <div className="space-y-8">
+      <CardsFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        categories={['Operational', 'Idle', 'Critical']}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
