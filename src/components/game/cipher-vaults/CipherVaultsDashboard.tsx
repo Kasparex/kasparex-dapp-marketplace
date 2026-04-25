@@ -60,6 +60,8 @@ export function CipherVaultsDashboard({
   const [puzzle, setPuzzle] = useState<{ size: number; initial: number[]; target: number[]; moveLimit: number } | null>(null);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [redeemablePoints, setRedeemablePoints] = useState(0);
+  const [redeemAmount, setRedeemAmount] = useState(CIPHER_TICKET_REDEEM_RATE_POINTS);
+  const [toast, setToast] = useState<string | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
