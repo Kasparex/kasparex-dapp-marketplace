@@ -108,7 +108,6 @@ export function CipherVaultsDashboard({
   const tier = useMemo(() => CIPHER_VAULT_TIERS.find((t) => t.id === tierId)!, [tierId]);
   const openOverview = () => {
     setTab('overview');
-    setLoreExpanded(true);
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { GridLedgerEntry } from '@/lib/game/engine';
+import { GridLedgerEntry } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 export function RewardsPanel({
   address,
@@ -22,6 +23,9 @@ export function RewardsPanel({
   onRedeem?: (points: number) => void;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
     if (!address) return;
@@ -47,6 +51,16 @@ export function RewardsPanel({
         onRefine={onRefine}
         onRedeem={onRedeem}
       >
+      
+      <CardsFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        categories={['Operational', 'Legacy']}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
 
       <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left text-sm">
@@ -59,14 +73,31 @@ export function RewardsPanel({
             </tr>
           </thead>
           <tbody>
-            {entries.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                  No refine checkpoints yet. Refine in the Mining tab to create your first ledger row.
-                </td>
-              </tr>
-            ) : (
-              [...entries].reverse().map((e) => (
+            {(() => {
+              let list = [...(remote?.length ? remote : localLedger)];
+              if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                list = list.filter(e => e.id.toLowerCase().includes(q) || new Date(e.at).toLocaleString().toLowerCase().includes(q));
+              }
+              if (sortBy === 'price_asc') {
+                list.sort((a, b) => a.diamondsRefined - b.diamondsRefined);
+              } else if (sortBy === 'price_desc') {
+                list.sort((a, b) => b.diamondsRefined - a.diamondsRefined);
+              } else {
+                list.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+              }
+
+              if (list.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
+                      No refine checkpoints match your filters.
+                    </td>
+                  </tr>
+                );
+              }
+
+              return list.map((e) => (
                 <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.at).toLocaleString()}</td>
                   <td className="p-3 tabular-nums text-zinc-800 dark:text-zinc-200">{e.diamondsRefined.toLocaleString()}</td>
@@ -75,12 +106,12 @@ export function RewardsPanel({
                   </td>
                   <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">{e.gridCheckpointScore.toLocaleString()}</td>
                 </tr>
-              ))
-            )}
+              ));
+            })()}
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-zinc-500 dark:text-zinc-500">
+      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
         {remote ? 'Showing server ledger when available.' : 'Showing device ledger until server sync.'}
       </p>
       </RewardsRedeemSection>
