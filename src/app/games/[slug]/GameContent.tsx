@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
-import { IconOverview, IconRewards, IconShop, IconComments } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconRewards, IconShop, IconComments, IconBoosters } from '@/components/games/icons/TabIcons';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
@@ -11,6 +11,9 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import type { Game } from '@/lib/games/games';
+import type { UnifiedGame } from '@/lib/games/registry';
+import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { GameItemCard } from '@/components/games/shop/GameItemCard';
 
 const BASE_TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -19,9 +22,10 @@ const BASE_TABS = [
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
-type TabId = (typeof BASE_TABS)[number]['id'] | 'shop';
+type TabId = (typeof BASE_TABS)[number]['id'] | 'shop' | 'boosters';
 
-export function GameContent({ game }: { game: Game }) {
+export function GameContent({ game: baseGame }: { game: Game }) {
+  const game = baseGame as UnifiedGame;
   const [tab, setTab] = useState<TabId>('overview');
   const { state: walletState } = useKaspaWallet();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
@@ -29,6 +33,11 @@ export function GameContent({ game }: { game: Game }) {
   
   const [mockDiamonds, setMockDiamonds] = useState(0);
   const [mockPoints, setMockPoints] = useState(0);
+
+  // Sorting/Filtering state for Shop/Boosters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('recommended');
 
   const resources = useMemo(() => [
     {
@@ -62,13 +71,54 @@ export function GameContent({ game }: { game: Game }) {
     }
   ], [mockDiamonds, mockPoints, balanceInKas, kasLoading, krexL1Balance, krexTier]);
 
+  const hasBoosters = game.skus?.some(s => s.type === 'boost');
+  const hasShop = game.shopItems?.length || game.skus?.some(s => s.type !== 'entry' && s.type !== 'boost');
+
   const tabs = useMemo(() => {
     const list = [...BASE_TABS];
-    if (game.shopItems?.length) {
-      list.splice(2, 0, { id: 'shop', label: 'Shop', icon: <IconShop /> } as any);
+    if (hasBoosters) {
+      list.splice(2, 0, { id: 'boosters', label: 'Boosters', icon: <IconBoosters /> } as any);
+    }
+    if (hasShop) {
+      list.splice(hasBoosters ? 3 : 2, 0, { id: 'shop', label: 'Shop', icon: <IconShop /> } as any);
     }
     return list;
-  }, [game.shopItems]);
+  }, [hasBoosters, hasShop]);
+
+  const shopItems = useMemo(() => {
+    const items: any[] = [];
+    if (game.shopItems) items.push(...game.shopItems);
+    if (game.skus) {
+      game.skus.filter(s => s.type !== 'entry').forEach(sku => {
+        items.push({
+          id: sku.id,
+          title: sku.title,
+          category: sku.type.charAt(0).toUpperCase() + sku.type.slice(1),
+          priceOptions: [{ currency: sku.currency, unitPrice: sku.amount }],
+          description: `Game specific ${sku.type}.`,
+          type: sku.type
+        });
+      });
+    }
+    return items;
+  }, [game.shopItems, game.skus]);
+
+  const filteredItems = useMemo(() => {
+    let list = shopItems;
+    if (tab === 'boosters') list = list.filter(i => i.type === 'boost');
+    
+    return list.filter(item => {
+      if (category !== 'all' && item.category?.toLowerCase() !== category.toLowerCase()) return false;
+      if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'price_asc') return (a.priceOptions?.[0]?.unitPrice ?? 0) - (b.priceOptions?.[0]?.unitPrice ?? 0);
+      if (sortBy === 'price_desc') return (b.priceOptions?.[0]?.unitPrice ?? 0) - (a.priceOptions?.[0]?.unitPrice ?? 0);
+      return 0;
+    });
+  }, [shopItems, tab, searchQuery, category, sortBy]);
+
+  const categories = useMemo(() => Array.from(new Set(shopItems.map(i => i.category).filter(Boolean))), [shopItems]);
 
   return (
     <main className="min-w-0 flex-1 p-4 sm:p-6 lg:px-16 lg:py-12">
@@ -111,6 +161,35 @@ export function GameContent({ game }: { game: Game }) {
                 <p className="mt-2 text-zinc-500">This game is currently in development.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {(tab === 'shop' || tab === 'boosters') && (
+          <div className="space-y-6">
+            <CardsFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              category={category}
+              onCategoryChange={setCategory}
+              categories={categories}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredItems.map(item => (
+                <GameItemCard
+                  key={item.id}
+                  title={item.title}
+                  category={item.category}
+                  description={item.description}
+                  priceOptions={item.priceOptions}
+                  onBuy={() => alert(`Buying ${item.title}... (Demo)`)}
+                />
+              ))}
+              {filteredItems.length === 0 && (
+                <div className="col-span-full py-12 text-center text-zinc-500">No items match your filters.</div>
+              )}
+            </div>
           </div>
         )}
 

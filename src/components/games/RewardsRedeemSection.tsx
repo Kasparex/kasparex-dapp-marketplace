@@ -138,13 +138,14 @@ export function RewardsRedeemSection({
 
       {/* Reward Weight Overview */}
       <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6 dark:border-emerald-500/10 dark:bg-emerald-500/5 shadow-sm">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400">Total Reward Progress</h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Combined Diamonds and Refinement Points ready for claim.</p>
+            <div className="text-2xl font-bold text-emerald-500">Total Reward Progress</div>
+            <div className="text-sm text-zinc-500">Combined Diamonds and Refinement Points ready for claim.</div>
           </div>
-          <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-            {totalRewardWeight.toLocaleString()} <span className="text-sm font-bold uppercase opacity-60">Weight</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold text-emerald-500">{(diamondsBalance + refinementPointsBalance).toLocaleString()}</span>
+            <span className="text-sm font-bold uppercase tracking-wider text-emerald-500/60">Weight</span>
           </div>
         </div>
       </div>

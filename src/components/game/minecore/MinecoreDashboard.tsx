@@ -14,7 +14,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { computeMinecoreDiamondsDisplayTotal } from '@/lib/game/minecore/compute';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
-import { InventoryPanel } from '@/components/game/minecore/InventoryPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
 import { MinecoreArticle } from '@/components/game/minecore/MinecoreArticle';
 import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPanel';
@@ -34,7 +33,6 @@ const TABS = [
   { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
   { id: 'power', label: 'Power', icon: <IconPower /> },
   { id: 'workers', label: 'Workers', icon: <IconWorkers /> },
-  { id: 'inventory', label: 'Inventory', icon: <IconSignal /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'fabrication', label: 'Build', icon: <IconBoosters /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
@@ -307,8 +305,6 @@ export function MinecoreDashboard(_props: {
               onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
             />
           )}
-
-          {tab === 'inventory' && <InventoryPanel state={state} />}
 
           {tab === 'shop' && (
             <ShopPanel
