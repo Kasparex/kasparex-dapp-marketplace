@@ -149,9 +149,9 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               </span>
               <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
                 <DiamondIcon className="h-4 w-4 text-sky-400" />
-                Diamonds
+                Reward Weight
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{Math.floor(diamonds).toLocaleString()}</span>
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{(Math.floor(diamonds) + Math.floor(refinementPointsTotal ?? 0)).toLocaleString()}</span>
               <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 {krexTier}
               </span>
@@ -301,11 +301,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             resources={[
               {
                 id: 'diamonds',
-                label: 'Diamonds',
-                value: Math.floor(diamonds).toLocaleString(),
-                subValue: `${Math.floor(refinementPointsTotal ?? 0).toLocaleString()} refinement pts`,
-                description: 'In-game resource',
-                tooltip: 'Your in-game Diamonds balance. Refinement points accumulate when you Refine. Click to open Mining.',
+                label: 'Reward Weight',
+                value: (Math.floor(diamonds) + Math.floor(refinementPointsTotal ?? 0)).toLocaleString(),
+                subValue: `${Math.floor(diamonds).toLocaleString()} Diamonds + ${Math.floor(refinementPointsTotal ?? 0).toLocaleString()} Points`,
+                description: 'Combined reward potential',
+                tooltip: 'Your total reward weight: Diamonds in bag plus earned Refinement Points. Click to open Mining.',
                 accent: 'diamonds',
                 icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
                 onClick: () => setTab('mining'),

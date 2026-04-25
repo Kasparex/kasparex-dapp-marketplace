@@ -185,10 +185,28 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot || !slot.unlocked || !slot.cycle) return rederive(s, now);
       if (ev.at < slot.cycle.endAtMs) return rederive(s, now);
 
-      s.diamondsBalance += slot.cycle.expectedDiamonds;
+      const extracted = slot.cycle.expectedDiamonds;
+      s.diamondsBalance += extracted;
       slot.cycle = null;
 
-      // Simple V1 failure/repair hook: very low chance to require repair after extraction.
+      // Auto-Refine: Convert extracted diamonds into points immediately
+      const amt = Math.floor(s.diamondsBalance);
+      if (amt > 0) {
+        s.diamondsBalance -= amt;
+        const points = amt * MINECORE_REFINE_RATE;
+        s.refinementPointsTotal += points;
+        const entry: GridLedgerEntry = {
+          id: `minecore_auto_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
+          at: now,
+          refinementPoints: points,
+          diamondsRefined: amt,
+          gridCheckpointScore: points,
+          note: 'Auto-refine after extraction.',
+        };
+        s.gridLedger = [...s.gridLedger, entry].slice(-200);
+      }
+
+      // Simple V1 failure/repair hook
       const roll = Math.random();
       if (roll < 0.02) slot.needsRepair = true;
 

@@ -105,12 +105,12 @@ export function MinecoreDashboard(_props: {
     () => [
       {
         id: 'diamonds',
-        label: 'Diamonds',
-        value: diamondsDisplayTotal.toLocaleString(),
-        subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} refinement pts`,
-        description: 'In-game resource',
+        label: 'Reward Weight',
+        value: (diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString(),
+        subValue: `${diamondsDisplayTotal.toLocaleString()} Diamonds + ${Math.floor(state.refinementPointsTotal).toLocaleString()} Points`,
+        description: 'Combined reward potential',
         tooltip:
-          'Your in-game Diamonds total: wallet balance plus output committed in plant cycles (active or ready to extract). Refinement points accumulate when you Refine. Click to open Mining.',
+          'Your total reward weight: Diamonds in bag plus earned Refinement Points. Click to open Mining.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -187,9 +187,9 @@ export function MinecoreDashboard(_props: {
               </span>
               <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
                 <DiamondIcon className="h-4 w-4 text-sky-400" />
-                Diamonds
+                Reward Weight
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
+              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{(diamondsDisplayTotal + Math.floor(state.refinementPointsTotal)).toLocaleString()}</span>
               <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
                 {krexTier}
               </span>
