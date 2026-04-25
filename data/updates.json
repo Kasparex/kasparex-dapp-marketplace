@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777136321-b7e80d3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(cipher-vaults): fix broken JSX - GameTabs tag was not closed before overview block (by Kasparex)",
+      "date": "2026-04-25T18:58:23+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777136019-5763c88",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: ui(games): chevron scroll tabs, emerald KAS accent, deck info modal, reward weight capsules, overview How-to-play (by Kasparex)",
