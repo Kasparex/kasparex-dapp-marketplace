@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777120672-2857681",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix: missing UnifiedGameLayout import in MinecoreDashboard (by Kasparex)",
+      "date": "2026-04-25T14:37:33+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777120333-6d0d955",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: feat: complete unification of game framework and layout (by Kasparex)",
