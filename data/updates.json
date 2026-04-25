@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777121572-3474d2b",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: trigger: vercel build (by Kasparex)",
+      "date": "2026-04-25T14:52:36+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777121069-77314db",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix: resolve build errors in GameContent and MinecoreDashboard (by Kasparex)",
