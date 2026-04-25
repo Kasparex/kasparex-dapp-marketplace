@@ -322,15 +322,6 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         <GameDeckPanel
           resources={[
             {
-              id: 'grid',
-              label: 'GRID (pending)',
-              value: pendingGrid.toLocaleString(),
-              description: 'Reward token',
-              tooltip: 'Pending GRID rewards tracked in your unified deck. Click to open Rewards.',
-              accent: 'grid',
-              onClick: () => setTab('rewards'),
-            },
-            {
               id: 'tier',
               label: 'KREX Tier',
               value: tier,
