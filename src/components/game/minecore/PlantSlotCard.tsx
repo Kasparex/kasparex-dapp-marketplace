@@ -303,6 +303,14 @@ export function PlantSlotCard(props: {
   const preset = MINECORE_PLANT_PRESETS[s.type ?? 'standard'];
   const IconComponent = (Icons as any)[preset.icon] ?? Icons.CircleDot;
 
+  /** Primary CTA: orange when paused, neutral gray when mining; default games CTA for other states. */
+  const buyButtonClassName =
+    s.status === 'MiningPaused'
+      ? 'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-amber-500/60 bg-amber-500/25 text-amber-950 shadow-sm transition-colors hover:bg-amber-500/35 dark:border-amber-400/50 dark:bg-amber-500/20 dark:text-amber-50 dark:hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50'
+      : s.status === 'MiningActive'
+        ? 'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-zinc-300 bg-zinc-200 text-zinc-800 shadow-sm transition-colors hover:bg-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
+        : undefined;
+
   // ── Title accessory — mined / cycle total (green / amber) ─────────────────
   const titleAccessory = s.unlocked ? (
     <div className="text-right">
@@ -468,6 +476,7 @@ export function PlantSlotCard(props: {
       priceOptions={[{ currency: 'KAS', unitPrice: 0 }]}
       buyLabel={actionLabel}
       buyDisabled={buyDisabled}
+      buyButtonClassName={buyButtonClassName}
       onBuy={async () => {
         if (!s.unlocked) return props.onUnlock();
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');

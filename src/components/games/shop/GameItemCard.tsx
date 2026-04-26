@@ -49,6 +49,11 @@ export function GameItemCard(props: {
   /** Disable buy button (eg payment unavailable). */
   buyDisabled?: boolean;
   buyLabel?: string;
+  /**
+   * Replaces the default `k-cta-games` buy button classes when set (e.g. Mining plant stop/resume styling).
+   * Include sizing and disabled: styles you need; defaults apply when omitted.
+   */
+  buyButtonClassName?: string;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
 }) {
   const options = props.priceOptions;
@@ -147,7 +152,10 @@ export function GameItemCard(props: {
               type="button"
               onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
               disabled={props.buyDisabled || Boolean(selected?.disabled)}
-              className="k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale"
+              className={
+                props.buyButtonClassName ??
+                'k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale'
+              }
             >
               {props.buyLabel ?? 'Buy'}
             </button>
