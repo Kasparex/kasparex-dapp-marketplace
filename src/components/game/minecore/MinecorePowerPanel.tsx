@@ -118,62 +118,64 @@ export function MinecorePowerPanel(props: {
     </GamePanelCard>
   );
 
+  const siteEnergyAndRecharge = (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <GamePanelCard
+        title="Site energy"
+        hint="Reserve units and live flow. Recharge a plant in mining or here with the same KAS action."
+      >
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">
+          Live snapshot
+          <GameTooltip
+            content={
+              `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
+              'Craft on-site power blueprints on the Build tab, then install from each plant’s Power row in the checklist when paused.'
+            }
+          >
+            <button
+              type="button"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"
+              aria-label="Help"
+            >
+              ?
+            </button>
+          </GameTooltip>
+        </h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Reserve {totalRemaining.toLocaleString()} of {totalCap.toLocaleString()} power units across unlocked plants · active runs {activeDraw} · flow{' '}
+          <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{aggregateFlow.toFixed(1)} D/min</span>
+          {totalCap > 0 ? (
+            <>
+              {' '}
+              · pool <span className="font-semibold tabular-nums">{Math.round((totalRemaining / Math.max(1, totalCap)) * 100)}%</span>
+            </>
+          ) : null}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <GameTooltip content="Dev: add reserve units to plant 1 without KAS.">
+            <button
+              type="button"
+              onClick={props.onDemoTopUpFirstPlant}
+              className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
+            >
+              Demo: +5 units (plant 1)
+            </button>
+          </GameTooltip>
+        </div>
+      </GamePanelCard>
+
+      <GamePanelCard title="Recharge" hint="Same as the mining plant KAS action.">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Recharge — {MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> on a plant
+          to add a reserve unit and fully restore its battery, or use the Shop utility item (plant 1).
+        </p>
+      </GamePanelCard>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {plantsCard}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <GamePanelCard
-          title="Site energy"
-          hint="Reserve units and live flow. Recharge a plant in mining or here with the same KAS action."
-        >
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">
-            Live snapshot
-            <GameTooltip
-              content={
-                `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
-                'Craft on-site power blueprints on the Build tab, then install each plant from the Mining tab with ingredients.'
-              }
-            >
-              <button
-                type="button"
-                className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"
-                aria-label="Help"
-              >
-                ?
-              </button>
-            </GameTooltip>
-          </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Reserve {totalRemaining.toLocaleString()} of {totalCap.toLocaleString()} power units across unlocked plants · active runs {activeDraw} · flow{' '}
-            <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{aggregateFlow.toFixed(1)} D/min</span>
-            {totalCap > 0 ? (
-              <>
-                {' '}
-                · pool <span className="font-semibold tabular-nums">{Math.round((totalRemaining / Math.max(1, totalCap)) * 100)}%</span>
-              </>
-            ) : null}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <GameTooltip content="Dev: add reserve units to plant 1 without KAS.">
-              <button
-                type="button"
-                onClick={props.onDemoTopUpFirstPlant}
-                className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
-              >
-                Demo: +5 units (plant 1)
-              </button>
-            </GameTooltip>
-          </div>
-        </GamePanelCard>
-
-        <GamePanelCard title="Recharge" hint="Same as the mining plant KAS action.">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Recharge — {MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> on a plant
-            to add a reserve unit and fully restore its battery, or use the Shop utility item (plant 1).
-          </p>
-        </GamePanelCard>
-      </div>
 
       <GamePanelCard
         title="Power upgrades"
@@ -259,6 +261,8 @@ export function MinecorePowerPanel(props: {
           />
         </div>
       </GamePanelCard>
+
+      {siteEnergyAndRecharge}
     </div>
   );
 }

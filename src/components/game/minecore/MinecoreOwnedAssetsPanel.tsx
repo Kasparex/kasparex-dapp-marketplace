@@ -36,48 +36,19 @@ function SectionTitle(props: { children: string }) {
   return <div className="mb-2 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{props.children}</div>;
 }
 
-export function MinecoreOwnedAssetsPanel(props: {
-  state: MinecoreState;
-  walletAddress: string | null;
-  isConnected: boolean;
-}) {
-  const { state, walletAddress, isConnected } = props;
-  const walletLine =
-    isConnected && walletAddress ? (
-      <span className="font-mono text-zinc-700 dark:text-zinc-200">
-        {walletAddress.length > 22
-          ? `${walletAddress.slice(0, 12)}…${walletAddress.slice(-8)}`
-          : walletAddress}
-      </span>
-    ) : (
-      <span className="text-zinc-500">Not connected · local session</span>
-    );
+/** Build tab: plant tiers plus fabricatable parts (no wallet strip, no workers — workers are on the Workers tab). */
+export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
+  const { state } = props;
 
   return (
     <GamePanelCard
       title="Owned Assets"
-      hint="Everything you can assign to plants: workers, machines, batteries, modules. Plant rows show tier and lock state."
+      hint="Plants you operate and parts you can assign: machines, batteries, and modules."
     >
-      <div className="mb-3 flex flex-col gap-1 border-b border-zinc-100 pb-3 text-[11px] dark:border-zinc-800">
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Wallet</span>
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              isConnected
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-            }`}
-          >
-            {isConnected ? 'Connected' : 'Offline'}
-          </span>
-        </div>
-        <div className="break-all">{walletLine}</div>
-      </div>
-
       <div className="space-y-4">
         <div>
           <SectionTitle>Plants</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {state.plantSlots.map((slot) => {
               const tier = MINECORE_PLANT_PRESETS[slot.type];
               const accent = slot.unlocked;
@@ -94,18 +65,8 @@ export function MinecoreOwnedAssetsPanel(props: {
         </div>
 
         <div>
-          <SectionTitle>Workers</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {Object.values(MINECORE_WORKERS).map((w) => {
-              const n = Number(state.owned.workers[w.id] ?? 0);
-              return <AssetCapsule key={w.id} label={w.label} value={n.toLocaleString()} accent={n > 0} />;
-            })}
-          </div>
-        </div>
-
-        <div>
           <SectionTitle>Machines</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_MACHINES).map((m) => {
               const n = Number(state.owned.machines[m.id] ?? 0);
               return <AssetCapsule key={m.id} label={m.label} value={n.toLocaleString()} accent={n > 0} />;
@@ -115,7 +76,7 @@ export function MinecoreOwnedAssetsPanel(props: {
 
         <div>
           <SectionTitle>Batteries</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_BATTERIES).map((b) => {
               const n = Number(state.owned.batteries[b.id] ?? 0);
               return <AssetCapsule key={b.id} label={b.label} value={n.toLocaleString()} accent={n > 0} />;
@@ -125,13 +86,30 @@ export function MinecoreOwnedAssetsPanel(props: {
 
         <div>
           <SectionTitle>Modules</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_MODULES).map((mod) => {
               const n = Number(state.owned.modules[mod.id] ?? 0);
               return <AssetCapsule key={mod.id} label={mod.label} value={n.toLocaleString()} accent={n > 0} />;
             })}
           </div>
         </div>
+      </div>
+    </GamePanelCard>
+  );
+}
+
+/** Workers tab: inventory workers assignable to plants (same capsule style as Build assets). */
+export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned'] }) {
+  return (
+    <GamePanelCard
+      title="Owned workers"
+      hint="Assignable worker units for your plants. Deploy NFT workers below for automation bonuses."
+    >
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {Object.values(MINECORE_WORKERS).map((w) => {
+          const n = Number(props.owned.workers[w.id] ?? 0);
+          return <AssetCapsule key={w.id} label={w.label} value={n.toLocaleString()} accent={n > 0} />;
+        })}
       </div>
     </GamePanelCard>
   );

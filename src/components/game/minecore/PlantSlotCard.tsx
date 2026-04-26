@@ -19,7 +19,6 @@ import {
   MINECORE_MODULES,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
-  MINECORE_POWER_SOURCE_IDS,
   MINECORE_POWER_SOURCES,
   MINECORE_WORKERS,
   type ModuleConfig,
@@ -388,7 +387,7 @@ export function PlantSlotCard(props: {
                   : 'Battery cap'
               }
               statTone={powerSourceConfig ? 'rose' : 'default'}
-              tooltip="On-site power: max reserve units and drain multiplier. Craft blueprints on Build, then install here (or open this row) while the plant is stopped or paused."
+              tooltip="On-site power: max reserve units and drain multiplier. Craft blueprints on Build, then open Power on this row to install with ingredients while the plant is stopped or paused."
               onClick={() => canEditParts && setActiveModal('power')}
             />
             <CheckRow
@@ -461,61 +460,6 @@ export function PlantSlotCard(props: {
 
               {/* Power units dots */}
               <PowerDots current={s.powerRemaining} max={powerDotMax} />
-
-              {/* On-site power — install from ingredients (Mining tab) */}
-              {s.unlocked ? (
-                <div className="rounded-xl border border-zinc-100 bg-white/70 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-2">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 px-1">
-                    On-site power · this plant
-                  </div>
-                  {!canEditParts ? (
-                    <p className="text-[10px] font-medium text-amber-700 dark:text-amber-400 px-1">
-                      Pause mining or finish the cycle to change on-site power.
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 px-1">
-                        Craft blueprints on Build, then tap a source to install when you have enough ingredients.
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {MINECORE_POWER_SOURCE_IDS.map((id) => {
-                          const ps = MINECORE_POWER_SOURCES[id];
-                          const can = Object.entries(ps.installRequires).every(
-                            ([k, v]) =>
-                              (props.minecoreState.ingredients[k as keyof typeof props.minecoreState.ingredients] ?? 0) >= (v as number),
-                          );
-                          const active = s.setup.powerSourceId === id;
-                          return (
-                            <button
-                              key={id}
-                              type="button"
-                              disabled={!can}
-                              onClick={() => props.onInstallPowerFromIngredients(id)}
-                              title={ps.lore}
-                              className={`rounded-lg border px-2 py-1 text-[10px] font-bold transition-colors ${
-                                active
-                                  ? 'border-sky-500 bg-sky-500/15 text-sky-900 dark:text-sky-100'
-                                  : 'border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
-                              }`}
-                            >
-                              {ps.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {s.setup.powerSourceId ? (
-                        <button
-                          type="button"
-                          className="px-1 text-left text-[10px] font-semibold text-rose-600 hover:underline dark:text-rose-400"
-                          onClick={() => props.onClearPowerSource()}
-                        >
-                          Remove custom grid (battery cap only)
-                        </button>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-              ) : null}
             </div>
           )}
 

@@ -25,6 +25,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
+import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import * as Icons from 'lucide-react';
@@ -337,15 +338,18 @@ export function MinecoreDashboard(_props: {
           )}
 
           {tab === 'workers' && (
-            <WorkersPanel
-              slots={state.nftSlots}
-              slottedMetadata={slottedMetadata}
-              autoRestart={state.automation.autoRestart}
-              foremanActive={state.automation.foremanActive}
-              onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
-              onDeploy={actions.deployNFT}
-              onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
-            />
+            <div className="space-y-6">
+              <MinecoreOwnedWorkersPanel owned={state.owned} />
+              <WorkersPanel
+                slots={state.nftSlots}
+                slottedMetadata={slottedMetadata}
+                autoRestart={state.automation.autoRestart}
+                foremanActive={state.automation.foremanActive}
+                onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
+                onDeploy={actions.deployNFT}
+                onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
+              />
+            </div>
           )}
 
           {tab === 'shop' && (
@@ -380,12 +384,7 @@ export function MinecoreDashboard(_props: {
           )}
 
           {tab === 'fabrication' && (
-            <FabricationPanel
-              state={state}
-              onCraft={actions.craftRecipe}
-              walletAddress={wallet.address}
-              isConnected={wallet.isConnected}
-            />
+            <FabricationPanel state={state} onCraft={actions.craftRecipe} />
           )}
 
           {tab === 'redeem' && (

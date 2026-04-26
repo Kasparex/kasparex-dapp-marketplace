@@ -40,8 +40,6 @@ type EffectColor = 'emerald' | 'amber' | 'sky' | 'rose' | undefined;
 export function FabricationPanel(props: {
   state: MinecoreState;
   onCraft: (recipeId: string) => void;
-  walletAddress: string | null;
-  isConnected: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
@@ -100,7 +98,7 @@ export function FabricationPanel(props: {
 
   return (
     <div className="space-y-6">
-      <MinecoreOwnedAssetsPanel state={s} walletAddress={props.walletAddress} isConnected={props.isConnected} />
+      <MinecoreOwnedAssetsPanel state={s} />
 
       <GamePanelCard
         title="Fabrication blueprints"
