@@ -259,23 +259,6 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.batteryChargeMs   = computeLiveBatteryChargeMs(slot, ev.at);
       slot.batterySnapshotAt = ev.at;
 
-      // Auto-Refine
-      const amt = Math.floor(s.diamondsBalance);
-      if (amt > 0) {
-        s.diamondsBalance -= amt;
-        const points = amt * MINECORE_REFINE_RATE;
-        s.refinementPointsTotal += points;
-        const entry: GridLedgerEntry = {
-          id:                 `minecore_auto_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
-          at:                 now,
-          refinementPoints:   points,
-          diamondsRefined:    amt,
-          gridCheckpointScore: points,
-          note:               'Auto-refine after extraction.',
-        };
-        s.gridLedger = [...s.gridLedger, entry].slice(-200);
-      }
-
       // Small random repair chance
       if (Math.random() < 0.02) slot.needsRepair = true;
 
