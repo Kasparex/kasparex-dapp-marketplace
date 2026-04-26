@@ -23,7 +23,8 @@ import { GameInteractionsPanel } from '@/components/games/panels/GameInteraction
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
-import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconSignal, IconPower } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower } from '@/components/games/icons/TabIcons';
+import { MinecoreOwnedAssetsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -31,11 +32,11 @@ import * as Icons from 'lucide-react';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
-  { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
-  { id: 'power', label: 'Power', icon: <IconPower /> },
-  { id: 'workers', label: 'Workers', icon: <IconWorkers /> },
+  { id: 'mining', label: '1. Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
+  { id: 'fabrication', label: '2. Build', icon: <IconBoosters /> },
+  { id: 'power', label: '3. Power', icon: <IconPower /> },
+  { id: 'workers', label: '4. Workers', icon: <IconWorkers /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
-  { id: 'fabrication', label: 'Build', icon: <IconBoosters /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
 ] as const;
 
@@ -207,6 +208,9 @@ export function MinecoreDashboard(_props: {
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
+          belowDeck={
+            <MinecoreOwnedAssetsPanel state={state} walletAddress={wallet.address} isConnected={wallet.isConnected} />
+          }
         >
           {tab === 'overview' && (
             <div className="space-y-6">
@@ -304,14 +308,18 @@ export function MinecoreDashboard(_props: {
             <MinecorePowerPanel
               state={state}
               now={nowTick}
+              getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onDemoTopUpFirstPlant={() => {
                 actions.topUpPower(0, 5);
               }}
               onRechargePlant={(idx) => {
                 void actions.rechargePlantWithKAS(idx, { units: 1 });
               }}
-              onInstallPower={({ slotIndex, powerSourceId }) => {
-                actions.installPowerFromIngredients(slotIndex, powerSourceId);
+              onKasBatterySync={(idx) => {
+                void actions.refillBatteryWithKAS(idx, 3);
+              }}
+              onKasReservePack={(idx) => {
+                void actions.topUpPowerWithKAS(idx, { added: 3, amountKas: 6 });
               }}
             />
           )}
@@ -358,7 +366,15 @@ export function MinecoreDashboard(_props: {
             />
           )}
 
-          {tab === 'fabrication' && <FabricationPanel state={state} onCraft={actions.craftRecipe} />}
+          {tab === 'fabrication' && (
+            <FabricationPanel
+              state={state}
+              onCraft={actions.craftRecipe}
+              onInstallPower={({ slotIndex, powerSourceId }) => {
+                void actions.installPowerFromIngredients(slotIndex, powerSourceId);
+              }}
+            />
+          )}
 
           {tab === 'redeem' && (
             <div className="space-y-6">

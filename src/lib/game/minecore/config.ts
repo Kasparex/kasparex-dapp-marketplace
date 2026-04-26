@@ -113,9 +113,9 @@ export type PowerSourceConfig = {
 export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceConfig> = {
   'vein-thermal': {
     id: 'vein-thermal',
-    label: 'Deep Vein Thermal',
+    label: 'Vein Thermal',
     kind: 'thermal',
-    lore: 'Harvests slow heat from the first mapped veins Krex found under Kaspaland—conduction from living BlockDAG strata. Closest to “geothermal,” tuned for steady baseload.',
+    lore: 'Steady heat drawn from mapped BlockDAG strata.',
     maxPowerUnits: 4,
     drainRateMultiplier: 1.05,
     energyBudgetMultiplier: 1.0,
@@ -123,9 +123,9 @@ export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceCo
   },
   'fission-bdag': {
     id: 'fission-bdag',
-    label: 'Packed DAG Fission',
+    label: 'DAG Fission',
     kind: 'fission',
-    lore: 'Rods of compressed history—ledger shards bathed in proof-of-work afterglow. A fantasy analogue to fission, feeding enormous bursts to deep rigs (Vector’s “too hot” prototypes).',
+    lore: 'Compressed ledger shards for high burst output.',
     maxPowerUnits: 6,
     drainRateMultiplier: 0.92,
     energyBudgetMultiplier: 1.08,
@@ -134,8 +134,8 @@ export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceCo
   'krex-catalyst': {
     id: 'krex-catalyst',
     kind: 'catalytic',
-    label: 'Krex Catalytic Stack',
-    lore: 'Krex’s own catalytic design from early Kasparex labs—pairs chemical-grade gel with ARIA filaments to keep reactions predictable when the network spikes.',
+    label: 'Krex Catalyst',
+    lore: 'Keeps reactions steady when the network spikes.',
     maxPowerUnits: 5,
     drainRateMultiplier: 0.88,
     energyBudgetMultiplier: 1.12,
@@ -144,8 +144,8 @@ export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceCo
   'aria-photon': {
     id: 'aria-photon',
     kind: 'renewable',
-    label: 'ARIA Photonic Array',
-    lore: 'Synthetic “sun” over the ARIA lattice—renewable in spirit, if not in photons. Feeds the buffer gently and leans the plant toward long, calm cycles.',
+    label: 'Photon Array',
+    lore: 'Soft buffer fill for longer, calmer cycles.',
     maxPowerUnits: 5,
     drainRateMultiplier: 0.85,
     energyBudgetMultiplier: 1.15,
@@ -154,8 +154,8 @@ export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceCo
   'null-reactor': {
     id: 'null-reactor',
     kind: 'exotic',
-    label: 'Null-Shell Reactor',
-    lore: 'Cold plasma of null-fragments—an exotic, barely-contained ring that whispers the Forgotten Blocks. Tight on reserve slots but very friendly to the battery’s depth.',
+    label: 'Null Reactor',
+    lore: 'Exotic ring that deepens battery reserves.',
     maxPowerUnits: 3,
     drainRateMultiplier: 0.8,
     energyBudgetMultiplier: 1.2,

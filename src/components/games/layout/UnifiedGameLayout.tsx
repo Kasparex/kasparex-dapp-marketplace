@@ -23,6 +23,8 @@ interface UnifiedGameLayoutProps {
   children: ReactNode;
   onOpenOverview?: () => void;
   deckFooter?: ReactNode;
+  /** Renders below the Game Deck card (e.g. Minecore owned assets). */
+  belowDeck?: ReactNode;
 }
 
 export function UnifiedGameLayout({
@@ -33,7 +35,8 @@ export function UnifiedGameLayout({
   game,
   children,
   onOpenOverview,
-  deckFooter
+  deckFooter,
+  belowDeck,
 }: UnifiedGameLayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -52,6 +55,7 @@ export function UnifiedGameLayout({
             tooltip: 'Game details'
           }}
         />
+        {belowDeck}
         <GameInteractionsPanel interactions={game.connections || []} />
         <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
         <GamesPlayAdRail />

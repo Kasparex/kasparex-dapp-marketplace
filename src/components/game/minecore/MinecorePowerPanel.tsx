@@ -1,91 +1,30 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
-import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import type { MinecoreIngredient, MinecorePowerSourceId } from '@/lib/game/minecore/types';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_POWER_SOURCES, MINECORE_POWER_SOURCE_IDS } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_POWER_SOURCES } from '@/lib/game/minecore/config';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 
-const INGREDIENT_LABELS: Record<MinecoreIngredient, string> = {
-  crystalDust: 'Crystal Dust',
-  alloyPlates: 'Alloy Plates',
-  circuitMesh: 'Circuit Mesh',
-  energyCells: 'Energy Cells',
-  coreShards: 'Core Shards',
-  coolingGel: 'Cooling Gel',
-  ariaChips: 'ARIA Chips',
-  nullFragments: 'Null Fragments',
-};
-
-const KIND_ORDER = { thermal: 0, fission: 1, catalytic: 2, renewable: 3, exotic: 4 } as const;
-
-function canAfford(have: MinecoreState['ingredients'], req: Partial<Record<MinecoreIngredient, number>>) {
-  for (const [k, v] of Object.entries(req)) {
-    if ((have[k as MinecoreIngredient] ?? 0) < (v ?? 0)) return false;
-  }
-  return true;
-}
-
-function kindLabel(kind: (typeof MINECORE_POWER_SOURCES)[MinecorePowerSourceId]['kind']): string {
-  return kind.charAt(0).toUpperCase() + kind.slice(1);
-}
+/** KAS paid upgrades (V1 — wired to refill / top-up / recharge actions). */
+const KAS_BATTERY_SYNC = 3;
+const KAS_RESERVE_PACK = 6;
+const RESERVE_PACK_UNITS = 3;
 
 export function MinecorePowerPanel(props: {
   state: MinecoreState;
   now: number;
+  getKasPriceAfterDiscount: (unitPriceKas: number) => number;
   onDemoTopUpFirstPlant: () => void;
   onRechargePlant: (index: number) => void;
-  onInstallPower: (args: { slotIndex: number; powerSourceId: MinecorePowerSourceId }) => void;
+  onKasBatterySync: (slotIndex: number) => void | Promise<void>;
+  onKasReservePack: (slotIndex: number) => void | Promise<void>;
 }) {
   const { state, now } = props;
-  const [searchQuery, setSearchQuery] = useState('');
-  const [category, setCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('recommended');
   const [targetSlot, setTargetSlot] = useState(0);
-
-  const categories = useMemo(
-    () => [
-      'All',
-      'Thermal',
-      'Fission',
-      'Catalytic',
-      'Renewable',
-      'Exotic',
-    ],
-    [],
-  );
-
-  const list = useMemo(() => {
-    return MINECORE_POWER_SOURCE_IDS.map((id) => {
-      const ps = MINECORE_POWER_SOURCES[id];
-      return { ...ps, kindKey: kindLabel(ps.kind) };
-    });
-  }, []);
-
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let out = list.filter((ps) => {
-      if (category !== 'all' && category !== 'All' && ps.kindKey !== category) return false;
-      if (q && !ps.label.toLowerCase().includes(q) && !ps.lore.toLowerCase().includes(q)) return false;
-      return true;
-    });
-    out = [...out].sort((a, b) => {
-      if (sortBy === 'price_asc') return a.maxPowerUnits - b.maxPowerUnits;
-      if (sortBy === 'price_desc') return b.maxPowerUnits - a.maxPowerUnits;
-      if (sortBy === 'recommended') {
-        return (
-          (KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9) || a.label.localeCompare(b.label)
-        );
-      }
-      return 0;
-    });
-    return out;
-  }, [list, searchQuery, category, sortBy]);
 
   let totalCap = 0;
   let totalRemaining = 0;
@@ -105,6 +44,11 @@ export function MinecorePowerPanel(props: {
     }
   }
 
+  const slot = state.plantSlots[targetSlot];
+  const batterySyncPrice = props.getKasPriceAfterDiscount(KAS_BATTERY_SYNC);
+  const reservePackPrice = props.getKasPriceAfterDiscount(KAS_RESERVE_PACK);
+  const runtimeBundlePrice = props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
@@ -117,7 +61,7 @@ export function MinecorePowerPanel(props: {
             <GameTooltip
               content={
                 `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
-                'Power units below are crafted from Build ingredients, then installed on a paused plant or when idle.'
+                'Build on-site power plants from the Build tab with raw materials.'
               }
             >
               <button
@@ -160,80 +104,81 @@ export function MinecorePowerPanel(props: {
         </GamePanelCard>
       </div>
 
-      <GamePanelCard title="Power units" hint="Crafted from materials; install on a plant with no live run, or one that is paused.">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">Install on</span>
-            <select
-              value={targetSlot}
-              onChange={(e) => setTargetSlot(Number(e.target.value))}
-              className="h-10 min-w-[200px] rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              {state.plantSlots.map((p) => (
-                <option key={p.id} value={p.index} disabled={!p.unlocked}>
-                  Mining plant {p.index + 1}
-                  {!p.unlocked ? ' (locked)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+      <GamePanelCard
+        title="KAS upgrades"
+        hint="Paid tune-ups for battery charge, reserve capacity, and run readiness. Pick a plant first."
+      >
+        <div className="mb-4 space-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">Plant</span>
+          <select
+            value={targetSlot}
+            onChange={(e) => setTargetSlot(Number(e.target.value))}
+            className="h-10 min-w-[200px] rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            {state.plantSlots.map((p) => (
+              <option key={p.id} value={p.index} disabled={!p.unlocked}>
+                Plant {p.index + 1}
+                {!p.unlocked ? ' (locked)' : ''}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <CardsFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          category={category}
-          onCategoryChange={setCategory}
-          categories={categories}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {filteredItems.map((ps) => {
-            const can = canAfford(state.ingredients, ps.installRequires);
-            const slot = state.plantSlots[targetSlot];
-            const runBlocking = slot?.cycle != null && slot.cycle.pauseBeganAtMs == null;
-            const disabled = !slot?.unlocked || !can || runBlocking;
-            const reqLines = Object.entries(ps.installRequires).map(([k, v]) => {
-              const need = Number(v ?? 0);
-              const have = Math.floor(state.ingredients[k as MinecoreIngredient] ?? 0);
-              const ok = have >= need;
-              const name = INGREDIENT_LABELS[k as MinecoreIngredient] ?? k;
-              return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()}`, muted: !ok };
-            });
-            const effects: { label: string; value: string; muted?: boolean; color?: 'emerald' | 'amber' | 'sky' }[] = [
-              { label: 'Family', value: kindLabel(ps.kind) },
-              { label: 'Max units', value: String(ps.maxPowerUnits), color: 'amber' },
-              { label: 'Drain', value: `×${ps.drainRateMultiplier.toFixed(2)}` },
-              { label: 'Energy budget', value: `×${ps.energyBudgetMultiplier.toFixed(2)}`, color: 'sky' },
-              ...reqLines,
-            ];
-            return (
-              <GameItemCard
-                key={ps.id}
-                icon={<Icons.Zap className="h-8 w-8 text-amber-500/80" strokeWidth={1.75} />}
-                title={ps.label}
-                category={kindLabel(ps.kind)}
-                description={ps.lore}
-                effects={effects}
-                buyLabel={
-                  !slot?.unlocked
-                    ? 'Locked plant'
-                    : runBlocking
-                      ? 'Stop or pause the run first'
-                      : can
-                        ? 'Build and install'
-                        : 'Not enough materials'
-                }
-                buyDisabled={disabled}
-                hidePricing={true}
-                priceOptions={[{ currency: 'KAS', unitPrice: 0, label: 'Materials' }]}
-                onBuy={() => {
-                  if (!disabled && slot) props.onInstallPower({ slotIndex: slot.index, powerSourceId: ps.id });
-                }}
-              />
-            );
-          })}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <GameItemCard
+            icon={<Icons.BatteryCharging className="h-8 w-8 text-sky-500/90" strokeWidth={1.75} />}
+            title="Battery sync"
+            category="Battery"
+            description="Restore full battery charge for the selected plant (paid)."
+            effects={[
+              { label: 'Effect', value: '100% charge', color: 'sky' },
+              { label: 'Best for', value: 'Mid-cycle top-up' },
+            ]}
+            buyLabel={!slot?.unlocked ? 'Locked' : !slot.setup.batteryId ? 'Install battery first' : `Pay ${batterySyncPrice} KAS`}
+            buyDisabled={!slot?.unlocked || !slot.setup.batteryId}
+            priceOptions={[{ currency: 'KAS', unitPrice: batterySyncPrice, originalUnitPrice: KAS_BATTERY_SYNC }]}
+            onBuy={() => {
+              if (slot?.unlocked && slot.setup.batteryId) void props.onKasBatterySync(slot.index);
+            }}
+          />
+          <GameItemCard
+            icon={<Icons.Gauge className="h-8 w-8 text-amber-500/90" strokeWidth={1.75} />}
+            title="Reserve pack"
+            category="Capacity"
+            description="Add reserve power units without a full recharge bundle."
+            effects={[
+              { label: 'Adds', value: `+${RESERVE_PACK_UNITS} units`, color: 'amber' },
+              { label: 'Caps at', value: 'Plant max reserves' },
+            ]}
+            buyLabel={!slot?.unlocked ? 'Locked' : `Pay ${reservePackPrice} KAS`}
+            buyDisabled={!slot?.unlocked}
+            priceOptions={[{ currency: 'KAS', unitPrice: reservePackPrice, originalUnitPrice: KAS_RESERVE_PACK }]}
+            onBuy={() => {
+              if (slot?.unlocked) void props.onKasReservePack(slot.index);
+            }}
+          />
+          <GameItemCard
+            icon={<Icons.Timer className="h-8 w-8 text-emerald-500/90" strokeWidth={1.75} />}
+            title="Runtime bundle"
+            category="Working time"
+            description="One reserve unit plus a full battery — fastest way to be cycle-ready."
+            effects={[
+              { label: 'Includes', value: '+1 unit & full charge', color: 'emerald' },
+              { label: 'Nominal', value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS` },
+            ]}
+            buyLabel={!slot?.unlocked ? 'Locked' : !slot.setup.batteryId ? 'Install battery first' : `Pay ${runtimeBundlePrice} KAS`}
+            buyDisabled={!slot?.unlocked || !slot.setup.batteryId}
+            priceOptions={[
+              {
+                currency: 'KAS',
+                unitPrice: runtimeBundlePrice,
+                originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
+              },
+            ]}
+            onBuy={() => {
+              if (slot?.unlocked && slot.setup.batteryId) props.onRechargePlant(slot.index);
+            }}
+          />
         </div>
       </GamePanelCard>
 
@@ -253,7 +198,7 @@ export function MinecorePowerPanel(props: {
                 className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
               >
                 <div className="min-w-0 flex flex-col">
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">Mining plant {p.index + 1}</span>
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
                   <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
                     {p.setup.machineId ?? 'No machine'} · {p.setup.batteryId ?? 'No battery'}
                     {psrc ? ` · ${psrc.label}` : ''}
@@ -264,9 +209,7 @@ export function MinecorePowerPanel(props: {
                   <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                     <div className="flex flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Flow</span>
-                      <span className="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                        {flowPerMin.toFixed(1)} D/min
-                      </span>
+                      <span className="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">{flowPerMin.toFixed(1)} D/min</span>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Battery</span>
