@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777203151-2587613",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(minecore): stop auto-refining diamonds on extraction (by Kasparex)",
+      "date": "2026-04-26T10:35:21+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777159900-ed5e112",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Force trigger vercel build (by Kasparex)",
