@@ -4,4 +4,5 @@ export * from './initial-state';
 export * from './compute';
 export * from './apply-event';
 export * from './hydrate';
+export * from './calculator';
 
