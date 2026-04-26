@@ -24,7 +24,6 @@ import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower } from '@/components/games/icons/TabIcons';
-import { MinecoreOwnedAssetsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -208,9 +207,6 @@ export function MinecoreDashboard(_props: {
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
-          belowDeck={
-            <MinecoreOwnedAssetsPanel state={state} walletAddress={wallet.address} isConnected={wallet.isConnected} />
-          }
         >
           {tab === 'overview' && (
             <div className="space-y-6">
@@ -315,11 +311,27 @@ export function MinecoreDashboard(_props: {
               onRechargePlant={(idx) => {
                 void actions.rechargePlantWithKAS(idx, { units: 1 });
               }}
-              onKasBatterySync={(idx) => {
-                void actions.refillBatteryWithKAS(idx, 3);
+              onBatterySync={async (idx, currency) => {
+                if (currency === 'KREX') {
+                  actions.refillBattery(idx);
+                  return;
+                }
+                await actions.refillBatteryWithKAS(idx, 3);
               }}
-              onKasReservePack={(idx) => {
-                void actions.topUpPowerWithKAS(idx, { added: 3, amountKas: 6 });
+              onReservePack={async (idx, currency) => {
+                if (currency === 'KREX') {
+                  actions.topUpPower(idx, 3);
+                  return;
+                }
+                await actions.topUpPowerWithKAS(idx, { added: 3, amountKas: 6 });
+              }}
+              onRuntimeBundle={async (idx, currency) => {
+                if (currency === 'KREX') {
+                  actions.topUpPower(idx, 1);
+                  actions.refillBattery(idx);
+                  return;
+                }
+                await actions.rechargePlantWithKAS(idx, { units: 1 });
               }}
             />
           )}
@@ -338,6 +350,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'shop' && (
             <ShopPanel
+              ingredients={state.ingredients}
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onBuyIngredient={async ({ ingredient, currency, quantity }) => {
                 if (currency === 'KAS') {
@@ -370,9 +383,8 @@ export function MinecoreDashboard(_props: {
             <FabricationPanel
               state={state}
               onCraft={actions.craftRecipe}
-              onInstallPower={({ slotIndex, powerSourceId }) => {
-                void actions.installPowerFromIngredients(slotIndex, powerSourceId);
-              }}
+              walletAddress={wallet.address}
+              isConnected={wallet.isConnected}
             />
           )}
 

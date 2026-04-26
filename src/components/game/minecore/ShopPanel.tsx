@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
-import type { MinecoreIngredient } from '@/lib/game/minecore';
+import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
 export function ShopPanel(props: {
+  ingredients: MinecoreState['ingredients'];
   onBuy: (args: { itemId: string; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
   onBuyIngredient: (args: { ingredient: MinecoreIngredient; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
   getKasPriceAfterDiscount: (unitPriceKas: number) => number;
@@ -227,20 +229,23 @@ export function ShopPanel(props: {
     });
 
   return (
-    <GamePanelCard title="Shop" hint="Ingredients and utilities. Quantity calculates total price.">
-      <CardsFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        category={category}
-        onCategoryChange={setCategory}
-        categories={categories}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
-      <div className="grid gap-4 sm:grid-cols-2">
-        {filteredItems.map((item) => item.render())}
-      </div>
-    </GamePanelCard>
+    <div className="space-y-6">
+      <MinecoreOwnedIngredientsPanel ingredients={props.ingredients} />
+      <GamePanelCard title="Shop" hint="Ingredients and utilities. Quantity calculates total price.">
+        <CardsFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          category={category}
+          onCategoryChange={setCategory}
+          categories={categories}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {filteredItems.map((item) => item.render())}
+        </div>
+      </GamePanelCard>
+    </div>
   );
 }
 
