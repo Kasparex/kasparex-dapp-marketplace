@@ -2,7 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { createInitialMinecoreState, hydrateMinecoreState, applyMinecoreEvent, deriveState, type MinecoreState, type PlantSlotState } from '@/lib/game/minecore';
+import {
+  createInitialMinecoreState,
+  hydrateMinecoreState,
+  applyMinecoreEvent,
+  deriveState,
+  type MinecoreState,
+  type MinecorePowerSourceId,
+  type PlantSlotState,
+} from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
@@ -111,7 +119,7 @@ export function useMinecore() {
           // If still has power units, it will be ReadyToMine next tick
         }
         
-        if (s.automation.autoRestart && status === 'ReadyToMine') {
+        if (s.automation.autoRestart && status === 'ReadyToMine' && slot.diamondsAccumulated === 0) {
           dispatch({ type: 'StartMining', slotIndex: slot.index, at: now });
         }
       }
@@ -251,6 +259,21 @@ export function useMinecore() {
     dispatch({ type: 'StopMining', slotIndex, at: Date.now() });
   }, [dispatch]);
 
+  const resumeMining = useCallback((slotIndex: number) => {
+    dispatch({ type: 'ResumeMining', slotIndex, at: Date.now() });
+  }, [dispatch]);
+
+  const installPowerFromIngredients = useCallback(
+    (slotIndex: number, powerSourceId: MinecorePowerSourceId) => {
+      dispatch({ type: 'InstallPowerFromIngredients', slotIndex, at: Date.now(), powerSourceId });
+    },
+    [dispatch],
+  );
+
+  const clearPowerSource = useCallback((slotIndex: number) => {
+    dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'powerSource', id: null } });
+  }, [dispatch]);
+
   const extract = useCallback((slotIndex: number) => {
     dispatch({ type: 'Extract', slotIndex, at: Date.now() });
   }, [dispatch]);
@@ -374,6 +397,9 @@ export function useMinecore() {
       setBoost,
       startMining,
       stopMining,
+      resumeMining,
+      installPowerFromIngredients,
+      clearPowerSource,
       extract,
       topUpPower,
       topUpPowerWithKAS,

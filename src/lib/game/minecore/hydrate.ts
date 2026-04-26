@@ -24,6 +24,8 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryId: typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null,
+      powerSourceId:
+        typeof (setup as any).powerSourceId === 'string' ? ((setup as any).powerSourceId as any) : null,
       workerId: typeof setup.workerId === 'string' ? (setup.workerId as any) : null,
       moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
       boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',
@@ -36,6 +38,8 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
             durationMs: typeof cycle.durationMs === 'number' ? cycle.durationMs : Math.max(0, cycle.endAtMs - cycle.startAtMs),
             expectedDiamonds: typeof cycle.expectedDiamonds === 'number' ? cycle.expectedDiamonds : 0,
             mintedOffset: typeof cycle.mintedOffset === 'number' ? cycle.mintedOffset : 0,
+            pauseBeganAtMs:
+              cycle.pauseBeganAtMs != null && typeof cycle.pauseBeganAtMs === 'number' ? cycle.pauseBeganAtMs : null,
           }
         : null,
     powerRemaining: typeof input.powerRemaining === 'number' ? input.powerRemaining : base.powerRemaining,

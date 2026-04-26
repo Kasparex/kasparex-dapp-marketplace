@@ -3,6 +3,7 @@ import {
   MINECORE_BOOSTS,
   MINECORE_MACHINES,
   MINECORE_MODULES,
+  MINECORE_POWER_SOURCES,
   MINECORE_WORKERS,
 } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
@@ -16,11 +17,47 @@ export function getPlantPowerFactor(slot: PlantSlotState): number {
     : 1;
 }
 
-/** Full charge capacity for the battery installed in this slot, in ms. */
+/**
+ * Machine draw × on-site power source regulator (1.0 = neutral source).
+ * Used for live battery drain while a cycle runs (and not when paused).
+ */
+export function getPowerDrainScale(slot: PlantSlotState): number {
+  const m = getPlantPowerFactor(slot);
+  if (!slot.setup.powerSourceId) return m;
+  return m * (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.drainRateMultiplier ?? 1);
+}
+
+/** Max 1 KAS “reserve” units: power plant cap if installed, else battery’s printed cap. */
+export function getPowerUnitCap(slot: PlantSlotState): number {
+  if (slot.setup.powerSourceId) {
+    return Math.max(1, MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.maxPowerUnits ?? 1);
+  }
+  if (slot.setup.batteryId) {
+    return Math.max(1, MINECORE_BATTERIES[slot.setup.batteryId]?.powerCapacity ?? 0);
+  }
+  return 0;
+}
+
+export function isCyclePaused(slot: PlantSlotState, _now: number): boolean {
+  return Boolean(slot.cycle?.pauseBeganAtMs != null);
+}
+
+/** Clock used for production math while paused. */
+export function productionClockMs(slot: PlantSlotState, now: number): number {
+  if (slot.cycle?.pauseBeganAtMs != null) return slot.cycle.pauseBeganAtMs;
+  return now;
+}
+
+/** Full charge capacity for the battery installed in this slot, in ms (energy budget × source). */
 export function getBatteryCapacityMs(slot: PlantSlotState): number {
-  return slot.setup.batteryId
+  const base = slot.setup.batteryId
     ? (MINECORE_BATTERIES[slot.setup.batteryId]?.chargeCapacityMs ?? 0)
     : 0;
+  if (base <= 0) return 0;
+  const mult = slot.setup.powerSourceId
+    ? (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.energyBudgetMultiplier ?? 1)
+    : 1;
+  return Math.max(0, Math.floor(base * mult));
 }
 
 // ── Core computations ────────────────────────────────────────────────────────
@@ -59,11 +96,12 @@ export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): n
   if (!slot.cycle || slot.cycle.endAtMs <= slot.cycle.startAtMs) {
     return slot.batteryChargeMs;
   }
-  // Only drain if cycle is actually running or ended (awaiting extraction)
-  // But stop draining at the cycle's end point.
-  const drainUntil   = slot.cycle ? Math.min(now, slot.cycle.endAtMs) : now;
+  if (slot.cycle.pauseBeganAtMs != null) {
+    return slot.batteryChargeMs;
+  }
+  const drainUntil   = Math.min(now, slot.cycle.endAtMs);
   const elapsed      = Math.max(0, drainUntil - slot.batterySnapshotAt);
-  const powerFactor  = getPlantPowerFactor(slot);
+  const powerFactor  = getPowerDrainScale(slot);
   return Math.max(0, slot.batteryChargeMs - elapsed * powerFactor);
 }
 
@@ -73,7 +111,7 @@ export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): n
  */
 export function computeBatteryRuntimeMs(slot: PlantSlotState, now: number): number {
   const charge      = computeLiveBatteryChargeMs(slot, now);
-  const powerFactor = getPlantPowerFactor(slot);
+  const powerFactor = getPowerDrainScale(slot);
   return powerFactor > 0 ? charge / powerFactor : 0;
 }
 
@@ -82,7 +120,8 @@ export function computeBatteryRuntimeMs(slot: PlantSlotState, now: number): numb
  */
 export function computeRawLiveDiamonds(slot: PlantSlotState, now: number): number {
   if (!slot.cycle) return 0;
-  const elapsed          = Math.max(0, now - slot.cycle.startAtMs);
+  const clock    = productionClockMs(slot, now);
+  const elapsed  = Math.max(0, clock - slot.cycle.startAtMs);
   const batteryRuntimeMs = computeBatteryRuntimeMs(slot, now);
   const effectiveElapsed = Math.min(elapsed, batteryRuntimeMs, slot.cycle.durationMs);
   if (slot.cycle.durationMs <= 0) return 0;
@@ -105,6 +144,7 @@ export function computeLiveDiamonds(slot: PlantSlotState, now: number): number {
  */
 export function computeFlowRatePerMin(slot: PlantSlotState, now: number): number {
   if (!slot.cycle) return 0;
+  if (isCyclePaused(slot, now)) return 0;
   const liveCharge = computeLiveBatteryChargeMs(slot, now);
   if (liveCharge <= 0) return 0;
   const perMs = slot.cycle.expectedDiamonds / Math.max(1, slot.cycle.durationMs);
@@ -122,7 +162,7 @@ export function deriveSlotStatus(
   if (slot.needsRepair) return 'NeedsRepair';
   if (!computePlantReady(slot)) return 'SetupIncomplete';
   if (slot.cycle) {
-    // Battery-empty check (mid-cycle depletion)
+    if (slot.cycle.pauseBeganAtMs != null) return 'MiningPaused';
     const liveCharge = computeLiveBatteryChargeMs(slot, now);
     if (liveCharge <= 0 && now < slot.cycle.endAtMs) return 'BatteryEmpty';
     if (now >= slot.cycle.endAtMs) return 'ExtractionReady';

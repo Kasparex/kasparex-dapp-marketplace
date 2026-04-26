@@ -19,6 +19,7 @@ function createEmptySlot(index: number): PlantSlotState {
     setup: {
       machineId: null,
       batteryId: null,
+      powerSourceId: null,
       workerId: null,
       moduleIds: [],
       boostId: 'none',

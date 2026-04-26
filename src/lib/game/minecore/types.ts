@@ -15,6 +15,14 @@ export type MinecoreWorkerId   = 'worker' | 'operator';
 export type MinecoreModuleId   = 'cooling-module' | 'stability-module' | 'aria-sensor' | 'vector-drill-chip';
 export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
 
+/** On-site power generation / distribution; caps reserve units and tweaks drain. Built with Shop ingredients. */
+export type MinecorePowerSourceId =
+  | 'vein-thermal'      // deep BlockDAG conduction
+  | 'fission-bdag'     // “fuel rod” of packed DAG history
+  | 'krex-catalyst'    // Krex-era catalytic stack
+  | 'aria-photon'      // synthetic solar over the ARIA lattice
+  | 'null-reactor';    // null-fragment cold plasma
+
 export type PlantType = 'standard' | 'premium' | 'advanced';
 
 export type PlantCardStatus =
@@ -22,6 +30,7 @@ export type PlantCardStatus =
   | 'SetupIncomplete'
   | 'ReadyToMine'
   | 'MiningActive'
+  | 'MiningPaused'    // run suspended — no diamond gain, no battery drain, parts editable after stop
   | 'BatteryEmpty'   // was running but battery charge ran to zero mid-cycle
   | 'ExtractionReady'
   | 'NeedsRepair'
@@ -39,6 +48,7 @@ export type OwnedItems = {
 export type PlantSetup = {
   machineId:  MinecoreMachineId | null;
   batteryId:  MinecoreBatteryId | null;
+  powerSourceId: MinecorePowerSourceId | null;
   workerId:   MinecoreWorkerId | null;
   moduleIds:  MinecoreModuleId[];
   boostId:    MinecoreBoostId;
@@ -51,6 +61,8 @@ export type PlantCycle = {
   expectedDiamonds: number;
   /** Diamonds already siphoned from this cycle (e.g. via Refine) so they no longer count as live. */
   mintedOffset?:   number;
+  /** When set, the run is paused: no new diamonds, no battery drain, power/cycle stats preserved. */
+  pauseBeganAtMs:  number | null;
 };
 
 export type PlantSlotState = {
@@ -111,13 +123,17 @@ export type MinecoreEvent =
       part:
         | { kind: 'machine';  id: MinecoreMachineId | null }
         | { kind: 'battery';  id: MinecoreBatteryId | null }
+        | { kind: 'powerSource'; id: MinecorePowerSourceId | null }
         | { kind: 'worker';   id: MinecoreWorkerId | null }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };
     }
+  | /** Spend ingredients and mount a power source (see `MINECORE_POWER_SOURCES`). */
+  { type: 'InstallPowerFromIngredients'; slotIndex: number; at: number; powerSourceId: MinecorePowerSourceId }
   | { type: 'StartMining';  slotIndex: number; at: number }
-  /** Stops the current cycle, banking partial output into `diamondsAccumulated` (same as over-writing before Start). */
+  /** Pauses an active run without banking/clearing; preserves power & cycle progress. */
   | { type: 'StopMining';  slotIndex: number; at: number }
+  | { type: 'ResumeMining'; slotIndex: number; at: number }
   | { type: 'Extract';      slotIndex: number; at: number }
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
   | { type: 'Repair';       slotIndex: number; at: number }

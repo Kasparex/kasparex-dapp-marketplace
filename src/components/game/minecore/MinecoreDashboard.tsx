@@ -74,7 +74,9 @@ export function MinecoreDashboard(_props: {
     if (miningCategory !== 'all') {
       if (miningCategory === 'Unlocked') list = list.filter(s => s.unlocked);
       if (miningCategory === 'Locked') list = list.filter(s => !s.unlocked);
-      if (miningCategory === 'Active') list = list.filter(s => s.status === 'MiningActive');
+      if (miningCategory === 'Active') {
+        list = list.filter((s) => s.status === 'MiningActive' || s.status === 'MiningPaused');
+      }
     }
     if (miningSort === 'price_asc') {
       list.sort((a, b) => a.unlockCostKas - b.unlockCostKas);
@@ -251,6 +253,11 @@ export function MinecoreDashboard(_props: {
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
                     onStopMining={() => actions.stopMining(slot.index)}
+                    onResumeMining={() => actions.resumeMining(slot.index)}
+                    onInstallPowerFromIngredients={(id) => {
+                      void actions.installPowerFromIngredients(slot.index, id);
+                    }}
+                    onClearPowerSource={() => actions.clearPowerSource(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
                     onTopUpWithKAS={async ({ amountKas, added }) => {
                       void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas }));
@@ -269,7 +276,8 @@ export function MinecoreDashboard(_props: {
                     onInstallPart={(kind, id) => {
                       if (kind === 'machine') actions.installMachine(slot.index, id);
                       if (kind === 'battery') actions.installBattery(slot.index, id);
-                      if (kind === 'worker')  actions.installWorker(slot.index, id);
+                      if (kind === 'worker') actions.installWorker(slot.index, id);
+                      if (kind === 'modules') actions.setModules(slot.index, id);
                     }}
                     onChangePlantType={(type, cost) => actions.changePlantType(slot.index, type, cost)}
                   />
@@ -304,6 +312,9 @@ export function MinecoreDashboard(_props: {
               }}
               onRefillBattery={(idx) => {
                 actions.refillBatteryWithKAS(idx, 2.5);
+              }}
+              onInstallPower={({ slotIndex, powerSourceId }) => {
+                actions.installPowerFromIngredients(slotIndex, powerSourceId);
               }}
             />
           )}

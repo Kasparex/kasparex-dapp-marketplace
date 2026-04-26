@@ -4,6 +4,7 @@ import type {
   MinecoreBoostId,
   MinecoreMachineId,
   MinecoreModuleId,
+  MinecorePowerSourceId,
   MinecoreWorkerId,
   PlantType,
 } from './types';
@@ -91,6 +92,83 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'diamond-capacitor':  { id: 'diamond-capacitor',  label: 'Diamond Capacitor',  efficiency: 1.3,  powerCapacity: 3, chargeCapacityMs: 120 * 60_000 },
   'grid-battery':       { id: 'grid-battery',       label: 'Grid Battery',       efficiency: 1.5,  powerCapacity: 4, chargeCapacityMs: 360 * 60_000 },
 };
+
+/** Lore-tied surface power — caps reserve *units* (1 KAS top-up each) and eases (or tightens) battery drain. */
+export type PowerSourceConfig = {
+  id: MinecorePowerSourceId;
+  label: string;
+  kind: 'thermal' | 'fission' | 'catalytic' | 'renewable' | 'exotic';
+  /** Short in-world blurb; echoes Kaspaland / Chronicles tone. */
+  lore: string;
+  /** How many 1 KAS “reserve units” this grid can hold for starting cycles. */
+  maxPowerUnits: number;
+  /** Multiplies effective machine draw (1.0 = neutral; below 1 = slower burn, above 1 = faster). */
+  drainRateMultiplier: number;
+  /** Bonus effective charge in the battery sub-system (1.0 = none). */
+  energyBudgetMultiplier: number;
+  installRequires: Partial<IngredientBag>;
+};
+
+export const MINECORE_POWER_SOURCES: Record<MinecorePowerSourceId, PowerSourceConfig> = {
+  'vein-thermal': {
+    id: 'vein-thermal',
+    label: 'Deep Vein Thermal',
+    kind: 'thermal',
+    lore: 'Harvests slow heat from the first mapped veins Krex found under Kaspaland—conduction from living BlockDAG strata. Closest to “geothermal,” tuned for steady baseload.',
+    maxPowerUnits: 4,
+    drainRateMultiplier: 1.05,
+    energyBudgetMultiplier: 1.0,
+    installRequires: { crystalDust: 40, energyCells: 2, circuitMesh: 2 },
+  },
+  'fission-bdag': {
+    id: 'fission-bdag',
+    label: 'Packed DAG Fission',
+    kind: 'fission',
+    lore: 'Rods of compressed history—ledger shards bathed in proof-of-work afterglow. A fantasy analogue to fission, feeding enormous bursts to deep rigs (Vector’s “too hot” prototypes).',
+    maxPowerUnits: 6,
+    drainRateMultiplier: 0.92,
+    energyBudgetMultiplier: 1.08,
+    installRequires: { coreShards: 2, alloyPlates: 12, nullFragments: 1, energyCells: 3 },
+  },
+  'krex-catalyst': {
+    id: 'krex-catalyst',
+    kind: 'catalytic',
+    label: 'Krex Catalytic Stack',
+    lore: 'Krex’s own catalytic design from early Kasparex labs—pairs chemical-grade gel with ARIA filaments to keep reactions predictable when the network spikes.',
+    maxPowerUnits: 5,
+    drainRateMultiplier: 0.88,
+    energyBudgetMultiplier: 1.12,
+    installRequires: { coolingGel: 8, ariaChips: 3, circuitMesh: 4 },
+  },
+  'aria-photon': {
+    id: 'aria-photon',
+    kind: 'renewable',
+    label: 'ARIA Photonic Array',
+    lore: 'Synthetic “sun” over the ARIA lattice—renewable in spirit, if not in photons. Feeds the buffer gently and leans the plant toward long, calm cycles.',
+    maxPowerUnits: 5,
+    drainRateMultiplier: 0.85,
+    energyBudgetMultiplier: 1.15,
+    installRequires: { circuitMesh: 6, energyCells: 2, crystalDust: 30 },
+  },
+  'null-reactor': {
+    id: 'null-reactor',
+    kind: 'exotic',
+    label: 'Null-Shell Reactor',
+    lore: 'Cold plasma of null-fragments—an exotic, barely-contained ring that whispers the Forgotten Blocks. Tight on reserve slots but very friendly to the battery’s depth.',
+    maxPowerUnits: 3,
+    drainRateMultiplier: 0.8,
+    energyBudgetMultiplier: 1.2,
+    installRequires: { nullFragments: 2, coreShards: 1, circuitMesh: 8, alloyPlates: 6 },
+  },
+};
+
+export const MINECORE_POWER_SOURCE_IDS: MinecorePowerSourceId[] = [
+  'vein-thermal',
+  'fission-bdag',
+  'krex-catalyst',
+  'aria-photon',
+  'null-reactor',
+];
 
 export type WorkerConfig = { id: MinecoreWorkerId; label: string; multiplier: number };
 export const MINECORE_WORKERS: Record<MinecoreWorkerId, WorkerConfig> = {
