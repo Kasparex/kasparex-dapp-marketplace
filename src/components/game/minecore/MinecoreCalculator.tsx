@@ -7,7 +7,6 @@ import {
   CALC_MACHINE_ORDER,
   CALC_MODULE_ORDER,
   CALC_PLANT_TYPE_ORDER,
-  CALC_POWER_ORDER,
   CALC_WORKER_ORDER,
   runMinecoreCalculator,
 } from '@/lib/game/minecore/calculator';
@@ -17,7 +16,6 @@ import {
   MINECORE_BATTERIES,
   MINECORE_WORKERS,
   MINECORE_BOOSTS,
-  MINECORE_POWER_SOURCES,
   MINECORE_PLANT_PRESETS,
   MINECORE_GRID_REDEEM_RATE,
   MINECORE_MODULES,
@@ -69,16 +67,12 @@ export function MinecoreCalculator() {
   const [batteryIdx, setBatteryIdx] = useState(0);
   const [workerIdx, setWorkerIdx] = useState(0);
   const [boostIdx, setBoostIdx] = useState(0);
-  const [powerIdx, setPowerIdx] = useState(0);
   const [plantTypeIdx, setPlantTypeIdx] = useState(0);
   const [plantCount, setPlantCount] = useState(1);
   const [kasDiscountPct, setKasDiscountPct] = useState(0);
-  const [modulesOn, setModulesOn] = useState<Record<MinecoreModuleId, boolean>>({
-    'cooling-module': false,
-    'stability-module': false,
-    'aria-sensor': false,
-    'vector-drill-chip': false,
-  });
+  const [modulesOn, setModulesOn] = useState<Record<MinecoreModuleId, boolean>>(() =>
+    Object.fromEntries(CALC_MODULE_ORDER.map((id) => [id, false])) as Record<MinecoreModuleId, boolean>,
+  );
 
   const setup: PlantSetup = useMemo(() => {
     const moduleIds = CALC_MODULE_ORDER.filter((id) => modulesOn[id]);
@@ -86,11 +80,10 @@ export function MinecoreCalculator() {
       machineId: CALC_MACHINE_ORDER[machineIdx] ?? null,
       batteryId: CALC_BATTERY_ORDER[batteryIdx] ?? null,
       workerId: CALC_WORKER_ORDER[workerIdx] ?? null,
-      powerSourceId: CALC_POWER_ORDER[powerIdx] ?? null,
       moduleIds,
       boostId: CALC_BOOST_ORDER[boostIdx] ?? 'none',
     };
-  }, [machineIdx, batteryIdx, workerIdx, boostIdx, powerIdx, modulesOn]);
+  }, [machineIdx, batteryIdx, workerIdx, boostIdx, modulesOn]);
 
   const plantType = CALC_PLANT_TYPE_ORDER[plantTypeIdx] ?? 'standard';
 
@@ -109,8 +102,6 @@ export function MinecoreCalculator() {
   const battery = setup.batteryId ? MINECORE_BATTERIES[setup.batteryId] : null;
   const worker = setup.workerId ? MINECORE_WORKERS[setup.workerId] : null;
   const boost = MINECORE_BOOSTS[setup.boostId];
-  const powerId = setup.powerSourceId;
-  const power = powerId ? MINECORE_POWER_SOURCES[powerId] : null;
   const preset = MINECORE_PLANT_PRESETS[plantType];
 
   return (
@@ -153,15 +144,6 @@ export function MinecoreCalculator() {
               value={boostIdx}
               onChange={setBoostIdx}
               valueLabel={boost.label}
-            />
-            <SliderRow
-              label="On-site power"
-              hint="0 = no power plant (battery reserve cap only)."
-              min={0}
-              max={CALC_POWER_ORDER.length - 1}
-              value={powerIdx}
-              onChange={setPowerIdx}
-              valueLabel={power ? power.label : 'None'}
             />
             <SliderRow
               label="Plant tier"
@@ -246,8 +228,8 @@ export function MinecoreCalculator() {
             <div className="font-semibold text-zinc-800 dark:text-zinc-200">Timing</div>
             <ul className="mt-1 list-inside list-disc space-y-0.5">
               <li>Cycle length: {result.cycleDurationLabel}</li>
-              <li>Battery budget: {result.batteryCapacityLabel} (× source energy multiplier)</li>
-              <li>Drain scale: ×{result.drainScale.toFixed(3)} (machine × source)</li>
+              <li>Battery budget: {result.batteryCapacityLabel} (× machine charge budget)</li>
+              <li>Drain scale: ×{result.drainScale.toFixed(3)} (machine draw)</li>
               <li>Runtime at full charge: {result.batteryRuntimeLabel}</li>
               <li>Reserve cap: {result.reserveCap} units</li>
             </ul>
@@ -278,15 +260,6 @@ export function MinecoreCalculator() {
               sub={`Nominal ${result.kasPerRecharge} KAS · +1 reserve & full battery`}
             />
             <Stat label="Plant upgrade (discounted)" value={`${result.plantUpgradeKasDiscounted} KAS`} sub={`Nominal ${result.plantUpgradeKas} KAS · ${preset.label}`} />
-            <Stat
-              label="Power install (KAS est.)"
-              value={`${result.powerInstallKasDiscounted} KAS`}
-              sub={
-                result.powerInstallKasEstimate === 0
-                  ? 'No plant — or only non-shop ingredients missing from estimate'
-                  : `Nominal ${result.powerInstallKasEstimate} KAS (shop ingredients only)`
-              }
-            />
             <Stat label="Slot unlock (game SKU)" value={`${result.slotUnlockKas} KAS`} sub="First unlock per slot" />
             <Stat label="Slot expand (game SKU)" value={`${result.slotExpandKas} KAS`} sub="Add locked slot row" />
           </div>

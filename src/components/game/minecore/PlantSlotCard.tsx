@@ -1,6 +1,6 @@
 'use client';
 
-import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerSourceId } from '@/lib/game/minecore';
+import type { MinecoreState, PlantSlotState, MinecoreModuleId } from '@/lib/game/minecore';
 import {
   computeCycleProgress,
   computeLiveBatteryChargeMs,
@@ -19,7 +19,6 @@ import {
   MINECORE_MODULES,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
-  MINECORE_POWER_SOURCES,
   MINECORE_WORKERS,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
@@ -227,8 +226,6 @@ export function PlantSlotCard(props: {
   onRechargePlant: (opts?: { units?: number }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
-  onInstallPowerFromIngredients: (id: MinecorePowerSourceId) => void;
-  onClearPowerSource: () => void;
   onQuickSetup: () => void;
   onInstallPart: (kind: any, id: any) => void;
   onChangePlantType: (type: any, cost: number) => void;
@@ -236,7 +233,7 @@ export function PlantSlotCard(props: {
   const s   = props.slot;
   const now = props.now;
 
-  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'power' | 'worker' | 'modules' | 'preset' | null>(null);
+  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
@@ -262,7 +259,6 @@ export function PlantSlotCard(props: {
   const batteryConfig   = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId] : null;
   const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
   const powerDotMax     = getPowerUnitCap(s) || (batteryConfig?.powerCapacity ?? 1);
-  const powerSourceConfig = s.setup.powerSourceId ? MINECORE_POWER_SOURCES[s.setup.powerSourceId] : null;
 
   // ── Action label ─────────────────────────────────────────────────────────
   const capUnits = getPowerUnitCap(s);
@@ -366,7 +362,11 @@ export function PlantSlotCard(props: {
               value={machineConfig?.label}
               stat={machineConfig ? `⚡ ×${machineConfig.powerConsumptionFactor}` : undefined}
               statTone="rose"
-              tooltip={machineConfig ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} battery drain rate.` : 'No machine installed. Click to assign one.'}
+              tooltip={
+                machineConfig
+                  ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} drain. Reserve grid +${machineConfig.powerGridContribution} (+ battery units), charge budget ×${machineConfig.powerBudgetMultiplier.toFixed(2)}.`
+                  : 'No machine installed. Click to assign one.'
+              }
               onClick={() => canEditParts && setActiveModal('machine')}
             />
             <CheckRow
@@ -376,19 +376,6 @@ export function PlantSlotCard(props: {
               stat={batteryConfig ? `${Math.round(batteryConfig.chargeCapacityMs / 60000)}m` : undefined}
               tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Click to assign one.'}
               onClick={() => canEditParts && setActiveModal('battery')}
-            />
-            <CheckRow
-              installed={!!s.setup.powerSourceId}
-              label="Power"
-              value={powerSourceConfig?.label ?? 'Default (battery cap)'}
-              stat={
-                powerSourceConfig
-                  ? `${powerSourceConfig.maxPowerUnits}u · ×${powerSourceConfig.drainRateMultiplier.toFixed(2)}`
-                  : 'Battery cap'
-              }
-              statTone={powerSourceConfig ? 'rose' : 'default'}
-              tooltip="On-site power: max reserve units and drain multiplier. Craft blueprints on Build, then open Power on this row to install with ingredients while the plant is stopped or paused."
-              onClick={() => canEditParts && setActiveModal('power')}
             />
             <CheckRow
               installed={!!s.setup.workerId}
@@ -554,7 +541,9 @@ export function PlantSlotCard(props: {
             >
               <div>
                 <div className="font-bold text-sm">{m.label}</div>
-                <div className="text-[10px] text-zinc-500">{m.baseOutput} D · {formatDuration(m.durationMs)}</div>
+                <div className="text-[10px] text-zinc-500">
+                  {m.baseOutput} D · {formatDuration(m.durationMs)} · grid +{m.powerGridContribution} · budget ×{m.powerBudgetMultiplier.toFixed(2)}
+                </div>
               </div>
               <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
             </button>
@@ -596,52 +585,6 @@ export function PlantSlotCard(props: {
             </button>
           );
         })}
-      </SelectionModal>
-
-      <SelectionModal
-        isOpen={activeModal === 'power'}
-        onClose={() => setActiveModal(null)}
-        title="Power (ingredients or Power tab)"
-      >
-        {Object.values(MINECORE_POWER_SOURCES).map((ps) => {
-          const can = Object.entries(ps.installRequires).every(
-            ([k, v]) => (props.minecoreState.ingredients[k as keyof typeof props.minecoreState.ingredients] ?? 0) >= (v as number),
-          );
-          return (
-            <button
-              key={ps.id}
-              type="button"
-              disabled={!can}
-              onClick={() => {
-                props.onInstallPowerFromIngredients(ps.id);
-                setActiveModal(null);
-              }}
-              className={`w-full p-3 rounded-xl border text-left ${
-                s.setup.powerSourceId === ps.id ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
-              } disabled:opacity-40`}
-            >
-              <div className="font-bold text-sm">{ps.label}</div>
-              <div className="text-[10px] text-zinc-500 line-clamp-2">{ps.lore}</div>
-              <div className="text-[10px] text-zinc-500 mt-1">
-                Units {ps.maxPowerUnits} ·{' '}
-                <span className="font-semibold text-rose-600 dark:text-rose-400">
-                  drain ×{ps.drainRateMultiplier}
-                </span>{' '}
-                · energy ×{ps.energyBudgetMultiplier}
-              </div>
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => {
-            props.onClearPowerSource();
-            setActiveModal(null);
-          }}
-          className="w-full p-2 text-xs font-bold text-rose-500 hover:bg-rose-50 rounded-lg transition-colors dark:hover:bg-rose-950/20"
-        >
-          Remove custom grid (use battery cap)
-        </button>
       </SelectionModal>
 
       <SelectionModal

@@ -8,7 +8,6 @@ import {
   applyMinecoreEvent,
   deriveState,
   type MinecoreState,
-  type MinecorePowerSourceId,
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -263,17 +262,6 @@ export function useMinecore() {
     dispatch({ type: 'ResumeMining', slotIndex, at: Date.now() });
   }, [dispatch]);
 
-  const installPowerFromIngredients = useCallback(
-    (slotIndex: number, powerSourceId: MinecorePowerSourceId) => {
-      dispatch({ type: 'InstallPowerFromIngredients', slotIndex, at: Date.now(), powerSourceId });
-    },
-    [dispatch],
-  );
-
-  const clearPowerSource = useCallback((slotIndex: number) => {
-    dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'powerSource', id: null } });
-  }, [dispatch]);
-
   const extract = useCallback((slotIndex: number) => {
     dispatch({ type: 'Extract', slotIndex, at: Date.now() });
   }, [dispatch]);
@@ -414,8 +402,6 @@ export function useMinecore() {
       startMining,
       stopMining,
       resumeMining,
-      installPowerFromIngredients,
-      clearPowerSource,
       extract,
       topUpPower,
       topUpPowerWithKAS,

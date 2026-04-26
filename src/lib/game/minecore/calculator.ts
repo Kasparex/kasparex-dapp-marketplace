@@ -2,7 +2,6 @@ import {
   MINECORE_GRID_REDEEM_RATE,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
-  MINECORE_POWER_SOURCES,
   MINECORE_REFINE_RATE,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
@@ -21,7 +20,6 @@ import type {
   MinecoreIngredient,
   MinecoreMachineId,
   MinecoreModuleId,
-  MinecorePowerSourceId,
   MinecoreState,
   PlantSlotState,
   PlantType,
@@ -33,6 +31,8 @@ export const CALC_MACHINE_ORDER = [
   'pulse-drill',
   'crystal-extractor',
   'deep-vein-rig',
+  'magma-tap',
+  'orbit-siphon',
   'quantum-fracturer',
 ] as const satisfies readonly MinecoreMachineId[];
 
@@ -40,7 +40,9 @@ export const CALC_BATTERY_ORDER = [
   'energy-cell',
   'battery-pack',
   'diamond-capacitor',
+  'flux-array',
   'grid-battery',
+  'void-core-cell',
 ] as const satisfies readonly MinecoreBatteryId[];
 
 export const CALC_WORKER_ORDER = ['worker', 'operator'] as const;
@@ -57,17 +59,9 @@ export const CALC_MODULE_ORDER = [
   'stability-module',
   'aria-sensor',
   'vector-drill-chip',
+  'regen-coil',
+  'hash-buffer',
 ] as const satisfies readonly MinecoreModuleId[];
-
-/** Index 0 = no on-site power plant. */
-export const CALC_POWER_ORDER: readonly (MinecorePowerSourceId | null)[] = [
-  null,
-  'vein-thermal',
-  'fission-bdag',
-  'krex-catalyst',
-  'aria-photon',
-  'null-reactor',
-];
 
 export const CALC_PLANT_TYPE_ORDER: readonly PlantType[] = ['standard', 'premium', 'advanced'];
 
@@ -81,6 +75,8 @@ export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
   coolingGel: 0,
   ariaChips: 0,
   nullFragments: 0,
+  fluxCoils: 1.2,
+  latticeWire: 2.5,
 };
 
 const DUMMY: MinecoreState = createInitialMinecoreState();
@@ -159,8 +155,6 @@ export type MinecoreCalculatorResult = {
   kasPerCycleOperatingUpper: number;
   plantUpgradeKas: number;
   plantUpgradeKasDiscounted: number;
-  powerInstallKasEstimate: number;
-  powerInstallKasDiscounted: number;
   slotUnlockKas: number;
   slotExpandKas: number;
   diamondsPerHourOnePlant: number;
@@ -181,18 +175,6 @@ function formatDuration(ms: number): string {
 function applyKasDiscount(kas: number, pct: number): number {
   const d = Math.max(0, Math.min(100, pct));
   return Math.max(0, Math.round(kas * (1 - d / 100) * 10_000) / 10_000);
-}
-
-export function estimatePowerInstallKas(powerSourceId: MinecorePowerSourceId | null, discountPct: number): number {
-  if (!powerSourceId) return 0;
-  const cfg = MINECORE_POWER_SOURCES[powerSourceId];
-  let sum = 0;
-  for (const [k, v] of Object.entries(cfg.installRequires)) {
-    const qty = typeof v === 'number' ? v : 0;
-    const unit = CALC_INGREDIENT_KAS[k as MinecoreIngredient] ?? 0;
-    sum += qty * unit;
-  }
-  return applyKasDiscount(sum, discountPct);
 }
 
 export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreCalculatorResult {
@@ -223,16 +205,6 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
   const upgradeKas = preset.costKas;
   const upgradeKasD = applyKasDiscount(upgradeKas, kasDiscountPct);
 
-  let rawPowerKas = 0;
-  if (setup.powerSourceId) {
-    const cfg = MINECORE_POWER_SOURCES[setup.powerSourceId];
-    for (const [k, v] of Object.entries(cfg.installRequires)) {
-      const qty = typeof v === 'number' ? v : 0;
-      rawPowerKas += qty * (CALC_INGREDIENT_KAS[k as MinecoreIngredient] ?? 0);
-    }
-  }
-  const powerD = applyKasDiscount(rawPowerKas, kasDiscountPct);
-
   return {
     expectedDiamondsFullCycle: expected,
     diamondsThisCycle: partial,
@@ -255,12 +227,10 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
     kasPerCycleOperatingUpper: kasRechargeD,
     plantUpgradeKas: upgradeKas,
     plantUpgradeKasDiscounted: upgradeKasD,
-    powerInstallKasEstimate: rawPowerKas,
-    powerInstallKasDiscounted: powerD,
     slotUnlockKas: MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
     slotExpandKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
     diamondsPerHourOnePlant: dPerHour,
     diamondsPerHourAllPlants: dPerHour * n,
-    refinementPointsPerHourAllPlants: (dPerHour * n) * MINECORE_REFINE_RATE,
+    refinementPointsPerHourAllPlants: dPerHour * n * MINECORE_REFINE_RATE,
   };
 }

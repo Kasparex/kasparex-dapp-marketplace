@@ -8,17 +8,10 @@ import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
   MINECORE_MODULES,
-  MINECORE_POWER_SOURCES,
-  MINECORE_POWER_SOURCE_IDS,
   MINECORE_RECIPES,
 } from '@/lib/game/minecore/config';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedAssetsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
-import * as Icons from 'lucide-react';
-
-const KIND_ORDER = { thermal: 0, fission: 1, catalytic: 2, renewable: 3, exotic: 4 } as const;
-
-import type { MinecorePowerSourceId } from '@/lib/game/minecore/types';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -29,11 +22,9 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   coolingGel: 'Cooling Gel',
   ariaChips: 'ARIA Chips',
   nullFragments: 'Null Fragments',
+  fluxCoils: 'Flux Coils',
+  latticeWire: 'Lattice Wire',
 };
-
-function kindLabel(kind: (typeof MINECORE_POWER_SOURCES)[MinecorePowerSourceId]['kind']): string {
-  return kind.charAt(0).toUpperCase() + kind.slice(1);
-}
 
 type EffectColor = 'emerald' | 'amber' | 'sky' | 'rose' | undefined;
 
@@ -55,44 +46,22 @@ export function FabricationPanel(props: {
     return true;
   };
 
-  const categories = ['All', 'Machine', 'Battery', 'Module', 'Powerplant'];
+  const categories = ['All', 'Machine', 'Battery', 'Module'];
 
   const filteredRecipes = useMemo(() => {
     const recipes = MINECORE_RECIPES.map((r) => ({
       ...r,
       category: r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
     }));
-    return recipes.filter((item) => {
+    let list = recipes.filter((item) => {
       if (category !== 'all' && category !== 'All') {
-        if (category === 'Powerplant') return false;
         if (item.category !== category) return false;
       }
       if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [category, searchQuery]);
-
-  const filteredPower = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let list = MINECORE_POWER_SOURCE_IDS.map((id) => ({
-      ...MINECORE_POWER_SOURCES[id],
-      kindKey: kindLabel(MINECORE_POWER_SOURCES[id].kind),
-    }));
-    if (category !== 'all' && category !== 'All' && category !== 'Powerplant') {
-      return [];
-    }
-    list = list.filter((ps) => {
-      if (q && !ps.label.toLowerCase().includes(q) && !ps.lore.toLowerCase().includes(q)) return false;
-      return true;
-    });
-    list = [...list].sort((a, b) => {
-      if (sortBy === 'price_asc') return a.maxPowerUnits - b.maxPowerUnits;
-      if (sortBy === 'price_desc') return b.maxPowerUnits - a.maxPowerUnits;
-      if (sortBy === 'recommended') {
-        return (KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9) || a.label.localeCompare(b.label);
-      }
-      return 0;
-    });
+    if (sortBy === 'price_asc') list = [...list].sort((a, b) => a.title.localeCompare(b.title));
+    if (sortBy === 'price_desc') list = [...list].sort((a, b) => b.title.localeCompare(a.title));
     return list;
   }, [category, searchQuery, sortBy]);
 
@@ -102,7 +71,7 @@ export function FabricationPanel(props: {
 
       <GamePanelCard
         title="Fabrication blueprints"
-        hint="Craft machines, batteries, modules, and power-plant recipes here. Install on-site power from each plant on the Mining tab."
+        hint="Craft machines (power + reserve grid), batteries, and modules. Machines set draw rate, charge budget multiplier, and reserve units alongside the battery."
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -127,6 +96,16 @@ export function FabricationPanel(props: {
                 effects.push({ label: 'Duration', value: `${Math.round(cfg.durationMs / 60000)} min` });
                 effects.push({ label: 'Base output', value: `${cfg.baseOutput.toLocaleString()} diamonds`, color: 'amber' });
                 effects.push({ label: 'Power drain', value: `×${cfg.powerConsumptionFactor}`, color: 'rose' });
+                effects.push({
+                  label: 'Reserve grid',
+                  value: `+${cfg.powerGridContribution} (+ battery)`,
+                  color: 'amber',
+                });
+                effects.push({
+                  label: 'Charge budget',
+                  value: `×${cfg.powerBudgetMultiplier.toFixed(2)}`,
+                  color: 'sky',
+                });
               }
             } else if (isBattery) {
               const cfg = MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES];
@@ -158,9 +137,9 @@ export function FabricationPanel(props: {
                 category={r.category}
                 description={
                   isMachine
-                    ? 'Install in a plant to run mining cycles.'
+                    ? 'Defines mining performance and how much reserve power the plant can hold with a battery.'
                     : isBattery
-                      ? 'Powers machines; larger packs run longer.'
+                      ? 'Stores charge and adds reserve fuel units on top of the machine grid.'
                       : 'Optional output and stability upgrade for a plant.'
                 }
                 effects={[...effects, ...reqLines]}
@@ -169,37 +148,6 @@ export function FabricationPanel(props: {
                 hidePricing={true}
                 priceOptions={[{ currency: 'KAS', unitPrice: 0, label: 'Build' }]}
                 onBuy={() => props.onCraft(r.id)}
-              />
-            );
-          })}
-
-          {filteredPower.map((ps) => {
-            const effects: { label: string; value: string; muted?: boolean; color?: EffectColor }[] = [
-              { label: 'Family', value: kindLabel(ps.kind) },
-              { label: 'Max units', value: String(ps.maxPowerUnits), color: 'amber' },
-              { label: 'Drain', value: `×${ps.drainRateMultiplier.toFixed(2)}`, color: 'rose' },
-              { label: 'Energy budget', value: `×${ps.energyBudgetMultiplier.toFixed(2)}`, color: 'sky' },
-            ];
-            return (
-              <GameItemCard
-                key={ps.id}
-                icon={<Icons.Zap className="h-8 w-8 text-amber-500/80" strokeWidth={1.75} />}
-                title={ps.label}
-                category={kindLabel(ps.kind)}
-                description={
-                  <>
-                    {ps.lore}{' '}
-                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                      Install from the Mining tab → this plant&apos;s on-site power section.
-                    </span>
-                  </>
-                }
-                effects={effects}
-                buyLabel="Install on Mining tab"
-                buyDisabled={true}
-                hidePricing={true}
-                priceOptions={[{ currency: 'KAS', unitPrice: 0, label: 'Blueprint' }]}
-                onBuy={() => {}}
               />
             );
           })}

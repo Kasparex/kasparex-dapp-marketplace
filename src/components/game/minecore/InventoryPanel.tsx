@@ -13,6 +13,8 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   coolingGel: 'Cooling Gel',
   ariaChips: 'ARIA Chips',
   nullFragments: 'Null Fragments',
+  fluxCoils: 'Flux Coils',
+  latticeWire: 'Lattice Wire',
 };
 
 export function InventoryPanel(props: { state: MinecoreState }) {

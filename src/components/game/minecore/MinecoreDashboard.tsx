@@ -255,10 +255,6 @@ export function MinecoreDashboard(_props: {
                     onStart={() => actions.startMining(slot.index)}
                     onStopMining={() => actions.stopMining(slot.index)}
                     onResumeMining={() => actions.resumeMining(slot.index)}
-                    onInstallPowerFromIngredients={(id) => {
-                      void actions.installPowerFromIngredients(slot.index, id);
-                    }}
-                    onClearPowerSource={() => actions.clearPowerSource(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
                     onRechargePlant={async (opts) => {
                       void (await actions.rechargePlantWithKAS(slot.index, opts));
@@ -365,7 +361,11 @@ export function MinecoreDashboard(_props: {
                         ? 2
                         : ingredient === 'circuitMesh'
                           ? 1.5
-                          : 0.5;
+                          : ingredient === 'fluxCoils'
+                            ? 1.2
+                            : ingredient === 'latticeWire'
+                              ? 2.5
+                              : 0.5;
                   await actions.purchaseIngredientWithKAS(ingredient, { amount: quantity, amountKas: unit * quantity });
                 }
               }}

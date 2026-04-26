@@ -2,26 +2,41 @@ import type { GridLedgerEntry } from '@/lib/game/engine';
 
 export type MinecoreIngredient =
   | 'crystalDust' | 'alloyPlates' | 'circuitMesh' | 'energyCells'
-  | 'coreShards' | 'coolingGel' | 'ariaChips' | 'nullFragments';
+  | 'coreShards' | 'coolingGel' | 'ariaChips' | 'nullFragments'
+  | 'fluxCoils' | 'latticeWire';
 
 export const MINECORE_INGREDIENT_KEYS: MinecoreIngredient[] = [
   'crystalDust', 'alloyPlates', 'circuitMesh', 'energyCells',
   'coreShards', 'coolingGel', 'ariaChips', 'nullFragments',
+  'fluxCoils', 'latticeWire',
 ];
 
-export type MinecoreMachineId  = 'pulse-drill' | 'crystal-extractor' | 'deep-vein-rig' | 'quantum-fracturer';
-export type MinecoreBatteryId  = 'energy-cell' | 'battery-pack' | 'diamond-capacitor' | 'grid-battery';
-export type MinecoreWorkerId   = 'worker' | 'operator';
-export type MinecoreModuleId   = 'cooling-module' | 'stability-module' | 'aria-sensor' | 'vector-drill-chip';
-export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
+export type MinecoreMachineId =
+  | 'pulse-drill'
+  | 'crystal-extractor'
+  | 'deep-vein-rig'
+  | 'quantum-fracturer'
+  | 'magma-tap'
+  | 'orbit-siphon';
 
-/** On-site power generation / distribution; caps reserve units and tweaks drain. Built with Shop ingredients. */
-export type MinecorePowerSourceId =
-  | 'vein-thermal'      // deep BlockDAG conduction
-  | 'fission-bdag'     // “fuel rod” of packed DAG history
-  | 'krex-catalyst'    // Krex-era catalytic stack
-  | 'aria-photon'      // synthetic solar over the ARIA lattice
-  | 'null-reactor';    // null-fragment cold plasma
+export type MinecoreBatteryId =
+  | 'energy-cell'
+  | 'battery-pack'
+  | 'diamond-capacitor'
+  | 'grid-battery'
+  | 'flux-array'
+  | 'void-core-cell';
+
+export type MinecoreWorkerId   = 'worker' | 'operator';
+export type MinecoreModuleId =
+  | 'cooling-module'
+  | 'stability-module'
+  | 'aria-sensor'
+  | 'vector-drill-chip'
+  | 'regen-coil'
+  | 'hash-buffer';
+
+export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
 
 export type PlantType = 'standard' | 'premium' | 'advanced';
 
@@ -48,7 +63,6 @@ export type OwnedItems = {
 export type PlantSetup = {
   machineId:  MinecoreMachineId | null;
   batteryId:  MinecoreBatteryId | null;
-  powerSourceId: MinecorePowerSourceId | null;
   workerId:   MinecoreWorkerId | null;
   moduleIds:  MinecoreModuleId[];
   boostId:    MinecoreBoostId;
@@ -125,13 +139,10 @@ export type MinecoreEvent =
       part:
         | { kind: 'machine';  id: MinecoreMachineId | null }
         | { kind: 'battery';  id: MinecoreBatteryId | null }
-        | { kind: 'powerSource'; id: MinecorePowerSourceId | null }
         | { kind: 'worker';   id: MinecoreWorkerId | null }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };
     }
-  | /** Spend ingredients and mount a power source (see `MINECORE_POWER_SOURCES`). */
-  { type: 'InstallPowerFromIngredients'; slotIndex: number; at: number; powerSourceId: MinecorePowerSourceId }
   | { type: 'StartMining';  slotIndex: number; at: number }
   /** Pauses an active run without banking/clearing; preserves power & cycle progress. */
   | { type: 'StopMining';  slotIndex: number; at: number }

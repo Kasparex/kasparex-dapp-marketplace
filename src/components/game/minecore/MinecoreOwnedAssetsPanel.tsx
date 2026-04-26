@@ -13,6 +13,8 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   coolingGel: 'Cooling Gel',
   ariaChips: 'ARIA Chips',
   nullFragments: 'Null Fragments',
+  fluxCoils: 'Flux Coils',
+  latticeWire: 'Lattice Wire',
 };
 
 function AssetCapsule(props: { label: string; value: string; accent: boolean }) {
@@ -118,7 +120,7 @@ export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned']
 /** Shop tab: same capsule layout as former Raw Ingredients; gray when quantity is 0. */
 export function MinecoreOwnedIngredientsPanel(props: { ingredients: MinecoreState['ingredients'] }) {
   return (
-    <GamePanelCard title="Owned Ingredients" hint="Stacks available for fabrication and on-site power installs.">
+    <GamePanelCard title="Owned Ingredients" hint="Stacks available for fabrication (machines, batteries, modules).">
       <div className="grid grid-cols-2 gap-2">
         {MINECORE_INGREDIENT_KEYS.map((k) => {
           const n = Math.floor(props.ingredients[k] ?? 0);

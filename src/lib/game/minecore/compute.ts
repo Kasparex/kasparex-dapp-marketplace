@@ -3,7 +3,6 @@ import {
   MINECORE_BOOSTS,
   MINECORE_MACHINES,
   MINECORE_MODULES,
-  MINECORE_POWER_SOURCES,
   MINECORE_WORKERS,
 } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
@@ -17,25 +16,20 @@ export function getPlantPowerFactor(slot: PlantSlotState): number {
     : 1;
 }
 
-/**
- * Machine draw × on-site power source regulator (1.0 = neutral source).
- * Used for live battery drain while a cycle runs (and not when paused).
- */
+/** Machine draw only — the rig sets consumption; there is no separate power-plant layer. */
 export function getPowerDrainScale(slot: PlantSlotState): number {
-  const m = getPlantPowerFactor(slot);
-  if (!slot.setup.powerSourceId) return m;
-  return m * (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.drainRateMultiplier ?? 1);
+  return getPlantPowerFactor(slot);
 }
 
-/** Max reserve power units: power-plant cap if installed, else the battery’s printed cap. */
+/**
+ * Max reserve power units: machine `powerGridContribution` + battery `powerCapacity` (each mining start spends 1).
+ */
 export function getPowerUnitCap(slot: PlantSlotState): number {
-  if (slot.setup.powerSourceId) {
-    return Math.max(1, MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.maxPowerUnits ?? 1);
-  }
-  if (slot.setup.batteryId) {
-    return Math.max(1, MINECORE_BATTERIES[slot.setup.batteryId]?.powerCapacity ?? 0);
-  }
-  return 0;
+  const m = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.powerGridContribution ?? 0) : 0;
+  const b = slot.setup.batteryId ? (MINECORE_BATTERIES[slot.setup.batteryId]?.powerCapacity ?? 0) : 0;
+  const sum = m + b;
+  if (sum <= 0) return 0;
+  return Math.max(1, sum);
 }
 
 export function isCyclePaused(slot: PlantSlotState, _now: number): boolean {
@@ -48,15 +42,13 @@ export function productionClockMs(slot: PlantSlotState, now: number): number {
   return now;
 }
 
-/** Full charge capacity for the battery installed in this slot, in ms (energy budget × source). */
+/** Full charge capacity for the battery in this slot (× machine `powerBudgetMultiplier` when a rig is installed). */
 export function getBatteryCapacityMs(slot: PlantSlotState): number {
   const base = slot.setup.batteryId
     ? (MINECORE_BATTERIES[slot.setup.batteryId]?.chargeCapacityMs ?? 0)
     : 0;
   if (base <= 0) return 0;
-  const mult = slot.setup.powerSourceId
-    ? (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.energyBudgetMultiplier ?? 1)
-    : 1;
+  const mult = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.powerBudgetMultiplier ?? 1) : 1;
   return Math.max(0, Math.floor(base * mult));
 }
 

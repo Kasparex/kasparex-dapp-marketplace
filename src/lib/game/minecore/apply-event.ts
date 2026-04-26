@@ -4,7 +4,6 @@ import {
   MINECORE_GRID_REDEEM_RATE,
   MINECORE_REFINE_RATE,
   MINECORE_BATTERIES,
-  MINECORE_POWER_SOURCES,
   MINECORE_RECIPES,
 } from './config';
 import {
@@ -21,38 +20,25 @@ import {
 } from './compute';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import type { IngredientBag } from './types';
-import type {
-  MinecoreBatteryId,
-  MinecoreEvent,
-  MinecoreMachineId,
-  MinecoreModuleId,
-  MinecorePowerSourceId,
-  MinecoreState,
-  PlantSlotState,
-} from './types';
+import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModuleId, MinecoreState, PlantSlotState } from './types';
 
-/**
- * Swaps the on-site power source without clearing an active or paused run.
- * Preserves charge as a ratio of the old vs new energy budget.
- */
-function applyPowerSourceIdChange(slot: PlantSlotState, newId: MinecorePowerSourceId | null, at: number, now: number) {
-  const oldCap = getBatteryCapacityMs(slot);
+/** Preserve charge ratio when machine (charge budget) or battery changes. */
+function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldCapMs: number, at: number, now: number) {
   let liveMs: number;
   if (!slot.cycle) {
-    liveMs = oldCap > 0 ? Math.min(slot.batteryChargeMs, oldCap) : slot.batteryChargeMs;
+    liveMs = oldCapMs > 0 ? Math.min(slot.batteryChargeMs, oldCapMs) : slot.batteryChargeMs;
   } else if (slot.cycle.pauseBeganAtMs != null) {
     liveMs = slot.batteryChargeMs;
   } else {
     liveMs = computeLiveBatteryChargeMs(slot, now);
   }
-  slot.setup.powerSourceId = newId;
   const newCap = getBatteryCapacityMs(slot);
   if (newCap <= 0) {
     slot.batteryChargeMs = 0;
-  } else if (oldCap <= 0) {
+  } else if (oldCapMs <= 0) {
     slot.batteryChargeMs = newCap;
   } else {
-    const ratio = Math.min(1, Math.max(0, liveMs / oldCap));
+    const ratio = Math.min(1, Math.max(0, liveMs / oldCapMs));
     slot.batteryChargeMs = Math.max(0, Math.min(newCap, Math.floor(ratio * newCap)));
   }
   slot.batterySnapshotAt = at;
@@ -178,7 +164,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         unlockCostKas:    MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
         status:           'EmptySlot',
         type:             'standard',
-        setup:            { machineId: null, batteryId: null, powerSourceId: null, workerId: null, moduleIds: [], boostId: 'none' },
+        setup:            { machineId: null, batteryId: null, workerId: null, moduleIds: [], boostId: 'none' },
         cycle:            null,
         powerRemaining:   0,
         needsRepair:      false,
@@ -205,11 +191,6 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (slot.cycle && slot.cycle.pauseBeganAtMs == null) {
         return rederive(s, now);
       }
-      if (ev.part.kind === 'powerSource') {
-        applyPowerSourceIdChange(slot, ev.part.id, now, now);
-        slot.status = deriveSlotStatus(s, slot, now);
-        return rederive(s, now);
-      }
       if (slot.cycle && slot.cycle.pauseBeganAtMs != null) {
         slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
         slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, now);
@@ -217,46 +198,25 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         slot.cycle = null;
       }
       if (ev.part.kind === 'machine') {
+        const oldCap = getBatteryCapacityMs(slot);
         slot.setup.machineId = ev.part.id;
+        rescaleBatteryToNewCapacity(slot, oldCap, now, now);
       }
       if (ev.part.kind === 'battery') {
+        const oldCap = getBatteryCapacityMs(slot);
         slot.setup.batteryId = ev.part.id;
         const b = ev.part.id ? MINECORE_BATTERIES[ev.part.id] : null;
         if (b) {
-          const mult = slot.setup.powerSourceId
-            ? (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.energyBudgetMultiplier ?? 1)
-            : 1;
-          slot.batteryChargeMs  = Math.floor(b.chargeCapacityMs * mult);
-          slot.batterySnapshotAt = now;
+          rescaleBatteryToNewCapacity(slot, oldCap, now, now);
         } else {
-          slot.batteryChargeMs  = 0;
+          slot.batteryChargeMs = 0;
           slot.batterySnapshotAt = now;
         }
+        slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
       }
-      if (ev.part.kind === 'worker')  slot.setup.workerId  = ev.part.id;
+      if (ev.part.kind === 'worker') slot.setup.workerId = ev.part.id;
       if (ev.part.kind === 'modules') slot.setup.moduleIds = [...ev.part.ids];
-      if (ev.part.kind === 'boost')   slot.setup.boostId   = ev.part.id;
-      slot.status = deriveSlotStatus(s, slot, now);
-      return rederive(s, now);
-    }
-
-    case 'InstallPowerFromIngredients': {
-      const slot = s.plantSlots[ev.slotIndex];
-      if (!slot || !slot.unlocked) return rederive(s, now);
-      if (slot.cycle && slot.cycle.pauseBeganAtMs == null) {
-        return rederive(s, now);
-      }
-      const cfg = MINECORE_POWER_SOURCES[ev.powerSourceId];
-      if (!cfg) return rederive(s, now);
-      for (const [k, v] of Object.entries(cfg.installRequires)) {
-        const need = typeof v === 'number' ? v : 0;
-        if ((s.ingredients[k as keyof IngredientBag] ?? 0) < need) return rederive(s, now);
-      }
-      for (const [k, v] of Object.entries(cfg.installRequires)) {
-        const need = typeof v === 'number' ? v : 0;
-        s.ingredients[k as keyof IngredientBag] = Math.max(0, (s.ingredients[k as keyof IngredientBag] ?? 0) - need);
-      }
-      applyPowerSourceIdChange(slot, ev.powerSourceId, now, now);
+      if (ev.part.kind === 'boost') slot.setup.boostId = ev.part.id;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }

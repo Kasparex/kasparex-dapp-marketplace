@@ -119,6 +119,54 @@ export function ShopPanel(props: {
       ),
     },
     {
+      id: 'fluxCoils',
+      title: 'Flux Coils',
+      category: 'Ingredient',
+      description: 'High-frequency windings for advanced rigs and flux batteries.',
+      baseKasPrice: 1.2,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="fluxCoils"
+          title="Flux Coils"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          description="Used in mid-tier machines, Flux Arrays, and Regen Coils."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1.2), originalUnitPrice: 1.2 },
+            { currency: 'KREX', unitPrice: 1.0 },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'fluxCoils', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'latticeWire',
+      title: 'Lattice Wire',
+      category: 'Ingredient',
+      description: 'Structured conductor mesh for orbit-class hardware.',
+      baseKasPrice: 2.5,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="latticeWire"
+          title="Lattice Wire"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
+          description="Required for Orbit Siphon, Void Core Cell, and Hash Buffer crafts."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2.5), originalUnitPrice: 2.5 },
+            { currency: 'KREX', unitPrice: 2.0 },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'latticeWire', currency, quantity })}
+        />
+      ),
+    },
+    {
       id: 'kas-overclock',
       title: 'KAS Overclock',
       category: 'Boost',

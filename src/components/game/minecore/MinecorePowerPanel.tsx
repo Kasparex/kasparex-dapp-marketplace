@@ -7,7 +7,7 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_POWER_SOURCES } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 
 /** KAS paid upgrades (V1 — wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
@@ -61,7 +61,6 @@ export function MinecorePowerPanel(props: {
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(p, now);
           const unitCap = getPowerUnitCap(p);
-          const psrc = p.setup.powerSourceId ? MINECORE_POWER_SOURCES[p.setup.powerSourceId] : null;
 
           return (
             <li
@@ -72,7 +71,6 @@ export function MinecorePowerPanel(props: {
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
                 <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
                   {p.setup.machineId ?? 'No machine'} · {p.setup.batteryId ?? 'No battery'}
-                  {psrc ? ` · ${psrc.label}` : ''}
                 </span>
               </div>
 
@@ -129,7 +127,7 @@ export function MinecorePowerPanel(props: {
           <GameTooltip
             content={
               `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
-              'Craft on-site power blueprints on the Build tab, then install from each plant’s Power row in the checklist when paused.'
+                'Reserve capacity comes from the installed machine plus battery. Craft better rigs on the Build tab.'
             }
           >
             <button
