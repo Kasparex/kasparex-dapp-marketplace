@@ -12,7 +12,7 @@ import {
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -328,6 +328,22 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
+  /** One KAS purchase: add reserve unit(s) and full battery for that plant. */
+  const rechargePlantWithKAS = useCallback(
+    async (slotIndex: number, opts?: { units?: number }) => {
+      const units = Math.max(1, Math.floor(opts?.units ?? 1));
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS * units),
+        skuId: 'minecore:plant:recharge',
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'RechargePlant', slotIndex, at: Date.now(), units });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+  );
+
   const redeemGrid = useCallback((points: number) => {
     dispatch({ type: 'RedeemGrid', at: Date.now(), points });
   }, [dispatch]);
@@ -414,6 +430,7 @@ export function useMinecore() {
       purchaseIngredientWithKAS,
       refillBattery,
       refillBatteryWithKAS,
+      rechargePlantWithKAS,
       changePlantType,
     },
     getKasPriceAfterDiscount,

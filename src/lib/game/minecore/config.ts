@@ -18,8 +18,9 @@ export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 export const MINECORE_REFINE_RATE = 1; // 1 diamond -> 1 refinement point (V1 placeholder)
 export const MINECORE_GRID_REDEEM_RATE = 1; // 1 point -> 1 GRID redeemable (V1 placeholder)
 
-/** Cost in KAS to fully refill a plant's battery (KREX tier discount applied at call site). */
+/** KAS cost for the combined plant recharge: +1 reserve unit and full battery (KREX discount at call site). */
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
+export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
 export type PlantPreset = {
   type: PlantType;
@@ -100,7 +101,7 @@ export type PowerSourceConfig = {
   kind: 'thermal' | 'fission' | 'catalytic' | 'renewable' | 'exotic';
   /** Short in-world blurb; echoes Kaspaland / Chronicles tone. */
   lore: string;
-  /** How many 1 KAS “reserve units” this grid can hold for starting cycles. */
+  /** How many reserve power units this source allows (recharged with KAS). */
   maxPowerUnits: number;
   /** Multiplies effective machine draw (1.0 = neutral; below 1 = slower burn, above 1 = faster). */
   drainRateMultiplier: number;

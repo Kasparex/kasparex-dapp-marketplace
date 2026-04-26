@@ -5,6 +5,7 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
+import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
 export function ShopPanel(props: {
@@ -160,20 +161,28 @@ export function ShopPanel(props: {
     },
     {
       id: 'power-topup',
-      title: 'Power Top-up',
+      title: 'Plant recharge',
       category: 'Utility',
-      description: 'Add 1 power to a selected plant. V1 mock utility.',
-      baseKasPrice: 1,
+      description: 'Adds reserve units and fully recharges the battery on plant 1 (same as the in-plant Recharge action).',
+      baseKasPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
       type: 'item' as const,
       render: () => (
         <GameItemCard
           key="power-topup"
-          title="Power Top-up"
+          title="Plant recharge"
           category="Utility"
           imageSrc="https://static.wixstatic.com/media/de4185_1584ecece1e5489dbf13f7d111c44d99~mv2.jpg"
-          description="Add 1 power to a selected plant. V1 mock utility."
-          effects={[{ label: 'Power', value: '+1' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1), originalUnitPrice: 1 }]}
+          description="Each purchase adds reserve power units and tops up the battery for the first mining plant."
+          effects={[
+            { label: 'Per unit', value: `+1 reserve & full battery (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS)` },
+          ]}
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS),
+              originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
+            },
+          ]}
           quantitySelector={{ min: 1, max: 10 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'power-topup', currency, quantity })}

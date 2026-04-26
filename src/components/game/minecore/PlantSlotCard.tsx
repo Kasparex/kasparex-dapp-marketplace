@@ -2,11 +2,11 @@
 
 import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerSourceId } from '@/lib/game/minecore';
 import {
+  computeCycleProgress,
   computeLiveBatteryChargeMs,
   computeLiveDiamonds,
   computeFlowRatePerMin,
   computePlantExpectedDiamonds,
-  computePlantReady,
   getBatteryCapacityMs,
   getPowerUnitCap,
   getPowerDrainScale,
@@ -18,6 +18,7 @@ import {
   MINECORE_MACHINES,
   MINECORE_MODULES,
   MINECORE_PLANT_PRESETS,
+  MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_POWER_SOURCES,
   MINECORE_WORKERS,
   type ModuleConfig,
@@ -126,7 +127,7 @@ function CheckRow(props: {
         <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
           {props.installed ? '✓' : '✗'}
         </span>
-        <span className={`text-xs font-semibold w-14 flex-shrink-0 ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
+        <span className={`text-xs font-semibold w-12 flex-shrink-0 sm:w-14 ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
           {props.label}
         </span>
         <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
@@ -221,8 +222,8 @@ export function PlantSlotCard(props: {
   onStart: () => void;
   onExtract: () => void;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
-  onTopUpWithKAS: (args: { amountKas: number; added: number }) => void | Promise<void>;
-  onRefillBattery: () => void | Promise<void>;
+  /** KAS: +1 (or more) reserve unit and full battery per purchase. */
+  onRechargePlant: (opts?: { units?: number }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
   onInstallPowerFromIngredients: (id: MinecorePowerSourceId) => void;
@@ -237,9 +238,8 @@ export function PlantSlotCard(props: {
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'power' | 'worker' | 'modules' | 'preset' | null>(null);
 
   // ── Live computed values ─────────────────────────────────────────────────
-  const cycle              = s.cycle;
-  const cycleProgress      = cycle ? clamp01((now - cycle.startAtMs) / Math.max(1, cycle.endAtMs - cycle.startAtMs)) : 0;
-  const cycleRemainingMs   = cycle ? Math.max(0, cycle.endAtMs - now) : 0;
+  const cycle = s.cycle;
+  const { progress: cycleProgress, remainingMs: cycleRemainingMs } = computeCycleProgress(s, now);
 
   const liveChargeMs    = computeLiveBatteryChargeMs(s, now);
   const capacityMs      = getBatteryCapacityMs(s);
@@ -264,18 +264,39 @@ export function PlantSlotCard(props: {
   const powerSourceConfig = s.setup.powerSourceId ? MINECORE_POWER_SOURCES[s.setup.powerSourceId] : null;
 
   // ── Action label ─────────────────────────────────────────────────────────
-  const actionLabel =
-    !s.unlocked             ? `Unlock ${s.unlockCostKas.toLocaleString()} KAS` :
-    s.status === 'SetupIncomplete' ? 'Quick setup' :
-    (s.diamondsAccumulated > 0 && s.status !== 'MiningActive') ? `Extract ${s.diamondsAccumulated} D` :
-    s.status === 'ReadyToMine'     ? 'Start' :
-    s.status === 'ExtractionReady' ? `Extract ${(s.diamondsAccumulated + liveDiamonds).toLocaleString()} D` :
-    s.status === 'BatteryEmpty'    ? 'Extract (partial)' :
-    s.status === 'NeedsPower'      ? `Top up — 1 KAS` :
-    s.status === 'NeedsRepair'     ? 'Repair' :
-    'Mining…';
+  const capUnits = getPowerUnitCap(s);
+  const atFullEnergy =
+    s.setup.batteryId &&
+    capacityMs > 0 &&
+    liveChargeMs >= capacityMs - 1 &&
+    s.powerRemaining >= capUnits;
 
-  const buyDisabled = s.status === 'MiningActive';
+  let actionLabel: string;
+  if (!s.unlocked) {
+    actionLabel = `Unlock ${s.unlockCostKas.toLocaleString()} KAS`;
+  } else if (s.status === 'SetupIncomplete') {
+    actionLabel = 'Quick setup';
+  } else if (s.status === 'NeedsRepair') {
+    actionLabel = 'Repair';
+  } else if (s.status === 'NeedsPower') {
+    actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
+  } else if (s.status === 'MiningPaused') {
+    actionLabel = 'Resume mining';
+  } else if (s.status === 'MiningActive') {
+    actionLabel = 'Stop mining';
+  } else if (s.diamondsAccumulated > 0) {
+    actionLabel = `Extract ${s.diamondsAccumulated} D`;
+  } else if (s.status === 'ReadyToMine') {
+    actionLabel = 'Start';
+  } else if (s.status === 'ExtractionReady') {
+    actionLabel = `Extract ${(s.diamondsAccumulated + liveDiamonds).toLocaleString()} D`;
+  } else if (s.status === 'BatteryEmpty') {
+    actionLabel = 'Extract (partial)';
+  } else {
+    actionLabel = 'Mining…';
+  }
+
+  const buyDisabled = false;
 
   const canEditParts = !s.cycle || s.cycle.pauseBeganAtMs != null;
 
@@ -348,14 +369,14 @@ export function PlantSlotCard(props: {
             />
             <CheckRow
               installed={!!s.setup.powerSourceId}
-              label="Power grid"
+              label="Power"
               value={powerSourceConfig?.label ?? 'Default (battery cap)'}
               stat={
                 powerSourceConfig
-                  ? `Units ${powerSourceConfig.maxPowerUnits} · drain ×${powerSourceConfig.drainRateMultiplier.toFixed(2)}`
-                  : 'Battery cap only'
+                  ? `${powerSourceConfig.maxPowerUnits}u · ×${powerSourceConfig.drainRateMultiplier.toFixed(2)}`
+                  : 'Battery cap'
               }
-              tooltip="On-site grid from Power tab: sets max reserve units and drain character. Or build from ingredients in the Power tab (Chronicle units)."
+              tooltip="On-site power from the Power tab: max reserve units and drain. Craft from ingredients, then install while the run is stopped or paused."
               onClick={() => canEditParts && setActiveModal('power')}
             />
             <CheckRow
@@ -387,13 +408,13 @@ export function PlantSlotCard(props: {
             <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
           )}
           {batteryEmpty && s.status !== 'MiningPaused' && (
-            <WarningBanner level="error" message="Battery depleted in this run — extract partial diamonds or refill, then you can start again or resume if you paused for parts." />
+            <WarningBanner level="error" message="Battery depleted in this run — extract partial rewards or recharge, then you can start again (or resume if you paused to change parts)." />
           )}
           {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
-            <WarningBanner level="warn" message={`⚡ Battery low — ${formatDuration(batteryRuntimeMs)} remaining. Refill to avoid halting.`} />
+            <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
           )}
           {s.status === 'NeedsPower' && (
-            <WarningBanner level="error" message="No reserve power units. Add a unit (1 KAS) for each new run. This does not refill the battery; use Refill for energy." />
+            <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
           )}
           {s.status === 'NeedsRepair' && (
             <WarningBanner level="error" message="🔧 Plant damaged — repair required before resuming." />
@@ -405,14 +426,14 @@ export function PlantSlotCard(props: {
               {/* Cycle progress bar (always when plant has components; idle = empty bar) */}
               <ResourceBar
                 label={
-                  !cycle
+                  !s.cycle
                     ? 'Cycle progress — no active cycle'
-                    : cycle.pauseBeganAtMs != null
+                    : s.cycle.pauseBeganAtMs != null
                       ? `Cycle progress — paused (${formatDuration(cycleRemainingMs)} left in window)`
                     : `Cycle progress — ${formatDuration(cycleRemainingMs)} left`
                 }
-                value={cycle ? `${Math.round(cycleProgress * 100)}%` : '0%'}
-                ratio={cycle ? cycleProgress : 0}
+                value={s.cycle ? `${Math.round(cycleProgress * 100)}%` : '0%'}
+                ratio={s.cycle ? cycleProgress : 0}
                 variant="cycle"
               />
 
@@ -431,14 +452,13 @@ export function PlantSlotCard(props: {
             </div>
           )}
 
-          {/* Refill battery — available anytime a battery is installed (including while mining) */}
-          {s.unlocked && s.setup.batteryId && (
+          {s.unlocked && s.setup.batteryId && !atFullEnergy && (
             <button
               type="button"
-              onClick={() => void props.onRefillBattery()}
+              onClick={() => void props.onRechargePlant({ units: 1 })}
               className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-500/20 dark:border-sky-400/30 dark:text-sky-300 dark:hover:bg-sky-500/20"
             >
-              Refill battery — 2.5 KAS
+              {`Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
             </button>
           )}
         </div>
@@ -452,7 +472,7 @@ export function PlantSlotCard(props: {
         if (!s.unlocked) return props.onUnlock();
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
         if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: 2 });
-        if (s.status === 'NeedsPower') return props.onTopUpWithKAS({ amountKas: 1, added: 1 });
+        if (s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();
         if (s.status === 'BatteryEmpty') return props.onExtract();
@@ -569,7 +589,7 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'power'}
         onClose={() => setActiveModal(null)}
-        title="Power grid (ingredients from Shop)"
+        title="Power (ingredients or Power tab)"
       >
         {Object.values(MINECORE_POWER_SOURCES).map((ps) => {
           const can = Object.entries(ps.installRequires).every(

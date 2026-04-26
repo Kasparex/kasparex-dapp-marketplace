@@ -26,9 +26,38 @@ import type {
   MinecoreEvent,
   MinecoreMachineId,
   MinecoreModuleId,
+  MinecorePowerSourceId,
   MinecoreState,
   PlantSlotState,
 } from './types';
+
+/**
+ * Swaps the on-site power source without clearing an active or paused run.
+ * Preserves charge as a ratio of the old vs new energy budget.
+ */
+function applyPowerSourceIdChange(slot: PlantSlotState, newId: MinecorePowerSourceId | null, at: number, now: number) {
+  const oldCap = getBatteryCapacityMs(slot);
+  let liveMs: number;
+  if (!slot.cycle) {
+    liveMs = oldCap > 0 ? Math.min(slot.batteryChargeMs, oldCap) : slot.batteryChargeMs;
+  } else if (slot.cycle.pauseBeganAtMs != null) {
+    liveMs = slot.batteryChargeMs;
+  } else {
+    liveMs = computeLiveBatteryChargeMs(slot, now);
+  }
+  slot.setup.powerSourceId = newId;
+  const newCap = getBatteryCapacityMs(slot);
+  if (newCap <= 0) {
+    slot.batteryChargeMs = 0;
+  } else if (oldCap <= 0) {
+    slot.batteryChargeMs = newCap;
+  } else {
+    const ratio = Math.min(1, Math.max(0, liveMs / oldCap));
+    slot.batteryChargeMs = Math.max(0, Math.min(newCap, Math.floor(ratio * newCap)));
+  }
+  slot.batterySnapshotAt = at;
+  slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
+}
 
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
@@ -176,6 +205,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (slot.cycle && slot.cycle.pauseBeganAtMs == null) {
         return rederive(s, now);
       }
+      if (ev.part.kind === 'powerSource') {
+        applyPowerSourceIdChange(slot, ev.part.id, now, now);
+        slot.status = deriveSlotStatus(s, slot, now);
+        return rederive(s, now);
+      }
       if (slot.cycle && slot.cycle.pauseBeganAtMs != null) {
         slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
         slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, now);
@@ -198,10 +232,6 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
           slot.batteryChargeMs  = 0;
           slot.batterySnapshotAt = now;
         }
-      }
-      if (ev.part.kind === 'powerSource') {
-        slot.setup.powerSourceId = ev.part.id;
-        slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
       }
       if (ev.part.kind === 'worker')  slot.setup.workerId  = ev.part.id;
       if (ev.part.kind === 'modules') slot.setup.moduleIds = [...ev.part.ids];
@@ -226,14 +256,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const need = typeof v === 'number' ? v : 0;
         s.ingredients[k as keyof IngredientBag] = Math.max(0, (s.ingredients[k as keyof IngredientBag] ?? 0) - need);
       }
-      if (slot.cycle && slot.cycle.pauseBeganAtMs != null) {
-        slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
-        slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, now);
-        slot.batterySnapshotAt = now;
-        slot.cycle = null;
-      }
-      slot.setup.powerSourceId = ev.powerSourceId;
-      slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
+      applyPowerSourceIdChange(slot, ev.powerSourceId, now, now);
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }
@@ -336,6 +359,18 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const cap = getPowerUnitCap(slot);
       const next = Math.min(Math.max(0, cap), slot.powerRemaining + Math.max(0, ev.added));
       slot.powerRemaining = next;
+      slot.status = deriveSlotStatus(s, slot, now);
+      return rederive(s, now);
+    }
+
+    case 'RechargePlant': {
+      const slot = s.plantSlots[ev.slotIndex];
+      if (!slot || !slot.unlocked || !slot.setup.batteryId) return rederive(s, now);
+      const u = Math.max(1, Math.floor(ev.units ?? 1));
+      const cap = getPowerUnitCap(slot);
+      slot.powerRemaining = Math.min(cap, slot.powerRemaining + u);
+      slot.batteryChargeMs = getBatteryCapacityMs(slot);
+      slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }

@@ -27,7 +27,7 @@ export function getPowerDrainScale(slot: PlantSlotState): number {
   return m * (MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.drainRateMultiplier ?? 1);
 }
 
-/** Max 1 KAS “reserve” units: power plant cap if installed, else battery’s printed cap. */
+/** Max reserve power units: power-plant cap if installed, else the battery’s printed cap. */
 export function getPowerUnitCap(slot: PlantSlotState): number {
   if (slot.setup.powerSourceId) {
     return Math.max(1, MINECORE_POWER_SOURCES[slot.setup.powerSourceId]?.maxPowerUnits ?? 1);
@@ -149,6 +149,19 @@ export function computeFlowRatePerMin(slot: PlantSlotState, now: number): number
   if (liveCharge <= 0) return 0;
   const perMs = slot.cycle.expectedDiamonds / Math.max(1, slot.cycle.durationMs);
   return perMs * 60_000;
+}
+
+/** UI: cycle bar progress (frozen while paused) and time remaining in the cycle window. */
+export function computeCycleProgress(slot: PlantSlotState, now: number): { progress: number; remainingMs: number } {
+  const c = slot.cycle;
+  if (!c) return { progress: 0, remainingMs: 0 };
+  const start = c.startAtMs;
+  const end = c.endAtMs;
+  const denom = Math.max(1, end - start);
+  const t = c.pauseBeganAtMs != null ? c.pauseBeganAtMs : now;
+  const progress = Math.max(0, Math.min(1, (t - start) / denom));
+  const remainingMs = c.pauseBeganAtMs != null ? Math.max(0, end - c.pauseBeganAtMs) : Math.max(0, end - now);
+  return { progress, remainingMs };
 }
 
 // ── Status derivation ────────────────────────────────────────────────────────

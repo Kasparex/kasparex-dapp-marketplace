@@ -259,14 +259,11 @@ export function MinecoreDashboard(_props: {
                     }}
                     onClearPowerSource={() => actions.clearPowerSource(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
-                    onTopUpWithKAS={async ({ amountKas, added }) => {
-                      void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas }));
+                    onRechargePlant={async (opts) => {
+                      void (await actions.rechargePlantWithKAS(slot.index, opts));
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slot.index, amountKas));
-                    }}
-                    onRefillBattery={async () => {
-                      void (await actions.refillBatteryWithKAS(slot.index, 2.5));
                     }}
                     onQuickSetup={() => {
                       actions.installMachine(slot.index, 'pulse-drill');
@@ -310,8 +307,8 @@ export function MinecoreDashboard(_props: {
               onDemoTopUpFirstPlant={() => {
                 actions.topUpPower(0, 5);
               }}
-              onRefillBattery={(idx) => {
-                actions.refillBatteryWithKAS(idx, 2.5);
+              onRechargePlant={(idx) => {
+                void actions.rechargePlantWithKAS(idx, { units: 1 });
               }}
               onInstallPower={({ slotIndex, powerSourceId }) => {
                 actions.installPowerFromIngredients(slotIndex, powerSourceId);
@@ -349,7 +346,7 @@ export function MinecoreDashboard(_props: {
               }}
               onBuy={async ({ itemId, currency, quantity }) => {
                 if (itemId === 'power-topup' && currency === 'KAS') {
-                  await actions.topUpPowerWithKAS(0, { added: quantity, amountKas: 1 * quantity });
+                  await actions.rechargePlantWithKAS(0, { units: quantity });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {
                   actions.setBoost(0, 'kas-overclock');

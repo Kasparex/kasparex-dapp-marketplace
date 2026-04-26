@@ -116,6 +116,8 @@ export type MinecoreEvent =
   | { type: 'RemoveNFT';        at: number; slotIndex: number }
   | { type: 'SetAutomation';    at: number; patch: Partial<MinecoreAutomationState> }
   | { type: 'RefillBattery';    slotIndex: number; at: number }  // refill battery to full
+  /** Paid KAS action: add reserve unit(s) and fully recharge battery in one step. */
+  | { type: 'RechargePlant';    slotIndex: number; at: number; units?: number }
   | {
       type: 'InstallPart';
       slotIndex: number;
