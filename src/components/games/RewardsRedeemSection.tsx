@@ -73,7 +73,7 @@ export function RewardsRedeemSection({
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Convert mined diamonds into Refinement Points (1:1).</p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Available</div>
+            <div className="text-[10px] font-semibold text-amber-500">Available</div>
             <div className="text-xl font-bold tabular-nums text-amber-500">{diamondsBalance.toLocaleString()} D</div>
           </div>
         </div>

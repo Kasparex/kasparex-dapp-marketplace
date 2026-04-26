@@ -11,7 +11,9 @@ import {
   computePlantExpectedDiamonds,
   computePlantReady,
   computeLiveDiamonds,
+  computeRawLiveDiamonds,
   computeLiveBatteryChargeMs,
+  computeMinecoreDiamondsDisplayTotal,
   getBatteryCapacityMs,
   deriveSlotStatus,
 } from './compute';
@@ -225,7 +227,20 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         endAtMs:          ev.at + durationMs,
         durationMs,
         expectedDiamonds,
+        mintedOffset:     0,
       };
+      slot.status = deriveSlotStatus(s, slot, now);
+      return rederive(s, now);
+    }
+
+    case 'StopMining': {
+      const slot = s.plantSlots[ev.slotIndex];
+      if (!slot || !slot.unlocked || !slot.cycle) return rederive(s, now);
+      // Match StartMining: bank partial output and end the cycle
+      slot.diamondsAccumulated += computeLiveDiamonds(slot, ev.at);
+      slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, ev.at);
+      slot.batterySnapshotAt = ev.at;
+      slot.cycle = null;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }
@@ -284,8 +299,45 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
     case 'Refine': {
       const amt = Math.max(0, Math.floor(ev.amount));
-      if (amt <= 0 || s.diamondsBalance < amt) return rederive(s, now);
-      s.diamondsBalance -= amt;
+      if (amt <= 0) return rederive(s, now);
+      const at = now;
+      const maxRefine = Math.floor(computeMinecoreDiamondsDisplayTotal(s, at));
+      if (amt > maxRefine) return rederive(s, now);
+
+      let r = amt;
+      const fromBal = Math.min(r, s.diamondsBalance);
+      s.diamondsBalance -= fromBal;
+      r -= fromBal;
+
+      for (const slot of s.plantSlots) {
+        if (r <= 0) break;
+        if (slot.diamondsAccumulated > 0) {
+          const t = Math.min(r, slot.diamondsAccumulated);
+          slot.diamondsAccumulated -= t;
+          r -= t;
+        }
+        if (r <= 0) break;
+        if (!slot.cycle) continue;
+        const live = computeLiveDiamonds(slot, at);
+        if (live <= 0) continue;
+        const takeL = Math.min(r, live);
+        const c = slot.cycle;
+        c.mintedOffset = (c.mintedOffset ?? 0) + takeL;
+        r -= takeL;
+      }
+      if (r > 0) return rederive(s, now);
+
+      for (const slot of s.plantSlots) {
+        if (!slot.cycle) continue;
+        const rawR = computeRawLiveDiamonds(slot, at);
+        if (rawR > 0 && (slot.cycle.mintedOffset ?? 0) >= rawR) {
+          slot.diamondsAccumulated += computeLiveDiamonds(slot, at);
+          slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, at);
+          slot.batterySnapshotAt = at;
+          slot.cycle = null;
+        }
+      }
+
       const points = amt * MINECORE_REFINE_RATE;
       s.refinementPointsTotal += points;
       const entry: GridLedgerEntry = {

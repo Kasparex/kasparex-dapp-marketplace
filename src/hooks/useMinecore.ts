@@ -247,6 +247,10 @@ export function useMinecore() {
     dispatch({ type: 'StartMining', slotIndex, at: Date.now() });
   }, [dispatch]);
 
+  const stopMining = useCallback((slotIndex: number) => {
+    dispatch({ type: 'StopMining', slotIndex, at: Date.now() });
+  }, [dispatch]);
+
   const extract = useCallback((slotIndex: number) => {
     dispatch({ type: 'Extract', slotIndex, at: Date.now() });
   }, [dispatch]);
@@ -369,6 +373,7 @@ export function useMinecore() {
       setModules,
       setBoost,
       startMining,
+      stopMining,
       extract,
       topUpPower,
       topUpPowerWithKAS,

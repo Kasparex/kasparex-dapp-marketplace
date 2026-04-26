@@ -78,16 +78,25 @@ export function computeBatteryRuntimeMs(slot: PlantSlotState, now: number): numb
 }
 
 /**
- * Diamonds accumulated so far in the current cycle.
- * Proportional to min(elapsed, battery runtime, cycle duration) / cycle duration.
+ * Raw diamonds accumulated in the current cycle before siphon (`mintedOffset`).
  */
-export function computeLiveDiamonds(slot: PlantSlotState, now: number): number {
+export function computeRawLiveDiamonds(slot: PlantSlotState, now: number): number {
   if (!slot.cycle) return 0;
   const elapsed          = Math.max(0, now - slot.cycle.startAtMs);
   const batteryRuntimeMs = computeBatteryRuntimeMs(slot, now);
   const effectiveElapsed = Math.min(elapsed, batteryRuntimeMs, slot.cycle.durationMs);
   if (slot.cycle.durationMs <= 0) return 0;
   return Math.floor((effectiveElapsed / slot.cycle.durationMs) * slot.cycle.expectedDiamonds);
+}
+
+/**
+ * Diamonds remaining in the current cycle (after Refine siphon via `mintedOffset`).
+ */
+export function computeLiveDiamonds(slot: PlantSlotState, now: number): number {
+  if (!slot.cycle) return 0;
+  const raw = computeRawLiveDiamonds(slot, now);
+  const off = slot.cycle.mintedOffset ?? 0;
+  return Math.max(0, raw - off);
 }
 
 /**

@@ -110,7 +110,7 @@ export function MinecoreDashboard(_props: {
         subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} Refinement Points`,
         description: 'Mined diamonds ready to refine',
         tooltip:
-          'Mined diamonds ready to refine into Points. Click to open Mining.',
+          'All diamonds: wallet plus any still in your plants (including active runs). Refined the same in Redeem. Click to open Mining.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -250,6 +250,7 @@ export function MinecoreDashboard(_props: {
                     now={nowTick}
                     onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slot.index)}
+                    onStopMining={() => actions.stopMining(slot.index)}
                     onExtract={() => actions.extract(slot.index)}
                     onTopUpWithKAS={async ({ amountKas, added }) => {
                       void (await actions.topUpPowerWithKAS(slot.index, { added, amountKas }));
@@ -355,7 +356,7 @@ export function MinecoreDashboard(_props: {
             <div className="space-y-6">
               <MinecoreRewardsPanel
                 address={wallet.address ?? undefined}
-                diamondsBalance={state.diamondsBalance}
+                diamondsBalance={diamondsDisplayTotal}
                 refinementPointsTotal={state.refinementPointsTotal}
                 localLedger={state.gridLedger ?? []}
                 onRefine={actions.refine}

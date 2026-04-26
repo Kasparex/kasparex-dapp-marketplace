@@ -35,12 +35,14 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
             endAtMs: cycle.endAtMs,
             durationMs: typeof cycle.durationMs === 'number' ? cycle.durationMs : Math.max(0, cycle.endAtMs - cycle.startAtMs),
             expectedDiamonds: typeof cycle.expectedDiamonds === 'number' ? cycle.expectedDiamonds : 0,
+            mintedOffset: typeof cycle.mintedOffset === 'number' ? cycle.mintedOffset : 0,
           }
         : null,
     powerRemaining: typeof input.powerRemaining === 'number' ? input.powerRemaining : base.powerRemaining,
     needsRepair: typeof input.needsRepair === 'boolean' ? input.needsRepair : base.needsRepair,
     batteryChargeMs: typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : base.batteryChargeMs,
     batterySnapshotAt: typeof input.batterySnapshotAt === 'number' ? input.batterySnapshotAt : base.batterySnapshotAt,
+    diamondsAccumulated: typeof input.diamondsAccumulated === 'number' ? input.diamondsAccumulated : base.diamondsAccumulated,
   };
 }
 

@@ -49,6 +49,8 @@ export type PlantCycle = {
   endAtMs:          number;
   durationMs:       number;
   expectedDiamonds: number;
+  /** Diamonds already siphoned from this cycle (e.g. via Refine) so they no longer count as live. */
+  mintedOffset?:   number;
 };
 
 export type PlantSlotState = {
@@ -114,6 +116,8 @@ export type MinecoreEvent =
         | { kind: 'boost';    id: MinecoreBoostId };
     }
   | { type: 'StartMining';  slotIndex: number; at: number }
+  /** Stops the current cycle, banking partial output into `diamondsAccumulated` (same as over-writing before Start). */
+  | { type: 'StopMining';  slotIndex: number; at: number }
   | { type: 'Extract';      slotIndex: number; at: number }
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
   | { type: 'Repair';       slotIndex: number; at: number }

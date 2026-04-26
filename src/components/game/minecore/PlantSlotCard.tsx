@@ -8,6 +8,7 @@ import {
   computeLiveDiamonds,
   computeFlowRatePerMin,
   computePlantExpectedDiamonds,
+  computePlantReady,
   getBatteryCapacityMs,
 } from '@/lib/game/minecore/compute';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
@@ -129,7 +130,7 @@ function CheckRow(props: {
           {props.value ?? 'Tap to assign…'}
         </span>
         {props.stat ? (
-          <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded uppercase">
+          <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
             {props.stat}
           </span>
         ) : null}
@@ -161,7 +162,7 @@ function ResourceBar(props: {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{props.label}</span>
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{props.label}</span>
         <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.value}</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
@@ -184,7 +185,7 @@ function PowerDots(props: { current: number; max: number }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Power units</span>
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Power units</span>
         <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.current} / {safeMax}</span>
       </div>
       <div className="flex gap-1">
@@ -219,6 +220,7 @@ export function PlantSlotCard(props: {
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
   onTopUpWithKAS: (args: { amountKas: number; added: number }) => void | Promise<void>;
   onRefillBattery: () => void | Promise<void>;
+  onStopMining: () => void;
   onQuickSetup: () => void;
   onInstallPart: (kind: any, id: any) => void;
   onChangePlantType: (type: any, cost: number) => void;
@@ -245,6 +247,8 @@ export function PlantSlotCard(props: {
   const liveDiamonds    = computeLiveDiamonds(s, now);
   const flowPerMin      = computeFlowRatePerMin(s, now);
   const expectedDiamonds = cycle ? cycle.expectedDiamonds : computePlantExpectedDiamonds(props.minecoreState, s);
+  const cycleMinedDisplay = cycle ? liveDiamonds : 0;
+  const cycleTotalDisplay = Math.max(0, expectedDiamonds);
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
@@ -269,25 +273,27 @@ export function PlantSlotCard(props: {
   const preset = MINECORE_PLANT_PRESETS[s.type ?? 'standard'];
   const IconComponent = (Icons as any)[preset.icon] ?? Icons.CircleDot;
 
-  // ── Title accessory — live diamond display ───────────────────────────────
+  // ── Title accessory — mined / cycle total (green / amber) ─────────────────
   const titleAccessory = s.unlocked ? (
     <div className="text-right">
-      <div className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">
-        {cycle ? 'Current' : 'Expected'}
-      </div>
-      <div className="text-lg font-black tabular-nums leading-tight text-amber-500 dark:text-amber-300 sm:text-xl">
-        {(cycle ? liveDiamonds : expectedDiamonds).toLocaleString()}
+      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">This cycle</div>
+      <div className="text-lg font-black tabular-nums leading-tight sm:text-xl">
+        <span className="text-emerald-600 dark:text-emerald-400">{cycleMinedDisplay.toLocaleString()}</span>
+        <span className="text-zinc-400 dark:text-zinc-500"> / </span>
+        <span className="text-amber-500 dark:text-amber-300">{cycleTotalDisplay.toLocaleString()}</span>
       </div>
       {s.diamondsAccumulated > 0 && (
-        <div className="text-[9px] font-black text-amber-600/80 dark:text-amber-400/80 uppercase">
-          + {s.diamondsAccumulated.toLocaleString()} Stored
-        </div>
+        <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">Banked: {s.diamondsAccumulated.toLocaleString()} D</div>
       )}
-      <div className="text-[9px] font-semibold text-amber-700/80 dark:text-amber-200/70">
+      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">
         {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Diamonds / cycle'}
       </div>
     </div>
   ) : null;
+
+  const canStopCycle = Boolean(cycle && (s.status === 'MiningActive' || s.status === 'BatteryEmpty'));
+  const canRestartFromToggle =
+    s.status === 'ReadyToMine' && !cycle && s.diamondsAccumulated === 0 && computePlantReady(s);
 
   return (
     <>
@@ -318,7 +324,7 @@ export function PlantSlotCard(props: {
 
           {/* ── Setup checklist ── */}
           <div className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-1 px-2 pt-1">Setup</div>
+            <div className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1 px-2 pt-1">Setup</div>
             <CheckRow
               installed={!!s.setup.machineId}
               label="Machine"
@@ -379,15 +385,17 @@ export function PlantSlotCard(props: {
           {/* ── Resource bars ── */}
           {s.unlocked && (
             <div className="space-y-3">
-              {/* Cycle progress bar */}
-              {cycle && (
-                <ResourceBar
-                  label={`Cycle progress — ${formatDuration(cycleRemainingMs)} left`}
-                  value={`${Math.round(cycleProgress * 100)}%`}
-                  ratio={cycleProgress}
-                  variant="cycle"
-                />
-              )}
+              {/* Cycle progress bar (always when plant has components; idle = empty bar) */}
+              <ResourceBar
+                label={
+                  cycle
+                    ? `Cycle progress — ${formatDuration(cycleRemainingMs)} left`
+                    : 'Cycle progress — no active cycle'
+                }
+                value={cycle ? `${Math.round(cycleProgress * 100)}%` : '0%'}
+                ratio={cycle ? cycleProgress : 0}
+                variant="cycle"
+              />
 
               {/* Battery charge bar */}
               {capacityMs > 0 && (
@@ -404,14 +412,25 @@ export function PlantSlotCard(props: {
             </div>
           )}
 
-          {/* ── Refill battery button (shown when low/empty) ── */}
-          {s.unlocked && s.setup.batteryId && (batteryLow || batteryEmpty || s.status === 'NeedsPower') && (
+          {/* Stop / start mining (single control) */}
+          {s.unlocked && computePlantReady(s) && (canStopCycle || canRestartFromToggle) && (
             <button
               type="button"
-              onClick={() => props.onRefillBattery()}
+              onClick={() => (canStopCycle ? props.onStopMining() : props.onStart())}
+              className="w-full rounded-xl border border-zinc-300 bg-zinc-100 py-2 text-xs font-semibold text-zinc-800 transition-colors hover:bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+            >
+              {canStopCycle ? 'Stop mining' : 'Start mining'}
+            </button>
+          )}
+
+          {/* Refill battery — available anytime a battery is installed (including while mining) */}
+          {s.unlocked && s.setup.batteryId && (
+            <button
+              type="button"
+              onClick={() => void props.onRefillBattery()}
               className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-500/20 dark:border-sky-400/30 dark:text-sky-300 dark:hover:bg-sky-500/20"
             >
-              ⚡ Refill Battery — 2.5 KAS
+              Refill battery — 2.5 KAS
             </button>
           )}
         </div>
