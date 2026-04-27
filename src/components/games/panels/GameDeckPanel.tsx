@@ -8,7 +8,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 export type GameDeckResource = {
   id: string;
   label: string;
-  value: string;
+  value: ReactNode;
   subValue?: string;
   description?: string;
   tooltip?: string;
@@ -170,7 +170,13 @@ export function GameDeckPanel(props: {
                   {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
                 </div>
                 <div className="text-right">
-                  <div className={`text-base font-black tabular-nums ${accentValueClass(r.accent)}`}>{r.value}</div>
+                  <div
+                    className={`text-base font-black tabular-nums ${
+                      typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
+                    }`}
+                  >
+                    {r.value}
+                  </div>
                   {r.subValue ? (
                     <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
                       {r.subValue}

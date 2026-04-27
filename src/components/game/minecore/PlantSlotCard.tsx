@@ -30,6 +30,8 @@ import {
   MINECORE_MACHINES,
   MINECORE_MODULES,
   MINECORE_MAX_MODULES_BY_PLANT,
+  MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
+  MINECORE_PLANT_BASE_POWER_UNITS,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_PLANT_REPAIR_KAS,
@@ -142,16 +144,21 @@ function CheckRow(props: {
   statTone?: 'default' | 'rose';
   tooltip: string;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   const statCls =
     props.statTone === 'rose'
       ? 'text-[10px] font-bold flex-shrink-0 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
       : 'text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded';
+  const interactive = Boolean(props.onClick) && !props.disabled;
   return (
     <Tooltip content={props.tooltip}>
       <div
-        className="flex items-center gap-2 py-2 px-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer transition-colors group"
-        onClick={props.onClick}
+        className={`flex items-center gap-2 py-2 px-2 rounded-lg transition-colors group ${
+          interactive ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer' : 'cursor-not-allowed opacity-55'
+        }`}
+        onClick={interactive ? props.onClick : undefined}
+        aria-disabled={props.disabled || undefined}
       >
         <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
           {props.installed ? '✓' : '✗'}
@@ -163,7 +170,9 @@ function CheckRow(props: {
           {props.value ?? 'Tap to assign…'}
         </span>
         {props.stat ? <span className={statCls}>{props.stat}</span> : null}
-        <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
+        {interactive ? (
+          <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
+        ) : null}
       </div>
     </Tooltip>
   );
@@ -266,8 +275,8 @@ function DailyCapBar(props: {
 
   const tip =
     props.cap > 0
-      ? `Your personal 24h diamond budget for this plant (from when it was activated). Counts diamonds still here plus what you extracted or refined from this plant in the current window. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
-      : 'Finish setup to see how many diamonds this plant can produce per 24h at your current power balance. The timer is tied to this plant, not global midnight.';
+      ? `Rolling 24h extraction budget for this plant (from activation). Cap = plant base + rig bonuses (boost & battery yield), before live power efficiency. Progress counts diamonds on-site plus extracted/refined from this plant in the window. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
+      : 'Finish setup to see your rolling 24h cap. The timer follows this plant, not global midnight.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
 }
@@ -373,6 +382,10 @@ export function PlantSlotCard(props: {
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
 
+  useEffect(() => {
+    if (s.status === 'MiningActive' && activeModal) setActiveModal(null);
+  }, [s.status, activeModal]);
+
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
 
@@ -450,10 +463,20 @@ export function PlantSlotCard(props: {
 
   const buyDisabled = false;
 
-  const canEditParts = !s.cycle || s.cycle.pauseBeganAtMs != null;
+  /** Setup changes only when not actively mining (paused / idle / extraction is OK). */
+  const canEditParts = s.status !== 'MiningActive';
 
   const preset = MINECORE_PLANT_PRESETS[s.type ?? 'standard'];
   const IconComponent = (Icons as any)[preset.icon] ?? Icons.CircleDot;
+
+  const showFeaturedPlantArt = s.unlocked;
+  const plantFeaturedUrl = showFeaturedPlantArt ? preset.featuredImageUrl : undefined;
+  const baseCapDisplay = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[s.type ?? 'standard'];
+  const baseUnitsDisplay = MINECORE_PLANT_BASE_POWER_UNITS[s.type ?? 'standard'];
+  const moduleBadgeCopy =
+    s.type === 'standard' ? 'No modules' : s.type === 'premium' ? 'Premium modules' : 'Advanced modules';
+  const statCapsuleCls =
+    'inline-flex max-w-full items-center rounded-full border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm backdrop-blur-sm';
 
   /** Primary CTA: orange when paused, neutral gray when mining; default games CTA for other states. */
   const buyButtonClassName =
@@ -463,15 +486,15 @@ export function PlantSlotCard(props: {
         ? 'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-zinc-300 bg-zinc-200 text-zinc-800 shadow-sm transition-colors hover:bg-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
         : undefined;
 
-  const plantFeaturedUrl = preset.featuredImageUrl;
-
   return (
     <>
     <GameItemCard
       icon={
-        plantFeaturedUrl ? undefined : (
+        !showFeaturedPlantArt ? (
+          <Icons.Factory className="h-14 w-14 text-zinc-400 dark:text-zinc-500" aria-hidden />
+        ) : plantFeaturedUrl ? undefined : (
           <div
-            className="cursor-pointer group relative"
+            className={`group relative ${canEditParts ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
             onClick={() => canEditParts && setActiveModal('preset')}
           >
             <div className="absolute inset-0 bg-sky-500/10 rounded-full scale-125 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -481,7 +504,16 @@ export function PlantSlotCard(props: {
       }
       imageSrc={plantFeaturedUrl}
       imageAlt={preset.label}
-      onMediaClick={plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
+      onMediaClick={showFeaturedPlantArt && plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
+      mediaOverlayBottom={
+        showFeaturedPlantArt && plantFeaturedUrl ? (
+          <>
+            <span className={statCapsuleCls}>{baseCapDisplay.toLocaleString()} Diamonds</span>
+            <span className={statCapsuleCls}>{baseUnitsDisplay} Units</span>
+            <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
+          </>
+        ) : undefined
+      }
       title={`Mining Plant ${s.index + 1}`}
       category={preset.label}
       description={
@@ -510,7 +542,10 @@ export function PlantSlotCard(props: {
           </div>
 
           {/* ── Setup checklist ── */}
-          <div className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
+          <div
+            className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5"
+            title={!canEditParts ? 'Stop mining to change machines, batteries, workers, or modules.' : undefined}
+          >
             <div className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1 px-2 pt-1">Setup</div>
             <CheckRow
               installed={!!s.setup.machineId}
@@ -523,7 +558,8 @@ export function PlantSlotCard(props: {
                   ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} drain. Reserve grid +${machineConfig.powerGridContribution} (+ battery units), charge budget ×${machineConfig.powerBudgetMultiplier.toFixed(2)}.`
                   : 'No machine installed. Click to assign one.'
               }
-              onClick={() => canEditParts && setActiveModal('machine')}
+              onClick={() => setActiveModal('machine')}
+              disabled={!canEditParts}
             />
             <CheckRow
               installed={!!s.setup.batteryId}
@@ -531,7 +567,8 @@ export function PlantSlotCard(props: {
               value={batteryConfig?.label}
               stat={batteryConfig ? `${Math.round(batteryConfig.chargeCapacityMs / 60000)}m` : undefined}
               tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Click to assign one.'}
-              onClick={() => canEditParts && setActiveModal('battery')}
+              onClick={() => setActiveModal('battery')}
+              disabled={!canEditParts}
             />
             <CheckRow
               installed={!!s.setup.workerId}
@@ -547,7 +584,8 @@ export function PlantSlotCard(props: {
                   ? `${workerConfig.label}: Worker bonus +${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% diamond output; −${(workerConfig.energyUseReduction * 100).toFixed(0)}% draw; +${workerConfig.efficiencyBonus} eff. pts under deficit.`
                   : 'No worker assigned. Click to assign one.'
               }
-              onClick={() => canEditParts && setActiveModal('worker')}
+              onClick={() => setActiveModal('worker')}
+              disabled={!canEditParts}
             />
             <CheckRow
               installed={s.setup.moduleIds.length > 0}
@@ -556,37 +594,12 @@ export function PlantSlotCard(props: {
               stat={s.type === 'standard' ? 'LOCKED' : undefined}
               tooltip={s.type === 'standard' ? 'Standard plants do not support modules. Upgrade to Premium or Advanced to unlock module slots.' : 'Specialized hardware to boost output or reduce failure rates.'}
               onClick={() => {
-                if (s.type === 'standard') {
-                  canEditParts && setActiveModal('preset');
-                } else if (canEditParts) {
-                  setActiveModal('modules');
-                }
+                if (s.type === 'standard') setActiveModal('preset');
+                else setActiveModal('modules');
               }}
+              disabled={!canEditParts}
             />
           </div>
-
-          {/* ── Status warnings ── */}
-          {s.status === 'SetupIncomplete' && (
-            <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
-          )}
-          {batteryEmpty && s.status !== 'MiningPaused' && (
-            <WarningBanner level="error" message="Battery depleted in this run — extract partial rewards or recharge, then you can start again (or resume if you paused to change parts)." />
-          )}
-          {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
-            <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
-          )}
-          {s.status === 'InsufficientPower' && (
-            <WarningBanner
-              level="warn"
-              message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise production (battery/machine grid) or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
-            />
-          )}
-          {s.status === 'NeedsPower' && (
-            <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
-          )}
-          {s.status === 'NeedsRepair' && (
-            <WarningBanner level="error" message="🔧 Plant damaged — repair required before resuming." />
-          )}
 
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
@@ -647,6 +660,31 @@ export function PlantSlotCard(props: {
               {`Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
             </button>
           ) : null}
+
+          {/* ── Status warnings (above primary action) ── */}
+          <div className="space-y-2">
+            {s.status === 'SetupIncomplete' && (
+              <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
+            )}
+            {batteryEmpty && s.status !== 'MiningPaused' && (
+              <WarningBanner level="error" message="Battery depleted in this run — extract partial rewards or recharge, then you can start again (or resume if you paused to change parts)." />
+            )}
+            {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
+              <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
+            )}
+            {s.status === 'InsufficientPower' && (
+              <WarningBanner
+                level="warn"
+                message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise production (battery/machine grid) or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
+              />
+            )}
+            {s.status === 'NeedsPower' && (
+              <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
+            )}
+            {s.status === 'NeedsRepair' && (
+              <WarningBanner level="error" message="🔧 Plant damaged — repair required before resuming." />
+            )}
+          </div>
         </div>
       }
       effects={[]}

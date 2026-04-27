@@ -8,7 +8,7 @@ import {
   canStartMiningByEfficiency,
   computeExpectedDiamondsForCycle,
   computeEffectiveCycleDurationMs,
-  computePlantDiamondsPer24h,
+  computePlantRollingDailyCapCeiling,
 } from './plant-economy';
 import { rollPlantRollingDailyCapIfNeeded } from './daily-cap';
 
@@ -164,11 +164,28 @@ export function computePlantDailyCapProgress(
   now: number,
 ): { minedTowardCap: number; cap24h: number; ratio: number } {
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-  const cap24h = rolled.unlocked ? computePlantDiamondsPer24h(state, rolled) : 0;
+  const cap24h = rolled.unlocked ? computePlantRollingDailyCapCeiling(state, rolled) : 0;
   const live = rolled.cycle ? computeLiveDiamonds(rolled, now) : 0;
   const minedTowardCap = rolled.dailyCapMinedDiamonds + rolled.diamondsAccumulated + live;
   const ratio = cap24h > 0 ? Math.min(1, minedTowardCap / cap24h) : 0;
   return { minedTowardCap, cap24h, ratio };
+}
+
+/** Game Deck: sum rolling-cap progress across unlocked plants with complete setup. */
+export function computeMinecoreRollingDailyCapDeckTotals(
+  state: MinecoreState,
+  now: number,
+): { minedSum: number; capSum: number } {
+  let minedSum = 0;
+  let capSum = 0;
+  for (const slot of state.plantSlots) {
+    if (!slot.unlocked || !computePlantReady(slot)) continue;
+    const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
+    const p = computePlantDailyCapProgress(state, rolled, now);
+    minedSum += p.minedTowardCap;
+    capSum += p.cap24h;
+  }
+  return { minedSum, capSum };
 }
 
 // ── Status derivation ────────────────────────────────────────────────────────

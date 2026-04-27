@@ -44,7 +44,7 @@ export function MinecoreMiningSections(props: { state: MinecoreState }) {
       <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
           Vein breakdown (by machine)
-          <GameTooltip content="Totals use the Minecore economy: diamonds per 24h from plant base, machine rate, worker bonus, modules, battery, boost, and power efficiency. Cycle column is one full run at current setup.">
+          <GameTooltip content="Totals use the Minecore economy: effective D/24h applies live power efficiency to your rolling cap ceiling (plant base + capped rig throughput + worker/output modules × boost × battery). Cycle column is one full run at current setup.">
             <button
               type="button"
               className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"

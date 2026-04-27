@@ -2,6 +2,7 @@ import {
   MINECORE_BATTERIES,
   MINECORE_BOOSTS,
   MINECORE_DAY_MS,
+  MINECORE_DAILY_CAP_MAX_MACHINE_MULT,
   MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
@@ -114,37 +115,50 @@ export function canStartMiningByEfficiency(slot: PlantSlotState): boolean {
   return computeMiningEfficiencyPct(slot) >= MINECORE_MIN_MINING_EFFICIENCY_PCT;
 }
 
-function sumOutputModuleBonuses(slot: PlantSlotState): number {
-  if (slot.type === 'standard') return 0;
-  let s = 0;
-  for (const id of slot.setup.moduleIds) {
-    const mod = MINECORE_MODULES[id];
-    if (mod?.kind === 'output') s += mod.outputBonus;
-  }
-  return s;
+function slotSetupComplete(slot: PlantSlotState): boolean {
+  return Boolean(slot.setup.machineId && slot.setup.batteryId && slot.setup.workerId);
 }
 
 /**
- * Diamonds producible per 24h at current setup (deterministic from slot + boost + battery).
+ * Maximum diamonds credited toward this plant's rolling 24h window at full mining efficiency.
+ * Structure: plant base + capped machine throughput + additive worker/output-module bonuses × boost × battery yield.
+ * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
-export function computePlantDiamondsPer24h(_state: MinecoreState, slot: PlantSlotState): number {
+export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: PlantSlotState): number {
+  if (!slot.unlocked || !slotSetupComplete(slot)) return 0;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const worker = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
   const battery = slot.setup.batteryId ? MINECORE_BATTERIES[slot.setup.batteryId] : null;
   const boost = MINECORE_BOOSTS[slot.setup.boostId];
-
   if (!machine || !worker || !battery) return 0;
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
-  const machine24 = machineDiamondsPer24h(slot);
-  const core = base + machine24;
-  const afterWorker = core * (1 + worker.diamondOutputBonus);
-  const outputMods = sumOutputModuleBonuses(slot);
-  const afterModules = afterWorker + core * outputMods;
-  const afterBoost = afterModules * boost.multiplier;
-  const afterBattery = afterBoost * battery.efficiency;
+  const rawMachine24 = machineDiamondsPer24h(slot);
+  const machineCap = Math.floor(base * MINECORE_DAILY_CAP_MAX_MACHINE_MULT);
+  const machinePart = Math.min(rawMachine24, machineCap);
+
+  const workerPart = Math.round((base + machinePart) * worker.diamondOutputBonus);
+  let modulePart = 0;
+  if (slot.type !== 'standard') {
+    for (const id of slot.setup.moduleIds) {
+      const mod = MINECORE_MODULES[id];
+      if (mod?.kind === 'output') modulePart += Math.round((base + machinePart) * mod.outputBonus);
+    }
+  }
+
+  const subtotal = base + machinePart + workerPart + modulePart;
+  const afterGear = subtotal * boost.multiplier * battery.efficiency;
+  return Math.max(0, Math.floor(afterGear));
+}
+
+/**
+ * Expected diamonds per 24h at current setup and live power efficiency (0–100%).
+ */
+export function computePlantDiamondsPer24h(state: MinecoreState, slot: PlantSlotState): number {
+  const ceiling = computePlantRollingDailyCapCeiling(state, slot);
+  if (ceiling <= 0) return 0;
   const effPct = computeMiningEfficiencyPct(slot);
-  return Math.max(0, Math.floor((afterBattery * effPct) / 100));
+  return Math.max(0, Math.floor((ceiling * effPct) / 100));
 }
 
 /**

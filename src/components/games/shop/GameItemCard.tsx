@@ -32,6 +32,8 @@ export function GameItemCard(props: {
   onMediaClick?: () => void;
   /** Optional overlay in the media area. */
   mediaOverlay?: React.ReactNode;
+  /** Optional bottom overlay (e.g. plant stat capsules). */
+  mediaOverlayBottom?: React.ReactNode;
   /** Optional content aligned right in the title row (below media). */
   titleAccessory?: React.ReactNode;
   title: string;
@@ -118,6 +120,9 @@ export function GameItemCard(props: {
         </div>
         {props.mediaOverlay ? (
           <div className="pointer-events-none absolute right-3 top-3 z-20 max-w-[55%] text-right sm:right-4 sm:top-4">{props.mediaOverlay}</div>
+        ) : null}
+        {props.mediaOverlayBottom ? (
+          <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap gap-1.5">{props.mediaOverlayBottom}</div>
         ) : null}
       </KxListingCardMedia>
 

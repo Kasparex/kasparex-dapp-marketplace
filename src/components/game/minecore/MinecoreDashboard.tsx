@@ -11,7 +11,7 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { computeMinecoreDiamondsDisplayTotal } from '@/lib/game/minecore/compute';
+import { computeMinecoreDiamondsDisplayTotal, computeMinecoreRollingDailyCapDeckTotals } from '@/lib/game/minecore/compute';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
@@ -51,8 +51,19 @@ export function MinecoreDashboard(_props: {
   game?: any;
   gameName?: string;
 }) {
-  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet, nowTick, miningAllowed, profileNotice } =
-    useMinecore();
+  const {
+    state,
+    actions,
+    lastPaymentError,
+    dismissLastPaymentError,
+    getKasPriceAfterDiscount,
+    slottedMetadata,
+    wallet,
+    nowTick,
+    miningAllowed,
+    profileNotice,
+    dismissProfileNotice,
+  } = useMinecore();
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as keyof typeof KREX_TIER_SHOP_DISCOUNT_PCT] ?? 0;
@@ -104,6 +115,7 @@ export function MinecoreDashboard(_props: {
   const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;
 
   const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state, nowTick));
+  const deckRollingCaps = useMemo(() => computeMinecoreRollingDailyCapDeckTotals(state, nowTick), [state, nowTick]);
 
   const openOverview = () => {
     setTab('overview');
@@ -119,11 +131,16 @@ export function MinecoreDashboard(_props: {
       {
         id: 'diamonds',
         label: 'Diamonds',
-        value: diamondsDisplayTotal.toLocaleString(),
+        value: (
+          <span className="inline-flex items-baseline gap-1">
+            <span className="text-amber-400 dark:text-amber-300">{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
+            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{Math.floor(deckRollingCaps.capSum).toLocaleString()}</span>
+          </span>
+        ),
         subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} Refinement Points`,
-        description: 'Mined diamonds ready to refine',
-        tooltip:
-          'All diamonds: wallet plus any still in your plants (including active runs). Refined the same in Redeem. Click to open Mining.',
+        description: 'Rolling 24h cap (all active plants) · header shows total D on hand',
+        tooltip: `Diamonds mined toward rolling 24h caps vs combined cap for all unlocked plants with complete setup: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()}. Top bar: ${diamondsDisplayTotal.toLocaleString()} total diamonds (wallet + in plants).`,
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -157,6 +174,8 @@ export function MinecoreDashboard(_props: {
       },
     ],
     [
+      deckRollingCaps.minedSum,
+      deckRollingCaps.capSum,
       diamondsDisplayTotal,
       state.refinementPointsTotal,
       krexL1Balance,
@@ -171,6 +190,38 @@ export function MinecoreDashboard(_props: {
   const connections = (_props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
+
+  const tabAlerts =
+    profileNotice || lastPaymentError ? (
+      <div className="space-y-3">
+        {profileNotice ? (
+          <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
+            <button
+              type="button"
+              onClick={() => dismissProfileNotice()}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 text-sky-700 transition-colors hover:bg-sky-500/20 dark:text-sky-200 dark:hover:bg-sky-500/15"
+              aria-label="Dismiss notice"
+            >
+              <Icons.X className="h-4 w-4" />
+            </button>
+            {profileNotice}
+          </div>
+        ) : null}
+        {lastPaymentError ? (
+          <div className="relative rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 pr-11 text-sm font-semibold text-rose-800 dark:text-rose-200">
+            <button
+              type="button"
+              onClick={() => dismissLastPaymentError()}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/30 text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-200 dark:hover:bg-rose-500/15"
+              aria-label="Dismiss error"
+            >
+              <Icons.X className="h-4 w-4" />
+            </button>
+            {lastPaymentError}
+          </div>
+        ) : null}
+      </div>
+    ) : null;
 
   return (
     <TooltipProvider>
@@ -218,6 +269,7 @@ export function MinecoreDashboard(_props: {
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
+          tabAlerts={tabAlerts}
         >
           {tab === 'overview' && (
             <div className="space-y-6">
@@ -238,12 +290,6 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'mining' && (
             <div className="space-y-6">
-              {lastPaymentError ? (
-                <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm font-semibold text-rose-800 dark:text-rose-200">
-                  {lastPaymentError}
-                </div>
-              ) : null}
-
               <CardsFilterBar
                 searchQuery={miningSearch}
                 onSearchChange={setMiningSearch}

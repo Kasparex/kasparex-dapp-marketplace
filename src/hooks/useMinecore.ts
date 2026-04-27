@@ -412,6 +412,8 @@ export function useMinecore() {
     slottedMetadata,
     miningAllowed,
     profileNotice,
+    dismissProfileNotice: () => setProfileNotice(null),
+    dismissLastPaymentError: () => setLastPaymentError(null),
     wallet: {
       isConnected: walletState.isConnected,
       address: walletState.address ?? null,

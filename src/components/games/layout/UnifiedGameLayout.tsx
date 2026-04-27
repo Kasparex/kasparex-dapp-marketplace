@@ -25,6 +25,8 @@ interface UnifiedGameLayoutProps {
   deckFooter?: ReactNode;
   /** Renders below the Game Deck card (e.g. Minecore owned assets). */
   belowDeck?: ReactNode;
+  /** Renders under tab bar (dismissible alerts, etc.). */
+  tabAlerts?: ReactNode;
 }
 
 export function UnifiedGameLayout({
@@ -37,11 +39,13 @@ export function UnifiedGameLayout({
   onOpenOverview,
   deckFooter,
   belowDeck,
+  tabAlerts,
 }: UnifiedGameLayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
       <div className="flex flex-col space-y-6 lg:col-span-8">
         <GameTabs tabs={tabs} value={currentTab} onChange={onTabChange} />
+        {tabAlerts}
         {children}
       </div>
 

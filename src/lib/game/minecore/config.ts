@@ -17,12 +17,25 @@ export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 /** 24h window for diamonds/day and cycle scaling. */
 export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Base diamond output per 24h from plant infrastructure (additive before machine). */
+/** Base diamond output per 24h from plant infrastructure (rolling daily cap baseline). */
 export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
-  standard: 80,
-  premium: 200,
-  advanced: 450,
+  standard: 100,
+  premium: 250,
+  advanced: 500,
 };
+
+/** Base reserve power units for plant tier (facility capacity; shown on cards). */
+export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
+  standard: 1,
+  premium: 2,
+  advanced: 4,
+};
+
+/**
+ * Rig throughput toward rolling daily cap cannot exceed this multiple of the plant base
+ * (prevents huge machines from exploding the 24h budget).
+ */
+export const MINECORE_DAILY_CAP_MAX_MACHINE_MULT = 5;
 
 /** kW display scale: production/consumption derived from grid + draw factors. */
 export const MINECORE_KW_SCALE = 4;
