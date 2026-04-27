@@ -48,7 +48,8 @@ export function MinecoreDashboard(_props: {
   game?: any;
   gameName?: string;
 }) {
-  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet, nowTick } = useMinecore();
+  const { state, actions, lastPaymentError, getKasPriceAfterDiscount, slottedMetadata, wallet, nowTick, miningAllowed, profileNotice } =
+    useMinecore();
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const [tab, setTab] = useState<TabId>('overview');
@@ -76,7 +77,12 @@ export function MinecoreDashboard(_props: {
       if (miningCategory === 'Unlocked') list = list.filter(s => s.unlocked);
       if (miningCategory === 'Locked') list = list.filter(s => !s.unlocked);
       if (miningCategory === 'Active') {
-        list = list.filter((s) => s.status === 'MiningActive' || s.status === 'MiningPaused');
+        list = list.filter(
+          (s) =>
+            s.status === 'MiningActive' ||
+            s.status === 'MiningPaused' ||
+            s.status === 'InsufficientPower',
+        );
       }
     }
     if (miningSort === 'price_asc') {
@@ -396,6 +402,13 @@ export function MinecoreDashboard(_props: {
                 localLedger={state.gridLedger ?? []}
                 onRefine={actions.refine}
                 onRedeem={actions.redeemGrid}
+                minecoreExtras={{
+                  redeemBudgetDayKey: state.redeemBudget?.dayKey,
+                  refinementPointsSpentOnGrid: state.redeemBudget?.refinementPointsSpentOnGrid,
+                  refinementPointsSpentOnKrex: state.redeemBudget?.refinementPointsSpentOnKrex,
+                  gridRedeemablePending: state.gridRedeemableTotal,
+                  krexRedeemablePending: state.krexRedeemableTotal,
+                }}
               />
             </div>
           )}

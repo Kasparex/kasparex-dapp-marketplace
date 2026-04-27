@@ -1,6 +1,7 @@
-import type { MinecoreState, PlantSlotState } from './types';
+import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
+import { minecoreUtcDayKey } from './plant-economy';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object';
@@ -57,12 +58,33 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     ? plantSlotsRaw.map((s, i) => hydrateSlot(s, i))
     : base.plantSlots;
 
+  const rawBudget = isRecord(input.redeemBudget) ? input.redeemBudget : null;
+  const redeemBudget: MinecoreRedeemBudget = rawBudget
+    ? {
+        dayKey:
+          typeof rawBudget.dayKey === 'string' && rawBudget.dayKey.length >= 8
+            ? rawBudget.dayKey
+            : minecoreUtcDayKey(Date.now()),
+        refinementPointsSpentOnGrid:
+          typeof rawBudget.refinementPointsSpentOnGrid === 'number'
+            ? rawBudget.refinementPointsSpentOnGrid
+            : 0,
+        refinementPointsSpentOnKrex:
+          typeof rawBudget.refinementPointsSpentOnKrex === 'number'
+            ? rawBudget.refinementPointsSpentOnKrex
+            : 0,
+      }
+    : base.redeemBudget;
+
   const out: MinecoreState = {
     ...base,
     version: typeof input.version === 'number' ? input.version : base.version,
     diamondsBalance: typeof input.diamondsBalance === 'number' ? input.diamondsBalance : base.diamondsBalance,
     refinementPointsTotal: typeof input.refinementPointsTotal === 'number' ? input.refinementPointsTotal : base.refinementPointsTotal,
     gridRedeemableTotal: typeof input.gridRedeemableTotal === 'number' ? input.gridRedeemableTotal : base.gridRedeemableTotal,
+    krexRedeemableTotal:
+      typeof input.krexRedeemableTotal === 'number' ? input.krexRedeemableTotal : base.krexRedeemableTotal,
+    redeemBudget,
     ingredients: isRecord(input.ingredients) ? ({ ...base.ingredients, ...(input.ingredients as any) } as any) : base.ingredients,
     owned: isRecord(input.owned) ? ({ ...base.owned, ...(input.owned as any) } as any) : base.owned,
     plantSlots,

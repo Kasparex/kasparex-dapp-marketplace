@@ -49,7 +49,9 @@ export type PlantCardStatus =
   | 'BatteryEmpty'   // was running but battery charge ran to zero mid-cycle
   | 'ExtractionReady'
   | 'NeedsRepair'
-  | 'NeedsPower';
+  | 'NeedsPower'
+  /** Production below consumption beyond playable threshold — cannot start a cycle. */
+  | 'InsufficientPower';
 
 export type IngredientBag = Record<MinecoreIngredient, number>;
 
@@ -103,11 +105,20 @@ export type MinecoreAutomationState = {
   foremanActive:  boolean;
 };
 
+/** Client-side redeem budget (honest mode until server enforces pool). */
+export type MinecoreRedeemBudget = {
+  /** UTC calendar day `YYYY-MM-DD` for daily caps. */
+  dayKey: string;
+  refinementPointsSpentOnGrid: number;
+  refinementPointsSpentOnKrex: number;
+};
+
 export type MinecoreState = {
   version:                  number;
   diamondsBalance:          number;
   refinementPointsTotal:    number;
   gridRedeemableTotal:      number;
+  krexRedeemableTotal:      number;
   ingredients:              IngredientBag;
   owned:                    OwnedItems;
   plantSlots:               PlantSlotState[];
@@ -117,6 +128,7 @@ export type MinecoreState = {
   automation:               MinecoreAutomationState;
   lastConnectedAt:          number | null;
   lastConnectedAddress:     string | null;
+  redeemBudget:             MinecoreRedeemBudget;
 };
 
 export type MinecoreEvent =
@@ -150,5 +162,11 @@ export type MinecoreEvent =
   | { type: 'Extract';      slotIndex: number; at: number }
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
   | { type: 'Repair';       slotIndex: number; at: number }
-  | { type: 'Refine';       at: number; amount: number }
-  | { type: 'RedeemGrid';   at: number; points: number };
+  | { type: 'Refine';       at: number; amount: number; walletAddress: string }
+  | {
+      type: 'RedeemGrid';
+      at: number;
+      points: number;
+      token: 'GRID' | 'KREX';
+      walletAddress: string;
+    };

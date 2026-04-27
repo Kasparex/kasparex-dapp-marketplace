@@ -14,8 +14,61 @@ export const MINECORE_DEFAULT_PLANT_SLOTS = 4;
 export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 1;
 export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 
-export const MINECORE_REFINE_RATE = 1; // 1 diamond -> 1 refinement point (V1 placeholder)
-export const MINECORE_GRID_REDEEM_RATE = 1; // 1 point -> 1 GRID redeemable (V1 placeholder)
+/** 24h window for diamonds/day and cycle scaling. */
+export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Base diamond output per 24h from plant infrastructure (additive before machine). */
+export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
+  standard: 80,
+  premium: 200,
+  advanced: 450,
+};
+
+/** kW display scale: production/consumption derived from grid + draw factors. */
+export const MINECORE_KW_SCALE = 4;
+
+export const MINECORE_PLANT_BASE_PRODUCTION_KW: Record<PlantType, number> = {
+  standard: 6,
+  premium: 14,
+  advanced: 28,
+};
+
+/** Below this efficiency %, a new mining cycle cannot start (`InsufficientPower`). */
+export const MINECORE_MIN_MINING_EFFICIENCY_PCT = 12;
+
+/** Large deficit: efficiency treated as 0 for mining. */
+export const MINECORE_POWER_CRITICAL_RATIO = 0.45;
+
+/** Refinement: points per diamond before module bonuses. */
+export const MINECORE_REFINE_POINTS_PER_DIAMOND = 1;
+/** @deprecated Use MINECORE_REFINE_POINTS_PER_DIAMOND */
+export const MINECORE_REFINE_RATE = MINECORE_REFINE_POINTS_PER_DIAMOND;
+
+/** Redeem: tokens per refinement point (single source of truth for UI + logic). */
+export const MINECORE_GRID_PER_REFINEMENT_POINT = 10;
+export const MINECORE_KREX_PER_REFINEMENT_POINT = 5;
+/** @deprecated Use MINECORE_GRID_PER_REFINEMENT_POINT */
+export const MINECORE_GRID_REDEEM_RATE = MINECORE_GRID_PER_REFINEMENT_POINT;
+
+/** Daily refinement points that can be redeemed per token (client honest mode). */
+export const MINECORE_DAILY_GRID_POINTS_CAP = 5_000;
+export const MINECORE_DAILY_KREX_POINTS_CAP = 2_000;
+
+/**
+ * Display-only “pool remaining” for Redeem UI until server authority exists.
+ * Override via env in deployment.
+ */
+export const MINECORE_DISPLAY_POOL_GRID_REMAINING = (() => {
+  const raw = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_MINECORE_POOL_GRID;
+  const n = raw != null && raw !== '' ? Number(String(raw).replace(/_/g, '')) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : 1_000_000;
+})();
+
+export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
+  const raw = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_MINECORE_POOL_KREX;
+  const n = raw != null && raw !== '' ? Number(String(raw).replace(/_/g, '')) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : 250_000;
+})();
 
 /** KAS cost for the combined plant recharge: +1 reserve unit and full battery (KREX discount at call site). */
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
@@ -151,20 +204,114 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'void-core-cell': { id: 'void-core-cell', label: 'Void Core Cell', efficiency: 1.35, powerCapacity: 5, chargeCapacityMs: 240 * 60_000 },
 };
 
-export type WorkerConfig = { id: MinecoreWorkerId; label: string; multiplier: number };
+export type WorkerConfig = {
+  id: MinecoreWorkerId;
+  label: string;
+  /** Legacy compound; prefer named bonuses. Kept for calculator compatibility. */
+  multiplier: number;
+  /** +% diamond output vs base+machine stack (e.g. 0.1 = Worker +10%). */
+  diamondOutputBonus: number;
+  /** Reduces consumption kW by this fraction (0–1). */
+  energyUseReduction: number;
+  /** +efficiency floor under power deficit (percentage points). */
+  efficiencyBonus: number;
+  /** +% refinement points at refine time (hub-safe label: GRID reward bonus). */
+  gridRewardBonus: number;
+};
 export const MINECORE_WORKERS: Record<MinecoreWorkerId, WorkerConfig> = {
-  worker:   { id: 'worker',   label: 'Worker',   multiplier: 1.1 },
-  operator: { id: 'operator', label: 'Operator', multiplier: 1.5 },
+  worker: {
+    id: 'worker',
+    label: 'Worker',
+    multiplier: 1.1,
+    diamondOutputBonus: 0.1,
+    energyUseReduction: 0.05,
+    efficiencyBonus: 2,
+    gridRewardBonus: 0,
+  },
+  operator: {
+    id: 'operator',
+    label: 'Operator',
+    multiplier: 1.5,
+    diamondOutputBonus: 0.5,
+    energyUseReduction: 0.1,
+    efficiencyBonus: 5,
+    gridRewardBonus: 0.05,
+  },
 };
 
-export type ModuleConfig = { id: MinecoreModuleId; label: string; outputBonus: number; failureReduction: number };
+export type MinecoreModuleKind = 'output' | 'cooling' | 'automation' | 'stability' | 'refining';
+
+export type ModuleConfig = {
+  id: MinecoreModuleId;
+  label: string;
+  kind: MinecoreModuleKind;
+  /** Output modules: +fraction of (base+machine) per 24h. */
+  outputBonus: number;
+  failureReduction: number;
+  /** Cooling: reduces consumption kW fraction (0–1). */
+  consumptionReduction?: number;
+  /** Automation: lengthens cycle duration by this fraction. */
+  cycleDurationBonus?: number;
+  /** Stability: +efficiency floor under deficit (percentage points). */
+  efficiencyFloorBonus?: number;
+  /** Refining: +fraction to refinement points from this plant’s worker context (applied globally at refine). */
+  refineBonus?: number;
+};
+
 export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
-  'cooling-module': { id: 'cooling-module', label: 'Cooling Module', outputBonus: 0.05, failureReduction: 0.05 },
-  'stability-module': { id: 'stability-module', label: 'Stability Module', outputBonus: 0.04, failureReduction: 0.08 },
-  'aria-sensor': { id: 'aria-sensor', label: 'ARIA Sensor', outputBonus: 0.06, failureReduction: 0.06 },
-  'vector-drill-chip': { id: 'vector-drill-chip', label: 'Vector Drill Chip', outputBonus: 0.08, failureReduction: 0.04 },
-  'regen-coil': { id: 'regen-coil', label: 'Regen Coil', outputBonus: 0.07, failureReduction: 0.03 },
-  'hash-buffer': { id: 'hash-buffer', label: 'Hash Buffer', outputBonus: 0.05, failureReduction: 0.1 },
+  'cooling-module': {
+    id: 'cooling-module',
+    label: 'Cooling Module',
+    kind: 'cooling',
+    outputBonus: 0,
+    failureReduction: 0.05,
+    consumptionReduction: 0.12,
+  },
+  'stability-module': {
+    id: 'stability-module',
+    label: 'Stability Module',
+    kind: 'stability',
+    outputBonus: 0.02,
+    failureReduction: 0.08,
+    efficiencyFloorBonus: 10,
+  },
+  'aria-sensor': {
+    id: 'aria-sensor',
+    label: 'ARIA Sensor',
+    kind: 'output',
+    outputBonus: 0.06,
+    failureReduction: 0.06,
+  },
+  'vector-drill-chip': {
+    id: 'vector-drill-chip',
+    label: 'Vector Drill Chip',
+    kind: 'output',
+    outputBonus: 0.08,
+    failureReduction: 0.04,
+  },
+  'regen-coil': {
+    id: 'regen-coil',
+    label: 'Regen Coil',
+    kind: 'automation',
+    outputBonus: 0.03,
+    failureReduction: 0.03,
+    cycleDurationBonus: 0.1,
+  },
+  'hash-buffer': {
+    id: 'hash-buffer',
+    label: 'Hash Buffer',
+    kind: 'refining',
+    outputBonus: 0,
+    failureReduction: 0.1,
+    refineBonus: 0.08,
+  },
+};
+
+/** Max module slots per plant tier (standard = modules disabled in UI; enforced in reducer). */
+export const MINECORE_MAX_MODULES_BY_PLANT: Record<PlantType, number> = {
+  standard: 0,
+  premium: 2,
+  advanced: 4,
 };
 
 export type BoostConfig = { id: MinecoreBoostId; label: string; multiplier: number };

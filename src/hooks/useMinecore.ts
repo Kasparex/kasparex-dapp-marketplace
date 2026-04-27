@@ -16,12 +16,11 @@ import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sd
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 
-const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
-function storageKey(address: string | null | undefined) {
-  const a = (address ?? '').trim();
-  return a ? `${MINECORE_STORAGE_PREFIX}:${a}` : `${MINECORE_STORAGE_PREFIX}:guest`;
+/** Persisted game state is keyed only by Kaspa L1 address — no shared guest bucket. */
+function walletStorageKey(address: string) {
+  return `${MINECORE_STORAGE_PREFIX}:${address.trim()}`;
 }
 
 function loadPersistedMinecore(key: string): MinecoreState | null {
@@ -48,21 +47,37 @@ export function useMinecore() {
   const { state: walletState } = useKaspaWallet();
   const { tier: krexTier } = useKREXBalance();
 
-  const key = useMemo(() => storageKey(walletState.address ?? null), [walletState.address]);
+  const walletAddr = walletState.address?.trim() ?? '';
 
-  const [mc, setMc] = useState<MinecoreState>(() => loadPersistedMinecore(key) ?? createInitialMinecoreState());
+  const [mc, setMc] = useState<MinecoreState>(() => createInitialMinecoreState());
   const mcRef = useRef(mc);
   mcRef.current = mc;
 
-  useEffect(() => {
-    const loaded = loadPersistedMinecore(key);
-    if (loaded) setMc(loaded);
-    if (!loaded && key.endsWith(':guest')) setMc(createInitialMinecoreState());
-  }, [key]);
+  const [profileNotice, setProfileNotice] = useState<string | null>(null);
+  const prevWalletRef = useRef<string>('');
 
   useEffect(() => {
-    savePersistedMinecore(key, mc);
-  }, [key, mc]);
+    if (!walletAddr) {
+      setProfileNotice(null);
+      prevWalletRef.current = '';
+      return;
+    }
+    const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
+    setMc(loaded ?? createInitialMinecoreState());
+    if (prevWalletRef.current !== walletAddr) {
+      const short = `${walletAddr.slice(0, 12)}…${walletAddr.slice(-10)}`;
+      setProfileNotice(`Loaded Minecore profile for ${short}`);
+      prevWalletRef.current = walletAddr;
+      const t = window.setTimeout(() => setProfileNotice(null), 6_000);
+      return () => window.clearTimeout(t);
+    }
+    return undefined;
+  }, [walletAddr]);
+
+  useEffect(() => {
+    if (!walletAddr) return;
+    savePersistedMinecore(walletStorageKey(walletAddr), mc);
+  }, [walletAddr, mc]);
 
   useEffect(() => {
     if (walletState.isConnected && walletState.address) {
@@ -76,22 +91,24 @@ export function useMinecore() {
     }
   }, [walletState.isConnected, walletState.address]);
 
-  const miningAllowed = useMemo(() => {
-    if (walletState.isConnected) return true;
-    if (mc.lastConnectedAt == null) return false;
-    return Date.now() - mc.lastConnectedAt <= RECONNECT_GRACE_MS;
-  }, [walletState.isConnected, mc.lastConnectedAt]);
+  /** Mining and mutations require a connected L1 wallet; state stays wallet-scoped in storage. */
+  const miningAllowed = Boolean(walletState.isConnected && walletAddr);
 
   // Derive statuses from timestamps (progress + completed state) without mutating persisted state each second.
   const nowTick = useNowTick(1000);
   const derived = useMemo(() => deriveState(mc, nowTick), [mc, nowTick]);
 
-  const dispatch = useCallback((ev: Parameters<typeof applyMinecoreEvent>[1]) => {
-    setMc((s) => applyMinecoreEvent(s, ev));
-  }, []);
+  const dispatch = useCallback(
+    (ev: Parameters<typeof applyMinecoreEvent>[1]) => {
+      if (!walletState.isConnected || !walletAddr) return;
+      setMc((s) => applyMinecoreEvent(s, ev));
+    },
+    [walletState.isConnected, walletAddr],
+  );
 
   // Foreman / Automation logic: auto-restart & auto-refill
   useEffect(() => {
+    if (!walletState.isConnected || !walletAddr) return;
     if (!mc.automation.autoRestart && !mc.automation.foremanActive) return;
 
     const interval = setInterval(() => {
@@ -125,7 +142,7 @@ export function useMinecore() {
     }, 5000); // Check every 5 seconds
 
     return () => clearInterval(interval);
-  }, [mc.automation.autoRestart, mc.automation.foremanActive, dispatch]);
+  }, [walletState.isConnected, walletAddr, mc.automation.autoRestart, mc.automation.foremanActive, dispatch]);
 
   const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
@@ -294,9 +311,13 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
-  const refine = useCallback((amount: number) => {
-    dispatch({ type: 'Refine', at: Date.now(), amount });
-  }, [dispatch]);
+  const refine = useCallback(
+    (amount: number) => {
+      if (!walletAddr) return;
+      dispatch({ type: 'Refine', at: Date.now(), amount, walletAddress: walletAddr });
+    },
+    [dispatch, walletAddr],
+  );
 
   const refillBattery = useCallback((slotIndex: number) => {
     dispatch({ type: 'RefillBattery', slotIndex, at: Date.now() });
@@ -332,9 +353,14 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
-  const redeemGrid = useCallback((points: number) => {
-    dispatch({ type: 'RedeemGrid', at: Date.now(), points });
-  }, [dispatch]);
+  const redeemGrid = useCallback(
+    (points: number, token: 'GRID' | 'KREX' = 'GRID') => {
+      if (!walletAddr) return;
+      const at = Date.now();
+      dispatch({ type: 'RedeemGrid', at, points, token: token ?? 'GRID', walletAddress: walletAddr });
+    },
+    [dispatch, walletAddr],
+  );
 
   const changePlantType = useCallback(
     async (slotIndex: number, plantType: any, costKas: number) => {
@@ -385,6 +411,7 @@ export function useMinecore() {
     state: derived,
     slottedMetadata,
     miningAllowed,
+    profileNotice,
     wallet: {
       isConnected: walletState.isConnected,
       address: walletState.address ?? null,

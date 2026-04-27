@@ -5,6 +5,7 @@ import {
   MINECORE_STARTER_INGREDIENTS,
   MINECORE_STARTER_OWNED,
 } from './config';
+import { minecoreUtcDayKey } from './plant-economy';
 import type { MinecoreState, PlantSlotState } from './types';
 import type { MiningSlot } from '@/lib/game/engine';
 
@@ -44,6 +45,7 @@ export function createInitialMinecoreState(): MinecoreState {
     diamondsBalance: 0,
     refinementPointsTotal: 0,
     gridRedeemableTotal: 0,
+    krexRedeemableTotal: 0,
     ingredients: { ...MINECORE_STARTER_INGREDIENTS },
     owned: {
       machines: { ...MINECORE_STARTER_OWNED.machines },
@@ -58,6 +60,11 @@ export function createInitialMinecoreState(): MinecoreState {
     automation: { autoRestart: false, foremanActive: false },
     lastConnectedAt: null,
     lastConnectedAddress: null,
+    redeemBudget: {
+      dayKey: minecoreUtcDayKey(Date.now()),
+      refinementPointsSpentOnGrid: 0,
+      refinementPointsSpentOnKrex: 0,
+    },
   };
 }
 

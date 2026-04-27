@@ -1,8 +1,9 @@
 import {
-  MINECORE_GRID_REDEEM_RATE,
+  MINECORE_GRID_PER_REFINEMENT_POINT,
+  MINECORE_KREX_PER_REFINEMENT_POINT,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
-  MINECORE_REFINE_RATE,
+  MINECORE_REFINE_POINTS_PER_DIAMOND,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
 } from './config';
@@ -144,9 +145,9 @@ export type MinecoreCalculatorResult = {
   reserveCap: number;
   refinementPointsPerCycle: number;
   gridRedeemablePerCycle: number;
-  /** RewardsRedeemSection UI preview: points × 100. */
+  /** RewardsRedeemSection UI preview: points × MINECORE_GRID_PER_REFINEMENT_POINT. */
   redeemGridPreview: number;
-  /** RewardsRedeemSection UI preview: points × 10. */
+  /** RewardsRedeemSection UI preview: points × MINECORE_KREX_PER_REFINEMENT_POINT. */
   redeemKrexPreview: number;
   /** One plant recharge SKU (1 reserve + full battery). */
   kasPerRecharge: number;
@@ -195,8 +196,8 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
   const dPerHour = wallHours > 0 ? partial / wallHours : 0;
   const n = Math.max(1, Math.min(4, Math.floor(plantCount)));
 
-  const refine = partial * MINECORE_REFINE_RATE;
-  const gridR = refine * MINECORE_GRID_REDEEM_RATE;
+  const refine = partial * MINECORE_REFINE_POINTS_PER_DIAMOND;
+  const gridR = refine * MINECORE_GRID_PER_REFINEMENT_POINT;
 
   const kasRecharge = MINECORE_PLANT_RECHARGE_COST_KAS;
   const kasRechargeD = applyKasDiscount(kasRecharge, kasDiscountPct);
@@ -220,8 +221,8 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
     reserveCap: getPowerUnitCap(slot),
     refinementPointsPerCycle: refine,
     gridRedeemablePerCycle: gridR,
-    redeemGridPreview: refine * 100,
-    redeemKrexPreview: refine * 10,
+    redeemGridPreview: refine * MINECORE_GRID_PER_REFINEMENT_POINT,
+    redeemKrexPreview: refine * MINECORE_KREX_PER_REFINEMENT_POINT,
     kasPerRecharge: kasRecharge,
     kasPerRechargeDiscounted: kasRechargeD,
     kasPerCycleOperatingUpper: kasRechargeD,
@@ -231,6 +232,6 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
     slotExpandKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
     diamondsPerHourOnePlant: dPerHour,
     diamondsPerHourAllPlants: dPerHour * n,
-    refinementPointsPerHourAllPlants: dPerHour * n * MINECORE_REFINE_RATE,
+    refinementPointsPerHourAllPlants: dPerHour * n * MINECORE_REFINE_POINTS_PER_DIAMOND,
   };
 }

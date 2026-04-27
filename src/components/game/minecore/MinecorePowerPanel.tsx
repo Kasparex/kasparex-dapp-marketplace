@@ -9,6 +9,7 @@ import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
+import { computeConsumptionKw, computeMiningEfficiencyPct, computeProductionKw } from '@/lib/game/minecore/plant-economy';
 
 /** KAS paid upgrades (V1 — wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
 const KAS_BATTERY_SYNC = 3;
@@ -53,7 +54,10 @@ export function MinecorePowerPanel(props: {
   const runtimeBundlePrice = props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS);
 
   const plantsCard = (
-    <GamePanelCard title="Plants" hint="Status per plant; recharge uses the same KAS action as the mining tab.">
+    <GamePanelCard
+      title="Plants"
+      hint="kW is a control-panel view of plant production vs draw (from machine, battery, modules, worker). Recharge uses the same KAS action as the mining tab."
+    >
       <ul className="space-y-2 text-sm">
         {state.plantSlots.map((p) => {
           const liveCharge = computeLiveBatteryChargeMs(p, now);
@@ -61,6 +65,9 @@ export function MinecorePowerPanel(props: {
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(p, now);
           const unitCap = getPowerUnitCap(p);
+          const prodKw = p.unlocked && p.setup.machineId ? computeProductionKw(p) : 0;
+          const consKw = p.unlocked && p.setup.machineId ? computeConsumptionKw(p) : 0;
+          const eff = p.unlocked && p.setup.machineId ? computeMiningEfficiencyPct(p) : 0;
 
           return (
             <li
@@ -72,6 +79,11 @@ export function MinecorePowerPanel(props: {
                 <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
                   {p.setup.machineId ?? 'No machine'} · {p.setup.batteryId ?? 'No battery'}
                 </span>
+                {p.unlocked && p.setup.machineId ? (
+                  <span className="mt-1 font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
+                    Bus {prodKw.toFixed(1)} / {consKw.toFixed(1)} kW · eff {eff.toFixed(0)}%
+                  </span>
+                ) : null}
               </div>
 
               {p.unlocked ? (

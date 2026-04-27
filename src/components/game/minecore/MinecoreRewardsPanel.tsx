@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
-import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
+import { RewardsRedeemSection, type MinecoreRedeemExtras } from '@/components/games/RewardsRedeemSection';
 
 export function MinecoreRewardsPanel({
   address,
@@ -13,13 +13,15 @@ export function MinecoreRewardsPanel({
   localLedger,
   onRefine,
   onRedeem,
+  minecoreExtras,
 }: {
   address: string | undefined;
   diamondsBalance: number;
   refinementPointsTotal: number;
   localLedger: GridLedgerEntry[];
   onRefine?: (amount: number) => void;
-  onRedeem?: (points: number) => void;
+  onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
+  minecoreExtras?: MinecoreRedeemExtras;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
 
@@ -41,11 +43,12 @@ export function MinecoreRewardsPanel({
 
   return (
     <div className="space-y-6">
-      <RewardsRedeemSection 
-        diamondsBalance={diamondsBalance} 
+      <RewardsRedeemSection
+        diamondsBalance={diamondsBalance}
         refinementPointsBalance={refinementPointsTotal}
         onRefine={onRefine}
         onRedeem={onRedeem}
+        minecoreExtras={minecoreExtras}
       >
 
       <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">

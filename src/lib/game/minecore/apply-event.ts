@@ -1,10 +1,14 @@
 import {
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
-  MINECORE_GRID_REDEEM_RATE,
-  MINECORE_REFINE_RATE,
   MINECORE_BATTERIES,
   MINECORE_RECIPES,
+  MINECORE_MAX_MODULES_BY_PLANT,
+  MINECORE_REFINE_POINTS_PER_DIAMOND,
+  MINECORE_GRID_PER_REFINEMENT_POINT,
+  MINECORE_KREX_PER_REFINEMENT_POINT,
+  MINECORE_DAILY_GRID_POINTS_CAP,
+  MINECORE_DAILY_KREX_POINTS_CAP,
 } from './config';
 import {
   computePlantDurationMs,
@@ -21,6 +25,11 @@ import {
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import type { IngredientBag } from './types';
 import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModuleId, MinecoreState, PlantSlotState } from './types';
+import {
+  canStartMiningByEfficiency,
+  computeGlobalRefineBonusFraction,
+  minecoreUtcDayKey,
+} from './plant-economy';
 
 /** Preserve charge ratio when machine (charge budget) or battery changes. */
 function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldCapMs: number, at: number, now: number) {
@@ -63,6 +72,8 @@ function rederive(state: MinecoreState, at: number): MinecoreState {
 }
 
 export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): MinecoreState {
+  const now = 'at' in ev ? ev.at : Date.now();
+
   let s: MinecoreState = {
     ...state,
     version: nextVersion(state),
@@ -79,9 +90,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     automation: state.automation
       ? { ...state.automation }
       : { autoRestart: false, foremanActive: false },
+    krexRedeemableTotal: state.krexRedeemableTotal ?? 0,
+    redeemBudget: state.redeemBudget
+      ? { ...state.redeemBudget }
+      : { dayKey: minecoreUtcDayKey(now), refinementPointsSpentOnGrid: 0, refinementPointsSpentOnKrex: 0 },
   };
-
-  const now = 'at' in ev ? ev.at : Date.now();
 
   switch (ev.type) {
     case 'ConnectWallet': {
@@ -181,6 +194,12 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
       slot.type = ev.plantType;
+      if (ev.plantType === 'standard') {
+        slot.setup.moduleIds = [];
+      } else {
+        const max = MINECORE_MAX_MODULES_BY_PLANT[ev.plantType];
+        slot.setup.moduleIds = slot.setup.moduleIds.slice(0, max);
+      }
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }
@@ -215,7 +234,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
       }
       if (ev.part.kind === 'worker') slot.setup.workerId = ev.part.id;
-      if (ev.part.kind === 'modules') slot.setup.moduleIds = [...ev.part.ids];
+      if (ev.part.kind === 'modules') {
+        const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
+        const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
+        slot.setup.moduleIds = ids;
+      }
       if (ev.part.kind === 'boost') slot.setup.boostId = ev.part.id;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
@@ -230,6 +253,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!computePlantReady(slot)) return rederive(s, now);
       if (slot.powerRemaining <= 0) return rederive(s, now);
       if (slot.needsRepair) return rederive(s, now);
+      if (!canStartMiningByEfficiency(slot)) return rederive(s, now);
 
       const durationMs       = computePlantDurationMs(slot);
       const expectedDiamonds = computePlantExpectedDiamonds(s, slot);
@@ -344,6 +368,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     }
 
     case 'Refine': {
+      if (!ev.walletAddress || ev.walletAddress !== (s.lastConnectedAddress ?? '')) {
+        return rederive(s, now);
+      }
       const amt = Math.max(0, Math.floor(ev.amount));
       if (amt <= 0) return rederive(s, now);
       const at = now;
@@ -394,7 +421,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
       }
 
-      const points = amt * MINECORE_REFINE_RATE;
+      const refineMul = 1 + computeGlobalRefineBonusFraction(s);
+      const points = Math.floor(amt * MINECORE_REFINE_POINTS_PER_DIAMOND * refineMul);
       s.refinementPointsTotal += points;
       const entry: GridLedgerEntry = {
         id:                 `minecore_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
@@ -409,8 +437,27 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     }
 
     case 'RedeemGrid': {
+      if (!ev.walletAddress || ev.walletAddress !== (s.lastConnectedAddress ?? '')) {
+        return rederive(s, now);
+      }
       const pts = Math.max(0, Math.floor(ev.points));
       if (pts <= 0 || s.refinementPointsTotal < pts) return rederive(s, now);
+
+      let rb = { ...s.redeemBudget };
+      const today = minecoreUtcDayKey(now);
+      if (rb.dayKey !== today) {
+        rb = { dayKey: today, refinementPointsSpentOnGrid: 0, refinementPointsSpentOnKrex: 0 };
+      }
+      if (ev.token === 'GRID') {
+        if (rb.refinementPointsSpentOnGrid + pts > MINECORE_DAILY_GRID_POINTS_CAP) return rederive(s, now);
+        rb.refinementPointsSpentOnGrid += pts;
+        s.gridRedeemableTotal += pts * MINECORE_GRID_PER_REFINEMENT_POINT;
+      } else {
+        if (rb.refinementPointsSpentOnKrex + pts > MINECORE_DAILY_KREX_POINTS_CAP) return rederive(s, now);
+        rb.refinementPointsSpentOnKrex += pts;
+        s.krexRedeemableTotal += pts * MINECORE_KREX_PER_REFINEMENT_POINT;
+      }
+      s.redeemBudget = rb;
       s.refinementPointsTotal -= pts;
       return rederive(s, now);
     }

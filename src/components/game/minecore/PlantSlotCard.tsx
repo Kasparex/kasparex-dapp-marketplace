@@ -7,16 +7,25 @@ import {
   computeLiveDiamonds,
   computeFlowRatePerMin,
   computePlantExpectedDiamonds,
+  computePlantReady,
   getBatteryCapacityMs,
   getPowerUnitCap,
   getPowerDrainScale,
 } from '@/lib/game/minecore/compute';
+import {
+  computeConsumptionKw,
+  computeMiningEfficiencyPct,
+  computePlantDiamondsPer24h,
+  computePowerBalanceKw,
+  computeProductionKw,
+} from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
   MINECORE_MODULES,
+  MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_WORKERS,
@@ -48,6 +57,7 @@ function statusBadge(status: PlantSlotState['status']) {
   if (status === 'ReadyToMine')     return `${base} border border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`;
   if (status === 'SetupIncomplete') return `${base} border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300`;
   if (status === 'BatteryEmpty')    return `${base} border border-orange-500/30 bg-orange-500/15 text-orange-800 dark:text-orange-300`;
+  if (status === 'InsufficientPower') return `${base} border border-orange-500/35 bg-orange-500/15 text-orange-900 dark:text-orange-200`;
   if (status === 'NeedsPower' || status === 'NeedsRepair') return `${base} border border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-300`;
   return `${base} border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`;
 }
@@ -62,6 +72,7 @@ function labelForStatus(status: PlantSlotState['status']) {
   if (status === 'ExtractionReady') return 'Extraction ready';
   if (status === 'NeedsRepair')     return 'Needs repair';
   if (status === 'NeedsPower')      return 'Needs power';
+  if (status === 'InsufficientPower') return 'Grid deficit';
   return status;
 }
 
@@ -253,6 +264,11 @@ export function PlantSlotCard(props: {
   const expectedDiamonds = cycle ? cycle.expectedDiamonds : computePlantExpectedDiamonds(props.minecoreState, s);
   const cycleMinedDisplay = cycle ? liveDiamonds : 0;
   const cycleTotalDisplay = Math.max(0, expectedDiamonds);
+  const d24 = s.unlocked && computePlantReady(s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
+  const prodKw = s.unlocked ? computeProductionKw(s) : 0;
+  const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
+  const balKw = prodKw - consKw;
+  const effPct = s.unlocked && s.setup.machineId ? computeMiningEfficiencyPct(s) : 100;
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
@@ -277,6 +293,8 @@ export function PlantSlotCard(props: {
     actionLabel = 'Repair';
   } else if (s.status === 'NeedsPower') {
     actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
+  } else if (s.status === 'InsufficientPower') {
+    actionLabel = 'Improve power balance';
   } else if (s.status === 'MiningPaused') {
     actionLabel = 'Resume mining';
   } else if (s.status === 'MiningActive') {
@@ -311,7 +329,11 @@ export function PlantSlotCard(props: {
   // ── Title accessory — mined / cycle total (green / amber) ─────────────────
   const titleAccessory = s.unlocked ? (
     <div className="text-right">
-      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">This cycle</div>
+      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">Diamonds / 24h</div>
+      <div className="text-sm font-black tabular-nums text-sky-600 dark:text-sky-400 sm:text-base">
+        {computePlantReady(s) ? d24.toLocaleString() : '—'}
+      </div>
+      <div className="mt-1 text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">This cycle</div>
       <div className="text-lg font-black tabular-nums leading-tight sm:text-xl">
         <span className="text-emerald-600 dark:text-emerald-400">{cycleMinedDisplay.toLocaleString()}</span>
         <span className="text-zinc-400 dark:text-zinc-500"> / </span>
@@ -321,7 +343,7 @@ export function PlantSlotCard(props: {
         <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">Banked: {s.diamondsAccumulated.toLocaleString()} D</div>
       )}
       <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">
-        {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Diamonds / cycle'}
+        {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Live rate when mining'}
       </div>
     </div>
   ) : null;
@@ -346,6 +368,11 @@ export function PlantSlotCard(props: {
           {/* Status badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
+            {s.unlocked && s.setup.machineId ? (
+              <span className="hidden rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 font-mono text-[10px] font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 sm:inline">
+                Eff {effPct.toFixed(0)}%
+              </span>
+            ) : null}
             {props.minecoreState.automation.autoRestart && (
               <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
                 Auto ON
@@ -381,8 +408,16 @@ export function PlantSlotCard(props: {
               installed={!!s.setup.workerId}
               label="Worker"
               value={workerConfig?.label}
-              stat={workerConfig ? `×${workerConfig.multiplier}` : undefined}
-              tooltip={workerConfig ? `${workerConfig.label}: applies ×${workerConfig.multiplier} multiplier to diamond output.` : 'No worker assigned. Click to assign one.'}
+              stat={
+                workerConfig
+                  ? `+${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% out`
+                  : undefined
+              }
+              tooltip={
+                workerConfig
+                  ? `${workerConfig.label}: Worker bonus +${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% diamond output; −${(workerConfig.energyUseReduction * 100).toFixed(0)}% draw; +${workerConfig.efficiencyBonus} eff. pts under deficit.`
+                  : 'No worker assigned. Click to assign one.'
+              }
               onClick={() => canEditParts && setActiveModal('worker')}
             />
             <CheckRow
@@ -411,6 +446,12 @@ export function PlantSlotCard(props: {
           {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
             <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
           )}
+          {s.status === 'InsufficientPower' && (
+            <WarningBanner
+              level="warn"
+              message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise production (battery/machine grid) or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
+            />
+          )}
           {s.status === 'NeedsPower' && (
             <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
           )}
@@ -419,6 +460,33 @@ export function PlantSlotCard(props: {
           )}
 
           {/* ── Resource bars ── */}
+          {s.unlocked && s.setup.machineId ? (
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
+              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Control — power bus</div>
+              <div className="hidden grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-800 dark:text-zinc-200 md:grid">
+                <span className="text-zinc-500">Production</span>
+                <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{prodKw.toFixed(1)} kW</span>
+                <span className="text-zinc-500">Consumption</span>
+                <span className="text-right tabular-nums text-rose-600 dark:text-rose-400">{consKw.toFixed(1)} kW</span>
+                <span className="text-zinc-500">Balance</span>
+                <span className={`text-right tabular-nums ${balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                  {balKw >= 0 ? '+' : ''}
+                  {balKw.toFixed(1)} kW
+                </span>
+                <span className="text-zinc-500">Efficiency</span>
+                <span className="text-right tabular-nums font-bold text-zinc-900 dark:text-zinc-100">{effPct.toFixed(0)}%</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:hidden">
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  Δ {balKw >= 0 ? '+' : ''}
+                  {balKw.toFixed(0)} kW
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {effPct.toFixed(0)}%</span>
+                <span className="text-sky-600 dark:text-sky-400">{d24 > 0 ? `${d24} D/24h` : '—'}</span>
+              </div>
+            </div>
+          ) : null}
+
           {s.unlocked && (
             <div className="space-y-3">
               {/* Cycle progress bar (always when plant has components; idle = empty bar) */}
@@ -471,6 +539,7 @@ export function PlantSlotCard(props: {
         if (!s.unlocked) return props.onUnlock();
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
         if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: 2 });
+        if (s.status === 'InsufficientPower') return setActiveModal('machine');
         if (s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();
@@ -609,7 +678,9 @@ export function PlantSlotCard(props: {
             >
               <div>
                 <div className="font-bold text-sm">{w.label}</div>
-                <div className="text-[10px] text-zinc-500">×{w.multiplier} Output multiplier</div>
+                <div className="text-[10px] text-zinc-500">
+                  Worker bonus +{(w.diamondOutputBonus * 100).toFixed(0)}% · −{(w.energyUseReduction * 100).toFixed(0)}% draw
+                </div>
               </div>
               <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
             </button>
@@ -631,9 +702,10 @@ export function PlantSlotCard(props: {
                 key={m.id}
                 onClick={() => {
                   const current = s.setup.moduleIds;
-                  const next = current.includes(m.id as any) 
-                    ? current.filter(x => x !== m.id)
-                    : [...current, m.id as any].slice(0, s.type === 'premium' ? 2 : 4);
+                  const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
+                  const next = current.includes(m.id as any)
+                    ? current.filter((x) => x !== m.id)
+                    : [...current, m.id as any].slice(0, maxM);
                   props.onInstallPart('modules', next);
                 }}
                 className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
@@ -642,7 +714,15 @@ export function PlantSlotCard(props: {
               >
                 <div>
                   <div className="font-bold text-sm">{m.label}</div>
-                  <div className="text-[10px] text-zinc-500">Boost: +{(m.outputBonus * 100).toFixed(0)}% · Fail: -{(m.failureReduction * 100).toFixed(0)}%</div>
+                  <div className="text-[10px] text-zinc-500">
+                    {m.kind === 'output' && `+${(m.outputBonus * 100).toFixed(0)}% output`}
+                    {m.kind === 'cooling' && `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW draw`}
+                    {m.kind === 'automation' && `+${((m.cycleDurationBonus ?? 0) * 100).toFixed(0)}% cycle time`}
+                    {m.kind === 'stability' && `+${m.efficiencyFloorBonus ?? 0} eff. floor`}
+                    {m.kind === 'refining' && `+${((m.refineBonus ?? 0) * 100).toFixed(0)}% refine pts`}
+                    {' · '}
+                    Fail −{(m.failureReduction * 100).toFixed(0)}%
+                  </div>
                 </div>
                 <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
               </button>

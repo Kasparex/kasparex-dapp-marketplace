@@ -1,25 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { payKaspaL1 } from '@/lib/games/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import {
+  MINECORE_DAILY_GRID_POINTS_CAP,
+  MINECORE_DAILY_KREX_POINTS_CAP,
+  MINECORE_DISPLAY_POOL_GRID_REMAINING,
+  MINECORE_DISPLAY_POOL_KREX_REMAINING,
+  MINECORE_GRID_PER_REFINEMENT_POINT,
+  MINECORE_KREX_PER_REFINEMENT_POINT,
+  MINECORE_REFINE_POINTS_PER_DIAMOND,
+} from '@/lib/game/minecore/config';
+import { minecoreUtcDayKey } from '@/lib/game/minecore/plant-economy';
 import * as Icons from 'lucide-react';
 
 const PANEL = 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6';
 const LABEL = 'text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-1.5 block';
-const INPUT = 'h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors';
+const INPUT =
+  'h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors';
+
+export type MinecoreRedeemExtras = {
+  /** From `MinecoreState.redeemBudget` + pending totals for transparency. */
+  redeemBudgetDayKey?: string;
+  refinementPointsSpentOnGrid?: number;
+  refinementPointsSpentOnKrex?: number;
+  gridRedeemablePending?: number;
+  krexRedeemablePending?: number;
+};
 
 export function RewardsRedeemSection({
   diamondsBalance,
   refinementPointsBalance,
   onRefine,
   onRedeem,
+  minecoreExtras,
   children,
 }: {
   diamondsBalance: number;
   refinementPointsBalance: number;
   onRefine?: (amount: number) => void;
-  onRedeem?: (points: number) => void;
+  onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
+  /** When set (e.g. Minecore tab), shows pool + daily caps from shared config. */
+  minecoreExtras?: MinecoreRedeemExtras;
   children?: React.ReactNode;
 }) {
   const [refineAmount, setRefineAmount] = useState<number | ''>('');
@@ -30,6 +53,19 @@ export function RewardsRedeemSection({
   const [isVerified, setIsVerified] = useState(false);
 
   const { state: kaspaWalletState } = useKaspaWallet();
+
+  const todayKey = useMemo(() => minecoreUtcDayKey(Date.now()), []);
+
+  const dailyRemaining = useMemo(() => {
+    if (!minecoreExtras) return null;
+    const dk = minecoreExtras.redeemBudgetDayKey ?? todayKey;
+    const gridSpent = dk === todayKey ? (minecoreExtras.refinementPointsSpentOnGrid ?? 0) : 0;
+    const krexSpent = dk === todayKey ? (minecoreExtras.refinementPointsSpentOnKrex ?? 0) : 0;
+    return {
+      grid: Math.max(0, MINECORE_DAILY_GRID_POINTS_CAP - gridSpent),
+      krex: Math.max(0, MINECORE_DAILY_KREX_POINTS_CAP - krexSpent),
+    };
+  }, [minecoreExtras, todayKey]);
 
   const handleVerify = async () => {
     if (!l2Address.startsWith('kaspa:') && !l2Address.startsWith('0x')) {
@@ -57,20 +93,28 @@ export function RewardsRedeemSection({
     }
   };
 
-  const refineOutput = typeof refineAmount === 'number' ? refineAmount : 0;
-  const redeemOutput = typeof redeemPoints === 'number'
-    ? (targetToken === 'GRID' ? redeemPoints * 100 : redeemPoints * 10)
-    : 0;
+  const refineOutput =
+    typeof refineAmount === 'number' ? refineAmount * MINECORE_REFINE_POINTS_PER_DIAMOND : 0;
+  const redeemOutput =
+    typeof redeemPoints === 'number'
+      ? targetToken === 'GRID'
+        ? redeemPoints * MINECORE_GRID_PER_REFINEMENT_POINT
+        : redeemPoints * MINECORE_KREX_PER_REFINEMENT_POINT
+      : 0;
+
+  const walletConnected = kaspaWalletState.isConnected && Boolean(kaspaWalletState.address);
 
   return (
     <div className="space-y-4">
-
       {/* ── Diamond Refinement ── */}
       <div className={PANEL}>
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Diamond Refinement</h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Convert mined diamonds into Refinement Points (1:1).</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              {MINECORE_REFINE_POINTS_PER_DIAMOND} refinement point per diamond (before Worker / Refining module bonuses in
+              Minecore).
+            </p>
           </div>
           <div className="text-right">
             <div className="text-[10px] font-semibold text-amber-500">Available</div>
@@ -85,11 +129,16 @@ export function RewardsRedeemSection({
               <input
                 type="number"
                 value={refineAmount}
-                onChange={(e) => setRefineAmount(e.target.value === '' ? '' : Math.max(0, Math.min(diamondsBalance, parseInt(e.target.value, 10))))}
+                onChange={(e) =>
+                  setRefineAmount(
+                    e.target.value === '' ? '' : Math.max(0, Math.min(diamondsBalance, parseInt(e.target.value, 10))),
+                  )
+                }
                 placeholder="0"
                 className={INPUT}
               />
               <button
+                type="button"
                 onClick={() => setRefineAmount(diamondsBalance)}
                 className="absolute right-2 top-2 h-7 rounded px-2 text-[10px] font-bold uppercase bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
               >
@@ -100,18 +149,26 @@ export function RewardsRedeemSection({
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">You receive</span>
-              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{refineOutput.toLocaleString()} Points</span>
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                +{refineOutput.toLocaleString()} Points
+              </span>
             </div>
             <button
+              type="button"
               onClick={() => {
                 if (onRefine && typeof refineAmount === 'number') onRefine(refineAmount);
                 setRefineAmount('');
               }}
-              disabled={!refineAmount || refineAmount <= 0}
+              disabled={!walletConnected || !refineAmount || refineAmount <= 0}
               className="k-cta-games h-11 w-full text-sm disabled:opacity-40"
             >
               Refine Now
             </button>
+            {!walletConnected ? (
+              <p className="mt-2 text-center text-[11px] text-amber-600 dark:text-amber-400">
+                Connect your Kaspa L1 wallet to refine (profile-bound).
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -129,11 +186,39 @@ export function RewardsRedeemSection({
           </div>
         </div>
 
+        {minecoreExtras ? (
+          <div className="mb-4 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs dark:border-zinc-700 dark:bg-zinc-800/50">
+            <div className="font-semibold text-zinc-700 dark:text-zinc-300">Minecore economics (visible rates)</div>
+            <div className="grid gap-1 font-mono tabular-nums text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
+              <span>1 Point → {MINECORE_GRID_PER_REFINEMENT_POINT} GRID</span>
+              <span>1 Point → {MINECORE_KREX_PER_REFINEMENT_POINT} KREX</span>
+              <span>Pool (display) GRID: {MINECORE_DISPLAY_POOL_GRID_REMAINING.toLocaleString()}</span>
+              <span>Pool (display) KREX: {MINECORE_DISPLAY_POOL_KREX_REMAINING.toLocaleString()}</span>
+              {dailyRemaining ? (
+                <>
+                  <span>Daily cap GRID: {MINECORE_DAILY_GRID_POINTS_CAP.toLocaleString()} P · left {dailyRemaining.grid.toLocaleString()} P</span>
+                  <span>Daily cap KREX: {MINECORE_DAILY_KREX_POINTS_CAP.toLocaleString()} P · left {dailyRemaining.krex.toLocaleString()} P</span>
+                </>
+              ) : null}
+              {(minecoreExtras.gridRedeemablePending != null || minecoreExtras.krexRedeemablePending != null) && (
+                <>
+                  <span>Pending GRID claim: {(minecoreExtras.gridRedeemablePending ?? 0).toLocaleString()}</span>
+                  <span>Pending KREX claim: {(minecoreExtras.krexRedeemablePending ?? 0).toLocaleString()}</span>
+                </>
+              )}
+            </div>
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-500">
+              Daily caps are enforced client-side in V1; on-chain distribution can replace this later.
+            </p>
+          </div>
+        ) : null}
+
         <div className="space-y-4">
-          {/* Step 1: L2 Wallet */}
           <div className={`rounded-lg border p-4 transition-colors ${isVerified ? 'border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50'}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className={LABEL} style={{marginBottom: 0}}>1. Link L2 Wallet</span>
+              <span className={LABEL} style={{ marginBottom: 0 }}>
+                1. Link L2 Wallet
+              </span>
               {isVerified && (
                 <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
                   <Icons.CheckCircle2 className="w-3 h-3" /> Linked
@@ -151,6 +236,7 @@ export function RewardsRedeemSection({
               />
               {!isVerified && (
                 <button
+                  type="button"
                   onClick={handleVerify}
                   disabled={isVerifying || !l2Address}
                   className="px-4 h-11 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold uppercase transition-colors disabled:opacity-40"
@@ -161,14 +247,14 @@ export function RewardsRedeemSection({
             </div>
           </div>
 
-          {/* Step 2 + 3: Token + Amount */}
           <div className="grid gap-3 sm:grid-cols-2 items-end">
             <div>
               <label className={LABEL}>2. Select Token</label>
               <div className="grid grid-cols-2 gap-2">
-                {(['GRID', 'KREX'] as const).map(t => (
+                {(['GRID', 'KREX'] as const).map((t) => (
                   <button
                     key={t}
+                    type="button"
                     onClick={() => setTargetToken(t)}
                     className={`h-11 rounded-lg text-xs font-bold uppercase transition-all border ${
                       targetToken === t
@@ -188,11 +274,18 @@ export function RewardsRedeemSection({
                 <input
                   type="number"
                   value={redeemPoints}
-                  onChange={(e) => setRedeemPoints(e.target.value === '' ? '' : Math.max(0, Math.min(refinementPointsBalance, parseInt(e.target.value, 10))))}
+                  onChange={(e) =>
+                    setRedeemPoints(
+                      e.target.value === ''
+                        ? ''
+                        : Math.max(0, Math.min(refinementPointsBalance, parseInt(e.target.value, 10))),
+                    )
+                  }
                   placeholder="0"
                   className={INPUT}
                 />
                 <button
+                  type="button"
                   onClick={() => setRedeemPoints(refinementPointsBalance)}
                   className="absolute right-2 top-2 h-7 rounded px-2 text-[10px] font-bold uppercase bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                 >
@@ -204,18 +297,33 @@ export function RewardsRedeemSection({
 
           <div>
             <button
+              type="button"
               onClick={() => {
-                if (onRedeem && typeof redeemPoints === 'number') onRedeem(redeemPoints);
+                if (onRedeem && typeof redeemPoints === 'number') onRedeem(redeemPoints, targetToken);
                 setRedeemPoints('');
               }}
-              disabled={!isVerified || !redeemPoints || redeemPoints <= 0}
+              disabled={Boolean(
+                !walletConnected ||
+                  !isVerified ||
+                  !redeemPoints ||
+                  redeemPoints <= 0 ||
+                  (dailyRemaining &&
+                    targetToken === 'GRID' &&
+                    redeemPoints > dailyRemaining.grid) ||
+                  (dailyRemaining && targetToken === 'KREX' && redeemPoints > dailyRemaining.krex),
+              )}
               className="k-cta-games h-11 w-full text-sm disabled:opacity-40"
             >
               {redeemPoints ? `Receive ${redeemOutput.toLocaleString()} ${targetToken}` : 'Redeem Points'}
             </button>
             <p className="mt-2 text-center text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              Rate: 1 Point = {targetToken === 'GRID' ? '100 GRID' : '10 KREX'}
+              Rate: 1 Point = {targetToken === 'GRID' ? `${MINECORE_GRID_PER_REFINEMENT_POINT} GRID` : `${MINECORE_KREX_PER_REFINEMENT_POINT} KREX`}
             </p>
+            {!walletConnected ? (
+              <p className="mt-1 text-center text-[11px] text-amber-600 dark:text-amber-400">
+                Connect L1 wallet to redeem (same profile as mining).
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

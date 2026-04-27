@@ -216,8 +216,16 @@ export function MinecoreCalculator() {
               value={result.gridRedeemablePerCycle.toLocaleString()}
               sub={`MINECORE_GRID_REDEEM_RATE = ${MINECORE_GRID_REDEEM_RATE}× points`}
             />
-            <Stat label="Redeem UI preview (GRID)" value={result.redeemGridPreview.toLocaleString()} sub="Rewards tab: points × 100 display" />
-            <Stat label="Redeem UI preview (KREX)" value={result.redeemKrexPreview.toLocaleString()} sub="Rewards tab: points × 10 display" />
+            <Stat
+              label="Redeem UI preview (GRID)"
+              value={result.redeemGridPreview.toLocaleString()}
+              sub="Rewards tab: points × GRID rate from Minecore config"
+            />
+            <Stat
+              label="Redeem UI preview (KREX)"
+              value={result.redeemKrexPreview.toLocaleString()}
+              sub="Rewards tab: points × KREX rate from Minecore config"
+            />
             <Stat
               label="Flow (while battery & cycle active)"
               value={`${result.flowDiamondsPerMinute.toFixed(2)} D/min`}
