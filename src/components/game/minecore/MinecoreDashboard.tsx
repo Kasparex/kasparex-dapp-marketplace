@@ -294,11 +294,31 @@ export function MinecoreDashboard(_props: {
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
                       <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
-                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        List {state.nextSlotCostKas.toLocaleString()} KAS · you pay{' '}
-                        {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS ({krexTier}
-                        {krexDiscountPct > 0 ? ` −${krexDiscountPct}%` : ''})
-                      </div>
+                      <Tooltip
+                        content={`List ${state.nextSlotCostKas.toLocaleString()} KAS. ${krexTier}${
+                          krexDiscountPct > 0
+                            ? ` tier: ${krexDiscountPct}% off in-game KAS.`
+                            : ' — no tier discount on KAS.'
+                        }`}
+                      >
+                        <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                          {krexDiscountPct > 0 ? (
+                            <span className="font-semibold tabular-nums">
+                              <span className="text-zinc-400 line-through decoration-zinc-400/80">
+                                {state.nextSlotCostKas.toLocaleString()} KAS
+                              </span>
+                              <span className="mx-1.5 text-zinc-500">→</span>
+                              <span className="text-emerald-600 dark:text-emerald-400">
+                                {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                              {state.nextSlotCostKas.toLocaleString()} KAS
+                            </span>
+                          )}
+                        </div>
+                      </Tooltip>
                     </div>
                     <Tooltip content="V1 mock action. This will wire into KAS payment later through the global payments SDK.">
                       <button type="button" onClick={() => void actions.addSlot(state.nextSlotCostKas)} className="k-cta-games h-11 px-6 text-sm">
@@ -351,7 +371,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'workers' && (
             <div className="space-y-6">
-              <MinecoreOwnedWorkersPanel owned={state.owned} />
+              <MinecoreOwnedWorkersPanel owned={state.owned} plantSlots={state.plantSlots} />
               <WorkersPanel
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}

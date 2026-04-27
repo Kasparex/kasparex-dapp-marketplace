@@ -30,7 +30,7 @@ import {
   computeGlobalRefineBonusFraction,
   minecoreUtcDayKey,
 } from './plant-economy';
-import { creditPlantDailyCap, normalizeAllPlantDailyCaps } from './daily-cap';
+import { creditPlantDailyCap, normalizeAllPlantRollingDailyCaps } from './daily-cap';
 
 /** Preserve charge ratio when machine (charge budget) or battery changes. */
 function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldCapMs: number, at: number, now: number) {
@@ -97,7 +97,12 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       : { dayKey: minecoreUtcDayKey(now), refinementPointsSpentOnGrid: 0, refinementPointsSpentOnKrex: 0 },
   };
 
-  normalizeAllPlantDailyCaps(s.plantSlots, now);
+  normalizeAllPlantRollingDailyCaps(s.plantSlots, now);
+  for (const slot of s.plantSlots) {
+    if (slot.unlocked && slot.rollingCapWindowStartMs <= 0) {
+      slot.rollingCapWindowStartMs = now;
+    }
+  }
 
   switch (ev.type) {
     case 'ConnectWallet': {
@@ -162,6 +167,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot) return rederive(s, now);
       slot.unlocked       = true;
       slot.unlockCostKas  = MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS;
+      slot.rollingCapWindowStartMs = now;
+      slot.dailyCapMinedDiamonds = 0;
       slot.powerRemaining = Math.max(slot.powerRemaining, 1);
       slot.needsRepair    = false;
       slot.cycle          = null;
@@ -187,7 +194,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         batteryChargeMs:  0,
         batterySnapshotAt: now,
         diamondsAccumulated: 0,
-        dailyCapDayKey: minecoreUtcDayKey(now),
+        rollingCapWindowStartMs: 0,
         dailyCapMinedDiamonds: 0,
       };
       s.plantSlots.push(newSlot);

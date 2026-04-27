@@ -46,10 +46,14 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     batteryChargeMs: typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : base.batteryChargeMs,
     batterySnapshotAt: typeof input.batterySnapshotAt === 'number' ? input.batterySnapshotAt : base.batterySnapshotAt,
     diamondsAccumulated: typeof input.diamondsAccumulated === 'number' ? input.diamondsAccumulated : base.diamondsAccumulated,
-    dailyCapDayKey:
-      typeof input.dailyCapDayKey === 'string' && (input.dailyCapDayKey as string).length >= 8
-        ? (input.dailyCapDayKey as string)
-        : base.dailyCapDayKey,
+    rollingCapWindowStartMs: (() => {
+      const raw = input.rollingCapWindowStartMs;
+      const n = typeof raw === 'number' && raw > 0 ? raw : 0;
+      const unlocked = typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked;
+      if (n > 0) return n;
+      if (unlocked) return Date.now();
+      return 0;
+    })(),
     dailyCapMinedDiamonds:
       typeof input.dailyCapMinedDiamonds === 'number' ? input.dailyCapMinedDiamonds : base.dailyCapMinedDiamonds,
   };

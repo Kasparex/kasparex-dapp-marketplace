@@ -2,6 +2,12 @@
 
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
+import {
+  countBatteriesAssigned,
+  countMachinesAssigned,
+  countModuleAssignments,
+  countWorkersAssigned,
+} from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS, MINECORE_WORKERS } from '@/lib/game/minecore/config';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
@@ -17,7 +23,29 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   latticeWire: 'Lattice Wire',
 };
 
-function AssetCapsule(props: { label: string; value: string; accent: boolean }) {
+function OwnedCapsule(props: { label: string; inUse: number; total: number; accent: boolean }) {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`font-medium ${props.accent ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-500'}`}
+        >
+          {props.label}
+        </span>
+        <span
+          className={`font-mono text-sm font-black tabular-nums ${props.accent ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500'}`}
+        >
+          {props.inUse} / {props.total}
+        </span>
+      </div>
+      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+        {props.inUse} in use · {props.total} owned
+      </div>
+    </div>
+  );
+}
+
+function PlantCapsule(props: { label: string; value: string; accent: boolean }) {
   return (
     <div className="flex items-center justify-between rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
       <span
@@ -38,14 +66,15 @@ function SectionTitle(props: { children: string }) {
   return <div className="mb-2 text-[10px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{props.children}</div>;
 }
 
-/** Build tab: plant tiers plus fabricatable parts (no wallet strip, no workers — workers are on the Workers tab). */
+/** Build tab: plant tiers plus fabricatable parts with in-use / owned counts. */
 export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   const { state } = props;
+  const slots = state.plantSlots;
 
   return (
     <GamePanelCard
       title="Owned Assets"
-      hint="Plants you operate and parts you can assign: machines, batteries, and modules."
+      hint="Plants you operate and parts you can assign. In use counts assignments across all unlocked plants."
     >
       <div className="space-y-4">
         <div>
@@ -55,7 +84,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
               const tier = MINECORE_PLANT_PRESETS[slot.type];
               const accent = slot.unlocked;
               return (
-                <AssetCapsule
+                <PlantCapsule
                   key={slot.id}
                   label={`Plant ${slot.index + 1}`}
                   value={slot.unlocked ? tier.label : 'Locked'}
@@ -70,8 +99,9 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
           <SectionTitle>Machines</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_MACHINES).map((m) => {
-              const n = Number(state.owned.machines[m.id] ?? 0);
-              return <AssetCapsule key={m.id} label={m.label} value={n.toLocaleString()} accent={n > 0} />;
+              const total = Number(state.owned.machines[m.id] ?? 0);
+              const inUse = countMachinesAssigned(slots, m.id);
+              return <OwnedCapsule key={m.id} label={m.label} inUse={inUse} total={total} accent={total > 0} />;
             })}
           </div>
         </div>
@@ -80,8 +110,9 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
           <SectionTitle>Batteries</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_BATTERIES).map((b) => {
-              const n = Number(state.owned.batteries[b.id] ?? 0);
-              return <AssetCapsule key={b.id} label={b.label} value={n.toLocaleString()} accent={n > 0} />;
+              const total = Number(state.owned.batteries[b.id] ?? 0);
+              const inUse = countBatteriesAssigned(slots, b.id);
+              return <OwnedCapsule key={b.id} label={b.label} inUse={inUse} total={total} accent={total > 0} />;
             })}
           </div>
         </div>
@@ -90,8 +121,9 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
           <SectionTitle>Modules</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_MODULES).map((mod) => {
-              const n = Number(state.owned.modules[mod.id] ?? 0);
-              return <AssetCapsule key={mod.id} label={mod.label} value={n.toLocaleString()} accent={n > 0} />;
+              const total = Number(state.owned.modules[mod.id] ?? 0);
+              const inUse = countModuleAssignments(slots, mod.id);
+              return <OwnedCapsule key={mod.id} label={mod.label} inUse={inUse} total={total} accent={total > 0} />;
             })}
           </div>
         </div>
@@ -100,17 +132,19 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   );
 }
 
-/** Workers tab: inventory workers assignable to plants (same capsule style as Build assets). */
-export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned'] }) {
+/** Workers tab: inventory workers assignable to plants (same layout as Build assets). */
+export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned']; plantSlots: MinecoreState['plantSlots'] }) {
+  const slots = props.plantSlots;
   return (
     <GamePanelCard
       title="Owned workers"
-      hint="Assignable worker units for your plants. Deploy NFT workers below for automation bonuses."
+      hint="Assignable worker units for your plants. In use counts assignments on unlocked plants."
     >
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {Object.values(MINECORE_WORKERS).map((w) => {
-          const n = Number(props.owned.workers[w.id] ?? 0);
-          return <AssetCapsule key={w.id} label={w.label} value={n.toLocaleString()} accent={n > 0} />;
+          const total = Number(props.owned.workers[w.id] ?? 0);
+          const inUse = countWorkersAssigned(slots, w.id);
+          return <OwnedCapsule key={w.id} label={w.label} inUse={inUse} total={total} accent={total > 0} />;
         })}
       </div>
     </GamePanelCard>

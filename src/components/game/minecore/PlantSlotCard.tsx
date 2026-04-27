@@ -20,6 +20,12 @@ import {
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 import {
+  countBatteriesAssigned,
+  countMachinesAssigned,
+  countModuleAssignments,
+  countWorkersAssigned,
+} from '@/lib/game/minecore/asset-usage';
+import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
   MINECORE_MODULES,
@@ -30,7 +36,7 @@ import {
   MINECORE_WORKERS,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
 
@@ -64,6 +70,10 @@ function statusBadge(status: PlantSlotState['status']) {
   if (status === 'InsufficientPower') return `${base} border border-orange-500/35 bg-orange-500/15 text-orange-900 dark:text-orange-200`;
   if (status === 'NeedsPower' || status === 'NeedsRepair') return `${base} border border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-300`;
   return `${base} border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`;
+}
+
+function efficiencyBadgeClassName() {
+  return 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-300';
 }
 
 function labelForStatus(status: PlantSlotState['status']) {
@@ -103,7 +113,7 @@ function SelectionModal(props: {
       onClick={props.onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-md w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-2xl w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
@@ -203,7 +213,7 @@ function ResourceBar(props: {
   return inner;
 }
 
-/** Daily cap: yellow progress fill, large mined (amber/yellow) vs cap (emerald accent). */
+/** Daily cap: rolling 24h from plant activation; yellow fill; numbers on the right. */
 function DailyCapBar(props: {
   mined: number;
   cap: number;
@@ -214,25 +224,30 @@ function DailyCapBar(props: {
   const r = clamp01(props.ratio);
   const inner = (
     <div className="space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-        Mined today toward 24h cap
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          Mined toward 24h cap
+        </span>
+        {props.setupIncomplete || props.cap <= 0 ? (
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
+        ) : (
+          <div className="flex items-baseline gap-1.5 tabular-nums">
+            <span className="text-xl font-black text-amber-400 sm:text-2xl dark:text-amber-300">
+              {Math.floor(props.mined).toLocaleString()}
+            </span>
+            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
+            <span className="text-xl font-black text-emerald-600 sm:text-2xl dark:text-emerald-400">
+              {props.cap.toLocaleString()}
+            </span>
+          </div>
+        )}
       </div>
       {props.setupIncomplete || props.cap <= 0 ? (
         <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          Complete machine, battery & worker to see your daily cap.
+          Complete machine, battery & worker to see your rolling daily cap.
         </p>
       ) : (
         <>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <span className="text-2xl font-black tabular-nums text-amber-400 sm:text-3xl dark:text-amber-300">
-              {Math.floor(props.mined).toLocaleString()}
-            </span>
-            <span className="text-lg font-bold text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="text-2xl font-black tabular-nums text-emerald-600 sm:text-3xl dark:text-emerald-400">
-              {props.cap.toLocaleString()}
-            </span>
-            <span className="w-full text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 sm:w-auto sm:ml-auto">diamonds (UTC day)</span>
-          </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
             <div
               className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
@@ -241,7 +256,7 @@ function DailyCapBar(props: {
           </div>
           {props.capReached ? (
             <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              Daily cap reached for this plant (UTC). Extract or wait for the next day.
+              Rolling 24h cap reached for this plant. Extract or wait for the next window.
             </div>
           ) : null}
         </>
@@ -251,10 +266,50 @@ function DailyCapBar(props: {
 
   const tip =
     props.cap > 0
-      ? `Progress toward this plant’s maximum diamond output for the current UTC day. Mined includes diamonds still in the plant and what you already extracted or refined from it today (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`
-      : 'Finish setup to see how many diamonds this plant can produce per 24h at your current power balance.';
+      ? `Your personal 24h diamond budget for this plant (from when it was activated). Counts diamonds still here plus what you extracted or refined from this plant in the current window. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
+      : 'Finish setup to see how many diamonds this plant can produce per 24h at your current power balance. The timer is tied to this plant, not global midnight.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
+}
+
+/** Power-tab style row for setup modals. */
+function ModalPartRow(props: {
+  title: string;
+  subtitle: string;
+  owned: number;
+  inUse: number;
+  disabled?: boolean;
+  selected?: boolean;
+  onClick: () => void;
+  trailing?: ReactNode;
+}) {
+  const borderCls = props.selected
+    ? 'border-sky-500 bg-sky-500/5'
+    : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
+  return (
+    <button
+      type="button"
+      disabled={props.disabled}
+      onClick={props.onClick}
+      className={`flex w-full flex-wrap items-stretch justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${borderCls}`}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{props.title}</span>
+        <span className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{props.subtitle}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+        <div className="flex min-w-[3.25rem] flex-col items-end">
+          <span className="text-[10px] font-semibold text-zinc-400">Owned</span>
+          <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{props.owned}</span>
+        </div>
+        <div className="flex min-w-[3.25rem] flex-col items-end">
+          <span className="text-[10px] font-semibold text-zinc-400">In use</span>
+          <span className="font-mono text-sm font-bold tabular-nums text-sky-600 dark:text-sky-400">{props.inUse}</span>
+        </div>
+        {props.trailing ?? <Icons.ChevronRight className="h-5 w-5 shrink-0 self-center text-zinc-300 dark:text-zinc-600" />}
+      </div>
+    </button>
+  );
 }
 
 /** Discrete dot indicator for power fuel units */
@@ -445,9 +500,7 @@ export function PlantSlotCard(props: {
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
             {s.unlocked && s.setup.machineId ? (
-              <span className="hidden rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 font-mono text-[10px] font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 sm:inline">
-                Eff {effPct.toFixed(0)}%
-              </span>
+              <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effPct.toFixed(0)}%</span>
             ) : null}
             {props.minecoreState.automation.autoRestart && (
               <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
@@ -623,41 +676,55 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Upgrade Plant"
       >
-        {Object.values(MINECORE_PLANT_PRESETS).map((p) => {
-          const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
-          const isCurrent = s.type === p.type;
-          return (
-            <button
-              key={p.type}
-              onClick={() => {
-                if (!isCurrent) props.onChangePlantType(p.type, p.costKas);
-                setActiveModal(null);
-              }}
-              className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center gap-4 ${
-                isCurrent
-                  ? 'border-sky-500 bg-sky-500/10'
-                  : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700'
-              }`}
-            >
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                {p.featuredImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <Icon className="w-5 h-5 text-sky-500" />
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="font-bold text-zinc-900 dark:text-zinc-100">{p.label}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">{p.description}</div>
-                {p.costKas > 0 && !isCurrent && (
-                  <div className="text-[10px] font-black text-sky-600 uppercase mt-1">Upgrade: {p.costKas} KAS</div>
-                )}
-              </div>
-              {isCurrent && <Icons.Check className="w-5 h-5 text-sky-500" />}
-            </button>
-          );
-        })}
+        <ul className="space-y-2">
+          {Object.values(MINECORE_PLANT_PRESETS).map((p) => {
+            const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
+            const isCurrent = s.type === p.type;
+            const borderCls = isCurrent
+              ? 'border-sky-500 bg-sky-500/5'
+              : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
+            return (
+              <li key={p.type} className="list-none">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isCurrent) props.onChangePlantType(p.type, p.costKas);
+                    setActiveModal(null);
+                  }}
+                  className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${borderCls}`}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                      {p.featuredImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <Icon className="h-5 w-5 text-sky-500" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{p.label}</div>
+                      <div className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{p.description}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                    <div className="flex min-w-[4rem] flex-col items-end">
+                      <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
+                      <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
+                        {p.costKas <= 0 ? '—' : `${p.costKas} KAS`}
+                      </span>
+                    </div>
+                    <div className="flex min-w-[3.5rem] flex-col items-end">
+                      <span className="text-[10px] font-semibold text-zinc-400">Status</span>
+                      <span className="text-xs font-bold text-sky-600 dark:text-sky-400">{isCurrent ? 'Current' : '—'}</span>
+                    </div>
+                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-sky-500" /> : null}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </SelectionModal>
 
       <SelectionModal
@@ -665,36 +732,38 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Assign Machine"
       >
-        {Object.values(MINECORE_MACHINES).map((m) => {
-          const owned = props.minecoreState.owned.machines[m.id] ?? 0;
-          const isInstalled = s.setup.machineId === m.id;
-          return (
-            <button
-              key={m.id}
-              disabled={owned <= 0 && !isInstalled}
-              onClick={() => {
-                props.onInstallPart('machine', m.id);
-                setActiveModal(null);
-              }}
-              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
-              } disabled:opacity-40`}
-            >
-              <div>
-                <div className="font-bold text-sm">{m.label}</div>
-                <div className="text-[10px] text-zinc-500">
-                  {m.baseOutput} D · {formatDuration(m.durationMs)} · grid +{m.powerGridContribution} · budget ×{m.powerBudgetMultiplier.toFixed(2)}
-                </div>
-              </div>
-              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
-            </button>
-          );
-        })}
+        <ul className="space-y-2">
+          {Object.values(MINECORE_MACHINES).map((m) => {
+            const owned = props.minecoreState.owned.machines[m.id] ?? 0;
+            const inUse = countMachinesAssigned(props.minecoreState.plantSlots, m.id);
+            const isInstalled = s.setup.machineId === m.id;
+            return (
+              <li key={m.id} className="list-none">
+                <ModalPartRow
+                  title={m.label}
+                  subtitle={`Output ${m.baseOutput} D · ${formatDuration(m.durationMs)} · Grid +${m.powerGridContribution} · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
+                  owned={owned}
+                  inUse={inUse}
+                  disabled={owned <= 0 && !isInstalled}
+                  selected={isInstalled}
+                  onClick={() => {
+                    props.onInstallPart('machine', m.id);
+                    setActiveModal(null);
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
         <button
-          onClick={() => { props.onInstallPart('machine', null); setActiveModal(null); }}
-          className="w-full p-2 text-xs font-bold text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+          type="button"
+          onClick={() => {
+            props.onInstallPart('machine', null);
+            setActiveModal(null);
+          }}
+          className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
         >
-          Remove Machine
+          Remove machine
         </button>
       </SelectionModal>
 
@@ -703,29 +772,29 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Assign Battery"
       >
-        {Object.values(MINECORE_BATTERIES).map((b) => {
-          const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
-          const isInstalled = s.setup.batteryId === b.id;
-          return (
-            <button
-              key={b.id}
-              disabled={owned <= 0 && !isInstalled}
-              onClick={() => {
-                props.onInstallPart('battery', b.id);
-                setActiveModal(null);
-              }}
-              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
-              } disabled:opacity-40`}
-            >
-              <div>
-                <div className="font-bold text-sm">{b.label}</div>
-                <div className="text-[10px] text-zinc-500">{formatDuration(b.chargeCapacityMs)} charge · {b.powerCapacity} units</div>
-              </div>
-              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
-            </button>
-          );
-        })}
+        <ul className="space-y-2">
+          {Object.values(MINECORE_BATTERIES).map((b) => {
+            const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
+            const inUse = countBatteriesAssigned(props.minecoreState.plantSlots, b.id);
+            const isInstalled = s.setup.batteryId === b.id;
+            return (
+              <li key={b.id} className="list-none">
+                <ModalPartRow
+                  title={b.label}
+                  subtitle={`Charge ${formatDuration(b.chargeCapacityMs)} · Efficiency ×${b.efficiency} · ${b.powerCapacity} reserve units`}
+                  owned={owned}
+                  inUse={inUse}
+                  disabled={owned <= 0 && !isInstalled}
+                  selected={isInstalled}
+                  onClick={() => {
+                    props.onInstallPart('battery', b.id);
+                    setActiveModal(null);
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
       </SelectionModal>
 
       <SelectionModal
@@ -733,74 +802,73 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Assign Worker"
       >
-        {Object.values(MINECORE_WORKERS).map((w) => {
-          const owned = props.minecoreState.owned.workers[w.id] ?? 0;
-          const isInstalled = s.setup.workerId === w.id;
-          return (
-            <button
-              key={w.id}
-              disabled={owned <= 0 && !isInstalled}
-              onClick={() => {
-                props.onInstallPart('worker', w.id);
-                setActiveModal(null);
-              }}
-              className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-                isInstalled ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
-              } disabled:opacity-40`}
-            >
-              <div>
-                <div className="font-bold text-sm">{w.label}</div>
-                <div className="text-[10px] text-zinc-500">
-                  Worker bonus +{(w.diamondOutputBonus * 100).toFixed(0)}% · −{(w.energyUseReduction * 100).toFixed(0)}% draw
-                </div>
-              </div>
-              <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
-            </button>
-          );
-        })}
+        <ul className="space-y-2">
+          {Object.values(MINECORE_WORKERS).map((w) => {
+            const owned = props.minecoreState.owned.workers[w.id] ?? 0;
+            const inUse = countWorkersAssigned(props.minecoreState.plantSlots, w.id);
+            const isInstalled = s.setup.workerId === w.id;
+            return (
+              <li key={w.id} className="list-none">
+                <ModalPartRow
+                  title={w.label}
+                  subtitle={`Bonus +${(w.diamondOutputBonus * 100).toFixed(0)}% output · −${(w.energyUseReduction * 100).toFixed(0)}% draw · +${w.efficiencyBonus} eff. floor pts`}
+                  owned={owned}
+                  inUse={inUse}
+                  disabled={owned <= 0 && !isInstalled}
+                  selected={isInstalled}
+                  onClick={() => {
+                    props.onInstallPart('worker', w.id);
+                    setActiveModal(null);
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
       </SelectionModal>
       <SelectionModal
         isOpen={activeModal === 'modules'}
         onClose={() => setActiveModal(null)}
         title="Install Modules"
       >
-        <p className="text-xs text-zinc-500 mb-4 px-1">Select hardware to optimize output. Higher tiers unlock more slots.</p>
-        <div className="space-y-2">
-          {(Object.values(MINECORE_MODULES) as ModuleConfig[]).map(m => {
+        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Tap a row to toggle. Higher plant tiers allow more module slots.
+        </p>
+        <ul className="space-y-2">
+          {(Object.values(MINECORE_MODULES) as ModuleConfig[]).map((m) => {
             const owned = props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0;
+            const inUse = countModuleAssignments(props.minecoreState.plantSlots, m.id as MinecoreModuleId);
             const isSelected = s.setup.moduleIds.includes(m.id as MinecoreModuleId);
+            const specParts = [
+              m.kind === 'output' ? `+${(m.outputBonus * 100).toFixed(0)}% output` : '',
+              m.kind === 'cooling' ? `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW` : '',
+              m.kind === 'automation' ? `+${((m.cycleDurationBonus ?? 0) * 100).toFixed(0)}% cycle` : '',
+              m.kind === 'stability' ? `+${m.efficiencyFloorBonus ?? 0} eff. floor` : '',
+              m.kind === 'refining' ? `+${((m.refineBonus ?? 0) * 100).toFixed(0)}% refine` : '',
+              `Fail −${(m.failureReduction * 100).toFixed(0)}%`,
+            ].filter(Boolean);
             return (
-              <button
-                key={m.id}
-                onClick={() => {
-                  const current = s.setup.moduleIds;
-                  const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
-                  const next = current.includes(m.id as any)
-                    ? current.filter((x) => x !== m.id)
-                    : [...current, m.id as any].slice(0, maxM);
-                  props.onInstallPart('modules', next);
-                }}
-                className={`w-full p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-                  isSelected ? 'border-sky-500 bg-sky-500/5' : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200'
-                }`}
-              >
-                <div>
-                  <div className="font-bold text-sm">{m.label}</div>
-                  <div className="text-[10px] text-zinc-500">
-                    {m.kind === 'output' && `+${(m.outputBonus * 100).toFixed(0)}% output`}
-                    {m.kind === 'cooling' && `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW draw`}
-                    {m.kind === 'automation' && `+${((m.cycleDurationBonus ?? 0) * 100).toFixed(0)}% cycle time`}
-                    {m.kind === 'stability' && `+${m.efficiencyFloorBonus ?? 0} eff. floor`}
-                    {m.kind === 'refining' && `+${((m.refineBonus ?? 0) * 100).toFixed(0)}% refine pts`}
-                    {' · '}
-                    Fail −{(m.failureReduction * 100).toFixed(0)}%
-                  </div>
-                </div>
-                <div className="text-xs font-black text-zinc-400">Owned: {owned}</div>
-              </button>
+              <li key={m.id} className="list-none">
+                <ModalPartRow
+                  title={m.label}
+                  subtitle={specParts.join(' · ')}
+                  owned={owned}
+                  inUse={inUse}
+                  selected={isSelected}
+                  onClick={() => {
+                    const current = s.setup.moduleIds;
+                    const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
+                    const next = current.includes(m.id as MinecoreModuleId)
+                      ? current.filter((x) => x !== m.id)
+                      : [...current, m.id as MinecoreModuleId].slice(0, maxM);
+                    props.onInstallPart('modules', next);
+                  }}
+                  trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-sky-500" /> : undefined}
+                />
+              </li>
             );
           })}
-        </div>
+        </ul>
       </SelectionModal>
     </>
   );

@@ -97,7 +97,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): Pl
     batteryChargeMs: 0,
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
-    dailyCapDayKey: '1970-01-01',
+    rollingCapWindowStartMs: 1,
     dailyCapMinedDiamonds: 0,
   });
   return {
@@ -114,7 +114,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): Pl
     batteryChargeMs: cap,
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
-    dailyCapDayKey: '1970-01-01',
+    rollingCapWindowStartMs: 1,
     dailyCapMinedDiamonds: 0,
   };
 }
