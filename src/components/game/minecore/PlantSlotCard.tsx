@@ -3,7 +3,6 @@
 import type { MinecoreState, PlantSlotState, MinecoreModuleId } from '@/lib/game/minecore';
 import {
   computeLiveBatteryChargeMs,
-  computeLiveDiamonds,
   computePlantDailyCapProgress,
   computePlantReady,
   getBatteryCapacityMs,
@@ -88,7 +87,7 @@ function labelForStatus(status: PlantSlotState['status']) {
   if (status === 'MiningActive')    return 'Mining active';
   if (status === 'MiningPaused')    return 'Paused';
   if (status === 'BatteryEmpty')    return 'Battery empty';
-  if (status === 'ExtractionReady') return 'Extraction ready';
+  if (status === 'ExtractionReady') return 'Run complete';
   if (status === 'NeedsRepair')     return 'Needs repair';
   if (status === 'NeedsPower')      return 'Needs power';
   if (status === 'InsufficientPower') return 'Grid deficit';
@@ -197,7 +196,10 @@ function ResourceBar(props: {
   if (props.variant === 'cycle' || props.variant === 'dailyCap') {
     barColor = 'bg-emerald-500';
   } else if (props.variant === 'battery') {
-    barColor = r > 0.6 ? 'bg-sky-500' : r > 0.2 ? 'bg-sky-400' : 'bg-sky-300 dark:bg-sky-600';
+    if (r <= 0) barColor = 'bg-zinc-300 dark:bg-zinc-600';
+    else if (r <= 0.2) barColor = 'bg-amber-500';
+    else if (r <= 0.5) barColor = 'bg-sky-400';
+    else barColor = 'bg-sky-500';
   } else {
     barColor = r > 0.4 ? 'bg-sky-500' : 'bg-rose-500';
   }
@@ -269,7 +271,7 @@ function DailyCapBar(props: {
           </div>
           {props.capReached ? (
             <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              Rolling 24h cap reached for this plant. Extract or wait for the next window.
+              Rolling 24h cap reached for this plant. Refine in Redeem, or wait for the next window.
             </div>
           ) : null}
         </>
@@ -279,7 +281,7 @@ function DailyCapBar(props: {
 
   const tip =
     props.cap > 0
-      ? `Rolling 24h extraction budget for this plant (from activation). Cap = plant base + rig bonuses (boost & battery yield), before live power efficiency. Progress counts diamonds on-site plus extracted/refined from this plant in the window. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
+      ? `Rolling 24h budget for this plant (per activation). Effective cap is the minimum of (plant max, rig + worker + module math). Count includes mined diamonds in your wallet and still inside this plant. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
       : 'Finish setup to see your rolling 24h cap. The timer follows this plant, not global midnight.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
@@ -325,23 +327,28 @@ function ModalPartRow(props: {
   );
 }
 
-/** Discrete dot indicator for power fuel units */
-function PowerDots(props: { current: number; max: number }) {
-  const safeMax = Math.max(1, Math.min(props.max, 10));
-  const dots = Array.from({ length: safeMax }, (_, i) => i < props.current);
+/**
+ * One segment per power-unit (battery) slot. Blue ≈ that slice of the combined runtime still has charge; gray = depleted (V1 visual split of one pool).
+ */
+function BatteryUnitDots(props: { segments: number; chargeRatio: number }) {
+  const n = Math.max(1, Math.min(props.segments, 10));
+  const r = clamp01(props.chargeRatio);
+  const blueCount = r <= 0 ? 0 : Math.min(n, Math.max(0, Math.round(r * n)));
   const inner = (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Power units</span>
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Battery slots</span>
         <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">
-          {props.current} / {safeMax}
+          {r <= 0 ? '0' : `${(r * 100).toFixed(0)}%`} on-line
         </span>
       </div>
       <div className="flex gap-1">
-        {dots.map((filled, i) => (
+        {Array.from({ length: n }, (_, i) => (
           <div
             key={i}
-            className={`h-2.5 flex-1 rounded-sm transition-colors ${filled ? 'bg-sky-500' : 'bg-zinc-200 dark:bg-zinc-800'}`}
+            className={`h-2.5 flex-1 rounded-sm transition-colors ${
+              i < blueCount ? 'bg-sky-500' : 'bg-zinc-200 dark:bg-zinc-800'
+            }`}
           />
         ))}
       </div>
@@ -349,7 +356,7 @@ function PowerDots(props: { current: number; max: number }) {
   );
   return (
     <Tooltip
-      content={`Reserve power unit capacity is set by your plant tier (V1: rigs and batteries do not add units). Recharge refills the battery. Display: ${props.current} / ${safeMax}.`}
+      content={`${n} power-unit slot(s) = how many battery packs you can run on this plant. One combined runtime bar above; these segments go gray as that shared charge is used up.`}
     >
       {inner}
     </Tooltip>
@@ -408,7 +415,6 @@ export function PlantSlotCard(props: {
     ? liveChargeMs / Math.max(0.05, getPowerDrainScale(s))
     : 0;
 
-  const liveDiamonds    = computeLiveDiamonds(s, now);
   const d24 = s.unlocked && computePlantReady(s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now);
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
@@ -449,14 +455,10 @@ export function PlantSlotCard(props: {
     actionLabel = 'Resume mining';
   } else if (s.status === 'MiningActive') {
     actionLabel = 'Stop mining';
-  } else if (s.diamondsAccumulated > 0) {
-    actionLabel = `Extract ${s.diamondsAccumulated} D`;
+  } else if (s.status === 'ExtractionReady' || s.status === 'BatteryEmpty') {
+    actionLabel = 'Run finished — crediting…';
   } else if (s.status === 'ReadyToMine') {
     actionLabel = 'Start';
-  } else if (s.status === 'ExtractionReady') {
-    actionLabel = `Extract ${(s.diamondsAccumulated + liveDiamonds).toLocaleString()} D`;
-  } else if (s.status === 'BatteryEmpty') {
-    actionLabel = 'Extract (partial)';
   } else {
     actionLabel = 'Mining…';
   }
@@ -469,7 +471,8 @@ export function PlantSlotCard(props: {
     batteryRatio < BATTERY_LOW_RECHARGE_THRESHOLD &&
     !primaryIsRecharge;
 
-  const buyDisabled = s.status === 'DailyCapReached';
+  const buyDisabled =
+    s.status === 'DailyCapReached' || s.status === 'ExtractionReady' || s.status === 'BatteryEmpty';
 
   /** Setup changes only when not actively mining (paused / idle / extraction is OK). */
   const canEditParts = s.status !== 'MiningActive';
@@ -646,12 +649,14 @@ export function PlantSlotCard(props: {
                   value={`${Math.floor(liveChargeMs / 60000)}m / ${Math.floor(capacityMs / 60000)}m`}
                   ratio={batteryRatio}
                   variant="battery"
-                  tooltip={`Battery charge for this plant. While mining, the machine’s power draw drains charge; at 0 the run stops until you extract, recharge, or resume. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
+                  tooltip={`Combined battery runtime. Draw scales with the machine. At 0 the run ends and mined diamonds are credited to your balance automatically—recharge to start again. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
                 />
               )}
 
               {/* Power units dots */}
-              <PowerDots current={s.powerRemaining} max={powerDotMax} />
+              {capacityMs > 0 ? (
+                <BatteryUnitDots segments={powerDotMax} chargeRatio={batteryRatio} />
+              ) : null}
             </div>
           )}
 
@@ -670,14 +675,17 @@ export function PlantSlotCard(props: {
             {s.status === 'DailyCapReached' && (
               <WarningBanner
                 level="warn"
-                message="Rolling 24h diamond budget is full. Extract or refine from this plant, or wait for the window to advance. New runs stay manual unless Workers → Auto-restart is on with Regen Coil or Foreman."
+                message="Rolling 24h diamond budget is full. Refine in the Redeem tab, or wait for the window. Mining restarts only when you press Start (Foreman can still auto-refill a dead battery with Energy Cells)."
               />
             )}
             {s.status === 'SetupIncomplete' && (
               <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
             )}
             {batteryEmpty && s.status !== 'MiningPaused' && (
-              <WarningBanner level="error" message="Battery depleted in this run — extract partial rewards or recharge, then you can start again (or resume if you paused to change parts)." />
+              <WarningBanner
+                level="error"
+                message="Battery depleted—mined diamonds were credited to your balance. Recharge, then start a new run manually (or use Foreman to auto-refill with Energy Cells if enabled)."
+              />
             )}
             {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
@@ -712,9 +720,7 @@ export function PlantSlotCard(props: {
         if (batteryDeadInRun || s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();
-        if (s.status === 'BatteryEmpty') return props.onExtract();
-        if (s.status === 'ExtractionReady') return props.onExtract();
-        if (s.status === 'ReadyToMine' && s.diamondsAccumulated > 0) return props.onExtract();
+        if (s.status === 'ExtractionReady' || s.status === 'BatteryEmpty') return;
         if (s.status === 'ReadyToMine') return props.onStart();
       }}
     />

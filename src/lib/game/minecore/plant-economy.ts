@@ -7,6 +7,7 @@ import {
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
   MINECORE_MODULES,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
+  MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_PRODUCTION_KW,
   MINECORE_POWER_CRITICAL_RATIO,
   MINECORE_WORKERS,
@@ -131,7 +132,8 @@ export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: 
 
   const subtotal = base + machinePart + workerPart + modulePart;
   const afterGear = subtotal * boost.multiplier * battery.efficiency;
-  return Math.max(0, Math.floor(afterGear));
+  const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
+  return Math.max(0, Math.min(plantMax, Math.floor(afterGear)));
 }
 
 /**

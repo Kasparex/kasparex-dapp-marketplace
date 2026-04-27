@@ -7,7 +7,7 @@ import {
   hydrateMinecoreState,
   applyMinecoreEvent,
   deriveState,
-  minecoreAutoRestartInfrastructureActive,
+  computeLiveDiamonds,
   type MinecoreState,
   type PlantSlotState,
 } from '@/lib/game/minecore';
@@ -107,41 +107,54 @@ export function useMinecore() {
     [walletState.isConnected, walletAddr],
   );
 
-  // Foreman: auto-refill. Auto-restart mining: only when toggle is on AND (Foreman or Regen Coil / auto-restart module).
+  /**
+   * Foreman only: auto-spend an Energy Cell to refill a dead battery. No automatic chain mining or extract (V1).
+   */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
-    const allowRefill = mc.automation.foremanActive;
-    if (!allowRefill && !mc.automation.autoRestart) return;
+    if (!mc.automation.foremanActive) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
       const s = mcRef.current;
-      const derived = deriveState(s, now);
-      const allowAutoMine =
-        s.automation.autoRestart && minecoreAutoRestartInfrastructureActive(s);
+      const d = deriveState(s, now);
 
       for (const slot of s.plantSlots) {
         if (!slot.unlocked) continue;
-        const status = derived.plantSlots[slot.index].status;
+        const status = d.plantSlots[slot.index].status;
 
-        if (allowRefill && status === 'BatteryEmpty' && s.ingredients.energyCells > 0) {
+        if (status === 'BatteryEmpty' && s.ingredients.energyCells > 0) {
           dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
           dispatch({ type: 'RefillBattery', slotIndex: slot.index, at: now });
-          continue;
-        }
-
-        if (allowAutoMine && status === 'ExtractionReady') {
-          dispatch({ type: 'Extract', slotIndex: slot.index, at: now });
-        }
-
-        if (allowAutoMine && status === 'ReadyToMine' && slot.diamondsAccumulated === 0) {
-          dispatch({ type: 'StartMining', slotIndex: slot.index, at: now });
+          break;
         }
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [walletState.isConnected, walletAddr, mc.automation.autoRestart, mc.automation.foremanActive, dispatch]);
+  }, [walletState.isConnected, walletAddr, mc.automation.foremanActive, dispatch]);
+
+  /**
+   * When a run ends (cycle complete or battery empty), bank mined diamonds to the wallet immediately — no separate Extract step.
+   */
+  const autoBankPrevStatusRef = useRef<Record<number, string>>({});
+  useEffect(() => {
+    if (!walletState.isConnected || !walletAddr) return;
+    const now = nowTick;
+    for (const slot of derived.plantSlots) {
+      if (!slot.unlocked) continue;
+      const st = slot.status;
+      const prev = autoBankPrevStatusRef.current[slot.index];
+      const justEntered = prev === undefined || prev !== st;
+      const canBank =
+        slot.diamondsAccumulated > 0 ||
+        (slot.cycle != null && computeLiveDiamonds(slot, now) > 0);
+      if (justEntered && (st === 'ExtractionReady' || st === 'BatteryEmpty') && canBank) {
+        dispatch({ type: 'Extract', slotIndex: slot.index, at: now });
+      }
+      autoBankPrevStatusRef.current[slot.index] = st;
+    }
+  }, [walletState.isConnected, walletAddr, derived.plantSlots, nowTick, dispatch]);
 
   const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});

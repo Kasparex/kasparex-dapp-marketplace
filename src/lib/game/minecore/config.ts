@@ -24,6 +24,15 @@ export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
   advanced: 500,
 };
 
+/**
+ * Max rolling 24h cap by plant (machines/workers cannot push effective output past this). Higher plants allow bigger rigs.
+ */
+export const MINECORE_PLANT_MAX_DIAMONDS_PER_24H: Record<PlantType, number> = {
+  standard: 1_000,
+  premium: 2_500,
+  advanced: 10_000,
+};
+
 /** Base reserve power units for plant tier (facility capacity; shown on cards). */
 export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   standard: 1,

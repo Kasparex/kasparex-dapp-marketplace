@@ -136,16 +136,10 @@ export function MinecoreDashboard(_props: {
       {
         id: 'diamonds',
         label: 'Diamonds',
-        value: (
-          <span className="inline-flex items-baseline gap-1">
-            <span className="text-amber-400 dark:text-amber-300">{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
-            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="text-emerald-600 dark:text-emerald-400">{Math.floor(deckRollingCaps.capSum).toLocaleString()}</span>
-          </span>
-        ),
-        subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} Refinement Points`,
-        description: 'Rolling 24h cap (all active plants) · header shows total D on hand',
-        tooltip: `Diamonds mined toward rolling 24h caps vs combined cap for all unlocked plants with complete setup: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()}. Top bar: ${diamondsDisplayTotal.toLocaleString()} total diamonds (wallet + in plants).`,
+        value: <span className="text-amber-400 dark:text-amber-300">{diamondsDisplayTotal.toLocaleString()}</span>,
+        subValue: `Rolling 24h: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()} · ${Math.floor(state.refinementPointsTotal).toLocaleString()} RP`,
+        description: 'Refinable total (same number as Redeem tab)',
+        tooltip: `Total diamonds you can refine: ${diamondsDisplayTotal.toLocaleString()} (wallet + live in any plant, same source the Redeem tab uses). Rolling window shows progress toward 24h caps: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()}.`,
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -285,7 +279,7 @@ export function MinecoreDashboard(_props: {
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
                   <li>Craft parts and modules from ingredients.</li>
                   <li>Activate a plant slot with KAS and install machine, power, workers, and modules.</li>
-                  <li>Start a mining cycle, then extract diamonds when complete.</li>
+                  <li>Start a run; when the battery or cycle ends, diamonds credit to your balance automatically, then you start again.</li>
                   <li>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
                   <li>Expand slots and upgrade parts to grow your mining complex.</li>
                 </ul>

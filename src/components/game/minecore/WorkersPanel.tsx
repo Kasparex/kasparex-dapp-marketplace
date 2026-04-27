@@ -67,13 +67,13 @@ export function WorkersPanel(props: {
         <div>
           <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Auto-restart mining runs
-            <GameTooltip content="Chains extract → start when infrastructure allows: Regen Coil module on a Premium/Advanced plant, or an active Foreman NFT. Without either, mining stays manual between cycles (default).">
+            <GameTooltip content="V1: runs do not auto-chain when a battery or cycle ends—you always press Start again. Foreman can still auto-refill a dead battery from Energy Cells. Future: Regen Coil / Foreman may re-enable auto-chaining here.">
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
                 ?
               </button>
             </GameTooltip>
           </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Regen Coil or Foreman unlocks real auto-chaining</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">V1: manual restarts only (toggle reserved for future auto-chain)</p>
         </div>
         <label className="flex cursor-pointer items-center gap-2">
           <input

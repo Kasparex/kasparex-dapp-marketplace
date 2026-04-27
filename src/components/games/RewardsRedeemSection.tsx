@@ -119,6 +119,11 @@ export function RewardsRedeemSection({
           <div className="text-right">
             <div className="text-[10px] font-semibold text-amber-500">Available</div>
             <div className="text-xl font-bold tabular-nums text-amber-500">{diamondsBalance.toLocaleString()} D</div>
+            {minecoreExtras ? (
+              <p className="mt-0.5 max-w-xs text-right text-[10px] text-zinc-500 dark:text-zinc-400">
+                Total matches the game deck (wallet + in-mine). Mining credits here automatically; no extra extract step.
+              </p>
+            ) : null}
           </div>
         </div>
 
