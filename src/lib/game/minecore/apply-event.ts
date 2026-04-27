@@ -30,6 +30,7 @@ import {
   computeGlobalRefineBonusFraction,
   minecoreUtcDayKey,
 } from './plant-economy';
+import { creditPlantDailyCap, normalizeAllPlantDailyCaps } from './daily-cap';
 
 /** Preserve charge ratio when machine (charge budget) or battery changes. */
 function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldCapMs: number, at: number, now: number) {
@@ -95,6 +96,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       ? { ...state.redeemBudget }
       : { dayKey: minecoreUtcDayKey(now), refinementPointsSpentOnGrid: 0, refinementPointsSpentOnKrex: 0 },
   };
+
+  normalizeAllPlantDailyCaps(s.plantSlots, now);
 
   switch (ev.type) {
     case 'ConnectWallet': {
@@ -184,6 +187,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         batteryChargeMs:  0,
         batterySnapshotAt: now,
         diamondsAccumulated: 0,
+        dailyCapDayKey: minecoreUtcDayKey(now),
+        dailyCapMinedDiamonds: 0,
       };
       s.plantSlots.push(newSlot);
       s.nextSlotCostKas = Math.max(MINECORE_DEFAULT_NEXT_SLOT_COST_KAS, s.nextSlotCostKas);
@@ -323,6 +328,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const totalToExtract = slot.diamondsAccumulated + currentCycleDiamonds;
       
       s.diamondsBalance += totalToExtract;
+      creditPlantDailyCap(slot, totalToExtract, now);
       slot.diamondsAccumulated = 0;
       slot.cycle = null;
 
@@ -387,6 +393,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         if (slot.diamondsAccumulated > 0) {
           const t = Math.min(r, slot.diamondsAccumulated);
           slot.diamondsAccumulated -= t;
+          creditPlantDailyCap(slot, t, at);
           r -= t;
         }
         if (r <= 0) break;
@@ -396,6 +403,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const takeL = Math.min(r, live);
         const c = slot.cycle;
         c.mintedOffset = (c.mintedOffset ?? 0) + takeL;
+        creditPlantDailyCap(slot, takeL, at);
         r -= takeL;
       }
       if (r > 0) return rederive(s, now);

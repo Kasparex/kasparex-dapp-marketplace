@@ -19,6 +19,8 @@ import { MinecoreArticle } from '@/components/game/minecore/MinecoreArticle';
 import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPanel';
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
+import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
+import { MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
@@ -250,6 +252,8 @@ export function MinecoreDashboard(_props: {
                 onSortChange={setMiningSort}
               />
 
+              <MinecoreMaintenanceCostsPanel nextSlotCostKas={state.nextSlotCostKas} />
+
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredSlots.map((slot) => (
                   <PlantSlotCard
@@ -267,11 +271,6 @@ export function MinecoreDashboard(_props: {
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slot.index, amountKas));
-                    }}
-                    onQuickSetup={() => {
-                      actions.installMachine(slot.index, 'pulse-drill');
-                      actions.installBattery(slot.index, 'energy-cell');
-                      actions.installWorker(slot.index, 'worker');
                     }}
                     onInstallPart={(kind, id) => {
                       if (kind === 'machine') actions.installMachine(slot.index, id);
@@ -383,7 +382,7 @@ export function MinecoreDashboard(_props: {
                   actions.setBoost(0, 'kas-overclock');
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
-                  await actions.repairWithKAS(0, 2);
+                  await actions.repairWithKAS(0, MINECORE_PLANT_REPAIR_KAS);
                 }
               }}
             />

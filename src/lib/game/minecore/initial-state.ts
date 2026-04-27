@@ -30,6 +30,8 @@ function createEmptySlot(index: number): PlantSlotState {
     batteryChargeMs: 0,
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
+    dailyCapDayKey: minecoreUtcDayKey(Date.now()),
+    dailyCapMinedDiamonds: 0,
   };
 }
 
@@ -53,7 +55,12 @@ export function createInitialMinecoreState(): MinecoreState {
       workers: { ...MINECORE_STARTER_OWNED.workers },
       modules: { ...MINECORE_STARTER_OWNED.modules },
     },
-    plantSlots: Array.from({ length: MINECORE_DEFAULT_PLANT_SLOTS }, (_, i) => createEmptySlot(i)),
+    plantSlots: (() => {
+      const slots = Array.from({ length: MINECORE_DEFAULT_PLANT_SLOTS }, (_, i) => createEmptySlot(i));
+      const first = slots[0];
+      if (first) first.unlocked = true;
+      return slots;
+    })(),
     nextSlotCostKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
     nftSlots,
     gridLedger: [],

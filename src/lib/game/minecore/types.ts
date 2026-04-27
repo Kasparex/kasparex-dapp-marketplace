@@ -98,6 +98,12 @@ export type PlantSlotState = {
   batterySnapshotAt: number;
   /** Diamonds earned in previous cycles but not yet extracted. */
   diamondsAccumulated: number;
+  /** UTC `YYYY-MM-DD` for `dailyCapMinedDiamonds`. */
+  dailyCapDayKey: string;
+  /**
+   * Diamonds credited toward today's 24h cap from extract/refine (uncredited diamonds stay in live + accumulated).
+   */
+  dailyCapMinedDiamonds: number;
 };
 
 export type MinecoreAutomationState = {

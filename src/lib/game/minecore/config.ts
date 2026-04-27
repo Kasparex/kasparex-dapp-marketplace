@@ -74,6 +74,9 @@ export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
+/** KAS repair action on a damaged plant (Mining tab). */
+export const MINECORE_PLANT_REPAIR_KAS = 2;
+
 export type PlantPreset = {
   type: PlantType;
   label: string;
@@ -322,22 +325,23 @@ export const MINECORE_BOOSTS: Record<MinecoreBoostId, BoostConfig> = {
   'grid-efficiency': { id: 'grid-efficiency',   label: 'GRID Efficiency', multiplier: 1.2 },
 };
 
+/** New players start with no ingredients; earn via mining/refine/redeem. */
 export const MINECORE_STARTER_INGREDIENTS: IngredientBag = {
-  crystalDust: 200,
-  alloyPlates: 60,
-  circuitMesh: 40,
-  energyCells: 30,
-  coreShards: 10,
-  coolingGel: 25,
-  ariaChips: 15,
-  nullFragments: 5,
-  fluxCoils: 20,
-  latticeWire: 15,
+  crystalDust: 0,
+  alloyPlates: 0,
+  circuitMesh: 0,
+  energyCells: 0,
+  coreShards: 0,
+  coolingGel: 0,
+  ariaChips: 0,
+  nullFragments: 0,
+  fluxCoils: 0,
+  latticeWire: 0,
 };
 
 export const MINECORE_STARTER_OWNED = {
   machines: {
-    'pulse-drill': 1,
+    'pulse-drill': 0,
     'crystal-extractor': 0,
     'deep-vein-rig': 0,
     'quantum-fracturer': 0,
@@ -345,14 +349,14 @@ export const MINECORE_STARTER_OWNED = {
     'orbit-siphon': 0,
   },
   batteries: {
-    'energy-cell': 1,
+    'energy-cell': 0,
     'battery-pack': 0,
     'diamond-capacitor': 0,
     'grid-battery': 0,
     'flux-array': 0,
     'void-core-cell': 0,
   },
-  workers: { worker: 1, operator: 0 },
+  workers: { worker: 0, operator: 0 },
   modules: {
     'cooling-module': 0,
     'stability-module': 0,

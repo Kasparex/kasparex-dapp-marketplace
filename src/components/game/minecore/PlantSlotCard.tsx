@@ -2,11 +2,9 @@
 
 import type { MinecoreState, PlantSlotState, MinecoreModuleId } from '@/lib/game/minecore';
 import {
-  computeCycleProgress,
   computeLiveBatteryChargeMs,
   computeLiveDiamonds,
-  computeFlowRatePerMin,
-  computePlantExpectedDiamonds,
+  computePlantDailyCapProgress,
   computePlantReady,
   getBatteryCapacityMs,
   getPowerUnitCap,
@@ -28,6 +26,7 @@ import {
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
+  MINECORE_PLANT_REPAIR_KAS,
   MINECORE_WORKERS,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
@@ -160,13 +159,13 @@ function ResourceBar(props: {
   label: string;
   value: string;
   ratio: number;
-  variant: 'battery' | 'power' | 'cycle';
+  variant: 'battery' | 'power' | 'cycle' | 'dailyCap';
   warning?: string | null;
 }) {
   const r = clamp01(props.ratio);
 
   let barColor: string;
-  if (props.variant === 'cycle') {
+  if (props.variant === 'cycle' || props.variant === 'dailyCap') {
     barColor = 'bg-emerald-500';
   } else if (props.variant === 'battery') {
     barColor = r > 0.6 ? 'bg-emerald-500' : r > 0.2 ? 'bg-amber-500' : 'bg-rose-500';
@@ -237,7 +236,6 @@ export function PlantSlotCard(props: {
   onRechargePlant: (opts?: { units?: number }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
-  onQuickSetup: () => void;
   onInstallPart: (kind: any, id: any) => void;
   onChangePlantType: (type: any, cost: number) => void;
 }) {
@@ -248,7 +246,6 @@ export function PlantSlotCard(props: {
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
-  const { progress: cycleProgress, remainingMs: cycleRemainingMs } = computeCycleProgress(s, now);
 
   const liveChargeMs    = computeLiveBatteryChargeMs(s, now);
   const capacityMs      = getBatteryCapacityMs(s);
@@ -260,11 +257,8 @@ export function PlantSlotCard(props: {
     : 0;
 
   const liveDiamonds    = computeLiveDiamonds(s, now);
-  const flowPerMin      = computeFlowRatePerMin(s, now);
-  const expectedDiamonds = cycle ? cycle.expectedDiamonds : computePlantExpectedDiamonds(props.minecoreState, s);
-  const cycleMinedDisplay = cycle ? liveDiamonds : 0;
-  const cycleTotalDisplay = Math.max(0, expectedDiamonds);
   const d24 = s.unlocked && computePlantReady(s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
+  const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now);
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
   const balKw = prodKw - consKw;
@@ -288,7 +282,7 @@ export function PlantSlotCard(props: {
   if (!s.unlocked) {
     actionLabel = `Unlock ${s.unlockCostKas.toLocaleString()} KAS`;
   } else if (s.status === 'SetupIncomplete') {
-    actionLabel = 'Quick setup';
+    actionLabel = 'Complete setup';
   } else if (s.status === 'NeedsRepair') {
     actionLabel = 'Repair';
   } else if (s.status === 'NeedsPower') {
@@ -326,24 +320,11 @@ export function PlantSlotCard(props: {
         ? 'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-zinc-300 bg-zinc-200 text-zinc-800 shadow-sm transition-colors hover:bg-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
         : undefined;
 
-  // ── Title accessory — mined / cycle total (green / amber) ─────────────────
   const titleAccessory = s.unlocked ? (
     <div className="text-right">
-      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">Diamonds / 24h</div>
+      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">24h diamond cap</div>
       <div className="text-sm font-black tabular-nums text-sky-600 dark:text-sky-400 sm:text-base">
-        {computePlantReady(s) ? d24.toLocaleString() : '—'}
-      </div>
-      <div className="mt-1 text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">This cycle</div>
-      <div className="text-lg font-black tabular-nums leading-tight sm:text-xl">
-        <span className="text-emerald-600 dark:text-emerald-400">{cycleMinedDisplay.toLocaleString()}</span>
-        <span className="text-zinc-400 dark:text-zinc-500"> / </span>
-        <span className="text-amber-500 dark:text-amber-300">{cycleTotalDisplay.toLocaleString()}</span>
-      </div>
-      {s.diamondsAccumulated > 0 && (
-        <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">Banked: {s.diamondsAccumulated.toLocaleString()} D</div>
-      )}
-      <div className="text-[9px] font-semibold text-zinc-500 dark:text-zinc-400">
-        {cycle && flowPerMin > 0 ? `+${flowPerMin.toFixed(1)} D/min` : 'Live rate when mining'}
+        {dailyCap.cap24h > 0 ? `${dailyCap.cap24h.toLocaleString()} D` : computePlantReady(s) ? '0' : '—'}
       </div>
     </div>
   ) : null;
@@ -379,6 +360,24 @@ export function PlantSlotCard(props: {
               </span>
             )}
           </div>
+
+          {s.unlocked ? (
+            <ResourceBar
+              label="Mined today toward 24h cap"
+              value={
+                dailyCap.cap24h > 0
+                  ? `${Math.floor(dailyCap.minedTowardCap).toLocaleString()} / ${dailyCap.cap24h.toLocaleString()} D`
+                  : 'Complete machine, battery & worker to see cap'
+              }
+              ratio={dailyCap.ratio}
+              variant="dailyCap"
+              warning={
+                dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h
+                  ? 'Daily cap reached for this plant (UTC). Extract or wait for the next day.'
+                  : null
+              }
+            />
+          ) : null}
 
           {/* ── Setup checklist ── */}
           <div className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
@@ -489,20 +488,6 @@ export function PlantSlotCard(props: {
 
           {s.unlocked && (
             <div className="space-y-3">
-              {/* Cycle progress bar (always when plant has components; idle = empty bar) */}
-              <ResourceBar
-                label={
-                  !s.cycle
-                    ? 'Cycle progress — no active cycle'
-                    : s.cycle.pauseBeganAtMs != null
-                      ? `Cycle progress — paused (${formatDuration(cycleRemainingMs)} left in window)`
-                    : `Cycle progress — ${formatDuration(cycleRemainingMs)} left`
-                }
-                value={s.cycle ? `${Math.round(cycleProgress * 100)}%` : '0%'}
-                ratio={s.cycle ? cycleProgress : 0}
-                variant="cycle"
-              />
-
               {/* Battery charge bar */}
               {capacityMs > 0 && (
                 <ResourceBar
@@ -538,7 +523,7 @@ export function PlantSlotCard(props: {
       onBuy={async () => {
         if (!s.unlocked) return props.onUnlock();
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
-        if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: 2 });
+        if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
         if (s.status === 'InsufficientPower') return setActiveModal('machine');
         if (s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();

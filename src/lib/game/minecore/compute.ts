@@ -8,7 +8,9 @@ import {
   canStartMiningByEfficiency,
   computeExpectedDiamondsForCycle,
   computeEffectiveCycleDurationMs,
+  computePlantDiamondsPer24h,
 } from './plant-economy';
+import { rollPlantDailyCapIfNeeded } from './daily-cap';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -153,6 +155,22 @@ export function computeCycleProgress(slot: PlantSlotState, now: number): { progr
   return { progress, remainingMs };
 }
 
+/**
+ * Progress toward this plant's diamonds / 24h cap (UTC day): credited extract/refine + banked + live in-run.
+ */
+export function computePlantDailyCapProgress(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  now: number,
+): { minedTowardCap: number; cap24h: number; ratio: number } {
+  const rolled = rollPlantDailyCapIfNeeded(slot, now);
+  const cap24h = rolled.unlocked ? computePlantDiamondsPer24h(state, rolled) : 0;
+  const live = rolled.cycle ? computeLiveDiamonds(rolled, now) : 0;
+  const minedTowardCap = rolled.dailyCapMinedDiamonds + rolled.diamondsAccumulated + live;
+  const ratio = cap24h > 0 ? Math.min(1, minedTowardCap / cap24h) : 0;
+  return { minedTowardCap, cap24h, ratio };
+}
+
 // ── Status derivation ────────────────────────────────────────────────────────
 
 export function deriveSlotStatus(
@@ -176,7 +194,10 @@ export function deriveSlotStatus(
 }
 
 export function deriveState(state: MinecoreState, now: number): MinecoreState {
-  const nextSlots = state.plantSlots.map((s) => ({ ...s, status: deriveSlotStatus(state, s, now) }));
+  const nextSlots = state.plantSlots.map((s) => {
+    const rolled = rollPlantDailyCapIfNeeded(s, now);
+    return { ...rolled, status: deriveSlotStatus(state, rolled, now) };
+  });
   return { ...state, plantSlots: nextSlots };
 }
 

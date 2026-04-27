@@ -46,6 +46,12 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     batteryChargeMs: typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : base.batteryChargeMs,
     batterySnapshotAt: typeof input.batterySnapshotAt === 'number' ? input.batterySnapshotAt : base.batterySnapshotAt,
     diamondsAccumulated: typeof input.diamondsAccumulated === 'number' ? input.diamondsAccumulated : base.diamondsAccumulated,
+    dailyCapDayKey:
+      typeof input.dailyCapDayKey === 'string' && (input.dailyCapDayKey as string).length >= 8
+        ? (input.dailyCapDayKey as string)
+        : base.dailyCapDayKey,
+    dailyCapMinedDiamonds:
+      typeof input.dailyCapMinedDiamonds === 'number' ? input.dailyCapMinedDiamonds : base.dailyCapMinedDiamonds,
   };
 }
 
