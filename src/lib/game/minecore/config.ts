@@ -145,6 +145,11 @@ export type MachineConfig = {
   durationMs: number;
   baseOutput: number;
   /**
+   * Extra crew slots this rig expects beyond the plant’s single operator (0 = none).
+   * Shown on fabrication cards; future logic can enforce minimum crew.
+   */
+  additionalCrewRequired?: number;
+  /**
    * How fast this machine drains battery charge.
    * 1.0 = baseline (Pulse Drill).
    */
