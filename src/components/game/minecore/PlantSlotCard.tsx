@@ -35,6 +35,7 @@ import {
   MINECORE_PLANT_WORKFORCE_CAPACITY,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
+  MINECORE_KW_SCALE,
   MINECORE_PLANT_REPAIR_KAS,
   MINECORE_WORKERS,
   type ModuleConfig,
@@ -348,7 +349,7 @@ function PowerDots(props: { current: number; max: number }) {
   );
   return (
     <Tooltip
-      content={`Power unit capacity from machine grid + battery (not consumed per run). Recharge refills battery only; capacity updates when you change parts. Display: ${props.current} / ${safeMax}.`}
+      content={`Reserve power unit capacity is set by your plant tier (V1: rigs and batteries do not add units). Recharge refills the battery. Display: ${props.current} / ${safeMax}.`}
     >
       {inner}
     </Tooltip>
@@ -421,7 +422,7 @@ export function PlantSlotCard(props: {
   const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
   const workforceCap    = MINECORE_PLANT_WORKFORCE_CAPACITY[s.type ?? 'standard'];
   const crewAssigned    = workerConfig ? 1 : 0;
-  const powerDotMax     = getPowerUnitCap(s) || (batteryConfig?.powerCapacity ?? 1);
+  const powerDotMax     = Math.max(1, getPowerUnitCap(s));
 
   // ── Action label ─────────────────────────────────────────────────────────
   const capUnits = getPowerUnitCap(s);
@@ -562,7 +563,7 @@ export function PlantSlotCard(props: {
               statTone="rose"
               tooltip={
                 machineConfig
-                  ? `${machineConfig.label}: ${machineConfig.baseOutput} base output, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} drain. Reserve grid +${machineConfig.powerGridContribution} (+ battery units), charge budget ×${machineConfig.powerBudgetMultiplier.toFixed(2)}.`
+                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h to plant cap, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} drain, +${(machineConfig.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW to plant bus, charge budget ×${machineConfig.powerBudgetMultiplier.toFixed(2)}.`
                   : 'No machine installed. Click to assign one.'
               }
               onClick={() => setActiveModal('machine')}
@@ -581,10 +582,10 @@ export function PlantSlotCard(props: {
               installed={!!s.setup.workerId}
               label={workerConfig ? `Worker — ${workerConfig.label}` : 'Worker — Unassigned'}
               value={`${crewAssigned} / ${workforceCap}`}
-              stat={workerConfig ? `+${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% D` : undefined}
+              stat={workerConfig ? `+${workerConfig.diamondBonusPer24h} D/24h` : undefined}
               tooltip={
                 workerConfig
-                  ? `${workerConfig.label}: +${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% diamond output; −${(workerConfig.energyUseReduction * 100).toFixed(0)}% draw; +${workerConfig.efficiencyBonus} eff. pts. Crew ${crewAssigned}/${workforceCap} is plant station capacity (V1: one operator).`
+                  ? `${workerConfig.label}: +${workerConfig.diamondBonusPer24h} diamonds/24h to the rolling cap (flat bonus). Crew ${crewAssigned}/${workforceCap} is plant station capacity (V1: one operator).`
                   : `Assign an operator. Crew ${crewAssigned}/${workforceCap} — plant tier sets how many stations you can fill in future updates.`
               }
               onClick={() => setActiveModal('worker')}
@@ -607,7 +608,7 @@ export function PlantSlotCard(props: {
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
             <Tooltip
-              content={`Plant power grid: production from the rig and battery vs consumption from the machine (and modules). Balance and efficiency determine whether you can start mining. Production ${prodKw.toFixed(1)} kW, consumption ${consKw.toFixed(1)} kW, efficiency ${effPct.toFixed(0)}%.`}
+              content={`Plant power grid: base plant + rig kW to the bus vs draw from the machine (and modules). Batteries do not add reserve units (V1). Production ${prodKw.toFixed(1)} kW, consumption ${consKw.toFixed(1)} kW, efficiency ${effPct.toFixed(0)}%.`}
             >
               <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
               <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Power grid</div>
@@ -684,7 +685,7 @@ export function PlantSlotCard(props: {
             {s.status === 'InsufficientPower' && (
               <WarningBanner
                 level="warn"
-                message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise production (battery/machine grid) or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
+                message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise plant-tier reserve/rig bus output or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
               />
             )}
             {s.status === 'NeedsPower' && (
@@ -789,7 +790,7 @@ export function PlantSlotCard(props: {
               <li key={m.id} className="list-none">
                 <ModalPartRow
                   title={m.label}
-                  subtitle={`Output ${m.baseOutput} D · ${formatDuration(m.durationMs)} · Grid +${m.powerGridContribution} · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
+                  subtitle={`+${m.diamondsPer24h} D/24h cap · ${formatDuration(m.durationMs)} · +${(m.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW bus · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
                   owned={owned}
                   inUse={inUse}
                   disabled={owned <= 0 && !isInstalled}
@@ -829,7 +830,7 @@ export function PlantSlotCard(props: {
               <li key={b.id} className="list-none">
                 <ModalPartRow
                   title={b.label}
-                  subtitle={`Charge ${formatDuration(b.chargeCapacityMs)} · Efficiency ×${b.efficiency} · ${b.powerCapacity} reserve units`}
+                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} — reserve units = plant tier (V1)`}
                   owned={owned}
                   inUse={inUse}
                   disabled={owned <= 0 && !isInstalled}
@@ -859,7 +860,7 @@ export function PlantSlotCard(props: {
               <li key={w.id} className="list-none">
                 <ModalPartRow
                   title={w.label}
-                  subtitle={`Bonus +${(w.diamondOutputBonus * 100).toFixed(0)}% output · −${(w.energyUseReduction * 100).toFixed(0)}% draw · +${w.efficiencyBonus} eff. floor pts`}
+                  subtitle={`+${w.diamondBonusPer24h} D/24h to rolling cap (flat)`}
                   owned={owned}
                   inUse={inUse}
                   disabled={owned <= 0 && !isInstalled}

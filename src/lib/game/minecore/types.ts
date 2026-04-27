@@ -92,7 +92,7 @@ export type PlantSlotState = {
   status:           PlantCardStatus;
   setup:            PlantSetup;
   cycle:            PlantCycle | null;
-  /** Grid + battery power unit capacity (informational); always equals cap while unlocked — not consumed per run. */
+  /** Plant-tier reserve power unit capacity; not spent per run in V1 display — synced in derive. */
   powerRemaining:   number;
   needsRepair:      boolean;
   /** Base charge remaining (ms) at the time `batterySnapshotAt` was written. */

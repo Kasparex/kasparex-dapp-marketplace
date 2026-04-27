@@ -2,7 +2,7 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES } from './config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
 import {
   canStartMiningByEfficiency,
@@ -27,14 +27,13 @@ export function getPowerDrainScale(slot: PlantSlotState): number {
 }
 
 /**
- * Max reserve power units: machine `powerGridContribution` + battery `powerCapacity` (each mining start spends 1).
+ * Max reserve power units: plant tier only (V1). Batteries and rigs do not add to this cap.
+ * Each mining start typically spends 1 unit while units remain.
  */
 export function getPowerUnitCap(slot: PlantSlotState): number {
-  const m = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.powerGridContribution ?? 0) : 0;
-  const b = slot.setup.batteryId ? (MINECORE_BATTERIES[slot.setup.batteryId]?.powerCapacity ?? 0) : 0;
-  const sum = m + b;
-  if (sum <= 0) return 0;
-  return Math.max(1, sum);
+  if (!slot.unlocked) return 0;
+  const n = MINECORE_PLANT_BASE_POWER_UNITS[slot.type] ?? 1;
+  return Math.max(0, n);
 }
 
 export function isCyclePaused(slot: PlantSlotState, _now: number): boolean {

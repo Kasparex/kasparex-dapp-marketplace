@@ -139,7 +139,7 @@ export function MinecorePowerPanel(props: {
           <GameTooltip
             content={
               `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
-                'Reserve capacity comes from the installed machine plus battery. Craft better rigs on the Build tab.'
+                'Reserve capacity is your plant tier (V1); batteries and rigs do not add reserve units. Craft better rigs on the Build tab for more kW and D/24h.'
             }
           >
             <button

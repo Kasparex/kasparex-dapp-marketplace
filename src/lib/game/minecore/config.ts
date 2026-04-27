@@ -38,12 +38,6 @@ export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
   advanced: 5,
 };
 
-/**
- * Rig throughput toward rolling daily cap cannot exceed this multiple of the plant base
- * (prevents huge machines from exploding the 24h budget).
- */
-export const MINECORE_DAILY_CAP_MAX_MACHINE_MULT = 5;
-
 /** kW display scale: production/consumption derived from grid + draw factors. */
 export const MINECORE_KW_SCALE = 4;
 
@@ -155,13 +149,17 @@ export type MachineConfig = {
    */
   powerConsumptionFactor: number;
   /**
-   * Reserve power units contributed by this rig (summed with the battery’s `powerCapacity` for the plant cap).
+   * kW production contribution to the plant bus (display; reserve unit count is plant-tier only in V1).
    */
   powerGridContribution: number;
   /**
    * Multiplier on the battery’s effective charge budget (machine conditions power delivery to the cell).
    */
   powerBudgetMultiplier: number;
+  /**
+   * Flat diamonds/24h added to the plant rolling cap (V1: plant base + this + worker flat, before boost & battery mult).
+   */
+  diamondsPer24h: number;
 };
 
 export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
@@ -175,6 +173,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 1.0,
     powerGridContribution: 1,
     powerBudgetMultiplier: 1.0,
+    diamondsPer24h: 50,
   },
   'crystal-extractor': {
     id: 'crystal-extractor',
@@ -186,6 +185,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 1.5,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.0,
+    diamondsPer24h: 200,
   },
   'deep-vein-rig': {
     id: 'deep-vein-rig',
@@ -197,6 +197,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 2.5,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.04,
+    diamondsPer24h: 450,
   },
   'quantum-fracturer': {
     id: 'quantum-fracturer',
@@ -208,6 +209,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 6.0,
     powerGridContribution: 3,
     powerBudgetMultiplier: 1.1,
+    diamondsPer24h: 1200,
   },
   'magma-tap': {
     id: 'magma-tap',
@@ -217,6 +219,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 1.8,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.06,
+    diamondsPer24h: 350,
   },
   'orbit-siphon': {
     id: 'orbit-siphon',
@@ -226,6 +229,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     powerConsumptionFactor: 3.2,
     powerGridContribution: 4,
     powerBudgetMultiplier: 1.14,
+    diamondsPer24h: 700,
   },
 };
 
@@ -235,6 +239,10 @@ export type BatteryConfig = {
   /** Build tab / catalog art (external URL). */
   featuredImageUrl?: string;
   efficiency: number;
+  /**
+   * V1: reserve count comes from the plant only; keep 0 so batteries do not add power-unit capacity.
+   * @deprecated for cap math — use {@link MINECORE_PLANT_BASE_POWER_UNITS}
+   */
   powerCapacity: number;
   /**
    * How many ms of base charge this battery holds at powerConsumptionFactor = 1.0.
@@ -250,8 +258,8 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_566df01398ff40738aeeab280c3cd03e~mv2.jpg',
     efficiency: 1.0,
-    powerCapacity: 1,
-    chargeCapacityMs: 30 * 60_000,
+    powerCapacity: 0,
+    chargeCapacityMs: 10 * 60_000,
   },
   'battery-pack': {
     id: 'battery-pack',
@@ -259,7 +267,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_db5ee3ec937e40fa973ac04124553609~mv2.jpg',
     efficiency: 1.15,
-    powerCapacity: 2,
+    powerCapacity: 0,
     chargeCapacityMs: 60 * 60_000,
   },
   'diamond-capacitor': {
@@ -268,46 +276,36 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_2745d6b902274187b11a8f07356c0c92~mv2.jpg',
     efficiency: 1.3,
-    powerCapacity: 3,
+    powerCapacity: 0,
     chargeCapacityMs: 120 * 60_000,
   },
-  'grid-battery': { id: 'grid-battery', label: 'Grid Battery', efficiency: 1.5, powerCapacity: 4, chargeCapacityMs: 360 * 60_000 },
-  'flux-array': { id: 'flux-array', label: 'Flux Array', efficiency: 1.12, powerCapacity: 2, chargeCapacityMs: 45 * 60_000 },
-  'void-core-cell': { id: 'void-core-cell', label: 'Void Core Cell', efficiency: 1.35, powerCapacity: 5, chargeCapacityMs: 240 * 60_000 },
+  'grid-battery': { id: 'grid-battery', label: 'Grid Battery', efficiency: 1.5, powerCapacity: 0, chargeCapacityMs: 360 * 60_000 },
+  'flux-array': { id: 'flux-array', label: 'Flux Array', efficiency: 1.12, powerCapacity: 0, chargeCapacityMs: 45 * 60_000 },
+  'void-core-cell': { id: 'void-core-cell', label: 'Void Core Cell', efficiency: 1.35, powerCapacity: 0, chargeCapacityMs: 240 * 60_000 },
 };
 
 export type WorkerConfig = {
   id: MinecoreWorkerId;
   label: string;
-  /** Legacy compound; prefer named bonuses. Kept for calculator compatibility. */
+  /** @deprecated V1: unused; keep 1 for old saves. */
   multiplier: number;
-  /** +% diamond output vs base+machine stack (e.g. 0.1 = Worker +10%). */
-  diamondOutputBonus: number;
-  /** Reduces consumption kW by this fraction (0–1). */
-  energyUseReduction: number;
-  /** +efficiency floor under power deficit (percentage points). */
-  efficiencyBonus: number;
-  /** +% refinement points at refine time (hub-safe label: GRID reward bonus). */
-  gridRewardBonus: number;
+  /**
+   * Flat diamonds/24h added to the plant rolling cap (V1: +10, no % bonuses).
+   */
+  diamondBonusPer24h: number;
 };
 export const MINECORE_WORKERS: Record<MinecoreWorkerId, WorkerConfig> = {
   worker: {
     id: 'worker',
     label: 'Worker',
-    multiplier: 1.1,
-    diamondOutputBonus: 0.1,
-    energyUseReduction: 0.05,
-    efficiencyBonus: 2,
-    gridRewardBonus: 0,
+    multiplier: 1,
+    diamondBonusPer24h: 10,
   },
   operator: {
     id: 'operator',
     label: 'Operator',
-    multiplier: 1.5,
-    diamondOutputBonus: 0.5,
-    energyUseReduction: 0.1,
-    efficiencyBonus: 5,
-    gridRewardBonus: 0.05,
+    multiplier: 1,
+    diamondBonusPer24h: 10,
   },
 };
 

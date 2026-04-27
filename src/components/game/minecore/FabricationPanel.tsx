@@ -6,7 +6,6 @@ import { GameItemCard, type GameItemEffectLine } from '@/components/games/shop/G
 import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
 import {
   MINECORE_BATTERIES,
-  MINECORE_DAY_MS,
   MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MODULES,
@@ -27,11 +26,6 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   fluxCoils: 'Flux Coils',
   latticeWire: 'Lattice Wire',
 };
-
-function machineRigDiamondsPer24h(durationMs: number, baseOutput: number): number {
-  if (durationMs <= 0) return 0;
-  return Math.floor((baseOutput * MINECORE_DAY_MS) / durationMs);
-}
 
 export function FabricationPanel(props: {
   state: MinecoreState;
@@ -98,8 +92,8 @@ export function FabricationPanel(props: {
             if (isMachine) {
               const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
               if (cfg) {
-                const rigD24 = machineRigDiamondsPer24h(cfg.durationMs, cfg.baseOutput);
                 const consKw = cfg.powerConsumptionFactor * MINECORE_KW_SCALE;
+                const busKw = cfg.powerGridContribution * MINECORE_KW_SCALE;
                 const extraCrew = cfg.additionalCrewRequired ?? 0;
                 specifications.push({
                   label: 'Duration',
@@ -107,8 +101,8 @@ export function FabricationPanel(props: {
                   color: 'sky',
                 });
                 specifications.push({
-                  label: 'Output (rig pace)',
-                  value: `+${rigD24.toLocaleString()} D / 24h`,
+                  label: 'Plant cap (adds to base)',
+                  value: `+${cfg.diamondsPer24h.toLocaleString()} D / 24h`,
                   color: 'amber',
                 });
                 specifications.push({
@@ -127,8 +121,8 @@ export function FabricationPanel(props: {
                   color: 'rose',
                 });
                 specifications.push({
-                  label: 'Grid capacity',
-                  value: `+${cfg.powerGridContribution} units`,
+                  label: 'Plant bus (kW)',
+                  value: `+${busKw.toFixed(0)} kW`,
                   color: 'sky',
                 });
                 specifications.push({
@@ -140,25 +134,19 @@ export function FabricationPanel(props: {
             } else if (isBattery) {
               const cfg = MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES];
               if (cfg) {
-                const prodKw = cfg.powerCapacity * MINECORE_KW_SCALE;
                 specifications.push({
                   label: 'Stored runtime',
                   value: `${Math.round(cfg.chargeCapacityMs / 60000)} min @ 1.0× drain`,
                   color: 'sky',
                 });
                 specifications.push({
-                  label: 'Energy production',
-                  value: `${prodKw.toFixed(1)} kW`,
-                  color: 'sky',
-                });
-                specifications.push({
-                  label: 'Power unit capacity',
-                  value: `${cfg.powerCapacity} (adds to grid cap)`,
+                  label: 'Reserve power units',
+                  value: 'Plant tier only (V1)',
                   color: 'amber',
                 });
                 specifications.push({
                   label: 'Yield multiplier',
-                  value: `×${cfg.efficiency}`,
+                  value: `×${cfg.efficiency} (rolling cap)`,
                   color: 'emerald',
                 });
               }

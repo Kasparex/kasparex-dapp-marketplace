@@ -2,7 +2,6 @@ import {
   MINECORE_BATTERIES,
   MINECORE_BOOSTS,
   MINECORE_DAY_MS,
-  MINECORE_DAILY_CAP_MAX_MACHINE_MULT,
   MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
@@ -25,12 +24,6 @@ export function minecoreUtcDayKey(atMs: number): string {
   return new Date(atMs).toISOString().slice(0, 10);
 }
 
-function machineDiamondsPer24h(slot: PlantSlotState): number {
-  const m = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
-  if (!m || m.durationMs <= 0) return 0;
-  return Math.floor((m.baseOutput * MINECORE_DAY_MS) / m.durationMs);
-}
-
 /** Active automation modules lengthen the nominal cycle (longer wall clock, same D/24h rate). */
 export function computeEffectiveCycleDurationMs(slot: PlantSlotState): number {
   const base = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.durationMs ?? 0) : 0;
@@ -49,18 +42,13 @@ export function computeEffectiveCycleDurationMs(slot: PlantSlotState): number {
 export function computeProductionKw(slot: PlantSlotState): number {
   const plant = MINECORE_PLANT_BASE_PRODUCTION_KW[slot.type] ?? MINECORE_PLANT_BASE_PRODUCTION_KW.standard;
   const m = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
-  const b = slot.setup.batteryId ? MINECORE_BATTERIES[slot.setup.batteryId] : null;
-  const grid = (m?.powerGridContribution ?? 0) + (b?.powerCapacity ?? 0);
+  const grid = m?.powerGridContribution ?? 0;
   return plant + grid * MINECORE_KW_SCALE;
 }
 
 export function computeConsumptionKw(slot: PlantSlotState): number {
   const factor = plantPowerFactor(slot);
   let cons = factor * MINECORE_KW_SCALE;
-  const w = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
-  if (w && w.energyUseReduction > 0) {
-    cons *= Math.max(0.2, 1 - w.energyUseReduction);
-  }
   if (slot.type !== 'standard') {
     for (const id of slot.setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
@@ -76,11 +64,9 @@ export function computePowerBalanceKw(slot: PlantSlotState): number {
   return computeProductionKw(slot) - computeConsumptionKw(slot);
 }
 
-/** Stability / worker bonuses add percentage points after the base curve. */
+/** Stability modules add percentage points after the base kW curve. */
 export function computeEfficiencyBonusPoints(slot: PlantSlotState): number {
   let pts = 0;
-  const w = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
-  if (w) pts += w.efficiencyBonus;
   if (slot.type !== 'standard') {
     for (const id of slot.setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
@@ -93,7 +79,7 @@ export function computeEfficiencyBonusPoints(slot: PlantSlotState): number {
 }
 
 /**
- * Effective mining efficiency 0–100 from kW balance, plus stability bonuses.
+ * Effective mining efficiency 0–100 from kW balance, plus stability module bonuses.
  * 100% when production >= consumption.
  */
 export function computeMiningEfficiencyPct(slot: PlantSlotState): number {
@@ -121,7 +107,7 @@ function slotSetupComplete(slot: PlantSlotState): boolean {
 
 /**
  * Maximum diamonds credited toward this plant's rolling 24h window at full mining efficiency.
- * Structure: plant base + capped machine throughput + additive worker/output-module bonuses × boost × battery yield.
+ * V1: plant base + machine `diamondsPer24h` + flat worker + output modules (fraction of base+machine) × boost × battery yield.
  * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
 export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: PlantSlotState): number {
@@ -133,11 +119,8 @@ export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: 
   if (!machine || !worker || !battery) return 0;
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
-  const rawMachine24 = machineDiamondsPer24h(slot);
-  const machineCap = Math.floor(base * MINECORE_DAILY_CAP_MAX_MACHINE_MULT);
-  const machinePart = Math.min(rawMachine24, machineCap);
-
-  const workerPart = Math.round((base + machinePart) * worker.diamondOutputBonus);
+  const machinePart = machine.diamondsPer24h;
+  const workerPart = worker.diamondBonusPer24h;
   let modulePart = 0;
   if (slot.type !== 'standard') {
     for (const id of slot.setup.moduleIds) {
@@ -182,8 +165,6 @@ export function computeGlobalRefineBonusFraction(state: MinecoreState): number {
         frac += mod.refineBonus;
       }
     }
-    const w = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
-    if (w?.gridRewardBonus) frac += w.gridRewardBonus;
   }
   return frac;
 }

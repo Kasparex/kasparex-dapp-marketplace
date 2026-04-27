@@ -22,7 +22,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     unlocked: true,
     powerRemaining: 5,
     needsRepair: false,
-    batteryChargeMs: 30 * 60_000,
+    batteryChargeMs: 10 * 60_000,
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
     cycle: null,
