@@ -83,6 +83,8 @@ export type PlantPreset = {
   costKas: number;
   icon: string;
   description: string;
+  /** Featured art for plant cards / UI (external URL). */
+  featuredImageUrl?: string;
 };
 
 export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
@@ -92,6 +94,8 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     costKas: 0,
     icon: 'Hammer',
     description: 'Basic mining operations. Affordable and reliable.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_b8a957fa04784a2285b453e67bd65b7a~mv2.jpg',
   },
   premium: {
     type: 'premium',
@@ -99,6 +103,8 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     costKas: 50,
     icon: 'ShieldCheck',
     description: 'Upgraded infrastructure. Supports higher-tier machines.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_3f7117b4be45439db81250ad591bfb09~mv2.jpg',
   },
   advanced: {
     type: 'advanced',
@@ -106,12 +112,16 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     costKas: 250,
     icon: 'Zap',
     description: 'Industrial-scale mining. Unlocks maximum output and specialized rigs.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_f6f25f1e8e734eeda6aca8bb1622e57b~mv2.jpg',
   },
 };
 
 export type MachineConfig = {
   id: MinecoreMachineId;
   label: string;
+  /** Build tab / catalog art (external URL). */
+  featuredImageUrl?: string;
   durationMs: number;
   baseOutput: number;
   /**
@@ -133,6 +143,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'pulse-drill': {
     id: 'pulse-drill',
     label: 'Pulse Drill',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_772173d870a0427d8ad8942004d7933b~mv2.jpg',
     durationMs: 10 * 60_000,
     baseOutput: 50,
     powerConsumptionFactor: 1.0,
@@ -142,6 +154,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'crystal-extractor': {
     id: 'crystal-extractor',
     label: 'Crystal Extractor',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg',
     durationMs: 30 * 60_000,
     baseOutput: 180,
     powerConsumptionFactor: 1.5,
@@ -151,6 +165,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'deep-vein-rig': {
     id: 'deep-vein-rig',
     label: 'Deep Vein Rig',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
     durationMs: 60 * 60_000,
     baseOutput: 420,
     powerConsumptionFactor: 2.5,
@@ -160,6 +176,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'quantum-fracturer': {
     id: 'quantum-fracturer',
     label: 'Quantum Fracturer',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
     durationMs: 6 * 60 * 60_000,
     baseOutput: 3200,
     powerConsumptionFactor: 6.0,
@@ -189,6 +207,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
 export type BatteryConfig = {
   id: MinecoreBatteryId;
   label: string;
+  /** Build tab / catalog art (external URL). */
+  featuredImageUrl?: string;
   efficiency: number;
   powerCapacity: number;
   /**
@@ -199,9 +219,33 @@ export type BatteryConfig = {
 };
 
 export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
-  'energy-cell': { id: 'energy-cell', label: 'Energy Cell', efficiency: 1.0, powerCapacity: 1, chargeCapacityMs: 30 * 60_000 },
-  'battery-pack': { id: 'battery-pack', label: 'Battery Pack', efficiency: 1.15, powerCapacity: 2, chargeCapacityMs: 60 * 60_000 },
-  'diamond-capacitor': { id: 'diamond-capacitor', label: 'Diamond Capacitor', efficiency: 1.3, powerCapacity: 3, chargeCapacityMs: 120 * 60_000 },
+  'energy-cell': {
+    id: 'energy-cell',
+    label: 'Energy Cell',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_566df01398ff40738aeeab280c3cd03e~mv2.jpg',
+    efficiency: 1.0,
+    powerCapacity: 1,
+    chargeCapacityMs: 30 * 60_000,
+  },
+  'battery-pack': {
+    id: 'battery-pack',
+    label: 'Battery Pack',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_db5ee3ec937e40fa973ac04124553609~mv2.jpg',
+    efficiency: 1.15,
+    powerCapacity: 2,
+    chargeCapacityMs: 60 * 60_000,
+  },
+  'diamond-capacitor': {
+    id: 'diamond-capacitor',
+    label: 'Diamond Capacitor',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_2745d6b902274187b11a8f07356c0c92~mv2.jpg',
+    efficiency: 1.3,
+    powerCapacity: 3,
+    chargeCapacityMs: 120 * 60_000,
+  },
   'grid-battery': { id: 'grid-battery', label: 'Grid Battery', efficiency: 1.5, powerCapacity: 4, chargeCapacityMs: 360 * 60_000 },
   'flux-array': { id: 'flux-array', label: 'Flux Array', efficiency: 1.12, powerCapacity: 2, chargeCapacityMs: 45 * 60_000 },
   'void-core-cell': { id: 'void-core-cell', label: 'Void Core Cell', efficiency: 1.35, powerCapacity: 5, chargeCapacityMs: 240 * 60_000 },

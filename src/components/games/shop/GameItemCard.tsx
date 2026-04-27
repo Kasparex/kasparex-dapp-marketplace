@@ -28,6 +28,8 @@ export function GameItemCard(props: {
   icon?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
+  /** When set with `imageSrc`, the media image is clickable (e.g. open upgrade modal). */
+  onMediaClick?: () => void;
   /** Optional overlay in the media area. */
   mediaOverlay?: React.ReactNode;
   /** Optional content aligned right in the title row (below media). */
@@ -90,8 +92,20 @@ export function GameItemCard(props: {
         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
         <div className="absolute inset-0 flex items-center justify-center">
           {props.imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={props.imageSrc} alt={props.imageAlt ?? props.title} className="h-full w-full object-cover" />
+            props.onMediaClick ? (
+              <button
+                type="button"
+                onClick={props.onMediaClick}
+                className="absolute inset-0 z-[1] block h-full w-full cursor-pointer border-0 bg-transparent p-0"
+                aria-label={props.imageAlt ?? props.title}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={props.imageSrc} alt="" className="pointer-events-none h-full w-full object-cover" />
+              </button>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={props.imageSrc} alt={props.imageAlt ?? props.title} className="h-full w-full object-cover" />
+            )
           ) : (
             <div className="flex h-12 w-12 items-center justify-center text-3xl text-zinc-400 dark:text-zinc-600">{props.icon ?? '⬡'}</div>
           )}

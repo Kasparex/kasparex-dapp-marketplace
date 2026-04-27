@@ -329,18 +329,25 @@ export function PlantSlotCard(props: {
     </div>
   ) : null;
 
+  const plantFeaturedUrl = preset.featuredImageUrl;
+
   return (
     <>
     <GameItemCard
       icon={
-        <div
-          className="cursor-pointer group relative"
-          onClick={() => canEditParts && setActiveModal('preset')}
-        >
-          <div className="absolute inset-0 bg-sky-500/10 rounded-full scale-125 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-          <IconComponent className="h-5 w-5 text-sky-400 group-hover:text-sky-300 transition-colors relative z-10" />
-        </div>
+        plantFeaturedUrl ? undefined : (
+          <div
+            className="cursor-pointer group relative"
+            onClick={() => canEditParts && setActiveModal('preset')}
+          >
+            <div className="absolute inset-0 bg-sky-500/10 rounded-full scale-125 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <IconComponent className="h-5 w-5 text-sky-400 group-hover:text-sky-300 transition-colors relative z-10" />
+          </div>
+        )
       }
+      imageSrc={plantFeaturedUrl}
+      imageAlt={preset.label}
+      onMediaClick={plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
       titleAccessory={titleAccessory}
       title={`Mining Plant ${s.index + 1}`}
       category={preset.label}
@@ -557,8 +564,13 @@ export function PlantSlotCard(props: {
                   : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700'
               }`}
             >
-              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                <Icon className="w-5 h-5 text-sky-500" />
+              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                {p.featuredImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Icon className="w-5 h-5 text-sky-500" />
+                )}
               </div>
               <div className="flex-1">
                 <div className="font-bold text-zinc-900 dark:text-zinc-100">{p.label}</div>

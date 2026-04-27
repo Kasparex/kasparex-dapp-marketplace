@@ -130,11 +130,19 @@ export function FabricationPanel(props: {
               return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()}`, muted: !ok };
             });
 
+            const featuredImageUrl = isMachine
+              ? MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES]?.featuredImageUrl
+              : isBattery
+                ? MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES]?.featuredImageUrl
+                : undefined;
+
             return (
               <GameItemCard
                 key={r.id}
                 title={r.title}
                 category={r.category}
+                imageSrc={featuredImageUrl}
+                imageAlt={r.title}
                 description={
                   isMachine
                     ? 'Defines mining performance and how much reserve power the plant can hold with a battery.'
