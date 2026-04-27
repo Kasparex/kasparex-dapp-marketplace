@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
 /**
@@ -22,25 +23,71 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
 export interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactNode;
+  /** @deprecated Position is ignored; tooltips follow the pointer. */
   side?: 'top' | 'right' | 'bottom' | 'left';
+  /** @deprecated Alignment is ignored; tooltips follow the pointer. */
   align?: 'start' | 'center' | 'end';
   className?: string;
 }
 
-export function Tooltip({ content, children, side = 'top', align = 'center', className = '' }: TooltipProps) {
+function wrapChild(children: React.ReactNode): React.ReactElement {
+  if (React.isValidElement(children)) return children;
+  return <span className="inline-flex">{children}</span>;
+}
+
+/**
+ * Hover tooltip that follows the cursor (pointer position), merged onto the child trigger.
+ */
+export function Tooltip({ content, children, className = '' }: TooltipProps) {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({ x: 0, y: 0 });
+
+  const child = wrapChild(children);
+
+  const p = child.props as {
+    onPointerEnter?: (ev: React.PointerEvent) => void;
+    onPointerLeave?: (ev: React.PointerEvent) => void;
+    onPointerMove?: (ev: React.PointerEvent) => void;
+  };
+
+  const merged = React.cloneElement(child, {
+    onPointerEnter: (e: React.PointerEvent) => {
+      p.onPointerEnter?.(e);
+      setOpen(true);
+    },
+    onPointerLeave: (e: React.PointerEvent) => {
+      p.onPointerLeave?.(e);
+      setOpen(false);
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      p.onPointerMove?.(e);
+      setPos({ x: e.clientX, y: e.clientY });
+    },
+  } as Record<string, unknown>);
+
+  const portal =
+    open && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            role="tooltip"
+            className={`${KASPPAREX_TOOLTIP_SURFACE_CLASS} ${className}`.trim()}
+            style={{
+              position: 'fixed',
+              left: pos.x + 14,
+              top: pos.y + 14,
+              pointerEvents: 'none',
+            }}
+          >
+            {content}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
-    <TooltipPrimitive.Root>
-      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-      <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content
-          side={side}
-          align={align}
-          sideOffset={6}
-          className={`${KASPPAREX_TOOLTIP_SURFACE_CLASS} ${className}`}
-        >
-          {content}
-        </TooltipPrimitive.Content>
-      </TooltipPrimitive.Portal>
-    </TooltipPrimitive.Root>
+    <>
+      {merged}
+      {portal}
+    </>
   );
 }

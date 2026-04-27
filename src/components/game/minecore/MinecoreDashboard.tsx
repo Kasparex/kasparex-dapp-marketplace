@@ -21,6 +21,7 @@ import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewards
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
+import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
@@ -54,6 +55,7 @@ export function MinecoreDashboard(_props: {
     useMinecore();
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
+  const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as keyof typeof KREX_TIER_SHOP_DISCOUNT_PCT] ?? 0;
   const [tab, setTab] = useState<TabId>('overview');
   const [krexWizardOpen, setKrexWizardOpen] = useState(false);
   // Using a simplified mock/hook call for GRID token
@@ -149,7 +151,7 @@ export function MinecoreDashboard(_props: {
         label: 'KAS',
         value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
         description: 'Main fuel currency',
-        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot unlocks, shop, and power top-ups. Click to open Shop.',
+        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot activation, shop, and power top-ups. KREX tier lowers KAS prices. Click to open Shop.',
         accent: 'kas' as const,
         onClick: () => setTab('shop' as const),
       },
@@ -225,7 +227,7 @@ export function MinecoreDashboard(_props: {
               <GamePanelCard title="Game flow" hint="Core loop at a glance.">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
                   <li>Craft parts and modules from ingredients.</li>
-                  <li>Unlock a plant slot with KAS and install machine, power, workers, and modules.</li>
+                  <li>Activate a plant slot with KAS and install machine, power, workers, and modules.</li>
                   <li>Start a mining cycle, then extract diamonds when complete.</li>
                   <li>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
                   <li>Expand slots and upgrade parts to grow your mining complex.</li>
@@ -252,7 +254,12 @@ export function MinecoreDashboard(_props: {
                 onSortChange={setMiningSort}
               />
 
-              <MinecoreMaintenanceCostsPanel nextSlotCostKas={state.nextSlotCostKas} />
+              <MinecoreMaintenanceCostsPanel
+                nextSlotCostKas={state.nextSlotCostKas}
+                getKasPriceAfterDiscount={getKasPriceAfterDiscount}
+                krexTier={krexTier}
+                krexDiscountPct={krexDiscountPct}
+              />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredSlots.map((slot) => (
@@ -287,7 +294,11 @@ export function MinecoreDashboard(_props: {
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
                       <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
-                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Cost {state.nextSlotCostKas.toLocaleString()} KAS</div>
+                      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        List {state.nextSlotCostKas.toLocaleString()} KAS · you pay{' '}
+                        {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS ({krexTier}
+                        {krexDiscountPct > 0 ? ` −${krexDiscountPct}%` : ''})
+                      </div>
                     </div>
                     <Tooltip content="V1 mock action. This will wire into KAS payment later through the global payments SDK.">
                       <button type="button" onClick={() => void actions.addSlot(state.nextSlotCostKas)} className="k-cta-games h-11 px-6 text-sm">

@@ -11,7 +11,7 @@ import type {
 export const MINECORE_STORAGE_PREFIX = 'minecore-state';
 
 export const MINECORE_DEFAULT_PLANT_SLOTS = 4;
-export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 1;
+export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 2;
 export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 
 /** 24h window for diamonds/day and cycle scaling. */
@@ -75,7 +75,7 @@ export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
 /** KAS repair action on a damaged plant (Mining tab). */
-export const MINECORE_PLANT_REPAIR_KAS = 2;
+export const MINECORE_PLANT_REPAIR_KAS = 5;
 
 export type PlantPreset = {
   type: PlantType;

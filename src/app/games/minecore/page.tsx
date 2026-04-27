@@ -70,7 +70,7 @@ function MinecoreContent() {
               </div>
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 lg:text-4xl">Minecore</h1>
               <p className="mx-auto max-w-md text-base text-zinc-600 dark:text-zinc-400">
-                Wallet connection required to unlock plant slots and run mining cycles.
+                Wallet connection required to activate plant slots and run mining cycles.
               </p>
               <div className="[&_button]:h-14 [&_button]:px-8 [&_button]:text-base">
                 <KaspaL1WalletButton />

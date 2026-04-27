@@ -36,7 +36,12 @@ import * as Icons from 'lucide-react';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function clamp01(n: number) { return n <= 0 ? 0 : n >= 1 ? 1 : n; }
+function clamp01(n: number) {
+  return n <= 0 ? 0 : n >= 1 ? 1 : n;
+}
+
+/** Show auxiliary Recharge CTA only when charge is below this fraction of capacity. */
+const BATTERY_LOW_RECHARGE_THRESHOLD = 0.35;
 
 function formatDuration(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -161,6 +166,7 @@ function ResourceBar(props: {
   ratio: number;
   variant: 'battery' | 'power' | 'cycle' | 'dailyCap';
   warning?: string | null;
+  tooltip?: string;
 }) {
   const r = clamp01(props.ratio);
 
@@ -173,7 +179,7 @@ function ResourceBar(props: {
     barColor = r > 0.4 ? 'bg-sky-500' : 'bg-rose-500';
   }
 
-  return (
+  const inner = (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{props.label}</span>
@@ -190,17 +196,78 @@ function ResourceBar(props: {
       ) : null}
     </div>
   );
+
+  if (props.tooltip) {
+    return <Tooltip content={props.tooltip}>{inner}</Tooltip>;
+  }
+  return inner;
+}
+
+/** Daily cap: yellow progress fill, large mined (amber/yellow) vs cap (emerald accent). */
+function DailyCapBar(props: {
+  mined: number;
+  cap: number;
+  ratio: number;
+  setupIncomplete: boolean;
+  capReached: boolean;
+}) {
+  const r = clamp01(props.ratio);
+  const inner = (
+    <div className="space-y-2">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        Mined today toward 24h cap
+      </div>
+      {props.setupIncomplete || props.cap <= 0 ? (
+        <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+          Complete machine, battery & worker to see your daily cap.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <span className="text-2xl font-black tabular-nums text-amber-400 sm:text-3xl dark:text-amber-300">
+              {Math.floor(props.mined).toLocaleString()}
+            </span>
+            <span className="text-lg font-bold text-zinc-400 dark:text-zinc-500">/</span>
+            <span className="text-2xl font-black tabular-nums text-emerald-600 sm:text-3xl dark:text-emerald-400">
+              {props.cap.toLocaleString()}
+            </span>
+            <span className="w-full text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 sm:w-auto sm:ml-auto">diamonds (UTC day)</span>
+          </div>
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div
+              className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
+              style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
+            />
+          </div>
+          {props.capReached ? (
+            <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+              Daily cap reached for this plant (UTC). Extract or wait for the next day.
+            </div>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+
+  const tip =
+    props.cap > 0
+      ? `Progress toward this plant’s maximum diamond output for the current UTC day. Mined includes diamonds still in the plant and what you already extracted or refined from it today (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`
+      : 'Finish setup to see how many diamonds this plant can produce per 24h at your current power balance.';
+
+  return <Tooltip content={tip}>{inner}</Tooltip>;
 }
 
 /** Discrete dot indicator for power fuel units */
 function PowerDots(props: { current: number; max: number }) {
   const safeMax = Math.max(1, Math.min(props.max, 10));
   const dots = Array.from({ length: safeMax }, (_, i) => i < props.current);
-  return (
+  const inner = (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Power units</span>
-        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.current} / {safeMax}</span>
+        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">
+          {props.current} / {safeMax}
+        </span>
       </div>
       <div className="flex gap-1">
         {dots.map((filled, i) => (
@@ -211,6 +278,13 @@ function PowerDots(props: { current: number; max: number }) {
         ))}
       </div>
     </div>
+  );
+  return (
+    <Tooltip
+      content={`Reserve power units for starting mining runs. Each start spends one unit. Recharge adds units and fills the battery. Current: ${props.current} of ${safeMax}.`}
+    >
+      {inner}
+    </Tooltip>
   );
 }
 
@@ -252,6 +326,12 @@ export function PlantSlotCard(props: {
   const batteryRatio    = capacityMs > 0 ? liveChargeMs / capacityMs : 0;
   const batteryLow      = batteryRatio < 0.2 && batteryRatio > 0;
   const batteryEmpty    = liveChargeMs <= 0 && cycle != null;
+  /** Depleted mid-run (not paused): primary action should be Recharge, not duplicate with secondary button. */
+  const batteryDeadInRun =
+    s.status === 'BatteryEmpty' &&
+    liveChargeMs <= 0 &&
+    cycle != null &&
+    cycle.pauseBeganAtMs == null;
   const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId
     ? liveChargeMs / Math.max(0.05, getPowerDrainScale(s))
     : 0;
@@ -280,12 +360,12 @@ export function PlantSlotCard(props: {
 
   let actionLabel: string;
   if (!s.unlocked) {
-    actionLabel = `Unlock ${s.unlockCostKas.toLocaleString()} KAS`;
+    actionLabel = `Activate ${s.unlockCostKas.toLocaleString()} KAS`;
   } else if (s.status === 'SetupIncomplete') {
     actionLabel = 'Complete setup';
   } else if (s.status === 'NeedsRepair') {
-    actionLabel = 'Repair';
-  } else if (s.status === 'NeedsPower') {
+    actionLabel = `Repair — ${MINECORE_PLANT_REPAIR_KAS} KAS`;
+  } else if (batteryDeadInRun || s.status === 'NeedsPower') {
     actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
@@ -305,6 +385,14 @@ export function PlantSlotCard(props: {
     actionLabel = 'Mining…';
   }
 
+  const primaryIsRecharge = s.status === 'NeedsPower' || batteryDeadInRun;
+  const showAuxRechargeButton =
+    s.unlocked &&
+    s.setup.batteryId &&
+    !atFullEnergy &&
+    batteryRatio < BATTERY_LOW_RECHARGE_THRESHOLD &&
+    !primaryIsRecharge;
+
   const buyDisabled = false;
 
   const canEditParts = !s.cycle || s.cycle.pauseBeganAtMs != null;
@@ -319,15 +407,6 @@ export function PlantSlotCard(props: {
       : s.status === 'MiningActive'
         ? 'h-10 w-full rounded-xl px-4 text-sm font-bold border-2 border-zinc-300 bg-zinc-200 text-zinc-800 shadow-sm transition-colors hover:bg-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
         : undefined;
-
-  const titleAccessory = s.unlocked ? (
-    <div className="text-right">
-      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">24h diamond cap</div>
-      <div className="text-sm font-black tabular-nums text-sky-600 dark:text-sky-400 sm:text-base">
-        {dailyCap.cap24h > 0 ? `${dailyCap.cap24h.toLocaleString()} D` : computePlantReady(s) ? '0' : '—'}
-      </div>
-    </div>
-  ) : null;
 
   const plantFeaturedUrl = preset.featuredImageUrl;
 
@@ -348,11 +427,20 @@ export function PlantSlotCard(props: {
       imageSrc={plantFeaturedUrl}
       imageAlt={preset.label}
       onMediaClick={plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
-      titleAccessory={titleAccessory}
       title={`Mining Plant ${s.index + 1}`}
       category={preset.label}
       description={
         <div className="space-y-3">
+          {s.unlocked ? (
+            <DailyCapBar
+              mined={dailyCap.minedTowardCap}
+              cap={dailyCap.cap24h}
+              ratio={dailyCap.ratio}
+              setupIncomplete={!computePlantReady(s)}
+              capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
+            />
+          ) : null}
+
           {/* Status badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
@@ -367,24 +455,6 @@ export function PlantSlotCard(props: {
               </span>
             )}
           </div>
-
-          {s.unlocked ? (
-            <ResourceBar
-              label="Mined today toward 24h cap"
-              value={
-                dailyCap.cap24h > 0
-                  ? `${Math.floor(dailyCap.minedTowardCap).toLocaleString()} / ${dailyCap.cap24h.toLocaleString()} D`
-                  : 'Complete machine, battery & worker to see cap'
-              }
-              ratio={dailyCap.ratio}
-              variant="dailyCap"
-              warning={
-                dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h
-                  ? 'Daily cap reached for this plant (UTC). Extract or wait for the next day.'
-                  : null
-              }
-            />
-          ) : null}
 
           {/* ── Setup checklist ── */}
           <div className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5">
@@ -467,8 +537,11 @@ export function PlantSlotCard(props: {
 
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
-              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Control — power bus</div>
+            <Tooltip
+              content={`Plant power grid: production from the rig and battery vs consumption from the machine (and modules). Balance and efficiency determine whether you can start mining. Production ${prodKw.toFixed(1)} kW, consumption ${consKw.toFixed(1)} kW, efficiency ${effPct.toFixed(0)}%.`}
+            >
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
+              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Power grid</div>
               <div className="hidden grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-800 dark:text-zinc-200 md:grid">
                 <span className="text-zinc-500">Production</span>
                 <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{prodKw.toFixed(1)} kW</span>
@@ -490,7 +563,8 @@ export function PlantSlotCard(props: {
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {effPct.toFixed(0)}%</span>
                 <span className="text-sky-600 dark:text-sky-400">{d24 > 0 ? `${d24} D/24h` : '—'}</span>
               </div>
-            </div>
+              </div>
+            </Tooltip>
           ) : null}
 
           {s.unlocked && (
@@ -502,6 +576,7 @@ export function PlantSlotCard(props: {
                   value={`${Math.floor(liveChargeMs / 60000)}m / ${Math.floor(capacityMs / 60000)}m`}
                   ratio={batteryRatio}
                   variant="battery"
+                  tooltip={`Battery charge for this plant. While mining, the machine’s power draw drains charge; at 0 the run stops until you extract, recharge, or resume. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
                 />
               )}
 
@@ -510,7 +585,7 @@ export function PlantSlotCard(props: {
             </div>
           )}
 
-          {s.unlocked && s.setup.batteryId && !atFullEnergy && (
+          {showAuxRechargeButton ? (
             <button
               type="button"
               onClick={() => void props.onRechargePlant({ units: 1 })}
@@ -518,7 +593,7 @@ export function PlantSlotCard(props: {
             >
               {`Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
             </button>
-          )}
+          ) : null}
         </div>
       }
       effects={[]}
@@ -532,7 +607,7 @@ export function PlantSlotCard(props: {
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
         if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
         if (s.status === 'InsufficientPower') return setActiveModal('machine');
-        if (s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
+        if (batteryDeadInRun || s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();
         if (s.status === 'BatteryEmpty') return props.onExtract();
