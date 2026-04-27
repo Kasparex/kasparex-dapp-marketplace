@@ -11,38 +11,48 @@ import {
   computeConsumptionKw,
 } from './plant-economy';
 import { computeRawLiveDiamonds } from './compute';
+import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 import type { PlantSlotState } from './types';
 
 const initial = createInitialMinecoreState();
 const template = initial.plantSlots[0]!;
 
 function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['setup'] }): PlantSlotState {
+  const type = partial.type ?? template.type;
+  const n = getPlantBatterySlotCount(type);
+  const raw = partial.setup.batteryIds ?? template.setup.batteryIds;
+  const batteryIds = Array.from({ length: n }, (_, i) => (i < (raw?.length ?? 0) ? raw[i]! : null)) as PlantSlotState['setup']['batteryIds'];
+  const chargeDefault = Array.from({ length: n }, (_, i) => (i === 0 ? 10 * 60_000 : 0));
+  const charge = partial.batterySlotChargeMs
+    ? ensureBatterySlotChargeLength(partial.batterySlotChargeMs, n, 0)
+    : chargeDefault;
   return {
     ...template,
     unlocked: true,
     powerRemaining: 5,
     needsRepair: false,
-    batteryChargeMs: 10 * 60_000,
+    batterySlotChargeMs: charge,
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
     cycle: null,
     ...partial,
-    setup: partial.setup,
+    type,
+    setup: { ...partial.setup, batteryIds, moduleIds: partial.setup.moduleIds ?? [] },
   };
 }
 
 // Efficiency: more production should not yield lower efficiency when consumption fixed
 {
-  const a = makeSlot({ type: 'standard', setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' } });
-  const b = makeSlot({ type: 'advanced', setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' } });
+  const a = makeSlot({ type: 'standard', setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell'], workerId: 'worker', moduleIds: [], boostId: 'none' } });
+  const b = makeSlot({ type: 'advanced', setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell', null, null, null], workerId: 'worker', moduleIds: [], boostId: 'none' } });
   assert.ok(computeProductionKw(b) >= computeProductionKw(a));
   assert.ok(computeMiningEfficiencyPct(b) >= computeMiningEfficiencyPct(a) - 1e-6);
 }
 
 // Diamonds / 24h scales with plant tier (same rig)
 {
-  const std = makeSlot({ type: 'standard', setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' } });
-  const adv = makeSlot({ type: 'advanced', setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' } });
+  const std = makeSlot({ type: 'standard', setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell'], workerId: 'worker', moduleIds: [], boostId: 'none' } });
+  const adv = makeSlot({ type: 'advanced', setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell', null, null, null], workerId: 'worker', moduleIds: [], boostId: 'none' } });
   const dStd = computePlantDiamondsPer24h(initial, std);
   const dAdv = computePlantDiamondsPer24h(initial, adv);
   assert.ok(dAdv > dStd);
@@ -52,11 +62,11 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
 {
   const plain = makeSlot({
     type: 'premium',
-    setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' },
+    setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell', null], workerId: 'worker', moduleIds: [], boostId: 'none' },
   });
   const cooled = makeSlot({
     type: 'premium',
-    setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: ['cooling-module'], boostId: 'none' },
+    setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell', null], workerId: 'worker', moduleIds: ['cooling-module'], boostId: 'none' },
   });
   assert.ok(computeConsumptionKw(cooled) < computeConsumptionKw(plain));
 }
@@ -67,8 +77,8 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
   const durationMs = 600_000;
   const expectedDiamonds = 100;
   const slot = makeSlot({
-    setup: { machineId: 'pulse-drill', batteryId: 'energy-cell', workerId: 'worker', moduleIds: [], boostId: 'none' },
-    batteryChargeMs: 60_000,
+    setup: { machineId: 'pulse-drill', batteryIds: ['energy-cell'], workerId: 'worker', moduleIds: [], boostId: 'none' },
+    batterySlotChargeMs: [60_000],
     batterySnapshotAt: start,
     cycle: {
       startAtMs: start,

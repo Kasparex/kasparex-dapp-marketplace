@@ -7,7 +7,8 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { computeConsumptionKw, computeMiningEfficiencyPct, computeProductionKw } from '@/lib/game/minecore/plant-economy';
 
@@ -62,6 +63,13 @@ export function MinecorePowerPanel(props: {
         {state.plantSlots.map((p) => {
           const liveCharge = computeLiveBatteryChargeMs(p, now);
           const capMs = getBatteryCapacityMs(p);
+          const batterySummary = (() => {
+            if (!hasInstalledBattery(p.setup, p.type)) return 'No battery';
+            return (p.setup.batteryIds ?? [])
+              .map((id) => (id ? MINECORE_BATTERIES[id]?.label ?? id : null))
+              .filter(Boolean)
+              .join(' · ') || 'No battery';
+          })();
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(p, now);
           const unitCap = getPowerUnitCap(p);
@@ -77,7 +85,7 @@ export function MinecorePowerPanel(props: {
               <div className="min-w-0 flex flex-col">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
                 <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                  {p.setup.machineId ?? 'No machine'} · {p.setup.batteryId ?? 'No battery'}
+                  {p.setup.machineId ?? 'No machine'} · {batterySummary}
                 </span>
                 {p.unlocked && p.setup.machineId ? (
                   <span className="mt-1 font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
@@ -112,7 +120,7 @@ export function MinecorePowerPanel(props: {
                   <button
                     type="button"
                     onClick={() => props.onRechargePlant(p.index)}
-                    disabled={!p.setup.batteryId}
+                    disabled={!hasInstalledBattery(p.setup, p.type)}
                     className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-bold text-sky-800 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-200 dark:hover:bg-sky-500/15"
                   >
                     Recharge ({MINECORE_PLANT_RECHARGE_COST_KAS} KAS)
@@ -217,14 +225,14 @@ export function MinecorePowerPanel(props: {
               { label: 'Effect', value: '100% charge', color: 'sky' },
               { label: 'Best for', value: 'Mid-cycle top-up' },
             ]}
-            buyLabel={!slot?.unlocked ? 'Locked' : !slot.setup.batteryId ? 'Install battery first' : 'Pay'}
-            buyDisabled={!slot?.unlocked || !slot.setup.batteryId}
+            buyLabel={!slot?.unlocked ? 'Locked' : !hasInstalledBattery(slot?.setup, slot?.type) ? 'Install battery first' : 'Pay'}
+            buyDisabled={!slot?.unlocked || !hasInstalledBattery(slot?.setup, slot?.type)}
             priceOptions={[
               { currency: 'KAS', unitPrice: batterySyncPrice, originalUnitPrice: KAS_BATTERY_SYNC },
               { currency: 'KREX', unitPrice: batterySyncPrice },
             ]}
             onBuy={({ currency }) => {
-              if (slot?.unlocked && slot.setup.batteryId) void props.onBatterySync(slot.index, currency);
+              if (slot?.unlocked && hasInstalledBattery(slot.setup, slot.type)) void props.onBatterySync(slot.index, currency);
             }}
           />
           <GameItemCard
@@ -255,8 +263,8 @@ export function MinecorePowerPanel(props: {
               { label: 'Includes', value: '+1 unit & full charge', color: 'emerald' },
               { label: 'Nominal', value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS` },
             ]}
-            buyLabel={!slot?.unlocked ? 'Locked' : !slot.setup.batteryId ? 'Install battery first' : 'Pay'}
-            buyDisabled={!slot?.unlocked || !slot.setup.batteryId}
+            buyLabel={!slot?.unlocked ? 'Locked' : !hasInstalledBattery(slot?.setup, slot?.type) ? 'Install battery first' : 'Pay'}
+            buyDisabled={!slot?.unlocked || !hasInstalledBattery(slot?.setup, slot?.type)}
             priceOptions={[
               {
                 currency: 'KAS',
@@ -266,7 +274,7 @@ export function MinecorePowerPanel(props: {
               { currency: 'KREX', unitPrice: runtimeBundlePrice },
             ]}
             onBuy={({ currency }) => {
-              if (slot?.unlocked && slot.setup.batteryId) void props.onRuntimeBundle(slot.index, currency);
+              if (slot?.unlocked && hasInstalledBattery(slot.setup, slot.type)) void props.onRuntimeBundle(slot.index, currency);
             }}
           />
         </div>

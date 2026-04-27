@@ -1,5 +1,4 @@
 import {
-  MINECORE_BATTERIES,
   MINECORE_BOOSTS,
   MINECORE_DAY_MS,
   MINECORE_KW_SCALE,
@@ -13,6 +12,7 @@ import {
   MINECORE_WORKERS,
 } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
+import { averageBatteryEfficiency, hasInstalledBattery } from './battery-utils';
 
 function plantPowerFactor(slot: PlantSlotState): number {
   return slot.setup.machineId
@@ -103,7 +103,7 @@ export function canStartMiningByEfficiency(slot: PlantSlotState): boolean {
 }
 
 function slotSetupComplete(slot: PlantSlotState): boolean {
-  return Boolean(slot.setup.machineId && slot.setup.batteryId && slot.setup.workerId);
+  return Boolean(slot.setup.machineId && hasInstalledBattery(slot.setup, slot.type) && slot.setup.workerId);
 }
 
 /**
@@ -115,9 +115,9 @@ export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: 
   if (!slot.unlocked || !slotSetupComplete(slot)) return 0;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const worker = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
-  const battery = slot.setup.batteryId ? MINECORE_BATTERIES[slot.setup.batteryId] : null;
+  const effBatt = averageBatteryEfficiency(slot.setup, slot.type);
   const boost = MINECORE_BOOSTS[slot.setup.boostId];
-  if (!machine || !worker || !battery) return 0;
+  if (!machine || !worker || !hasInstalledBattery(slot.setup, slot.type) || effBatt <= 0) return 0;
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;
@@ -131,7 +131,7 @@ export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: 
   }
 
   const subtotal = base + machinePart + workerPart + modulePart;
-  const afterGear = subtotal * boost.multiplier * battery.efficiency;
+  const afterGear = subtotal * boost.multiplier * effBatt;
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
   return Math.max(0, Math.min(plantMax, Math.floor(afterGear)));
 }

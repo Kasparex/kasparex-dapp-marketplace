@@ -17,6 +17,7 @@ import {
   MINECORE_WORKERS,
   MINECORE_BOOSTS,
   MINECORE_PLANT_PRESETS,
+  MINECORE_PLANT_BASE_POWER_UNITS,
   MINECORE_GRID_REDEEM_RATE,
   MINECORE_MODULES,
 } from '@/lib/game/minecore';
@@ -74,18 +75,20 @@ export function MinecoreCalculator() {
     Object.fromEntries(CALC_MODULE_ORDER.map((id) => [id, false])) as Record<MinecoreModuleId, boolean>,
   );
 
+  const plantType = CALC_PLANT_TYPE_ORDER[plantTypeIdx] ?? 'standard';
+
   const setup: PlantSetup = useMemo(() => {
     const moduleIds = CALC_MODULE_ORDER.filter((id) => modulesOn[id]);
+    const n = Math.max(1, MINECORE_PLANT_BASE_POWER_UNITS[plantType] ?? 1);
+    const batteryPick = CALC_BATTERY_ORDER[batteryIdx] ?? null;
     return {
       machineId: CALC_MACHINE_ORDER[machineIdx] ?? null,
-      batteryId: CALC_BATTERY_ORDER[batteryIdx] ?? null,
+      batteryIds: Array.from({ length: n }, () => batteryPick),
       workerId: CALC_WORKER_ORDER[workerIdx] ?? null,
       moduleIds,
       boostId: CALC_BOOST_ORDER[boostIdx] ?? 'none',
     };
-  }, [machineIdx, batteryIdx, workerIdx, boostIdx, modulesOn]);
-
-  const plantType = CALC_PLANT_TYPE_ORDER[plantTypeIdx] ?? 'standard';
+  }, [machineIdx, batteryIdx, workerIdx, boostIdx, modulesOn, plantType]);
 
   const result = useMemo(
     () =>
@@ -99,7 +102,8 @@ export function MinecoreCalculator() {
   );
 
   const machine = setup.machineId ? MINECORE_MACHINES[setup.machineId] : null;
-  const battery = setup.batteryId ? MINECORE_BATTERIES[setup.batteryId] : null;
+  const primaryBatteryId = setup.batteryIds[0] ?? null;
+  const battery = primaryBatteryId ? MINECORE_BATTERIES[primaryBatteryId] : null;
   const worker = setup.workerId ? MINECORE_WORKERS[setup.workerId] : null;
   const boost = MINECORE_BOOSTS[setup.boostId];
   const preset = MINECORE_PLANT_PRESETS[plantType];

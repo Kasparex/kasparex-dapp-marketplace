@@ -1,4 +1,5 @@
 export * from './types';
+export * from './battery-utils';
 export * from './config';
 export * from './initial-state';
 export * from './compute';

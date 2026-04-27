@@ -324,9 +324,9 @@ export function MinecoreDashboard(_props: {
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slot.index, amountKas));
                     }}
-                    onInstallPart={(kind, id) => {
+                    onInstallPart={(kind, id, batterySlotIndex) => {
                       if (kind === 'machine') actions.installMachine(slot.index, id);
-                      if (kind === 'battery') actions.installBattery(slot.index, id);
+                      if (kind === 'battery') actions.installBattery(slot.index, id, batterySlotIndex);
                       if (kind === 'worker') actions.installWorker(slot.index, id);
                       if (kind === 'modules') actions.setModules(slot.index, id);
                     }}

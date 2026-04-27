@@ -39,6 +39,7 @@ import {
   MINECORE_WORKERS,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
+import { getPlantBatterySlotCount, hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { useState, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
@@ -385,13 +386,14 @@ export function PlantSlotCard(props: {
   onRechargePlant: (opts?: { units?: number }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
-  onInstallPart: (kind: any, id: any) => void;
+  onInstallPart: (kind: any, id: any, batterySlotIndex?: number) => void;
   onChangePlantType: (type: any, cost: number) => void;
 }) {
   const s   = props.slot;
   const now = props.now;
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
+  const [batterySlotFocus, setBatterySlotFocus] = useState(0);
 
   useEffect(() => {
     if (s.status === 'MiningActive' && activeModal) setActiveModal(null);
@@ -424,8 +426,8 @@ export function PlantSlotCard(props: {
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
-  const batteryConfig   = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId] : null;
   const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
+  const powerUnitCount  = getPlantBatterySlotCount(s.type);
   const workforceCap    = MINECORE_PLANT_WORKFORCE_CAPACITY[s.type ?? 'standard'];
   const crewAssigned    = workerConfig ? 1 : 0;
   const powerDotMax     = Math.max(1, getPowerUnitCap(s));
@@ -433,7 +435,7 @@ export function PlantSlotCard(props: {
   // ── Action label ─────────────────────────────────────────────────────────
   const capUnits = getPowerUnitCap(s);
   const atFullEnergy =
-    s.setup.batteryId &&
+    hasInstalledBattery(s.setup, s.type) &&
     capacityMs > 0 &&
     liveChargeMs >= capacityMs - 1 &&
     s.powerRemaining >= capUnits;
@@ -466,7 +468,7 @@ export function PlantSlotCard(props: {
   const primaryIsRecharge = s.status === 'NeedsPower' || batteryDeadInRun;
   const showAuxRechargeButton =
     s.unlocked &&
-    s.setup.batteryId &&
+    hasInstalledBattery(s.setup, s.type) &&
     !atFullEnergy &&
     batteryRatio < BATTERY_LOW_RECHARGE_THRESHOLD &&
     !primaryIsRecharge;
@@ -572,15 +574,29 @@ export function PlantSlotCard(props: {
               onClick={() => setActiveModal('machine')}
               disabled={!canEditParts}
             />
-            <CheckRow
-              installed={!!s.setup.batteryId}
-              label="Battery"
-              value={batteryConfig?.label}
-              stat={batteryConfig ? `${Math.round(batteryConfig.chargeCapacityMs / 60000)}m` : undefined}
-              tooltip={batteryConfig ? `${batteryConfig.label}: ${formatDuration(batteryConfig.chargeCapacityMs)} base charge, ×${batteryConfig.efficiency} efficiency bonus.` : 'No battery installed. Click to assign one.'}
-              onClick={() => setActiveModal('battery')}
-              disabled={!canEditParts}
-            />
+            {Array.from({ length: powerUnitCount }, (_, bi) => {
+              const bid = s.setup.batteryIds[bi] ?? null;
+              const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
+              return (
+                <CheckRow
+                  key={bi}
+                  installed={!!bid}
+                  label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
+                  value={bcfg?.label}
+                  stat={bcfg ? `${Math.round(bcfg.chargeCapacityMs / 60000)}m` : undefined}
+                  tooltip={
+                    bcfg
+                      ? `${bcfg.label}: ${formatDuration(bcfg.chargeCapacityMs)} base charge, ×${bcfg.efficiency} efficiency bonus.`
+                      : 'No battery in this power slot. Click to assign one.'
+                  }
+                  onClick={() => {
+                    setBatterySlotFocus(bi);
+                    setActiveModal('battery');
+                  }}
+                  disabled={!canEditParts}
+                />
+              );
+            })}
             <CheckRow
               installed={!!s.setup.workerId}
               label={workerConfig ? `Worker — ${workerConfig.label}` : 'Worker — Unassigned'}
@@ -679,7 +695,7 @@ export function PlantSlotCard(props: {
               />
             )}
             {s.status === 'SetupIncomplete' && (
-              <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
+              <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !hasInstalledBattery(s.setup, s.type) && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
             )}
             {batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner
@@ -825,13 +841,13 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'battery'}
         onClose={() => setActiveModal(null)}
-        title="Assign Battery"
+        title={powerUnitCount > 1 ? `Assign battery — power unit ${batterySlotFocus + 1}` : 'Assign Battery'}
       >
         <ul className="space-y-2">
           {Object.values(MINECORE_BATTERIES).map((b) => {
             const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
             const inUse = countBatteriesAssigned(props.minecoreState.plantSlots, b.id);
-            const isInstalled = s.setup.batteryId === b.id;
+            const isInstalled = s.setup.batteryIds[batterySlotFocus] === b.id;
             return (
               <li key={b.id} className="list-none">
                 <ModalPartRow
@@ -842,7 +858,7 @@ export function PlantSlotCard(props: {
                   disabled={owned <= 0 && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
-                    props.onInstallPart('battery', b.id);
+                    props.onInstallPart('battery', b.id, batterySlotFocus);
                     setActiveModal(null);
                   }}
                 />

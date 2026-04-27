@@ -9,6 +9,7 @@ import {
   deriveState,
   computeLiveDiamonds,
   type MinecoreState,
+  type MinecoreBatteryId,
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -263,9 +264,17 @@ export function useMinecore() {
     dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'machine', id: id as any } });
   }, [dispatch]);
 
-  const installBattery = useCallback((slotIndex: number, id: PlantSlotState['setup']['batteryId']) => {
-    dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'battery', id: id as any } });
-  }, [dispatch]);
+  const installBattery = useCallback(
+    (slotIndex: number, id: MinecoreBatteryId | null, batterySlotIndex = 0) => {
+      dispatch({
+        type: 'InstallPart',
+        slotIndex,
+        at: Date.now(),
+        part: { kind: 'battery', id, batterySlotIndex },
+      });
+    },
+    [dispatch]
+  );
 
   const installWorker = useCallback((slotIndex: number, id: PlantSlotState['setup']['workerId']) => {
     dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'worker', id: id as any } });

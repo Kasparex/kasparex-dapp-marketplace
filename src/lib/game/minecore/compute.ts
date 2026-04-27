@@ -2,7 +2,13 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import { MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import {
+  drainWaterfallRemaining,
+  getMaxChargePerSlotMs,
+  hasInstalledBattery,
+  sumChargeMs,
+} from './battery-utils';
 import type { MinecoreState, PlantSlotState } from './types';
 import {
   canStartMiningByEfficiency,
@@ -46,14 +52,13 @@ export function productionClockMs(slot: PlantSlotState, now: number): number {
   return now;
 }
 
-/** Full charge capacity for the battery in this slot (× machine `powerBudgetMultiplier` when a rig is installed). */
+/** Full combined charge (ms) for all installed battery slots. */
 export function getBatteryCapacityMs(slot: PlantSlotState): number {
-  const base = slot.setup.batteryId
-    ? (MINECORE_BATTERIES[slot.setup.batteryId]?.chargeCapacityMs ?? 0)
-    : 0;
-  if (base <= 0) return 0;
-  const mult = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.powerBudgetMultiplier ?? 1) : 1;
-  return Math.max(0, Math.floor(base * mult));
+  return sumChargeMs(getMaxChargePerSlotMs(slot.setup, slot.type));
+}
+
+export function getTotalBatteryChargeAtSnapshot(slot: PlantSlotState): number {
+  return sumChargeMs(slot.batterySlotChargeMs ?? []);
 }
 
 // ── Core computations ────────────────────────────────────────────────────────
@@ -61,7 +66,7 @@ export function getBatteryCapacityMs(slot: PlantSlotState): number {
 export function computePlantReady(slot: PlantSlotState): boolean {
   if (!slot.unlocked) return false;
   if (!slot.setup.machineId) return false;
-  if (!slot.setup.batteryId) return false;
+  if (!hasInstalledBattery(slot.setup, slot.type)) return false;
   if (!slot.setup.workerId) return false;
   return true;
 }
@@ -76,20 +81,27 @@ export function computePlantDurationMs(slot: PlantSlotState): number {
 }
 
 /**
- * Live battery charge remaining (ms of base charge).
- * Drains at `powerConsumptionFactor` per real ms while a cycle is active.
+ * Per-slot remaining charge at `now` (waterfall drain: slot 0 first).
  */
-export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): number {
+export function computeLiveBatterySlotChargeMs(slot: PlantSlotState, now: number): number[] {
+  const raw = slot.batterySlotChargeMs ?? [];
   if (!slot.cycle || slot.cycle.endAtMs <= slot.cycle.startAtMs) {
-    return slot.batteryChargeMs;
+    return [...raw];
   }
   if (slot.cycle.pauseBeganAtMs != null) {
-    return slot.batteryChargeMs;
+    return [...raw];
   }
-  const drainUntil   = Math.min(now, slot.cycle.endAtMs);
-  const elapsed      = Math.max(0, drainUntil - slot.batterySnapshotAt);
-  const powerFactor  = getPowerDrainScale(slot);
-  return Math.max(0, slot.batteryChargeMs - elapsed * powerFactor);
+  const drainUntil = Math.min(now, slot.cycle.endAtMs);
+  const elapsed = Math.max(0, drainUntil - slot.batterySnapshotAt);
+  const powerFactor = getPowerDrainScale(slot);
+  return drainWaterfallRemaining(raw, elapsed * powerFactor);
+}
+
+/**
+ * Live total battery charge (ms). Drains at machine draw rate while a cycle is active.
+ */
+export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): number {
+  return sumChargeMs(computeLiveBatterySlotChargeMs(slot, now));
 }
 
 /**
@@ -110,8 +122,8 @@ export function computeRawLiveDiamonds(slot: PlantSlotState, now: number): numbe
   const clock = productionClockMs(slot, now);
   const elapsed = Math.max(0, clock - slot.cycle.startAtMs);
   const factor = getPowerDrainScale(slot);
-  /** Wall-clock ms when the current battery segment reaches 0 charge (from snapshot + stored charge). */
-  const emptyAtMs = factor > 0 ? slot.batterySnapshotAt + slot.batteryChargeMs / factor : Number.POSITIVE_INFINITY;
+  const totalAtSnap = getTotalBatteryChargeAtSnapshot(slot);
+  const emptyAtMs = factor > 0 ? slot.batterySnapshotAt + totalAtSnap / factor : Number.POSITIVE_INFINITY;
   const maxByBattery = Math.max(0, emptyAtMs - slot.cycle.startAtMs);
   const effectiveElapsed = Math.min(elapsed, maxByBattery, slot.cycle.durationMs);
   if (slot.cycle.durationMs <= 0) return 0;

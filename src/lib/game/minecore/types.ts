@@ -65,11 +65,12 @@ export type OwnedItems = {
 };
 
 export type PlantSetup = {
-  machineId:  MinecoreMachineId | null;
-  batteryId:  MinecoreBatteryId | null;
-  workerId:   MinecoreWorkerId | null;
-  moduleIds:  MinecoreModuleId[];
-  boostId:    MinecoreBoostId;
+  machineId: MinecoreMachineId | null;
+  /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
+  batteryIds: (MinecoreBatteryId | null)[];
+  workerId: MinecoreWorkerId | null;
+  moduleIds: MinecoreModuleId[];
+  boostId: MinecoreBoostId;
 };
 
 export type PlantCycle = {
@@ -95,9 +96,11 @@ export type PlantSlotState = {
   /** Plant-tier reserve power unit capacity; not spent per run in V1 display — synced in derive. */
   powerRemaining:   number;
   needsRepair:      boolean;
-  /** Base charge remaining (ms) at the time `batterySnapshotAt` was written. */
-  batteryChargeMs:   number;
-  /** Timestamp (ms) when batteryChargeMs was last written (cycle start or refill). */
+  /**
+   * Per power-unit slot: remaining charge (ms) at `batterySnapshotAt`. Drains waterfall (slot 0 first).
+   */
+  batterySlotChargeMs: number[];
+  /** Timestamp (ms) when `batterySlotChargeMs` was last written (cycle start or refill). */
   batterySnapshotAt: number;
   /** Diamonds earned in previous cycles but not yet extracted. */
   diamondsAccumulated: number;
@@ -161,7 +164,7 @@ export type MinecoreEvent =
       at: number;
       part:
         | { kind: 'machine';  id: MinecoreMachineId | null }
-        | { kind: 'battery';  id: MinecoreBatteryId | null }
+        | { kind: 'battery'; id: MinecoreBatteryId | null; /** Which battery slot (0..n-1) on this plant. */ batterySlotIndex?: number }
         | { kind: 'worker';   id: MinecoreWorkerId | null }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };

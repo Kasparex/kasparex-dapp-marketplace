@@ -14,6 +14,7 @@ import {
   getPowerDrainScale,
   getPowerUnitCap,
 } from './compute';
+import { getMaxChargePerSlotMs } from './battery-utils';
 import { createInitialMinecoreState } from './initial-state';
 import type {
   MinecoreBatteryId,
@@ -83,23 +84,6 @@ export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
 const DUMMY: MinecoreState = createInitialMinecoreState();
 
 export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): PlantSlotState {
-  const cap = getBatteryCapacityMs({
-    id: 'calc',
-    index: 0,
-    unlocked: true,
-    unlockCostKas: 1,
-    type: plantType,
-    status: 'ReadyToMine',
-    setup,
-    cycle: null,
-    powerRemaining: 99,
-    needsRepair: false,
-    batteryChargeMs: 0,
-    batterySnapshotAt: 0,
-    diamondsAccumulated: 0,
-    rollingCapWindowStartMs: 1,
-    dailyCapMinedDiamonds: 0,
-  });
   return {
     id: 'calc',
     index: 0,
@@ -111,7 +95,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): Pl
     cycle: null,
     powerRemaining: 99,
     needsRepair: false,
-    batteryChargeMs: cap,
+    batterySlotChargeMs: getMaxChargePerSlotMs(setup, plantType),
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
     rollingCapWindowStartMs: 1,

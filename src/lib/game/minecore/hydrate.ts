@@ -2,6 +2,7 @@ import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState } from './type
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
+import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object';
@@ -13,6 +14,26 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
 
   const setup = isRecord(input.setup) ? input.setup : {};
   const cycle = isRecord(input.cycle) ? input.cycle : null;
+  const plantType = typeof input.type === 'string' ? (input.type as PlantSlotState['type']) : base.type;
+  const nBat = getPlantBatterySlotCount(plantType);
+  const legacyBattery = typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null;
+  const rawIds = Array.isArray(setup.batteryIds) ? (setup.batteryIds as unknown[]).map((x) => (typeof x === 'string' ? x : null)) : null;
+  const batteryIds = Array.from({ length: nBat }, (_, i) => {
+    if (rawIds && i < rawIds.length) return rawIds[i] as any;
+    if (i === 0 && legacyBattery) return legacyBattery;
+    return null;
+  });
+
+  const legacyCharge = typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : null;
+  const rawSlotCh = Array.isArray((input as any).batterySlotChargeMs) ? (input as any).batterySlotChargeMs as number[] : null;
+  let batterySlotChargeMs: number[];
+  if (rawSlotCh && rawSlotCh.length > 0) {
+    batterySlotChargeMs = ensureBatterySlotChargeLength(rawSlotCh, nBat, 0);
+  } else if (legacyCharge != null && legacyCharge > 0) {
+    batterySlotChargeMs = Array.from({ length: nBat }, (_, i) => (i === 0 ? legacyCharge : 0));
+  } else {
+    batterySlotChargeMs = Array.from({ length: nBat }, () => 0);
+  }
 
   return {
     ...base,
@@ -20,11 +41,11 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     index,
     unlocked: typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked,
     unlockCostKas: typeof input.unlockCostKas === 'number' ? input.unlockCostKas : base.unlockCostKas,
-    type: typeof input.type === 'string' ? (input.type as any) : base.type,
+    type: plantType,
     status: typeof input.status === 'string' ? (input.status as any) : base.status,
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
-      batteryId: typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null,
+      batteryIds,
       workerId: typeof setup.workerId === 'string' ? (setup.workerId as any) : null,
       moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
       boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',
@@ -43,7 +64,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
         : null,
     powerRemaining: typeof input.powerRemaining === 'number' ? input.powerRemaining : base.powerRemaining,
     needsRepair: typeof input.needsRepair === 'boolean' ? input.needsRepair : base.needsRepair,
-    batteryChargeMs: typeof input.batteryChargeMs === 'number' ? input.batteryChargeMs : base.batteryChargeMs,
+    batterySlotChargeMs,
     batterySnapshotAt: typeof input.batterySnapshotAt === 'number' ? input.batterySnapshotAt : base.batterySnapshotAt,
     diamondsAccumulated: typeof input.diamondsAccumulated === 'number' ? input.diamondsAccumulated : base.diamondsAccumulated,
     rollingCapWindowStartMs: (() => {

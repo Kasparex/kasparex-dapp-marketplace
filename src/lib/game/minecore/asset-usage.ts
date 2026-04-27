@@ -11,7 +11,11 @@ export function countMachinesAssigned(slots: PlantSlotState[], id: MinecoreMachi
 }
 
 export function countBatteriesAssigned(slots: PlantSlotState[], id: MinecoreBatteryId): number {
-  return slots.reduce((n, s) => n + (s.unlocked && s.setup.batteryId === id ? 1 : 0), 0);
+  return slots.reduce((n, s) => {
+    if (!s.unlocked) return n;
+    const ids = s.setup.batteryIds ?? [];
+    return n + ids.filter((x) => x === id).length;
+  }, 0);
 }
 
 export function countWorkersAssigned(slots: PlantSlotState[], id: MinecoreWorkerId): number {
