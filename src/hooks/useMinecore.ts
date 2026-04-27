@@ -7,6 +7,7 @@ import {
   hydrateMinecoreState,
   applyMinecoreEvent,
   deriveState,
+  minecoreAutoRestartInfrastructureActive,
   type MinecoreState,
   type PlantSlotState,
 } from '@/lib/game/minecore';
@@ -106,40 +107,38 @@ export function useMinecore() {
     [walletState.isConnected, walletAddr],
   );
 
-  // Foreman / Automation logic: auto-restart & auto-refill
+  // Foreman: auto-refill. Auto-restart mining: only when toggle is on AND (Foreman or Regen Coil / auto-restart module).
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
-    if (!mc.automation.autoRestart && !mc.automation.foremanActive) return;
+    const allowRefill = mc.automation.foremanActive;
+    if (!allowRefill && !mc.automation.autoRestart) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
       const s = mcRef.current;
-      
+      const derived = deriveState(s, now);
+      const allowAutoMine =
+        s.automation.autoRestart && minecoreAutoRestartInfrastructureActive(s);
+
       for (const slot of s.plantSlots) {
         if (!slot.unlocked) continue;
-        const status = deriveState(s, now).plantSlots[slot.index].status;
+        const status = derived.plantSlots[slot.index].status;
 
-        // 1. Auto-refill battery if Foreman is active and we have Energy Cells
-        if (s.automation.foremanActive && (status === 'BatteryEmpty' || (slot.cycle && status === 'MiningActive' && deriveState(s, now).plantSlots[slot.index].status === 'BatteryEmpty'))) {
-           // check inventory for energy cells
-           if (s.ingredients.energyCells > 0) {
-             dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
-             dispatch({ type: 'RefillBattery', slotIndex: slot.index, at: now });
-             continue; // handled refill
-           }
+        if (allowRefill && status === 'BatteryEmpty' && s.ingredients.energyCells > 0) {
+          dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
+          dispatch({ type: 'RefillBattery', slotIndex: slot.index, at: now });
+          continue;
         }
 
-        // 2. Auto-restart if cycle is finished and we have power
-        if (s.automation.autoRestart && status === 'ExtractionReady') {
+        if (allowAutoMine && status === 'ExtractionReady') {
           dispatch({ type: 'Extract', slotIndex: slot.index, at: now });
-          // If still has power units, it will be ReadyToMine next tick
         }
-        
-        if (s.automation.autoRestart && status === 'ReadyToMine' && slot.diamondsAccumulated === 0) {
+
+        if (allowAutoMine && status === 'ReadyToMine' && slot.diamondsAccumulated === 0) {
           dispatch({ type: 'StartMining', slotIndex: slot.index, at: now });
         }
       }
-    }, 5000); // Check every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [walletState.isConnected, walletAddr, mc.automation.autoRestart, mc.automation.foremanActive, dispatch]);

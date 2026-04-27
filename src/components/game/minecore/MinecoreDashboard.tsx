@@ -11,7 +11,11 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { computeMinecoreDiamondsDisplayTotal, computeMinecoreRollingDailyCapDeckTotals } from '@/lib/game/minecore/compute';
+import {
+  computeMinecoreDiamondsDisplayTotal,
+  computeMinecoreRollingDailyCapDeckTotals,
+  minecoreAutoRestartInfrastructureActive,
+} from '@/lib/game/minecore/compute';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
@@ -116,6 +120,7 @@ export function MinecoreDashboard(_props: {
 
   const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state, nowTick));
   const deckRollingCaps = useMemo(() => computeMinecoreRollingDailyCapDeckTotals(state, nowTick), [state, nowTick]);
+  const autoRestartInfrastructureActive = useMemo(() => minecoreAutoRestartInfrastructureActive(state), [state]);
 
   const openOverview = () => {
     setTab('overview');
@@ -422,7 +427,7 @@ export function MinecoreDashboard(_props: {
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}
                 autoRestart={state.automation.autoRestart}
-                foremanActive={state.automation.foremanActive}
+                autoRestartInfrastructureActive={autoRestartInfrastructureActive}
                 onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
                 onDeploy={actions.deployNFT}
                 onRemove={(slotIndex) => actions.removeNFT(slotIndex)}

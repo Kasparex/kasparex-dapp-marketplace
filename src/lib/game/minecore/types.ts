@@ -50,6 +50,8 @@ export type PlantCardStatus =
   | 'ExtractionReady'
   | 'NeedsRepair'
   | 'NeedsPower'
+  /** Rolling 24h diamond cap reached — start new cycles after the window resets (or extract/refine backlog). */
+  | 'DailyCapReached'
   /** Production below consumption beyond playable threshold — cannot start a cycle. */
   | 'InsufficientPower';
 
@@ -90,7 +92,8 @@ export type PlantSlotState = {
   status:           PlantCardStatus;
   setup:            PlantSetup;
   cycle:            PlantCycle | null;
-  powerRemaining:   number;  // fuel-tank units; each StartMining costs 1
+  /** Grid + battery power unit capacity (informational); always equals cap while unlocked — not consumed per run. */
+  powerRemaining:   number;
   needsRepair:      boolean;
   /** Base charge remaining (ms) at the time `batterySnapshotAt` was written. */
   batteryChargeMs:   number;

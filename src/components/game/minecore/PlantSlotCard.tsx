@@ -32,6 +32,7 @@ import {
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_POWER_UNITS,
+  MINECORE_PLANT_WORKFORCE_CAPACITY,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_PLANT_REPAIR_KAS,
@@ -70,6 +71,7 @@ function statusBadge(status: PlantSlotState['status']) {
   if (status === 'SetupIncomplete') return `${base} border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300`;
   if (status === 'BatteryEmpty')    return `${base} border border-orange-500/30 bg-orange-500/15 text-orange-800 dark:text-orange-300`;
   if (status === 'InsufficientPower') return `${base} border border-orange-500/35 bg-orange-500/15 text-orange-900 dark:text-orange-200`;
+  if (status === 'DailyCapReached') return `${base} border border-violet-500/30 bg-violet-500/10 text-violet-900 dark:text-violet-200`;
   if (status === 'NeedsPower' || status === 'NeedsRepair') return `${base} border border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-300`;
   return `${base} border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`;
 }
@@ -89,6 +91,7 @@ function labelForStatus(status: PlantSlotState['status']) {
   if (status === 'NeedsRepair')     return 'Needs repair';
   if (status === 'NeedsPower')      return 'Needs power';
   if (status === 'InsufficientPower') return 'Grid deficit';
+  if (status === 'DailyCapReached') return '24h cap';
   return status;
 }
 
@@ -163,7 +166,7 @@ function CheckRow(props: {
         <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
           {props.installed ? '✓' : '✗'}
         </span>
-        <span className={`text-xs font-semibold w-12 flex-shrink-0 sm:w-14 ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
+        <span className={`text-xs font-semibold max-w-[44%] flex-shrink-0 leading-tight sm:max-w-[40%] ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
           {props.label}
         </span>
         <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
@@ -193,7 +196,7 @@ function ResourceBar(props: {
   if (props.variant === 'cycle' || props.variant === 'dailyCap') {
     barColor = 'bg-emerald-500';
   } else if (props.variant === 'battery') {
-    barColor = r > 0.6 ? 'bg-emerald-500' : r > 0.2 ? 'bg-amber-500' : 'bg-rose-500';
+    barColor = r > 0.6 ? 'bg-sky-500' : r > 0.2 ? 'bg-sky-400' : 'bg-sky-300 dark:bg-sky-600';
   } else {
     barColor = r > 0.4 ? 'bg-sky-500' : 'bg-rose-500';
   }
@@ -345,7 +348,7 @@ function PowerDots(props: { current: number; max: number }) {
   );
   return (
     <Tooltip
-      content={`Reserve power units for starting mining runs. Each start spends one unit. Recharge adds units and fills the battery. Current: ${props.current} of ${safeMax}.`}
+      content={`Power unit capacity from machine grid + battery (not consumed per run). Recharge refills battery only; capacity updates when you change parts. Display: ${props.current} / ${safeMax}.`}
     >
       {inner}
     </Tooltip>
@@ -416,6 +419,8 @@ export function PlantSlotCard(props: {
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
   const batteryConfig   = s.setup.batteryId ? MINECORE_BATTERIES[s.setup.batteryId] : null;
   const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
+  const workforceCap    = MINECORE_PLANT_WORKFORCE_CAPACITY[s.type ?? 'standard'];
+  const crewAssigned    = workerConfig ? 1 : 0;
   const powerDotMax     = getPowerUnitCap(s) || (batteryConfig?.powerCapacity ?? 1);
 
   // ── Action label ─────────────────────────────────────────────────────────
@@ -437,6 +442,8 @@ export function PlantSlotCard(props: {
     actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
+  } else if (s.status === 'DailyCapReached') {
+    actionLabel = '24h cap reached';
   } else if (s.status === 'MiningPaused') {
     actionLabel = 'Resume mining';
   } else if (s.status === 'MiningActive') {
@@ -461,7 +468,7 @@ export function PlantSlotCard(props: {
     batteryRatio < BATTERY_LOW_RECHARGE_THRESHOLD &&
     !primaryIsRecharge;
 
-  const buyDisabled = false;
+  const buyDisabled = s.status === 'DailyCapReached';
 
   /** Setup changes only when not actively mining (paused / idle / extraction is OK). */
   const canEditParts = s.status !== 'MiningActive';
@@ -572,17 +579,13 @@ export function PlantSlotCard(props: {
             />
             <CheckRow
               installed={!!s.setup.workerId}
-              label="Worker"
-              value={workerConfig?.label}
-              stat={
-                workerConfig
-                  ? `+${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% out`
-                  : undefined
-              }
+              label={workerConfig ? `Worker — ${workerConfig.label}` : 'Worker — Unassigned'}
+              value={`${crewAssigned} / ${workforceCap}`}
+              stat={workerConfig ? `+${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% D` : undefined}
               tooltip={
                 workerConfig
-                  ? `${workerConfig.label}: Worker bonus +${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% diamond output; −${(workerConfig.energyUseReduction * 100).toFixed(0)}% draw; +${workerConfig.efficiencyBonus} eff. pts under deficit.`
-                  : 'No worker assigned. Click to assign one.'
+                  ? `${workerConfig.label}: +${(workerConfig.diamondOutputBonus * 100).toFixed(0)}% diamond output; −${(workerConfig.energyUseReduction * 100).toFixed(0)}% draw; +${workerConfig.efficiencyBonus} eff. pts. Crew ${crewAssigned}/${workforceCap} is plant station capacity (V1: one operator).`
+                  : `Assign an operator. Crew ${crewAssigned}/${workforceCap} — plant tier sets how many stations you can fill in future updates.`
               }
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
@@ -663,6 +666,12 @@ export function PlantSlotCard(props: {
 
           {/* ── Status warnings (above primary action) ── */}
           <div className="space-y-2">
+            {s.status === 'DailyCapReached' && (
+              <WarningBanner
+                level="warn"
+                message="Rolling 24h diamond budget is full. Extract or refine from this plant, or wait for the window to advance. New runs stay manual unless Workers → Auto-restart is on with Regen Coil or Foreman."
+              />
+            )}
             {s.status === 'SetupIncomplete' && (
               <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !s.setup.batteryId && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
             )}
@@ -698,6 +707,7 @@ export function PlantSlotCard(props: {
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
         if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
         if (s.status === 'InsufficientPower') return setActiveModal('machine');
+        if (s.status === 'DailyCapReached') return;
         if (batteryDeadInRun || s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();

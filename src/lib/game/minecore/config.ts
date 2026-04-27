@@ -31,6 +31,13 @@ export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   advanced: 4,
 };
 
+/** Workforce slots shown on plant setup (assigned crew / capacity). */
+export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
+  standard: 1,
+  premium: 3,
+  advanced: 5,
+};
+
 /**
  * Rig throughput toward rolling daily cap cannot exceed this multiple of the plant base
  * (prevents huge machines from exploding the 24h budget).
@@ -305,6 +312,10 @@ export type ModuleConfig = {
   id: MinecoreModuleId;
   label: string;
   kind: MinecoreModuleKind;
+  /**
+   * When true (and Workers “Auto-restart” is on), finished cycles can chain automatically for plants that have this module.
+   */
+  autoRestartMining?: boolean;
   /** Output modules: +fraction of (base+machine) per 24h. */
   outputBonus: number;
   failureReduction: number;
@@ -353,6 +364,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     id: 'regen-coil',
     label: 'Regen Coil',
     kind: 'automation',
+    autoRestartMining: true,
     outputBonus: 0.03,
     failureReduction: 0.03,
     cycleDurationBonus: 0.1,

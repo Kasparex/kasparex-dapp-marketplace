@@ -39,6 +39,9 @@ export function GameItemCard(props: {
   title: string;
   category: string;
   description: React.ReactNode;
+  /** Blueprint-style split (e.g. Fabrication). When set, prefer over a flat `effects` list. */
+  specifications?: GameItemEffectLine[];
+  ingredients?: GameItemEffectLine[];
   effects?: GameItemEffectLine[];
   priceOptions: GameItemPriceOption[];
   defaultCurrency?: GameItemCurrency;
@@ -86,6 +89,34 @@ export function GameItemCard(props: {
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
     if (qtyCfg?.onChange) qtyCfg.onChange(clamped);
     else setUncontrolledQty(clamped);
+  }
+
+  function effectLineRow(e: GameItemEffectLine) {
+    return (
+      <div
+        key={e.label}
+        className="flex items-center justify-between rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30"
+      >
+        <span className="font-semibold text-zinc-600 dark:text-zinc-400">{e.label}</span>
+        <span
+          className={`font-black tabular-nums ${
+            e.muted
+              ? 'text-zinc-500 dark:text-zinc-500'
+              : e.color === 'amber'
+                ? 'text-amber-700 dark:text-amber-300'
+                : e.color === 'rose'
+                  ? 'text-rose-700 dark:text-rose-300'
+                  : e.color === 'sky'
+                    ? 'text-sky-700 dark:text-sky-300'
+                    : e.color === 'zinc'
+                      ? 'text-zinc-700 dark:text-zinc-300'
+                      : 'text-emerald-700 dark:text-emerald-300'
+          }`}
+        >
+          {e.value}
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -137,31 +168,26 @@ export function GameItemCard(props: {
         <div className="mb-4 min-h-0 flex-grow">
           <div className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description}</div>
 
-          {props.effects && props.effects.length > 0 ? (
-            <div className="mt-3 grid gap-2">
-              {props.effects.map((e) => (
-                <div key={e.label} className="flex items-center justify-between rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
-                  <span className="font-semibold text-zinc-600 dark:text-zinc-400">{e.label}</span>
-                  <span
-                    className={`font-black tabular-nums ${
-                      e.muted
-                        ? 'text-zinc-500 dark:text-zinc-500'
-                        : e.color === 'amber'
-                        ? 'text-amber-700 dark:text-amber-300'
-                        : e.color === 'rose'
-                        ? 'text-rose-700 dark:text-rose-300'
-                        : e.color === 'sky'
-                        ? 'text-sky-700 dark:text-sky-300'
-                        : e.color === 'zinc'
-                        ? 'text-zinc-700 dark:text-zinc-300'
-                        : 'text-emerald-700 dark:text-emerald-300'
-                    }`}
-                  >
-                    {e.value}
-                  </span>
-                </div>
-              ))}
+          {props.specifications && props.specifications.length > 0 ? (
+            <div className="mt-3">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Specifications
+              </div>
+              <div className="grid gap-2">{props.specifications.map(effectLineRow)}</div>
             </div>
+          ) : null}
+
+          {props.ingredients && props.ingredients.length > 0 ? (
+            <div className="mt-3">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Ingredients
+              </div>
+              <div className="grid gap-2">{props.ingredients.map(effectLineRow)}</div>
+            </div>
+          ) : null}
+
+          {!props.specifications?.length && !props.ingredients?.length && props.effects && props.effects.length > 0 ? (
+            <div className="mt-3 grid gap-2">{props.effects.map(effectLineRow)}</div>
           ) : null}
         </div>
 

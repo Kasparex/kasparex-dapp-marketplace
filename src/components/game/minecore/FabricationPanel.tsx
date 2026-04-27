@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
-import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { GameItemCard, type GameItemEffectLine } from '@/components/games/shop/GameItemCard';
 import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
 import {
   MINECORE_BATTERIES,
+  MINECORE_DAY_MS,
+  MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MODULES,
   MINECORE_RECIPES,
@@ -26,7 +28,10 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   latticeWire: 'Lattice Wire',
 };
 
-type EffectColor = 'emerald' | 'amber' | 'sky' | 'rose' | undefined;
+function machineRigDiamondsPer24h(durationMs: number, baseOutput: number): number {
+  if (durationMs <= 0) return 0;
+  return Math.floor((baseOutput * MINECORE_DAY_MS) / durationMs);
+}
 
 export function FabricationPanel(props: {
   state: MinecoreState;
@@ -71,7 +76,7 @@ export function FabricationPanel(props: {
 
       <GamePanelCard
         title="Fabrication blueprints"
-        hint="Craft machines (power + reserve grid), batteries, and modules. Machines set draw rate, charge budget multiplier, and reserve units alongside the battery."
+        hint="Specifications match the mining plant control panel: kW, drain, and rig pace feed the same formulas as an installed plant. Ingredients are only for crafting."
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -88,20 +93,45 @@ export function FabricationPanel(props: {
             const isBattery = r.kind === 'battery';
             const isModule = r.kind === 'module';
 
-            const effects: { label: string; value: string; muted?: boolean; color?: EffectColor }[] = [];
+            const specifications: GameItemEffectLine[] = [];
 
             if (isMachine) {
               const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
               if (cfg) {
-                effects.push({ label: 'Duration', value: `${Math.round(cfg.durationMs / 60000)} min` });
-                effects.push({ label: 'Base output', value: `${cfg.baseOutput.toLocaleString()} diamonds`, color: 'amber' });
-                effects.push({ label: 'Power drain', value: `×${cfg.powerConsumptionFactor}`, color: 'rose' });
-                effects.push({
-                  label: 'Reserve grid',
-                  value: `+${cfg.powerGridContribution} (+ battery)`,
+                const rigD24 = machineRigDiamondsPer24h(cfg.durationMs, cfg.baseOutput);
+                const consKw = cfg.powerConsumptionFactor * MINECORE_KW_SCALE;
+                const extraCrew = cfg.additionalCrewRequired ?? 0;
+                specifications.push({
+                  label: 'Duration',
+                  value: `${Math.round(cfg.durationMs / 60000)} min`,
+                  color: 'sky',
+                });
+                specifications.push({
+                  label: 'Output (rig pace)',
+                  value: `+${rigD24.toLocaleString()} D / 24h`,
                   color: 'amber',
                 });
-                effects.push({
+                specifications.push({
+                  label: 'Power drain',
+                  value: `×${cfg.powerConsumptionFactor}`,
+                  color: 'rose',
+                });
+                specifications.push({
+                  label: 'Additional crew',
+                  value: extraCrew <= 0 ? 'No' : `+${extraCrew} slots`,
+                  color: 'zinc',
+                });
+                specifications.push({
+                  label: 'Energy consumption',
+                  value: `${consKw.toFixed(1)} kW`,
+                  color: 'rose',
+                });
+                specifications.push({
+                  label: 'Grid capacity',
+                  value: `+${cfg.powerGridContribution} units`,
+                  color: 'sky',
+                });
+                specifications.push({
                   label: 'Charge budget',
                   value: `×${cfg.powerBudgetMultiplier.toFixed(2)}`,
                   color: 'sky',
@@ -110,19 +140,82 @@ export function FabricationPanel(props: {
             } else if (isBattery) {
               const cfg = MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES];
               if (cfg) {
-                effects.push({ label: 'Capacity', value: `${Math.round(cfg.chargeCapacityMs / 60000)} min` });
-                effects.push({ label: 'Fuel units', value: `${cfg.powerCapacity} units`, color: 'amber' });
-                effects.push({ label: 'Efficiency', value: `×${cfg.efficiency}` });
+                const prodKw = cfg.powerCapacity * MINECORE_KW_SCALE;
+                specifications.push({
+                  label: 'Stored runtime',
+                  value: `${Math.round(cfg.chargeCapacityMs / 60000)} min @ 1.0× drain`,
+                  color: 'sky',
+                });
+                specifications.push({
+                  label: 'Energy production',
+                  value: `${prodKw.toFixed(1)} kW`,
+                  color: 'sky',
+                });
+                specifications.push({
+                  label: 'Power unit capacity',
+                  value: `${cfg.powerCapacity} (adds to grid cap)`,
+                  color: 'amber',
+                });
+                specifications.push({
+                  label: 'Yield multiplier',
+                  value: `×${cfg.efficiency}`,
+                  color: 'emerald',
+                });
               }
             } else if (isModule) {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];
               if (cfg) {
-                effects.push({ label: 'Output +', value: `${Math.round(cfg.outputBonus * 100)}%`, color: 'amber' });
-                effects.push({ label: 'Stability', value: `${Math.round(cfg.failureReduction * 100)}%` });
+                if (cfg.kind === 'output') {
+                  specifications.push({
+                    label: 'Output bonus',
+                    value: `+${Math.round(cfg.outputBonus * 100)}% (stacked in plant cap)`,
+                    color: 'amber',
+                  });
+                }
+                if (cfg.kind === 'cooling') {
+                  specifications.push({
+                    label: 'Consumption cut',
+                    value: `−${Math.round((cfg.consumptionReduction ?? 0) * 100)}% kW`,
+                    color: 'sky',
+                  });
+                }
+                if (cfg.kind === 'automation') {
+                  specifications.push({
+                    label: 'Cycle stretch',
+                    value: `+${Math.round((cfg.cycleDurationBonus ?? 0) * 100)}% duration`,
+                    color: 'sky',
+                  });
+                  if (cfg.autoRestartMining) {
+                    specifications.push({
+                      label: 'Auto-restart',
+                      value: 'Needs Workers toggle + this module',
+                      color: 'emerald',
+                    });
+                  }
+                }
+                if (cfg.kind === 'stability') {
+                  specifications.push({
+                    label: 'Efficiency floor',
+                    value: `+${cfg.efficiencyFloorBonus ?? 0} pts`,
+                    color: 'emerald',
+                  });
+                }
+                if (cfg.kind === 'refining') {
+                  specifications.push({
+                    label: 'Refine bonus',
+                    value: `+${Math.round((cfg.refineBonus ?? 0) * 100)}%`,
+                    color: 'amber',
+                  });
+                }
+                specifications.push({
+                  label: 'Failure reduction',
+                  value: `−${Math.round(cfg.failureReduction * 100)}%`,
+                  color: 'zinc',
+                });
               }
             }
 
-            const reqLines = Object.entries(r.requires).map(([k, v]) => {
+            const ingredients: GameItemEffectLine[] = Object.entries(r.requires).map(([k, v]) => {
               const need = Number(v ?? 0);
               const have = Math.floor(props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0);
               const ok = have >= need;
@@ -136,6 +229,12 @@ export function FabricationPanel(props: {
                 ? MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES]?.featuredImageUrl
                 : undefined;
 
+            const description = isMachine
+              ? 'Nominal cycle length for one run. If power drain is above 1.0×, the battery empties sooner in real time (same cycle window, faster charge loss). Output stacks with plant base in the live economy.'
+              : isBattery
+                ? 'Production kW and power-unit capacity add to the plant grid total and efficiency math. Battery charge still drains during runs based on the machine’s drain factor.'
+                : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
+
             return (
               <GameItemCard
                 key={r.id}
@@ -143,14 +242,9 @@ export function FabricationPanel(props: {
                 category={r.category}
                 imageSrc={featuredImageUrl}
                 imageAlt={r.title}
-                description={
-                  isMachine
-                    ? 'Defines mining performance and how much reserve power the plant can hold with a battery.'
-                    : isBattery
-                      ? 'Stores charge and adds reserve fuel units on top of the machine grid.'
-                      : 'Optional output and stability upgrade for a plant.'
-                }
-                effects={[...effects, ...reqLines]}
+                description={description}
+                specifications={specifications}
+                ingredients={ingredients}
                 buyLabel={canAffordRecipe(r.requires as Record<string, number>) ? 'Build' : 'Missing'}
                 buyDisabled={!canAffordRecipe(r.requires as Record<string, number>)}
                 hidePricing={true}

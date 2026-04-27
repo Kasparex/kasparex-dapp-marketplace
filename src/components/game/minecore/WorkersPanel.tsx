@@ -15,13 +15,13 @@ export function WorkersPanel(props: {
   slots: MiningSlot[];
   slottedMetadata: Record<number, ParsedNFTMetadata>;
   autoRestart: boolean;
-  foremanActive: boolean;
+  /** True when Foreman is active or a plant has Regen Coil (automation can actually chain cycles). */
+  autoRestartInfrastructureActive: boolean;
   onToggleAutoRestart: (enabled: boolean) => void;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
   onRemove: (slotIndex: number) => void;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
-  const foremanReady = props.slots.some((s) => s.type === 'foreman' && s.nftId != null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -67,31 +67,29 @@ export function WorkersPanel(props: {
         <div>
           <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Auto-restart mining runs
-            <GameTooltip content="When enabled, completed cycles can restart automatically within your policy. Assign a Foreman (PIXELKREX) for higher caps when rules are finalized.">
+            <GameTooltip content="Chains extract → start when infrastructure allows: Regen Coil module on a Premium/Advanced plant, or an active Foreman NFT. Without either, mining stays manual between cycles (default).">
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
                 ?
               </button>
             </GameTooltip>
           </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Requires Foreman for best caps · syncs on save</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Regen Coil or Foreman unlocks real auto-chaining</p>
         </div>
         <label className="flex cursor-pointer items-center gap-2">
           <input
             type="checkbox"
             className="h-4 w-4 rounded border-zinc-400 text-emerald-600 focus:ring-emerald-500"
             checked={props.autoRestart}
-            onChange={(e) => {
-              const on = e.target.checked;
-              if (on && !foremanReady) return;
-              props.onToggleAutoRestart(on);
-            }}
+            onChange={(e) => props.onToggleAutoRestart(e.target.checked)}
           />
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Enabled</span>
         </label>
       </div>
-      {!foremanReady && (
-        <p className="text-xs text-amber-700 dark:text-amber-400">Assign a Foreman NFT below to unlock the auto-restart policy (or keep it off).</p>
-      )}
+      {props.autoRestart && !props.autoRestartInfrastructureActive ? (
+        <p className="text-xs text-amber-700 dark:text-amber-400">
+          Toggle is on, but nothing will auto-chain yet — craft &amp; install <strong>Regen Coil</strong> on a Premium/Advanced plant, or assign a <strong>Foreman</strong> NFT below.
+        </p>
+      ) : null}
 
       <CardsFilterBar
         searchQuery={searchQuery}

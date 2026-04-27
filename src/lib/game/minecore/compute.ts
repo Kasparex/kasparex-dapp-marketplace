@@ -2,7 +2,7 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_BATTERIES, MINECORE_MACHINES } from './config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES } from './config';
 import type { MinecoreState, PlantSlotState } from './types';
 import {
   canStartMiningByEfficiency,
@@ -188,6 +188,32 @@ export function computeMinecoreRollingDailyCapDeckTotals(
   return { minedSum, capSum };
 }
 
+/** True when this plant cannot start another cycle until the rolling 24h window advances (or cap math changes). */
+export function plantDailyCapPreventsNewCycle(state: MinecoreState, slot: PlantSlotState, now: number): boolean {
+  const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
+  const p = computePlantDailyCapProgress(state, rolled, now);
+  return p.cap24h > 0 && p.minedTowardCap >= p.cap24h;
+}
+
+/** Power units mirror grid capacity — not spent per run (see `apply-event` / `deriveState`). */
+export function syncPlantPowerUnitsToCapacity(slot: PlantSlotState): PlantSlotState {
+  if (!slot.unlocked) return slot;
+  const cap = getPowerUnitCap(slot);
+  return { ...slot, powerRemaining: Math.max(0, cap) };
+}
+
+/** Foreman NFT or an installed auto-restart module (e.g. Regen Coil) unlocks automated cycle chaining. */
+export function minecoreAutoRestartInfrastructureActive(state: MinecoreState): boolean {
+  if (state.automation.foremanActive) return true;
+  for (const slot of state.plantSlots) {
+    if (!slot.unlocked || slot.type === 'standard') continue;
+    for (const id of slot.setup.moduleIds) {
+      if (MINECORE_MODULES[id]?.autoRestartMining) return true;
+    }
+  }
+  return false;
+}
+
 // ── Status derivation ────────────────────────────────────────────────────────
 
 export function deriveSlotStatus(
@@ -205,15 +231,16 @@ export function deriveSlotStatus(
     if (now >= slot.cycle.endAtMs) return 'ExtractionReady';
     return 'MiningActive';
   }
+  if (plantDailyCapPreventsNewCycle(state, slot, now)) return 'DailyCapReached';
   if (!canStartMiningByEfficiency(slot)) return 'InsufficientPower';
-  if (slot.powerRemaining <= 0) return 'NeedsPower';
   return 'ReadyToMine';
 }
 
 export function deriveState(state: MinecoreState, now: number): MinecoreState {
   const nextSlots = state.plantSlots.map((s) => {
     const rolled = rollPlantRollingDailyCapIfNeeded(s, now);
-    return { ...rolled, status: deriveSlotStatus(state, rolled, now) };
+    const synced = syncPlantPowerUnitsToCapacity(rolled);
+    return { ...synced, status: deriveSlotStatus(state, synced, now) };
   });
   return { ...state, plantSlots: nextSlots };
 }

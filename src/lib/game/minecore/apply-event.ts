@@ -21,6 +21,8 @@ import {
   getBatteryCapacityMs,
   getPowerUnitCap,
   deriveSlotStatus,
+  plantDailyCapPreventsNewCycle,
+  syncPlantPowerUnitsToCapacity,
 } from './compute';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import type { IngredientBag } from './types';
@@ -68,7 +70,10 @@ function nextVersion(state: MinecoreState): number {
 }
 
 function rederive(state: MinecoreState, at: number): MinecoreState {
-  const slots = state.plantSlots.map((s) => ({ ...s, status: deriveSlotStatus(state, s, at) }));
+  const slots = state.plantSlots.map((s) => {
+    const synced = syncPlantPowerUnitsToCapacity(s);
+    return { ...synced, status: deriveSlotStatus(state, synced, at) };
+  });
   return { ...state, plantSlots: slots };
 }
 
@@ -263,7 +268,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         return rederive(s, now);
       }
       if (!computePlantReady(slot)) return rederive(s, now);
-      if (slot.powerRemaining <= 0) return rederive(s, now);
+      if (plantDailyCapPreventsNewCycle(s, slot, ev.at)) return rederive(s, now);
       if (slot.needsRepair) return rederive(s, now);
       if (!canStartMiningByEfficiency(slot)) return rederive(s, now);
 
@@ -276,7 +281,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
       if (slot.batteryChargeMs <= 0) return rederive(s, now);
 
-      slot.powerRemaining -= 1;
+      slot.powerRemaining = getPowerUnitCap(slot);
 
       slot.cycle = {
         startAtMs:        ev.at,
@@ -353,9 +358,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'TopUpPower': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      const cap = getPowerUnitCap(slot);
-      const next = Math.min(Math.max(0, cap), slot.powerRemaining + Math.max(0, ev.added));
-      slot.powerRemaining = next;
+      slot.powerRemaining = getPowerUnitCap(slot);
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }
@@ -363,9 +366,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'RechargePlant': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked || !slot.setup.batteryId) return rederive(s, now);
-      const u = Math.max(1, Math.floor(ev.units ?? 1));
       const cap = getPowerUnitCap(slot);
-      slot.powerRemaining = Math.min(cap, slot.powerRemaining + u);
+      slot.powerRemaining = cap;
       slot.batteryChargeMs = getBatteryCapacityMs(slot);
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
@@ -420,19 +422,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const rawR = computeRawLiveDiamonds(slot, at);
         if (rawR > 0 && (slot.cycle.mintedOffset ?? 0) >= rawR) {
           // Run is fully siphoned from live production via refine — end this cycle the same as clearing the in-progress run.
-          const cycleEndMs = slot.cycle.endAtMs;
-          const runEndedBeforeCycleWindow = at < cycleEndMs;
           slot.diamondsAccumulated += computeLiveDiamonds(slot, at);
           slot.batteryChargeMs = computeLiveBatteryChargeMs(slot, at);
           slot.batterySnapshotAt = at;
           slot.cycle = null;
-          // If the player refined out yield from a *non-finished* run (paused, mid-cycle, or battery-halted),
-          // refund the one reserve unit spent on StartMining so they are not forced to Recharge 2.5 KAS again.
-          // A natural completion (at >= cycle end) already “used” the run through the full window; no refund.
-          if (runEndedBeforeCycleWindow) {
-            const pCap = getPowerUnitCap(slot);
-            slot.powerRemaining = Math.min(pCap, slot.powerRemaining + 1);
-          }
         }
       }
 
