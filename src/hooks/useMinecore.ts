@@ -324,14 +324,17 @@ export function useMinecore() {
     [dispatch]
   );
 
-  const assignPlantWorkerNftDeck = useCallback((slotIndex: number, deckSlotIndex: number | null) => {
-    dispatch({
-      type: 'InstallPart',
-      slotIndex,
-      at: Date.now(),
-      part: { kind: 'crewWorkerNftDeck', deckSlotIndex },
-    });
-  }, [dispatch]);
+  const assignPlantWorkerNftDeck = useCallback(
+    (slotIndex: number, deckSlotIndex: number | null, workerSlotPosition = 0) => {
+      dispatch({
+        type: 'InstallPart',
+        slotIndex,
+        at: Date.now(),
+        part: { kind: 'crewWorkerNftDeck', deckSlotIndex, workerSlotPosition },
+      });
+    },
+    [dispatch],
+  );
 
   const setModules = useCallback((slotIndex: number, ids: PlantSlotState['setup']['moduleIds']) => {
     dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'modules', ids: ids as any } });

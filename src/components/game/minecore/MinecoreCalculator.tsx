@@ -83,7 +83,7 @@ export function MinecoreCalculator() {
     return {
       machineId: CALC_MACHINE_ORDER[machineIdx] ?? null,
       batteryIds: Array.from({ length: n }, () => batteryPick),
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0],
       moduleIds,
       boostId: CALC_BOOST_ORDER[boostIdx] ?? 'none',
     };

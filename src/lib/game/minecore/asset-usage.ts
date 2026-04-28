@@ -8,22 +8,41 @@ import type {
   PlantSlotState,
 } from './types';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
-import { MINECORE_MAX_MODULES_BY_PLANT } from './config';
+import { MINECORE_MAX_MODULES_BY_PLANT, miningWorkerNftSlotsRequired } from './config';
 import { getPlantBatterySlotCount } from './battery-utils';
 
-/** Pad battery slots + stable boost id so inventory math matches plant tier (fixes short/partial saves). */
+export function normalizeWorkerDeckIndices(
+  plantType: PlantSlotState['type'],
+  setup: PlantSetup & { workerNftDeckSlotIndex?: number | null },
+): (number | null)[] {
+  const need = miningWorkerNftSlotsRequired(plantType);
+  const fromLegacy =
+    typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
+      ? [Math.max(0, Math.floor(setup.workerNftDeckSlotIndex))]
+      : setup.workerNftDeckSlotIndex === null && !Array.isArray(setup.workerNftDeckSlotIndices)
+        ? [null]
+        : null;
+  const raw = Array.isArray(setup.workerNftDeckSlotIndices)
+    ? [...setup.workerNftDeckSlotIndices]
+    : fromLegacy ?? [];
+  return Array.from({ length: need }, (_, i) => {
+    if (i >= raw.length) return null;
+    const v = raw[i];
+    if (v == null || !Number.isFinite(v)) return null;
+    return Math.max(0, Math.floor(v as number));
+  });
+}
+
+/** Pad battery slots + worker deck indices + stable boost id so inventory math matches plant tier (fixes short/partial saves). */
 export function normalizePlantSetup(type: PlantSlotState['type'], setup: PlantSetup): PlantSetup {
   const n = getPlantBatterySlotCount(type);
   const batteryIds = Array.from({ length: n }, (_, i) =>
     i < (setup.batteryIds?.length ?? 0) ? ((setup.batteryIds![i] ?? null) as MinecoreBatteryId | null) : null,
   );
-  const widx =
-    typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
-      ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex))
-      : null;
+  const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(type, setup as PlantSetup & { workerNftDeckSlotIndex?: number | null });
   return {
     machineId: setup.machineId,
-    workerNftDeckSlotIndex: widx,
+    workerNftDeckSlotIndices,
     moduleIds: [...setup.moduleIds],
     batteryIds,
     boostId: setup.boostId ?? 'none',
@@ -34,23 +53,32 @@ export function normalizePlantSetup(type: PlantSlotState['type'], setup: PlantSe
 export type InstallPartPayload =
   | { kind: 'machine'; id: MinecoreMachineId | null }
   | { kind: 'battery'; id: MinecoreBatteryId | null; batterySlotIndex?: number }
-  | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null }
+  | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null; workerSlotPosition?: number }
   | { kind: 'modules'; ids: MinecoreModuleId[] }
   | { kind: 'boost'; id: MinecoreBoostId };
 
 const MINING_PLANT_NFT_DECK_TYPES: ReadonlySet<MiningSlotType> = new Set(['worker', 'operator', 'foreman']);
 
-/** True when this plant points at a Workers-tab NFT deck slot (Worker / Operator / Foreman) with a deployed NFT. */
-export function plantNftSlotAssignmentValid(state: MinecoreState, slot: PlantSlotState): boolean {
-  const idx = slot.setup.workerNftDeckSlotIndex;
-  if (idx == null || idx < 0) return false;
+function miningDeckAtIndexValid(state: MinecoreState, idx: number): boolean {
   const deck = state.nftSlots?.[idx];
   return Boolean(
-    deck &&
-      deck.nftId != null &&
-      deck.collection &&
-      MINING_PLANT_NFT_DECK_TYPES.has(deck.type),
+    deck && deck.nftId != null && deck.collection && MINING_PLANT_NFT_DECK_TYPES.has(deck.type),
   );
+}
+
+/** Every required worker-slot position has a distinct, valid NFT deck binding. */
+export function plantNftSlotAssignmentValid(state: MinecoreState, slot: PlantSlotState): boolean {
+  const need = miningWorkerNftSlotsRequired(slot.type);
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+  const used = new Set<number>();
+  for (let i = 0; i < need; i++) {
+    const idx = idxs[i];
+    if (idx == null || idx < 0) return false;
+    if (used.has(idx)) return false;
+    used.add(idx);
+    if (!miningDeckAtIndexValid(state, idx)) return false;
+  }
+  return true;
 }
 
 /** @deprecated Use `plantNftSlotAssignmentValid` */
@@ -63,7 +91,12 @@ export function countWorkerNftDeckAssignmentsExcept(
 ): number {
   return slots.reduce(
     (n, p, i) =>
-      n + (p.unlocked && i !== exceptPlantSlotIndex && p.setup.workerNftDeckSlotIndex === deckSlotIndex ? 1 : 0),
+      n +
+      (p.unlocked &&
+      i !== exceptPlantSlotIndex &&
+      (normalizePlantSetup(p.type, p.setup).workerNftDeckSlotIndices ?? []).includes(deckSlotIndex)
+        ? 1
+        : 0),
     0,
   );
 }
@@ -78,10 +111,12 @@ export function countMachinesAssignedExcept(slots: PlantSlotState[], id: Minecor
 
 /** Next setup after applying `InstallPart`-style payload (no battery rescaling). */
 export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: InstallPartPayload): PlantSetup {
+  const base = normalizePlantSetup(slot.type, slot.setup);
   const setup: PlantSetup = {
-    ...slot.setup,
-    batteryIds: [...(slot.setup.batteryIds ?? [])],
-    moduleIds: [...slot.setup.moduleIds],
+    ...base,
+    batteryIds: [...base.batteryIds],
+    moduleIds: [...base.moduleIds],
+    workerNftDeckSlotIndices: [...base.workerNftDeckSlotIndices],
   };
   if (part.kind === 'machine') {
     setup.machineId = part.id;
@@ -99,8 +134,13 @@ export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: Insta
     return setup;
   }
   if (part.kind === 'crewWorkerNftDeck') {
-    setup.workerNftDeckSlotIndex =
-      part.deckSlotIndex == null ? null : Math.max(0, Math.floor(part.deckSlotIndex));
+    const need = miningWorkerNftSlotsRequired(slot.type);
+    const pos =
+      part.workerSlotPosition != null ? Math.max(0, Math.min(need - 1, Math.floor(part.workerSlotPosition))) : 0;
+    const next = normalizeWorkerDeckIndices(slot.type, setup);
+    const copy = [...next];
+    copy[pos] = part.deckSlotIndex == null ? null : Math.max(0, Math.floor(part.deckSlotIndex));
+    setup.workerNftDeckSlotIndices = copy;
     return setup;
   }
   if (part.kind === 'modules') {
@@ -169,13 +209,13 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
     if (c > (state.owned.batteries[id] ?? 0)) return false;
   }
 
-  const hypoState: MinecoreState = { ...state, plantSlots: hypotheticalSlots };
   const deckUses = new Map<number, number>();
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    const idx = p.setup.workerNftDeckSlotIndex;
-    if (idx == null) continue;
-    deckUses.set(idx, (deckUses.get(idx) ?? 0) + 1);
+    for (const widx of normalizePlantSetup(p.type, p.setup).workerNftDeckSlotIndices) {
+      if (widx == null) continue;
+      deckUses.set(widx, (deckUses.get(widx) ?? 0) + 1);
+    }
   }
   for (const [deckIdx, c] of deckUses) {
     if (c > 1) {
@@ -183,8 +223,12 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
     }
     const deck = state.nftSlots?.[deckIdx];
     if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) return false;
-    const holder = hypotheticalSlots.find((x) => x.unlocked && x.setup.workerNftDeckSlotIndex === deckIdx);
-    if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) return false;
+  }
+
+  const hypoState: MinecoreState = { ...state, plantSlots: hypotheticalSlots };
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    if (!plantNftSlotAssignmentValid(hypoState, p)) return false;
   }
 
   const modTotals = new Map<MinecoreModuleId, number>();
@@ -252,9 +296,10 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
   const deckUses = new Map<number, number>();
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    const widx = p.setup.workerNftDeckSlotIndex;
-    if (widx == null) continue;
-    deckUses.set(widx, (deckUses.get(widx) ?? 0) + 1);
+    for (const widx of normalizePlantSetup(p.type, p.setup).workerNftDeckSlotIndices) {
+      if (widx == null) continue;
+      deckUses.set(widx, (deckUses.get(widx) ?? 0) + 1);
+    }
   }
   for (const [deckIdx, c] of deckUses) {
     if (c > 1) {
@@ -264,9 +309,11 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
     if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) {
       return 'Deploy a Worker, Operator, or Foreman NFT on the Workers tab for that deck slot, then assign it here.';
     }
-    const holder = hypotheticalSlots.find((x) => x.unlocked && x.setup.workerNftDeckSlotIndex === deckIdx);
+    const holder = hypoState.plantSlots.find(
+      (x) => x.unlocked && normalizePlantSetup(x.type, x.setup).workerNftDeckSlotIndices.includes(deckIdx),
+    );
     if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) {
-      return 'NFT deck assignment is invalid — pick a deck slot with a Worker, Operator, or Foreman NFT deployed.';
+      return 'Worker assignment is invalid — assign the required distinct deck slots with NFTs deployed.';
     }
   }
 

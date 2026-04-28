@@ -15,6 +15,7 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
       ...s.setup,
       batteryIds: [...(s.setup.batteryIds ?? [])],
       moduleIds: [...s.setup.moduleIds],
+      workerNftDeckSlotIndices: [...(s.setup.workerNftDeckSlotIndices ?? [])],
     },
     cycle: s.cycle ? { ...s.cycle } : null,
     batterySlotChargeMs: [...(s.batterySlotChargeMs ?? [])],
@@ -28,7 +29,7 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
  *
  * LEGACY (fabricated crew): older saves used `setup.workerId` with `owned.workers` and were clamped
  * here — see git history / `enforcePlantInventoryInvariants` blame. Plants now reference
- * `workerNftDeckSlotIndex` into `nftSlots` (Worker / Operator / Foreman NFT decks).
+ * `workerNftDeckSlotIndices` into `nftSlots` (Worker / Operator / Foreman NFT decks).
  */
 export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreState {
   const plantSlots = cloneSlots(state.plantSlots);
@@ -53,22 +54,29 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
   for (let si = 0; si < plantSlots.length; si++) {
     const p = plantSlots[si];
     if (!p.unlocked) continue;
-    const idx = p.setup.workerNftDeckSlotIndex;
-    if (idx == null) continue;
-    const deck = nftSlots[idx];
-    const ok =
-      deck &&
-      (deck.type === 'worker' || deck.type === 'operator' || deck.type === 'foreman') &&
-      deck.nftId != null &&
-      deck.collection;
-    if (!ok) {
-      plantSlots[si].setup.workerNftDeckSlotIndex = null;
-      continue;
-    }
-    if (seenMiningDeckIdx.has(idx)) {
-      plantSlots[si].setup.workerNftDeckSlotIndex = null;
-    } else {
-      seenMiningDeckIdx.add(idx);
+    const indices = [...(p.setup.workerNftDeckSlotIndices ?? [])];
+    let changed = false;
+    const next = indices.map((deckIdx) => {
+      if (deckIdx == null) return null;
+      const deck = nftSlots[deckIdx];
+      const ok =
+        deck &&
+        (deck.type === 'worker' || deck.type === 'operator' || deck.type === 'foreman') &&
+        deck.nftId != null &&
+        deck.collection;
+      if (!ok) {
+        changed = true;
+        return null;
+      }
+      if (seenMiningDeckIdx.has(deckIdx)) {
+        changed = true;
+        return null;
+      }
+      seenMiningDeckIdx.add(deckIdx);
+      return deckIdx;
+    });
+    if (changed || next.length !== indices.length) {
+      plantSlots[si].setup.workerNftDeckSlotIndices = next;
     }
   }
 

@@ -17,6 +17,10 @@ const now = Date.now();
 
 let s = createInitialMinecoreState();
 s.owned.machines['pulse-drill'] = 1;
+if (s.nftSlots[0]) s.nftSlots[0] = { type: 'worker', nftId: 501, collection: 'KREXPRIME' };
+if (s.nftSlots[1]) s.nftSlots[1] = { type: 'operator', nftId: 502, collection: 'PIXELKREX' };
+s.plantSlots[0]!.setup.workerNftDeckSlotIndices = [0];
+s.plantSlots[1]!.setup.workerNftDeckSlotIndices = [1];
 const slot1 = s.plantSlots[1];
 if (slot1) {
   slot1.unlocked = true;
@@ -67,8 +71,8 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   base.plantSlots[1].unlocked = true;
   base.plantSlots[0].rollingCapWindowStartMs = now;
   base.plantSlots[1].rollingCapWindowStartMs = now;
-  base.plantSlots[0].setup.workerNftDeckSlotIndex = 0;
-  base.plantSlots[1].setup.workerNftDeckSlotIndex = 0;
+  base.plantSlots[0].setup.workerNftDeckSlotIndices = [0];
+  base.plantSlots[1].setup.workerNftDeckSlotIndices = [0];
   base.plantSlots[1].index = 777;
   if (base.nftSlots[0]) {
     base.nftSlots[0] = { type: 'worker', nftId: 100, collection: 'KREXPRIME' };
@@ -86,6 +90,10 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   mc.plantSlots[1].unlocked = true;
   mc.plantSlots[0].rollingCapWindowStartMs = now;
   mc.plantSlots[1].rollingCapWindowStartMs = now;
+  if (mc.nftSlots[0]) mc.nftSlots[0] = { type: 'worker', nftId: 201, collection: 'KREXPRIME' };
+  if (mc.nftSlots[1]) mc.nftSlots[1] = { type: 'operator', nftId: 202, collection: 'PIXELKREX' };
+  mc.plantSlots[0].setup.workerNftDeckSlotIndices = [0];
+  mc.plantSlots[1].setup.workerNftDeckSlotIndices = [1];
 
   mc = applyMinecoreEvent(mc, {
     type: 'InstallPart',
@@ -113,6 +121,10 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   mc.plantSlots[0].rollingCapWindowStartMs = now;
   mc.plantSlots[1].rollingCapWindowStartMs = now;
   mc.plantSlots[0].setup.machineId = 'pulse-drill';
+  if (mc.nftSlots[0]) mc.nftSlots[0] = { type: 'worker', nftId: 301, collection: 'KREXPRIME' };
+  if (mc.nftSlots[1]) mc.nftSlots[1] = { type: 'operator', nftId: 302, collection: 'PIXELKREX' };
+  mc.plantSlots[0].setup.workerNftDeckSlotIndices = [0];
+  mc.plantSlots[1].setup.workerNftDeckSlotIndices = [1];
 
   const slot = mc.plantSlots[1];
   assert.ok(slot);
@@ -139,19 +151,23 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   const base = createInitialMinecoreState();
   const persisted = JSON.parse(JSON.stringify(base)) as typeof base;
   persisted.nftSlots = [...persisted.nftSlots, { type: 'worker', nftId: 999, collection: 'KREXPRIME' }];
-  persisted.plantSlots[0].setup.workerNftDeckSlotIndex = 3;
+  const ps = persisted.plantSlots[0]?.setup as Record<string, unknown>;
+  delete ps.workerNftDeckSlotIndices;
+  ps.workerNftDeckSlotIndex = 3;
   const h = hydrateMinecoreState(persisted);
   assert.equal(h.nftSlots.length, 4);
-  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndex, 3);
+  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndices?.[0], 3);
 }
 
 {
   const base = createInitialMinecoreState();
   const persisted = JSON.parse(JSON.stringify(base)) as typeof base;
-  persisted.plantSlots[0].setup.workerNftDeckSlotIndex = 99;
+  const ps = persisted.plantSlots[0]?.setup as Record<string, unknown>;
+  delete ps.workerNftDeckSlotIndices;
+  ps.workerNftDeckSlotIndex = 99;
   const h = hydrateMinecoreState(persisted);
   assert.equal(h.nftSlots.length, 3);
-  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndex, null);
+  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndices?.[0], null);
 }
 
 console.log('asset-usage.test.ts OK');

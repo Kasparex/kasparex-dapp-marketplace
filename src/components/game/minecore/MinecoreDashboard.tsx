@@ -370,7 +370,7 @@ export function MinecoreDashboard(_props: {
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slotIndex, amountKas));
                     }}
-                    onInstallPart={(kind, id, batterySlotIndex) => {
+                    onInstallPart={(kind, id, batterySlotIndex, minerPosition) => {
                       const batteryIdx = batterySlotIndex ?? 0;
                       switch (kind) {
                         case 'machine':
@@ -380,7 +380,7 @@ export function MinecoreDashboard(_props: {
                           actions.installBattery(slotIndex, id, batteryIdx);
                           break;
                         case 'crewWorkerNftDeck':
-                          actions.assignPlantWorkerNftDeck(slotIndex, id as number | null);
+                          actions.assignPlantWorkerNftDeck(slotIndex, id as number | null, minerPosition ?? 0);
                           break;
                         case 'modules':
                           actions.setModules(slotIndex, id);

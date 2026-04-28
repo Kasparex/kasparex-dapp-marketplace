@@ -14,7 +14,7 @@ import {
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlot } from '@/lib/game/engine';
 import { OPERATOR_TIER_MULTIPLIERS, WORKER_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
-import { plantNftSlotAssignmentValid } from './asset-usage';
+import { normalizePlantSetup, plantNftSlotAssignmentValid } from './asset-usage';
 import type { MinecoreState, PlantSlotState } from './types';
 import { averageBatteryEfficiency, hasInstalledBattery } from './battery-utils';
 
@@ -138,15 +138,18 @@ export function computeMiningNftDeckDiamondBonusPer24h(deck: MiningSlot): number
 export function computePlantRollingDailyCapCeiling(state: MinecoreState, slot: PlantSlotState): number {
   if (!slot.unlocked || !slotSetupComplete(state, slot)) return 0;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
-  const deckIdx = slot.setup.workerNftDeckSlotIndex;
-  const crewDeck = deckIdx != null ? state.nftSlots?.[deckIdx] : null;
   const effBatt = averageBatteryEfficiency(slot.setup, slot.type);
   const boost = MINECORE_BOOSTS[slot.setup.boostId];
-  if (!machine || !crewDeck?.collection || crewDeck.nftId == null || !hasInstalledBattery(slot.setup, slot.type) || effBatt <= 0) {
-    return 0;
-  }
+  if (!machine || !hasInstalledBattery(slot.setup, slot.type) || effBatt <= 0) return 0;
 
-  const nftTierBonusPart = computeMiningNftDeckDiamondBonusPer24h(crewDeck);
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+  let nftTierBonusPart = 0;
+  for (const dj of idxs) {
+    if (dj == null) return 0;
+    const crewDeck = state.nftSlots?.[dj];
+    if (!crewDeck?.collection || crewDeck.nftId == null) return 0;
+    nftTierBonusPart += computeMiningNftDeckDiamondBonusPer24h(crewDeck);
+  }
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;

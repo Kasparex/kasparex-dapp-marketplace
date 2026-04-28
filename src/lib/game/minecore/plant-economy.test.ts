@@ -17,14 +17,16 @@ import type { MinecoreState, PlantSlotState } from './types';
 const initial = createInitialMinecoreState();
 const template = initial.plantSlots[0]!;
 
-function minecoreWithDeployedWorker(): MinecoreState {
+function minecoreWithDeployedWorker(assignments: 1 | 2): MinecoreState {
   const s = createInitialMinecoreState();
   const slots = [...(s.nftSlots ?? [])];
   if (slots[0]) slots[0] = { ...slots[0], type: 'worker', nftId: 1, collection: 'KREXPRIME' };
+  if (assignments === 2 && slots[1]) slots[1] = { ...slots[1], type: 'operator', nftId: 2, collection: 'PIXELKREX' };
   return { ...s, nftSlots: slots };
 }
 
-const mcWorker = minecoreWithDeployedWorker();
+const mcWorker = minecoreWithDeployedWorker(1);
+const mcWorkerTwo = minecoreWithDeployedWorker(2);
 
 function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['setup'] }): PlantSlotState {
   const type = partial.type ?? template.type;
@@ -57,7 +59,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell'],
-      workerNftDeckSlotIndex: null,
+      workerNftDeckSlotIndices: [null],
       moduleIds: [],
       boostId: 'none',
     },
@@ -67,7 +69,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null, null, null],
-      workerNftDeckSlotIndex: null,
+      workerNftDeckSlotIndices: [null, null],
       moduleIds: [],
       boostId: 'none',
     },
@@ -83,7 +85,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell'],
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0],
       moduleIds: [],
       boostId: 'none',
     },
@@ -93,13 +95,13 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null, null, null],
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0, 1],
       moduleIds: [],
       boostId: 'none',
     },
   });
   const dStd = computePlantDiamondsPer24h(mcWorker, std);
-  const dAdv = computePlantDiamondsPer24h(mcWorker, adv);
+  const dAdv = computePlantDiamondsPer24h(mcWorkerTwo, adv);
   assert.ok(dAdv > dStd);
 }
 
@@ -110,7 +112,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null],
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0],
       moduleIds: [],
       boostId: 'none',
     },
@@ -120,7 +122,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null],
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0],
       moduleIds: ['cooling-module'],
       boostId: 'none',
     },
@@ -137,7 +139,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell'],
-      workerNftDeckSlotIndex: 0,
+      workerNftDeckSlotIndices: [0],
       moduleIds: [],
       boostId: 'none',
     },

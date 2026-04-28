@@ -1,11 +1,12 @@
 import type { MiningSlot } from '@/lib/game/engine';
-import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState } from './types';
+import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState, PlantSetup } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 import { enforcePlantInventoryInvariants } from './inventory-invariants';
+import { normalizeWorkerDeckIndices } from './asset-usage';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object';
@@ -73,18 +74,18 @@ export function normalizeMinecoreNftSlots(raw: unknown[]): MiningSlot[] {
   return out;
 }
 
-/** Clear plant NFT deck pointer if persisted index is outside `nftSlots` after hydrate. */
+/** Clear plant NFT deck pointers if persisted index is outside `nftSlots` after hydrate. */
 function clampPlantSlotsNftDeckIndices(slots: PlantSlotState[], nftSlotCount: number): PlantSlotState[] {
   return slots.map((p) => {
-    const idx = p.setup.workerNftDeckSlotIndex;
-    if (idx == null) return p;
-    if (idx >= nftSlotCount) {
-      return {
-        ...p,
-        setup: { ...p.setup, workerNftDeckSlotIndex: null },
-      };
-    }
-    return p;
+    const raw = p.setup.workerNftDeckSlotIndices ?? [];
+    const next = raw.map((idx) => {
+      if (idx == null) return null;
+      return idx >= nftSlotCount ? null : idx;
+    });
+    return {
+      ...p,
+      setup: { ...p.setup, workerNftDeckSlotIndices: next },
+    };
   });
 }
 
@@ -115,6 +116,24 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     batterySlotChargeMs = Array.from({ length: nBat }, () => 0);
   }
 
+  const rawWorkerArr = Array.isArray(setup.workerNftDeckSlotIndices)
+    ? (setup.workerNftDeckSlotIndices as unknown[]).map((x) =>
+        typeof x === 'number' && Number.isFinite(x) ? Math.max(0, Math.floor(x)) : null,
+      )
+    : undefined;
+  const legacyOne =
+    typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
+      ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
+      : undefined;
+  const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(plantType, {
+    machineId: null,
+    batteryIds: [],
+    moduleIds: [],
+    boostId: 'none',
+    ...(rawWorkerArr != null ? { workerNftDeckSlotIndices: rawWorkerArr as (number | null)[] } : {}),
+    ...(legacyOne !== undefined ? { workerNftDeckSlotIndex: legacyOne } : {}),
+  } as PlantSetup & { workerNftDeckSlotIndex?: number });
+
   return {
     ...base,
     id: typeof input.id === 'string' ? input.id : base.id,
@@ -127,10 +146,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryIds,
       /* LEGACY saves may contain setup.workerId / fabricated workforce — ignored; use NFT decks only. */
-      workerNftDeckSlotIndex:
-        typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
-          ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
-          : null,
+      workerNftDeckSlotIndices,
       moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
       boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',
     },

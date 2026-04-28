@@ -46,6 +46,7 @@ import {
   inventoryAllowsPlantSetup,
   nextPlantSetupAfterInstallPart,
   normalizePlantSetup,
+  normalizeWorkerDeckIndices,
 } from './asset-usage';
 
 /** Preserve total charge energy when machine (charge budget) or per-slot battery changes. */
@@ -87,7 +88,7 @@ function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldMaxSlots: number[]
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
     ...slot,
-    setup: { ...slot.setup, moduleIds: [...slot.setup.moduleIds], batteryIds: [...(slot.setup.batteryIds ?? [])] },
+    setup: { ...slot.setup, moduleIds: [...slot.setup.moduleIds], batteryIds: [...(slot.setup.batteryIds ?? [])], workerNftDeckSlotIndices: [...(slot.setup.workerNftDeckSlotIndices ?? [])] },
     cycle: slot.cycle ? { ...slot.cycle } : null,
     batterySlotChargeMs: [...(slot.batterySlotChargeMs ?? [])],
   };
@@ -166,7 +167,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.nftId      = null;
       slot.collection = null;
       for (const ps of s.plantSlots) {
-        if (ps.setup.workerNftDeckSlotIndex === ev.slotIndex) ps.setup.workerNftDeckSlotIndex = null;
+        const idxs = ps.setup.workerNftDeckSlotIndices ?? [];
+        if (idxs.some((x) => x === ev.slotIndex)) {
+          ps.setup.workerNftDeckSlotIndices = idxs.map((x) => (x === ev.slotIndex ? null : x));
+        }
       }
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
       return rederive(s, now);
@@ -228,7 +232,13 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         unlockCostKas:    MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
         status:           'EmptySlot',
         type:             'standard',
-        setup:            { machineId: null, batteryIds: [null], workerNftDeckSlotIndex: null, moduleIds: [], boostId: 'none' },
+        setup: {
+          machineId: null,
+          batteryIds: [null],
+          workerNftDeckSlotIndices: [null],
+          moduleIds: [],
+          boostId: 'none',
+        },
         cycle:            null,
         powerRemaining:   0,
         needsRepair:      false,
@@ -254,6 +264,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const liveTotal = sumChargeMs(live);
       const oldTotal = sumChargeMs(oldMax);
       slot.type = ev.plantType;
+      slot.setup.workerNftDeckSlotIndices = normalizeWorkerDeckIndices(ev.plantType, slot.setup);
       if (ev.plantType === 'standard') {
         slot.setup.moduleIds = [];
       } else {
@@ -316,7 +327,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
         slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
       }
-      if (ev.part.kind === 'crewWorkerNftDeck') slot.setup.workerNftDeckSlotIndex = ev.part.deckSlotIndex;
+      if (ev.part.kind === 'crewWorkerNftDeck') {
+        const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
+        slot.setup = { ...slot.setup, workerNftDeckSlotIndices: nx.workerNftDeckSlotIndices };
+      }
       if (ev.part.kind === 'modules') {
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
         const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
