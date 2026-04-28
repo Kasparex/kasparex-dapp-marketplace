@@ -137,14 +137,19 @@ export function MinecoreDashboard(_props: {
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="font-black tabular-nums text-amber-500 dark:text-amber-400">
-            {Math.floor(deckRollingCaps.minedSum).toLocaleString()}
-            <span className="mx-0.5 text-amber-600/90 dark:text-amber-300/90">/</span>
-            {Math.floor(deckRollingCaps.capSum).toLocaleString()}
+          <span className="inline-flex items-baseline gap-1.5 tabular-nums">
+            <span className="font-black text-amber-400 dark:text-amber-300">
+              {Math.floor(deckRollingCaps.minedSum).toLocaleString()}
+            </span>
+            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
+            <span className="font-black text-emerald-600 dark:text-emerald-400">
+              {Math.floor(deckRollingCaps.capSum).toLocaleString()}
+            </span>
           </span>
         ),
         description: 'Mined · Rolling daily cap',
-        tooltip: 'Rolling 24h mined toward caps vs daily caps (ready plants only).',
+        tooltip:
+          'Left: diamonds mined in your rolling 24h window (ready plants only). Right: combined daily cap total for those plants.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
