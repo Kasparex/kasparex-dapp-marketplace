@@ -75,7 +75,7 @@ export function WorkersPanel({
                   <button
                     type="button"
                     className="absolute right-3 top-[2.85rem] z-[2] flex h-7 w-7 items-center justify-center rounded-full border border-zinc-300/90 bg-white/95 text-zinc-600 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-300 dark:hover:bg-rose-950/60 dark:hover:text-rose-300"
-                    aria-label="Remove NFT from this deck slot"
+                    aria-label="Remove NFT from this slot"
                     onClick={(e) => {
                       e.stopPropagation();
                       onClearSlot(idx);

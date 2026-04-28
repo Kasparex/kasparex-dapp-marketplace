@@ -40,11 +40,11 @@ export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   advanced: 4,
 };
 
-/** Worker NFT deck bindings required to run mining (Minecore `nftSlots` indices per plant). */
+/** Worker NFT deck bindings required per plant — one Workers-tab slot reference only (V2). */
 export const MINECORE_MINING_NFT_CREW_SLOTS_REQUIRED: Record<PlantType, number> = {
   standard: 1,
   premium: 1,
-  advanced: 2,
+  advanced: 1,
 };
 
 export function miningWorkerNftSlotsRequired(plantType: PlantType): number {

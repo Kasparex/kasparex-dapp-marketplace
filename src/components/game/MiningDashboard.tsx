@@ -12,6 +12,7 @@ import {
 } from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
+import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { GameTooltipProvider } from '@/components/game/diamond-veins/GameTooltip';
 import { OverviewPanel } from '@/components/game/diamond-veins/panels/OverviewPanel';
 import { MiningPanel } from '@/components/game/diamond-veins/panels/MiningPanel';
@@ -37,13 +38,8 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-import { getMinecoreWorkerRowCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
-
-function collectionAllowlistForTyconDeckSlot(slot: MiningSlot | null | undefined): string[] | undefined {
-  if (!slot) return undefined;
-  if (slot.type === 'worker') return getMinecoreWorkerRowCollectionAllowlist();
-  if (slot.type === 'operator' || slot.type === 'foreman') return ['PIXELKREX'];
-  return undefined;
+function collectionAllowlistForTyconDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
+  return getMinecoreDeckCollectionAllowlist();
 }
 
 function tyconDeckModalCopy(type: MiningSlotType): { title: string; description: string } {
@@ -57,12 +53,12 @@ function tyconDeckModalCopy(type: MiningSlotType): { title: string; description:
     case 'operator':
       return {
         title: 'Operator slot',
-        description: 'Deploy a PIXELKREX NFT to multiply mining throughput.',
+        description: 'Deploy a Premium or Partner NFT on the Operator row — higher mining throughput multipliers by tier.',
       };
     case 'foreman':
       return {
         title: 'Foreman slot',
-        description: 'Deploy a PIXELKREX NFT for automation-related perks where enabled.',
+        description: 'Deploy a Premium or Partner NFT for foreman perks including auto-restart when enabled.',
       };
     default:
       return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };

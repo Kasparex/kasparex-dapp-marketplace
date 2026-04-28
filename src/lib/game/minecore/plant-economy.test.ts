@@ -26,7 +26,6 @@ function minecoreWithDeployedWorker(assignments: 1 | 2): MinecoreState {
 }
 
 const mcWorker = minecoreWithDeployedWorker(1);
-const mcWorkerTwo = minecoreWithDeployedWorker(2);
 
 function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['setup'] }): PlantSlotState {
   const type = partial.type ?? template.type;
@@ -69,7 +68,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null, null, null],
-      workerNftDeckSlotIndices: [null, null],
+      workerNftDeckSlotIndices: [null],
       moduleIds: [],
       boostId: 'none',
     },
@@ -95,13 +94,13 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null, null, null],
-      workerNftDeckSlotIndices: [0, 1],
+      workerNftDeckSlotIndices: [0],
       moduleIds: [],
       boostId: 'none',
     },
   });
   const dStd = computePlantDiamondsPer24h(mcWorker, std);
-  const dAdv = computePlantDiamondsPer24h(mcWorkerTwo, adv);
+  const dAdv = computePlantDiamondsPer24h(mcWorker, adv);
   assert.ok(dAdv > dStd);
 }
 

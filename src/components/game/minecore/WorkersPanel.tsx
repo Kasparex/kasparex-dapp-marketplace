@@ -17,37 +17,35 @@ import {
 } from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
-import { getMinecoreWorkerRowCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
+import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { computeMiningNftDeckDiamondBonusPer24h } from '@/lib/game/minecore/plant-economy';
 
-function collectionAllowlistForMinecoreDeckSlot(slot: MiningSlot | null | undefined): string[] | undefined {
-  if (!slot) return undefined;
-  if (slot.type === 'worker') return getMinecoreWorkerRowCollectionAllowlist();
-  if (slot.type === 'operator' || slot.type === 'foreman') return ['PIXELKREX'];
-  return undefined;
+function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
+  return getMinecoreDeckCollectionAllowlist();
 }
 
 function minecoreDeckModalCopy(type: MiningSlotType): { title: string; description: string } {
   switch (type) {
     case 'worker':
       return {
-        title: 'Worker deck slot',
+        title: 'Worker slot',
         description:
           'Deploy a Premium or Partner NFT on this Worker row to add flat diamonds per day toward your plant rolling cap (higher tiers add more).',
       };
     case 'operator':
       return {
-        title: 'Operator deck slot',
-        description: 'Deploy a PIXELKREX NFT to multiply mining speed. Elite tiers improve efficiency.',
+        title: 'Operator slot',
+        description:
+          'Deploy a Premium or Partner NFT on the Operator row — higher tiers add more flat diamonds per day toward your plant rolling cap.',
       };
     case 'foreman':
       return {
-        title: 'Foreman deck slot',
+        title: 'Foreman slot',
         description:
-          'Deploy a PIXELKREX NFT as Foreman for automation perks (auto-restart when infrastructure allows). Higher rarity lifts yield lightly.',
+          'Deploy a Premium or Partner NFT as Foreman — adds flat diamonds per day plus auto-restart infrastructure when enabled.',
       };
     default:
-      return { title: 'NFT deck slot', description: 'Choose an NFT allowed for this role.' };
+      return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };
   }
 }
 
@@ -299,7 +297,7 @@ export function WorkersPanel(props: {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Add NFT deck slot</h3>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Add NFT slot</h3>
               <button
                 type="button"
                 onClick={() => setBuyOpen(false)}

@@ -205,12 +205,22 @@ export function useDiamondMining() {
     );
   }, []);
 
-  const removeSlot = useCallback((slotIndex: number) => {
-    setTycon((s) => applyEvent(s, { type: 'RemoveSlot', slotIndex }));
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
-    }
-  }, []);
+  const removeSlot = useCallback(
+    (slotIndex: number) => {
+      setTycon((s) => {
+        const next = applyEvent(s, { type: 'RemoveSlot', slotIndex });
+        const addr = walletState.address?.trim();
+        if (addr && walletState.isConnected) {
+          void pushDiamondVeinsServerSnapshot(addr, next).catch(() => {});
+        }
+        return next;
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+      }
+    },
+    [walletState.address, walletState.isConnected],
+  );
 
   const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {
     const prev = tyconRef.current;

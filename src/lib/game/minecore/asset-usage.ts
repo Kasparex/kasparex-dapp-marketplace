@@ -303,17 +303,17 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
   }
   for (const [deckIdx, c] of deckUses) {
     if (c > 1) {
-      return 'That NFT deck slot is already assigned to another plant.';
+      return 'That Workers-tab NFT is already linked to another plant.';
     }
     const deck = state.nftSlots?.[deckIdx];
     if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) {
-      return 'Deploy a Worker, Operator, or Foreman NFT on the Workers tab for that deck slot, then assign it here.';
+      return 'Put a Worker, Operator, or Foreman NFT in that Workers-tab row first, then link it here.';
     }
     const holder = hypoState.plantSlots.find(
       (x) => x.unlocked && normalizePlantSetup(x.type, x.setup).workerNftDeckSlotIndices.includes(deckIdx),
     );
     if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) {
-      return 'Worker assignment is invalid — assign the required distinct deck slots with NFTs deployed.';
+      return 'Deploy an NFT on the Workers tab for the slot you chose, then try again.';
     }
   }
 

@@ -69,8 +69,7 @@ export type PlantSetup = {
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
   /**
-   * NFT deck slot indices into `minecoreState.nftSlots` (Worker / Operator / Foreman). Length matches
-   * `miningWorkerNftSlotsRequired(plant.type)` (Advanced = 2). Distinct indices; one plant per deck index.
+   * Single Workers-tab NFT slot index (`minecoreState.nftSlots`). One index per plant. Distinct indices per plant globally.
    */
   workerNftDeckSlotIndices: (number | null)[];
   moduleIds: MinecoreModuleId[];
