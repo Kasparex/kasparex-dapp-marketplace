@@ -220,16 +220,6 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
                       Buy PIXELKREX on KaspaCom
                     </a>
                   )}
-                  {slot?.type === 'engineer' && (
-                    <a
-                      href={KREXPRIME_KASPACOM}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 transition-colors"
-                    >
-                      Buy KREXPRIME on KaspaCom
-                    </a>
-                  )}
                 </div>
               )}
             </div>

@@ -126,7 +126,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
   } = useDiamondMining();
 
   const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
-    payerKaspa: walletState.address,
+    payerKaspa: walletState.address ?? undefined,
     tyconSlots: slots,
   });
 
