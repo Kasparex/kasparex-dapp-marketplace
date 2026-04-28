@@ -50,6 +50,7 @@ import {
 } from '@/lib/game/minecore/config';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getPlantBatterySlotCount, hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
+import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
@@ -165,6 +166,7 @@ function CheckRow(props: {
   value?: string;
   stat?: string;
   statTone?: 'default' | 'rose';
+  badges?: ReactNode;
   tooltip: string;
   onClick?: () => void;
   disabled?: boolean;
@@ -186,9 +188,12 @@ function CheckRow(props: {
       <span className={`text-xs font-semibold max-w-[44%] flex-shrink-0 leading-tight sm:max-w-[40%] ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
         {props.label}
       </span>
-      <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
+      <span className={`text-xs truncate flex-1 font-medium min-w-0 ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
         {props.value ?? 'Tap to assign…'}
       </span>
+      {props.badges ? (
+        <span className="flex max-w-[42%] flex-shrink-0 flex-wrap items-center justify-end gap-1 sm:max-w-none">{props.badges}</span>
+      ) : null}
       {props.stat ? <span className={statCls}>{props.stat}</span> : null}
       {interactive ? (
         <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
@@ -286,7 +291,9 @@ function DailyCapBar(props: {
         )}
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Mined / cap (window)</span>
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+          Available mined / Daily cap
+        </span>
         {props.setupIncomplete || props.cap <= 0 ? (
           <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
         ) : (
@@ -323,8 +330,8 @@ function DailyCapBar(props: {
 
   const tip =
     props.cap > 0 && !props.setupIncomplete
-      ? `Rolling 24h cap per plant (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()} this window). Resets when the timer hits zero.`
-      : 'Add machine, battery, and Worker NFT assignment to unlock your rolling cap.';
+      ? `Available diamonds mined toward this plant rolling 24h cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}). Resets when the timer hits zero.`
+      : 'Add machine, battery, and Worker NFT assignment to unlock your rolling daily cap.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
 }
@@ -550,6 +557,17 @@ export function PlantSlotCard(props: {
   for (let i = 0; i < needWorkers; i++) {
     if (workerIndices[i] != null) workerFilled++;
   }
+
+  const workerSetupDisplay = useMemo(
+    () => describePlantWorkerAssignments(props.minecoreState, s),
+    [props.minecoreState, s],
+  );
+  const workerSetupValue = useMemo(() => {
+    const { summary } = workerSetupDisplay;
+    if (workerFilled === 0) return `${workerFilled}/${needWorkers}`;
+    if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '—'}`;
+    return summary || `${workerFilled}/${needWorkers}`;
+  }, [workerSetupDisplay, workerFilled, needWorkers]);
   const powerDotMax = Math.max(1, getPowerUnitCap(s));
   const capUnits = getPowerUnitCap(s);
   const atFullEnergy =
@@ -734,7 +752,19 @@ export function PlantSlotCard(props: {
             <CheckRow
               installed={plantNftSlotAssignmentValid(props.minecoreState, s)}
               label="Workers"
-              value={`${workerFilled}/${needWorkers}`}
+              value={workerSetupValue}
+              badges={
+                workerSetupDisplay.badges.length > 0
+                  ? workerSetupDisplay.badges.map((b) => (
+                      <span
+                        key={b.key}
+                        className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300"
+                      >
+                        {b.text}
+                      </span>
+                    ))
+                  : undefined
+              }
               tooltip={
                 needWorkers <= 1
                   ? 'Assign an NFT deck slot from the Workers tab (Worker, Operator, or Foreman rows). Tap to choose.'

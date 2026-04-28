@@ -37,9 +37,11 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
+import { getMinecoreWorkerRowCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
+
 function collectionAllowlistForTyconDeckSlot(slot: MiningSlot | null | undefined): string[] | undefined {
   if (!slot) return undefined;
-  if (slot.type === 'worker') return ['KREXPRIME'];
+  if (slot.type === 'worker') return getMinecoreWorkerRowCollectionAllowlist();
   if (slot.type === 'operator' || slot.type === 'foreman') return ['PIXELKREX'];
   return undefined;
 }
@@ -50,7 +52,7 @@ function tyconDeckModalCopy(type: MiningSlotType): { title: string; description:
       return {
         title: 'Worker slot',
         description:
-          'Deploy a KREXPRIME NFT to set your base diamond mining rate. Higher rarity gives a stronger yield multiplier.',
+          'Deploy a Premium or Partner NFT on this Worker row (when used with Minecore, it stacks flat diamonds per day on your rolling plant cap).',
       };
     case 'operator':
       return {
@@ -311,6 +313,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               automation={automation}
               onSlotClick={setSelectedSlotIndex}
               onToggleAutoRestart={setAutoRestartMiningRun}
+              onClearSlot={removeSlot}
             />
           )}
           {tab === 'upgrades' && (

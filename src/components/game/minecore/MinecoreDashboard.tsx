@@ -140,7 +140,7 @@ export function MinecoreDashboard(_props: {
     () => [
       {
         id: 'diamonds',
-        label: 'Diamonds',
+        label: 'Mine deck',
         value: (
           <span className="inline-flex items-baseline gap-1.5 tabular-nums">
             <span className="font-black text-amber-400 dark:text-amber-300">
@@ -152,8 +152,9 @@ export function MinecoreDashboard(_props: {
             </span>
           </span>
         ),
-        description: 'Mined · Rolling daily cap',
-        tooltip: 'Left: mined this rolling window. Right: combined daily cap (ready plants).',
+        description: 'Available mined / Total daily cap',
+        tooltip:
+          'Diamonds mined toward your rolling 24h window versus combined daily cap from all ready mining plants.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -172,8 +173,9 @@ export function MinecoreDashboard(_props: {
             </span>
           </span>
         ),
-        description: 'Diamonds to refine · Points balance',
-        tooltip: 'Left: diamonds available to refine. Right: spendable refinement points.',
+        description: 'Ready to refine · Points balance',
+        tooltip:
+          'Left: diamonds in your refineable balance. Right: refinement points from refining (separate from rolling mine/cap).',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -283,11 +285,15 @@ export function MinecoreDashboard(_props: {
               {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
               KAS
             </span>
-            <span className="inline-flex items-center gap-2 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span className="inline-flex items-center gap-1 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
               <Icons.Gem className="h-4 w-4 text-sky-400" />
-              Diamonds
+              Deck (mined / cap)
             </span>
-            <span className="font-bold tabular-nums text-amber-500 dark:text-amber-400">{diamondsDisplayTotal.toLocaleString()}</span>
+            <span className="inline-flex items-baseline gap-1 font-bold tabular-nums text-amber-500 dark:text-amber-400">
+              <span>{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
+              <span className="text-zinc-500 dark:text-zinc-400">/</span>
+              <span>{Math.floor(deckRollingCaps.capSum).toLocaleString()}</span>
+            </span>
             <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
               {krexTier}
             </span>
