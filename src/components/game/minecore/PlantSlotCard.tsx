@@ -323,8 +323,8 @@ function DailyCapBar(props: {
 
   const tip =
     props.cap > 0 && !props.setupIncomplete
-      ? `Each plant has its own rolling 24h diamond budget starting when you activate it (not global midnight). When the countdown hits zero, the window resets and your cap meter refreshes; you can mine again within that budget (auto-restart depends on your setup). Progress: ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()} toward this window.`
-      : 'Finish machine, battery, and worker setup to see your rolling cap and countdown.';
+      ? `Rolling 24h cap per plant (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()} this window). Resets when the timer hits zero.`
+      : 'Add machine, battery, and Worker NFT assignment to unlock your rolling cap.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
 }

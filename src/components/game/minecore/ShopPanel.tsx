@@ -6,6 +6,7 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { CALC_INGREDIENT_KAS } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
@@ -163,6 +164,114 @@ export function ShopPanel(props: {
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'latticeWire', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'coreShards',
+      title: 'Core Shards',
+      category: 'Ingredient',
+      description: 'Dense crystalline shards for orbit-class rigs and deep batteries.',
+      baseKasPrice: CALC_INGREDIENT_KAS.coreShards,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="coreShards"
+          title="Core Shards"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
+          description="Dense crystalline shards for orbit-class rigs and deep batteries."
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.coreShards),
+              originalUnitPrice: CALC_INGREDIENT_KAS.coreShards,
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coreShards', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'coolingGel',
+      title: 'Cooling Gel',
+      category: 'Ingredient',
+      description: 'Thermal transfer gel for Flux Arrays and cooling modules.',
+      baseKasPrice: CALC_INGREDIENT_KAS.coolingGel,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="coolingGel"
+          title="Cooling Gel"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          description="Thermal transfer gel for Flux Arrays and cooling modules."
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.coolingGel),
+              originalUnitPrice: CALC_INGREDIENT_KAS.coolingGel,
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coolingGel', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'ariaChips',
+      title: 'ARIA Chips',
+      category: 'Ingredient',
+      description: 'Analog resonance chips for ARIA Sensors and fusion crafts.',
+      baseKasPrice: CALC_INGREDIENT_KAS.ariaChips,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="ariaChips"
+          title="ARIA Chips"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
+          description="Analog resonance chips for ARIA Sensors and fusion crafts."
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.ariaChips),
+              originalUnitPrice: CALC_INGREDIENT_KAS.ariaChips,
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'ariaChips', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'nullFragments',
+      title: 'Null Fragments',
+      category: 'Ingredient',
+      description: 'Volatile null-state fragments for hash buffers and void tech.',
+      baseKasPrice: CALC_INGREDIENT_KAS.nullFragments,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="nullFragments"
+          title="Null Fragments"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
+          description="Volatile null-state fragments for hash buffers and void tech."
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.nullFragments),
+              originalUnitPrice: CALC_INGREDIENT_KAS.nullFragments,
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'nullFragments', currency, quantity })}
         />
       ),
     },

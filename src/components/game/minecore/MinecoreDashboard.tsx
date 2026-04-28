@@ -25,6 +25,7 @@ import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewards
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
+import { CALC_INGREDIENT_KAS } from '@/lib/game/minecore/calculator';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -322,7 +323,7 @@ export function MinecoreDashboard(_props: {
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
                   <li>Craft parts and modules from ingredients.</li>
                   <li>Activate a plant slot with KAS and install machine, power, workers, and modules.</li>
-                  <li>Start a run; when the battery or cycle ends, diamonds credit to your balance automatically, then you start again.</li>
+                  <li>Start a run; when the cycle or battery ends, diamonds credit automatically to your refineable balance.</li>
                   <li>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
                   <li>Expand slots and upgrade parts to grow your mining complex.</li>
                 </ul>
@@ -496,19 +497,11 @@ export function MinecoreDashboard(_props: {
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onBuyIngredient={async ({ ingredient, currency, quantity }) => {
                 if (currency === 'KAS') {
-                  const unit =
-                    ingredient === 'energyCells'
-                      ? 3
-                      : ingredient === 'alloyPlates'
-                        ? 2
-                        : ingredient === 'circuitMesh'
-                          ? 1.5
-                          : ingredient === 'fluxCoils'
-                            ? 1.2
-                            : ingredient === 'latticeWire'
-                              ? 2.5
-                              : 0.5;
-                  await actions.purchaseIngredientWithKAS(ingredient, { amount: quantity, amountKas: unit * quantity });
+                  const unit = CALC_INGREDIENT_KAS[ingredient];
+                  await actions.purchaseIngredientWithKAS(ingredient, {
+                    amount: quantity,
+                    amountKas: unit * quantity,
+                  });
                 }
               }}
               onBuy={async ({ itemId, currency, quantity }) => {

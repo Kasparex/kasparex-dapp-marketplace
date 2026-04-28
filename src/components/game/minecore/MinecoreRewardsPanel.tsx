@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import type { GridLedgerEntry } from '@/lib/game/engine';
-import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { RewardsRedeemSection, type MinecoreRedeemExtras } from '@/components/games/RewardsRedeemSection';
 
 export function MinecoreRewardsPanel({
@@ -43,6 +41,10 @@ export function MinecoreRewardsPanel({
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">1.</span> Refine diamonds → refinement points.&nbsp;
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">2.</span> Redeem points → GRID or KREX (within daily caps). Ledger below.
+      </p>
       <RewardsRedeemSection
         diamondsBalance={diamondsBalance}
         refinementPointsBalance={refinementPointsTotal}
@@ -65,7 +67,7 @@ export function MinecoreRewardsPanel({
             {entries.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                  No refine checkpoints yet. Refine diamonds in the Redeem tab to create your first ledger row.
+                  No refine checkpoints yet. Refine diamonds above to add ledger rows.
                 </td>
               </tr>
             ) : (
