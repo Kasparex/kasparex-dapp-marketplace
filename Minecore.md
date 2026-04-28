@@ -43,8 +43,8 @@ Each plant is assembled from multiple components:
 - **Power System**  
   Supplies energy required for operation  
 
-- **Worker Slot**  
-  NFT workers increase efficiency and performance  
+- **NFT crew (Workers tab)**  
+  Deploy Worker, Operator, and Foreman NFTs in deck slots (KREXPRIME / PIXELKREX). Each mining plant assigns one **Worker** deck slot so crew bonuses apply.
 
 - **Modules**  
   Enhance stability, output, or introduce special effects  
@@ -65,9 +65,9 @@ A plant becomes active only when all required components are installed and power
 
 Minecore operates on a continuous production cycle:
 
-**Craft → Build → Mine → Extract Diamonds → Refine → Redeem for GRID → Expand**
+**Craft → Build → Mine → Diamonds credit → Refine → Redeem (GRID / KREX) → Expand**
 
-Operators gather materials, craft components, build plants, run mining cycles, extract Diamonds, refine them into usable output, convert that output into GRID, and reinvest into stronger infrastructure.
+Operators gather materials, craft components, build plants, and run mining cycles. Completed runs credit diamonds automatically; operators refine diamonds into points on the **Redeem** tab and redeem GRID/KREX within caps, then reinvest in stronger infrastructure.
 
 ---
 
@@ -80,7 +80,7 @@ During an active cycle:
 - A timer displays remaining duration  
 - Output is calculated dynamically  
 
-When the cycle completes, Diamonds become available for extraction. The plant can then be restarted, upgraded, or reconfigured.
+When the cycle completes or power is exhausted, mined diamonds credit to your balance automatically. Restart, upgrade, or reconfigure whenever you want the next run.
 
 ---
 
@@ -130,11 +130,7 @@ Combined with workers and modules, they create strong multiplier effects.
 
 ## Refining and Output
 
-Extracted Diamonds can be refined into higher-value output.
-
-Refinement allows operators to convert raw production into structured rewards, which can then be redeemed for GRID.
-
-This connects Minecore directly to the broader Kasparex reward system.
+Diamonds accumulate in your profile after mining. Use the **Redeem** tab to convert diamonds into refinement points, then redeem points toward **GRID** or **KREX** within published caps—linking Minecore to the broader Kasparex reward system.
 
 ---
 
@@ -189,6 +185,14 @@ They act as a universal in-game currency for:
 - Accessing rewards  
 
 Minecore serves as the production layer powering the entire ecosystem.
+
+---
+
+## Rewards pipeline (at a glance)
+
+1. **Mining** — When a run completes, diamonds credit to your refineable balance (no extra tap in the main loop).  
+2. **Refine** — On Redeem, convert diamonds into refinement points.  
+3. **Redeem tokens** — Spend refinement points toward GRID or KREX within caps and pools shown on Redeem.
 
 ---
 

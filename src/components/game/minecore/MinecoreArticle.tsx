@@ -22,7 +22,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
             </div>
             <div className={`flex flex-col justify-center ${body}`}>
               {props.hint ? <p className="font-medium text-zinc-700 dark:text-zinc-300">{props.hint}</p> : null}
-              <p>Use the tabs to craft parts, run power plants, assign NFT workers, and redeem refinement output.</p>
+              <p>Use the tabs to craft parts, run power plants, assign NFT crew on Workers (Worker / Operator / Foreman), then refine and redeem.</p>
             </div>
           </div>
         </GamePanelCard>
@@ -70,7 +70,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
           <ul className={ulFlow}>
             <li>Machine: defines extraction capability and base output</li>
             <li>Power system: supplies energy required for operation</li>
-            <li>Worker slot: NFT workers increase efficiency and performance</li>
+            <li>NFT crew decks: Worker / Operator / Foreman roles (assign matching KREXPRIME or PIXELKREX NFTs on the Workers tab; each plant picks a Worker deck slot for bonuses)</li>
             <li>Modules: enhance stability, output, or introduce special effects</li>
             <li>Boost layer: adds multipliers powered by KREX or supported by KAS</li>
             <li>Ingredients: required to craft and maintain all components</li>
@@ -82,10 +82,10 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
 
       <GamePanelCard title="Operation flow">
         <div className={body}>
-          <p>Craft | Build | Mine | Extract Diamonds | Refine | Redeem for GRID | Expand</p>
+          <p>Craft | Build | Mine | Diamonds credit | Refine | Redeem (GRID / KREX) | Expand</p>
           <p>
-            Operators gather materials, craft components, build plants, run mining cycles, extract Diamonds, refine them into usable output, convert that output into GRID, and reinvest into stronger
-            infrastructure.
+            Gather materials, craft components, build plants, run mining cycles. Finished runs add diamonds to your balance automatically; refine them into points on Redeem, redeem output into GRID or KREX (within
+            caps), then reinvest.
           </p>
         </div>
       </GamePanelCard>
@@ -99,7 +99,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
             <li>A timer displays remaining duration</li>
             <li>Output is calculated dynamically</li>
           </ul>
-          <p>When the cycle completes, Diamonds become available for extraction. The plant can then be restarted, upgraded, or reconfigured.</p>
+          <p>When the cycle ends or the battery is exhausted, mined diamonds credit to your refineable balance automatically; start the next run when you are ready.</p>
         </div>
       </GamePanelCard>
 
@@ -148,9 +148,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
 
       <GamePanelCard title="Refining and output">
         <div className={body}>
-          <p>Extracted Diamonds can be refined into higher-value output.</p>
-          <p>Refinement allows operators to convert raw production into structured rewards, which can then be redeemed for GRID.</p>
-          <p>This connects Minecore directly to the broader Kasparex reward system.</p>
+          <p>Use the Redeem tab to convert diamonds into refinement points, then redeem points toward GRID or KREX within the published caps and pools.</p>
         </div>
       </GamePanelCard>
 
@@ -213,16 +211,16 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
           <p>Minecore uses a multi-layered reward system designed for gas efficiency and cross-game synergy:</p>
           <ul className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
             <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">1. Extraction &amp; Auto-Refine (L1)</strong>
-              When you extract Diamonds from a completed cycle, they are automatically converted into <strong>Refinement Points</strong>. This is an off-chain, zero-gas process that records your progress.
+              <strong className="block text-zinc-900 dark:text-zinc-100">1. Mining credit</strong>
+              When a run completes, diamonds are banked to your profile balance (same flow you see in the game deck)—ready to refine on the Redeem tab.
             </li>
             <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">2. Reward Weight (Balance)</strong>
-              Your &quot;Reward Weight&quot; is the combined total of your raw Diamonds and earned Refinement Points. Points are valuable because they determine your <strong>Kasparex Rank</strong> and eligibility for ecosystem tiers.
+              <strong className="block text-zinc-900 dark:text-zinc-100">2. Refine</strong>
+              On Redeem, convert diamonds into refinement points at the configured rate (plus any in-game Worker / module bonuses).
             </li>
             <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">3. Token Claims (L2)</strong>
-              Once you are ready, you can claim your Points as real <strong>GRID</strong> or <strong>KREX</strong> tokens on the Kasplex L2 network. Using a &quot;Points&quot; buffer allows you to save up rewards and pay gas fees only once for a large batch.
+              <strong className="block text-zinc-900 dark:text-zinc-100">3. Redeem tokens</strong>
+              Spend refinement points toward GRID or KREX subject to daily caps and pool display on that tab; L2 distribution follows the wider Kasparex rewards setup.
             </li>
           </ul>
         </div>

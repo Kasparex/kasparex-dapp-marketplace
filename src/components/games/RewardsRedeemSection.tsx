@@ -183,7 +183,7 @@ export function RewardsRedeemSection({
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Redeem Points</h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Claim tokens to your L2 wallet.</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Uses refinement points from the step above. Distribution follows published caps and pools.</p>
           </div>
           <div className="text-right">
             <div className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">Balance</div>
