@@ -24,7 +24,7 @@ import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPane
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
-import { MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -137,20 +137,43 @@ export function MinecoreDashboard(_props: {
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="inline-flex items-baseline gap-1 text-amber-400 dark:text-amber-300">
-            <span className="font-black tabular-nums">{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
-            <span className="text-zinc-500 dark:text-zinc-500">/</span>
-            <span className="font-black tabular-nums text-emerald-500 dark:text-emerald-400">
-              {Math.floor(deckRollingCaps.capSum).toLocaleString()}
-            </span>
+          <span className="font-black tabular-nums text-amber-400 dark:text-amber-300">
+            {diamondsDisplayTotal.toLocaleString()}
           </span>
         ),
-        subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} refinement pts`,
-        description: 'In-game currency mined at plants (shown: rolling 24h vs total caps).',
-        tooltip: `Rolling 24h progress across plants: mined ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} toward combined cap ${Math.floor(deckRollingCaps.capSum).toLocaleString()}. Total refinable stack (wallet + plants, Redeem tab): ${diamondsDisplayTotal.toLocaleString()}.`,
+        subValue: (
+          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-1 gap-y-0.5 text-[11px] font-semibold tabular-nums text-zinc-600 dark:text-zinc-400">
+            <span>
+              {Math.floor(deckRollingCaps.minedSum).toLocaleString()} / {Math.floor(deckRollingCaps.capSum).toLocaleString()}
+            </span>
+            <span className="font-normal text-zinc-500 dark:text-zinc-500">total mined · rolling cap</span>
+          </span>
+        ),
+        description: 'In-game currency',
+        tooltip: `Refinable diamond stack (wallet + plants — Redeem tab uses this total). Second line: rolling 24h mined toward caps vs combined caps for plants with complete setup.`,
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
+      },
+      {
+        id: 'refinement_points',
+        label: 'Refinement Points',
+        value: (
+          <span className="inline-flex items-baseline gap-1 tabular-nums">
+            <span className="font-black text-emerald-600 dark:text-emerald-400">
+              {Math.floor(state.refinementPointsTotal).toLocaleString()}
+            </span>
+            <span className="text-zinc-400 dark:text-zinc-500">/</span>
+            <span className="font-black text-zinc-800 dark:text-zinc-100">
+              {Math.floor(state.refinementPointsEarnedLifetime ?? 0).toLocaleString()}
+            </span>
+          </span>
+        ),
+        description: 'Available · Refined (lifetime)',
+        tooltip:
+          'Left: refinement points you can spend on GRID/KREX redeem. Right: lifetime points minted from refining diamonds (does not decrease when you redeem).',
+        accent: 'purple' as const,
+        onClick: () => setTab('redeem' as const),
       },
       {
         id: 'grid_token',
@@ -185,6 +208,7 @@ export function MinecoreDashboard(_props: {
       deckRollingCaps.capSum,
       diamondsDisplayTotal,
       state.refinementPointsTotal,
+      state.refinementPointsEarnedLifetime,
       krexL1Balance,
       krexTier,
       canPayWithL1,
@@ -280,9 +304,7 @@ export function MinecoreDashboard(_props: {
         >
           {tab === 'overview' && (
             <div className="space-y-6">
-              <GamePanelCard title={_props.gameName ?? 'Minecore'} hint={_props.gameDescription}>
-                <MinecoreArticle featuredImage={_props.featuredImage} gameName={_props.gameName} hint={_props.gameDescription} />
-              </GamePanelCard>
+              <MinecoreArticle featuredImage={_props.featuredImage} gameName={_props.gameName} hint={_props.gameDescription} />
               <GamePanelCard title="Game flow" hint="Core loop at a glance.">
                 <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
                   <li>Craft parts and modules from ingredients.</li>
@@ -312,6 +334,7 @@ export function MinecoreDashboard(_props: {
                 getKasPriceAfterDiscount={getKasPriceAfterDiscount}
                 krexTier={krexTier}
                 krexDiscountPct={krexDiscountPct}
+                onOpenKrexWizard={() => setKrexWizardOpen(true)}
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -433,6 +456,9 @@ export function MinecoreDashboard(_props: {
                 onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
                 onDeploy={actions.deployNFT}
                 onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
+                onPurchaseExtraSlot={actions.purchaseNftDeckSlot}
+                slotPurchaseKas={getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS)}
+                miningAllowed={miningAllowed}
               />
             </div>
           )}

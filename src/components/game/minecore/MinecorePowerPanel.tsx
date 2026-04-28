@@ -7,7 +7,7 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_BATTERIES, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { computeConsumptionKw, computeMiningEfficiencyPct, computeProductionKw } from '@/lib/game/minecore/plant-economy';
@@ -63,18 +63,12 @@ export function MinecorePowerPanel(props: {
         {state.plantSlots.map((p) => {
           const liveCharge = computeLiveBatteryChargeMs(p, now);
           const capMs = getBatteryCapacityMs(p);
-          const batterySummary = (() => {
-            if (!hasInstalledBattery(p.setup, p.type)) return 'No battery';
-            return (p.setup.batteryIds ?? [])
-              .map((id) => (id ? MINECORE_BATTERIES[id]?.label ?? id : null))
-              .filter(Boolean)
-              .join(' · ') || 'No battery';
-          })();
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(p, now);
           const unitCap = getPowerUnitCap(p);
           const prodKw = p.unlocked && p.setup.machineId ? computeProductionKw(p) : 0;
           const consKw = p.unlocked && p.setup.machineId ? computeConsumptionKw(p) : 0;
+          const balKw = prodKw - consKw;
           const eff = p.unlocked && p.setup.machineId ? computeMiningEfficiencyPct(p) : 0;
 
           return (
@@ -82,15 +76,36 @@ export function MinecorePowerPanel(props: {
               key={p.id}
               className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
-              <div className="min-w-0 flex flex-col">
+              <div className="min-w-0 flex flex-1 flex-col gap-2">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
-                <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                  {p.setup.machineId ?? 'No machine'} · {batterySummary}
-                </span>
                 {p.unlocked && p.setup.machineId ? (
-                  <span className="mt-1 font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
-                    Bus {prodKw.toFixed(1)} / {consKw.toFixed(1)} kW · eff {eff.toFixed(0)}%
-                  </span>
+                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
+                    <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      Power grid
+                    </div>
+                    <div className="hidden grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-800 dark:text-zinc-200 md:grid">
+                      <span className="text-zinc-500">Production</span>
+                      <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{prodKw.toFixed(1)} kW</span>
+                      <span className="text-zinc-500">Consumption</span>
+                      <span className="text-right tabular-nums text-rose-600 dark:text-rose-400">{consKw.toFixed(1)} kW</span>
+                      <span className="text-zinc-500">Balance</span>
+                      <span
+                        className={`text-right tabular-nums ${balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}
+                      >
+                        {balKw >= 0 ? '+' : ''}
+                        {balKw.toFixed(1)} kW
+                      </span>
+                      <span className="text-zinc-500">Efficiency</span>
+                      <span className="text-right tabular-nums font-bold text-zinc-900 dark:text-zinc-100">{eff.toFixed(0)}%</span>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:hidden">
+                      <span className="text-zinc-600 dark:text-zinc-400">
+                        Δ {balKw >= 0 ? '+' : ''}
+                        {balKw.toFixed(0)} kW
+                      </span>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {eff.toFixed(0)}%</span>
+                    </div>
+                  </div>
                 ) : null}
               </div>
 

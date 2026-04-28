@@ -2,7 +2,7 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import { MINECORE_DAY_MS, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
 import {
   drainWaterfallRemaining,
   getMaxChargePerSlotMs,
@@ -180,6 +180,13 @@ export function computePlantDailyCapProgress(
   const minedTowardCap = rolled.dailyCapMinedDiamonds + rolled.diamondsAccumulated + live;
   const ratio = cap24h > 0 ? Math.min(1, minedTowardCap / cap24h) : 0;
   return { minedTowardCap, cap24h, ratio };
+}
+
+/** Ms until this plant's rolling 24h diamond-cap window resets (0 if locked or unanchored). */
+export function computeRollingDailyCapWindowRemainingMs(slot: PlantSlotState, now: number): number {
+  const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
+  if (!rolled.unlocked || rolled.rollingCapWindowStartMs <= 0) return 0;
+  return Math.max(0, rolled.rollingCapWindowStartMs + MINECORE_DAY_MS - now);
 }
 
 /** Game Deck: sum rolling-cap progress across unlocked plants with complete setup. */

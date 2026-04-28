@@ -9,7 +9,7 @@ export type GameDeckResource = {
   id: string;
   label: string;
   value: ReactNode;
-  subValue?: string;
+  subValue?: ReactNode;
   description?: string;
   tooltip?: string;
   icon?: ReactNode;

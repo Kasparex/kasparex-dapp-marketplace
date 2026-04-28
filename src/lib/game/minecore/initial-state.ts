@@ -46,6 +46,7 @@ export function createInitialMinecoreState(): MinecoreState {
     version: 1,
     diamondsBalance: 0,
     refinementPointsTotal: 0,
+    refinementPointsEarnedLifetime: 0,
     gridRedeemableTotal: 0,
     krexRedeemableTotal: 0,
     ingredients: { ...MINECORE_STARTER_INGREDIENTS },

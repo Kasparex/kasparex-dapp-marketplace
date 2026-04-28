@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 
 export interface CardsFilterBarProps {
   searchQuery: string;
@@ -10,6 +10,8 @@ export interface CardsFilterBarProps {
   categories: string[];
   sortBy: string;
   onSortChange: (val: string) => void;
+  /** Optional right-aligned label per category key (excludes `all`). */
+  categoryTrailing?: Partial<Record<string, ReactNode>>;
 }
 
 export function CardsFilterBar({
@@ -20,6 +22,7 @@ export function CardsFilterBar({
   categories,
   sortBy,
   onSortChange,
+  categoryTrailing,
 }: CardsFilterBarProps) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -102,13 +105,16 @@ export function CardsFilterBar({
                      onCategoryChange(c);
                      setIsCategoryOpen(false);
                    }}
-                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                   className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-sm transition-colors ${
                      category === c
                        ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-medium'
                        : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                    }`}
                  >
-                   {c}
+                   <span>{c}</span>
+                   {categoryTrailing?.[c] != null ? (
+                     <span className="shrink-0">{categoryTrailing[c]}</span>
+                   ) : null}
                  </button>
                ))}
              </div>

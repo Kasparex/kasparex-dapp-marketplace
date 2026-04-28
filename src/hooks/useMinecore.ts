@@ -13,10 +13,11 @@ import {
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import type { MiningSlotType } from '@/lib/game/engine';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
@@ -260,6 +261,20 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
+  const purchaseNftDeckSlot = useCallback(
+    async (slotType: MiningSlotType) => {
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS),
+        skuId: `minecore:nft-slot:add:${slotType}`,
+        purchaseType: 'slot',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'AddNftDeckSlot', at: Date.now(), slotType });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+  );
+
   const installMachine = useCallback((slotIndex: number, id: PlantSlotState['setup']['machineId']) => {
     dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'machine', id: id as any } });
   }, [dispatch]);
@@ -444,6 +459,7 @@ export function useMinecore() {
     actions: {
       unlockSlot,
       addSlot,
+      purchaseNftDeckSlot,
       installMachine,
       installBattery,
       installWorker,

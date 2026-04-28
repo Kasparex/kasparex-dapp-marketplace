@@ -1,4 +1,4 @@
-import type { GridLedgerEntry } from '@/lib/game/engine';
+import type { GridLedgerEntry, MiningSlotType } from '@/lib/game/engine';
 
 export type MinecoreIngredient =
   | 'crystalDust' | 'alloyPlates' | 'circuitMesh' | 'energyCells'
@@ -131,6 +131,8 @@ export type MinecoreState = {
   version:                  number;
   diamondsBalance:          number;
   refinementPointsTotal:    number;
+  /** Lifetime refinement points minted from diamonds via Refine (Redeem spends reduce refinementPointsTotal only). */
+  refinementPointsEarnedLifetime: number;
   gridRedeemableTotal:      number;
   krexRedeemableTotal:      number;
   ingredients:              IngredientBag;
@@ -154,6 +156,7 @@ export type MinecoreEvent =
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }
   | { type: 'DeployNFT';        at: number; slotIndex: number; nftId: number; collection: string }
   | { type: 'RemoveNFT';        at: number; slotIndex: number }
+  | { type: 'AddNftDeckSlot';   at: number; slotType: MiningSlotType }
   | { type: 'SetAutomation';    at: number; patch: Partial<MinecoreAutomationState> }
   | { type: 'RefillBattery';    slotIndex: number; at: number }  // refill battery to full
   /** Paid KAS action: add reserve unit(s) and fully recharge battery in one step. */

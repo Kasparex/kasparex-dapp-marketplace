@@ -42,6 +42,10 @@ import {
   minecoreUtcDayKey,
 } from './plant-economy';
 import { creditPlantDailyCap, normalizeAllPlantRollingDailyCaps } from './daily-cap';
+import {
+  inventoryAllowsPlantSetup,
+  nextPlantSetupAfterInstallPart,
+} from './asset-usage';
 
 /** Preserve total charge energy when machine (charge budget) or per-slot battery changes. */
 function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldMaxSlots: number[], at: number, now: number) {
@@ -164,6 +168,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       return rederive(s, now);
     }
 
+    case 'AddNftDeckSlot': {
+      s.nftSlots = [...(s.nftSlots ?? []), { type: ev.slotType, nftId: null, collection: null }];
+      return rederive(s, now);
+    }
+
     case 'SetAutomation': {
       s.automation = { ...s.automation, ...ev.patch };
       return rederive(s, now);
@@ -275,6 +284,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, now);
         slot.batterySnapshotAt = now;
         slot.cycle = null;
+      }
+      const nextSetup = nextPlantSetupAfterInstallPart(slot, ev.part);
+      if (!inventoryAllowsPlantSetup(s, ev.slotIndex, nextSetup)) {
+        return rederive(s, now);
       }
       if (ev.part.kind === 'machine') {
         const oldMax = getMaxChargePerSlotMs(slot.setup, slot.type);
@@ -483,6 +496,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const refineMul = 1 + computeGlobalRefineBonusFraction(s);
       const points = Math.floor(amt * MINECORE_REFINE_POINTS_PER_DIAMOND * refineMul);
       s.refinementPointsTotal += points;
+      s.refinementPointsEarnedLifetime = (s.refinementPointsEarnedLifetime ?? 0) + points;
       const entry: GridLedgerEntry = {
         id:                 `minecore_refine_${now}_${Math.random().toString(36).slice(2, 9)}`,
         at:                 now,

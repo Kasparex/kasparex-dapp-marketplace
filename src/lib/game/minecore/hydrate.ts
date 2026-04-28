@@ -123,6 +123,16 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     version: typeof input.version === 'number' ? input.version : base.version,
     diamondsBalance: typeof input.diamondsBalance === 'number' ? input.diamondsBalance : base.diamondsBalance,
     refinementPointsTotal: typeof input.refinementPointsTotal === 'number' ? input.refinementPointsTotal : base.refinementPointsTotal,
+    refinementPointsEarnedLifetime: (() => {
+      if (typeof (input as any).refinementPointsEarnedLifetime === 'number') {
+        return (input as any).refinementPointsEarnedLifetime as number;
+      }
+      const ledger = Array.isArray(input.gridLedger) ? input.gridLedger : [];
+      return ledger.reduce(
+        (acc, e: any) => acc + (typeof e?.refinementPoints === 'number' ? e.refinementPoints : 0),
+        0,
+      );
+    })(),
     gridRedeemableTotal: typeof input.gridRedeemableTotal === 'number' ? input.gridRedeemableTotal : base.gridRedeemableTotal,
     krexRedeemableTotal:
       typeof input.krexRedeemableTotal === 'number' ? input.krexRedeemableTotal : base.krexRedeemableTotal,

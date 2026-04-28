@@ -61,6 +61,7 @@ export function MinecoreMaintenanceCostsPanel(props: {
   getKasPriceAfterDiscount: (baseKas: number) => number;
   krexTier: string;
   krexDiscountPct: number;
+  onOpenKrexWizard?: () => void;
 }) {
   const tierShort = props.krexTier || 'Tier0';
   const premium = MINECORE_PLANT_PRESETS.premium;
@@ -102,6 +103,18 @@ export function MinecoreMaintenanceCostsPanel(props: {
           : row(`Upgrade → ${premium.label}`, premium.costKas, true)}
         {row(`Upgrade → ${advanced.label}`, advanced.costKas, advanced.costKas > 0)}
         {row('Swap setup parts', 0, false, true)}
+        {props.onOpenKrexWizard ? (
+          <Tooltip content="Higher KREX tiers reduce list KAS on priced mining actions (slots, recharge, upgrades). Click to open the KREX purchase wizard.">
+            <button
+              type="button"
+              onClick={props.onOpenKrexWizard}
+              className="flex flex-col gap-1 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-left text-xs transition-colors hover:bg-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
+            >
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">KREX tier discounts</span>
+              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Buy KREX · lower KAS costs</span>
+            </button>
+          </Tooltip>
+        ) : null}
       </div>
     </GamePanelCard>
   );

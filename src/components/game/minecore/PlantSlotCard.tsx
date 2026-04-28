@@ -5,6 +5,7 @@ import {
   computeLiveBatteryChargeMs,
   computePlantDailyCapProgress,
   computePlantReady,
+  computeRollingDailyCapWindowRemainingMs,
   getBatteryCapacityMs,
   getPowerUnitCap,
   getPowerDrainScale,
@@ -19,10 +20,14 @@ import {
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 import {
+  canAssignBatteryToPlantSlot,
   countBatteriesAssigned,
   countMachinesAssigned,
+  countMachinesAssignedExcept,
   countModuleAssignments,
   countWorkersAssigned,
+  countWorkersAssignedExcept,
+  inventoryAllowsPlantSetup,
   nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
 import {
@@ -61,6 +66,15 @@ function formatDuration(ms: number) {
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return `${m}m ${sec}s`;
   return `${sec}s`;
+}
+
+/** HH:MM:SS countdown for 24h window remaining. */
+function formatCapResetCountdown(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
 function statusBadge(status: PlantSlotState['status']) {
@@ -229,32 +243,44 @@ function ResourceBar(props: {
   return inner;
 }
 
-/** Daily cap: rolling 24h from plant activation; yellow fill; numbers on the right. */
+/** Daily cap: rolling 24h from plant activation; countdown + progress bar. */
 function DailyCapBar(props: {
   mined: number;
   cap: number;
   ratio: number;
   setupIncomplete: boolean;
   capReached: boolean;
+  remainingMs: number;
 }) {
   const r = clamp01(props.ratio);
+  const showTimer = props.remainingMs > 0;
   const inner = (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Mined toward 24h cap
+          Cap resets in
         </span>
+        {showTimer ? (
+          <span className="font-mono text-lg font-black tabular-nums tracking-tight text-sky-600 dark:text-sky-400 sm:text-xl">
+            {formatCapResetCountdown(props.remainingMs)}
+          </span>
+        ) : props.setupIncomplete || props.cap <= 0 ? (
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
+        ) : (
+          <span className="font-mono text-sm font-bold tabular-nums text-zinc-500 dark:text-zinc-400">—</span>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Mined / cap (window)</span>
         {props.setupIncomplete || props.cap <= 0 ? (
           <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
         ) : (
           <div className="flex items-baseline gap-1.5 tabular-nums">
-            <span className="text-xl font-black text-amber-400 sm:text-2xl dark:text-amber-300">
+            <span className="text-lg font-black text-amber-400 sm:text-xl dark:text-amber-300">
               {Math.floor(props.mined).toLocaleString()}
             </span>
             <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="text-xl font-black text-emerald-600 sm:text-2xl dark:text-emerald-400">
-              {props.cap.toLocaleString()}
-            </span>
+            <span className="text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">{props.cap.toLocaleString()}</span>
           </div>
         )}
       </div>
@@ -281,9 +307,9 @@ function DailyCapBar(props: {
   );
 
   const tip =
-    props.cap > 0
-      ? `Rolling 24h budget for this plant (per activation). Effective cap is the minimum of (plant max, rig + worker + module math). Count includes mined diamonds in your wallet and still inside this plant. ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}.`
-      : 'Finish setup to see your rolling 24h cap. The timer follows this plant, not global midnight.';
+    props.cap > 0 && !props.setupIncomplete
+      ? `Each plant has its own rolling 24h diamond budget starting when you activate it (not global midnight). When the countdown hits zero, the window resets and your cap meter refreshes; you can mine again within that budget (auto-restart depends on your setup). Progress: ${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()} toward this window.`
+      : 'Finish machine, battery, and worker setup to see your rolling cap and countdown.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
 }
@@ -419,6 +445,7 @@ export function PlantSlotCard(props: {
 
   const d24 = s.unlocked && computePlantReady(s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now);
+  const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
   const balKw = prodKw - consKw;
@@ -520,9 +547,25 @@ export function PlantSlotCard(props: {
       mediaOverlayBottom={
         showFeaturedPlantArt && plantFeaturedUrl ? (
           <>
-            <span className={statCapsuleCls}>{baseCapDisplay.toLocaleString()} Diamonds</span>
-            <span className={statCapsuleCls}>{baseUnitsDisplay} Units</span>
-            <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
+            <Tooltip
+              content={`Base diamond budget for this plant tier (${preset.label}): ${baseCapDisplay} D/24h reference before rigs and modules.`}
+            >
+              <span className={statCapsuleCls}>{baseCapDisplay.toLocaleString()} Diamonds</span>
+            </Tooltip>
+            <Tooltip content={`Reserve power units for this plant tier (V1). Each mining run typically consumes reserve capacity alongside battery charge.`}>
+              <span className={statCapsuleCls}>{baseUnitsDisplay} Units</span>
+            </Tooltip>
+            <Tooltip
+              content={
+                s.type === 'standard'
+                  ? 'Standard plants do not mount premium/advanced modules.'
+                  : s.type === 'premium'
+                    ? 'Premium tier allows module slots for boosts (see Manage modules).'
+                    : 'Advanced tier supports additional module slots and configurations.'
+              }
+            >
+              <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
+            </Tooltip>
           </>
         ) : undefined
       }
@@ -537,6 +580,7 @@ export function PlantSlotCard(props: {
               ratio={dailyCap.ratio}
               setupIncomplete={!computePlantReady(s)}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
+              remainingMs={capRemainingMs}
             />
           ) : null}
 
@@ -811,7 +855,8 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {Object.values(MINECORE_MACHINES).map((m) => {
             const owned = props.minecoreState.owned.machines[m.id] ?? 0;
-            const inUse = countMachinesAssigned(props.minecoreState.plantSlots, m.id);
+            const assignedElsewhere = countMachinesAssignedExcept(props.minecoreState.plantSlots, m.id, s.index);
+            const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.machineId === m.id;
             return (
               <li key={m.id} className="list-none">
@@ -819,8 +864,8 @@ export function PlantSlotCard(props: {
                   title={m.label}
                   subtitle={`+${m.diamondsPer24h} D/24h cap · ${formatDuration(m.durationMs)} · +${(m.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW bus · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
                   owned={owned}
-                  inUse={inUse}
-                  disabled={owned <= 0 && !isInstalled}
+                  inUse={countMachinesAssigned(props.minecoreState.plantSlots, m.id)}
+                  disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
                     props.onInstallPart('machine', m.id);
@@ -851,16 +896,22 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {Object.values(MINECORE_BATTERIES).map((b) => {
             const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
-            const inUse = countBatteriesAssigned(props.minecoreState.plantSlots, b.id);
             const isInstalled = s.setup.batteryIds[batterySlotFocus] === b.id;
+            const canPick = canAssignBatteryToPlantSlot(
+              props.minecoreState.plantSlots,
+              s.index,
+              batterySlotFocus,
+              b.id,
+              owned,
+            );
             return (
               <li key={b.id} className="list-none">
                 <ModalPartRow
                   title={b.label}
                   subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} — reserve units = plant tier (V1)`}
                   owned={owned}
-                  inUse={inUse}
-                  disabled={owned <= 0 && !isInstalled}
+                  inUse={countBatteriesAssigned(props.minecoreState.plantSlots, b.id)}
+                  disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
                     props.onInstallPart('battery', b.id, batterySlotFocus);
@@ -881,7 +932,8 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {Object.values(MINECORE_WORKERS).map((w) => {
             const owned = props.minecoreState.owned.workers[w.id] ?? 0;
-            const inUse = countWorkersAssigned(props.minecoreState.plantSlots, w.id);
+            const assignedElsewhere = countWorkersAssignedExcept(props.minecoreState.plantSlots, w.id, s.index);
+            const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.workerId === w.id;
             const nftFill = nftTabSlotDeployments(props.minecoreState.nftSlots ?? [], w.id);
             return (
@@ -890,8 +942,8 @@ export function PlantSlotCard(props: {
                   title={w.label}
                   subtitle={`Workers tab NFT ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap (fabricated units assign to plants)`}
                   owned={owned}
-                  inUse={inUse}
-                  disabled={owned <= 0 && !isInstalled}
+                  inUse={countWorkersAssigned(props.minecoreState.plantSlots, w.id)}
+                  disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
                     props.onInstallPart('worker', w.id);
@@ -926,6 +978,11 @@ export function PlantSlotCard(props: {
             const owned = props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0;
             const inUse = countModuleAssignments(props.minecoreState.plantSlots, m.id as MinecoreModuleId);
             const isSelected = s.setup.moduleIds.includes(m.id as MinecoreModuleId);
+            const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
+            const nextIfAdd = [...s.setup.moduleIds, m.id as MinecoreModuleId].slice(0, maxM);
+            const moduleAddBlocked =
+              !isSelected &&
+              !inventoryAllowsPlantSetup(props.minecoreState, s.index, { ...s.setup, moduleIds: nextIfAdd });
             const specParts = [
               m.kind === 'output' ? `+${(m.outputBonus * 100).toFixed(0)}% output` : '',
               m.kind === 'cooling' ? `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW` : '',
@@ -941,8 +998,10 @@ export function PlantSlotCard(props: {
                   subtitle={specParts.join(' · ')}
                   owned={owned}
                   inUse={inUse}
+                  disabled={moduleAddBlocked}
                   selected={isSelected}
                   onClick={() => {
+                    if (moduleAddBlocked && !isSelected) return;
                     const current = s.setup.moduleIds;
                     const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
                     const next = current.includes(m.id as MinecoreModuleId)
