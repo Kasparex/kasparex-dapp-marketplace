@@ -12,8 +12,9 @@ import {
   MINECORE_WORKERS,
 } from './config';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
-import { WORKER_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
-import { plantWorkerNftDeckAssignmentValid } from './asset-usage';
+import type { MiningSlot } from '@/lib/game/engine';
+import { OPERATOR_TIER_MULTIPLIERS, WORKER_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
+import { plantNftSlotAssignmentValid } from './asset-usage';
 import type { MinecoreState, PlantSlotState } from './types';
 import { averageBatteryEfficiency, hasInstalledBattery } from './battery-utils';
 
@@ -107,8 +108,26 @@ export function canStartMiningByEfficiency(slot: PlantSlotState): boolean {
 
 function slotSetupComplete(state: MinecoreState, slot: PlantSlotState): boolean {
   return Boolean(
-    slot.setup.machineId && hasInstalledBattery(slot.setup, slot.type) && plantWorkerNftDeckAssignmentValid(state, slot),
+    slot.setup.machineId && hasInstalledBattery(slot.setup, slot.type) && plantNftSlotAssignmentValid(state, slot),
   );
+}
+
+/**
+ * Flat diamond bonus toward rolling cap from this NFT deck slot (Worker / Operator / Foreman tiers).
+ */
+export function computeMiningNftDeckDiamondBonusPer24h(deck: MiningSlot): number {
+  if (deck.nftId == null || !deck.collection) return 0;
+  const tier = getNFTTier(deck.collection, deck.nftId, null);
+  if (deck.type === 'operator') {
+    const tierMult = OPERATOR_TIER_MULTIPLIERS[tier as keyof typeof OPERATOR_TIER_MULTIPLIERS] ?? 1;
+    return Math.round(MINECORE_WORKERS.operator.diamondBonusPer24h * tierMult);
+  }
+  if (deck.type === 'foreman') {
+    const tierMult = WORKER_TIER_MULTIPLIERS[tier as keyof typeof WORKER_TIER_MULTIPLIERS] ?? 1;
+    return Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * tierMult);
+  }
+  const tierMult = WORKER_TIER_MULTIPLIERS[tier as keyof typeof WORKER_TIER_MULTIPLIERS] ?? 1;
+  return Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * tierMult);
 }
 
 /**
@@ -127,9 +146,7 @@ export function computePlantRollingDailyCapCeiling(state: MinecoreState, slot: P
     return 0;
   }
 
-  const tier = getNFTTier(crewDeck.collection, crewDeck.nftId, null);
-  const tierMult = WORKER_TIER_MULTIPLIERS[tier] ?? 1;
-  const workerPart = Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * tierMult);
+  const nftTierBonusPart = computeMiningNftDeckDiamondBonusPer24h(crewDeck);
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;
@@ -141,7 +158,7 @@ export function computePlantRollingDailyCapCeiling(state: MinecoreState, slot: P
     }
   }
 
-  const subtotal = base + machinePart + workerPart + modulePart;
+  const subtotal = base + machinePart + nftTierBonusPart + modulePart;
   const afterGear = subtotal * boost.multiplier * effBatt;
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
   return Math.max(0, Math.min(plantMax, Math.floor(afterGear)));

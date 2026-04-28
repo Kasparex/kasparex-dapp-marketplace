@@ -38,13 +38,23 @@ export type InstallPartPayload =
   | { kind: 'modules'; ids: MinecoreModuleId[] }
   | { kind: 'boost'; id: MinecoreBoostId };
 
-/** True when this plant points at a Workers-tab deck slot with a deployed Worker NFT. */
-export function plantWorkerNftDeckAssignmentValid(state: MinecoreState, slot: PlantSlotState): boolean {
+const MINING_PLANT_NFT_DECK_TYPES: ReadonlySet<MiningSlotType> = new Set(['worker', 'operator', 'foreman']);
+
+/** True when this plant points at a Workers-tab NFT deck slot (Worker / Operator / Foreman) with a deployed NFT. */
+export function plantNftSlotAssignmentValid(state: MinecoreState, slot: PlantSlotState): boolean {
   const idx = slot.setup.workerNftDeckSlotIndex;
   if (idx == null || idx < 0) return false;
   const deck = state.nftSlots?.[idx];
-  return Boolean(deck?.type === 'worker' && deck.nftId != null && deck.collection);
+  return Boolean(
+    deck &&
+      deck.nftId != null &&
+      deck.collection &&
+      MINING_PLANT_NFT_DECK_TYPES.has(deck.type),
+  );
 }
+
+/** @deprecated Use `plantNftSlotAssignmentValid` */
+export const plantWorkerNftDeckAssignmentValid = plantNftSlotAssignmentValid;
 
 export function countWorkerNftDeckAssignmentsExcept(
   slots: PlantSlotState[],
@@ -172,9 +182,9 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
       return false;
     }
     const deck = state.nftSlots?.[deckIdx];
-    if (!deck || deck.type !== 'worker' || deck.nftId == null || !deck.collection) return false;
+    if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) return false;
     const holder = hypotheticalSlots.find((x) => x.unlocked && x.setup.workerNftDeckSlotIndex === deckIdx);
-    if (!holder || !plantWorkerNftDeckAssignmentValid(hypoState, holder)) return false;
+    if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) return false;
   }
 
   const modTotals = new Map<MinecoreModuleId, number>();
@@ -248,15 +258,15 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
   }
   for (const [deckIdx, c] of deckUses) {
     if (c > 1) {
-      return 'That Worker NFT deck slot is already assigned to another plant.';
+      return 'That NFT deck slot is already assigned to another plant.';
     }
     const deck = state.nftSlots?.[deckIdx];
-    if (!deck || deck.type !== 'worker' || deck.nftId == null || !deck.collection) {
-      return 'Deploy a Worker NFT in Workers tab for that deck slot, then assign it here.';
+    if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) {
+      return 'Deploy a Worker, Operator, or Foreman NFT on the Workers tab for that deck slot, then assign it here.';
     }
     const holder = hypotheticalSlots.find((x) => x.unlocked && x.setup.workerNftDeckSlotIndex === deckIdx);
-    if (!holder || !plantWorkerNftDeckAssignmentValid(hypoState, holder)) {
-      return 'Worker crew assignment is invalid — pick a Worker deck slot with an NFT deployed.';
+    if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) {
+      return 'NFT deck assignment is invalid — pick a deck slot with a Worker, Operator, or Foreman NFT deployed.';
     }
   }
 
@@ -315,10 +325,10 @@ export function nftTabSlotDeployments(slots: MiningSlot[], role: MiningSlotType)
   return { filled, capacity };
 }
 
-/** NFT crew roles shown on Workers tab + mining UI (stable order). */
+/** NFT deck roles shown on Workers tab + mining UI (stable order). */
 export const MINECORE_NFT_CREW_ROLES_ORDER: MiningSlotType[] = ['worker', 'operator', 'foreman'];
 
-export function nftCrewRoleLabel(role: MiningSlotType): string {
+export function nftDeckRoleLabel(role: MiningSlotType): string {
   switch (role) {
     case 'worker':
       return 'Worker';
@@ -330,3 +340,6 @@ export function nftCrewRoleLabel(role: MiningSlotType): string {
       return role;
   }
 }
+
+/** @deprecated Use `nftDeckRoleLabel` */
+export const nftCrewRoleLabel = nftDeckRoleLabel;

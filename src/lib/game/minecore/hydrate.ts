@@ -32,39 +32,60 @@ function mergeOwnedInventory(input: unknown, base: MinecoreState['owned']): Mine
   };
 }
 
-/** Coerce persisted deck rows to canonical worker / operator / foreman (legacy engineer → worker; booster dropped). */
-function normalizeMinecoreNftSlots(raw: unknown[]): MiningSlot[] {
-  const base = createInitialMinecoreState().nftSlots;
-  if (!Array.isArray(raw) || raw.length === 0) return [...base];
+/**
+ * Persist full NFT deck arrays (supports AddNftDeckSlot); legacy engineer → worker; booster cleared to empty worker row.
+ * Always returns at least the default three rows; length is max(saved, defaults) so extras survive reload.
+ */
+export function normalizeMinecoreNftSlots(raw: unknown[]): MiningSlot[] {
+  const defaults = createInitialMinecoreState().nftSlots;
+  const fallbackExtra: MiningSlot = { type: 'worker', nftId: null, collection: null };
 
-  const parsed = raw
-    .filter((x) => isRecord(x))
-    .map((x) => ({
-      type: typeof x.type === 'string' ? x.type : 'worker',
-      nftId: typeof x.nftId === 'number' ? x.nftId : null,
-      collection: typeof x.collection === 'string' ? x.collection : null,
-    }));
-
-  const lane = (t: string): 'worker' | 'operator' | 'foreman' | null => {
+  const coerceRole = (t: string): 'worker' | 'operator' | 'foreman' => {
     if (t === 'engineer') return 'worker';
-    if (t === 'booster') return null;
     if (t === 'worker' || t === 'operator' || t === 'foreman') return t;
     return 'worker';
   };
 
-  const pick = (want: 'worker' | 'operator' | 'foreman'): MiningSlot => {
-    const cand = parsed.filter((s) => lane(s.type) === want);
-    const best = cand.find((s) => s.nftId != null) ?? cand[0];
-    const def = base.find((b) => b.type === want)!;
-    if (!best) return { ...def };
-    return {
-      type: want,
-      nftId: best.nftId,
-      collection: best.collection ?? def.collection,
-    };
-  };
+  if (!Array.isArray(raw) || raw.length === 0) return [...defaults];
 
-  return [pick('worker'), pick('operator'), pick('foreman')];
+  const len = Math.max(raw.length, defaults.length);
+  const out: MiningSlot[] = [];
+  for (let i = 0; i < len; i++) {
+    const def = defaults[i] ?? fallbackExtra;
+    const row = raw[i];
+    if (!isRecord(row)) {
+      out.push({ ...def });
+      continue;
+    }
+    if (typeof row.type === 'string' && row.type === 'booster') {
+      out.push({
+        type: def.type,
+        nftId: null,
+        collection: null,
+      });
+      continue;
+    }
+    const role = typeof row.type === 'string' ? coerceRole(row.type) : 'worker';
+    const nftId = typeof row.nftId === 'number' ? row.nftId : null;
+    const collection = typeof row.collection === 'string' ? row.collection : null;
+    out.push({ type: role, nftId, collection });
+  }
+  return out;
+}
+
+/** Clear plant NFT deck pointer if persisted index is outside `nftSlots` after hydrate. */
+function clampPlantSlotsNftDeckIndices(slots: PlantSlotState[], nftSlotCount: number): PlantSlotState[] {
+  return slots.map((p) => {
+    const idx = p.setup.workerNftDeckSlotIndex;
+    if (idx == null) return p;
+    if (idx >= nftSlotCount) {
+      return {
+        ...p,
+        setup: { ...p.setup, workerNftDeckSlotIndex: null },
+      };
+    }
+    return p;
+  });
 }
 
 function hydrateSlot(input: unknown, index: number): PlantSlotState {
@@ -105,7 +126,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryIds,
-      /* LEGACY saves may contain setup.workerId / fabricated crew — ignored; use Worker NFT deck only. */
+      /* LEGACY saves may contain setup.workerId / fabricated workforce — ignored; use NFT decks only. */
       workerNftDeckSlotIndex:
         typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
           ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
@@ -170,6 +191,9 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
       }
     : base.redeemBudget;
 
+  const nftSlots = Array.isArray(input.nftSlots) ? normalizeMinecoreNftSlots(input.nftSlots as unknown[]) : base.nftSlots;
+  const plantSlotsHydrated = clampPlantSlotsNftDeckIndices(plantSlots, nftSlots.length);
+
   const out: MinecoreState = {
     ...base,
     version: typeof input.version === 'number' ? input.version : base.version,
@@ -191,9 +215,9 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     redeemBudget,
     ingredients: sanitizeIngredientBag(input.ingredients, base.ingredients),
     owned: mergeOwnedInventory(input.owned, base.owned),
-    plantSlots,
+    plantSlots: plantSlotsHydrated,
     nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,
-    nftSlots: Array.isArray(input.nftSlots) ? normalizeMinecoreNftSlots(input.nftSlots as unknown[]) : base.nftSlots,
+    nftSlots,
     automation: isRecord(input.automation)
       ? {
           autoRestart: typeof input.automation.autoRestart === 'boolean' ? input.automation.autoRestart : base.automation.autoRestart,

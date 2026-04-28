@@ -69,8 +69,8 @@ export type PlantSetup = {
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
   /**
-   * Which NFT deck slot (`minecoreState.nftSlots[index]`) supplies crew for this plant.
-   * Must reference `type === 'worker'` with an NFT deployed. Same deck slot cannot be on two plants.
+   * Index into NFT deck slots (`minecoreState.nftSlots[index]`) for mining yield.
+   * Must reference a Worker, Operator, or Foreman deck row with an NFT deployed. One plant per deck index.
    */
   workerNftDeckSlotIndex: number | null;
   moduleIds: MinecoreModuleId[];

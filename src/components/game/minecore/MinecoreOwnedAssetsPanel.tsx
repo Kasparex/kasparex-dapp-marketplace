@@ -9,11 +9,11 @@ import {
   countMachinesAssigned,
   countModuleAssignments,
   displayAssignedCount,
-  MINECORE_NFT_CREW_ROLES_ORDER,
-  nftCrewRoleLabel,
+  nftDeckRoleLabel,
   nftTabSlotDeployments,
+  MINECORE_NFT_CREW_ROLES_ORDER,
 } from '@/lib/game/minecore/asset-usage';
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS, MINECORE_WORKERS } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS } from '@/lib/game/minecore/config';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -157,7 +157,9 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
   const tooltipContent = (
     <div className="space-y-2">
       <p className="font-semibold">Filled / Deck capacity</p>
-      <p className="text-xs opacity-90">NFTs equipped on the Workers tab for this role vs slots on your deck.</p>
+      <p className="text-xs opacity-90">
+        NFT roles equipped on Workers vs slots on your deck row (extra purchased slots extend that row&apos;s capacity).
+      </p>
     </div>
   );
   return (
@@ -174,53 +176,19 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
   );
 }
 
-/** Workers tab: NFT deck occupancy, plants assigning a crew slot, optional fabricated-worker note. */
+/** Workers tab: three role capsules — filled NFT vs deck capacity per role. */
 export function MinecoreOwnedWorkersPanel(props: {
-  owned: MinecoreState['owned'];
-  plantSlots: MinecoreState['plantSlots'];
   nftSlots: MinecoreState['nftSlots'];
 }) {
-  const slots = props.plantSlots;
   const nft = props.nftSlots ?? [];
-  const unlocked = slots.filter((s) => s.unlocked).length;
-  const plantsWithWorkerNftCrew = slots.filter((p) => p.unlocked && p.setup.workerNftDeckSlotIndex != null).length;
-  const fabricatedStock = Object.values(MINECORE_WORKERS).reduce((n, w) => n + Number(props.owned.workers[w.id] ?? 0), 0);
 
   return (
-    <GamePanelCard
-      title="Crew decks & assignments"
-      hint="Plant crew bonuses pull from NFT deck slots on the Workers tab—not from fabricated worker items."
-    >
-      <div className="space-y-4">
-        <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Equip Worker, Operator, and Foreman NFTs on Workers. Each plant picks one Worker deck slot to receive those bonuses while mining.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/40">
-          <span className="font-medium text-zinc-600 dark:text-zinc-400">Plants assigning a Worker deck</span>
-          <span className="font-mono font-semibold tabular-nums text-sky-700 dark:text-sky-400">
-            {plantsWithWorkerNftCrew} / {unlocked || 0}
-          </span>
-        </div>
-
-        <div>
-          <SectionTitle>Deck slots by role</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
-              const { filled, capacity } = nftTabSlotDeployments(nft, role);
-              return <NftDeckCapsule key={role} label={nftCrewRoleLabel(role)} filled={filled} capacity={capacity} />;
-            })}
-          </div>
-        </div>
-
-        {fabricatedStock > 0 ? (
-          <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">
-            Fabricated worker units in storage:{' '}
-            <span className="font-mono font-semibold text-zinc-600 dark:text-zinc-400">{fabricatedStock}</span>
-            {' — '}
-            <span className="font-semibold text-zinc-600 dark:text-zinc-400">legacy inventory; crew bonuses use NFT decks only.</span>
-          </p>
-        ) : null}
+    <GamePanelCard title="Assigned Workers" hint="Filled vs capacity for Worker, Operator, and Foreman rows on your deck.">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
+          const { filled, capacity } = nftTabSlotDeployments(nft, role);
+          return <NftDeckCapsule key={role} label={nftDeckRoleLabel(role)} filled={filled} capacity={capacity} />;
+        })}
       </div>
     </GamePanelCard>
   );

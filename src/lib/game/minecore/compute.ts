@@ -11,7 +11,7 @@ import {
 } from './battery-utils';
 import type { MinecoreState, PlantSlotState } from './types';
 import {
-  plantWorkerNftDeckAssignmentValid,
+  plantNftSlotAssignmentValid,
 } from './asset-usage';
 import {
   canStartMiningByEfficiency,
@@ -70,7 +70,7 @@ export function computePlantReady(state: MinecoreState, slot: PlantSlotState): b
   if (!slot.unlocked) return false;
   if (!slot.setup.machineId) return false;
   if (!hasInstalledBattery(slot.setup, slot.type)) return false;
-  return plantWorkerNftDeckAssignmentValid(state, slot);
+  return plantNftSlotAssignmentValid(state, slot);
 }
 
 /** One full cycle at current economy (D/24h × effective duration). */

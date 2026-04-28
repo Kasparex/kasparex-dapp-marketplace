@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { createInitialMinecoreState } from './initial-state';
 import { applyMinecoreEvent } from './apply-event';
+import { hydrateMinecoreState } from './hydrate';
 import {
   countMachinesAssignedExcept,
   countWorkerNftDeckAssignmentsExcept,
@@ -130,6 +131,27 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   const fixed = enforcePlantInventoryInvariants(mc);
   const pulseCount = fixed.plantSlots.filter((p) => p.unlocked && p.setup.machineId === 'pulse-drill').length;
   assert.equal(pulseCount, 1);
+}
+
+// ── Hydrate preserves extra nft deck rows and clamps stale plant NFT deck pointers ──
+
+{
+  const base = createInitialMinecoreState();
+  const persisted = JSON.parse(JSON.stringify(base)) as typeof base;
+  persisted.nftSlots = [...persisted.nftSlots, { type: 'worker', nftId: 999, collection: 'KREXPRIME' }];
+  persisted.plantSlots[0].setup.workerNftDeckSlotIndex = 3;
+  const h = hydrateMinecoreState(persisted);
+  assert.equal(h.nftSlots.length, 4);
+  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndex, 3);
+}
+
+{
+  const base = createInitialMinecoreState();
+  const persisted = JSON.parse(JSON.stringify(base)) as typeof base;
+  persisted.plantSlots[0].setup.workerNftDeckSlotIndex = 99;
+  const h = hydrateMinecoreState(persisted);
+  assert.equal(h.nftSlots.length, 3);
+  assert.equal(h.plantSlots[0]?.setup.workerNftDeckSlotIndex, null);
 }
 
 console.log('asset-usage.test.ts OK');

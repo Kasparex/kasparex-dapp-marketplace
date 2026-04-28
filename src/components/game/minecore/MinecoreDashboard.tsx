@@ -475,7 +475,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'workers' && (
             <div className="space-y-6">
-              <MinecoreOwnedWorkersPanel owned={state.owned} plantSlots={state.plantSlots} nftSlots={state.nftSlots} />
+              <MinecoreOwnedWorkersPanel nftSlots={state.nftSlots} />
               <WorkersPanel
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}

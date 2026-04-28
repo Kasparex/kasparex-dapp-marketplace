@@ -28,7 +28,7 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
  *
  * LEGACY (fabricated crew): older saves used `setup.workerId` with `owned.workers` and were clamped
  * here — see git history / `enforcePlantInventoryInvariants` blame. Plants now reference
- * `workerNftDeckSlotIndex` into `nftSlots` (Worker NFT deck only).
+ * `workerNftDeckSlotIndex` into `nftSlots` (Worker / Operator / Foreman NFT decks).
  */
 export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreState {
   const plantSlots = cloneSlots(state.plantSlots);
@@ -49,7 +49,7 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
   }
 
   const nftSlots = state.nftSlots ?? [];
-  const seenWorkerDeck = new Set<number>();
+  const seenMiningDeckIdx = new Set<number>();
   for (let si = 0; si < plantSlots.length; si++) {
     const p = plantSlots[si];
     if (!p.unlocked) continue;
@@ -58,17 +58,17 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
     const deck = nftSlots[idx];
     const ok =
       deck &&
-      deck.type === 'worker' &&
+      (deck.type === 'worker' || deck.type === 'operator' || deck.type === 'foreman') &&
       deck.nftId != null &&
       deck.collection;
     if (!ok) {
       plantSlots[si].setup.workerNftDeckSlotIndex = null;
       continue;
     }
-    if (seenWorkerDeck.has(idx)) {
+    if (seenMiningDeckIdx.has(idx)) {
       plantSlots[si].setup.workerNftDeckSlotIndex = null;
     } else {
-      seenWorkerDeck.add(idx);
+      seenMiningDeckIdx.add(idx);
     }
   }
 
