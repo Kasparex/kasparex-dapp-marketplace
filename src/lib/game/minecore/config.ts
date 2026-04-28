@@ -242,6 +242,13 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   },
 };
 
+/** Fabricated operator slots this rig expects (1 base + optional machine.additionalCrewRequired design slots). */
+export function fabricatedOperatorSlotsCapacity(machineId: MinecoreMachineId | null): number {
+  if (!machineId) return 1;
+  const m = MINECORE_MACHINES[machineId];
+  return Math.max(1, 1 + (m.additionalCrewRequired ?? 0));
+}
+
 export type BatteryConfig = {
   id: MinecoreBatteryId;
   label: string;

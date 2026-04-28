@@ -10,6 +10,8 @@ import {
   countModuleAssignments,
   countWorkersAssigned,
   displayAssignedCount,
+  MINECORE_NFT_CREW_ROLES_ORDER,
+  nftCrewRoleLabel,
   nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS, MINECORE_WORKERS } from '@/lib/game/minecore/config';
@@ -152,7 +154,28 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   );
 }
 
-/** Workers tab: fabricated workers on plants + NFT crew slots (Workers tab). */
+function NftDeckCapsule(props: { label: string; filled: number; capacity: number }) {
+  const tooltipContent = (
+    <div className="space-y-2">
+      <p className="font-semibold">Filled / Deck capacity</p>
+      <p className="text-xs opacity-90">NFTs equipped on the Workers tab for this role vs slots on your deck.</p>
+    </div>
+  );
+  return (
+    <Tooltip content={tooltipContent}>
+      <div className="flex cursor-help flex-col gap-0.5 rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium text-zinc-600 dark:text-zinc-400">{props.label}</span>
+          <span className="font-mono text-sm font-black tabular-nums text-sky-600 dark:text-sky-400">
+            {props.filled} / {props.capacity}
+          </span>
+        </div>
+      </div>
+    </Tooltip>
+  );
+}
+
+/** Workers tab: fabricated assignments + NFT crew decks per role. */
 export function MinecoreOwnedWorkersPanel(props: {
   owned: MinecoreState['owned'];
   plantSlots: MinecoreState['plantSlots'];
@@ -160,46 +183,48 @@ export function MinecoreOwnedWorkersPanel(props: {
 }) {
   const slots = props.plantSlots;
   const nft = props.nftSlots ?? [];
-  const foreman = nftTabSlotDeployments(nft, 'foreman');
-  const engineer = nftTabSlotDeployments(nft, 'engineer');
   return (
-    <GamePanelCard title="Owned workers" hint="Hover a capsule for in-use vs inventory; NFT deck details appear in the same tooltip.">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.values(MINECORE_WORKERS).map((w) => {
-          const total = Number(props.owned.workers[w.id] ?? 0);
-          const inUse = countWorkersAssigned(slots, w.id);
-          const nftCol = nftTabSlotDeployments(nft, w.id);
-          return (
-            <OwnedCapsule
-              key={w.id}
-              label={`${w.label} (fabricated)`}
-              inUse={inUse}
-              total={total}
-              accent={total > 0 || inUse > 0}
-              tooltipExtra={
-                <>
-                  Workers tab (NFT): <span className="font-mono">{nftCol.filled}</span> / <span className="font-mono">{nftCol.capacity}</span> slots filled.
-                </>
-              }
-            />
-          );
-        })}
-        <OwnedCapsule
-          key="foreman"
-          label="Foreman (NFT)"
-          inUse={foreman.filled}
-          total={foreman.capacity}
-          accent={foreman.filled > 0}
-          tooltipExtra="Foreman crew slots are equipped on the Workers tab."
-        />
-        <OwnedCapsule
-          key="engineer"
-          label="Engineer (NFT)"
-          inUse={engineer.filled}
-          total={engineer.capacity}
-          accent={engineer.filled > 0}
-          tooltipExtra="Engineer crew slots are equipped on the Workers tab."
-        />
+    <GamePanelCard
+      title="Assigned Workers"
+      hint="Fabricated workers: inventory vs plant assignments. NFT crew: each role’s filled slots vs Workers-tab deck."
+    >
+      <div className="space-y-4">
+        <div>
+          <SectionTitle>Fabricated rigs</SectionTitle>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.values(MINECORE_WORKERS).map((w) => {
+              const total = Number(props.owned.workers[w.id] ?? 0);
+              const inUse = countWorkersAssigned(slots, w.id);
+              const nftCol = nftTabSlotDeployments(nft, w.id);
+              return (
+                <OwnedCapsule
+                  key={w.id}
+                  label={`${w.label} (fabricated)`}
+                  inUse={inUse}
+                  total={total}
+                  accent={total > 0 || inUse > 0}
+                  tooltipExtra={
+                    <>
+                      Same-role NFT deck: <span className="font-mono">{nftCol.filled}</span> / <span className="font-mono">{nftCol.capacity}</span>.
+                    </>
+                  }
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>NFT crew by role</SectionTitle>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
+              const { filled, capacity } = nftTabSlotDeployments(nft, role);
+              return (
+                <NftDeckCapsule key={role} label={`${nftCrewRoleLabel(role)} (NFT)`} filled={filled} capacity={capacity} />
+              );
+            })}
+          </div>
+        </div>
       </div>
     </GamePanelCard>
   );

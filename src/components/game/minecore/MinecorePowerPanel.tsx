@@ -7,7 +7,7 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 
@@ -71,8 +71,11 @@ export function MinecorePowerPanel(props: {
               key={p.id}
               className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
-              <div className="min-w-0 flex flex-1 flex-col gap-1">
+              <div className="min-w-0 flex flex-1 flex-col gap-0.5">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
+                {p.unlocked ? (
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{MINECORE_PLANT_PRESETS[p.type]?.label ?? p.type}</span>
+                ) : null}
               </div>
 
               {p.unlocked ? (

@@ -148,8 +148,7 @@ export function MinecoreDashboard(_props: {
           </span>
         ),
         description: 'Mined · Rolling daily cap',
-        tooltip:
-          'Left: diamonds mined in your rolling 24h window (ready plants only). Right: combined daily cap total for those plants.',
+        tooltip: 'Left: mined this rolling window. Right: combined daily cap (ready plants).',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),

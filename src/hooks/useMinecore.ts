@@ -101,13 +101,10 @@ export function useMinecore() {
   const nowTick = useNowTick(1000);
   const derived = useMemo(() => deriveState(mc, nowTick), [mc, nowTick]);
 
-  const dispatch = useCallback(
-    (ev: Parameters<typeof applyMinecoreEvent>[1]) => {
-      if (!walletState.isConnected || !walletAddr) return;
-      setMc((s) => applyMinecoreEvent(s, ev));
-    },
-    [walletState.isConnected, walletAddr],
-  );
+  /** Always applies reducer updates so setup edits work offline; persistence runs only when a wallet address is set. Paid flows still gate on wallet/KAS before calling dispatch. */
+  const dispatch = useCallback((ev: Parameters<typeof applyMinecoreEvent>[1]) => {
+    setMc((s) => applyMinecoreEvent(s, ev));
+  }, []);
 
   /**
    * Foreman only: auto-spend an Energy Cell to refill a dead battery. No automatic chain mining or extract (V1).

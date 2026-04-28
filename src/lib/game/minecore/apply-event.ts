@@ -276,10 +276,8 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'InstallPart': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      if (slot.cycle && slot.cycle.pauseBeganAtMs == null) {
-        return rederive(s, now);
-      }
-      if (slot.cycle && slot.cycle.pauseBeganAtMs != null) {
+      // Finalize any in-progress or paused cycle so setup swaps/removals always apply (mid-run diamonds merge into accumulation).
+      if (slot.cycle) {
         slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
         slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, now);
         slot.batterySnapshotAt = now;

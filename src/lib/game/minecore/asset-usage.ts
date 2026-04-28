@@ -173,3 +173,23 @@ export function nftTabSlotDeployments(slots: MiningSlot[], role: MiningSlotType)
   const filled = matching.filter((s) => s.nftId != null).length;
   return { filled, capacity };
 }
+
+/** NFT crew roles shown on Workers tab + mining UI (stable order). */
+export const MINECORE_NFT_CREW_ROLES_ORDER: MiningSlotType[] = ['worker', 'operator', 'foreman', 'engineer', 'booster'];
+
+export function nftCrewRoleLabel(role: MiningSlotType): string {
+  switch (role) {
+    case 'worker':
+      return 'Worker';
+    case 'operator':
+      return 'Operator';
+    case 'foreman':
+      return 'Foreman';
+    case 'engineer':
+      return 'Engineer';
+    case 'booster':
+      return 'Booster';
+    default:
+      return role;
+  }
+}
