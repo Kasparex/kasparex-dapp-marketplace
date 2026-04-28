@@ -45,6 +45,7 @@ import { creditPlantDailyCap, normalizeAllPlantRollingDailyCaps } from './daily-
 import {
   inventoryAllowsPlantSetup,
   nextPlantSetupAfterInstallPart,
+  normalizePlantSetup,
 } from './asset-usage';
 
 /** Preserve total charge energy when machine (charge budget) or per-slot battery changes. */
@@ -319,6 +320,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         slot.setup.moduleIds = ids;
       }
       if (ev.part.kind === 'boost') slot.setup.boostId = ev.part.id;
+      slot.setup = normalizePlantSetup(slot.type, slot.setup);
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }

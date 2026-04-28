@@ -12,6 +12,21 @@ import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
 import { MINECORE_MAX_MODULES_BY_PLANT } from './config';
 import { getPlantBatterySlotCount } from './battery-utils';
 
+/** Pad battery slots + stable boost id so inventory math matches plant tier (fixes short/partial saves). */
+export function normalizePlantSetup(type: PlantSlotState['type'], setup: PlantSetup): PlantSetup {
+  const n = getPlantBatterySlotCount(type);
+  const batteryIds = Array.from({ length: n }, (_, i) =>
+    i < (setup.batteryIds?.length ?? 0) ? ((setup.batteryIds![i] ?? null) as MinecoreBatteryId | null) : null,
+  );
+  return {
+    machineId: setup.machineId,
+    workerId: setup.workerId,
+    moduleIds: [...setup.moduleIds],
+    batteryIds,
+    boostId: setup.boostId ?? 'none',
+  };
+}
+
 /** Mirrors `InstallPart` `part` payload for hypothetical setup checks. */
 export type InstallPartPayload =
   | { kind: 'machine'; id: MinecoreMachineId | null }
@@ -86,7 +101,13 @@ export function canAssignBatteryToPlantSlot(
 
 /** Total assignments per ID across unlocked plants must not exceed owned counts. */
 export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: number, nextSetup: PlantSetup): boolean {
-  const hypotheticalSlots = state.plantSlots.map((p, i) => (i === slotIndex ? { ...p, setup: nextSetup } : p));
+  const target = state.plantSlots[slotIndex];
+  if (!target) return false;
+  const normalizedNext = normalizePlantSetup(target.type, nextSetup);
+  const hypotheticalSlots = state.plantSlots.map((p, i) => ({
+    ...p,
+    setup: normalizePlantSetup(p.type, i === slotIndex ? normalizedNext : p.setup),
+  }));
 
   const machineIds = new Set<MinecoreMachineId>();
   const workerIds = new Set<MinecoreWorkerId>();
@@ -106,7 +127,9 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
   const batTotals = new Map<MinecoreBatteryId, number>();
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    for (const bid of p.setup.batteryIds ?? []) {
+    const n = getPlantBatterySlotCount(p.type);
+    for (let bi = 0; bi < n; bi++) {
+      const bid = p.setup.batteryIds[bi] ?? null;
       if (bid) batTotals.set(bid, (batTotals.get(bid) ?? 0) + 1);
     }
   }
@@ -149,8 +172,12 @@ export function countMachinesAssigned(slots: PlantSlotState[], id: MinecoreMachi
 export function countBatteriesAssigned(slots: PlantSlotState[], id: MinecoreBatteryId): number {
   return slots.reduce((n, s) => {
     if (!s.unlocked) return n;
-    const ids = s.setup.batteryIds ?? [];
-    return n + ids.filter((x) => x === id).length;
+    const nSlots = getPlantBatterySlotCount(s.type);
+    let c = 0;
+    for (let i = 0; i < nSlots; i++) {
+      if ((s.setup.batteryIds?.[i] ?? null) === id) c += 1;
+    }
+    return n + c;
   }, 0);
 }
 

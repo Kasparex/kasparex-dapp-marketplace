@@ -334,45 +334,50 @@ export function MinecoreDashboard(_props: {
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
-                {filteredSlots.map((slot) => (
+                {filteredSlots.map((slot) => {
+                  const resolvedIdx = state.plantSlots.findIndex((p) => p.id === slot.id);
+                  const slotIdx = resolvedIdx >= 0 ? resolvedIdx : slot.index;
+                  return (
                   <PlantSlotCard
                     key={slot.id}
                     minecoreState={state}
                     slot={slot}
+                    slotArrayIndex={slotIdx}
                     now={nowTick}
-                    onUnlock={() => void actions.unlockSlot(slot.index, slot.unlockCostKas)}
-                    onStart={() => actions.startMining(slot.index)}
-                    onStopMining={() => actions.stopMining(slot.index)}
-                    onResumeMining={() => actions.resumeMining(slot.index)}
-                    onExtract={() => actions.extract(slot.index)}
+                    onUnlock={() => void actions.unlockSlot(slotIdx, slot.unlockCostKas)}
+                    onStart={() => actions.startMining(slotIdx)}
+                    onStopMining={() => actions.stopMining(slotIdx)}
+                    onResumeMining={() => actions.resumeMining(slotIdx)}
+                    onExtract={() => actions.extract(slotIdx)}
                     onRechargePlant={async (opts) => {
-                      void (await actions.rechargePlantWithKAS(slot.index, opts));
+                      void (await actions.rechargePlantWithKAS(slotIdx, opts));
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
-                      void (await actions.repairWithKAS(slot.index, amountKas));
+                      void (await actions.repairWithKAS(slotIdx, amountKas));
                     }}
                     onInstallPart={(kind, id, batterySlotIndex) => {
                       const batteryIdx = batterySlotIndex ?? 0;
                       switch (kind) {
                         case 'machine':
-                          actions.installMachine(slot.index, id);
+                          actions.installMachine(slotIdx, id);
                           break;
                         case 'battery':
-                          actions.installBattery(slot.index, id, batteryIdx);
+                          actions.installBattery(slotIdx, id, batteryIdx);
                           break;
                         case 'worker':
-                          actions.installWorker(slot.index, id);
+                          actions.installWorker(slotIdx, id);
                           break;
                         case 'modules':
-                          actions.setModules(slot.index, id);
+                          actions.setModules(slotIdx, id);
                           break;
                         default:
                           break;
                       }
                     }}
-                    onChangePlantType={(type, cost) => actions.changePlantType(slot.index, type, cost)}
+                    onChangePlantType={(type, cost) => actions.changePlantType(slotIdx, type, cost)}
                   />
-                ))}
+                  );
+                })}
 
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
                   <div className="flex items-center justify-between gap-3">

@@ -19,6 +19,17 @@ function sanitizeIngredientBag(input: unknown, base: MinecoreState['ingredients'
   return next;
 }
 
+/** Merge saved inventory maps into defaults — avoids wiping entire categories when persisted JSON only patches one rig type. */
+function mergeOwnedInventory(input: unknown, base: MinecoreState['owned']): MinecoreState['owned'] {
+  if (!isRecord(input)) return base;
+  return {
+    machines: { ...base.machines, ...(isRecord((input as Record<string, unknown>).machines) ? (input as any).machines : {}) },
+    batteries: { ...base.batteries, ...(isRecord((input as Record<string, unknown>).batteries) ? (input as any).batteries : {}) },
+    workers: { ...base.workers, ...(isRecord((input as Record<string, unknown>).workers) ? (input as any).workers : {}) },
+    modules: { ...base.modules, ...(isRecord((input as Record<string, unknown>).modules) ? (input as any).modules : {}) },
+  };
+}
+
 function hydrateSlot(input: unknown, index: number): PlantSlotState {
   const base = createInitialMinecoreState().plantSlots[index] ?? createInitialMinecoreState().plantSlots[0]!;
   if (!isRecord(input)) return { ...base, index };
@@ -138,7 +149,7 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
       typeof input.krexRedeemableTotal === 'number' ? input.krexRedeemableTotal : base.krexRedeemableTotal,
     redeemBudget,
     ingredients: sanitizeIngredientBag(input.ingredients, base.ingredients),
-    owned: isRecord(input.owned) ? ({ ...base.owned, ...(input.owned as any) } as any) : base.owned,
+    owned: mergeOwnedInventory(input.owned, base.owned),
     plantSlots,
     nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,
     nftSlots: Array.isArray(input.nftSlots)

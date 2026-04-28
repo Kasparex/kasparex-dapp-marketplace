@@ -434,6 +434,8 @@ function WarningBanner(props: { level: 'warn' | 'error'; message: string }) {
 export function PlantSlotCard(props: {
   minecoreState: MinecoreState;
   slot: PlantSlotState;
+  /** Position in `minecoreState.plantSlots` — must match reducer slot index (resolved by stable id in parent). */
+  slotArrayIndex: number;
   now: number;
   onUnlock: () => void;
   onStart: () => void;
@@ -883,7 +885,7 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {Object.values(MINECORE_MACHINES).map((m) => {
             const owned = props.minecoreState.owned.machines[m.id] ?? 0;
-            const assignedElsewhere = countMachinesAssignedExcept(props.minecoreState.plantSlots, m.id, s.index);
+            const assignedElsewhere = countMachinesAssignedExcept(props.minecoreState.plantSlots, m.id, props.slotArrayIndex);
             const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.machineId === m.id;
             return (
@@ -927,7 +929,7 @@ export function PlantSlotCard(props: {
             const isInstalled = s.setup.batteryIds[batterySlotFocus] === b.id;
             const canPick = canAssignBatteryToPlantSlot(
               props.minecoreState.plantSlots,
-              s.index,
+              props.slotArrayIndex,
               batterySlotFocus,
               b.id,
               owned,
@@ -988,7 +990,7 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {Object.values(MINECORE_WORKERS).map((w) => {
             const owned = props.minecoreState.owned.workers[w.id] ?? 0;
-            const assignedElsewhere = countWorkersAssignedExcept(props.minecoreState.plantSlots, w.id, s.index);
+            const assignedElsewhere = countWorkersAssignedExcept(props.minecoreState.plantSlots, w.id, props.slotArrayIndex);
             const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.workerId === w.id;
             const nftFill = nftTabSlotDeployments(props.minecoreState.nftSlots ?? [], w.id);
@@ -1041,7 +1043,7 @@ export function PlantSlotCard(props: {
             const nextIfAdd = [...s.setup.moduleIds, m.id as MinecoreModuleId].slice(0, maxM);
             const moduleAddBlocked =
               !isSelected &&
-              !inventoryAllowsPlantSetup(props.minecoreState, s.index, { ...s.setup, moduleIds: nextIfAdd });
+              !inventoryAllowsPlantSetup(props.minecoreState, props.slotArrayIndex, { ...s.setup, moduleIds: nextIfAdd });
             const specParts = [
               m.kind === 'output' ? `+${(m.outputBonus * 100).toFixed(0)}% output` : '',
               m.kind === 'cooling' ? `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW` : '',
