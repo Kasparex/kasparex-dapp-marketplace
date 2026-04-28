@@ -189,6 +189,9 @@ export function useDiamondMining() {
         collection,
       })
     );
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+    }
     (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
       new CustomEvent('record-transaction', {
         detail: {
@@ -204,6 +207,9 @@ export function useDiamondMining() {
 
   const removeSlot = useCallback((slotIndex: number) => {
     setTycon((s) => applyEvent(s, { type: 'RemoveSlot', slotIndex }));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+    }
   }, []);
 
   const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {

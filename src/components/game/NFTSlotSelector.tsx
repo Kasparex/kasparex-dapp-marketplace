@@ -33,7 +33,7 @@ function useNFTsWithTier(
   const filtered = useMemo(() => {
     if (!slot) return [];
     return nfts.filter((nft) => {
-      if (slot.type === 'worker' || slot.type === 'engineer') return nft.collection === 'KREXPRIME';
+      if (slot.type === 'worker') return nft.collection === 'KREXPRIME';
       if (slot.type === 'operator' || slot.type === 'foreman') return nft.collection === 'PIXELKREX';
       return true;
     });
@@ -125,7 +125,7 @@ export function NFTSlotSelector({ slotIndex, slot, allSlots, isOpen, onClose, on
   const nftsWithTier = useNFTsWithTier(nfts, slot ?? undefined, isOpen);
   const slotInfo = slot ? SLOT_DESCRIPTIONS[slot.type] ?? null : null;
   const hasCompatibleNFTs =
-    slot?.type === 'worker' || slot?.type === 'operator' || slot?.type === 'foreman' || slot?.type === 'engineer';
+    slot?.type === 'worker' || slot?.type === 'operator' || slot?.type === 'foreman';
   const showBuyLinks = !isLoading && nftsWithTier.length === 0 && hasCompatibleNFTs;
 
   // Any NFT deployed in any slot (including this one) is "in use" globally until removed

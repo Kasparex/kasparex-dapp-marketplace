@@ -307,7 +307,7 @@ export function countModuleAssignments(slots: PlantSlotState[], id: MinecoreModu
   }, 0);
 }
 
-/** Workers-tab NFT decks: counts filled vs slots for each role (`worker`, `operator`, `foreman`, `engineer`, …). */
+/** Workers-tab NFT decks: counts filled vs slots for each role (`worker`, `operator`, `foreman`). */
 export function nftTabSlotDeployments(slots: MiningSlot[], role: MiningSlotType): { filled: number; capacity: number } {
   const matching = slots.filter((s) => s.type === role);
   const capacity = Math.max(1, matching.length);
@@ -316,7 +316,7 @@ export function nftTabSlotDeployments(slots: MiningSlot[], role: MiningSlotType)
 }
 
 /** NFT crew roles shown on Workers tab + mining UI (stable order). */
-export const MINECORE_NFT_CREW_ROLES_ORDER: MiningSlotType[] = ['worker', 'operator', 'foreman', 'engineer', 'booster'];
+export const MINECORE_NFT_CREW_ROLES_ORDER: MiningSlotType[] = ['worker', 'operator', 'foreman'];
 
 export function nftCrewRoleLabel(role: MiningSlotType): string {
   switch (role) {
@@ -326,10 +326,6 @@ export function nftCrewRoleLabel(role: MiningSlotType): string {
       return 'Operator';
     case 'foreman':
       return 'Foreman';
-    case 'engineer':
-      return 'Engineer';
-    case 'booster':
-      return 'Booster';
     default:
       return role;
   }

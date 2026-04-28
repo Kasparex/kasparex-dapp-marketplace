@@ -332,6 +332,14 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'mining' && (
             <div className="space-y-6">
+              <MinecoreMaintenanceCostsPanel
+                nextSlotCostKas={state.nextSlotCostKas}
+                getKasPriceAfterDiscount={getKasPriceAfterDiscount}
+                krexTier={krexTier}
+                krexDiscountPct={krexDiscountPct}
+                onOpenKrexWizard={() => setKrexWizardOpen(true)}
+              />
+
               <CardsFilterBar
                 searchQuery={miningSearch}
                 onSearchChange={setMiningSearch}
@@ -340,14 +348,6 @@ export function MinecoreDashboard(_props: {
                 categories={['Unlocked', 'Locked', 'Active']}
                 sortBy={miningSort}
                 onSortChange={setMiningSort}
-              />
-
-              <MinecoreMaintenanceCostsPanel
-                nextSlotCostKas={state.nextSlotCostKas}
-                getKasPriceAfterDiscount={getKasPriceAfterDiscount}
-                krexTier={krexTier}
-                krexDiscountPct={krexDiscountPct}
-                onOpenKrexWizard={() => setKrexWizardOpen(true)}
               />
 
               <div className="grid gap-4 sm:grid-cols-2">

@@ -52,11 +52,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       const s = next.slots[event.slotIndex];
       if (!s) return state;
       const defaultCollection =
-        s.type === 'worker' || s.type === 'engineer'
-          ? 'KREXPRIME'
-          : s.type === 'operator' || s.type === 'foreman'
-            ? 'PIXELKREX'
-            : null;
+        s.type === 'worker' ? 'KREXPRIME' : s.type === 'operator' || s.type === 'foreman' ? 'PIXELKREX' : null;
       next.slots[event.slotIndex] = { ...s, nftId: null, collection: defaultCollection };
       if (s.type === 'foreman') {
         next.automation.foremanActive = false;

@@ -2,18 +2,53 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
-import { nftTabSlotDeployments } from '@/lib/game/minecore/asset-usage';
+import { nftTabSlotDeployments, MINECORE_NFT_CREW_ROLES_ORDER, nftCrewRoleLabel } from '@/lib/game/minecore/asset-usage';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
 import { WORKER_TIER_MULTIPLIERS, OPERATOR_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
-import { NFTSlotSelector } from '@/components/game/NFTSlotSelector';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import * as Icons from 'lucide-react';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import {
+  ChroniclesNftSlotSelector,
+  chroniclesNftRefToCollectionAndId,
+} from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
+import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
+import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 
-const EXTRA_SLOT_TYPES: MiningSlotType[] = ['worker', 'operator', 'foreman', 'engineer', 'booster'];
+function collectionAllowlistForMinecoreDeckSlot(slot: MiningSlot | null | undefined): string[] | undefined {
+  if (!slot) return undefined;
+  if (slot.type === 'worker') return ['KREXPRIME'];
+  if (slot.type === 'operator' || slot.type === 'foreman') return ['PIXELKREX'];
+  return undefined;
+}
+
+function minecoreDeckModalCopy(type: MiningSlotType): { title: string; description: string } {
+  switch (type) {
+    case 'worker':
+      return {
+        title: 'Worker deck slot',
+        description:
+          'Deploy a KREXPRIME NFT to set your base diamond mining rate. Higher rarity increases the yield multiplier.',
+      };
+    case 'operator':
+      return {
+        title: 'Operator deck slot',
+        description: 'Deploy a PIXELKREX NFT to multiply mining speed. Elite tiers improve efficiency.',
+      };
+    case 'foreman':
+      return {
+        title: 'Foreman deck slot',
+        description:
+          'Deploy a PIXELKREX NFT as Foreman for automation perks (auto-restart when infrastructure allows). Higher rarity lifts yield lightly.',
+      };
+    default:
+      return { title: 'NFT deck slot', description: 'Choose an NFT allowed for this role.' };
+  }
+}
 
 export function WorkersPanel(props: {
   slots: MiningSlot[];
@@ -29,6 +64,14 @@ export function WorkersPanel(props: {
   slotPurchaseKas?: number;
   miningAllowed?: boolean;
 }) {
+  const { state: wallet } = useKaspaWallet();
+  const payerKaspa = wallet.address?.trim();
+
+  const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
+    payerKaspa,
+    minecoreNftSlots: props.slots,
+  });
+
   const [selected, setSelected] = useState<number | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyType, setBuyType] = useState<MiningSlotType>('worker');
@@ -41,7 +84,6 @@ export function WorkersPanel(props: {
     const w = nftTabSlotDeployments(props.slots, 'worker');
     const o = nftTabSlotDeployments(props.slots, 'operator');
     const f = nftTabSlotDeployments(props.slots, 'foreman');
-    const e = nftTabSlotDeployments(props.slots, 'engineer');
     const fmt = (x: { filled: number; capacity: number }) => (
       <span className="font-mono text-[11px] tabular-nums text-zinc-400 dark:text-zinc-500">
         {x.filled}/{x.capacity}
@@ -51,7 +93,6 @@ export function WorkersPanel(props: {
       Worker: fmt(w),
       Operator: fmt(o),
       Foreman: fmt(f),
-      Engineer: fmt(e),
     };
   }, [props.slots]);
 
@@ -69,7 +110,7 @@ export function WorkersPanel(props: {
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      list = list.filter(slot => {
+      list = list.filter((slot) => {
         const meta = slot.nftId !== null ? props.slottedMetadata[slot.nftId] : null;
         return (
           slot.type.toLowerCase().includes(q) ||
@@ -80,17 +121,15 @@ export function WorkersPanel(props: {
     }
 
     if (statusFilter !== 'all') {
-      if (statusFilter === 'Active') list = list.filter(s => s.nftId !== null);
-      if (statusFilter === 'Empty') list = list.filter(s => s.nftId === null);
-      if (statusFilter === 'Worker') list = list.filter(s => s.type === 'worker');
-      if (statusFilter === 'Operator') list = list.filter(s => s.type === 'operator');
-      if (statusFilter === 'Foreman') list = list.filter(s => s.type === 'foreman');
-      if (statusFilter === 'Engineer') list = list.filter(s => s.type === 'engineer');
+      if (statusFilter === 'Active') list = list.filter((s) => s.nftId !== null);
+      if (statusFilter === 'Empty') list = list.filter((s) => s.nftId === null);
+      if (statusFilter === 'Worker') list = list.filter((s) => s.type === 'worker');
+      if (statusFilter === 'Operator') list = list.filter((s) => s.type === 'operator');
+      if (statusFilter === 'Foreman') list = list.filter((s) => s.type === 'foreman');
     }
 
     // Recommended is original index
     if (sortBy === 'price_asc') {
-      // In workers case, maybe sort by ID or yield? Let's do ID
       list.sort((a, b) => (a.nftId ?? 0) - (b.nftId ?? 0));
     } else if (sortBy === 'price_desc') {
       list.sort((a, b) => (b.nftId ?? 0) - (a.nftId ?? 0));
@@ -98,6 +137,13 @@ export function WorkersPanel(props: {
 
     return list;
   }, [props.slots, searchQuery, statusFilter, sortBy, props.slottedMetadata]);
+
+  const modalSlot = selected !== null ? (props.slots[selected] ?? null) : null;
+  const modalCopy = modalSlot ? minecoreDeckModalCopy(modalSlot.type) : null;
+  const currentRef =
+    modalSlot?.nftId != null && modalSlot.collection
+      ? nftRefKey(modalSlot.collection, modalSlot.nftId)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -139,7 +185,7 @@ export function WorkersPanel(props: {
         onSearchChange={setSearchQuery}
         category={statusFilter}
         onCategoryChange={setStatusFilter}
-        categories={['Active', 'Empty', 'Worker', 'Operator', 'Foreman', 'Engineer']}
+        categories={['Active', 'Empty', 'Worker', 'Operator', 'Foreman']}
         sortBy={sortBy}
         onSortChange={setSortBy}
         categoryTrailing={categoryTrailing}
@@ -262,9 +308,9 @@ export function WorkersPanel(props: {
               onChange={(e) => setBuyType(e.target.value as MiningSlotType)}
               className="mb-4 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-950"
             >
-              {EXTRA_SLOT_TYPES.map((t) => (
+              {MINECORE_NFT_CREW_ROLES_ORDER.map((t) => (
                 <option key={t} value={t}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {nftCrewRoleLabel(t)}
                 </option>
               ))}
             </select>
@@ -283,15 +329,28 @@ export function WorkersPanel(props: {
         </div>
       ) : null}
 
-      {selected !== null ? (
-        <NFTSlotSelector
-          slotIndex={selected}
-          slot={props.slots[selected] ?? null}
-          allSlots={props.slots}
+      {selected !== null && modalCopy && modalSlot ? (
+        <ChroniclesNftSlotSelector
           isOpen={true}
+          title={modalCopy.title}
+          description={modalCopy.description}
+          currentValue={currentRef}
+          inUseRefs={inUseRefs}
+          usageByRef={usageByRef}
+          currentContext={{ entityType: 'minecore', entityId: 'workers', slotIndex: selected }}
+          collectionAllowlist={collectionAllowlistForMinecoreDeckSlot(modalSlot)}
+          footerNotice="Assignments save to your Minecore profile in this browser. NFTs used in Chronicles or Diamond Mining show as locked here."
           onClose={() => setSelected(null)}
-          onDeploy={props.onDeploy}
-          onRemove={() => props.onRemove(selected)}
+          onSelect={(ref) => {
+            const parsed = chroniclesNftRefToCollectionAndId(ref);
+            if (!parsed) return;
+            props.onDeploy(selected, parsed.tokenId, parsed.collection);
+            setSelected(null);
+          }}
+          onRemove={() => {
+            props.onRemove(selected);
+            setSelected(null);
+          }}
         />
       ) : null}
     </div>

@@ -457,10 +457,16 @@ export function useMinecore() {
 
   const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
     dispatch({ type: 'DeployNFT', at: Date.now(), slotIndex, nftId, collection });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+    }
   }, [dispatch]);
 
   const removeNFT = useCallback((slotIndex: number) => {
     dispatch({ type: 'RemoveNFT', at: Date.now(), slotIndex });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+    }
   }, [dispatch]);
 
   const setAutomation = useCallback((patch: { autoRestart?: boolean }) => {

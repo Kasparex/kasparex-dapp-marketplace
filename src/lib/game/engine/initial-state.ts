@@ -17,9 +17,7 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
     slots: [
       { type: 'worker', nftId: null, collection: 'KREXPRIME' },
       { type: 'operator', nftId: null, collection: 'PIXELKREX' },
-      { type: 'booster', nftId: null, collection: null },
       { type: 'foreman', nftId: null, collection: 'PIXELKREX' },
-      { type: 'engineer', nftId: null, collection: 'KREXPRIME' },
     ],
     lastRefinedAt: Date.now(),
     refinementPointsTotal: 0,

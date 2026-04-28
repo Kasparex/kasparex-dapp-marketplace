@@ -40,7 +40,6 @@ export function createInitialMinecoreState(): MinecoreState {
     { type: 'worker', nftId: null, collection: null },
     { type: 'operator', nftId: null, collection: null },
     { type: 'foreman', nftId: null, collection: null },
-    { type: 'engineer', nftId: null, collection: null },
   ];
   return {
     version: 1,

@@ -5,7 +5,13 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
-import { NFTSlotSelector } from './NFTSlotSelector';
+import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
+import {
+  ChroniclesNftSlotSelector,
+  chroniclesNftRefToCollectionAndId,
+} from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
+import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
+import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { GameTooltipProvider } from '@/components/game/diamond-veins/GameTooltip';
 import { OverviewPanel } from '@/components/game/diamond-veins/panels/OverviewPanel';
 import { MiningPanel } from '@/components/game/diamond-veins/panels/MiningPanel';
@@ -30,6 +36,36 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
+
+function collectionAllowlistForTyconDeckSlot(slot: MiningSlot | null | undefined): string[] | undefined {
+  if (!slot) return undefined;
+  if (slot.type === 'worker') return ['KREXPRIME'];
+  if (slot.type === 'operator' || slot.type === 'foreman') return ['PIXELKREX'];
+  return undefined;
+}
+
+function tyconDeckModalCopy(type: MiningSlotType): { title: string; description: string } {
+  switch (type) {
+    case 'worker':
+      return {
+        title: 'Worker slot',
+        description:
+          'Deploy a KREXPRIME NFT to set your base diamond mining rate. Higher rarity gives a stronger yield multiplier.',
+      };
+    case 'operator':
+      return {
+        title: 'Operator slot',
+        description: 'Deploy a PIXELKREX NFT to multiply mining throughput.',
+      };
+    case 'foreman':
+      return {
+        title: 'Foreman slot',
+        description: 'Deploy a PIXELKREX NFT for automation-related perks where enabled.',
+      };
+    default:
+      return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };
+  }
+}
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -88,6 +124,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     buyPowerUpgrade,
     redeemGrid,
   } = useDiamondMining();
+
+  const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
+    payerKaspa: walletState.address,
+    tyconSlots: slots,
+  });
 
   const [tab, setTab] = useState<TabId>('overview');
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
@@ -382,20 +423,41 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
           </div>
         )}
 
-        {selectedSlotIndex !== null && (
-          <NFTSlotSelector
-            slotIndex={selectedSlotIndex}
-            slot={slots[selectedSlotIndex] ?? null}
-            allSlots={slots}
-            isOpen={true}
-            onClose={() => setSelectedSlotIndex(null)}
-            onDeploy={deployNFT}
-            onRemove={() => {
-              removeSlot(selectedSlotIndex);
-              setSelectedSlotIndex(null);
-            }}
-          />
-        )}
+        {selectedSlotIndex !== null && (() => {
+          const slot = slots[selectedSlotIndex] ?? null;
+          const copy = slot ? tyconDeckModalCopy(slot.type) : null;
+          const current =
+            slot?.nftId != null && slot.collection ? nftRefKey(slot.collection, slot.nftId) : null;
+          if (!slot || !copy) return null;
+          return (
+            <ChroniclesNftSlotSelector
+              isOpen={true}
+              title={copy.title}
+              description={copy.description}
+              currentValue={current}
+              inUseRefs={inUseRefs}
+              usageByRef={usageByRef}
+              currentContext={{
+                entityType: 'tycon',
+                entityId: 'mining',
+                slotIndex: selectedSlotIndex,
+              }}
+              collectionAllowlist={collectionAllowlistForTyconDeckSlot(slot)}
+              footerNotice="Deployments save to Diamond Mining state in this browser. NFTs used in Minecore or Chronicles show as locked."
+              onClose={() => setSelectedSlotIndex(null)}
+              onSelect={(ref) => {
+                const p = chroniclesNftRefToCollectionAndId(ref);
+                if (!p) return;
+                deployNFT(selectedSlotIndex, p.tokenId, p.collection);
+                setSelectedSlotIndex(null);
+              }}
+              onRemove={() => {
+                removeSlot(selectedSlotIndex);
+                setSelectedSlotIndex(null);
+              }}
+            />
+          );
+        })()}
       </div>
     </GameTooltipProvider>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import {
@@ -129,6 +129,8 @@ export function ChroniclesNftSlotSelector({
   inUseRefs,
   usageByRef = {},
   currentContext,
+  collectionAllowlist,
+  footerNotice,
   onClose,
   onSelect,
   onRemove,
@@ -140,6 +142,8 @@ export function ChroniclesNftSlotSelector({
   inUseRefs: Set<string>;
   usageByRef?: Record<string, Array<{ entityType: string; entityId: string; slotIndex: number; href: string; label: string }>>;
   currentContext?: { entityType: string; entityId: string; slotIndex: number };
+  collectionAllowlist?: string[];
+  footerNotice?: ReactNode;
   onClose: () => void;
   onSelect: (nftRef: string) => void;
   onRemove?: () => void;
@@ -177,6 +181,11 @@ export function ChroniclesNftSlotSelector({
   }, [isOpen, payerKaspa]);
 
   const sorted = useMemo(() => rawNfts.slice().sort((a, b) => a.collection.localeCompare(b.collection) || a.tokenId - b.tokenId), [rawNfts]);
+  const stream = useMemo(() => {
+    if (!collectionAllowlist?.length) return sorted;
+    const allow = new Set(collectionAllowlist.map((c) => String(c).toUpperCase()));
+    return sorted.filter((n) => allow.has(n.collection.toUpperCase()));
+  }, [sorted, collectionAllowlist]);
   const [collectionFilter, setCollectionFilter] = useState<string>('');
   const [tierFilter, setTierFilter] = useState<NftFilterTier>('all');
   const [sortMode, setSortMode] = useState<NftSortMode>('default');
@@ -185,10 +194,11 @@ export function ChroniclesNftSlotSelector({
   useEffect(() => {
     if (!isOpen) return;
     setVisibleCount(36);
+    setCollectionFilter('');
   }, [isOpen, payerKaspa]);
-  const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(sorted.map((n) => n.collection)))], [sorted]);
+  const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(stream.map((n) => n.collection)))], [stream]);
   const filtered = useMemo(() => {
-    const base = sorted.filter((nft) => {
+    const base = stream.filter((nft) => {
       if (collectionFilter && nft.collection !== collectionFilter) return false;
       if (tierFilter === 'all') return true;
       const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
@@ -208,7 +218,7 @@ export function ChroniclesNftSlotSelector({
       return a.points - b.points || a.nft.tokenId - b.nft.tokenId;
     });
     return withPoints.map((x) => x.nft);
-  }, [sorted, collectionFilter, tierFilter, sortMode]);
+  }, [stream, collectionFilter, tierFilter, sortMode]);
   useEffect(() => {
     setVisibleCount(36);
   }, [collectionFilter, tierFilter, sortMode]);
@@ -298,6 +308,14 @@ export function ChroniclesNftSlotSelector({
                   Buy PIXELKREX
                 </a>
               </div>
+            </div>
+          ) : stream.length === 0 ? (
+            <div className="min-h-48 flex flex-col items-center justify-center text-center p-6 space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No matching NFTs for this slot</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
+                Your wallet has NFTs, but none from the collections allowed for this role. Use a token from an allowed collection or assign a different NFT.
+              </p>
             </div>
           ) : (
             <>
@@ -445,9 +463,13 @@ export function ChroniclesNftSlotSelector({
         </div>
 
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/30 border-t border-zinc-200 dark:border-zinc-800 text-center">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Selecting an NFT here will initiate an on-chain slot update. You can change it anytime by opening this modal again.
-          </p>
+          {footerNotice !== undefined ? (
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">{footerNotice}</div>
+          ) : (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Selecting an NFT here will initiate an on-chain slot update. You can change it anytime by opening this modal again.
+            </p>
+          )}
         </div>
       </div>
     </div>

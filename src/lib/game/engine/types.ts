@@ -18,7 +18,7 @@ export const DIAMOND_COMMODITY_KEYS: DiamondCommodity[] = [
   'rubble',
 ];
 
-export type MiningSlotType = 'worker' | 'operator' | 'booster' | 'foreman' | 'engineer';
+export type MiningSlotType = 'worker' | 'operator' | 'foreman';
 
 export interface MiningSlot {
   type: MiningSlotType;

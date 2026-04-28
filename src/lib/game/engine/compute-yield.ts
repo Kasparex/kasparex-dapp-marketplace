@@ -94,11 +94,8 @@ export function computeYieldStats(
   const foreman = state.slots.find((s) => s.type === 'foreman');
   if (foreman?.nftId != null) finalYield *= 1.03;
 
-  const engineer = state.slots.find((s) => s.type === 'engineer');
-  if (engineer?.nftId != null) {
-    totalMultiplier *= 1.02;
-    finalYield *= 1.02;
-  }
+  /** Former engineer slot (~2%); folded into worker path when worker is assigned. */
+  if (workerSlot?.nftId != null) finalYield *= 1.02;
 
   return {
     yieldPerSecond: finalYield,
@@ -155,16 +152,29 @@ export function migrateSlotsToTycon(slots: MiningSlot[]): MiningSlot[] {
   const defaults: MiningSlot[] = [
     { type: 'worker', nftId: null, collection: 'KREXPRIME' },
     { type: 'operator', nftId: null, collection: 'PIXELKREX' },
-    { type: 'booster', nftId: null, collection: null },
     { type: 'foreman', nftId: null, collection: 'PIXELKREX' },
-    { type: 'engineer', nftId: null, collection: 'KREXPRIME' },
   ];
-  if (!slots?.length) return defaults;
-  if (slots.length >= 5) return slots;
-  const merged = [...slots];
-  while (merged.length < 5) {
-    const i = merged.length;
-    merged.push(defaults[i]!);
-  }
-  return merged;
+  if (!slots?.length) return defaults.map((s) => ({ ...s }));
+
+  /** Legacy persisted rows may include removed types. */
+  const lane = (t: string): 'worker' | 'operator' | 'foreman' | null => {
+    if (t === 'engineer') return 'worker';
+    if (t === 'booster') return null;
+    if (t === 'worker' || t === 'operator' || t === 'foreman') return t;
+    return null;
+  };
+
+  const pick = (want: 'worker' | 'operator' | 'foreman'): MiningSlot => {
+    const cand = slots.filter((s) => lane(String(s.type)) === want);
+    const best = cand.find((s) => s.nftId != null) ?? cand[0];
+    const def = defaults.find((d) => d.type === want)!;
+    if (!best) return { ...def };
+    return {
+      type: want,
+      nftId: best.nftId,
+      collection: best.collection ?? def.collection,
+    };
+  };
+
+  return [pick('worker'), pick('operator'), pick('foreman')];
 }

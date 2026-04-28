@@ -1,3 +1,4 @@
+import type { MiningSlot } from '@/lib/game/engine';
 import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
@@ -29,6 +30,41 @@ function mergeOwnedInventory(input: unknown, base: MinecoreState['owned']): Mine
     workers: { ...base.workers, ...(isRecord((input as Record<string, unknown>).workers) ? (input as any).workers : {}) },
     modules: { ...base.modules, ...(isRecord((input as Record<string, unknown>).modules) ? (input as any).modules : {}) },
   };
+}
+
+/** Coerce persisted deck rows to canonical worker / operator / foreman (legacy engineer → worker; booster dropped). */
+function normalizeMinecoreNftSlots(raw: unknown[]): MiningSlot[] {
+  const base = createInitialMinecoreState().nftSlots;
+  if (!Array.isArray(raw) || raw.length === 0) return [...base];
+
+  const parsed = raw
+    .filter((x) => isRecord(x))
+    .map((x) => ({
+      type: typeof x.type === 'string' ? x.type : 'worker',
+      nftId: typeof x.nftId === 'number' ? x.nftId : null,
+      collection: typeof x.collection === 'string' ? x.collection : null,
+    }));
+
+  const lane = (t: string): 'worker' | 'operator' | 'foreman' | null => {
+    if (t === 'engineer') return 'worker';
+    if (t === 'booster') return null;
+    if (t === 'worker' || t === 'operator' || t === 'foreman') return t;
+    return 'worker';
+  };
+
+  const pick = (want: 'worker' | 'operator' | 'foreman'): MiningSlot => {
+    const cand = parsed.filter((s) => lane(s.type) === want);
+    const best = cand.find((s) => s.nftId != null) ?? cand[0];
+    const def = base.find((b) => b.type === want)!;
+    if (!best) return { ...def };
+    return {
+      type: want,
+      nftId: best.nftId,
+      collection: best.collection ?? def.collection,
+    };
+  };
+
+  return [pick('worker'), pick('operator'), pick('foreman')];
 }
 
 function hydrateSlot(input: unknown, index: number): PlantSlotState {
@@ -157,15 +193,7 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     owned: mergeOwnedInventory(input.owned, base.owned),
     plantSlots,
     nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,
-    nftSlots: Array.isArray(input.nftSlots)
-      ? (input.nftSlots
-          .filter((x) => isRecord(x))
-          .map((x) => ({
-            type: typeof x.type === 'string' ? (x.type as any) : 'worker',
-            nftId: typeof x.nftId === 'number' ? x.nftId : null,
-            collection: typeof x.collection === 'string' ? x.collection : null,
-          })) as any)
-      : base.nftSlots,
+    nftSlots: Array.isArray(input.nftSlots) ? normalizeMinecoreNftSlots(input.nftSlots as unknown[]) : base.nftSlots,
     automation: isRecord(input.automation)
       ? {
           autoRestart: typeof input.automation.autoRestart === 'boolean' ? input.automation.autoRestart : base.automation.autoRestart,
