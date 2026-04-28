@@ -327,7 +327,7 @@ function ModalPartRow(props: {
   trailing?: ReactNode;
 }) {
   const borderCls = props.selected
-    ? 'border-sky-500 bg-sky-500/5'
+    ? 'border-amber-500 bg-amber-500/5 dark:border-amber-500/60'
     : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
   return (
     <button
@@ -347,7 +347,7 @@ function ModalPartRow(props: {
         </div>
         <div className="flex min-w-[3.25rem] flex-col items-end">
           <span className="text-[10px] font-semibold text-zinc-400">In use</span>
-          <span className="font-mono text-sm font-bold tabular-nums text-sky-600 dark:text-sky-400">{props.inUse}</span>
+          <span className="font-mono text-sm font-bold tabular-nums text-amber-600 dark:text-amber-400">{props.inUse}</span>
         </div>
         {props.trailing ?? <Icons.ChevronRight className="h-5 w-5 shrink-0 self-center text-zinc-300 dark:text-zinc-600" />}
       </div>
@@ -802,7 +802,7 @@ export function PlantSlotCard(props: {
             const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
             const isCurrent = s.type === p.type;
             const borderCls = isCurrent
-              ? 'border-sky-500 bg-sky-500/5'
+              ? 'border-amber-500 bg-amber-500/5 dark:border-amber-500/60'
               : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
             return (
               <li key={p.type} className="list-none">
@@ -820,7 +820,7 @@ export function PlantSlotCard(props: {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <Icon className="h-5 w-5 text-sky-500" />
+                        <Icon className="h-5 w-5 text-amber-500 dark:text-amber-400" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -837,9 +837,9 @@ export function PlantSlotCard(props: {
                     </div>
                     <div className="flex min-w-[3.5rem] flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Status</span>
-                      <span className="text-xs font-bold text-sky-600 dark:text-sky-400">{isCurrent ? 'Current' : '—'}</span>
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{isCurrent ? 'Current' : '—'}</span>
                     </div>
-                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-sky-500" /> : null}
+                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-400" /> : null}
                   </div>
                 </button>
               </li>
@@ -1025,7 +1025,7 @@ export function PlantSlotCard(props: {
                       : [...current, m.id as MinecoreModuleId].slice(0, maxM);
                     props.onInstallPart('modules', next);
                   }}
-                  trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-sky-500" /> : undefined}
+                  trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" /> : undefined}
                 />
               </li>
             );
@@ -1044,3 +1044,6 @@ export function PlantSlotCard(props: {
           </button>
         ) : null}
       </SelectionModal>
+    </>
+  );
+}
