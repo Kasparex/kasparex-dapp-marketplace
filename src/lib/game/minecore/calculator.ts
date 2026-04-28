@@ -84,6 +84,7 @@ export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
   latticeWire: 2.5,
 };
 
+function calculatorMinecoreStateForTier(tier: 'regular' | 'diamond' | 'rarest'): MinecoreState {
   const s = createInitialMinecoreState();
   const nftId =
     tier === 'rarest'
