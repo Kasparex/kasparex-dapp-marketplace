@@ -165,6 +165,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot) return rederive(s, now);
       slot.nftId      = null;
       slot.collection = null;
+      for (const ps of s.plantSlots) {
+        if (ps.setup.workerNftDeckSlotIndex === ev.slotIndex) ps.setup.workerNftDeckSlotIndex = null;
+      }
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
       return rederive(s, now);
     }
@@ -225,7 +228,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         unlockCostKas:    MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
         status:           'EmptySlot',
         type:             'standard',
-        setup:            { machineId: null, batteryIds: [null], workerId: null, moduleIds: [], boostId: 'none' },
+        setup:            { machineId: null, batteryIds: [null], workerNftDeckSlotIndex: null, moduleIds: [], boostId: 'none' },
         cycle:            null,
         powerRemaining:   0,
         needsRepair:      false,
@@ -313,7 +316,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
         slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));
       }
-      if (ev.part.kind === 'worker') slot.setup.workerId = ev.part.id;
+      if (ev.part.kind === 'crewWorkerNftDeck') slot.setup.workerNftDeckSlotIndex = ev.part.deckSlotIndex;
       if (ev.part.kind === 'modules') {
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
         const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
@@ -331,7 +334,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (slot.cycle) {
         return rederive(s, now);
       }
-      if (!computePlantReady(slot)) return rederive(s, now);
+      if (!computePlantReady(s, slot)) return rederive(s, now);
       if (plantDailyCapPreventsNewCycle(s, slot, ev.at)) return rederive(s, now);
       if (slot.needsRepair) return rederive(s, now);
       if (!canStartMiningByEfficiency(slot)) return rederive(s, now);

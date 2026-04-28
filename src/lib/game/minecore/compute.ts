@@ -11,6 +11,9 @@ import {
 } from './battery-utils';
 import type { MinecoreState, PlantSlotState } from './types';
 import {
+  plantWorkerNftDeckAssignmentValid,
+} from './asset-usage';
+import {
   canStartMiningByEfficiency,
   computeExpectedDiamondsForCycle,
   computeEffectiveCycleDurationMs,
@@ -63,12 +66,11 @@ export function getTotalBatteryChargeAtSnapshot(slot: PlantSlotState): number {
 
 // ── Core computations ────────────────────────────────────────────────────────
 
-export function computePlantReady(slot: PlantSlotState): boolean {
+export function computePlantReady(state: MinecoreState, slot: PlantSlotState): boolean {
   if (!slot.unlocked) return false;
   if (!slot.setup.machineId) return false;
   if (!hasInstalledBattery(slot.setup, slot.type)) return false;
-  if (!slot.setup.workerId) return false;
-  return true;
+  return plantWorkerNftDeckAssignmentValid(state, slot);
 }
 
 /** One full cycle at current economy (D/24h × effective duration). */
@@ -197,7 +199,7 @@ export function computeMinecoreRollingDailyCapDeckTotals(
   let minedSum = 0;
   let capSum = 0;
   for (const slot of state.plantSlots) {
-    if (!slot.unlocked || !computePlantReady(slot)) continue;
+    if (!slot.unlocked || !computePlantReady(state, slot)) continue;
     const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
     const p = computePlantDailyCapProgress(state, rolled, now);
     minedSum += p.minedTowardCap;
@@ -241,7 +243,7 @@ export function deriveSlotStatus(
 ): PlantSlotState['status'] {
   if (!slot.unlocked) return 'EmptySlot';
   if (slot.needsRepair) return 'NeedsRepair';
-  if (!computePlantReady(slot)) return 'SetupIncomplete';
+  if (!computePlantReady(state, slot)) return 'SetupIncomplete';
   if (slot.cycle) {
     if (slot.cycle.pauseBeganAtMs != null) return 'MiningPaused';
     const liveCharge = computeLiveBatteryChargeMs(slot, now);

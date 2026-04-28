@@ -68,7 +68,11 @@ export type PlantSetup = {
   machineId: MinecoreMachineId | null;
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
-  workerId: MinecoreWorkerId | null;
+  /**
+   * Which NFT deck slot (`minecoreState.nftSlots[index]`) supplies crew for this plant.
+   * Must reference `type === 'worker'` with an NFT deployed. Same deck slot cannot be on two plants.
+   */
+  workerNftDeckSlotIndex: number | null;
   moduleIds: MinecoreModuleId[];
   boostId: MinecoreBoostId;
 };
@@ -168,7 +172,7 @@ export type MinecoreEvent =
       part:
         | { kind: 'machine';  id: MinecoreMachineId | null }
         | { kind: 'battery'; id: MinecoreBatteryId | null; /** Which battery slot (0..n-1) on this plant. */ batterySlotIndex?: number }
-        | { kind: 'worker';   id: MinecoreWorkerId | null }
+        | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };
     }

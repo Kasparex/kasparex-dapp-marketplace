@@ -69,7 +69,11 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryIds,
-      workerId: typeof setup.workerId === 'string' ? (setup.workerId as any) : null,
+      /* LEGACY saves may contain setup.workerId / fabricated crew — ignored; use Worker NFT deck only. */
+      workerNftDeckSlotIndex:
+        typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
+          ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
+          : null,
       moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
       boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',
     },

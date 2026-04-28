@@ -11,6 +11,9 @@ import {
   MINECORE_POWER_CRITICAL_RATIO,
   MINECORE_WORKERS,
 } from './config';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
+import { WORKER_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
+import { plantWorkerNftDeckAssignmentValid } from './asset-usage';
 import type { MinecoreState, PlantSlotState } from './types';
 import { averageBatteryEfficiency, hasInstalledBattery } from './battery-utils';
 
@@ -102,8 +105,10 @@ export function canStartMiningByEfficiency(slot: PlantSlotState): boolean {
   return computeMiningEfficiencyPct(slot) >= MINECORE_MIN_MINING_EFFICIENCY_PCT;
 }
 
-function slotSetupComplete(slot: PlantSlotState): boolean {
-  return Boolean(slot.setup.machineId && hasInstalledBattery(slot.setup, slot.type) && slot.setup.workerId);
+function slotSetupComplete(state: MinecoreState, slot: PlantSlotState): boolean {
+  return Boolean(
+    slot.setup.machineId && hasInstalledBattery(slot.setup, slot.type) && plantWorkerNftDeckAssignmentValid(state, slot),
+  );
 }
 
 /**
@@ -111,17 +116,23 @@ function slotSetupComplete(slot: PlantSlotState): boolean {
  * V1: plant base + machine `diamondsPer24h` + flat worker + output modules (fraction of base+machine) × boost × battery yield.
  * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
-export function computePlantRollingDailyCapCeiling(_state: MinecoreState, slot: PlantSlotState): number {
-  if (!slot.unlocked || !slotSetupComplete(slot)) return 0;
+export function computePlantRollingDailyCapCeiling(state: MinecoreState, slot: PlantSlotState): number {
+  if (!slot.unlocked || !slotSetupComplete(state, slot)) return 0;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
-  const worker = slot.setup.workerId ? MINECORE_WORKERS[slot.setup.workerId] : null;
+  const deckIdx = slot.setup.workerNftDeckSlotIndex;
+  const crewDeck = deckIdx != null ? state.nftSlots?.[deckIdx] : null;
   const effBatt = averageBatteryEfficiency(slot.setup, slot.type);
   const boost = MINECORE_BOOSTS[slot.setup.boostId];
-  if (!machine || !worker || !hasInstalledBattery(slot.setup, slot.type) || effBatt <= 0) return 0;
+  if (!machine || !crewDeck?.collection || crewDeck.nftId == null || !hasInstalledBattery(slot.setup, slot.type) || effBatt <= 0) {
+    return 0;
+  }
+
+  const tier = getNFTTier(crewDeck.collection, crewDeck.nftId, null);
+  const tierMult = WORKER_TIER_MULTIPLIERS[tier] ?? 1;
+  const workerPart = Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * tierMult);
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;
-  const workerPart = worker.diamondBonusPer24h;
   let modulePart = 0;
   if (slot.type !== 'standard') {
     for (const id of slot.setup.moduleIds) {

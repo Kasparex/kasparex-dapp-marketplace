@@ -25,13 +25,13 @@ import {
   countMachinesAssigned,
   countMachinesAssignedExcept,
   countModuleAssignments,
-  countWorkersAssigned,
-  countWorkersAssignedExcept,
+  countWorkerNftDeckAssignmentsExcept,
   displayAssignedCount,
   inventoryAllowsPlantSetup,
   MINECORE_NFT_CREW_ROLES_ORDER,
   nftCrewRoleLabel,
   nftTabSlotDeployments,
+  plantWorkerNftDeckAssignmentValid,
 } from '@/lib/game/minecore/asset-usage';
 import {
   MINECORE_BATTERIES,
@@ -45,11 +45,12 @@ import {
   MINECORE_KW_SCALE,
   MINECORE_PLANT_REPAIR_KAS,
   MINECORE_WORKERS,
-  fabricatedOperatorSlotsCapacity,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
+import { WORKER_TIER_MULTIPLIERS } from '@/lib/game/diamond-veins-config';
 import { getPlantBatterySlotCount, hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
 
@@ -498,7 +499,8 @@ export function PlantSlotCard(props: {
     ? liveChargeMs / Math.max(0.05, getPowerDrainScale(s))
     : 0;
 
-  const d24 = s.unlocked && computePlantReady(s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
+  const d24 =
+    s.unlocked && computePlantReady(props.minecoreState, s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now);
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
@@ -508,11 +510,37 @@ export function PlantSlotCard(props: {
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
-  const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
   const powerUnitCount  = getPlantBatterySlotCount(s.type);
   const nftStaffSlots = props.minecoreState.nftSlots ?? [];
-  const fabCrewCap = fabricatedOperatorSlotsCapacity(s.setup.machineId);
-  const fabCrewOn = s.setup.workerId ? 1 : 0;
+
+  const workerDeckRows = useMemo(() => {
+    const slots = props.minecoreState.nftSlots ?? [];
+    const rows = slots.map((slot, deckIdx) => ({ slot, deckIdx })).filter((x) => x.slot.type === 'worker');
+    const tierOrder: Record<string, number> = { rarest: 0, diamond: 1, regular: 2 };
+    rows.sort((a, b) => {
+      const af = a.slot.nftId != null ? 1 : 0;
+      const bf = b.slot.nftId != null ? 1 : 0;
+      if (af !== bf) return bf - af;
+      if (!a.slot.nftId || !a.slot.collection) return 1;
+      if (!b.slot.nftId || !b.slot.collection) return -1;
+      const ta = getNFTTier(a.slot.collection, a.slot.nftId, null);
+      const tb = getNFTTier(b.slot.collection, b.slot.nftId, null);
+      const d = (tierOrder[ta] ?? 9) - (tierOrder[tb] ?? 9);
+      if (d !== 0) return d;
+      return a.slot.nftId - b.slot.nftId;
+    });
+    return rows;
+  }, [props.minecoreState.nftSlots]);
+
+  const crewDeckIdx = s.setup.workerNftDeckSlotIndex;
+  const crewDeck = crewDeckIdx != null ? nftStaffSlots[crewDeckIdx] : null;
+  const crewTier =
+    crewDeck?.nftId != null && crewDeck.collection ? getNFTTier(crewDeck.collection, crewDeck.nftId, null) : null;
+  const tierKey = (crewTier ?? 'regular') as keyof typeof WORKER_TIER_MULTIPLIERS;
+  const workerDiamondBonusEst =
+    crewTier != null
+      ? Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * (WORKER_TIER_MULTIPLIERS[tierKey] ?? 1))
+      : null;
   const powerDotMax = Math.max(1, getPowerUnitCap(s));
   const capUnits = getPowerUnitCap(s);
   const atFullEnergy =
@@ -633,7 +661,7 @@ export function PlantSlotCard(props: {
               mined={dailyCap.minedTowardCap}
               cap={dailyCap.cap24h}
               ratio={dailyCap.ratio}
-              setupIncomplete={!computePlantReady(s)}
+              setupIncomplete={!computePlantReady(props.minecoreState, s)}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
             />
@@ -695,11 +723,19 @@ export function PlantSlotCard(props: {
               );
             })}
             <CheckRow
-              installed={!!s.setup.workerId}
-              label="Fabricated crew"
-              value={workerConfig ? `${workerConfig.label} · +${workerConfig.diamondBonusPer24h} D/24h` : 'None assigned'}
-              stat={`Fabricated ${fabCrewOn}/${fabCrewCap}`}
-              tooltip={`Fabricated operator assigned to this plant (inventory units — not NFTs). NFT deployments are under the Workers tab. Fabricated on plant: ${fabCrewOn}/${fabCrewCap}. The W/O/F/E/B grid inside Assign Worker is your Workers-tab NFT deck — global on every plant card.`}
+              installed={plantWorkerNftDeckAssignmentValid(props.minecoreState, s)}
+              label="Worker NFT"
+              value={
+                crewDeck?.nftId != null && crewDeck.collection
+                  ? `#${crewDeck.nftId} · ${crewTier ?? 'regular'} · +${workerDiamondBonusEst ?? 0} D/24h crew`
+                  : 'None assigned'
+              }
+              stat={crewDeckIdx != null ? `Deck #${crewDeckIdx + 1}` : undefined}
+              tooltip={
+                crewDeck?.nftId != null && crewDeck.collection
+                  ? `Worker NFT from your Workers tab deck (slot index ${crewDeckIdx}). Tier affects rolling cap bonus (${crewTier}). Same ordering as Hub character slots: rarest → diamond → regular, then token id.`
+                  : 'Deploy a KREXPRIME Worker NFT in the Workers tab first, then pick which deck slot crews this plant.'
+              }
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
@@ -794,7 +830,10 @@ export function PlantSlotCard(props: {
               />
             )}
             {s.status === 'SetupIncomplete' && (
-              <WarningBanner level="warn" message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !hasInstalledBattery(s.setup, s.type) && 'Battery', !s.setup.workerId && 'Worker'].filter(Boolean).join(', ')}`} />
+              <WarningBanner
+                level="warn"
+                message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !hasInstalledBattery(s.setup, s.type) && 'Battery', !plantWorkerNftDeckAssignmentValid(props.minecoreState, s) && 'Worker NFT'].filter(Boolean).join(', ')}`}
+              />
             )}
             {batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner
@@ -1022,7 +1061,7 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'worker'}
         onClose={() => setActiveModal(null)}
-        title="Assign Worker"
+        title="Assign Worker NFT"
       >
         {modalFeedback ? (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
@@ -1032,7 +1071,9 @@ export function PlantSlotCard(props: {
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
           <div className="font-semibold text-zinc-700 dark:text-zinc-300">Workers tab — NFT crew decks</div>
           <p className="mt-1 leading-snug text-zinc-500 dark:text-zinc-400">
-            Counts below are NFT deployments only. Fabricated crew rows underneath use your fabricated-worker inventory (separate from NFTs).
+            Deploy KREXPRIME into Worker slots on the Workers tab first. Rows below follow the same ordering as Hub /
+            Character slots: rarest tier first, then diamond, then regular; empty decks last. Only one plant may use a
+            given deck slot at a time.
           </p>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
@@ -1049,35 +1090,47 @@ export function PlantSlotCard(props: {
           </div>
         </div>
         <ul className="space-y-2">
-          {Object.values(MINECORE_WORKERS).map((w) => {
-            const owned = props.minecoreState.owned.workers[w.id] ?? 0;
-            const assignedElsewhere = countWorkersAssignedExcept(props.minecoreState.plantSlots, w.id, props.slotArrayIndex);
-            const canPick = assignedElsewhere + 1 <= owned;
-            const isInstalled = s.setup.workerId === w.id;
-            const rowBlocked = !canPick && !isInstalled;
-            const nftFill = nftTabSlotDeployments(props.minecoreState.nftSlots ?? [], w.id);
+          {workerDeckRows.map(({ slot: deckSlot, deckIdx }) => {
+            const deployed = deckSlot.nftId != null && deckSlot.collection;
+            const tier =
+              deployed && deckSlot.collection && deckSlot.nftId != null
+                ? getNFTTier(deckSlot.collection, deckSlot.nftId, null)
+                : null;
+            const tierKey = (tier ?? 'regular') as keyof typeof WORKER_TIER_MULTIPLIERS;
+            const bonus = deployed
+              ? Math.round(MINECORE_WORKERS.worker.diamondBonusPer24h * (WORKER_TIER_MULTIPLIERS[tierKey] ?? 1))
+              : null;
+            const usedOnPlants = props.minecoreState.plantSlots.reduce(
+              (n, p) => n + (p.unlocked && p.setup.workerNftDeckSlotIndex === deckIdx ? 1 : 0),
+              0,
+            );
+            const isInstalled = s.setup.workerNftDeckSlotIndex === deckIdx;
+            const rowBlocked = !deployed || (usedOnPlants >= 1 && !isInstalled);
+            const subtitle = deployed
+              ? `${tier ?? 'regular'} · +${bonus} D/24h crew · NFT #${deckSlot.nftId}`
+              : 'Empty — deploy a Worker NFT on the Workers tab.';
             return (
-              <li key={w.id} className="list-none">
+              <li key={deckIdx} className="list-none">
                 <ModalPartRow
-                  title={w.label}
-                  subtitle={`NFT slots ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap when fabricated`}
-                  owned={owned}
-                  inUse={displayAssignedCount(countWorkersAssigned(props.minecoreState.plantSlots, w.id), owned)}
+                  title={`Worker deck ${deckIdx + 1}`}
+                  subtitle={subtitle}
+                  owned={deployed ? 1 : 0}
+                  inUse={usedOnPlants}
                   disabled={rowBlocked}
                   disabledHint={
                     rowBlocked
-                      ? owned <= 0
-                        ? 'Fabricate workers in Fabrication — none owned.'
-                        : 'Every owned worker of this type is already on plants (inventory limits).'
+                      ? !deployed
+                        ? 'Deploy a Worker NFT on the Workers tab first.'
+                        : 'Another plant already uses this deck slot.'
                       : undefined
                   }
                   selected={isInstalled}
                   onClick={() => {
-                    if (s.setup.workerId === w.id) {
+                    if (isInstalled) {
                       setActiveModal(null);
                       return;
                     }
-                    props.onInstallPart('worker', w.id);
+                    props.onInstallPart('crewWorkerNftDeck', deckIdx);
                     setActiveModal(null);
                   }}
                 />
@@ -1086,12 +1139,12 @@ export function PlantSlotCard(props: {
           })}
         </ul>
         <ModalActionRow
-          title="Remove worker"
-          subtitle="Returns fabricated worker to inventory."
+          title="Clear Worker NFT assignment"
+          subtitle="Frees this plant only — your NFT stays deployed on the Workers tab."
           destructive
-          disabled={!s.setup.workerId}
+          disabled={s.setup.workerNftDeckSlotIndex == null}
           onClick={() => {
-            props.onInstallPart('worker', null);
+            props.onInstallPart('crewWorkerNftDeck', null);
             setActiveModal(null);
           }}
         />

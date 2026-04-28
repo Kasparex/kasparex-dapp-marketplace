@@ -324,8 +324,13 @@ export function useMinecore() {
     [dispatch]
   );
 
-  const installWorker = useCallback((slotIndex: number, id: PlantSlotState['setup']['workerId']) => {
-    dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'worker', id: id as any } });
+  const assignPlantWorkerNftDeck = useCallback((slotIndex: number, deckSlotIndex: number | null) => {
+    dispatch({
+      type: 'InstallPart',
+      slotIndex,
+      at: Date.now(),
+      part: { kind: 'crewWorkerNftDeck', deckSlotIndex },
+    });
   }, [dispatch]);
 
   const setModules = useCallback((slotIndex: number, ids: PlantSlotState['setup']['moduleIds']) => {
@@ -497,7 +502,7 @@ export function useMinecore() {
       purchaseNftDeckSlot,
       installMachine,
       installBattery,
-      installWorker,
+      assignPlantWorkerNftDeck,
       setModules,
       setBoost,
       startMining,

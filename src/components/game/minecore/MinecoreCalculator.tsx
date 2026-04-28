@@ -7,14 +7,13 @@ import {
   CALC_MACHINE_ORDER,
   CALC_MODULE_ORDER,
   CALC_PLANT_TYPE_ORDER,
-  CALC_WORKER_ORDER,
+  CALC_WORKER_TIER_ORDER,
   runMinecoreCalculator,
 } from '@/lib/game/minecore/calculator';
 import type { MinecoreModuleId, PlantSetup } from '@/lib/game/minecore';
 import {
   MINECORE_MACHINES,
   MINECORE_BATTERIES,
-  MINECORE_WORKERS,
   MINECORE_BOOSTS,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_BASE_POWER_UNITS,
@@ -84,11 +83,11 @@ export function MinecoreCalculator() {
     return {
       machineId: CALC_MACHINE_ORDER[machineIdx] ?? null,
       batteryIds: Array.from({ length: n }, () => batteryPick),
-      workerId: CALC_WORKER_ORDER[workerIdx] ?? null,
+      workerNftDeckSlotIndex: 0,
       moduleIds,
       boostId: CALC_BOOST_ORDER[boostIdx] ?? 'none',
     };
-  }, [machineIdx, batteryIdx, workerIdx, boostIdx, modulesOn, plantType]);
+  }, [machineIdx, batteryIdx, boostIdx, modulesOn, plantType]);
 
   const result = useMemo(
     () =>
@@ -97,14 +96,15 @@ export function MinecoreCalculator() {
         plantType,
         plantCount,
         kasDiscountPct,
+        workerTier: CALC_WORKER_TIER_ORDER[workerIdx] ?? 'regular',
       }),
-    [setup, plantType, plantCount, kasDiscountPct],
+    [setup, plantType, plantCount, kasDiscountPct, workerIdx],
   );
 
   const machine = setup.machineId ? MINECORE_MACHINES[setup.machineId] : null;
   const primaryBatteryId = setup.batteryIds[0] ?? null;
   const battery = primaryBatteryId ? MINECORE_BATTERIES[primaryBatteryId] : null;
-  const worker = setup.workerId ? MINECORE_WORKERS[setup.workerId] : null;
+  const workerTierLabel = CALC_WORKER_TIER_ORDER[workerIdx] ?? 'regular';
   const boost = MINECORE_BOOSTS[setup.boostId];
   const preset = MINECORE_PLANT_PRESETS[plantType];
 
@@ -133,12 +133,12 @@ export function MinecoreCalculator() {
               valueLabel={battery?.label ?? '—'}
             />
             <SliderRow
-              label="Worker"
+              label="Worker NFT tier"
               min={0}
-              max={CALC_WORKER_ORDER.length - 1}
+              max={CALC_WORKER_TIER_ORDER.length - 1}
               value={workerIdx}
               onChange={setWorkerIdx}
-              valueLabel={worker?.label ?? '—'}
+              valueLabel={workerTierLabel}
             />
             <SliderRow
               label="Boost"

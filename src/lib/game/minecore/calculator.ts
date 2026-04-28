@@ -16,6 +16,7 @@ import {
 } from './compute';
 import { getMaxChargePerSlotMs } from './battery-utils';
 import { createInitialMinecoreState } from './initial-state';
+import { KREXPRIME_DIAMOND_IDS, RAREST_NFT_IDS } from '@/lib/game/diamond-veins-config';
 import type {
   MinecoreBatteryId,
   MinecoreBoostId,
@@ -47,7 +48,9 @@ export const CALC_BATTERY_ORDER = [
   'void-core-cell',
 ] as const satisfies readonly MinecoreBatteryId[];
 
-export const CALC_WORKER_ORDER = ['worker', 'operator'] as const;
+export const CALC_WORKER_TIER_ORDER = ['regular', 'diamond', 'rarest'] as const;
+
+export type CalculatorWorkerTier = (typeof CALC_WORKER_TIER_ORDER)[number];
 
 export const CALC_BOOST_ORDER = [
   'none',
@@ -81,7 +84,17 @@ export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
   latticeWire: 2.5,
 };
 
-const DUMMY: MinecoreState = createInitialMinecoreState();
+  const s = createInitialMinecoreState();
+  const nftId =
+    tier === 'rarest'
+      ? (RAREST_NFT_IDS.KREXPRIME?.[0] ?? 345)
+      : tier === 'diamond'
+        ? (KREXPRIME_DIAMOND_IDS[0] ?? 301)
+        : 1;
+  const slots = [...(s.nftSlots ?? [])];
+  if (slots[0]) slots[0] = { ...slots[0], type: 'worker', nftId, collection: 'KREXPRIME' };
+  return { ...s, nftSlots: slots };
+}
 
 export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): PlantSlotState {
   return {
@@ -115,6 +128,8 @@ export type MinecoreCalculatorInput = {
   plantCount: number;
   /** KAS shop discount 0–100 (KREX tier, etc.). */
   kasDiscountPct: number;
+  /** Synthetic Worker NFT tier for yield preview (matches deployed Worker deck NFT tier bands). */
+  workerTier: CalculatorWorkerTier;
 };
 
 export type MinecoreCalculatorResult = {
@@ -167,9 +182,10 @@ function applyKasDiscount(kas: number, pct: number): number {
 }
 
 export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreCalculatorResult {
-  const { setup, plantType, plantCount, kasDiscountPct } = input;
+  const { setup, plantType, plantCount, kasDiscountPct, workerTier } = input;
   const slot = buildCalculatorSlot(setup, plantType);
-  const expected = computePlantExpectedDiamonds(DUMMY, slot);
+  const mcState = calculatorMinecoreStateForTier(workerTier);
+  const expected = computePlantExpectedDiamonds(mcState, slot);
   const durationMs = computePlantDurationMs(slot);
   const capMs = getBatteryCapacityMs(slot);
   const drain = getPowerDrainScale(slot);

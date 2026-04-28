@@ -6,7 +6,7 @@ import { createInitialMinecoreState } from './initial-state';
 import { applyMinecoreEvent } from './apply-event';
 import {
   countMachinesAssignedExcept,
-  countWorkersAssignedExcept,
+  countWorkerNftDeckAssignmentsExcept,
   explainPlantSetupBlock,
   nextPlantSetupAfterInstallPart,
 } from './asset-usage';
@@ -62,16 +62,18 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
 
 {
   const base = createInitialMinecoreState();
-  base.owned.workers.worker = 2;
   base.plantSlots[0].unlocked = true;
   base.plantSlots[1].unlocked = true;
   base.plantSlots[0].rollingCapWindowStartMs = now;
   base.plantSlots[1].rollingCapWindowStartMs = now;
-  base.plantSlots[0].setup.workerId = 'worker';
-  base.plantSlots[1].setup.workerId = 'worker';
+  base.plantSlots[0].setup.workerNftDeckSlotIndex = 0;
+  base.plantSlots[1].setup.workerNftDeckSlotIndex = 0;
   base.plantSlots[1].index = 777;
+  if (base.nftSlots[0]) {
+    base.nftSlots[0] = { type: 'worker', nftId: 100, collection: 'KREXPRIME' };
+  }
 
-  assert.equal(countWorkersAssignedExcept(base.plantSlots, 'worker', 1), 1);
+  assert.equal(countWorkerNftDeckAssignmentsExcept(base.plantSlots, 0, 1), 1);
 }
 
 // ── Multi-plant: two rigs owned → both slots can equip pulse-drill ────────────

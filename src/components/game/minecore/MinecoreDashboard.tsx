@@ -378,8 +378,8 @@ export function MinecoreDashboard(_props: {
                         case 'battery':
                           actions.installBattery(slotIndex, id, batteryIdx);
                           break;
-                        case 'worker':
-                          actions.installWorker(slotIndex, id);
+                        case 'crewWorkerNftDeck':
+                          actions.assignPlantWorkerNftDeck(slotIndex, id as number | null);
                           break;
                         case 'modules':
                           actions.setModules(slotIndex, id);

@@ -20,7 +20,7 @@ function createEmptySlot(index: number): PlantSlotState {
     setup: {
       machineId: null,
       batteryIds: [null],
-      workerId: null,
+      workerNftDeckSlotIndex: null,
       moduleIds: [],
       boostId: 'none',
     },

@@ -3,7 +3,6 @@ import type {
   MinecoreMachineId,
   MinecoreModuleId,
   MinecoreState,
-  MinecoreWorkerId,
   PlantSlotState,
 } from './types';
 import { getPlantBatterySlotCount } from './battery-utils';
@@ -24,8 +23,12 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
 
 /**
  * Clamp plant assignments so unlocked setups never exceed owned inventory per asset id.
- * Fixes stale/corrupt saves (and legacy bugs) where multiple plants held the same rig/worker
+ * Fixes stale/corrupt saves (and legacy bugs) where multiple plants held the same rig/battery
  * while inventory math treated every slot as needing a separate owned unit — blocking swaps/removes.
+ *
+ * LEGACY (fabricated crew): older saves used `setup.workerId` with `owned.workers` and were clamped
+ * here — see git history / `enforcePlantInventoryInvariants` blame. Plants now reference
+ * `workerNftDeckSlotIndex` into `nftSlots` (Worker NFT deck only).
  */
 export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreState {
   const plantSlots = cloneSlots(state.plantSlots);
@@ -45,18 +48,27 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
     }
   }
 
-  const WORKER_IDS = Object.keys(state.owned.workers) as MinecoreWorkerId[];
-  for (const wid of WORKER_IDS) {
-    const owned = Math.max(0, state.owned.workers[wid] ?? 0);
-    const indices = plantSlots
-      .map((p, i) => ({ p, i }))
-      .filter(({ p }) => p.unlocked && p.setup.workerId === wid)
-      .map(({ i }) => i)
-      .sort((a, b) => b - a);
-    while (indices.length > owned) {
-      const idx = indices.shift();
-      if (idx === undefined) break;
-      plantSlots[idx].setup.workerId = null;
+  const nftSlots = state.nftSlots ?? [];
+  const seenWorkerDeck = new Set<number>();
+  for (let si = 0; si < plantSlots.length; si++) {
+    const p = plantSlots[si];
+    if (!p.unlocked) continue;
+    const idx = p.setup.workerNftDeckSlotIndex;
+    if (idx == null) continue;
+    const deck = nftSlots[idx];
+    const ok =
+      deck &&
+      deck.type === 'worker' &&
+      deck.nftId != null &&
+      deck.collection;
+    if (!ok) {
+      plantSlots[si].setup.workerNftDeckSlotIndex = null;
+      continue;
+    }
+    if (seenWorkerDeck.has(idx)) {
+      plantSlots[si].setup.workerNftDeckSlotIndex = null;
+    } else {
+      seenWorkerDeck.add(idx);
     }
   }
 
