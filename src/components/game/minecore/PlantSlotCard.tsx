@@ -458,7 +458,8 @@ export function PlantSlotCard(props: {
   onInstallPart: (kind: any, id: any, batterySlotIndex?: number) => void;
   onChangePlantType: (type: any, cost: number) => void;
 }) {
-  const s   = props.slot;
+  /** Always read live slot from reducer-backed array so UI/actions cannot drift from `slotArrayIndex` (fixes stale/wrong `slot` prop). */
+  const s = props.minecoreState.plantSlots[props.slotArrayIndex] ?? props.slot;
   const now = props.now;
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
@@ -502,12 +503,6 @@ export function PlantSlotCard(props: {
   const nftStaffSlots = props.minecoreState.nftSlots ?? [];
   const fabCrewCap = fabricatedOperatorSlotsCapacity(s.setup.machineId);
   const fabCrewOn = s.setup.workerId ? 1 : 0;
-  const nftCrewCompact = MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
-    const { filled, capacity } = nftTabSlotDeployments(nftStaffSlots, role);
-    const letter =
-      role === 'worker' ? 'W' : role === 'operator' ? 'O' : role === 'foreman' ? 'F' : role === 'engineer' ? 'E' : 'B';
-    return `${letter} ${filled}/${capacity}`;
-  }).join(' · ');
   const powerDotMax = Math.max(1, getPowerUnitCap(s));
   const capUnits = getPowerUnitCap(s);
   const atFullEnergy =
@@ -619,7 +614,7 @@ export function PlantSlotCard(props: {
           </>
         ) : undefined
       }
-      title={`Mining Plant ${s.index + 1}`}
+      title={`Mining Plant ${props.slotArrayIndex + 1}`}
       category={preset.label}
       description={
         <div className="space-y-3">
@@ -693,8 +688,8 @@ export function PlantSlotCard(props: {
               installed={!!s.setup.workerId}
               label="Workers"
               value={workerConfig ? `${workerConfig.label} · +${workerConfig.diamondBonusPer24h} D/24h` : 'None assigned'}
-              stat={`Workers ${fabCrewOn}/${fabCrewCap} · ${nftCrewCompact}`}
-              tooltip={`Fabricated operator on this plant: ${fabCrewOn}/${fabCrewCap} (rig crew capacity includes machine.additionalCrewRequired when set). NFT slots — W worker, O operator, F foreman, E engineer, B booster — filled vs Workers-tab deck.`}
+              stat={`Fabricated ${fabCrewOn}/${fabCrewCap}`}
+              tooltip={`Fabricated operator assigned to this plant: ${fabCrewOn}/${fabCrewCap} (rig crew capacity). The W/O/F/E/B numbers are your Workers-tab NFT deck — shared across all plants, so they match on every card.`}
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
