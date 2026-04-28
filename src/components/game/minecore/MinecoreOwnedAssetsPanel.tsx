@@ -8,7 +8,6 @@ import {
   countBatteriesAssigned,
   countMachinesAssigned,
   countModuleAssignments,
-  countWorkersAssigned,
   displayAssignedCount,
   MINECORE_NFT_CREW_ROLES_ORDER,
   nftCrewRoleLabel,
@@ -175,7 +174,7 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
   );
 }
 
-/** Workers tab: fabricated assignments + NFT crew decks per role. */
+/** Workers tab: fabricated inventory (legacy crafting) + NFT crew decks. Plants crew uses Worker NFT decks only. */
 export function MinecoreOwnedWorkersPanel(props: {
   owned: MinecoreState['owned'];
   plantSlots: MinecoreState['plantSlots'];
@@ -183,18 +182,30 @@ export function MinecoreOwnedWorkersPanel(props: {
 }) {
   const slots = props.plantSlots;
   const nft = props.nftSlots ?? [];
+  const plantsWithWorkerNftCrew = slots.filter((p) => p.unlocked && p.setup.workerNftDeckSlotIndex != null).length;
   return (
     <GamePanelCard
       title="Assigned Workers"
-      hint="Fabricated workers: inventory vs plant assignments. NFT crew: each role’s filled slots vs Workers-tab deck."
+      hint="Mining plants use Worker NFT deck slots for crew (Workers tab). Fabricated worker inventory is separate and is not installed on plants."
     >
       <div className="space-y-4">
         <div>
-          <SectionTitle>Fabricated rigs</SectionTitle>
+          <SectionTitle>Plants using Worker NFT crew</SectionTitle>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <PlantCapsule
+              label="Plants with crew"
+              value={`${plantsWithWorkerNftCrew} / ${slots.filter((s) => s.unlocked).length}`}
+              accent={plantsWithWorkerNftCrew > 0}
+            />
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>Fabricated inventory</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_WORKERS).map((w) => {
               const total = Number(props.owned.workers[w.id] ?? 0);
-              const inUse = countWorkersAssigned(slots, w.id);
+              const inUse = 0;
               const nftCol = nftTabSlotDeployments(nft, w.id);
               return (
                 <OwnedCapsule
@@ -202,10 +213,11 @@ export function MinecoreOwnedWorkersPanel(props: {
                   label={`${w.label} (fabricated)`}
                   inUse={inUse}
                   total={total}
-                  accent={total > 0 || inUse > 0}
+                  accent={total > 0}
                   tooltipExtra={
                     <>
-                      Same-role NFT deck: <span className="font-mono">{nftCol.filled}</span> / <span className="font-mono">{nftCol.capacity}</span>.
+                      Not assigned to mining plants — crew comes from NFT decks. Same-role NFT deck:{' '}
+                      <span className="font-mono">{nftCol.filled}</span> / <span className="font-mono">{nftCol.capacity}</span>.
                     </>
                   }
                 />
