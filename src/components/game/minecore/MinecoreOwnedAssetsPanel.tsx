@@ -9,6 +9,7 @@ import {
   countMachinesAssigned,
   countModuleAssignments,
   countWorkersAssigned,
+  displayAssignedCount,
   nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS, MINECORE_WORKERS } from '@/lib/game/minecore/config';
@@ -56,7 +57,7 @@ function OwnedCapsule(props: {
           <span
             className={`font-mono text-sm font-black tabular-nums ${props.accent ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400 dark:text-zinc-500'}`}
           >
-            {props.inUse} / {props.total}
+            {displayAssignedCount(props.inUse, props.total)} / {props.total}
           </span>
         </div>
       </div>

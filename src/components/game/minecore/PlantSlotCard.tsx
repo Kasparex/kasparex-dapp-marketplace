@@ -27,6 +27,7 @@ import {
   countModuleAssignments,
   countWorkersAssigned,
   countWorkersAssignedExcept,
+  displayAssignedCount,
   inventoryAllowsPlantSetup,
   nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
@@ -651,7 +652,7 @@ export function PlantSlotCard(props: {
                       const plant = countWorkersAssigned(props.minecoreState.plantSlots, s.setup.workerId!);
                       const nft =
                         s.setup.workerId === 'worker' ? nftWorkerDeployed : s.setup.workerId === 'operator' ? nftOperatorDeployed : nftWorkerDeployed;
-                      return `Fab ${plant}/${inv} · NFT ${nft.filled}/${nft.capacity}`;
+                  return `Fab ${displayAssignedCount(plant, inv)}/${inv} · NFT ${nft.filled}/${nft.capacity}`;
                     })()
                   : `NFT W ${nftWorkerDeployed.filled}/${nftWorkerDeployed.capacity} · Op ${nftOperatorDeployed.filled}/${nftOperatorDeployed.capacity}`
               }
@@ -864,7 +865,7 @@ export function PlantSlotCard(props: {
                   title={m.label}
                   subtitle={`+${m.diamondsPer24h} D/24h cap · ${formatDuration(m.durationMs)} · +${(m.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW bus · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
                   owned={owned}
-                  inUse={countMachinesAssigned(props.minecoreState.plantSlots, m.id)}
+                  inUse={displayAssignedCount(countMachinesAssigned(props.minecoreState.plantSlots, m.id), owned)}
                   disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
@@ -910,7 +911,7 @@ export function PlantSlotCard(props: {
                   title={b.label}
                   subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} — reserve units = plant tier (V1)`}
                   owned={owned}
-                  inUse={countBatteriesAssigned(props.minecoreState.plantSlots, b.id)}
+                  inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
                   disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
@@ -922,6 +923,18 @@ export function PlantSlotCard(props: {
             );
           })}
         </ul>
+        {s.setup.batteryIds?.[batterySlotFocus] ? (
+          <button
+            type="button"
+            onClick={() => {
+              props.onInstallPart('battery', null, batterySlotFocus);
+              setActiveModal(null);
+            }}
+            className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
+          >
+            Remove battery from this slot
+          </button>
+        ) : null}
       </SelectionModal>
 
       <SelectionModal
@@ -942,7 +955,7 @@ export function PlantSlotCard(props: {
                   title={w.label}
                   subtitle={`Workers tab NFT ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap (fabricated units assign to plants)`}
                   owned={owned}
-                  inUse={countWorkersAssigned(props.minecoreState.plantSlots, w.id)}
+                  inUse={displayAssignedCount(countWorkersAssigned(props.minecoreState.plantSlots, w.id), owned)}
                   disabled={!canPick && !isInstalled}
                   selected={isInstalled}
                   onClick={() => {
@@ -976,7 +989,10 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {(Object.values(MINECORE_MODULES) as ModuleConfig[]).map((m) => {
             const owned = props.minecoreState.owned.modules[m.id as MinecoreModuleId] ?? 0;
-            const inUse = countModuleAssignments(props.minecoreState.plantSlots, m.id as MinecoreModuleId);
+            const inUse = displayAssignedCount(
+              countModuleAssignments(props.minecoreState.plantSlots, m.id as MinecoreModuleId),
+              owned,
+            );
             const isSelected = s.setup.moduleIds.includes(m.id as MinecoreModuleId);
             const maxM = MINECORE_MAX_MODULES_BY_PLANT[s.type];
             const nextIfAdd = [...s.setup.moduleIds, m.id as MinecoreModuleId].slice(0, maxM);
@@ -1015,7 +1031,16 @@ export function PlantSlotCard(props: {
             );
           })}
         </ul>
+        {s.type !== 'standard' && s.setup.moduleIds.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => {
+              props.onInstallPart('modules', []);
+              setActiveModal(null);
+            }}
+            className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
+          >
+            Clear all modules
+          </button>
+        ) : null}
       </SelectionModal>
-    </>
-  );
-}

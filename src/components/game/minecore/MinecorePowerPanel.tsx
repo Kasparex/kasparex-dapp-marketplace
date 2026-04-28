@@ -7,7 +7,7 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { computeConsumptionKw, computeMiningEfficiencyPct, computeProductionKw } from '@/lib/game/minecore/plant-economy';
@@ -71,41 +71,55 @@ export function MinecorePowerPanel(props: {
           const balKw = prodKw - consKw;
           const eff = p.unlocked && p.setup.machineId ? computeMiningEfficiencyPct(p) : 0;
 
+          const machineMeta =
+            p.setup.machineId && MINECORE_MACHINES[p.setup.machineId]
+              ? MINECORE_MACHINES[p.setup.machineId].label
+              : p.unlocked
+                ? 'No machine'
+                : '';
+          const batIds = p.setup.batteryIds ?? [];
+          const batteryMeta =
+            batIds.length > 0
+              ? batIds
+                  .map((bid, i) =>
+                    bid && MINECORE_BATTERIES[bid] ? MINECORE_BATTERIES[bid].label : `Slot ${i + 1} empty`,
+                  )
+                  .join(' · ')
+              : p.unlocked
+                ? 'No battery'
+                : '';
+
           return (
             <li
               key={p.id}
               className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
             >
-              <div className="min-w-0 flex flex-1 flex-col gap-2">
+              <div className="min-w-0 flex flex-1 flex-col gap-1">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
-                {p.unlocked && p.setup.machineId ? (
-                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
-                    <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      Power grid
-                    </div>
-                    <div className="hidden grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-800 dark:text-zinc-200 md:grid">
-                      <span className="text-zinc-500">Production</span>
-                      <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{prodKw.toFixed(1)} kW</span>
-                      <span className="text-zinc-500">Consumption</span>
-                      <span className="text-right tabular-nums text-rose-600 dark:text-rose-400">{consKw.toFixed(1)} kW</span>
-                      <span className="text-zinc-500">Balance</span>
-                      <span
-                        className={`text-right tabular-nums ${balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}
-                      >
-                        {balKw >= 0 ? '+' : ''}
-                        {balKw.toFixed(1)} kW
-                      </span>
-                      <span className="text-zinc-500">Efficiency</span>
-                      <span className="text-right tabular-nums font-bold text-zinc-900 dark:text-zinc-100">{eff.toFixed(0)}%</span>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:hidden">
-                      <span className="text-zinc-600 dark:text-zinc-400">
-                        Δ {balKw >= 0 ? '+' : ''}
-                        {balKw.toFixed(0)} kW
-                      </span>
-                      <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {eff.toFixed(0)}%</span>
-                    </div>
-                  </div>
+                {p.unlocked ? (
+                  <p className="max-w-xl text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
+                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">{machineMeta}</span>
+                    <span className="text-zinc-400 dark:text-zinc-500"> · </span>
+                    <span>{batteryMeta}</span>
+                    <span className="text-zinc-400 dark:text-zinc-500"> · </span>
+                    <span className="font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
+                      {p.setup.machineId ? `${prodKw.toFixed(1)}↗ ${consKw.toFixed(1)}↘ kW` : '—'}
+                      {p.setup.machineId ? (
+                        <>
+                          {' '}
+                          <span className="text-zinc-400 dark:text-zinc-500">·</span>
+                          Δ{' '}
+                          <span className={balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}>
+                            {balKw >= 0 ? '+' : ''}
+                            {balKw.toFixed(1)} kW
+                          </span>
+                          <span className="text-zinc-400 dark:text-zinc-500"> · </span>
+                          Eff{' '}
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{eff.toFixed(0)}%</span>
+                        </>
+                      ) : null}
+                    </span>
+                  </p>
                 ) : null}
               </div>
 

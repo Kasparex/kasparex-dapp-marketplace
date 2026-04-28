@@ -88,7 +88,14 @@ export function canAssignBatteryToPlantSlot(
 export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: number, nextSetup: PlantSetup): boolean {
   const hypotheticalSlots = state.plantSlots.map((p, i) => (i === slotIndex ? { ...p, setup: nextSetup } : p));
 
-  for (const id of Object.keys(state.owned.machines) as MinecoreMachineId[]) {
+  const machineIds = new Set<MinecoreMachineId>();
+  const workerIds = new Set<MinecoreWorkerId>();
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    if (p.setup.machineId) machineIds.add(p.setup.machineId);
+    if (p.setup.workerId) workerIds.add(p.setup.workerId);
+  }
+  for (const id of machineIds) {
     const assigned = hypotheticalSlots.reduce(
       (n, p) => n + (p.unlocked && p.setup.machineId === id ? 1 : 0),
       0,
@@ -107,7 +114,7 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
     if (c > (state.owned.batteries[id] ?? 0)) return false;
   }
 
-  for (const id of Object.keys(state.owned.workers) as MinecoreWorkerId[]) {
+  for (const id of workerIds) {
     const assigned = hypotheticalSlots.reduce(
       (n, p) => n + (p.unlocked && p.setup.workerId === id ? 1 : 0),
       0,
@@ -127,6 +134,12 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
   }
 
   return true;
+}
+
+/** UI display: assigned units cannot exceed inventory (guards stale save / edge cases). */
+export function displayAssignedCount(assigned: number, owned: number): number {
+  const o = Math.max(0, owned);
+  return Math.min(Math.max(0, assigned), o);
 }
 
 export function countMachinesAssigned(slots: PlantSlotState[], id: MinecoreMachineId): number {

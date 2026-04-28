@@ -104,16 +104,20 @@ export function MinecoreMaintenanceCostsPanel(props: {
         {row(`Upgrade → ${advanced.label}`, advanced.costKas, advanced.costKas > 0)}
         {row('Swap setup parts', 0, false, true)}
         {props.onOpenKrexWizard ? (
-          <Tooltip content="Higher KREX tiers reduce list KAS on priced mining actions (slots, recharge, upgrades). Click to open the KREX purchase wizard.">
-            <button
-              type="button"
-              onClick={props.onOpenKrexWizard}
-              className="flex flex-col gap-1 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-left text-xs transition-colors hover:bg-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
-            >
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">KREX tier discounts</span>
-              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Buy KREX · lower KAS costs</span>
-            </button>
-          </Tooltip>
+          <div className="col-span-2">
+            <Tooltip content="Higher tiers discount list KAS on mining actions. Opens KREX purchase.">
+              <button
+                type="button"
+                onClick={props.onOpenKrexWizard}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs transition-colors hover:bg-zinc-50 dark:border-emerald-500/20 dark:bg-emerald-500/5 dark:hover:bg-emerald-500/10"
+              >
+                <span className="min-w-0 truncate font-medium text-zinc-600 dark:text-zinc-400">KREX tier discounts</span>
+                <span className="shrink-0 font-mono text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  Buy KREX · lower KAS
+                </span>
+              </button>
+            </Tooltip>
+          </div>
         ) : null}
       </div>
     </GamePanelCard>

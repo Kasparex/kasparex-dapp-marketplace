@@ -137,41 +137,34 @@ export function MinecoreDashboard(_props: {
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="font-black tabular-nums text-amber-400 dark:text-amber-300">
-            {diamondsDisplayTotal.toLocaleString()}
+          <span className="font-black tabular-nums text-amber-500 dark:text-amber-400">
+            {Math.floor(deckRollingCaps.minedSum).toLocaleString()}
+            <span className="text-zinc-500 dark:text-zinc-500"> / </span>
+            {Math.floor(deckRollingCaps.capSum).toLocaleString()}
           </span>
         ),
-        subValue: (
-          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-1 gap-y-0.5 text-[11px] font-semibold tabular-nums text-zinc-600 dark:text-zinc-400">
-            <span>
-              {Math.floor(deckRollingCaps.minedSum).toLocaleString()} / {Math.floor(deckRollingCaps.capSum).toLocaleString()}
-            </span>
-            <span className="font-normal text-zinc-500 dark:text-zinc-500">total mined · rolling cap</span>
-          </span>
-        ),
-        description: 'In-game currency',
-        tooltip: `Refinable diamond stack (wallet + plants — Redeem tab uses this total). Second line: rolling 24h mined toward caps vs combined caps for plants with complete setup.`,
+        description: 'Mined · Rolling daily cap',
+        tooltip: 'Rolling 24h mined toward caps vs daily caps (ready plants only).',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
       },
       {
         id: 'refinement_points',
-        label: 'Refinement Points',
+        label: 'Refinement points',
         value: (
           <span className="inline-flex items-baseline gap-1 tabular-nums">
-            <span className="font-black text-emerald-600 dark:text-emerald-400">
-              {Math.floor(state.refinementPointsTotal).toLocaleString()}
+            <span className="font-black text-amber-500 dark:text-amber-400">
+              {Math.floor(diamondsDisplayTotal).toLocaleString()}
             </span>
             <span className="text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="font-black text-zinc-800 dark:text-zinc-100">
-              {Math.floor(state.refinementPointsEarnedLifetime ?? 0).toLocaleString()}
+            <span className="font-black text-purple-600 dark:text-purple-400">
+              {Math.floor(state.refinementPointsTotal).toLocaleString()}
             </span>
           </span>
         ),
-        description: 'Available · Refined (lifetime)',
-        tooltip:
-          'Left: refinement points you can spend on GRID/KREX redeem. Right: lifetime points minted from refining diamonds (does not decrease when you redeem).',
+        description: 'Diamonds to refine · Points balance',
+        tooltip: 'Left: diamonds available to refine. Right: spendable refinement points.',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -204,11 +197,10 @@ export function MinecoreDashboard(_props: {
       },
     ],
     [
+      diamondsDisplayTotal,
       deckRollingCaps.minedSum,
       deckRollingCaps.capSum,
-      diamondsDisplayTotal,
       state.refinementPointsTotal,
-      state.refinementPointsEarnedLifetime,
       krexL1Balance,
       krexTier,
       canPayWithL1,
@@ -273,7 +265,7 @@ export function MinecoreDashboard(_props: {
               <Icons.Gem className="h-4 w-4 text-sky-400" />
               Diamonds
             </span>
-            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{diamondsDisplayTotal.toLocaleString()}</span>
+            <span className="font-bold tabular-nums text-amber-500 dark:text-amber-400">{diamondsDisplayTotal.toLocaleString()}</span>
             <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
               {krexTier}
             </span>
