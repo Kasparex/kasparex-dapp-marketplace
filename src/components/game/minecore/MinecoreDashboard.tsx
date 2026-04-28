@@ -59,7 +59,9 @@ export function MinecoreDashboard(_props: {
     state,
     actions,
     lastPaymentError,
+    lastSetupError,
     dismissLastPaymentError,
+    dismissLastSetupError,
     getKasPriceAfterDiscount,
     slottedMetadata,
     wallet,
@@ -219,7 +221,7 @@ export function MinecoreDashboard(_props: {
   const tags = (_props.game?.tags ?? []) as string[];
 
   const tabAlerts =
-    profileNotice || lastPaymentError ? (
+    profileNotice || lastPaymentError || lastSetupError ? (
       <div className="space-y-3">
         {profileNotice ? (
           <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
@@ -245,6 +247,19 @@ export function MinecoreDashboard(_props: {
               <Icons.X className="h-4 w-4" />
             </button>
             {lastPaymentError}
+          </div>
+        ) : null}
+        {lastSetupError ? (
+          <div className="relative rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 pr-11 text-sm font-semibold text-amber-950 dark:text-amber-100">
+            <button
+              type="button"
+              onClick={() => dismissLastSetupError()}
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 text-amber-900 transition-colors hover:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/15"
+              aria-label="Dismiss setup message"
+            >
+              <Icons.X className="h-4 w-4" />
+            </button>
+            {lastSetupError}
           </div>
         ) : null}
       </div>

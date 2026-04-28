@@ -35,12 +35,19 @@ export type InstallPartPayload =
   | { kind: 'modules'; ids: MinecoreModuleId[] }
   | { kind: 'boost'; id: MinecoreBoostId };
 
+/** Uses plantSlots array index (matches InstallPart slotIndex), not slot.index — avoids drift from persisted metadata. */
 export function countMachinesAssignedExcept(slots: PlantSlotState[], id: MinecoreMachineId, exceptSlotIndex: number): number {
-  return slots.reduce((n, p) => n + (p.unlocked && p.index !== exceptSlotIndex && p.setup.machineId === id ? 1 : 0), 0);
+  return slots.reduce(
+    (n, p, i) => n + (p.unlocked && i !== exceptSlotIndex && p.setup.machineId === id ? 1 : 0),
+    0,
+  );
 }
 
 export function countWorkersAssignedExcept(slots: PlantSlotState[], id: MinecoreWorkerId, exceptSlotIndex: number): number {
-  return slots.reduce((n, p) => n + (p.unlocked && p.index !== exceptSlotIndex && p.setup.workerId === id ? 1 : 0), 0);
+  return slots.reduce(
+    (n, p, i) => n + (p.unlocked && i !== exceptSlotIndex && p.setup.workerId === id ? 1 : 0),
+    0,
+  );
 }
 
 /** Next setup after applying `InstallPart`-style payload (no battery rescaling). */
@@ -157,6 +164,83 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
   }
 
   return true;
+}
+
+/**
+ * If `inventoryAllowsPlantSetup` would reject `nextSetup`, returns a short player-facing reason; otherwise null.
+ * Mirrors inventoryAllowsPlantSetup ordering so messaging stays aligned with the guard.
+ */
+export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, nextSetup: PlantSetup): string | null {
+  if (inventoryAllowsPlantSetup(state, slotIndex, nextSetup)) return null;
+
+  const target = state.plantSlots[slotIndex];
+  if (!target) return 'Plant slot unavailable.';
+  const normalizedNext = normalizePlantSetup(target.type, nextSetup);
+  const hypotheticalSlots = state.plantSlots.map((p, i) => ({
+    ...p,
+    setup: normalizePlantSetup(p.type, i === slotIndex ? normalizedNext : p.setup),
+  }));
+
+  const machineIds = new Set<MinecoreMachineId>();
+  const workerIds = new Set<MinecoreWorkerId>();
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    if (p.setup.machineId) machineIds.add(p.setup.machineId);
+    if (p.setup.workerId) workerIds.add(p.setup.workerId);
+  }
+  for (const id of machineIds) {
+    const assigned = hypotheticalSlots.reduce(
+      (n, p) => n + (p.unlocked && p.setup.machineId === id ? 1 : 0),
+      0,
+    );
+    const owned = state.owned.machines[id] ?? 0;
+    if (assigned > owned) {
+      return `Not enough rig inventory (${assigned} needed vs ${owned} owned for this type). Assign elsewhere or craft another.`;
+    }
+  }
+
+  const batTotals = new Map<MinecoreBatteryId, number>();
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    const n = getPlantBatterySlotCount(p.type);
+    for (let bi = 0; bi < n; bi++) {
+      const bid = p.setup.batteryIds[bi] ?? null;
+      if (bid) batTotals.set(bid, (batTotals.get(bid) ?? 0) + 1);
+    }
+  }
+  for (const [id, c] of batTotals) {
+    const owned = state.owned.batteries[id] ?? 0;
+    if (c > owned) {
+      return `Not enough battery packs (${c} slots filled vs ${owned} owned for this type).`;
+    }
+  }
+
+  for (const id of workerIds) {
+    const assigned = hypotheticalSlots.reduce(
+      (n, p) => n + (p.unlocked && p.setup.workerId === id ? 1 : 0),
+      0,
+    );
+    const owned = state.owned.workers[id] ?? 0;
+    if (assigned > owned) {
+      return `Not enough fabricated workers (${assigned} assigned vs ${owned} owned).`;
+    }
+  }
+
+  const modTotals = new Map<MinecoreModuleId, number>();
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    for (const mid of p.setup.moduleIds) {
+      modTotals.set(mid, (modTotals.get(mid) ?? 0) + 1);
+    }
+  }
+  for (const [id, c] of modTotals) {
+    const owned = state.owned.modules[id] ?? 0;
+    if (c > owned) {
+      return `Not enough modules (${c} slots vs ${owned} owned for this type).`;
+    }
+  }
+
+  return 'Cannot assign — inventory limits.';
 }
 
 /** UI display: assigned units cannot exceed inventory (guards stale save / edge cases). */

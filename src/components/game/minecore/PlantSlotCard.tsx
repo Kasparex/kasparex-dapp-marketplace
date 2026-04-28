@@ -352,6 +352,8 @@ function ModalPartRow(props: {
   owned: number;
   inUse: number;
   disabled?: boolean;
+  /** Shown when disabled — tooltip explains why the row is not clickable. */
+  disabledHint?: string;
   selected?: boolean;
   onClick: () => void;
   trailing?: ReactNode;
@@ -359,7 +361,7 @@ function ModalPartRow(props: {
   const borderCls = props.selected
     ? 'border-amber-500 bg-amber-500/5 dark:border-amber-500/60'
     : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
-  return (
+  const btn = (
     <button
       type="button"
       disabled={props.disabled}
@@ -383,6 +385,14 @@ function ModalPartRow(props: {
       </div>
     </button>
   );
+  if (props.disabled && props.disabledHint) {
+    return (
+      <Tooltip content={props.disabledHint}>
+        <span className="block w-full">{btn}</span>
+      </Tooltip>
+    );
+  }
+  return btn;
 }
 
 /**
@@ -453,6 +463,11 @@ export function PlantSlotCard(props: {
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
+  const [modalFeedback, setModalFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    setModalFeedback(null);
+  }, [activeModal]);
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
@@ -882,12 +897,18 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Assign Machine"
       >
+        {modalFeedback ? (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+            {modalFeedback}
+          </p>
+        ) : null}
         <ul className="space-y-2">
           {Object.values(MINECORE_MACHINES).map((m) => {
             const owned = props.minecoreState.owned.machines[m.id] ?? 0;
             const assignedElsewhere = countMachinesAssignedExcept(props.minecoreState.plantSlots, m.id, props.slotArrayIndex);
             const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.machineId === m.id;
+            const rowBlocked = !canPick && !isInstalled;
             return (
               <li key={m.id} className="list-none">
                 <ModalPartRow
@@ -895,9 +916,20 @@ export function PlantSlotCard(props: {
                   subtitle={`+${m.diamondsPer24h} D/24h cap · ${formatDuration(m.durationMs)} · +${(m.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW bus · Budget ×${m.powerBudgetMultiplier.toFixed(2)} · Drain ×${m.powerConsumptionFactor}`}
                   owned={owned}
                   inUse={displayAssignedCount(countMachinesAssigned(props.minecoreState.plantSlots, m.id), owned)}
-                  disabled={!canPick && !isInstalled}
+                  disabled={rowBlocked}
+                  disabledHint={
+                    rowBlocked
+                      ? owned <= 0
+                        ? 'Craft this rig in Fabrication — none owned.'
+                        : 'Every owned unit of this type is already on plants (inventory limits).'
+                      : undefined
+                  }
                   selected={isInstalled}
                   onClick={() => {
+                    if (s.setup.machineId === m.id) {
+                      setModalFeedback('This rig is already equipped here.');
+                      return;
+                    }
                     props.onInstallPart('machine', m.id);
                     setActiveModal(null);
                   }}
@@ -923,6 +955,11 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title={powerUnitCount > 1 ? `Assign battery — power unit ${batterySlotFocus + 1}` : 'Assign Battery'}
       >
+        {modalFeedback ? (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+            {modalFeedback}
+          </p>
+        ) : null}
         <ul className="space-y-2">
           {Object.values(MINECORE_BATTERIES).map((b) => {
             const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
@@ -934,6 +971,7 @@ export function PlantSlotCard(props: {
               b.id,
               owned,
             );
+            const rowBlocked = !canPick && !isInstalled;
             return (
               <li key={b.id} className="list-none">
                 <ModalPartRow
@@ -941,9 +979,20 @@ export function PlantSlotCard(props: {
                   subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} — reserve units = plant tier (V1)`}
                   owned={owned}
                   inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
-                  disabled={!canPick && !isInstalled}
+                  disabled={rowBlocked}
+                  disabledHint={
+                    rowBlocked
+                      ? owned <= 0
+                        ? 'Craft this pack in Fabrication — none owned.'
+                        : 'Every owned pack of this type is already assigned (inventory limits).'
+                      : undefined
+                  }
                   selected={isInstalled}
                   onClick={() => {
+                    if (isInstalled) {
+                      setModalFeedback('This pack is already in this slot.');
+                      return;
+                    }
                     props.onInstallPart('battery', b.id, batterySlotFocus);
                     setActiveModal(null);
                   }}
@@ -953,16 +1002,15 @@ export function PlantSlotCard(props: {
           })}
         </ul>
         {s.setup.batteryIds?.[batterySlotFocus] ? (
-          <button
-            type="button"
+          <ModalActionRow
+            title="Remove battery from this slot"
+            subtitle="Returns pack to inventory; charge state resets for this slot."
+            destructive
             onClick={() => {
               props.onInstallPart('battery', null, batterySlotFocus);
               setActiveModal(null);
             }}
-            className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
-          >
-            Remove battery from this slot
-          </button>
+          />
         ) : null}
       </SelectionModal>
 
@@ -971,6 +1019,11 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Assign Worker"
       >
+        {modalFeedback ? (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+            {modalFeedback}
+          </p>
+        ) : null}
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
           <div className="font-semibold text-zinc-700 dark:text-zinc-300">NFT crew decks (Workers tab)</div>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
@@ -993,6 +1046,7 @@ export function PlantSlotCard(props: {
             const assignedElsewhere = countWorkersAssignedExcept(props.minecoreState.plantSlots, w.id, props.slotArrayIndex);
             const canPick = assignedElsewhere + 1 <= owned;
             const isInstalled = s.setup.workerId === w.id;
+            const rowBlocked = !canPick && !isInstalled;
             const nftFill = nftTabSlotDeployments(props.minecoreState.nftSlots ?? [], w.id);
             return (
               <li key={w.id} className="list-none">
@@ -1001,9 +1055,20 @@ export function PlantSlotCard(props: {
                   subtitle={`Workers tab NFT ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap (fabricated units assign to plants)`}
                   owned={owned}
                   inUse={displayAssignedCount(countWorkersAssigned(props.minecoreState.plantSlots, w.id), owned)}
-                  disabled={!canPick && !isInstalled}
+                  disabled={rowBlocked}
+                  disabledHint={
+                    rowBlocked
+                      ? owned <= 0
+                        ? 'Fabricate workers in Fabrication — none owned.'
+                        : 'Every owned worker of this type is already on plants (inventory limits).'
+                      : undefined
+                  }
                   selected={isInstalled}
                   onClick={() => {
+                    if (s.setup.workerId === w.id) {
+                      setModalFeedback('This worker is already assigned here.');
+                      return;
+                    }
                     props.onInstallPart('worker', w.id);
                     setActiveModal(null);
                   }}
@@ -1012,16 +1077,16 @@ export function PlantSlotCard(props: {
             );
           })}
         </ul>
-        <button
-          type="button"
+        <ModalActionRow
+          title="Remove worker"
+          subtitle="Returns fabricated worker to inventory."
+          destructive
+          disabled={!s.setup.workerId}
           onClick={() => {
             props.onInstallPart('worker', null);
             setActiveModal(null);
           }}
-          className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
-        >
-          Remove worker
-        </button>
+        />
       </SelectionModal>
       <SelectionModal
         isOpen={activeModal === 'modules'}
@@ -1060,6 +1125,13 @@ export function PlantSlotCard(props: {
                   owned={owned}
                   inUse={inUse}
                   disabled={moduleAddBlocked}
+                  disabledHint={
+                    moduleAddBlocked
+                      ? owned <= 0
+                        ? 'Craft this module in Fabrication — none owned.'
+                        : 'Inventory limits — remove from another plant or craft another.'
+                      : undefined
+                  }
                   selected={isSelected}
                   onClick={() => {
                     if (moduleAddBlocked && !isSelected) return;

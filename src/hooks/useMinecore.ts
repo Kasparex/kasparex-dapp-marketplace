@@ -18,6 +18,7 @@ import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sd
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import type { MiningSlotType } from '@/lib/game/engine';
+import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
@@ -58,13 +59,20 @@ export function useMinecore() {
 
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const prevWalletRef = useRef<string>('');
+  /** Avoid reloading the same wallet from localStorage on Strict Mode remounts / redundant effect runs. */
+  const hydratedWalletAddrRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!walletAddr) {
       setProfileNotice(null);
       prevWalletRef.current = '';
+      hydratedWalletAddrRef.current = null;
       return;
     }
+    if (hydratedWalletAddrRef.current === walletAddr) {
+      return;
+    }
+    hydratedWalletAddrRef.current = walletAddr;
     const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
     setMc(loaded ?? createInitialMinecoreState());
     if (prevWalletRef.current !== walletAddr) {
@@ -101,9 +109,28 @@ export function useMinecore() {
   const nowTick = useNowTick(1000);
   const derived = useMemo(() => deriveState(mc, nowTick), [mc, nowTick]);
 
-  /** Always applies reducer updates so setup edits work offline; persistence runs only when a wallet address is set. Paid flows still gate on wallet/KAS before calling dispatch. */
+  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
+  const [lastSetupError, setLastSetupError] = useState<string | null>(null);
+
+  /** Applies Minecore events; InstallPart is validated first so inventory rejects never bump version silently. */
   const dispatch = useCallback((ev: Parameters<typeof applyMinecoreEvent>[1]) => {
-    setMc((s) => applyMinecoreEvent(s, ev));
+    setMc((s) => {
+      if (ev.type !== 'InstallPart') return applyMinecoreEvent(s, ev);
+
+      const slot = s.plantSlots[ev.slotIndex];
+      if (!slot || !slot.unlocked) {
+        queueMicrotask(() => setLastSetupError('Plant is locked or unavailable.'));
+        return s;
+      }
+      const nextSetup = nextPlantSetupAfterInstallPart(slot, ev.part);
+      const msg = explainPlantSetupBlock(s, ev.slotIndex, nextSetup);
+      if (msg) {
+        queueMicrotask(() => setLastSetupError(msg));
+        return s;
+      }
+      queueMicrotask(() => setLastSetupError(null));
+      return applyMinecoreEvent(s, ev);
+    });
   }, []);
 
   /**
@@ -118,13 +145,15 @@ export function useMinecore() {
       const s = mcRef.current;
       const d = deriveState(s, now);
 
-      for (const slot of s.plantSlots) {
-        if (!slot.unlocked) continue;
-        const status = d.plantSlots[slot.index].status;
+      for (let slotIdx = 0; slotIdx < s.plantSlots.length; slotIdx++) {
+        const slot = s.plantSlots[slotIdx];
+        if (!slot?.unlocked) continue;
+        const status = d.plantSlots[slotIdx]?.status;
+        if (!status) continue;
 
         if (status === 'BatteryEmpty' && s.ingredients.energyCells > 0) {
           dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
-          dispatch({ type: 'RefillBattery', slotIndex: slot.index, at: now });
+          dispatch({ type: 'RefillBattery', slotIndex: slotIdx, at: now });
           break;
         }
       }
@@ -140,22 +169,22 @@ export function useMinecore() {
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
     const now = nowTick;
-    for (const slot of derived.plantSlots) {
-      if (!slot.unlocked) continue;
+    for (let slotIdx = 0; slotIdx < derived.plantSlots.length; slotIdx++) {
+      const slot = derived.plantSlots[slotIdx];
+      if (!slot?.unlocked) continue;
       const st = slot.status;
-      const prev = autoBankPrevStatusRef.current[slot.index];
+      const prev = autoBankPrevStatusRef.current[slotIdx];
       const justEntered = prev === undefined || prev !== st;
       const canBank =
         slot.diamondsAccumulated > 0 ||
         (slot.cycle != null && computeLiveDiamonds(slot, now) > 0);
       if (justEntered && (st === 'ExtractionReady' || st === 'BatteryEmpty') && canBank) {
-        dispatch({ type: 'Extract', slotIndex: slot.index, at: now });
+        dispatch({ type: 'Extract', slotIndex: slotIdx, at: now });
       }
-      autoBankPrevStatusRef.current[slot.index] = st;
+      autoBankPrevStatusRef.current[slotIdx] = st;
     }
   }, [walletState.isConnected, walletAddr, derived.plantSlots, nowTick, dispatch]);
 
-  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
 
   useEffect(() => {
@@ -447,12 +476,14 @@ export function useMinecore() {
     profileNotice,
     dismissProfileNotice: () => setProfileNotice(null),
     dismissLastPaymentError: () => setLastPaymentError(null),
+    dismissLastSetupError: () => setLastSetupError(null),
     wallet: {
       isConnected: walletState.isConnected,
       address: walletState.address ?? null,
       provider: walletState.provider ?? null,
     },
     lastPaymentError,
+    lastSetupError,
     actions: {
       unlockSlot,
       addSlot,
