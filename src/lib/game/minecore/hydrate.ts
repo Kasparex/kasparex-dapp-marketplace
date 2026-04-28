@@ -1,11 +1,18 @@
 import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState } from './types';
+import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return !!v && typeof v === 'object';
+function sanitizeIngredientBag(input: unknown, base: MinecoreState['ingredients']): MinecoreState['ingredients'] {
+  if (!isRecord(input)) return { ...base };
+  const next = { ...base };
+  for (const k of MINECORE_INGREDIENT_KEYS) {
+    const v = input[k];
+    if (typeof v === 'number' && Number.isFinite(v)) next[k] = Math.max(0, Math.floor(v));
+  }
+  return next;
 }
 
 function hydrateSlot(input: unknown, index: number): PlantSlotState {
@@ -116,7 +123,7 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     krexRedeemableTotal:
       typeof input.krexRedeemableTotal === 'number' ? input.krexRedeemableTotal : base.krexRedeemableTotal,
     redeemBudget,
-    ingredients: isRecord(input.ingredients) ? ({ ...base.ingredients, ...(input.ingredients as any) } as any) : base.ingredients,
+    ingredients: sanitizeIngredientBag(input.ingredients, base.ingredients),
     owned: isRecord(input.owned) ? ({ ...base.owned, ...(input.owned as any) } as any) : base.owned,
     plantSlots,
     nextSlotCostKas: typeof input.nextSlotCostKas === 'number' ? input.nextSlotCostKas : base.nextSlotCostKas,

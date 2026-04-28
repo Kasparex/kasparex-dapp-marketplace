@@ -64,31 +64,36 @@ export function WorkersPanel(props: {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="max-w-xl">
           <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Auto-restart mining runs
-            <GameTooltip content="V1: runs do not auto-chain when a battery or cycle ends—you always press Start again. Foreman can still auto-refill a dead battery from Energy Cells. Future: Regen Coil / Foreman may re-enable auto-chaining here.">
+            <GameTooltip content="Requires Regen Coil + toggle, or a Foreman NFT. Otherwise runs still finish manually.">
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
                 ?
               </button>
             </GameTooltip>
           </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">V1: manual restarts only (toggle reserved for future auto-chain)</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Opt-in for future auto-chaining when infrastructure is ready.</p>
         </div>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-zinc-400 text-emerald-600 focus:ring-emerald-500"
-            checked={props.autoRestart}
-            onChange={(e) => props.onToggleAutoRestart(e.target.checked)}
+        <button
+          type="button"
+          role="switch"
+          aria-label={props.autoRestart ? 'Disable auto-restart mining' : 'Enable auto-restart mining'}
+          aria-checked={props.autoRestart}
+          onClick={() => props.onToggleAutoRestart(!props.autoRestart)}
+          className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 ${
+            props.autoRestart ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-7 w-7 rounded-full bg-white shadow transition ${
+              props.autoRestart ? 'translate-x-6' : 'translate-x-0.5'
+            }`}
           />
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Enabled</span>
-        </label>
+        </button>
       </div>
       {props.autoRestart && !props.autoRestartInfrastructureActive ? (
-        <p className="text-xs text-amber-700 dark:text-amber-400">
-          Toggle is on, but nothing will auto-chain yet — craft &amp; install <strong>Regen Coil</strong> on a Premium/Advanced plant, or assign a <strong>Foreman</strong> NFT below.
-        </p>
+        <p className="text-[11px] text-amber-700 dark:text-amber-400">No auto-chain yet — add Regen Coil or Foreman NFT.</p>
       ) : null}
 
       <CardsFilterBar

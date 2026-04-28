@@ -23,6 +23,7 @@ import {
   countMachinesAssigned,
   countModuleAssignments,
   countWorkersAssigned,
+  nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
 import {
   MINECORE_BATTERIES,
@@ -31,7 +32,6 @@ import {
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_POWER_UNITS,
-  MINECORE_PLANT_WORKFORCE_CAPACITY,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_KW_SCALE,
@@ -428,11 +428,10 @@ export function PlantSlotCard(props: {
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
   const workerConfig    = s.setup.workerId  ? MINECORE_WORKERS[s.setup.workerId]    : null;
   const powerUnitCount  = getPlantBatterySlotCount(s.type);
-  const workforceCap    = MINECORE_PLANT_WORKFORCE_CAPACITY[s.type ?? 'standard'];
-  const crewAssigned    = workerConfig ? 1 : 0;
-  const powerDotMax     = Math.max(1, getPowerUnitCap(s));
-
-  // ── Action label ─────────────────────────────────────────────────────────
+  const nftStaffSlots = props.minecoreState.nftSlots ?? [];
+  const nftWorkerDeployed = nftTabSlotDeployments(nftStaffSlots, 'worker');
+  const nftOperatorDeployed = nftTabSlotDeployments(nftStaffSlots, 'operator');
+  const powerDotMax = Math.max(1, getPowerUnitCap(s));
   const capUnits = getPowerUnitCap(s);
   const atFullEnergy =
     hasInstalledBattery(s.setup, s.type) &&
@@ -599,29 +598,35 @@ export function PlantSlotCard(props: {
             })}
             <CheckRow
               installed={!!s.setup.workerId}
-              label={workerConfig ? `Worker — ${workerConfig.label}` : 'Worker — Unassigned'}
-              value={`${crewAssigned} / ${workforceCap}`}
-              stat={workerConfig ? `+${workerConfig.diamondBonusPer24h} D/24h` : undefined}
-              tooltip={
+              label="Workers"
+              value={workerConfig ? `${workerConfig.label} · +${workerConfig.diamondBonusPer24h} D/24h` : 'None assigned'}
+              stat={
                 workerConfig
-                  ? `${workerConfig.label}: +${workerConfig.diamondBonusPer24h} diamonds/24h to the rolling cap (flat bonus). Crew ${crewAssigned}/${workforceCap} is plant station capacity (V1: one operator).`
-                  : `Assign an operator. Crew ${crewAssigned}/${workforceCap} — plant tier sets how many stations you can fill in future updates.`
+                  ? (() => {
+                      const inv = props.minecoreState.owned.workers[s.setup.workerId!] ?? 0;
+                      const plant = countWorkersAssigned(props.minecoreState.plantSlots, s.setup.workerId!);
+                      const nft =
+                        s.setup.workerId === 'worker' ? nftWorkerDeployed : s.setup.workerId === 'operator' ? nftOperatorDeployed : nftWorkerDeployed;
+                      return `Fab ${plant}/${inv} · NFT ${nft.filled}/${nft.capacity}`;
+                    })()
+                  : `NFT W ${nftWorkerDeployed.filled}/${nftWorkerDeployed.capacity} · Op ${nftOperatorDeployed.filled}/${nftOperatorDeployed.capacity}`
               }
+              tooltip="Fabricated Workers/Operators equip your plant operator slot. Matching NFT crews in Workers tab stacks bonuses (NFT slot fills shown on the chip)."
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
-            <CheckRow
-              installed={s.setup.moduleIds.length > 0}
-              label="Modules"
-              value={s.type === 'standard' ? 'Locked (Upgrade Plant)' : (s.setup.moduleIds.length > 0 ? `${s.setup.moduleIds.length} active` : 'No modules')}
-              stat={s.type === 'standard' ? 'LOCKED' : undefined}
-              tooltip={s.type === 'standard' ? 'Standard plants do not support modules. Upgrade to Premium or Advanced to unlock module slots.' : 'Specialized hardware to boost output or reduce failure rates.'}
-              onClick={() => {
-                if (s.type === 'standard') setActiveModal('preset');
-                else setActiveModal('modules');
-              }}
-              disabled={!canEditParts}
-            />
+            {s.type !== 'standard' ? (
+              <div className="px-2 pb-1 pt-0.5">
+                <button
+                  type="button"
+                  disabled={!canEditParts}
+                  onClick={() => canEditParts && setActiveModal('modules')}
+                  className={`text-[11px] font-semibold ${canEditParts ? 'text-sky-600 hover:underline dark:text-sky-400' : 'cursor-not-allowed text-zinc-400'}`}
+                >
+                  Manage modules{s.setup.moduleIds.length > 0 ? ` (${s.setup.moduleIds.length} active)` : ''}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {/* ── Resource bars ── */}
@@ -878,11 +883,12 @@ export function PlantSlotCard(props: {
             const owned = props.minecoreState.owned.workers[w.id] ?? 0;
             const inUse = countWorkersAssigned(props.minecoreState.plantSlots, w.id);
             const isInstalled = s.setup.workerId === w.id;
+            const nftFill = nftTabSlotDeployments(props.minecoreState.nftSlots ?? [], w.id);
             return (
               <li key={w.id} className="list-none">
                 <ModalPartRow
                   title={w.label}
-                  subtitle={`+${w.diamondBonusPer24h} D/24h to rolling cap (flat)`}
+                  subtitle={`Workers tab NFT ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap (fabricated units assign to plants)`}
                   owned={owned}
                   inUse={inUse}
                   disabled={owned <= 0 && !isInstalled}
@@ -896,6 +902,16 @@ export function PlantSlotCard(props: {
             );
           })}
         </ul>
+        <button
+          type="button"
+          onClick={() => {
+            props.onInstallPart('worker', null);
+            setActiveModal(null);
+          }}
+          className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50/80 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
+        >
+          Remove worker
+        </button>
       </SelectionModal>
       <SelectionModal
         isOpen={activeModal === 'modules'}

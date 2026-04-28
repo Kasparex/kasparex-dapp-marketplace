@@ -136,10 +136,18 @@ export function MinecoreDashboard(_props: {
       {
         id: 'diamonds',
         label: 'Diamonds',
-        value: <span className="text-amber-400 dark:text-amber-300">{diamondsDisplayTotal.toLocaleString()}</span>,
-        subValue: `Rolling 24h: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()} · ${Math.floor(state.refinementPointsTotal).toLocaleString()} RP`,
-        description: 'Refinable total (same number as Redeem tab)',
-        tooltip: `Total diamonds you can refine: ${diamondsDisplayTotal.toLocaleString()} (wallet + live in any plant, same source the Redeem tab uses). Rolling window shows progress toward 24h caps: ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} / ${Math.floor(deckRollingCaps.capSum).toLocaleString()}.`,
+        value: (
+          <span className="inline-flex items-baseline gap-1 text-amber-400 dark:text-amber-300">
+            <span className="font-black tabular-nums">{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
+            <span className="text-zinc-500 dark:text-zinc-500">/</span>
+            <span className="font-black tabular-nums text-emerald-500 dark:text-emerald-400">
+              {Math.floor(deckRollingCaps.capSum).toLocaleString()}
+            </span>
+          </span>
+        ),
+        subValue: `${Math.floor(state.refinementPointsTotal).toLocaleString()} refinement pts`,
+        description: 'In-game currency mined at plants (shown: rolling 24h vs total caps).',
+        tooltip: `Rolling 24h progress across plants: mined ${Math.floor(deckRollingCaps.minedSum).toLocaleString()} toward combined cap ${Math.floor(deckRollingCaps.capSum).toLocaleString()}. Total refinable stack (wallet + plants, Redeem tab): ${diamondsDisplayTotal.toLocaleString()}.`,
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining' as const),
@@ -416,7 +424,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'workers' && (
             <div className="space-y-6">
-              <MinecoreOwnedWorkersPanel owned={state.owned} plantSlots={state.plantSlots} />
+              <MinecoreOwnedWorkersPanel owned={state.owned} plantSlots={state.plantSlots} nftSlots={state.nftSlots} />
               <WorkersPanel
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}

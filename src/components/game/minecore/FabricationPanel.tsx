@@ -39,8 +39,10 @@ export function FabricationPanel(props: {
 
   const canAffordRecipe = (requires: Record<string, number>) => {
     for (const [k, v] of Object.entries(requires)) {
-      const have = props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0;
-      if (have < (typeof v === 'number' ? v : 0)) return false;
+      if (!(MINECORE_INGREDIENT_KEYS as readonly string[]).includes(k)) continue;
+      const need = typeof v === 'number' && Number.isFinite(v) ? Math.floor(v) : 0;
+      const have = Math.floor(props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0);
+      if (have < need) return false;
     }
     return true;
   };
@@ -203,13 +205,15 @@ export function FabricationPanel(props: {
               }
             }
 
-            const ingredients: GameItemEffectLine[] = Object.entries(r.requires).map(([k, v]) => {
-              const need = Number(v ?? 0);
-              const have = Math.floor(props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0);
-              const ok = have >= need;
-              const name = INGREDIENT_LABELS[k as keyof typeof INGREDIENT_LABELS] ?? k;
-              return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()}`, muted: !ok };
-            });
+            const ingredients: GameItemEffectLine[] = Object.entries(r.requires)
+              .filter(([k]) => (MINECORE_INGREDIENT_KEYS as readonly string[]).includes(k))
+              .map(([k, v]) => {
+                const need = Number(v ?? 0);
+                const have = Math.floor(props.state.ingredients[k as keyof typeof props.state.ingredients] ?? 0);
+                const ok = have >= need;
+                const name = INGREDIENT_LABELS[k as keyof typeof INGREDIENT_LABELS] ?? k;
+                return { label: name, value: `${have.toLocaleString()} / ${need.toLocaleString()}`, muted: !ok };
+              });
 
             const featuredImageUrl = isMachine
               ? MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES]?.featuredImageUrl

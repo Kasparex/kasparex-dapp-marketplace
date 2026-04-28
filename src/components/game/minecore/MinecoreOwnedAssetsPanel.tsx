@@ -7,6 +7,7 @@ import {
   countMachinesAssigned,
   countModuleAssignments,
   countWorkersAssigned,
+  nftTabSlotDeployments,
 } from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS, MINECORE_WORKERS } from '@/lib/game/minecore/config';
 
@@ -23,7 +24,7 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   latticeWire: 'Lattice Wire',
 };
 
-function OwnedCapsule(props: { label: string; inUse: number; total: number; accent: boolean }) {
+function OwnedCapsule(props: { label: string; inUse: number; total: number; accent: boolean; footnote?: string }) {
   return (
     <div className="flex flex-col gap-0.5 rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
       <div className="flex items-center justify-between gap-2">
@@ -39,7 +40,7 @@ function OwnedCapsule(props: { label: string; inUse: number; total: number; acce
         </span>
       </div>
       <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
-        {props.inUse} in use · {props.total} owned
+        {props.footnote ?? `${props.inUse} assigned · ${props.total} owned`}
       </div>
     </div>
   );
@@ -132,20 +133,53 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   );
 }
 
-/** Workers tab: inventory workers assignable to plants (same layout as Build assets). */
-export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned']; plantSlots: MinecoreState['plantSlots'] }) {
+/** Workers tab: fabricated workers on plants + NFT crew slots (Workers tab). */
+export function MinecoreOwnedWorkersPanel(props: {
+  owned: MinecoreState['owned'];
+  plantSlots: MinecoreState['plantSlots'];
+  nftSlots: MinecoreState['nftSlots'];
+}) {
   const slots = props.plantSlots;
+  const nft = props.nftSlots ?? [];
+  const foreman = nftTabSlotDeployments(nft, 'foreman');
+  const engineer = nftTabSlotDeployments(nft, 'engineer');
   return (
     <GamePanelCard
       title="Owned workers"
-      hint="Assignable worker units for your plants. In use counts assignments on unlocked plants."
+      hint="Fabricated Worker/Operator counts show plant assignments. NFT rows show Workers-tab crew decks (1 NFT per slot when filled)."
     >
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {Object.values(MINECORE_WORKERS).map((w) => {
           const total = Number(props.owned.workers[w.id] ?? 0);
           const inUse = countWorkersAssigned(slots, w.id);
-          return <OwnedCapsule key={w.id} label={w.label} inUse={inUse} total={total} accent={total > 0} />;
+          const nftCol = nftTabSlotDeployments(nft, w.id);
+          return (
+            <OwnedCapsule
+              key={w.id}
+              label={`${w.label} (fabricated)`}
+              inUse={inUse}
+              total={total}
+              accent={total > 0 || inUse > 0}
+              footnote={`NFT tab ${nftCol.filled}/${nftCol.capacity}`}
+            />
+          );
         })}
+        <OwnedCapsule
+          key="foreman"
+          label="Foreman (NFT)"
+          inUse={foreman.filled}
+          total={foreman.capacity}
+          accent={foreman.filled > 0}
+          footnote="Workers tab slot"
+        />
+        <OwnedCapsule
+          key="engineer"
+          label="Engineer (NFT)"
+          inUse={engineer.filled}
+          total={engineer.capacity}
+          accent={engineer.filled > 0}
+          footnote="Workers tab slot"
+        />
       </div>
     </GamePanelCard>
   );
@@ -154,7 +188,7 @@ export function MinecoreOwnedWorkersPanel(props: { owned: MinecoreState['owned']
 /** Shop tab: same capsule layout as former Raw Ingredients; gray when quantity is 0. */
 export function MinecoreOwnedIngredientsPanel(props: { ingredients: MinecoreState['ingredients'] }) {
   return (
-    <GamePanelCard title="Owned Ingredients" hint="Stacks available for fabrication (machines, batteries, modules).">
+    <GamePanelCard title="Owned Ingredients" hint="Start at zero — purchase stacks in Shop to fabricate rigs and batteries.">
       <div className="grid grid-cols-2 gap-2">
         {MINECORE_INGREDIENT_KEYS.map((k) => {
           const n = Math.floor(props.ingredients[k] ?? 0);
