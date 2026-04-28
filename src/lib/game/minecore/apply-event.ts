@@ -277,16 +277,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'InstallPart': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      // Finalize any in-progress or paused cycle so setup swaps/removals always apply (mid-run diamonds merge into accumulation).
+      const nextSetup = nextPlantSetupAfterInstallPart(slot, ev.part);
+      if (!inventoryAllowsPlantSetup(s, ev.slotIndex, nextSetup)) {
+        return rederive(s, now);
+      }
+      // Finalize cycle only after inventory allows the edit (paused/stopped swaps; mid-run diamonds merge into accumulation).
       if (slot.cycle) {
         slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
         slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, now);
         slot.batterySnapshotAt = now;
         slot.cycle = null;
-      }
-      const nextSetup = nextPlantSetupAfterInstallPart(slot, ev.part);
-      if (!inventoryAllowsPlantSetup(s, ev.slotIndex, nextSetup)) {
-        return rederive(s, now);
       }
       if (ev.part.kind === 'machine') {
         const oldMax = getMaxChargePerSlotMs(slot.setup, slot.type);

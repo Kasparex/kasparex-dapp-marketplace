@@ -84,34 +84,36 @@ export function MinecoreDashboard(_props: {
   const [miningCategory, setMiningCategory] = useState('all');
   const [miningSort, setMiningSort] = useState('recommended');
 
-  const filteredSlots = useMemo(() => {
-    let list = [...state.plantSlots];
+  /** Each row carries the real `plantSlots` array index so InstallPart targets the same slot as the UI (no findIndex/id drift). */
+  const filteredMiningSlots = useMemo(() => {
+    let entries = state.plantSlots.map((slot, slotIndex) => ({ slot, slotIndex }));
     if (miningSearch) {
       const q = miningSearch.toLowerCase();
-      list = list.filter(slot => 
-        slot.setup.machineId?.toLowerCase().includes(q) || 
-        slot.id.toLowerCase().includes(q) ||
-        (slot.index + 1).toString().includes(q)
+      entries = entries.filter(
+        ({ slot }) =>
+          slot.setup.machineId?.toLowerCase().includes(q) ||
+          slot.id.toLowerCase().includes(q) ||
+          (slot.index + 1).toString().includes(q),
       );
     }
     if (miningCategory !== 'all') {
-      if (miningCategory === 'Unlocked') list = list.filter(s => s.unlocked);
-      if (miningCategory === 'Locked') list = list.filter(s => !s.unlocked);
+      if (miningCategory === 'Unlocked') entries = entries.filter(({ slot }) => slot.unlocked);
+      if (miningCategory === 'Locked') entries = entries.filter(({ slot }) => !slot.unlocked);
       if (miningCategory === 'Active') {
-        list = list.filter(
-          (s) =>
-            s.status === 'MiningActive' ||
-            s.status === 'MiningPaused' ||
-            s.status === 'InsufficientPower',
+        entries = entries.filter(
+          ({ slot }) =>
+            slot.status === 'MiningActive' ||
+            slot.status === 'MiningPaused' ||
+            slot.status === 'InsufficientPower',
         );
       }
     }
     if (miningSort === 'price_asc') {
-      list.sort((a, b) => a.unlockCostKas - b.unlockCostKas);
+      entries.sort((a, b) => a.slot.unlockCostKas - b.slot.unlockCostKas);
     } else if (miningSort === 'price_desc') {
-      list.sort((a, b) => b.unlockCostKas - a.unlockCostKas);
+      entries.sort((a, b) => b.slot.unlockCostKas - a.slot.unlockCostKas);
     }
-    return list;
+    return entries;
   }, [state.plantSlots, miningSearch, miningCategory, miningSort]);
 
   const canPayWithL1 =
@@ -349,50 +351,46 @@ export function MinecoreDashboard(_props: {
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
-                {filteredSlots.map((slot) => {
-                  const resolvedIdx = state.plantSlots.findIndex((p) => p.id === slot.id);
-                  const slotIdx = resolvedIdx >= 0 ? resolvedIdx : slot.index;
-                  return (
+                {filteredMiningSlots.map(({ slot, slotIndex }) => (
                   <PlantSlotCard
-                    key={slot.id}
+                    key={`plant-slot-${slotIndex}`}
                     minecoreState={state}
                     slot={slot}
-                    slotArrayIndex={slotIdx}
+                    slotArrayIndex={slotIndex}
                     now={nowTick}
-                    onUnlock={() => void actions.unlockSlot(slotIdx, slot.unlockCostKas)}
-                    onStart={() => actions.startMining(slotIdx)}
-                    onStopMining={() => actions.stopMining(slotIdx)}
-                    onResumeMining={() => actions.resumeMining(slotIdx)}
-                    onExtract={() => actions.extract(slotIdx)}
+                    onUnlock={() => void actions.unlockSlot(slotIndex, slot.unlockCostKas)}
+                    onStart={() => actions.startMining(slotIndex)}
+                    onStopMining={() => actions.stopMining(slotIndex)}
+                    onResumeMining={() => actions.resumeMining(slotIndex)}
+                    onExtract={() => actions.extract(slotIndex)}
                     onRechargePlant={async (opts) => {
-                      void (await actions.rechargePlantWithKAS(slotIdx, opts));
+                      void (await actions.rechargePlantWithKAS(slotIndex, opts));
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
-                      void (await actions.repairWithKAS(slotIdx, amountKas));
+                      void (await actions.repairWithKAS(slotIndex, amountKas));
                     }}
                     onInstallPart={(kind, id, batterySlotIndex) => {
                       const batteryIdx = batterySlotIndex ?? 0;
                       switch (kind) {
                         case 'machine':
-                          actions.installMachine(slotIdx, id);
+                          actions.installMachine(slotIndex, id);
                           break;
                         case 'battery':
-                          actions.installBattery(slotIdx, id, batteryIdx);
+                          actions.installBattery(slotIndex, id, batteryIdx);
                           break;
                         case 'worker':
-                          actions.installWorker(slotIdx, id);
+                          actions.installWorker(slotIndex, id);
                           break;
                         case 'modules':
-                          actions.setModules(slotIdx, id);
+                          actions.setModules(slotIndex, id);
                           break;
                         default:
                           break;
                       }
                     }}
-                    onChangePlantType={(type, cost) => actions.changePlantType(slotIdx, type, cost)}
+                    onChangePlantType={(type, cost) => actions.changePlantType(slotIndex, type, cost)}
                   />
-                  );
-                })}
+                ))}
 
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
                   <div className="flex items-center justify-between gap-3">
