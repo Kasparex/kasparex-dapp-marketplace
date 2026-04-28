@@ -15,6 +15,7 @@ import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
 import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { LazyImg } from '@/components/ui/LazyImg';
+import { X } from 'lucide-react';
 
 function getNFTImageUrl(metadata: ParsedNFTMetadata | null): string | null {
   if (!metadata?.image) return null;
@@ -255,13 +256,15 @@ export function ChroniclesNftSlotSelector({
                 <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">Selected: {currentValue}</span>
                 <button
                   type="button"
+                  aria-label="Remove NFT from this slot"
+                  title="Remove NFT from this slot"
                   onClick={() => {
                     onRemove();
                     onClose();
                   }}
-                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-red-500/20 hover:text-red-600 dark:hover:text-red-400 border border-zinc-300 dark:border-zinc-600 transition-colors"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-200 text-zinc-700 transition-colors hover:bg-rose-500/20 hover:text-rose-600 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                 >
-                  Remove
+                  <X className="h-4 w-4" strokeWidth={2.5} />
                 </button>
               </div>
             ) : null}
@@ -384,6 +387,7 @@ export function ChroniclesNftSlotSelector({
                 const imageUrl = getNFTImageUrl(meta);
                 const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
+                const equippedHere = Boolean(currentValue && ref === currentValue);
                 const rawUsage = usageByRef[ref] ?? [];
                 const usage = rawUsage.filter((u) => {
                   if (!currentContext) return true;
@@ -404,6 +408,21 @@ export function ChroniclesNftSlotSelector({
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-4xl">🧩</div>
                       )}
+                      {equippedHere && onRemove ? (
+                        <button
+                          type="button"
+                          aria-label="Remove NFT from this slot"
+                          title="Remove from this slot"
+                          className="absolute right-2 top-2 z-[3] flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300/95 bg-white/95 text-zinc-600 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-600 dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-300 dark:hover:bg-rose-950/60 dark:hover:text-rose-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemove();
+                            onClose();
+                          }}
+                        >
+                          <X className="h-4 w-4" strokeWidth={2.5} />
+                        </button>
+                      ) : null}
                       {inUse ? (
                         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-bold uppercase">
                           In use
@@ -432,14 +451,14 @@ export function ChroniclesNftSlotSelector({
                       <button
                         type="button"
                         onClick={() => {
-                          if (inUse) return;
+                          if (inUse || equippedHere) return;
                           onSelect(ref);
                           onClose();
                         }}
-                        disabled={inUse}
+                        disabled={inUse || equippedHere}
                         className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {inUse ? 'In use in another slot' : 'Insert here'}
+                        {inUse ? 'In use in another slot' : equippedHere ? 'Equipped — tap ✕ above to remove' : 'Insert here'}
                       </button>
                     </div>
                   </div>
