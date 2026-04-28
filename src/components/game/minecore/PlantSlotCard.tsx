@@ -173,29 +173,39 @@ function CheckRow(props: {
       ? 'text-[10px] font-bold flex-shrink-0 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
       : 'text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded';
   const interactive = Boolean(props.onClick) && !props.disabled;
+  const rowCls = `flex w-full items-center gap-2 py-2 px-2 rounded-lg transition-colors group text-left font-sans ${
+    interactive ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer' : 'cursor-not-allowed opacity-55'
+  }`;
+
+  const inner = (
+    <>
+      <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+        {props.installed ? '✓' : '✗'}
+      </span>
+      <span className={`text-xs font-semibold max-w-[44%] flex-shrink-0 leading-tight sm:max-w-[40%] ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
+        {props.label}
+      </span>
+      <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
+        {props.value ?? 'Tap to assign…'}
+      </span>
+      {props.stat ? <span className={statCls}>{props.stat}</span> : null}
+      {interactive ? (
+        <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
+      ) : null}
+    </>
+  );
+
   return (
     <Tooltip content={props.tooltip}>
-      <div
-        className={`flex items-center gap-2 py-2 px-2 rounded-lg transition-colors group ${
-          interactive ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer' : 'cursor-not-allowed opacity-55'
-        }`}
-        onClick={interactive ? props.onClick : undefined}
-        aria-disabled={props.disabled || undefined}
-      >
-        <span className={`flex-shrink-0 text-sm font-black ${props.installed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-          {props.installed ? '✓' : '✗'}
-        </span>
-        <span className={`text-xs font-semibold max-w-[44%] flex-shrink-0 leading-tight sm:max-w-[40%] ${props.installed ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-600'}`}>
-          {props.label}
-        </span>
-        <span className={`text-xs truncate flex-1 font-medium ${props.installed ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-600 italic'}`}>
-          {props.value ?? 'Tap to assign…'}
-        </span>
-        {props.stat ? <span className={statCls}>{props.stat}</span> : null}
-        {interactive ? (
-          <Icons.ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 group-hover:text-zinc-500 transition-colors" />
-        ) : null}
-      </div>
+      {interactive ? (
+        <button type="button" className={rowCls} onClick={props.onClick}>
+          {inner}
+        </button>
+      ) : (
+        <div className={rowCls} aria-disabled={props.disabled || undefined}>
+          {inner}
+        </div>
+      )}
     </Tooltip>
   );
 }
@@ -686,10 +696,10 @@ export function PlantSlotCard(props: {
             })}
             <CheckRow
               installed={!!s.setup.workerId}
-              label="Workers"
+              label="Fabricated crew"
               value={workerConfig ? `${workerConfig.label} · +${workerConfig.diamondBonusPer24h} D/24h` : 'None assigned'}
               stat={`Fabricated ${fabCrewOn}/${fabCrewCap}`}
-              tooltip={`Fabricated operator assigned to this plant: ${fabCrewOn}/${fabCrewCap} (rig crew capacity). The W/O/F/E/B numbers are your Workers-tab NFT deck — shared across all plants, so they match on every card.`}
+              tooltip={`Fabricated operator assigned to this plant (inventory units — not NFTs). NFT deployments are under the Workers tab. Fabricated on plant: ${fabCrewOn}/${fabCrewCap}. The W/O/F/E/B grid inside Assign Worker is your Workers-tab NFT deck — global on every plant card.`}
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
@@ -922,7 +932,7 @@ export function PlantSlotCard(props: {
                   selected={isInstalled}
                   onClick={() => {
                     if (s.setup.machineId === m.id) {
-                      setModalFeedback('This rig is already equipped here.');
+                      setActiveModal(null);
                       return;
                     }
                     props.onInstallPart('machine', m.id);
@@ -1020,7 +1030,10 @@ export function PlantSlotCard(props: {
           </p>
         ) : null}
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
-          <div className="font-semibold text-zinc-700 dark:text-zinc-300">NFT crew decks (Workers tab)</div>
+          <div className="font-semibold text-zinc-700 dark:text-zinc-300">Workers tab — NFT crew decks</div>
+          <p className="mt-1 leading-snug text-zinc-500 dark:text-zinc-400">
+            Counts below are NFT deployments only. Fabricated crew rows underneath use your fabricated-worker inventory (separate from NFTs).
+          </p>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
               const { filled, capacity } = nftTabSlotDeployments(nftStaffSlots, role);
@@ -1047,7 +1060,7 @@ export function PlantSlotCard(props: {
               <li key={w.id} className="list-none">
                 <ModalPartRow
                   title={w.label}
-                  subtitle={`Workers tab NFT ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap (fabricated units assign to plants)`}
+                  subtitle={`NFT slots ${nftFill.filled}/${nftFill.capacity} · +${w.diamondBonusPer24h} D/24h cap when fabricated`}
                   owned={owned}
                   inUse={displayAssignedCount(countWorkersAssigned(props.minecoreState.plantSlots, w.id), owned)}
                   disabled={rowBlocked}
@@ -1061,7 +1074,7 @@ export function PlantSlotCard(props: {
                   selected={isInstalled}
                   onClick={() => {
                     if (s.setup.workerId === w.id) {
-                      setModalFeedback('This worker is already assigned here.');
+                      setActiveModal(null);
                       return;
                     }
                     props.onInstallPart('worker', w.id);

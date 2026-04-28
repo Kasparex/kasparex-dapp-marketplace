@@ -19,6 +19,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
+import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
@@ -83,6 +84,12 @@ export function useMinecore() {
       return () => window.clearTimeout(t);
     }
     return undefined;
+  }, [walletAddr]);
+
+  /** Clamp rigs/workers/batteries/modules vs owned inventory (fixes corrupt saves + unlocks stuck InstallPart guards). */
+  useEffect(() => {
+    if (!walletAddr) return;
+    setMc((prev) => enforcePlantInventoryInvariants(prev));
   }, [walletAddr]);
 
   useEffect(() => {

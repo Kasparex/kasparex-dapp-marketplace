@@ -10,6 +10,7 @@ import {
   explainPlantSetupBlock,
   nextPlantSetupAfterInstallPart,
 } from './asset-usage';
+import { enforcePlantInventoryInvariants } from './inventory-invariants';
 
 const now = Date.now();
 
@@ -115,6 +116,18 @@ assert.equal(afterDup.plantSlots[1]?.setup.machineId, null);
   const nextSetup = nextPlantSetupAfterInstallPart(slot, { kind: 'machine', id: 'pulse-drill' });
   const msg = explainPlantSetupBlock(mc, 1, nextSetup);
   assert.ok(typeof msg === 'string' && msg.length > 0);
+}
+
+{
+  let mc = createInitialMinecoreState();
+  mc.plantSlots[1].unlocked = true;
+  mc.plantSlots[1].rollingCapWindowStartMs = now;
+  mc.owned.machines['pulse-drill'] = 1;
+  mc.plantSlots[0].setup.machineId = 'pulse-drill';
+  mc.plantSlots[1].setup.machineId = 'pulse-drill';
+  const fixed = enforcePlantInventoryInvariants(mc);
+  const pulseCount = fixed.plantSlots.filter((p) => p.unlocked && p.setup.machineId === 'pulse-drill').length;
+  assert.equal(pulseCount, 1);
 }
 
 console.log('asset-usage.test.ts OK');

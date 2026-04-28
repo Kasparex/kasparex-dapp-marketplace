@@ -4,6 +4,7 @@ import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
+import { enforcePlantInventoryInvariants } from './inventory-invariants';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object';
@@ -181,6 +182,7 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
       : base.gridLedger,
   };
 
-  return deriveState(out, Date.now());
+  const repaired = enforcePlantInventoryInvariants(out);
+  return deriveState(repaired, Date.now());
 }
 
