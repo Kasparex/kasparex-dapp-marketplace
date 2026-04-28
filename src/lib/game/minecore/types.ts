@@ -45,14 +45,14 @@ export type PlantCardStatus =
   | 'SetupIncomplete'
   | 'ReadyToMine'
   | 'MiningActive'
-  | 'MiningPaused'    // run suspended — no diamond gain, no battery drain, parts editable after stop
+  | 'MiningPaused'    // run suspended - no diamond gain, no battery drain, parts editable after stop
   | 'BatteryEmpty'   // was running but battery charge ran to zero mid-cycle
   | 'ExtractionReady'
   | 'NeedsRepair'
   | 'NeedsPower'
-  /** Rolling 24h diamond cap reached — start new cycles after the window resets (or extract/refine backlog). */
+  /** Rolling 24h diamond cap reached - start new cycles after the window resets (or extract/refine backlog). */
   | 'DailyCapReached'
-  /** Production below consumption beyond playable threshold — cannot start a cycle. */
+  /** Production below consumption beyond playable threshold - cannot start a cycle. */
   | 'InsufficientPower';
 
 export type IngredientBag = Record<MinecoreIngredient, number>;
@@ -96,7 +96,7 @@ export type PlantSlotState = {
   status:           PlantCardStatus;
   setup:            PlantSetup;
   cycle:            PlantCycle | null;
-  /** Plant-tier reserve power unit capacity; not spent per run in V1 display — synced in derive. */
+  /** Plant-tier reserve power unit capacity; not spent per run in V1 display - synced in derive. */
   powerRemaining:   number;
   needsRepair:      boolean;
   /**

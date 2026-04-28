@@ -285,9 +285,9 @@ function DailyCapBar(props: {
             {formatCapResetCountdown(props.remainingMs)}
           </span>
         ) : props.setupIncomplete || props.cap <= 0 ? (
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">-</span>
         ) : (
-          <span className="font-mono text-sm font-bold tabular-nums text-zinc-500 dark:text-zinc-400">—</span>
+          <span className="font-mono text-sm font-bold tabular-nums text-zinc-500 dark:text-zinc-400">-</span>
         )}
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
@@ -295,7 +295,7 @@ function DailyCapBar(props: {
           Available mined / Daily cap
         </span>
         {props.setupIncomplete || props.cap <= 0 ? (
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</span>
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">-</span>
         ) : (
           <div className="flex items-baseline gap-1.5 tabular-nums">
             <span className="text-lg font-black text-amber-400 sm:text-xl dark:text-amber-300">
@@ -370,7 +370,7 @@ function ModalPartRow(props: {
   owned: number;
   inUse: number;
   disabled?: boolean;
-  /** Shown when disabled — tooltip explains why the row is not clickable. */
+  /** Shown when disabled - tooltip explains why the row is not clickable. */
   disabledHint?: string;
   selected?: boolean;
   onClick: () => void;
@@ -462,7 +462,7 @@ function WarningBanner(props: { level: 'warn' | 'error'; message: string }) {
 export function PlantSlotCard(props: {
   minecoreState: MinecoreState;
   slot: PlantSlotState;
-  /** Position in `minecoreState.plantSlots` — must match reducer slot index (resolved by stable id in parent). */
+  /** Position in `minecoreState.plantSlots` - must match reducer slot index (resolved by stable id in parent). */
   slotArrayIndex: number;
   now: number;
   onUnlock: () => void;
@@ -565,7 +565,7 @@ export function PlantSlotCard(props: {
   const workerSetupValue = useMemo(() => {
     const { summary } = workerSetupDisplay;
     if (workerFilled === 0) return `${workerFilled}/${needWorkers}`;
-    if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '—'}`;
+    if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '-'}`;
     return summary || `${workerFilled}/${needWorkers}`;
   }, [workerSetupDisplay, workerFilled, needWorkers]);
   const powerDotMax = Math.max(1, getPowerUnitCap(s));
@@ -582,9 +582,9 @@ export function PlantSlotCard(props: {
   } else if (s.status === 'SetupIncomplete') {
     actionLabel = 'Complete setup';
   } else if (s.status === 'NeedsRepair') {
-    actionLabel = `Repair — ${MINECORE_PLANT_REPAIR_KAS} KAS`;
+    actionLabel = `Repair - ${MINECORE_PLANT_REPAIR_KAS} KAS`;
   } else if (batteryDeadInRun || s.status === 'NeedsPower') {
-    actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
+    actionLabel = `Recharge - ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
   } else if (s.status === 'DailyCapReached') {
@@ -594,7 +594,7 @@ export function PlantSlotCard(props: {
   } else if (s.status === 'MiningActive') {
     actionLabel = 'Stop mining';
   } else if (s.status === 'ExtractionReady' || s.status === 'BatteryEmpty') {
-    actionLabel = 'Run finished — crediting…';
+    actionLabel = 'Run finished - crediting…';
   } else if (s.status === 'ReadyToMine') {
     actionLabel = 'Start';
   } else {
@@ -817,7 +817,7 @@ export function PlantSlotCard(props: {
                   {balKw.toFixed(0)} kW
                 </span>
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {effPct.toFixed(0)}%</span>
-                <span className="text-sky-600 dark:text-sky-400">{d24 > 0 ? `${d24} D/24h` : '—'}</span>
+                <span className="text-sky-600 dark:text-sky-400">{d24 > 0 ? `${d24} D/24h` : '-'}</span>
               </div>
               </div>
             </Tooltip>
@@ -828,11 +828,11 @@ export function PlantSlotCard(props: {
               {/* Battery charge bar */}
               {capacityMs > 0 && (
                 <ResourceBar
-                  label={`Charge${cycle ? ` — ${formatDuration(batteryRuntimeMs)} runtime` : ''}`}
+                  label={`Charge${cycle ? ` - ${formatDuration(batteryRuntimeMs)} runtime` : ''}`}
                   value={`${Math.floor(liveChargeMs / 60000)}m / ${Math.floor(capacityMs / 60000)}m`}
                   ratio={batteryRatio}
                   variant="battery"
-                  tooltip={`Combined battery runtime. Draw scales with the machine. At 0 the run ends and mined diamonds are credited to your balance automatically—recharge to start again. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
+                  tooltip={`Combined battery runtime. Draw scales with the machine. At 0 the run ends and mined diamonds are credited to your balance automatically. Recharge to start again. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
                 />
               )}
 
@@ -849,7 +849,7 @@ export function PlantSlotCard(props: {
               onClick={() => void props.onRechargePlant({ units: 1 })}
               className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-500/20 dark:border-sky-400/30 dark:text-sky-300 dark:hover:bg-sky-500/20"
             >
-              {`Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
+              {`Recharge - ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
             </button>
           ) : null}
 
@@ -870,23 +870,23 @@ export function PlantSlotCard(props: {
             {batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner
                 level="error"
-                message="Battery depleted—mined diamonds were credited to your balance. Recharge, then start a new run manually (or use Foreman to auto-refill with Energy Cells if enabled)."
+                message="Battery depleted. Mined diamonds were credited to your balance. Recharge, then start a new run manually (or use Foreman to auto-refill with Energy Cells if enabled)."
               />
             )}
             {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
-              <WarningBanner level="warn" message={`Battery low — ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
+              <WarningBanner level="warn" message={`Battery low - ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
             )}
             {s.status === 'InsufficientPower' && (
               <WarningBanner
                 level="warn"
-                message={`Power bus deficit — production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise plant-tier reserve/rig bus output or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
+                message={`Power bus deficit - production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise plant-tier reserve/rig bus output or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
               />
             )}
             {s.status === 'NeedsPower' && (
               <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
             )}
             {s.status === 'NeedsRepair' && (
-              <WarningBanner level="error" message="🔧 Plant damaged — repair required before resuming." />
+              <WarningBanner level="error" message="🔧 Plant damaged - repair required before resuming." />
             )}
           </div>
         </div>
@@ -952,12 +952,12 @@ export function PlantSlotCard(props: {
                     <div className="flex min-w-[4rem] flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
                       <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
-                        {p.costKas <= 0 ? '—' : `${p.costKas} KAS`}
+                        {p.costKas <= 0 ? '-' : `${p.costKas} KAS`}
                       </span>
                     </div>
                     <div className="flex min-w-[3.5rem] flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Status</span>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{isCurrent ? 'Current' : '—'}</span>
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{isCurrent ? 'Current' : '-'}</span>
                     </div>
                     {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-400" /> : null}
                   </div>
@@ -996,7 +996,7 @@ export function PlantSlotCard(props: {
                   disabledHint={
                     rowBlocked
                       ? owned <= 0
-                        ? 'Craft this rig in Fabrication — none owned.'
+                        ? 'Craft this rig in Fabrication - none owned.'
                         : 'Every owned unit of this type is already on plants (inventory limits).'
                       : undefined
                   }
@@ -1029,7 +1029,7 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'battery'}
         onClose={() => setActiveModal(null)}
-        title={powerUnitCount > 1 ? `Assign battery — power unit ${batterySlotFocus + 1}` : 'Assign Battery'}
+        title={powerUnitCount > 1 ? `Assign battery - power unit ${batterySlotFocus + 1}` : 'Assign Battery'}
       >
         {modalFeedback ? (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
@@ -1052,14 +1052,14 @@ export function PlantSlotCard(props: {
               <li key={b.id} className="list-none">
                 <ModalPartRow
                   title={b.label}
-                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} — reserve units = plant tier (V1)`}
+                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} - reserve units = plant tier (V1)`}
                   owned={owned}
                   inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
                   disabled={rowBlocked}
                   disabledHint={
                     rowBlocked
                       ? owned <= 0
-                        ? 'Craft this pack in Fabrication — none owned.'
+                        ? 'Craft this pack in Fabrication - none owned.'
                         : 'Every owned pack of this type is already assigned (inventory limits).'
                       : undefined
                   }
@@ -1103,7 +1103,7 @@ export function PlantSlotCard(props: {
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
           <div className="font-semibold text-zinc-700 dark:text-zinc-300">From the Workers tab</div>
           <p className="mt-1 leading-snug text-zinc-500 dark:text-zinc-400">
-            Choose which Workers-tab NFT this plant uses — one NFT per plant. Rows that are empty or already linked to another plant are disabled below.
+            Choose which Workers-tab NFT this plant uses - one NFT per plant. Rows that are empty or already linked to another plant are disabled below.
           </p>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
@@ -1131,7 +1131,7 @@ export function PlantSlotCard(props: {
             const rowBlocked = !deployed || (!assignedHere && usedElsewhere >= 1);
             const subtitle = deployed
               ? `${nftDeckRoleLabel(deckSlot.type)} · Workers slot #${deckIdx + 1} · NFT #${deckSlot.nftId}`
-              : `Empty — assign an NFT on the Workers tab for this row.`;
+              : `Empty - assign an NFT on the Workers tab for this row.`;
             return (
               <li key={deckIdx} className="list-none">
                 <ModalPartRow
@@ -1163,7 +1163,7 @@ export function PlantSlotCard(props: {
         </ul>
         <ModalActionRow
           title="Clear worker link for this plant"
-          subtitle="Unlinks only this plant — the NFT stays on the Workers tab."
+          subtitle="Unlinks only this plant - the NFT stays on the Workers tab."
           destructive
           disabled={normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices[0] == null}
           onClick={() => {
@@ -1212,8 +1212,8 @@ export function PlantSlotCard(props: {
                   disabledHint={
                     moduleAddBlocked
                       ? owned <= 0
-                        ? 'Craft this module in Fabrication — none owned.'
-                        : 'Inventory limits — remove from another plant or craft another.'
+                        ? 'Craft this module in Fabrication - none owned.'
+                        : 'Inventory limits - remove from another plant or craft another.'
                       : undefined
                   }
                   selected={isSelected}

@@ -36,13 +36,13 @@ function minecoreDeckModalCopy(type: MiningSlotType): { title: string; descripti
       return {
         title: 'Operator slot',
         description:
-          'Deploy a Premium or Partner NFT on the Operator row — higher tiers add more flat diamonds per day toward your plant rolling cap.',
+          'Deploy a Premium or Partner NFT on the Operator row - higher tiers add more flat diamonds per day toward your plant rolling cap.',
       };
     case 'foreman':
       return {
         title: 'Foreman slot',
         description:
-          'Deploy a Premium or Partner NFT as Foreman — adds flat diamonds per day plus auto-restart infrastructure when enabled.',
+          'Deploy a Premium or Partner NFT as Foreman - adds flat diamonds per day plus auto-restart infrastructure when enabled.',
       };
     default:
       return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };
@@ -180,7 +180,7 @@ export function WorkersPanel(props: {
         </button>
       </div>
       {props.autoRestart && !props.autoRestartInfrastructureActive ? (
-        <p className="text-[11px] text-amber-700 dark:text-amber-400">No auto-chain yet — add Regen Coil or Foreman NFT.</p>
+        <p className="text-[11px] text-amber-700 dark:text-amber-400">No auto-chain yet - add Regen Coil or Foreman NFT.</p>
       ) : null}
 
       <CardsFilterBar

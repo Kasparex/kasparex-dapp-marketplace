@@ -15,7 +15,7 @@ export function CipherGridLockedPreview({ size = 4 }: { size?: number }) {
       ].join(' ')}
       aria-hidden
     >
-      —
+      -
     </div>
   );
 
@@ -62,7 +62,7 @@ export function CipherGridLockedPreview({ size = 4 }: { size?: number }) {
       </div>
 
       <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
-        Locked — start a run (KAS or ticket) to reveal runes and enable swaps.
+        Locked - start a run (KAS or ticket) to reveal runes and enable swaps.
       </div>
     </div>
   );

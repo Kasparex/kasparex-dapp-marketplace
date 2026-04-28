@@ -2,7 +2,7 @@
 
 /**
  * Structured overview copy (synced with repo root Minecore.md).
- * One GamePanelCard per section — matches Overview “Game flow” styling.
+ * One GamePanelCard per section - matches Overview “Game flow” styling.
  */
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 
@@ -212,7 +212,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
           <ul className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
             <li>
               <strong className="block text-zinc-900 dark:text-zinc-100">1. Mining credit</strong>
-              When a run completes, diamonds are banked to your profile balance (same flow you see in the game deck)—ready to refine on the Redeem tab.
+              When a run completes, diamonds are banked to your profile balance (same flow you see in the game deck), ready to refine on the Redeem tab.
             </li>
             <li>
               <strong className="block text-zinc-900 dark:text-zinc-100">2. Refine</strong>

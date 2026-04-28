@@ -158,7 +158,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
           <div className="space-y-6">
             <GamePanelCard title="Briefing" hint="Decide what moves first.">
               <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Null Gang doesn’t kick the door in — it taps the edges until something blinks. Your job is to decide what moves first:{' '}
+                Null Gang doesn’t kick the door in - it taps the edges until something blinks. Your job is to decide what moves first:{' '}
                 <strong>Security</strong>, <strong>Power</strong>, or <strong>Stealth</strong>.
               </p>
             </GamePanelCard>

@@ -11,7 +11,7 @@ import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 
-/** KAS paid upgrades (V1 — wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
+/** KAS paid upgrades (V1 - wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
 const KAS_BATTERY_SYNC = 3;
 const KAS_RESERVE_PACK = 6;
 const RESERVE_PACK_UNITS = 3;
@@ -56,7 +56,7 @@ export function MinecorePowerPanel(props: {
   const plantsCard = (
     <GamePanelCard
       title="Plants"
-      hint="Reserve units, battery %, and recharge shortcuts — detailed rig/power breakdown stays on the Mining tab."
+      hint="Reserve units, battery %, and recharge shortcuts - detailed rig/power breakdown stays on the Mining tab."
     >
       <ul className="space-y-2 text-sm">
         {state.plantSlots.map((p) => {
@@ -168,7 +168,7 @@ export function MinecorePowerPanel(props: {
 
       <GamePanelCard title="Recharge" hint="Same as the mining plant KAS action.">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Recharge — {MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> on a plant
+          Use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Recharge - {MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> on a plant
           to add a reserve unit and fully restore its battery, or use the Shop utility item (plant 1).
         </p>
       </GamePanelCard>
@@ -242,7 +242,7 @@ export function MinecorePowerPanel(props: {
             icon={<Icons.Timer className="h-8 w-8 text-emerald-500/90" strokeWidth={1.75} />}
             title="Runtime bundle"
             category="Working time"
-            description="One reserve unit plus a full battery — fastest way to be cycle-ready."
+            description="One reserve unit plus a full battery - fastest way to be cycle-ready."
             effects={[
               { label: 'Includes', value: '+1 unit & full charge', color: 'emerald' },
               { label: 'Nominal', value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS` },

@@ -70,7 +70,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
     () => [
       'A Null Gang glyph flickers on the wall…',
       'Krex’s visor highlights a weak signal trace.',
-      'ARIA’s fragment pulses — lock it precisely.',
+      'ARIA’s fragment pulses - lock it precisely.',
       'Vector’s calibration drifts. Click with intent.',
       'Tessa marks a stealth window. No wasted motion.',
     ],

@@ -25,10 +25,10 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
 /**
  * Clamp plant assignments so unlocked setups never exceed owned inventory per asset id.
  * Fixes stale/corrupt saves (and legacy bugs) where multiple plants held the same rig/battery
- * while inventory math treated every slot as needing a separate owned unit — blocking swaps/removes.
+ * while inventory math treated every slot as needing a separate owned unit - blocking swaps/removes.
  *
  * LEGACY (fabricated crew): older saves used `setup.workerId` with `owned.workers` and were clamped
- * here — see git history / `enforcePlantInventoryInvariants` blame. Plants now reference
+ * here - see git history / `enforcePlantInventoryInvariants` blame. Plants now reference
  * `workerNftDeckSlotIndices` into `nftSlots` (Worker / Operator / Foreman NFT decks).
  */
 export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreState {

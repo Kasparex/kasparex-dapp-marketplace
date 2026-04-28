@@ -53,7 +53,7 @@ function tyconDeckModalCopy(type: MiningSlotType): { title: string; description:
     case 'operator':
       return {
         title: 'Operator slot',
-        description: 'Deploy a Premium or Partner NFT on the Operator row — higher mining throughput multipliers by tier.',
+        description: 'Deploy a Premium or Partner NFT on the Operator row - higher mining throughput multipliers by tier.',
       };
     case 'foreman':
       return {

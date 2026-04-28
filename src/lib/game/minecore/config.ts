@@ -40,7 +40,7 @@ export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   advanced: 4,
 };
 
-/** Worker NFT deck bindings required per plant — one Workers-tab slot reference only (V2). */
+/** Worker NFT deck bindings required per plant - one Workers-tab slot reference only (V2). */
 export const MINECORE_MINING_NFT_CREW_SLOTS_REQUIRED: Record<PlantType, number> = {
   standard: 1,
   premium: 1,
@@ -268,7 +268,7 @@ export type BatteryConfig = {
   efficiency: number;
   /**
    * V1: reserve count comes from the plant only; keep 0 so batteries do not add power-unit capacity.
-   * @deprecated for cap math — use {@link MINECORE_PLANT_BASE_POWER_UNITS}
+   * @deprecated for cap math - use {@link MINECORE_PLANT_BASE_POWER_UNITS}
    */
   powerCapacity: number;
   /**

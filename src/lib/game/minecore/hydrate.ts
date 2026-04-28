@@ -22,7 +22,7 @@ function sanitizeIngredientBag(input: unknown, base: MinecoreState['ingredients'
   return next;
 }
 
-/** Merge saved inventory maps into defaults — avoids wiping entire categories when persisted JSON only patches one rig type. */
+/** Merge saved inventory maps into defaults - avoids wiping entire categories when persisted JSON only patches one rig type. */
 function mergeOwnedInventory(input: unknown, base: MinecoreState['owned']): MinecoreState['owned'] {
   if (!isRecord(input)) return base;
   return {
@@ -145,7 +145,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryIds,
-      /* LEGACY saves may contain setup.workerId / fabricated workforce — ignored; use NFT decks only. */
+      /* LEGACY saves may contain setup.workerId / fabricated workforce - ignored; use NFT decks only. */
       workerNftDeckSlotIndices,
       moduleIds: Array.isArray(setup.moduleIds) ? (setup.moduleIds.filter((x) => typeof x === 'string') as any) : [],
       boostId: typeof setup.boostId === 'string' ? (setup.boostId as any) : 'none',

@@ -183,7 +183,7 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
   );
 }
 
-/** Workers tab: three role capsules — filled NFT vs deck capacity per role. */
+/** Workers tab: three role capsules - filled NFT vs deck capacity per role. */
 export function MinecoreOwnedWorkersPanel(props: {
   nftSlots: MinecoreState['nftSlots'];
 }) {
@@ -204,7 +204,7 @@ export function MinecoreOwnedWorkersPanel(props: {
 /** Shop tab: same capsule layout as former Raw Ingredients; gray when quantity is 0. */
 export function MinecoreOwnedIngredientsPanel(props: { ingredients: MinecoreState['ingredients'] }) {
   return (
-    <GamePanelCard title="Owned Ingredients" hint="Start at zero — purchase stacks in Shop to fabricate rigs and batteries.">
+    <GamePanelCard title="Owned Ingredients" hint="Start at zero - purchase stacks in Shop to fabricate rigs and batteries.">
       <div className="grid grid-cols-2 gap-2">
         {MINECORE_INGREDIENT_KEYS.map((k) => {
           const n = Math.floor(props.ingredients[k] ?? 0);

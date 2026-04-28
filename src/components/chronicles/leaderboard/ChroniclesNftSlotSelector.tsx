@@ -458,7 +458,7 @@ export function ChroniclesNftSlotSelector({
                         disabled={inUse || equippedHere}
                         className="mt-2 w-full py-2 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {inUse ? 'In use in another slot' : equippedHere ? 'Equipped — tap ✕ above to remove' : 'Insert here'}
+                        {inUse ? 'In use in another slot' : equippedHere ? 'Equipped - tap ✕ above to remove' : 'Insert here'}
                       </button>
                     </div>
                   </div>

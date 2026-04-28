@@ -408,7 +408,7 @@ export function MinecoreDashboard(_props: {
                         content={`List ${state.nextSlotCostKas.toLocaleString()} KAS. ${krexTier}${
                           krexDiscountPct > 0
                             ? ` tier: ${krexDiscountPct}% off in-game KAS.`
-                            : ' — no tier discount on KAS.'
+                            : ' - no tier discount on KAS.'
                         }`}
                       >
                         <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">

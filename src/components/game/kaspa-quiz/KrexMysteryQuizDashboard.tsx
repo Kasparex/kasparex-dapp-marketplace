@@ -269,7 +269,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
           <div className="space-y-6">
             <GamePanelCard title="Case file" hint="Verify, don’t guess.">
               <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                You’re not here to guess — you’re here to <strong>verify</strong>. Ten chapters. Five questions per chapter. Each correct answer tightens the signal and pushes you deeper into Krex’s Chronicle.
+                You’re not here to guess - you’re here to <strong>verify</strong>. Ten chapters. Five questions per chapter. Each correct answer tightens the signal and pushes you deeper into Krex’s Chronicle.
               </p>
             </GamePanelCard>
 
@@ -285,7 +285,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
                 <p>
                   Krex’s visor flashes a single line: <em>“If it can’t be verified, it can’t be trusted.”</em> Null Gang noise floods the perimeter. ARIA’s fragments pulse. Vector patches the edges. Tessa watches the quiet routes.
                 </p>
-                <p>Every level is a clue — and every clue points to another system.</p>
+                <p>Every level is a clue - and every clue points to another system.</p>
               </div>
             </GamePanelCard>
 

@@ -165,7 +165,7 @@ export function CipherVaultsDashboard({
             <GamePanelCard title="How to play" hint="Run → solve → checkpoint.">
               <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <li>Start a vault run by paying with KAS or spending a Cipher Ticket.</li>
-                <li>Solve the Cipher Grid within the move limit — each swap counts as one move.</li>
+                <li>Solve the Cipher Grid within the move limit - each swap counts as one move.</li>
                 <li>A verified clear records a checkpoint, contributing to future GRID distribution.</li>
                 <li>Earn Cipher Tickets by redeeming Diamond Veins refinement points ({CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket).</li>
               </ul>

@@ -81,6 +81,26 @@ export function plantNftSlotAssignmentValid(state: MinecoreState, slot: PlantSlo
   return true;
 }
 
+/**
+ * Validates only non-null crew links: duplicates or broken Workers-tab refs fail.
+ * Unfilled crew positions (null) are allowed so assigning one plant is not blocked
+ * because other plants are not staffed yet (`plantNftSlotAssignmentValid` stays strict).
+ */
+export function plantWorkerCrewReferencesConsistent(state: MinecoreState, slot: PlantSlotState): boolean {
+  const need = miningWorkerNftSlotsRequired(slot.type);
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+  const used = new Set<number>();
+  for (let i = 0; i < need; i++) {
+    const raw = idxs[i];
+    if (raw == null || raw < 0 || !Number.isFinite(raw)) continue;
+    const idx = Math.max(0, Math.floor(Number(raw)));
+    if (used.has(idx)) return false;
+    used.add(idx);
+    if (!miningDeckAtIndexValid(state, idx)) return false;
+  }
+  return true;
+}
+
 /** @deprecated Use `plantNftSlotAssignmentValid` */
 export const plantWorkerNftDeckAssignmentValid = plantNftSlotAssignmentValid;
 
@@ -101,7 +121,7 @@ export function countWorkerNftDeckAssignmentsExcept(
   );
 }
 
-/** Uses plantSlots array index (matches InstallPart slotIndex), not slot.index — avoids drift from persisted metadata. */
+/** Uses plantSlots array index (matches InstallPart slotIndex), not slot.index - avoids drift from persisted metadata. */
 export function countMachinesAssignedExcept(slots: PlantSlotState[], id: MinecoreMachineId, exceptSlotIndex: number): number {
   return slots.reduce(
     (n, p, i) => n + (p.unlocked && i !== exceptSlotIndex && p.setup.machineId === id ? 1 : 0),
@@ -228,7 +248,7 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
   const hypoState: MinecoreState = { ...state, plantSlots: hypotheticalSlots };
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    if (!plantNftSlotAssignmentValid(hypoState, p)) return false;
+    if (!plantWorkerCrewReferencesConsistent(hypoState, p)) return false;
   }
 
   const modTotals = new Map<MinecoreModuleId, number>();
@@ -309,11 +329,25 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
     if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) {
       return 'Put a Worker, Operator, or Foreman NFT in that Workers-tab row first, then link it here.';
     }
-    const holder = hypoState.plantSlots.find(
-      (x) => x.unlocked && normalizePlantSetup(x.type, x.setup).workerNftDeckSlotIndices.includes(deckIdx),
-    );
-    if (!holder || !plantNftSlotAssignmentValid(hypoState, holder)) {
-      return 'Deploy an NFT on the Workers tab for the slot you chose, then try again.';
+  }
+
+  for (const p of hypotheticalSlots) {
+    if (!p.unlocked) continue;
+    if (plantWorkerCrewReferencesConsistent(hypoState, p)) continue;
+    const need = miningWorkerNftSlotsRequired(p.type);
+    const idxs = normalizePlantSetup(p.type, p.setup).workerNftDeckSlotIndices;
+    const usedLocal = new Set<number>();
+    for (let i = 0; i < need; i++) {
+      const raw = idxs[i];
+      if (raw == null || raw < 0 || !Number.isFinite(raw)) continue;
+      const n = Math.max(0, Math.floor(Number(raw)));
+      if (usedLocal.has(n)) {
+        return 'This plant links two crew slots to the same Workers-tab row. Use two different NFT rows.';
+      }
+      usedLocal.add(n);
+      if (!miningDeckAtIndexValid(hypoState, n)) {
+        return 'Put a Worker, Operator, or Foreman NFT in that Workers-tab row first, then link it here.';
+      }
     }
   }
 
@@ -331,7 +365,7 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
     }
   }
 
-  return 'Cannot assign — inventory limits.';
+  return 'Cannot assign: inventory limits.';
 }
 
 /** UI display: assigned units cannot exceed inventory (guards stale save / edge cases). */

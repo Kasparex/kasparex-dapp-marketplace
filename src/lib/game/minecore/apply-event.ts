@@ -416,7 +416,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const hasSomething = slot.diamondsAccumulated > 0 || (slot.cycle && (liveStatus === 'ExtractionReady' || liveStatus === 'BatteryEmpty'));
       if (!hasSomething) return rederive(s, now);
 
-      // Proportional extraction — sum accumulated + current live
+      // Proportional extraction - sum accumulated + current live
       const currentCycleDiamonds = computeLiveDiamonds(slot, ev.at);
       const totalToExtract = slot.diamondsAccumulated + currentCycleDiamonds;
       
@@ -502,7 +502,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         if (!slot.cycle) continue;
         const rawR = computeRawLiveDiamonds(slot, at);
         if (rawR > 0 && (slot.cycle.mintedOffset ?? 0) >= rawR) {
-          // Run is fully siphoned from live production via refine — end this cycle the same as clearing the in-progress run.
+          // Run is fully siphoned from live production via refine - end this cycle the same as clearing the in-progress run.
           slot.diamondsAccumulated += computeLiveDiamonds(slot, at);
           slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, at);
           slot.batterySnapshotAt = at;

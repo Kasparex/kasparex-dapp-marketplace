@@ -105,7 +105,7 @@ export function MiningPanel({
             {tycon.automation.autoRestartMiningRun ? 'Auto-restart on' : 'Auto-restart off'}
           </p>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Foreman: {foreman?.nftId != null ? `#${foreman.nftId}` : '—'} · cap/day {Math.max(tycon.automation.foremanActive ? 3 : 0, tycon.automation.autoRestartRunsCapPerDay)}
+            Foreman: {foreman?.nftId != null ? `#${foreman.nftId}` : '-'} · cap/day {Math.max(tycon.automation.foremanActive ? 3 : 0, tycon.automation.autoRestartRunsCapPerDay)}
           </p>
         </div>
       </div>

@@ -34,7 +34,7 @@ function kasTooltip(baseKas: number, payKas: number, discountPct: number, tierSh
   return `List ${baseKas.toLocaleString()} KAS. ${tierShort}${
     discountPct > 0
       ? ` applies ${discountPct}% off; you pay ${payKas.toLocaleString()} KAS.`
-      : ` — you pay ${payKas.toLocaleString()} KAS.`
+      : ` - you pay ${payKas.toLocaleString()} KAS.`
   }`;
 }
 

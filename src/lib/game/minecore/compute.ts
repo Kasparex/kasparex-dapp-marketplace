@@ -30,7 +30,7 @@ export function getPlantPowerFactor(slot: PlantSlotState): number {
     : 1;
 }
 
-/** Machine draw only — the rig sets consumption; there is no separate power-plant layer. */
+/** Machine draw only - the rig sets consumption; there is no separate power-plant layer. */
 export function getPowerDrainScale(slot: PlantSlotState): number {
   return getPlantPowerFactor(slot);
 }
@@ -215,7 +215,7 @@ export function plantDailyCapPreventsNewCycle(state: MinecoreState, slot: PlantS
   return p.cap24h > 0 && p.minedTowardCap >= p.cap24h;
 }
 
-/** Power units mirror grid capacity — not spent per run (see `apply-event` / `deriveState`). */
+/** Power units mirror grid capacity - not spent per run (see `apply-event` / `deriveState`). */
 export function syncPlantPowerUnitsToCapacity(slot: PlantSlotState): PlantSlotState {
   if (!slot.unlocked) return slot;
   const cap = getPowerUnitCap(slot);

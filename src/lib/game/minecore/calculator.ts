@@ -70,7 +70,7 @@ export const CALC_MODULE_ORDER = [
 
 export const CALC_PLANT_TYPE_ORDER: readonly PlantType[] = ['standard', 'premium', 'advanced'];
 
-/** Base KAS price per ingredient (Minecore shop — KAS column). */
+/** Base KAS price per ingredient (Minecore shop - KAS column). */
 export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
   crystalDust: 0.5,
   alloyPlates: 2,
@@ -168,7 +168,7 @@ export type MinecoreCalculatorResult = {
 };
 
 function formatDuration(ms: number): string {
-  if (ms <= 0) return '—';
+  if (ms <= 0) return '-';
   const m = Math.round(ms / 60_000);
   if (m < 60) return `${m} min`;
   const h = Math.floor(m / 60);
