@@ -5,6 +5,10 @@ import { deriveState } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === 'object';
+}
+
 function sanitizeIngredientBag(input: unknown, base: MinecoreState['ingredients']): MinecoreState['ingredients'] {
   if (!isRecord(input)) return { ...base };
   const next = { ...base };

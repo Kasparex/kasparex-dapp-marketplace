@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
@@ -67,6 +67,7 @@ export function GameItemCard(props: {
   const initialCurrency =
     props.defaultCurrency && options.some((o) => o.currency === props.defaultCurrency) ? props.defaultCurrency : options[0]?.currency;
   const [currency, setCurrency] = useState<GameItemCurrency>(initialCurrency ?? 'KAS');
+  const qtyInputId = useId();
 
   const selected = useMemo(() => options.find((o) => o.currency === currency) ?? options[0], [options, currency]);
 
@@ -75,7 +76,11 @@ export function GameItemCard(props: {
   const qtyMax = qtyCfg?.max ?? 999;
   const controlledQty = qtyCfg?.value;
   const [uncontrolledQty, setUncontrolledQty] = useState(1);
-  const quantity = Math.max(qtyMin, Math.min(qtyMax, controlledQty ?? uncontrolledQty));
+  const qtyCommitted = Math.max(qtyMin, Math.min(qtyMax, controlledQty ?? uncontrolledQty));
+  /** While focused, allow typed digits including empty-before-commit */
+  const [qtyEditDraft, setQtyEditDraft] = useState<string | null>(null);
+
+  const quantity = qtyCommitted;
 
   const unit = selected?.unitPrice ?? 0;
   const originalUnit = selected?.originalUnitPrice;
@@ -87,8 +92,26 @@ export function GameItemCard(props: {
 
   function setQty(next: number) {
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
+    setQtyEditDraft(null);
     if (qtyCfg?.onChange) qtyCfg.onChange(clamped);
     else setUncontrolledQty(clamped);
+  }
+
+  function commitDraftAndBlur() {
+    const raw = qtyEditDraft;
+    setQtyEditDraft(null);
+    if (raw === null) return;
+    const t = raw.replace(/\D/g, '');
+    if (t === '') {
+      setQty(qtyCommitted);
+      return;
+    }
+    const n = parseInt(t, 10);
+    if (!Number.isFinite(n)) {
+      setQty(qtyCommitted);
+      return;
+    }
+    setQty(n);
   }
 
   function effectLineRow(e: GameItemEffectLine) {
@@ -214,17 +237,40 @@ export function GameItemCard(props: {
                 <button
                   type="button"
                   className="k-control-icon-btn h-9 w-9"
-                  onClick={() => setQty(quantity - 1)}
-                  disabled={!qtyCfg || quantity <= qtyMin}
+                  onClick={() => setQty(qtyCommitted - 1)}
+                  disabled={!qtyCfg || qtyCommitted <= qtyMin}
                 >
                   −
                 </button>
-                <div className="min-w-[3.5rem] text-center text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">{quantity}</div>
+                <input
+                  id={qtyInputId}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-label="Quantity (type custom amount)"
+                  title="Type amount or use +/−"
+                  disabled={!qtyCfg}
+                  className="min-w-[3.25rem] max-w-[5.25rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
+                  value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
+                  onFocus={() => {
+                    if (!qtyCfg) return;
+                    setQtyEditDraft(String(qtyCommitted));
+                  }}
+                  onChange={(e) => {
+                    if (!qtyCfg) return;
+                    const t = e.target.value.replace(/\D/g, '').slice(0, 8);
+                    setQtyEditDraft(t);
+                  }}
+                  onBlur={() => commitDraftAndBlur()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitDraftAndBlur();
+                  }}
+                />
                 <button
                   type="button"
                   className="k-control-icon-btn h-9 w-9"
-                  onClick={() => setQty(quantity + 1)}
-                  disabled={!qtyCfg || quantity >= qtyMax}
+                  onClick={() => setQty(qtyCommitted + 1)}
+                  disabled={!qtyCfg || qtyCommitted >= qtyMax}
                 >
                   +
                 </button>
