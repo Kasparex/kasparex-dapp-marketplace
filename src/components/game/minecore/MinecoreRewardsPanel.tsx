@@ -73,7 +73,7 @@ export function MinecoreRewardsPanel({
                 <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.at).toLocaleString()}</td>
                   <td className="p-3 tabular-nums text-zinc-800 dark:text-zinc-200">{e.diamondsRefined.toLocaleString()}</td>
-                  <td className="p-3 tabular-nums font-medium text-purple-600 dark:text-purple-400">
+                  <td className="p-3 tabular-nums font-medium text-violet-600 dark:text-violet-400">
                     {e.refinementPoints.toLocaleString()}
                   </td>
                   <td className="p-3 tabular-nums text-zinc-600 dark:text-zinc-400">{e.gridCheckpointScore.toLocaleString()}</td>

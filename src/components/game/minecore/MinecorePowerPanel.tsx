@@ -7,10 +7,9 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
-import { computeConsumptionKw, computeMiningEfficiencyPct, computeProductionKw } from '@/lib/game/minecore/plant-economy';
 
 /** KAS paid upgrades (V1 — wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
 const KAS_BATTERY_SYNC = 3;
@@ -57,7 +56,7 @@ export function MinecorePowerPanel(props: {
   const plantsCard = (
     <GamePanelCard
       title="Plants"
-      hint="kW is a control-panel view of plant production vs draw (from machine, battery, modules, worker). Recharge uses the same KAS action as the mining tab."
+      hint="Reserve units, battery %, and recharge shortcuts — detailed rig/power breakdown stays on the Mining tab."
     >
       <ul className="space-y-2 text-sm">
         {state.plantSlots.map((p) => {
@@ -66,28 +65,6 @@ export function MinecorePowerPanel(props: {
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(p, now);
           const unitCap = getPowerUnitCap(p);
-          const prodKw = p.unlocked && p.setup.machineId ? computeProductionKw(p) : 0;
-          const consKw = p.unlocked && p.setup.machineId ? computeConsumptionKw(p) : 0;
-          const balKw = prodKw - consKw;
-          const eff = p.unlocked && p.setup.machineId ? computeMiningEfficiencyPct(p) : 0;
-
-          const machineMeta =
-            p.setup.machineId && MINECORE_MACHINES[p.setup.machineId]
-              ? MINECORE_MACHINES[p.setup.machineId].label
-              : p.unlocked
-                ? 'No machine'
-                : '';
-          const batIds = p.setup.batteryIds ?? [];
-          const batteryMeta =
-            batIds.length > 0
-              ? batIds
-                  .map((bid, i) =>
-                    bid && MINECORE_BATTERIES[bid] ? MINECORE_BATTERIES[bid].label : `Slot ${i + 1} empty`,
-                  )
-                  .join(' · ')
-              : p.unlocked
-                ? 'No battery'
-                : '';
 
           return (
             <li
@@ -96,31 +73,6 @@ export function MinecorePowerPanel(props: {
             >
               <div className="min-w-0 flex flex-1 flex-col gap-1">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
-                {p.unlocked ? (
-                  <p className="max-w-xl text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">{machineMeta}</span>
-                    <span className="text-zinc-400 dark:text-zinc-500"> · </span>
-                    <span>{batteryMeta}</span>
-                    <span className="text-zinc-400 dark:text-zinc-500"> · </span>
-                    <span className="font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
-                      {p.setup.machineId ? `${prodKw.toFixed(1)}↗ ${consKw.toFixed(1)}↘ kW` : '—'}
-                      {p.setup.machineId ? (
-                        <>
-                          {' '}
-                          <span className="text-zinc-400 dark:text-zinc-500">·</span>
-                          Δ{' '}
-                          <span className={balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}>
-                            {balKw >= 0 ? '+' : ''}
-                            {balKw.toFixed(1)} kW
-                          </span>
-                          <span className="text-zinc-400 dark:text-zinc-500"> · </span>
-                          Eff{' '}
-                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{eff.toFixed(0)}%</span>
-                        </>
-                      ) : null}
-                    </span>
-                  </p>
-                ) : null}
               </div>
 
               {p.unlocked ? (

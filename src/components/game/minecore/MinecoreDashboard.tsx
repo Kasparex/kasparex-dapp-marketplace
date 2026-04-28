@@ -139,7 +139,7 @@ export function MinecoreDashboard(_props: {
         value: (
           <span className="font-black tabular-nums text-amber-500 dark:text-amber-400">
             {Math.floor(deckRollingCaps.minedSum).toLocaleString()}
-            <span className="text-zinc-500 dark:text-zinc-500"> / </span>
+            <span className="mx-0.5 text-amber-600/90 dark:text-amber-300/90">/</span>
             {Math.floor(deckRollingCaps.capSum).toLocaleString()}
           </span>
         ),
@@ -158,7 +158,7 @@ export function MinecoreDashboard(_props: {
               {Math.floor(diamondsDisplayTotal).toLocaleString()}
             </span>
             <span className="text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="font-black text-purple-600 dark:text-purple-400">
+            <span className="font-black text-violet-600 dark:text-violet-400">
               {Math.floor(state.refinementPointsTotal).toLocaleString()}
             </span>
           </span>
@@ -348,10 +348,23 @@ export function MinecoreDashboard(_props: {
                       void (await actions.repairWithKAS(slot.index, amountKas));
                     }}
                     onInstallPart={(kind, id, batterySlotIndex) => {
-                      if (kind === 'machine') actions.installMachine(slot.index, id);
-                      if (kind === 'battery') actions.installBattery(slot.index, id, batterySlotIndex);
-                      if (kind === 'worker') actions.installWorker(slot.index, id);
-                      if (kind === 'modules') actions.setModules(slot.index, id);
+                      const batteryIdx = batterySlotIndex ?? 0;
+                      switch (kind) {
+                        case 'machine':
+                          actions.installMachine(slot.index, id);
+                          break;
+                        case 'battery':
+                          actions.installBattery(slot.index, id, batteryIdx);
+                          break;
+                        case 'worker':
+                          actions.installWorker(slot.index, id);
+                          break;
+                        case 'modules':
+                          actions.setModules(slot.index, id);
+                          break;
+                        default:
+                          break;
+                      }
                     }}
                     onChangePlantType={(type, cost) => actions.changePlantType(slot.index, type, cost)}
                   />

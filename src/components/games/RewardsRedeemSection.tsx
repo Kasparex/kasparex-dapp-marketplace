@@ -186,8 +186,8 @@ export function RewardsRedeemSection({
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Claim tokens to your L2 wallet.</p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-purple-600 dark:text-purple-400">Balance</div>
-            <div className="text-xl font-bold tabular-nums text-purple-600 dark:text-purple-400">{refinementPointsBalance.toLocaleString()} P</div>
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">Balance</div>
+            <div className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">{refinementPointsBalance.toLocaleString()} P</div>
           </div>
         </div>
 

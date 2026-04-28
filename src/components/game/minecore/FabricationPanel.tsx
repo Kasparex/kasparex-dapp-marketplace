@@ -72,7 +72,7 @@ export function FabricationPanel(props: {
 
       <GamePanelCard
         title="Fabrication blueprints"
-        hint="Specifications match the mining plant control panel: kW, drain, and rig pace feed the same formulas as an installed plant. Ingredients are only for crafting."
+        hint="Specs mirror mining math: D/24h plant bonus, drain × runtime, battery runtime × rolling-cap multiplier. Ingredients are craft-only."
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -95,7 +95,6 @@ export function FabricationPanel(props: {
               const cfg = MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES];
               if (cfg) {
                 const consKw = cfg.powerConsumptionFactor * MINECORE_KW_SCALE;
-                const busKw = cfg.powerGridContribution * MINECORE_KW_SCALE;
                 const extraCrew = cfg.additionalCrewRequired ?? 0;
                 specifications.push({
                   label: 'Duration',
@@ -108,29 +107,14 @@ export function FabricationPanel(props: {
                   color: 'amber',
                 });
                 specifications.push({
-                  label: 'Power drain',
-                  value: `×${cfg.powerConsumptionFactor}`,
+                  label: 'Power (mining)',
+                  value: `Drain ×${cfg.powerConsumptionFactor} · ~${consKw.toFixed(1)} kW`,
                   color: 'rose',
                 });
                 specifications.push({
                   label: 'Additional crew',
                   value: extraCrew <= 0 ? 'No' : `+${extraCrew} slots`,
                   color: 'zinc',
-                });
-                specifications.push({
-                  label: 'Energy consumption',
-                  value: `${consKw.toFixed(1)} kW`,
-                  color: 'rose',
-                });
-                specifications.push({
-                  label: 'Plant bus (kW)',
-                  value: `+${busKw.toFixed(0)} kW`,
-                  color: 'sky',
-                });
-                specifications.push({
-                  label: 'Charge budget',
-                  value: `×${cfg.powerBudgetMultiplier.toFixed(2)}`,
-                  color: 'sky',
                 });
               }
             } else if (isBattery) {
@@ -222,7 +206,7 @@ export function FabricationPanel(props: {
                 : undefined;
 
             const description = isMachine
-              ? 'Nominal cycle length for one run. If power drain is above 1.0×, the battery empties sooner in real time (same cycle window, faster charge loss). Output stacks with plant base in the live economy.'
+              ? 'Nominal cycle length per run. Drain × scales battery runtime vs charge; D/24h stacks with your plant base and modules live.'
               : isBattery
                 ? 'Production kW and power-unit capacity add to the plant grid total and efficiency math. Battery charge still drains during runs based on the machine’s drain factor.'
                 : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
