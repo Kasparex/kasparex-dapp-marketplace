@@ -120,7 +120,7 @@ export function WorkersPanel(props: {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter((slot) => {
-        const meta = props.slottedMetadata[idx] ?? null;
+        const meta = props.slottedMetadata[slot.originalIndex] ?? null;
         return (
           slot.type.toLowerCase().includes(q) ||
           slot.nftId?.toString().includes(q) ||
