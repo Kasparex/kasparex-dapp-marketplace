@@ -19,6 +19,7 @@ import {
   computeMiningEfficiencyPct,
   computePlantRollingDailyCapBreakdown,
   computeProductionKw,
+  type PlantRollingCapBreakdown,
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -257,6 +258,7 @@ function DailyCapBar(props: {
   remainingMs: number;
   /** Live mining throughput while a session is running (D/min). */
   flowRatePerMin?: number;
+  capStack?: PlantRollingCapBreakdown;
 }) {
   const r = clamp01(props.ratio);
   const showTimer = props.remainingMs > 0 && !props.forceZeroDisplay;
