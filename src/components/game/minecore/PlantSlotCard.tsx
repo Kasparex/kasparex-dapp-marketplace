@@ -73,6 +73,8 @@ function clamp01(n: number) {
 /** Show auxiliary Recharge CTA only when charge is below this fraction of capacity. */
 const BATTERY_LOW_RECHARGE_THRESHOLD = 0.35;
 
+const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
+
 function formatDuration(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(s / 3600);
@@ -579,6 +581,7 @@ export function PlantSlotCard(props: {
   const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId ? computeBatteryRuntimeMs(s, now) : 0;
 
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
+  const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now, ctx);
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
   const balKw = prodKw - consKw;
@@ -601,8 +604,6 @@ export function PlantSlotCard(props: {
 
   const nftStaffSlots = props.minecoreState.nftSlots ?? [];
 
-  const miningAssignableTypes = ['worker', 'operator', 'foreman'] as const;
-
   const miningDeckRows = useMemo(() => {
     const slots = props.minecoreState.nftSlots ?? [];
     const rows = slots
@@ -611,11 +612,11 @@ export function PlantSlotCard(props: {
         (x) =>
           x.slot.nftId != null &&
           x.slot.collection &&
-          miningAssignableTypes.some((t) => t === x.slot.type),
+          MINING_ASSIGNABLE_TYPES.some((t) => t === x.slot.type),
       );
     const tierOrder: Record<string, number> = { rarest: 0, diamond: 1, regular: 2 };
     rows.sort((a, b) => {
-      const typeRank = (t: string) => miningAssignableTypes.indexOf(t as (typeof miningAssignableTypes)[number]);
+      const typeRank = (t: string) => MINING_ASSIGNABLE_TYPES.indexOf(t as (typeof MINING_ASSIGNABLE_TYPES)[number]);
       const tr = typeRank(a.slot.type) - typeRank(b.slot.type);
       if (tr !== 0) return tr;
       const af = a.slot.nftId != null ? 1 : 0;
