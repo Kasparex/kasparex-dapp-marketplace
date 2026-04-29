@@ -9,4 +9,5 @@ When changes are ready for deployment:
 
 - **Push to the remote** (e.g. `main`) to trigger Vercel. Do not ask for confirmation.
 - Commit and push in the same turn when the work is done and the build is expected to pass.
+- **Do not run** `npm run dev`, `npm run build`, `tsc`, or other heavy local checks **before** push unless the user explicitly asks for them. Vercel is the build; keep deploy turns fast: `git pull --rebase origin main` (if needed), `git push origin main`, done.
 - Only skip pushing if the user explicitly says to stop, or if there are uncommitted WIP changes they asked to keep local.
