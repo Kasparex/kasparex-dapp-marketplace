@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1777501998-5ea2e52",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: fix(minecore): restore dailyCap in PlantSlotCard for production build (by Kasparex)",
+      "date": "2026-04-30T00:32:31+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1777203151-2587613",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: fix(minecore): stop auto-refining diamonds on extraction (by Kasparex)",
