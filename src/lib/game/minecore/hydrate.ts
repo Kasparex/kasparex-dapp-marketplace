@@ -1,5 +1,5 @@
 import type { MiningSlot } from '@/lib/game/engine';
-import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState, PlantSetup } from './types';
+import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState, PlantSetup, PlantCardStatus } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
@@ -69,7 +69,12 @@ export function normalizeMinecoreNftSlots(raw: unknown[]): MiningSlot[] {
     const role = typeof row.type === 'string' ? coerceRole(row.type) : 'worker';
     const nftId = typeof row.nftId === 'number' ? row.nftId : null;
     const collection = typeof row.collection === 'string' ? row.collection : null;
-    out.push({ type: role, nftId, collection });
+    const pr = row.minecorePerkTier;
+    const minecorePerkTier =
+      pr === 'regular' || pr === 'diamond' || pr === 'rarest' ? pr : undefined;
+    const slot: MiningSlot = { type: role, nftId, collection };
+    if (nftId != null && collection != null && minecorePerkTier) slot.minecorePerkTier = minecorePerkTier;
+    out.push(slot);
   }
   return out;
 }
@@ -87,6 +92,11 @@ function clampPlantSlotsNftDeckIndices(slots: PlantSlotState[], nftSlotCount: nu
       setup: { ...p.setup, workerNftDeckSlotIndices: next },
     };
   });
+}
+
+function mapLegacyPlantStatus(raw: string): PlantCardStatus {
+  if (raw === 'ExtractionReady') return 'CreditingReady';
+  return raw as PlantCardStatus;
 }
 
 function hydrateSlot(input: unknown, index: number): PlantSlotState {
@@ -141,7 +151,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     unlocked: typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked,
     unlockCostKas: typeof input.unlockCostKas === 'number' ? input.unlockCostKas : base.unlockCostKas,
     type: plantType,
-    status: typeof input.status === 'string' ? (input.status as any) : base.status,
+    status: typeof input.status === 'string' ? mapLegacyPlantStatus(input.status as string) : base.status,
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
       batteryIds,
@@ -177,6 +187,14 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     })(),
     dailyCapMinedDiamonds:
       typeof input.dailyCapMinedDiamonds === 'number' ? input.dailyCapMinedDiamonds : base.dailyCapMinedDiamonds,
+    plantLastServicedAtMs: (() => {
+      const raw = (input as Record<string, unknown>).plantLastServicedAtMs;
+      if (typeof raw === 'number' && raw > 0) return raw;
+      const unlocked = typeof input.unlocked === 'boolean' ? input.unlocked : base.unlocked;
+      const roll = typeof input.rollingCapWindowStartMs === 'number' ? input.rollingCapWindowStartMs : 0;
+      if (unlocked && roll > 0) return roll;
+      return base.plantLastServicedAtMs;
+    })(),
   };
 }
 

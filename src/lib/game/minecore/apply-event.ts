@@ -2,6 +2,7 @@ import {
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_BATTERIES,
+  MINECORE_DAY_MS,
   MINECORE_RECIPES,
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_REFINE_POINTS_PER_DIAMOND,
@@ -33,6 +34,8 @@ import {
   normalizeBatteryIds,
   sumChargeMs,
 } from './battery-utils';
+import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import type { IngredientBag } from './types';
 import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModuleId, MinecoreState, PlantSlotState } from './types';
@@ -49,8 +52,29 @@ import {
   normalizeWorkerDeckIndices,
 } from './asset-usage';
 
+function slotMaxMs(state: MinecoreState, slot: PlantSlotState): number[] {
+  const bonus = computeMinecoreBatteryBonusMsPerSlot(state);
+  return getMaxChargePerSlotMs(slot.setup, slot.type, bonus);
+}
+
+/** When Workers NFT perks change max battery capacity, clamp stored charge without resetting cycles. */
+function clampAllPlantBatteryChargesToCaps(state: MinecoreState, now: number) {
+  for (const slot of state.plantSlots) {
+    if (!slot.unlocked) continue;
+    const maxArr = slotMaxMs(state, slot);
+    const n = maxArr.length;
+    let arr =
+      slot.cycle && slot.cycle.pauseBeganAtMs == null
+        ? computeLiveBatterySlotChargeMs(slot, now)
+        : ensureBatterySlotChargeLength(slot.batterySlotChargeMs, n, 0);
+    arr = ensureBatterySlotChargeLength(arr, n, 0).map((c, i) => Math.min(c, maxArr[i] ?? 0));
+    slot.batterySlotChargeMs = arr;
+    slot.batterySnapshotAt = now;
+  }
+}
+
 /** Preserve total charge energy when machine (charge budget) or per-slot battery changes. */
-function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldMaxSlots: number[], at: number, now: number) {
+function rescaleBatteryToNewCapacity(state: MinecoreState, slot: PlantSlotState, oldMaxSlots: number[], at: number, now: number) {
   const nOld = oldMaxSlots.length;
   const oldTotalCap = sumChargeMs(oldMaxSlots);
   let live: number[];
@@ -70,7 +94,7 @@ function rescaleBatteryToNewCapacity(slot: PlantSlotState, oldMaxSlots: number[]
     live = live.slice(0, nOld);
   }
   const liveTotal = sumChargeMs(live);
-  const newMaxSlots = getMaxChargePerSlotMs(slot.setup, slot.type);
+  const newMaxSlots = slotMaxMs(state, slot);
   const newTotalCap = sumChargeMs(newMaxSlots);
   if (newTotalCap <= 0) {
     slot.batterySlotChargeMs = ensureBatterySlotChargeLength([], getPlantBatterySlotCount(slot.type), 0);
@@ -157,7 +181,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot) return rederive(s, now);
       slot.nftId      = ev.nftId;
       slot.collection = ev.collection;
+      slot.minecorePerkTier = getNFTTier(ev.collection, ev.nftId, null);
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
+      clampAllPlantBatteryChargesToCaps(s, now);
       return rederive(s, now);
     }
 
@@ -166,6 +192,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot) return rederive(s, now);
       slot.nftId      = null;
       slot.collection = null;
+      delete slot.minecorePerkTier;
       for (const ps of s.plantSlots) {
         const idxs = ps.setup.workerNftDeckSlotIndices ?? [];
         if (idxs.some((x) => x === ev.slotIndex)) {
@@ -173,6 +200,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
       }
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
+      clampAllPlantBatteryChargesToCaps(s, now);
+      return rederive(s, now);
+    }
+
+    case 'SyncMinecoreNftPerkTier': {
+      const slot = s.nftSlots?.[ev.slotIndex];
+      if (!slot) return rederive(s, now);
+      if (ev.tier == null) delete slot.minecorePerkTier;
+      else slot.minecorePerkTier = ev.tier;
+      clampAllPlantBatteryChargesToCaps(s, now);
       return rederive(s, now);
     }
 
@@ -217,7 +254,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.powerRemaining = Math.max(slot.powerRemaining, 1);
       slot.needsRepair    = false;
       slot.cycle          = null;
-      slot.batterySlotChargeMs = getMaxChargePerSlotMs(slot.setup, slot.type);
+      slot.batterySlotChargeMs = slotMaxMs(s, slot);
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
@@ -242,6 +279,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         cycle:            null,
         powerRemaining:   0,
         needsRepair:      false,
+        plantLastServicedAtMs: 0,
         batterySlotChargeMs: [0],
         batterySnapshotAt: now,
         diamondsAccumulated: 0,
@@ -256,7 +294,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'ChangePlantType': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
-      const oldMax = getMaxChargePerSlotMs(slot.setup, slot.type);
+      const oldMax = slotMaxMs(s, slot);
       const live =
         slot.cycle && slot.cycle.pauseBeganAtMs == null
           ? computeLiveBatterySlotChargeMs(slot, now)
@@ -272,7 +310,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         slot.setup.moduleIds = slot.setup.moduleIds.slice(0, max);
       }
       slot.setup = { ...slot.setup, batteryIds: normalizeBatteryIds({ ...slot.setup, batteryIds: slot.setup.batteryIds }, ev.plantType) };
-      const newMax = getMaxChargePerSlotMs(slot.setup, ev.plantType);
+      const newMax = slotMaxMs(s, slot);
       const newTotal = sumChargeMs(newMax);
       if (newTotal <= 0) {
         slot.batterySlotChargeMs = ensureBatterySlotChargeLength([], getPlantBatterySlotCount(ev.plantType), 0);
@@ -297,18 +335,18 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       }
       // Finalize cycle only after inventory allows the edit (paused/stopped swaps; mid-run diamonds merge into accumulation).
       if (slot.cycle) {
-        slot.diamondsAccumulated += computeLiveDiamonds(slot, now);
+        slot.diamondsAccumulated += computeLiveDiamonds(s, slot, now);
         slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, now);
         slot.batterySnapshotAt = now;
         slot.cycle = null;
       }
       if (ev.part.kind === 'machine') {
-        const oldMax = getMaxChargePerSlotMs(slot.setup, slot.type);
+        const oldMax = slotMaxMs(s, slot);
         slot.setup.machineId = ev.part.id;
-        rescaleBatteryToNewCapacity(slot, oldMax, now, now);
+        rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
       }
       if (ev.part.kind === 'battery') {
-        const oldMax = getMaxChargePerSlotMs(slot.setup, slot.type);
+        const oldMax = slotMaxMs(s, slot);
         const n = getPlantBatterySlotCount(slot.type);
         const idx =
           ev.part.batterySlotIndex != null
@@ -320,7 +358,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         nextIds[idx] = ev.part.id;
         slot.setup = { ...slot.setup, batteryIds: nextIds };
         if (ev.part.id && MINECORE_BATTERIES[ev.part.id]) {
-          rescaleBatteryToNewCapacity(slot, oldMax, now, now);
+          rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
         } else {
           slot.batterySlotChargeMs = Array.from({ length: n }, () => 0);
           slot.batterySnapshotAt = now;
@@ -364,9 +402,12 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
       slot.powerRemaining = getPowerUnitCap(slot);
 
+      /** Long nominal window — mining ends by battery or daily cap, not wall-clock cycle length. */
+      const nominalEndMs = ev.at + 100 * MINECORE_DAY_MS;
+
       slot.cycle = {
         startAtMs:        ev.at,
-        endAtMs:          ev.at + durationMs,
+        endAtMs:          nominalEndMs,
         durationMs,
         expectedDiamonds,
         mintedOffset:     0,
@@ -402,7 +443,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'RefillBattery': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked || !hasInstalledBattery(slot.setup, slot.type)) return rederive(s, now);
-      slot.batterySlotChargeMs  = getMaxChargePerSlotMs(slot.setup, slot.type);
+      slot.batterySlotChargeMs = slotMaxMs(s, slot);
       slot.batterySnapshotAt = ev.at;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
@@ -413,11 +454,13 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot || !slot.unlocked) return rederive(s, now);
       
       const liveStatus = deriveSlotStatus(s, slot, ev.at);
-      const hasSomething = slot.diamondsAccumulated > 0 || (slot.cycle && (liveStatus === 'ExtractionReady' || liveStatus === 'BatteryEmpty'));
+      const hasSomething =
+        slot.diamondsAccumulated > 0 ||
+        (slot.cycle && (liveStatus === 'CreditingReady' || liveStatus === 'BatteryEmpty'));
       if (!hasSomething) return rederive(s, now);
 
       // Proportional extraction - sum accumulated + current live
-      const currentCycleDiamonds = computeLiveDiamonds(slot, ev.at);
+      const currentCycleDiamonds = computeLiveDiamonds(s, slot, ev.at);
       const totalToExtract = slot.diamondsAccumulated + currentCycleDiamonds;
       
       s.diamondsBalance += totalToExtract;
@@ -428,9 +471,6 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       // PERSISTENCE: Update battery charge to exactly what is left now
       slot.batterySlotChargeMs   = computeLiveBatterySlotChargeMs(slot, ev.at);
       slot.batterySnapshotAt = ev.at;
-
-      // Small random repair chance
-      if (Math.random() < 0.02) slot.needsRepair = true;
 
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
@@ -447,9 +487,37 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'RechargePlant': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked || !hasInstalledBattery(slot.setup, slot.type)) return rederive(s, now);
-      const cap = getPowerUnitCap(slot);
-      slot.powerRemaining = cap;
-      slot.batterySlotChargeMs = getMaxChargePerSlotMs(slot.setup, slot.type);
+      const n = getPlantBatterySlotCount(slot.type);
+      const maxPerSlot = slotMaxMs(s, slot);
+      const ids = normalizeBatteryIds(slot.setup, slot.type);
+
+      let indexes: number[] = [];
+      if (ev.batterySlotIndexes && ev.batterySlotIndexes.length > 0) {
+        const uniq = [...new Set(ev.batterySlotIndexes.map((i) => Math.floor(i)))];
+        indexes = uniq.filter((i) => i >= 0 && i < n && ids[i] != null);
+      } else {
+        const single =
+          ev.batterySlotIndex != null ? Math.floor(ev.batterySlotIndex) : 0;
+        const idx = Math.max(0, Math.min(n - 1, single));
+        if (ids[idx]) indexes = [idx];
+        else {
+          const fi = ids.findIndex(Boolean);
+          if (fi < 0) return rederive(s, now);
+          indexes = [fi];
+        }
+      }
+      if (indexes.length === 0) return rederive(s, now);
+
+      let arr = [...computeLiveBatterySlotChargeMs(slot, now)];
+      arr = ensureBatterySlotChargeLength(arr, n, 0);
+      for (let i = 0; i < n; i++) {
+        arr[i] = arr[i] ?? 0;
+      }
+      for (const idx of indexes) {
+        if (!ids[idx]) continue;
+        arr[idx] = maxPerSlot[idx] ?? 0;
+      }
+      slot.batterySlotChargeMs = arr;
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
@@ -459,6 +527,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
       slot.needsRepair = false;
+      slot.plantLastServicedAtMs = now;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);
     }
@@ -488,7 +557,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
         if (r <= 0) break;
         if (!slot.cycle) continue;
-        const live = computeLiveDiamonds(slot, at);
+        const live = computeLiveDiamonds(s, slot, at);
         if (live <= 0) continue;
         const takeL = Math.min(r, live);
         const c = slot.cycle;
@@ -500,10 +569,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
       for (const slot of s.plantSlots) {
         if (!slot.cycle) continue;
-        const rawR = computeRawLiveDiamonds(slot, at);
+        const rawR = computeRawLiveDiamonds(s, slot, at);
         if (rawR > 0 && (slot.cycle.mintedOffset ?? 0) >= rawR) {
           // Run is fully siphoned from live production via refine - end this cycle the same as clearing the in-progress run.
-          slot.diamondsAccumulated += computeLiveDiamonds(slot, at);
+          slot.diamondsAccumulated += computeLiveDiamonds(s, slot, at);
           slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, at);
           slot.batterySnapshotAt = at;
           slot.cycle = null;

@@ -15,6 +15,7 @@ import {
   getPowerUnitCap,
 } from './compute';
 import { getMaxChargePerSlotMs } from './battery-utils';
+import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import { createInitialMinecoreState } from './initial-state';
 import { KREXPRIME_DIAMOND_IDS, RAREST_NFT_IDS } from '@/lib/game/diamond-veins-config';
 import type {
@@ -97,7 +98,8 @@ function calculatorMinecoreStateForTier(tier: 'regular' | 'diamond' | 'rarest'):
   return { ...s, nftSlots: slots };
 }
 
-export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): PlantSlotState {
+export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, minecoreState?: MinecoreState): PlantSlotState {
+  const bonus = minecoreState ? computeMinecoreBatteryBonusMsPerSlot(minecoreState) : 0;
   return {
     id: 'calc',
     index: 0,
@@ -109,7 +111,8 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType): Pl
     cycle: null,
     powerRemaining: 99,
     needsRepair: false,
-    batterySlotChargeMs: getMaxChargePerSlotMs(setup, plantType),
+    plantLastServicedAtMs: Date.now(),
+    batterySlotChargeMs: getMaxChargePerSlotMs(setup, plantType, bonus),
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
     rollingCapWindowStartMs: 1,
@@ -184,11 +187,11 @@ function applyKasDiscount(kas: number, pct: number): number {
 
 export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreCalculatorResult {
   const { setup, plantType, plantCount, kasDiscountPct, workerTier } = input;
-  const slot = buildCalculatorSlot(setup, plantType);
   const mcState = calculatorMinecoreStateForTier(workerTier);
+  const slot = buildCalculatorSlot(setup, plantType, mcState);
   const expected = computePlantExpectedDiamonds(mcState, slot);
   const durationMs = computePlantDurationMs(slot);
-  const capMs = getBatteryCapacityMs(slot);
+  const capMs = getBatteryCapacityMs(slot, mcState);
   const drain = getPowerDrainScale(slot);
   const runtimeMs = drain > 0 ? capMs / drain : 0;
   const effectiveMs = Math.min(runtimeMs, durationMs);

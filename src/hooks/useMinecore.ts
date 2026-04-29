@@ -8,6 +8,10 @@ import {
   applyMinecoreEvent,
   deriveState,
   computeLiveDiamonds,
+  computePlantReady,
+  computeLiveBatteryChargeMs,
+  minecoreAutoRestartInfrastructureActive,
+  hasInstalledBattery,
   type MinecoreState,
   type MinecoreBatteryId,
   type PlantSlotState,
@@ -17,9 +21,11 @@ import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
+import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 
@@ -112,9 +118,15 @@ export function useMinecore() {
   /** Mining and mutations require a connected L1 wallet; state stays wallet-scoped in storage. */
   const miningAllowed = Boolean(walletState.isConnected && walletAddr);
 
+  const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
+
+  const minecoreComputeContext = useMemo((): MinecoreComputeContext => ({ nftMetadataByDeckIndex: slottedMetadata }), [
+    slottedMetadata,
+  ]);
+
   // Derive statuses from timestamps (progress + completed state) without mutating persisted state each second.
   const nowTick = useNowTick(1000);
-  const derived = useMemo(() => deriveState(mc, nowTick), [mc, nowTick]);
+  const derived = useMemo(() => deriveState(mc, nowTick, minecoreComputeContext), [mc, nowTick, minecoreComputeContext]);
 
   const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const [lastSetupError, setLastSetupError] = useState<string | null>(null);
@@ -140,34 +152,40 @@ export function useMinecore() {
     });
   }, []);
 
+  const prevAutomationRestartRef = useRef<Record<number, string>>({});
+
   /**
-   * Foreman only: auto-spend an Energy Cell to refill a dead battery. No automatic chain mining or extract (V1).
+   * Auto-restart mining after a run ends (CreditingReady / BatteryEmpty / DailyCapReached → ReadyToMine).
+   * Requires batteries installed with charge; never refills power or batteries — Foreman energy-cell refill removed.
    */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
-    if (!mc.automation.foremanActive) return;
+    if (!mc.automation.autoRestart || !minecoreAutoRestartInfrastructureActive(mcRef.current)) return;
 
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const s = mcRef.current;
-      const d = deriveState(s, now);
+    const now = Date.now();
+    const slots = derived.plantSlots;
 
-      for (let slotIdx = 0; slotIdx < s.plantSlots.length; slotIdx++) {
-        const slot = s.plantSlots[slotIdx];
-        if (!slot?.unlocked) continue;
-        const status = d.plantSlots[slotIdx]?.status;
-        if (!status) continue;
+    for (let slotIdx = 0; slotIdx < slots.length; slotIdx++) {
+      const rawSlot = mcRef.current.plantSlots[slotIdx];
+      if (!rawSlot?.unlocked) continue;
 
-        if (status === 'BatteryEmpty' && s.ingredients.energyCells > 0) {
-          dispatch({ type: 'AddIngredients', ingredient: 'energyCells', amount: -1, at: now });
-          dispatch({ type: 'RefillBattery', slotIndex: slotIdx, at: now });
-          break;
-        }
-      }
-    }, 5000);
+      const st = slots[slotIdx]?.status;
+      if (!st) continue;
 
-    return () => clearInterval(interval);
-  }, [walletState.isConnected, walletAddr, mc.automation.foremanActive, dispatch]);
+      const prev = prevAutomationRestartRef.current[slotIdx];
+      prevAutomationRestartRef.current[slotIdx] = st;
+      if (prev === undefined) continue;
+
+      if (st !== 'ReadyToMine' || prev === 'ReadyToMine') continue;
+      if (prev !== 'CreditingReady' && prev !== 'BatteryEmpty' && prev !== 'DailyCapReached') continue;
+
+      if (!computePlantReady(mcRef.current, rawSlot)) continue;
+      if (!hasInstalledBattery(rawSlot.setup, rawSlot.type)) continue;
+      if (computeLiveBatteryChargeMs(rawSlot, now) <= 0) continue;
+
+      dispatch({ type: 'StartMining', slotIndex: slotIdx, at: now });
+    }
+  }, [walletState.isConnected, walletAddr, derived.plantSlots, mc.automation.autoRestart, dispatch]);
 
   /**
    * When a run ends (cycle complete or battery empty), bank mined diamonds to the wallet immediately — no separate Extract step.
@@ -184,25 +202,34 @@ export function useMinecore() {
       const justEntered = prev === undefined || prev !== st;
       const canBank =
         slot.diamondsAccumulated > 0 ||
-        (slot.cycle != null && computeLiveDiamonds(slot, now) > 0);
-      if (justEntered && (st === 'ExtractionReady' || st === 'BatteryEmpty') && canBank) {
+        (slot.cycle != null && computeLiveDiamonds(mcRef.current, slot, now, minecoreComputeContext) > 0);
+      if (justEntered && (st === 'CreditingReady' || st === 'BatteryEmpty') && canBank) {
         dispatch({ type: 'Extract', slotIndex: slotIdx, at: now });
       }
       autoBankPrevStatusRef.current[slotIdx] = st;
     }
-  }, [walletState.isConnected, walletAddr, derived.plantSlots, nowTick, dispatch]);
-
-  const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
+  }, [walletState.isConnected, walletAddr, derived.plantSlots, nowTick, dispatch, minecoreComputeContext]);
 
   useEffect(() => {
     let cancelled = false;
+    const slots = derived.nftSlots ?? [];
+    setSlottedMetadata((prev) => {
+      const next = { ...prev };
+      for (const k of Object.keys(next)) {
+        const i = Number(k);
+        if (!Number.isFinite(i) || i < 0 || i >= slots.length) delete next[i];
+        else if (slots[i]?.nftId == null) delete next[i];
+      }
+      return next;
+    });
     void (async () => {
-      for (const slot of derived.nftSlots ?? []) {
+      for (let deckIdx = 0; deckIdx < slots.length; deckIdx++) {
+        const slot = slots[deckIdx];
         if (slot.nftId == null || !slot.collection) continue;
         try {
           const meta = await fetchNFTMetadata(slot.collection, slot.nftId);
           if (!cancelled && meta) {
-            setSlottedMetadata((prev) => (prev[slot.nftId!] ? prev : { ...prev, [slot.nftId!]: meta }));
+            setSlottedMetadata((prev) => ({ ...prev, [deckIdx]: meta }));
           }
         } catch {
           // ignore
@@ -213,6 +240,23 @@ export function useMinecore() {
       cancelled = true;
     };
   }, [derived.nftSlots]);
+
+  useEffect(() => {
+    const slots = derived.nftSlots ?? [];
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
+      if (slot.nftId == null || !slot.collection) {
+        if (slot.minecorePerkTier != null) {
+          dispatch({ type: 'SyncMinecoreNftPerkTier', at: Date.now(), slotIndex: i, tier: null });
+        }
+        continue;
+      }
+      const meta = slottedMetadata[i] ?? null;
+      const tier = getNFTTier(slot.collection, slot.nftId, meta);
+      if (slot.minecorePerkTier === tier) continue;
+      dispatch({ type: 'SyncMinecoreNftPerkTier', at: Date.now(), slotIndex: i, tier });
+    }
+  }, [derived.nftSlots, slottedMetadata, dispatch]);
 
   const payKasBestEffort = useCallback(
     async (params: { amountKas: number; skuId: string; purchaseType: 'slot' | 'unlock' | 'other' }) => {
@@ -414,20 +458,33 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
-  /** One KAS purchase: add reserve unit(s) and full battery for that plant. */
+  /** Paid KAS: refill battery slot(s); cost scales with how many slots you refill. Does not add reserve units. */
   const rechargePlantWithKAS = useCallback(
-    async (slotIndex: number, opts?: { units?: number }) => {
-      const units = Math.max(1, Math.floor(opts?.units ?? 1));
+    async (slotIndex: number, opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[] }) => {
+      let indexes: number[];
+      if (opts?.batterySlotIndexes && opts.batterySlotIndexes.length > 0) {
+        indexes = opts.batterySlotIndexes;
+      } else if (opts?.batterySlotIndex != null) {
+        indexes = [opts.batterySlotIndex];
+      } else {
+        indexes = [0];
+      }
       const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS * units),
+        amountKas: getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length),
         skuId: 'minecore:plant:recharge',
         purchaseType: 'other',
       });
       if (!paid.ok) return false;
-      dispatch({ type: 'RechargePlant', slotIndex, at: Date.now(), units });
+      dispatch({
+        type: 'RechargePlant',
+        slotIndex,
+        at: Date.now(),
+        batterySlotIndexes: indexes.length > 1 ? indexes : undefined,
+        batterySlotIndex: indexes.length === 1 ? indexes[0] : undefined,
+      });
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
   );
 
   const redeemGrid = useCallback(
@@ -493,6 +550,7 @@ export function useMinecore() {
   return {
     state: derived,
     slottedMetadata,
+    minecoreComputeContext,
     miningAllowed,
     profileNotice,
     dismissProfileNotice: () => setProfileNotice(null),

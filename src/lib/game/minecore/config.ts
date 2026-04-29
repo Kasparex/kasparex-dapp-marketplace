@@ -98,6 +98,15 @@ export const MINECORE_DISPLAY_POOL_GRID_REMAINING = (() => {
   return Number.isFinite(n) && n > 0 ? n : 1_000_000;
 })();
 
+/**
+ * Partner-branded collections (Minecore global perks). Add slug strings as collections launch.
+ * KREXPRIME / PIXELKREX use dedicated tier ladders in code — do not duplicate here.
+ */
+export const MINECORE_PARTNER_COLLECTIONS: readonly string[] = [];
+
+/** Premium collections (+100 cap / +10 min per NFT). Listed collections only; unknown collections use Standard baseline (+10/+5). */
+export const MINECORE_PREMIUM_COLLECTIONS: readonly string[] = [];
+
 export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
   const raw = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_MINECORE_POOL_KREX;
   const n = raw != null && raw !== '' ? Number(String(raw).replace(/_/g, '')) : NaN;
@@ -108,8 +117,18 @@ export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
-/** KAS repair action on a damaged plant (Mining tab). */
-export const MINECORE_PLANT_REPAIR_KAS = 5;
+/** KAS repair action — resets maintenance wear clock. */
+export const MINECORE_PLANT_REPAIR_KAS = 1.5;
+
+/** Nominal wall time until efficiency wears to zero without service (~2.5 days before tier/mult). */
+export const MINECORE_MAINTENANCE_PERIOD_MS = 2.5 * 24 * 60 * 60 * 1000;
+
+/** Extends maintenance interval (higher plant tier = longer efficient runtime). */
+export const MINECORE_PLANT_MAINTENANCE_MULT: Record<PlantType, number> = {
+  standard: 1,
+  premium: 1.12,
+  advanced: 1.28,
+};
 
 export type PlantPreset = {
   type: PlantType;

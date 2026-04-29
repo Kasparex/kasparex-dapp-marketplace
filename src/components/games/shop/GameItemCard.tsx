@@ -61,6 +61,8 @@ export function GameItemCard(props: {
    * Include sizing and disabled: styles you need; defaults apply when omitted.
    */
   buyButtonClassName?: string;
+  /** When `hidePricing` is true, omit the footer primary button (e.g. action rendered inside `description`). */
+  hideBuyButton?: boolean;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
 }) {
   const options = props.priceOptions;
@@ -215,6 +217,7 @@ export function GameItemCard(props: {
         </div>
 
         {props.hidePricing ? (
+          props.hideBuyButton ? null : (
           <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800">
             <button
               type="button"
@@ -228,6 +231,7 @@ export function GameItemCard(props: {
               {props.buyLabel ?? 'Buy'}
             </button>
           </div>
+          )
         ) : (
         <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
           <div className={`flex items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>

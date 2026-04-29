@@ -1,17 +1,19 @@
 import type { MiningSlotType } from '@/lib/game/engine';
 import { miningWorkerNftSlotsRequired } from './config';
 import { MINECORE_NFT_CREW_ROLES_ORDER, nftDeckRoleLabel, normalizePlantSetup } from './asset-usage';
-import { computeMiningNftDeckDiamondBonusPer24h } from './plant-economy';
+import { minecoreDeckBenefits } from './nft-deck-benefits';
+import type { MinecoreComputeContext } from './compute-context';
 import type { MinecoreState, PlantSlotState } from './types';
 
 export type PlantWorkerAssignmentBadge = { key: string; text: string };
 
 /**
- * Role counts + flat D/24 badges for each assigned deck slot (Setup row + tooltips).
+ * Role counts + NFT rolling-cap badges (collection perks only).
  */
 export function describePlantWorkerAssignments(
   state: MinecoreState,
   slot: PlantSlotState,
+  ctx?: MinecoreComputeContext,
 ): { summary: string; badges: PlantWorkerAssignmentBadge[] } {
   const need = miningWorkerNftSlotsRequired(slot.type);
   const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
@@ -25,10 +27,10 @@ export function describePlantWorkerAssignments(
     const deck = state.nftSlots?.[ix];
     if (!deck || deck.nftId == null || !deck.collection) continue;
     counts.set(deck.type, (counts.get(deck.type) ?? 0) + 1);
-    const bonus = computeMiningNftDeckDiamondBonusPer24h(deck);
+    const b = minecoreDeckBenefits(deck, ctx?.nftMetadataByDeckIndex?.[ix] ?? null);
     badges.push({
       key: `${ix}-${i}`,
-      text: `+${bonus} D`,
+      text: `+${b.capBonus} cap`,
     });
     if (deck.type === 'foreman') anyForeman = true;
   }

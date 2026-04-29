@@ -7,6 +7,7 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
+import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
@@ -19,6 +20,7 @@ const RESERVE_PACK_UNITS = 3;
 export function MinecorePowerPanel(props: {
   state: MinecoreState;
   now: number;
+  computeCtx?: MinecoreComputeContext;
   getKasPriceAfterDiscount: (unitPriceKas: number) => number;
   onDemoTopUpFirstPlant: () => void;
   /** KAS path: paid recharge. Kept for plant list shortcuts. */
@@ -41,7 +43,7 @@ export function MinecorePowerPanel(props: {
     if (cap <= 0) continue;
     totalCap += cap;
     totalRemaining += Math.min(cap, Math.max(0, p.powerRemaining));
-    const flowPerMin = computeFlowRatePerMin(p, now);
+    const flowPerMin = computeFlowRatePerMin(props.state, p, now, props.computeCtx);
     if (flowPerMin > 0) {
       activeDraw += 1;
       aggregateFlow += flowPerMin;
@@ -61,9 +63,9 @@ export function MinecorePowerPanel(props: {
       <ul className="space-y-2 text-sm">
         {state.plantSlots.map((p) => {
           const liveCharge = computeLiveBatteryChargeMs(p, now);
-          const capMs = getBatteryCapacityMs(p);
+          const capMs = getBatteryCapacityMs(p, props.state, props.computeCtx);
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
-          const flowPerMin = computeFlowRatePerMin(p, now);
+          const flowPerMin = computeFlowRatePerMin(props.state, p, now, props.computeCtx);
           const unitCap = getPowerUnitCap(p);
 
           return (
@@ -124,14 +126,14 @@ export function MinecorePowerPanel(props: {
     <div className="grid gap-6 lg:grid-cols-2">
       <GamePanelCard
         title="Site energy"
-        hint="Reserve units and live flow. Recharge a plant in mining or here with the same KAS action."
+        hint="Reserve units and battery %. Paid refill topping up battery charge — Mining tab has slot picker."
       >
         <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">
           Live snapshot
           <GameTooltip
             content={
-              `Each mining run uses one reserve unit. KAS recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds unit(s) and fully refills the battery. ` +
-                'Reserve capacity is your plant tier (V1); batteries and rigs do not add reserve units. Craft better rigs on the Build tab for more kW and D/24h.'
+              `Mining spends reserve units while draining batteries. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS/slot) only restores battery charge — it doesn’t add reserve slots beyond plant tier. ` +
+              'Reserve cap follows plant tier; rigs/kW affect drain speed.'
             }
           >
             <button
@@ -168,8 +170,8 @@ export function MinecorePowerPanel(props: {
 
       <GamePanelCard title="Recharge" hint="Same as the mining plant KAS action.">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Use <span className="font-semibold text-zinc-800 dark:text-zinc-200">Recharge - {MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> on a plant
-          to add a reserve unit and fully restore its battery, or use the Shop utility item (plant 1).
+          Same as Mining plant recharge — restores battery charge for{' '}
+          <span className="font-semibold text-zinc-800 dark:text-zinc-200">{MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> per slot filled on that plant.
         </p>
       </GamePanelCard>
     </div>
@@ -204,7 +206,7 @@ export function MinecorePowerPanel(props: {
             icon={<Icons.BatteryCharging className="h-8 w-8 text-sky-500/90" strokeWidth={1.75} />}
             title="Battery sync"
             category="Battery"
-            description="Restore full battery charge for the selected plant (paid)."
+            description="Restore battery charge for one slot (matches Mining recharge)."
             effects={[
               { label: 'Effect', value: '100% charge', color: 'sky' },
               { label: 'Best for', value: 'Mid-cycle top-up' },
@@ -242,9 +244,9 @@ export function MinecorePowerPanel(props: {
             icon={<Icons.Timer className="h-8 w-8 text-emerald-500/90" strokeWidth={1.75} />}
             title="Runtime bundle"
             category="Working time"
-            description="One reserve unit plus a full battery - fastest way to be cycle-ready."
+            description="Battery refill charge via mining recharge pricing."
             effects={[
-              { label: 'Includes', value: '+1 unit & full charge', color: 'emerald' },
+              { label: 'Includes', value: 'Battery charge only', color: 'emerald' },
               { label: 'Nominal', value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS` },
             ]}
             buyLabel={!slot?.unlocked ? 'Locked' : !hasInstalledBattery(slot?.setup, slot?.type) ? 'Install battery first' : 'Pay'}

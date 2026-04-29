@@ -322,7 +322,7 @@ export function ShopPanel(props: {
       id: 'power-topup',
       title: 'Plant recharge',
       category: 'Utility',
-      description: 'Adds reserve units and fully recharges the battery on plant 1 (same as the in-plant Recharge action).',
+      description: 'Refills battery charge on plant 1 (each quantity fills another battery slot).',
       baseKasPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
       type: 'item' as const,
       render: () => (
@@ -331,9 +331,9 @@ export function ShopPanel(props: {
           title="Plant recharge"
           category="Utility"
           imageSrc="https://static.wixstatic.com/media/de4185_1584ecece1e5489dbf13f7d111c44d99~mv2.jpg"
-          description="Each purchase adds reserve power units and tops up the battery for the first mining plant."
+          description="Battery refill packs for your first plant: quantity picks how many slots get topped up."
           effects={[
-            { label: 'Per unit', value: `+1 reserve & full battery (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS)` },
+            { label: 'Each pack', value: `One slot refill (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS)` },
           ]}
           priceOptions={[
             {

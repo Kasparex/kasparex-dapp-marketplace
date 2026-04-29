@@ -72,7 +72,7 @@ export function FabricationPanel(props: {
 
       <GamePanelCard
         title="Fabrication blueprints"
-        hint="Specs mirror mining math: D/24h plant bonus, drain × runtime, battery runtime × rolling-cap multiplier. Ingredients are craft-only."
+        hint="Specs mirror mining math: additive D/24h from rigs, drain × runtime on batteries. Ingredients are craft-only."
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -125,27 +125,10 @@ export function FabricationPanel(props: {
                   value: `${Math.round(cfg.chargeCapacityMs / 60000)} min @ 1.0× drain`,
                   color: 'sky',
                 });
-                specifications.push({
-                  label: 'Reserve power units',
-                  value: 'Plant tier only (V1)',
-                  color: 'amber',
-                });
-                specifications.push({
-                  label: 'Yield multiplier',
-                  value: `×${cfg.efficiency} (rolling cap)`,
-                  color: 'emerald',
-                });
               }
             } else if (isModule) {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];
               if (cfg) {
-                if (cfg.kind === 'output') {
-                  specifications.push({
-                    label: 'Output bonus',
-                    value: `+${Math.round(cfg.outputBonus * 100)}% (stacked in plant cap)`,
-                    color: 'amber',
-                  });
-                }
                 if (cfg.kind === 'cooling') {
                   specifications.push({
                     label: 'Consumption cut',
@@ -208,7 +191,7 @@ export function FabricationPanel(props: {
             const description = isMachine
               ? 'Nominal cycle length per run. Drain × scales battery runtime vs charge; D/24h stacks with your plant base and modules live.'
               : isBattery
-                ? 'Production kW and power-unit capacity add to the plant grid total and efficiency math. Battery charge still drains during runs based on the machine’s drain factor.'
+                ? 'Adds production kW to your plant bus. Charge drains during runs based on the machine’s drain factor; max stored time uses rig charge budget and worker battery bonuses.'
                 : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
 
             return (

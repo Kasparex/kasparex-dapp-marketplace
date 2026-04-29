@@ -162,14 +162,14 @@ export function GameDeckPanel(props: {
             const wrapperProps = r.tooltip ? ({ content: r.tooltip } as const) : null;
             const innerContent = (
               <>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                     {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
                     <span className="truncate font-medium">{r.label}</span>
                   </div>
                   {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
                 </div>
-                <div className="text-right">
+                <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
                   <div
                     className={`text-base font-black tabular-nums ${
                       typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
@@ -187,7 +187,7 @@ export function GameDeckPanel(props: {
             );
 
             const rowClassName = [
-              'w-full flex items-center justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+              'w-full flex items-start justify-between gap-3 py-2.5 px-3 text-left transition-colors',
               clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
             ].join(' ');
 

@@ -269,7 +269,7 @@ export function MinecoreCalculator() {
             <Stat
               label="KAS / recharge (discounted)"
               value={`${result.kasPerRechargeDiscounted} KAS`}
-              sub={`Nominal ${result.kasPerRecharge} KAS · +1 reserve & full battery`}
+              sub={`Nominal ${result.kasPerRecharge} KAS · battery refill`}
             />
             <Stat label="Plant upgrade (discounted)" value={`${result.plantUpgradeKasDiscounted} KAS`} sub={`Nominal ${result.plantUpgradeKas} KAS · ${preset.label}`} />
             <Stat label="Slot unlock (game SKU)" value={`${result.slotUnlockKas} KAS`} sub="First unlock per slot" />

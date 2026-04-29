@@ -16,6 +16,8 @@ import {
   computeMinecoreRollingDailyCapDeckTotals,
   minecoreAutoRestartInfrastructureActive,
 } from '@/lib/game/minecore/compute';
+import { minecoreUtcDayKey } from '@/lib/game/minecore/plant-economy';
+import { getPlantBatterySlotCount } from '@/lib/game/minecore/battery-utils';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
@@ -24,7 +26,7 @@ import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPane
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
-import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS } from '@/lib/game/minecore/calculator';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
@@ -65,6 +67,7 @@ export function MinecoreDashboard(_props: {
     dismissLastSetupError,
     getKasPriceAfterDiscount,
     slottedMetadata,
+    minecoreComputeContext,
     wallet,
     nowTick,
     miningAllowed,
@@ -105,7 +108,9 @@ export function MinecoreDashboard(_props: {
           ({ slot }) =>
             slot.status === 'MiningActive' ||
             slot.status === 'MiningPaused' ||
-            slot.status === 'InsufficientPower',
+            slot.status === 'InsufficientPower' ||
+            slot.status === 'CreditingReady' ||
+            slot.status === 'BatteryEmpty',
         );
       }
     }
@@ -123,9 +128,24 @@ export function MinecoreDashboard(_props: {
   const kasBalanceNum = kasValid ? balanceInKas : 0;
   const kasBalanceLoading = canPayWithL1 && kasBalanceHookLoading && balanceInKas === null;
 
-  const diamondsDisplayTotal = Math.floor(computeMinecoreDiamondsDisplayTotal(state, nowTick));
-  const deckRollingCaps = useMemo(() => computeMinecoreRollingDailyCapDeckTotals(state, nowTick), [state, nowTick]);
+  const diamondsDisplayTotal = Math.floor(
+    computeMinecoreDiamondsDisplayTotal(state, nowTick, minecoreComputeContext),
+  );
+  const deckRollingCaps = useMemo(
+    () => computeMinecoreRollingDailyCapDeckTotals(state, nowTick, minecoreComputeContext),
+    [state, nowTick, minecoreComputeContext],
+  );
   const autoRestartInfrastructureActive = useMemo(() => minecoreAutoRestartInfrastructureActive(state), [state]);
+
+  const gridRedeemEstimateToday = useMemo(() => {
+    const today = minecoreUtcDayKey(nowTick);
+    const rb = state.redeemBudget;
+    const spent = rb?.dayKey === today ? rb.refinementPointsSpentOnGrid : 0;
+    const ptsLeft = Math.max(0, MINECORE_DAILY_GRID_POINTS_CAP - spent);
+    const ptsFromDiamonds = Math.floor(diamondsDisplayTotal * MINECORE_REFINE_POINTS_PER_DIAMOND);
+    const pts = Math.min(ptsFromDiamonds, ptsLeft);
+    return Math.floor(pts * MINECORE_GRID_PER_REFINEMENT_POINT);
+  }, [diamondsDisplayTotal, state.redeemBudget, nowTick]);
 
   const openOverview = () => {
     setTab('overview');
@@ -140,42 +160,48 @@ export function MinecoreDashboard(_props: {
     () => [
       {
         id: 'diamonds',
-        label: 'Mine deck',
+        label: 'Diamonds',
         value: (
-          <span className="inline-flex items-baseline gap-1.5 tabular-nums">
-            <span className="font-black text-amber-400 dark:text-amber-300">
-              {Math.floor(deckRollingCaps.minedSum).toLocaleString()}
+          <span className="flex w-full min-w-0 flex-col items-end gap-0.5 tabular-nums">
+            <span className="flex items-baseline justify-end gap-1">
+              <span className="text-xl font-black leading-none text-amber-400 dark:text-amber-300">
+                {diamondsDisplayTotal.toLocaleString()}
+              </span>
+              <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
+              <span className="text-xl font-black leading-none text-amber-400 dark:text-amber-300">
+                {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}
+              </span>
             </span>
-            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="font-black text-emerald-600 dark:text-emerald-400">
-              {Math.floor(deckRollingCaps.capSum).toLocaleString()}
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+              ~
+              <span className="font-black text-amber-500 dark:text-amber-400">
+                {gridRedeemEstimateToday.toLocaleString()}
+              </span>{' '}
+              GRID today (est.)
             </span>
           </span>
         ),
-        description: 'Available mined / Total daily cap',
-        tooltip:
-          'Diamonds mined toward your rolling 24h window versus combined daily cap from all ready mining plants.',
+        description: 'In-game currency',
+        tooltip: 'Diamonds you earn in plants; refine them into redeem points. Opens Redeem.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
-        onClick: () => setTab('mining' as const),
+        onClick: () => setTab('redeem' as const),
       },
       {
-        id: 'refinement_points',
-        label: 'Refinement points',
-        value: (
-          <span className="inline-flex items-baseline gap-1 tabular-nums">
-            <span className="font-black text-amber-500 dark:text-amber-400">
-              {Math.floor(diamondsDisplayTotal).toLocaleString()}
-            </span>
-            <span className="text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="font-black text-violet-600 dark:text-violet-400">
-              {Math.floor(state.refinementPointsTotal).toLocaleString()}
-            </span>
-          </span>
+        id: 'redeem_points',
+        label: 'Redeem points',
+        value: Math.floor(state.refinementPointsTotal).toLocaleString(),
+        subValue: (
+          <>
+            ~
+            <span className="font-black text-emerald-600 dark:text-emerald-400">
+              {Math.floor(state.refinementPointsTotal * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}
+            </span>{' '}
+            GRID total
+          </>
         ),
-        description: 'Ready to refine · Points balance',
-        tooltip:
-          'Left: diamonds in your refineable balance. Right: refinement points from refining (separate from rolling mine/cap).',
+        description: 'From refining diamonds',
+        tooltip: 'Points from refining. Trade for GRID on Redeem (daily cap).',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -183,8 +209,8 @@ export function MinecoreDashboard(_props: {
         id: 'grid_token',
         label: 'GRID',
         value: gridL1Balance.toLocaleString(),
-        description: 'Reward token',
-        tooltip: 'Your actual GRID token balance.',
+        description: 'Wallet balance',
+        tooltip: 'GRID tokens on-chain (L2).',
         accent: 'grid' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -192,8 +218,8 @@ export function MinecoreDashboard(_props: {
         id: 'krex',
         label: 'KREX',
         value: krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-        description: 'Utility and power token',
-        tooltip: `Your KREX balance on L1. Tier ${krexTier} gives KAS-only shop discounts. Click to open the buy KREX wizard.`,
+        description: 'Utility token',
+        tooltip: `KREX on L1 — tier ${krexTier} lowers some KAS shop prices.`,
         accent: 'krex' as const,
         onClick: () => setKrexWizardOpen(true),
       },
@@ -201,15 +227,15 @@ export function MinecoreDashboard(_props: {
         id: 'kas',
         label: 'KAS',
         value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-        description: 'Main fuel currency',
-        tooltip: 'Your Kaspa L1 wallet balance (KasWare/Kastle). Used for slot activation, shop, and power top-ups. KREX tier lowers KAS prices. Click to open Shop.',
+        description: 'Wallet balance',
+        tooltip: 'KAS on L1 — unlocks, shop, plant refill.',
         accent: 'kas' as const,
         onClick: () => setTab('shop' as const),
       },
     ],
     [
       diamondsDisplayTotal,
-      deckRollingCaps.minedSum,
+      gridRedeemEstimateToday,
       deckRollingCaps.capSum,
       state.refinementPointsTotal,
       krexL1Balance,
@@ -362,6 +388,7 @@ export function MinecoreDashboard(_props: {
                   <PlantSlotCard
                     key={`plant-slot-${slotIndex}`}
                     minecoreState={state}
+                    minecoreComputeContext={minecoreComputeContext}
                     slot={slot}
                     slotArrayIndex={slotIndex}
                     now={nowTick}
@@ -439,7 +466,7 @@ export function MinecoreDashboard(_props: {
                 </div>
               </div>
 
-              <MinecoreMiningSections state={state} />
+              <MinecoreMiningSections state={state} computeCtx={minecoreComputeContext} />
             </div>
           )}
 
@@ -447,12 +474,13 @@ export function MinecoreDashboard(_props: {
             <MinecorePowerPanel
               state={state}
               now={nowTick}
+              computeCtx={minecoreComputeContext}
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onDemoTopUpFirstPlant={() => {
                 actions.topUpPower(0, 5);
               }}
               onRechargePlant={(idx) => {
-                void actions.rechargePlantWithKAS(idx, { units: 1 });
+                void actions.rechargePlantWithKAS(idx);
               }}
               onBatterySync={async (idx, currency) => {
                 if (currency === 'KREX') {
@@ -474,7 +502,7 @@ export function MinecoreDashboard(_props: {
                   actions.refillBattery(idx);
                   return;
                 }
-                await actions.rechargePlantWithKAS(idx, { units: 1 });
+                await actions.rechargePlantWithKAS(idx);
               }}
             />
           )}
@@ -512,7 +540,12 @@ export function MinecoreDashboard(_props: {
               }}
               onBuy={async ({ itemId, currency, quantity }) => {
                 if (itemId === 'power-topup' && currency === 'KAS') {
-                  await actions.rechargePlantWithKAS(0, { units: quantity });
+                  const p0 = state.plantSlots[0];
+                  const n = p0 ? getPlantBatterySlotCount(p0.type) : 1;
+                  const count = Math.max(1, Math.min(quantity, n));
+                  await actions.rechargePlantWithKAS(0, {
+                    batterySlotIndexes: Array.from({ length: count }, (_, i) => i),
+                  });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {
                   actions.setBoost(0, 'kas-overclock');

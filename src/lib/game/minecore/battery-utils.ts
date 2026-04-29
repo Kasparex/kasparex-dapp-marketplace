@@ -24,13 +24,20 @@ export function hasInstalledBattery(setup: PlantSetup, plantType: PlantType): bo
 /**
  * Per-slot full charge (ms) after machine budget mult; 0 for empty slot.
  */
-export function getMaxChargePerSlotMs(setup: PlantSetup, plantType: PlantType): number[] {
+export function getMaxChargePerSlotMs(
+  setup: PlantSetup,
+  plantType: PlantType,
+  /** Extra ms max charge per slot from global Workers-tab NFT perks (same value applied to each populated slot). */
+  extraMsPerSlot = 0,
+): number[] {
   const ids = normalizeBatteryIds(setup, plantType);
   const mult = setup.machineId ? (MINECORE_MACHINES[setup.machineId]?.powerBudgetMultiplier ?? 1) : 1;
   return ids.map((id) => {
     if (!id) return 0;
     const base = MINECORE_BATTERIES[id]?.chargeCapacityMs ?? 0;
-    return Math.max(0, Math.floor(base * mult));
+    const cap = Math.max(0, Math.floor(base * mult));
+    const extra = extraMsPerSlot > 0 ? Math.floor(extraMsPerSlot) : 0;
+    return cap + extra;
   });
 }
 

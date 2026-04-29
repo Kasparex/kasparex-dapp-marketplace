@@ -96,7 +96,7 @@ export function MinecoreMaintenanceCostsPanel(props: {
       <div className="grid grid-cols-2 gap-2">
         {row('Activate plant slot', MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, true)}
         {row('Add plant row', props.nextSlotCostKas, true)}
-        {row('Recharge (+1 unit & battery)', MINECORE_PLANT_RECHARGE_COST_KAS, true)}
+        {row('Recharge (battery refill)', MINECORE_PLANT_RECHARGE_COST_KAS, true)}
         {row('Repair plant', MINECORE_PLANT_REPAIR_KAS, true)}
         {premium.costKas <= 0
           ? row(`Upgrade → ${premium.label}`, 0, false, true)

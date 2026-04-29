@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import type { MinecoreState } from '@/lib/game/minecore';
+import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 import { MINECORE_MACHINES } from '@/lib/game/minecore/config';
 import { computePlantExpectedDiamonds } from '@/lib/game/minecore/compute';
 import { computePlantDiamondsPer24h } from '@/lib/game/minecore/plant-economy';
@@ -19,8 +20,11 @@ const veinIconClass: Record<string, string> = {
   'quantum-fracturer': 'text-amber-400',
 };
 
-export function MinecoreMiningSections(props: { state: MinecoreState }) {
-  const { state } = props;
+export function MinecoreMiningSections(props: {
+  state: MinecoreState;
+  computeCtx?: MinecoreComputeContext;
+}) {
+  const { state, computeCtx } = props;
 
   const byMachine = useMemo(() => {
     const map = new Map<MinecoreMachineId, { count: number; d24Sum: number; cycleSum: number }>();
@@ -32,19 +36,19 @@ export function MinecoreMiningSections(props: { state: MinecoreState }) {
       const id = slot.setup.machineId;
       const cur = map.get(id) ?? { count: 0, d24Sum: 0, cycleSum: 0 };
       cur.count += 1;
-      cur.d24Sum += computePlantDiamondsPer24h(state, slot);
-      cur.cycleSum += computePlantExpectedDiamonds(state, slot);
+      cur.d24Sum += computePlantDiamondsPer24h(state, slot, Date.now(), computeCtx);
+      cur.cycleSum += computePlantExpectedDiamonds(state, slot, computeCtx);
       map.set(id, cur);
     }
     return map;
-  }, [state]);
+  }, [state, computeCtx]);
 
   return (
     <div className="space-y-8">
       <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
           Vein breakdown (by machine)
-          <GameTooltip content="Totals use the Minecore economy: effective D/24h applies live power efficiency to your rolling cap ceiling (plant base + capped rig throughput + worker/output modules × boost × battery). Cycle column is one full run at current setup.">
+          <GameTooltip content="Totals use the Minecore economy: effective D/24h applies live power efficiency to your rolling cap ceiling (plant base + rig throughput + Workers-tab bonuses). Cycle column is one full run at current setup.">
             <button
               type="button"
               className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"

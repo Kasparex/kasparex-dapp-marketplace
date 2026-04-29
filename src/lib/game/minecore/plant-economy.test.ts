@@ -134,6 +134,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
   const start = 10_000;
   const durationMs = 600_000;
   const expectedDiamonds = 100;
+  const nominalEnd = start + 100 * 24 * 60 * 60 * 1000;
   const slot = makeSlot({
     setup: {
       machineId: 'pulse-drill',
@@ -146,17 +147,21 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     batterySnapshotAt: start,
     cycle: {
       startAtMs: start,
-      endAtMs: start + durationMs,
+      endAtMs: nominalEnd,
       durationMs,
       expectedDiamonds,
       mintedOffset: 0,
       pauseBeganAtMs: null,
     },
   });
+  const state = {
+    ...mcWorker,
+    plantSlots: mcWorker.plantSlots.map((p, i) => (i === 0 ? slot : p)),
+  };
   const tAfterDead = start + 120_000;
   const tLater = start + 500_000;
-  const rawAfter = computeRawLiveDiamonds(slot, tAfterDead);
-  const rawLater = computeRawLiveDiamonds(slot, tLater);
+  const rawAfter = computeRawLiveDiamonds(state, slot, tAfterDead);
+  const rawLater = computeRawLiveDiamonds(state, slot, tLater);
   assert.ok(rawAfter > 0, 'partial yield before/at depletion');
   assert.equal(rawAfter, rawLater, 'diamonds must not grow after battery empty');
 }

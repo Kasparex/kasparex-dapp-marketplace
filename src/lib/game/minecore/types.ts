@@ -1,4 +1,4 @@
-import type { GridLedgerEntry, MiningSlotType } from '@/lib/game/engine';
+import type { GridLedgerEntry, MinecoreNftPerkTier, MiningSlotType } from '@/lib/game/engine';
 
 export type MinecoreIngredient =
   | 'crystalDust' | 'alloyPlates' | 'circuitMesh' | 'energyCells'
@@ -47,7 +47,8 @@ export type PlantCardStatus =
   | 'MiningActive'
   | 'MiningPaused'    // run suspended - no diamond gain, no battery drain, parts editable after stop
   | 'BatteryEmpty'   // was running but battery charge ran to zero mid-cycle
-  | 'ExtractionReady'
+  /** Session ready to bank (e.g. rolling cap reached while mining; legacy time-based cycle end removed). */
+  | 'CreditingReady'
   | 'NeedsRepair'
   | 'NeedsPower'
   /** Rolling 24h diamond cap reached - start new cycles after the window resets (or extract/refine backlog). */
@@ -98,7 +99,10 @@ export type PlantSlotState = {
   cycle:            PlantCycle | null;
   /** Plant-tier reserve power unit capacity; not spent per run in V1 display - synced in derive. */
   powerRemaining:   number;
+  /** Legacy flag; wear is driven by `plantLastServicedAtMs`. Cleared on Repair. */
   needsRepair:      boolean;
+  /** Milliseconds timestamp: maintenance / wear clock anchor (repair resets this). */
+  plantLastServicedAtMs: number;
   /**
    * Per power-unit slot: remaining charge (ms) at `batterySnapshotAt`. Drains waterfall (slot 0 first).
    */
@@ -159,11 +163,19 @@ export type MinecoreEvent =
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }
   | { type: 'DeployNFT';        at: number; slotIndex: number; nftId: number; collection: string }
   | { type: 'RemoveNFT';        at: number; slotIndex: number }
+  | { type: 'SyncMinecoreNftPerkTier'; at: number; slotIndex: number; tier: MinecoreNftPerkTier | null }
   | { type: 'AddNftDeckSlot';   at: number; slotType: MiningSlotType }
   | { type: 'SetAutomation';    at: number; patch: Partial<MinecoreAutomationState> }
   | { type: 'RefillBattery';    slotIndex: number; at: number }  // refill battery to full
-  /** Paid KAS action: add reserve unit(s) and fully recharge battery in one step. */
-  | { type: 'RechargePlant';    slotIndex: number; at: number; units?: number }
+  /** Paid KAS action: refill one or more battery slots (no new reserve units). */
+  | {
+      type: 'RechargePlant';
+      slotIndex: number;
+      at: number;
+      /** Refill these indices (each must have a battery installed). Omit = first populated slot. */
+      batterySlotIndexes?: number[];
+      batterySlotIndex?: number;
+    }
   | {
       type: 'InstallPart';
       slotIndex: number;

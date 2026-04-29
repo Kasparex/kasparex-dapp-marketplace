@@ -27,6 +27,7 @@ function createEmptySlot(index: number): PlantSlotState {
     cycle: null,
     powerRemaining: 0,
     needsRepair: false,
+    plantLastServicedAtMs: 0,
     batterySlotChargeMs: [0],
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
@@ -61,6 +62,7 @@ export function createInitialMinecoreState(): MinecoreState {
       if (first) {
         first.unlocked = true;
         first.rollingCapWindowStartMs = Date.now();
+        first.plantLastServicedAtMs = Date.now();
       }
       return slots;
     })(),

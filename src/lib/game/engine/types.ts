@@ -20,10 +20,18 @@ export const DIAMOND_COMMODITY_KEYS: DiamondCommodity[] = [
 
 export type MiningSlotType = 'worker' | 'operator' | 'foreman';
 
+/** Resolved Minecore Workers-tab perk tier (persisted so server-style events match UI cap math). */
+export type MinecoreNftPerkTier = 'regular' | 'diamond' | 'rarest';
+
 export interface MiningSlot {
   type: MiningSlotType;
   nftId: number | null;
   collection: string | null;
+  /**
+   * When set, Minecore uses this for deck cap / battery bonuses instead of re-deriving from metadata
+   * (needed for PIXELKREX diamonds and trait-based KREXPRIME diamonds after metadata loads).
+   */
+  minecorePerkTier?: MinecoreNftPerkTier;
 }
 
 export interface ActiveBoost {

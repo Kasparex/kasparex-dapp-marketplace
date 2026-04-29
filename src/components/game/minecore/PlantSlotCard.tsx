@@ -8,13 +8,15 @@ import {
   computeRollingDailyCapWindowRemainingMs,
   getBatteryCapacityMs,
   getPowerUnitCap,
-  getPowerDrainScale,
+  computeBatteryRuntimeMs,
+  computeLiveBatterySlotChargeMs,
+  computeFlowRatePerMin,
 } from '@/lib/game/minecore/compute';
 import {
   computeConsumptionKw,
+  computeEffectiveMiningEfficiencyPct,
+  computeMaintenanceWearRatio,
   computeMiningEfficiencyPct,
-  computePlantDiamondsPer24h,
-  computePowerBalanceKw,
   computeProductionKw,
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
@@ -40,7 +42,6 @@ import {
   MINECORE_MODULES,
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
-  MINECORE_PLANT_BASE_POWER_UNITS,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_KW_SCALE,
@@ -49,7 +50,15 @@ import {
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
-import { getPlantBatterySlotCount, hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
+import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
+import {
+  getPlantBatterySlotCount,
+  hasInstalledBattery,
+  getMaxChargePerSlotMs,
+  normalizeBatteryIds,
+  ensureBatterySlotChargeLength,
+} from '@/lib/game/minecore/battery-utils';
+import { computeMinecoreBatteryBonusMsPerSlot } from '@/lib/game/minecore/nft-deck-benefits';
 import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -74,6 +83,17 @@ function formatDuration(ms: number) {
   return `${sec}s`;
 }
 
+/** Label max stored runtime per battery pillar (matches Power tab density). */
+function formatShortBatterySlotRuntime(ms: number): string {
+  if (ms <= 0) return '—';
+  const totalMin = ms / 60_000;
+  if (totalMin < 60) return `${Math.max(1, Math.round(totalMin))}m`;
+  const h = totalMin / 60;
+  if (h >= 10) return `${Math.round(h)}h`;
+  const rounded = Math.round(h * 10) / 10;
+  return rounded % 1 === 0 ? `${Math.round(rounded)}h` : `${rounded.toFixed(1)}h`;
+}
+
 /** HH:MM:SS countdown for 24h window remaining. */
 function formatCapResetCountdown(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -87,7 +107,7 @@ function statusBadge(status: PlantSlotState['status']) {
   const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-black uppercase tracking-wide';
   if (status === 'MiningActive')    return `${base} border border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300`;
   if (status === 'MiningPaused')    return `${base} border border-amber-500/30 bg-amber-500/15 text-amber-800 dark:text-amber-300`;
-  if (status === 'ExtractionReady') return `${base} border border-sky-500/30 bg-sky-500/15 text-sky-800 dark:text-sky-300`;
+  if (status === 'CreditingReady') return `${base} border border-sky-500/30 bg-sky-500/15 text-sky-800 dark:text-sky-300`;
   if (status === 'ReadyToMine')     return `${base} border border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`;
   if (status === 'SetupIncomplete') return `${base} border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300`;
   if (status === 'BatteryEmpty')    return `${base} border border-orange-500/30 bg-orange-500/15 text-orange-800 dark:text-orange-300`;
@@ -108,7 +128,7 @@ function labelForStatus(status: PlantSlotState['status']) {
   if (status === 'MiningActive')    return 'Mining active';
   if (status === 'MiningPaused')    return 'Paused';
   if (status === 'BatteryEmpty')    return 'Battery empty';
-  if (status === 'ExtractionReady') return 'Run complete';
+  if (status === 'CreditingReady') return 'Crediting';
   if (status === 'NeedsRepair')     return 'Needs repair';
   if (status === 'NeedsPower')      return 'Needs power';
   if (status === 'InsufficientPower') return 'Grid deficit';
@@ -216,101 +236,63 @@ function CheckRow(props: {
   );
 }
 
-/** Color-coded horizontal bar with label + value */
-function ResourceBar(props: {
-  label: string;
-  value: string;
-  ratio: number;
-  variant: 'battery' | 'power' | 'cycle' | 'dailyCap';
-  warning?: string | null;
-  tooltip?: string;
-}) {
-  const r = clamp01(props.ratio);
-
-  let barColor: string;
-  if (props.variant === 'cycle' || props.variant === 'dailyCap') {
-    barColor = 'bg-emerald-500';
-  } else if (props.variant === 'battery') {
-    if (r <= 0) barColor = 'bg-zinc-300 dark:bg-zinc-600';
-    else if (r <= 0.2) barColor = 'bg-amber-500';
-    else if (r <= 0.5) barColor = 'bg-sky-400';
-    else barColor = 'bg-sky-500';
-  } else {
-    barColor = r > 0.4 ? 'bg-sky-500' : 'bg-rose-500';
-  }
-
-  const inner = (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{props.label}</span>
-        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.value}</span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-        <div
-          className={`h-full rounded-full transition-[width] duration-700 ${barColor}`}
-          style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
-        />
-      </div>
-      {props.warning ? (
-        <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">{props.warning}</div>
-      ) : null}
-    </div>
-  );
-
-  if (props.tooltip) {
-    return <Tooltip content={props.tooltip}>{inner}</Tooltip>;
-  }
-  return inner;
-}
-
-/** Daily cap: rolling 24h from plant activation; countdown + progress bar. */
+/** Daily cap: rolling 24h from plant activation; countdown in tooltip + progress bar. */
 function DailyCapBar(props: {
   mined: number;
   cap: number;
   ratio: number;
-  setupIncomplete: boolean;
+  /** When setup incomplete — show 0/0 and empty progress (counters still visible). */
+  forceZeroDisplay: boolean;
   capReached: boolean;
   remainingMs: number;
+  /** Live mining throughput while a session is running (D/min). */
+  flowRatePerMin?: number;
 }) {
   const r = clamp01(props.ratio);
-  const showTimer = props.remainingMs > 0;
+  const showTimer = props.remainingMs > 0 && !props.forceZeroDisplay;
+  const showFlow = props.flowRatePerMin != null && props.flowRatePerMin > 0 && !props.forceZeroDisplay;
+  const displayMined = props.forceZeroDisplay ? 0 : Math.floor(props.mined);
+  const displayCap = props.forceZeroDisplay ? 0 : Math.max(0, Math.floor(props.cap));
+
+  const tipParts: string[] = [];
+  if (!props.forceZeroDisplay && props.cap > 0) {
+    tipParts.push(
+      `Mined toward this plant’s rolling cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`,
+    );
+    if (showTimer) {
+      tipParts.push(`Cap resets in ${formatCapResetCountdown(props.remainingMs)}.`);
+    }
+  } else {
+    tipParts.push('Install machine, battery, and worker to unlock your rolling cap.');
+  }
+  const tip = tipParts.join(' ');
+
   const inner = (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Cap resets in
-        </span>
-        {showTimer ? (
-          <span className="font-mono text-lg font-black tabular-nums tracking-tight text-sky-600 dark:text-sky-400 sm:text-xl">
-            {formatCapResetCountdown(props.remainingMs)}
-          </span>
-        ) : props.setupIncomplete || props.cap <= 0 ? (
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">-</span>
-        ) : (
-          <span className="font-mono text-sm font-bold tabular-nums text-zinc-500 dark:text-zinc-400">-</span>
-        )}
+      <div className="flex min-h-[2.25rem] flex-wrap items-center justify-end gap-x-4 gap-y-1">
+        <div className="shrink-0 text-right">
+          {showFlow ? (
+            <Tooltip content="Live mining throughput (diamonds per minute) while this plant runs.">
+              <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
+                {props.flowRatePerMin!.toFixed(1)} D/min
+              </span>
+            </Tooltip>
+          ) : (
+            <span className="font-mono text-sm font-semibold tabular-nums text-zinc-400 dark:text-zinc-500">—</span>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
         <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
           Available mined / Daily cap
         </span>
-        {props.setupIncomplete || props.cap <= 0 ? (
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">-</span>
-        ) : (
-          <div className="flex items-baseline gap-1.5 tabular-nums">
-            <span className="text-lg font-black text-amber-400 sm:text-xl dark:text-amber-300">
-              {Math.floor(props.mined).toLocaleString()}
-            </span>
-            <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-            <span className="text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">{props.cap.toLocaleString()}</span>
-          </div>
-        )}
+        <div className="flex items-baseline gap-1.5 tabular-nums">
+          <span className="text-lg font-black text-amber-400 sm:text-xl dark:text-amber-300">{displayMined.toLocaleString()}</span>
+          <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
+          <span className="text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">{displayCap.toLocaleString()}</span>
+        </div>
       </div>
-      {props.setupIncomplete || props.cap <= 0 ? (
-        <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-          Complete machine, battery & worker to see your rolling daily cap.
-        </p>
-      ) : (
+      {props.forceZeroDisplay ? null : (
         <>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
             <div
@@ -327,11 +309,6 @@ function DailyCapBar(props: {
       )}
     </div>
   );
-
-  const tip =
-    props.cap > 0 && !props.setupIncomplete
-      ? `Available diamonds mined toward this plant rolling 24h cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}). Resets when the timer hits zero.`
-      : 'Add machine, battery, and Worker NFT assignment to unlock your rolling daily cap.';
 
   return <Tooltip content={tip}>{inner}</Tooltip>;
 }
@@ -413,37 +390,130 @@ function ModalPartRow(props: {
   return btn;
 }
 
-/**
- * One segment per power-unit (battery) slot. Blue ≈ that slice of the combined runtime still has charge; gray = depleted (V1 visual split of one pool).
- */
-function BatteryUnitDots(props: { segments: number; chargeRatio: number }) {
-  const n = Math.max(1, Math.min(props.segments, 10));
-  const r = clamp01(props.chargeRatio);
-  const blueCount = r <= 0 ? 0 : Math.min(n, Math.max(0, Math.round(r * n)));
+function tierBatteryFillCls(ratio: number): string {
+  const r = clamp01(ratio);
+  if (r <= 0.01) return 'bg-zinc-300 dark:bg-zinc-600';
+  if (r <= 0.25) return 'bg-red-500';
+  if (r <= 0.5) return 'bg-orange-500';
+  if (r <= 0.75) return 'bg-lime-400 dark:bg-lime-500';
+  return 'bg-emerald-500';
+}
+
+/** Consumption vs Production sharing one track; Balance label uses plant power capacity story. */
+function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: number; effGridPct: number }) {
+  const sum = props.prodKw + props.consKw;
+  const denom = sum > 1e-9 ? sum : 1;
+  const consFrac = clamp01(props.consKw / denom);
+  const prodFrac = clamp01(props.prodKw / denom);
   const inner = (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Battery slots</span>
-        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">
-          {r <= 0 ? '0' : `${(r * 100).toFixed(0)}%`} on-line
-        </span>
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-[10px] text-zinc-700 dark:text-zinc-200">
+        <span className="text-rose-600 dark:text-rose-400">Consumption {props.consKw.toFixed(1)} kW</span>
+        <span className="text-emerald-600 dark:text-emerald-400">Production {props.prodKw.toFixed(1)} kW</span>
       </div>
-      <div className="flex gap-1">
-        {Array.from({ length: n }, (_, i) => (
-          <div
-            key={i}
-            className={`h-2.5 flex-1 rounded-sm transition-colors ${
-              i < blueCount ? 'bg-sky-500' : 'bg-zinc-200 dark:bg-zinc-800'
-            }`}
-          />
-        ))}
+      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div className="h-full bg-rose-500 transition-[width] duration-500" style={{ width: `${consFrac * 100}%` }} title="Consumption" />
+        <div className="h-full bg-emerald-500 transition-[width] duration-500" style={{ width: `${prodFrac * 100}%` }} title="Production" />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold">
+        <span className={props.balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}>
+          Balance {props.balKw >= 0 ? '+' : ''}
+          {props.balKw.toFixed(1)} kW
+        </span>
+        <span className="text-zinc-600 dark:text-zinc-300">Grid eff {props.effGridPct.toFixed(0)}%</span>
       </div>
     </div>
   );
   return (
     <Tooltip
-      content={`${n} power-unit slot(s) = how many battery packs you can run on this plant. One combined runtime bar above; these segments go gray as that shared charge is used up.`}
+      content={`Plant power grid: consumption draws from the machine (and modules); production is plant tier + rig bus. Balance is surplus to feed efficiency. Grid efficiency ${props.effGridPct.toFixed(0)}% (before maintenance wear).`}
     >
+      {inner}
+    </Tooltip>
+  );
+}
+
+/** One mini battery silhouette per slot — empty slots inactive; click installs or opens refill modal from parent. */
+function UnifiedBatterySegmentsBar(props: {
+  liveSlotMs: number[];
+  maxSlotMs: number[];
+  runtimeLabel: string;
+  aggregateRatio: number;
+  onSlotPress: (slotIndex: number, installed: boolean) => void;
+}) {
+  const inner = (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Energy · runtime</span>
+        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.runtimeLabel}</span>
+      </div>
+      <div className="flex items-end justify-center gap-2">
+        {props.maxSlotMs.map((max, i) => {
+          const live = props.liveSlotMs[i] ?? 0;
+          const installed = max > 0;
+          const r = installed ? live / max : 0;
+          const fillCls = tierBatteryFillCls(r);
+          const slotRuntimeLabel = installed ? formatShortBatterySlotRuntime(max) : '—';
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => props.onSlotPress(i, installed)}
+              className="group flex flex-col items-center gap-0.5 rounded-lg p-0.5 outline-none ring-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+            >
+              <div
+                className={`relative h-16 w-9 overflow-hidden rounded-md border-2 bg-zinc-100/90 dark:bg-zinc-900/90 ${
+                  installed
+                    ? 'border-zinc-700 dark:border-zinc-400'
+                    : 'border-zinc-300 opacity-60 dark:border-zinc-600'
+                }`}
+              >
+                <div
+                  className={`absolute inset-x-0 top-0 mx-auto h-1 w-3 rounded-b-sm ${installed ? 'bg-zinc-700 dark:bg-zinc-400' : 'bg-zinc-400 dark:bg-zinc-600'}`}
+                  aria-hidden
+                />
+                {installed ? (
+                  <div className={`absolute bottom-0 left-0 right-0 transition-all duration-500 ${fillCls}`} style={{ height: `${clamp01(r) * 100}%` }} />
+                ) : null}
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-0.5">
+                  <span className="max-w-full truncate text-center text-[9px] font-black tabular-nums leading-none text-zinc-800 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] dark:text-zinc-100 dark:drop-shadow-[0_0_4px_rgba(0,0,0,0.85)]">
+                    {slotRuntimeLabel}
+                  </span>
+                </div>
+              </div>
+              <span className={`text-[9px] font-bold ${installed ? 'text-zinc-500' : 'text-zinc-400'}`}>{i + 1}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+  return (
+    <div title={`Battery waterfall: slot 1 drains first. Combined runtime ≈ ${props.runtimeLabel}. About ${(props.aggregateRatio * 100).toFixed(0)}% charge remaining.`}>
+      {inner}
+    </div>
+  );
+}
+
+/** Distinct from battery tier — violet maintenance health (inverse wear). */
+function MaintenanceWearBar(props: { wearRatio: number }) {
+  const health = clamp01(1 - props.wearRatio);
+  const inner = (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Maintenance</span>
+        <span className="text-xs font-black tabular-nums text-violet-600 dark:text-violet-400">{Math.round(health * 100)}%</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div
+          className="h-full rounded-full bg-violet-500 transition-[width] duration-700"
+          style={{ width: `${Math.max(2, Math.round(health * 100))}%` }}
+        />
+      </div>
+    </div>
+  );
+  return (
+    <Tooltip content="Efficiency drops over several days until maintenance is due. Repair resets the timer. Plant tier extends service interval.">
       {inner}
     </Tooltip>
   );
@@ -461,6 +531,7 @@ function WarningBanner(props: { level: 'warn' | 'error'; message: string }) {
 
 export function PlantSlotCard(props: {
   minecoreState: MinecoreState;
+  minecoreComputeContext?: MinecoreComputeContext;
   slot: PlantSlotState;
   /** Position in `minecoreState.plantSlots` - must match reducer slot index (resolved by stable id in parent). */
   slotArrayIndex: number;
@@ -469,8 +540,8 @@ export function PlantSlotCard(props: {
   onStart: () => void;
   onExtract: () => void;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
-  /** KAS: +1 (or more) reserve unit and full battery per purchase. */
-  onRechargePlant: (opts?: { units?: number }) => void | Promise<void>;
+  /** KAS: refill battery charge only (one or more slots); does not add reserve units. */
+  onRechargePlant: (opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[] }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
   onInstallPart: (kind: any, id: any, batterySlotIndex?: number, workerSlotPosition?: number) => void;
@@ -479,9 +550,12 @@ export function PlantSlotCard(props: {
   /** Always read live slot from reducer-backed array so UI/actions cannot drift from `slotArrayIndex` (fixes stale/wrong `slot` prop). */
   const s = props.minecoreState.plantSlots[props.slotArrayIndex] ?? props.slot;
   const now = props.now;
+  const ctx = props.minecoreComputeContext;
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
+  const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
+  const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
   useEffect(() => {
@@ -492,7 +566,7 @@ export function PlantSlotCard(props: {
   const cycle = s.cycle;
 
   const liveChargeMs    = computeLiveBatteryChargeMs(s, now);
-  const capacityMs      = getBatteryCapacityMs(s);
+  const capacityMs      = getBatteryCapacityMs(s, props.minecoreState, ctx);
   const batteryRatio    = capacityMs > 0 ? liveChargeMs / capacityMs : 0;
   const batteryLow      = batteryRatio < 0.2 && batteryRatio > 0;
   const batteryEmpty    = liveChargeMs <= 0 && cycle != null;
@@ -502,22 +576,29 @@ export function PlantSlotCard(props: {
     liveChargeMs <= 0 &&
     cycle != null &&
     cycle.pauseBeganAtMs == null;
-  const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId
-    ? liveChargeMs / Math.max(0.05, getPowerDrainScale(s))
-    : 0;
+  const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId ? computeBatteryRuntimeMs(s, now) : 0;
 
-  const d24 =
-    s.unlocked && computePlantReady(props.minecoreState, s) ? computePlantDiamondsPer24h(props.minecoreState, s) : 0;
-  const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now);
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
   const balKw = prodKw - consKw;
-  const effPct = s.unlocked && s.setup.machineId ? computeMiningEfficiencyPct(s) : 100;
+  const effGridPct = s.unlocked && s.setup.machineId ? computeMiningEfficiencyPct(s) : 100;
+  const effDisplayPct = s.unlocked && s.setup.machineId ? computeEffectiveMiningEfficiencyPct(s, now) : 100;
+  const wearRatio = s.unlocked ? computeMaintenanceWearRatio(s, now) : 0;
+  const flowPerMin =
+    s.unlocked && s.setup.machineId && s.cycle != null && s.cycle.pauseBeganAtMs == null
+      ? computeFlowRatePerMin(props.minecoreState, s, now, ctx)
+      : 0;
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
   const powerUnitCount  = getPlantBatterySlotCount(s.type);
+  const installedBatteryIndices = useMemo(() => {
+    const ids = normalizeBatteryIds(s.setup, s.type);
+    return ids.map((id, i) => (id ? i : null)).filter((x): x is number => x != null);
+  }, [s.setup, s.type]);
+  const setupReady = computePlantReady(props.minecoreState, s);
+
   const nftStaffSlots = props.minecoreState.nftSlots ?? [];
 
   const miningAssignableTypes = ['worker', 'operator', 'foreman'] as const;
@@ -542,14 +623,14 @@ export function PlantSlotCard(props: {
       if (af !== bf) return bf - af;
       if (!a.slot.nftId || !a.slot.collection) return 1;
       if (!b.slot.nftId || !b.slot.collection) return -1;
-      const ta = getNFTTier(a.slot.collection, a.slot.nftId, null);
-      const tb = getNFTTier(b.slot.collection, b.slot.nftId, null);
+      const ta = getNFTTier(a.slot.collection, a.slot.nftId, ctx?.nftMetadataByDeckIndex?.[a.deckIdx] ?? null);
+      const tb = getNFTTier(b.slot.collection, b.slot.nftId, ctx?.nftMetadataByDeckIndex?.[b.deckIdx] ?? null);
       const d = (tierOrder[ta] ?? 9) - (tierOrder[tb] ?? 9);
       if (d !== 0) return d;
       return a.slot.nftId - b.slot.nftId;
     });
     return rows;
-  }, [props.minecoreState.nftSlots]);
+  }, [props.minecoreState.nftSlots, ctx]);
 
   const workerIndices = normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices;
   const needWorkers = miningWorkerNftSlotsRequired(s.type);
@@ -559,8 +640,8 @@ export function PlantSlotCard(props: {
   }
 
   const workerSetupDisplay = useMemo(
-    () => describePlantWorkerAssignments(props.minecoreState, s),
-    [props.minecoreState, s],
+    () => describePlantWorkerAssignments(props.minecoreState, s, ctx),
+    [props.minecoreState, s, ctx],
   );
   const workerSetupValue = useMemo(() => {
     const { summary } = workerSetupDisplay;
@@ -568,13 +649,29 @@ export function PlantSlotCard(props: {
     if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '-'}`;
     return summary || `${workerFilled}/${needWorkers}`;
   }, [workerSetupDisplay, workerFilled, needWorkers]);
-  const powerDotMax = Math.max(1, getPowerUnitCap(s));
-  const capUnits = getPowerUnitCap(s);
-  const atFullEnergy =
-    hasInstalledBattery(s.setup, s.type) &&
-    capacityMs > 0 &&
-    liveChargeMs >= capacityMs - 1 &&
-    s.powerRemaining >= capUnits;
+  const liveSlotChargesRaw = s.unlocked ? computeLiveBatterySlotChargeMs(s, now) : [];
+  const nftBattBonusMs = computeMinecoreBatteryBonusMsPerSlot(props.minecoreState, ctx);
+  const maxSlotChargesRaw = s.unlocked ? getMaxChargePerSlotMs(s.setup, s.type, nftBattBonusMs) : [];
+  const liveSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(liveSlotChargesRaw, powerUnitCount, 0) : [];
+  const maxSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(maxSlotChargesRaw, powerUnitCount, 0) : [];
+
+  function openBatteryRefillModal(prefSlot?: number) {
+    if (installedBatteryIndices.length === 0) return;
+    if (prefSlot !== undefined && installedBatteryIndices.includes(prefSlot)) {
+      setRefillSlotIndexes([prefSlot]);
+    } else {
+      setRefillSlotIndexes([...installedBatteryIndices]);
+    }
+    setBatteryRefillModalOpen(true);
+  }
+
+  function confirmBatteryRefill() {
+    const sorted = [...refillSlotIndexes].sort((a, b) => a - b);
+    if (sorted.length === 0) return;
+    if (sorted.length === 1) void props.onRechargePlant({ batterySlotIndex: sorted[0] });
+    else void props.onRechargePlant({ batterySlotIndexes: sorted });
+    setBatteryRefillModalOpen(false);
+  }
 
   let actionLabel: string;
   if (!s.unlocked) {
@@ -584,7 +681,7 @@ export function PlantSlotCard(props: {
   } else if (s.status === 'NeedsRepair') {
     actionLabel = `Repair - ${MINECORE_PLANT_REPAIR_KAS} KAS`;
   } else if (batteryDeadInRun || s.status === 'NeedsPower') {
-    actionLabel = `Recharge - ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS`;
+    actionLabel = `Recharge — ${MINECORE_PLANT_RECHARGE_COST_KAS}+ KAS`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
   } else if (s.status === 'DailyCapReached') {
@@ -593,7 +690,7 @@ export function PlantSlotCard(props: {
     actionLabel = 'Resume mining';
   } else if (s.status === 'MiningActive') {
     actionLabel = 'Stop mining';
-  } else if (s.status === 'ExtractionReady' || s.status === 'BatteryEmpty') {
+  } else if (s.status === 'CreditingReady' || s.status === 'BatteryEmpty') {
     actionLabel = 'Run finished - crediting…';
   } else if (s.status === 'ReadyToMine') {
     actionLabel = 'Start';
@@ -601,16 +698,8 @@ export function PlantSlotCard(props: {
     actionLabel = 'Mining…';
   }
 
-  const primaryIsRecharge = s.status === 'NeedsPower' || batteryDeadInRun;
-  const showAuxRechargeButton =
-    s.unlocked &&
-    hasInstalledBattery(s.setup, s.type) &&
-    !atFullEnergy &&
-    batteryRatio < BATTERY_LOW_RECHARGE_THRESHOLD &&
-    !primaryIsRecharge;
-
   const buyDisabled =
-    s.status === 'DailyCapReached' || s.status === 'ExtractionReady' || s.status === 'BatteryEmpty';
+    s.status === 'DailyCapReached' || s.status === 'CreditingReady' || s.status === 'BatteryEmpty';
 
   /** Edit setup whenever plant is unlocked; changing parts ends an active run and banks mined diamonds to accumulation (same as pause swap). */
   const canEditParts = s.unlocked;
@@ -621,7 +710,6 @@ export function PlantSlotCard(props: {
   const showFeaturedPlantArt = s.unlocked;
   const plantFeaturedUrl = showFeaturedPlantArt ? preset.featuredImageUrl : undefined;
   const baseCapDisplay = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[s.type ?? 'standard'];
-  const baseUnitsDisplay = MINECORE_PLANT_BASE_POWER_UNITS[s.type ?? 'standard'];
   const moduleBadgeCopy =
     s.type === 'standard' ? 'No modules' : s.type === 'premium' ? 'Premium modules' : 'Advanced modules';
   const statCapsuleCls =
@@ -662,9 +750,6 @@ export function PlantSlotCard(props: {
             >
               <span className={statCapsuleCls}>{baseCapDisplay.toLocaleString()} Diamonds</span>
             </Tooltip>
-            <Tooltip content={`Reserve power units for this plant tier (V1). Each mining run typically consumes reserve capacity alongside battery charge.`}>
-              <span className={statCapsuleCls}>{baseUnitsDisplay} Units</span>
-            </Tooltip>
             <Tooltip
               content={
                 s.type === 'standard'
@@ -688,9 +773,10 @@ export function PlantSlotCard(props: {
               mined={dailyCap.minedTowardCap}
               cap={dailyCap.cap24h}
               ratio={dailyCap.ratio}
-              setupIncomplete={!computePlantReady(props.minecoreState, s)}
+              forceZeroDisplay={!setupReady}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
+              flowRatePerMin={flowPerMin > 0 ? flowPerMin : undefined}
             />
           ) : null}
 
@@ -698,7 +784,7 @@ export function PlantSlotCard(props: {
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
             {s.unlocked && s.setup.machineId ? (
-              <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effPct.toFixed(0)}%</span>
+              <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
             ) : null}
             {props.minecoreState.automation.autoRestart && (
               <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
@@ -707,21 +793,42 @@ export function PlantSlotCard(props: {
             )}
           </div>
 
-          {/* ── Setup checklist ── */}
-          <div
-            className="rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30 space-y-0.5"
+          <button
+            type="button"
+            disabled={buyDisabled}
+            onClick={() => {
+              if (!s.unlocked) return props.onUnlock();
+              if (s.status === 'SetupIncomplete') return setActiveModal('machine');
+              if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
+              if (s.status === 'InsufficientPower') return setActiveModal('machine');
+              if (s.status === 'DailyCapReached') return;
+              if (batteryDeadInRun || s.status === 'NeedsPower')
+                return installedBatteryIndices.length ? openBatteryRefillModal() : undefined;
+              if (s.status === 'MiningPaused') return props.onResumeMining();
+              if (s.status === 'MiningActive') return props.onStopMining();
+              if (s.status === 'CreditingReady' || s.status === 'BatteryEmpty') return;
+              if (s.status === 'ReadyToMine') return props.onStart();
+            }}
+            className={
+              buyButtonClassName ??
+              'k-cta-games h-10 w-full rounded-xl px-4 text-sm font-bold disabled:opacity-50 disabled:grayscale'
+            }
           >
-            <div className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mb-1 px-2 pt-1">Setup</div>
+            {actionLabel}
+          </button>
+
+          {/* ── Setup checklist ── */}
+          <div className="space-y-0.5 rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30">
+            <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Setup</div>
+            <div className="max-h-[220px] space-y-0.5 overflow-y-auto px-1 pr-2 custom-scrollbar">
             <CheckRow
               installed={!!s.setup.machineId}
               label="Machine"
               value={machineConfig?.label}
-              stat={machineConfig ? `⚡ ×${machineConfig.powerConsumptionFactor}` : undefined}
-              statTone="rose"
               tooltip={
                 machineConfig
-                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h to plant cap, ${formatDuration(machineConfig.durationMs)} cycle, ×${machineConfig.powerConsumptionFactor} drain, +${(machineConfig.powerGridContribution * MINECORE_KW_SCALE).toFixed(0)} kW to plant bus, charge budget ×${machineConfig.powerBudgetMultiplier.toFixed(2)}.`
-                  : 'No machine installed. Click to assign one.'
+                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
+                  : 'Install a machine to mine. Tap to pick.'
               }
               onClick={() => setActiveModal('machine')}
               disabled={!canEditParts}
@@ -729,17 +836,18 @@ export function PlantSlotCard(props: {
             {Array.from({ length: powerUnitCount }, (_, bi) => {
               const bid = s.setup.batteryIds[bi] ?? null;
               const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
+              const maxEff = maxSlotCharges[bi] ?? 0;
               return (
                 <CheckRow
                   key={bi}
                   installed={!!bid}
                   label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
                   value={bcfg?.label}
-                  stat={bcfg ? `${Math.round(bcfg.chargeCapacityMs / 60000)}m` : undefined}
+                  stat={bid && maxEff > 0 ? formatShortBatterySlotRuntime(maxEff) : undefined}
                   tooltip={
                     bcfg
-                      ? `${bcfg.label}: ${formatDuration(bcfg.chargeCapacityMs)} base charge, ×${bcfg.efficiency} efficiency bonus.`
-                      : 'No battery in this power slot. Click to assign one.'
+                      ? `${bcfg.label}: catalog ${Math.round(bcfg.chargeCapacityMs / 60000)}m · stored max ${formatShortBatterySlotRuntime(maxEff)} (rig × budget + NFT bonus). Tap to swap.`
+                      : 'Add a battery in this slot. Tap to assign.'
                   }
                   onClick={() => {
                     setBatterySlotFocus(bi);
@@ -765,9 +873,7 @@ export function PlantSlotCard(props: {
                     ))
                   : undefined
               }
-              tooltip={
-                'Choose one Workers-tab slot below that already has an NFT. Another plant cannot use the same slot until you clear one of the assignments.'
-              }
+              tooltip="Pick Workers-tab NFTs already deployed there. Each slot one plant only — tap to change."
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
@@ -780,85 +886,53 @@ export function PlantSlotCard(props: {
                     ? `${s.setup.moduleIds.length} equipped · tap to manage`
                     : 'None equipped · tap to add'
                 }
-                tooltip={
-                  s.type === 'premium'
-                    ? 'Premium plants support module slots. Tap to install or swap modules.'
-                    : 'Advanced plants support module slots. Tap to install or swap modules.'
-                }
+                tooltip={s.type === 'premium' ? 'Premium: tap to add or swap modules.' : 'Advanced: tap to add or swap modules.'}
                 onClick={() => setActiveModal('modules')}
                 disabled={!canEditParts}
               />
             ) : null}
+            </div>
           </div>
 
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
-            <Tooltip
-              content={`Plant power grid: base plant + rig kW to the bus vs draw from the machine (and modules). Batteries do not add reserve units (V1). Production ${prodKw.toFixed(1)} kW, consumption ${consKw.toFixed(1)} kW, efficiency ${effPct.toFixed(0)}%.`}
-            >
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/50">
-              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Power grid</div>
-              <div className="hidden grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] text-zinc-800 dark:text-zinc-200 md:grid">
-                <span className="text-zinc-500">Production</span>
-                <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{prodKw.toFixed(1)} kW</span>
-                <span className="text-zinc-500">Consumption</span>
-                <span className="text-right tabular-nums text-rose-600 dark:text-rose-400">{consKw.toFixed(1)} kW</span>
-                <span className="text-zinc-500">Balance</span>
-                <span className={`text-right tabular-nums ${balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                  {balKw >= 0 ? '+' : ''}
-                  {balKw.toFixed(1)} kW
-                </span>
-                <span className="text-zinc-500">Efficiency</span>
-                <span className="text-right tabular-nums font-bold text-zinc-900 dark:text-zinc-100">{effPct.toFixed(0)}%</span>
+            <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
+              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Power grid
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:hidden">
-                <span className="text-zinc-600 dark:text-zinc-400">
-                  Δ {balKw >= 0 ? '+' : ''}
-                  {balKw.toFixed(0)} kW
-                </span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-100">Eff {effPct.toFixed(0)}%</span>
-                <span className="text-sky-600 dark:text-sky-400">{d24 > 0 ? `${d24} D/24h` : '-'}</span>
-              </div>
-              </div>
-            </Tooltip>
-          ) : null}
-
-          {s.unlocked && (
-            <div className="space-y-3">
-              {/* Battery charge bar */}
-              {capacityMs > 0 && (
-                <ResourceBar
-                  label={`Charge${cycle ? ` - ${formatDuration(batteryRuntimeMs)} runtime` : ''}`}
-                  value={`${Math.floor(liveChargeMs / 60000)}m / ${Math.floor(capacityMs / 60000)}m`}
-                  ratio={batteryRatio}
-                  variant="battery"
-                  tooltip={`Combined battery runtime. Draw scales with the machine. At 0 the run ends and mined diamonds are credited to your balance automatically. Recharge to start again. ${Math.floor(liveChargeMs / 60000)} min remaining of ${Math.floor(capacityMs / 60000)} min capacity.`}
-                />
-              )}
-
-              {/* Power units dots */}
-              {capacityMs > 0 ? (
-                <BatteryUnitDots segments={powerDotMax} chargeRatio={batteryRatio} />
-              ) : null}
+              <PowerGridBalanceBar prodKw={prodKw} consKw={consKw} balKw={balKw} effGridPct={effGridPct} />
             </div>
-          )}
-
-          {showAuxRechargeButton ? (
-            <button
-              type="button"
-              onClick={() => void props.onRechargePlant({ units: 1 })}
-              className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-500/20 dark:border-sky-400/30 dark:text-sky-300 dark:hover:bg-sky-500/20"
-            >
-              {`Recharge - ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS (+1 unit & full battery)`}
-            </button>
           ) : null}
+
+          {s.unlocked ? (
+            <div className="space-y-3">
+              <UnifiedBatterySegmentsBar
+                liveSlotMs={liveSlotCharges}
+                maxSlotMs={maxSlotCharges}
+                runtimeLabel={
+                  capacityMs > 0 && s.setup.machineId ? formatDuration(batteryRuntimeMs) : '—'
+                }
+                aggregateRatio={batteryRatio}
+                onSlotPress={(slotIdx, installed) => {
+                  if (!installed) {
+                    setBatterySlotFocus(slotIdx);
+                    setActiveModal('battery');
+                  } else {
+                    openBatteryRefillModal(slotIdx);
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+
+          {s.unlocked ? <MaintenanceWearBar wearRatio={wearRatio} /> : null}
 
           {/* ── Status warnings (above primary action) ── */}
           <div className="space-y-2">
             {s.status === 'DailyCapReached' && (
               <WarningBanner
                 level="warn"
-                message="Rolling 24h diamond budget is full. Refine in the Redeem tab, or wait for the window. Mining restarts only when you press Start (Foreman can still auto-refill a dead battery with Energy Cells)."
+                message="Daily diamond budget hit for this plant. Refine or wait for the timer — press Start when you’re ready."
               />
             )}
             {s.status === 'SetupIncomplete' && (
@@ -870,29 +944,36 @@ export function PlantSlotCard(props: {
             {batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner
                 level="error"
-                message="Battery depleted. Mined diamonds were credited to your balance. Recharge, then start a new run manually (or use Foreman to auto-refill with Energy Cells if enabled)."
+                message="Battery empty — run stopped and diamonds credited. Recharge a battery slot to mine again."
               />
             )}
             {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
-              <WarningBanner level="warn" message={`Battery low - ${formatDuration(batteryRuntimeMs)} runtime left. Recharge to top up the battery and add reserve units.`} />
+              <WarningBanner
+                level="warn"
+                message={`Low battery — ~${formatDuration(batteryRuntimeMs)} runtime left. Recharge before it dies.`}
+              />
             )}
             {s.status === 'InsufficientPower' && (
               <WarningBanner
                 level="warn"
-                message={`Power bus deficit - production ${prodKw.toFixed(1)} kW vs consumption ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Raise plant-tier reserve/rig bus output or lower draw (cooling modules, smaller rig) to reach ${effPct.toFixed(0)}% efficiency and unlock mining.`}
+                message={`Not enough power — ${prodKw.toFixed(1)} vs ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Aim for ~${effGridPct.toFixed(0)}% grid efficiency (lighter rig or more production).`}
               />
             )}
             {s.status === 'NeedsPower' && (
-              <WarningBanner level="error" message={`No reserve power units. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS) adds a unit and fully tops up the battery for the next run.`} />
+              <WarningBanner
+                level="error"
+                message={`Open battery refill — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS per slot. Tap a battery icon above to choose slots.`}
+              />
             )}
             {s.status === 'NeedsRepair' && (
-              <WarningBanner level="error" message="🔧 Plant damaged - repair required before resuming." />
+              <WarningBanner level="error" message="Maintenance due — efficiency wore down over time. Repair to restore full output." />
             )}
           </div>
         </div>
       }
       effects={[]}
       hidePricing={true}
+      hideBuyButton
       priceOptions={[{ currency: 'KAS', unitPrice: 0 }]}
       buyLabel={actionLabel}
       buyDisabled={buyDisabled}
@@ -903,15 +984,65 @@ export function PlantSlotCard(props: {
         if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
         if (s.status === 'InsufficientPower') return setActiveModal('machine');
         if (s.status === 'DailyCapReached') return;
-        if (batteryDeadInRun || s.status === 'NeedsPower') return props.onRechargePlant({ units: 1 });
+        if (batteryDeadInRun || s.status === 'NeedsPower')
+          return installedBatteryIndices.length ? openBatteryRefillModal() : undefined;
         if (s.status === 'MiningPaused') return props.onResumeMining();
         if (s.status === 'MiningActive') return props.onStopMining();
-        if (s.status === 'ExtractionReady' || s.status === 'BatteryEmpty') return;
+        if (s.status === 'CreditingReady' || s.status === 'BatteryEmpty') return;
         if (s.status === 'ReadyToMine') return props.onStart();
       }}
     />
 
     {/* ── Selection Modals ── */}
+      <SelectionModal
+        isOpen={batteryRefillModalOpen}
+        onClose={() => setBatteryRefillModalOpen(false)}
+        title="Battery refill"
+      >
+        <p className="mb-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Pick slots to top up. Each billed separately at{' '}
+          <span className="font-black text-zinc-900 dark:text-zinc-100">{MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span>{' '}
+          (matches Shop recharge styling).
+        </p>
+        <div className="mb-4 grid gap-2">
+          {installedBatteryIndices.map((idx) => (
+            <label
+              key={idx}
+              className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30"
+            >
+              <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+                Slot {idx + 1} · max {formatShortBatterySlotRuntime(maxSlotCharges[idx] ?? 0)}
+              </span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-zinc-400"
+                checked={refillSlotIndexes.includes(idx)}
+                onChange={() =>
+                  setRefillSlotIndexes((prev) =>
+                    prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx].sort((a, b) => a - b),
+                  )
+                }
+              />
+            </label>
+          ))}
+        </div>
+        <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="k-control-btn flex h-10 w-full items-center justify-center px-4 font-black tabular-nums sm:flex-1">
+              {(refillSlotIndexes.length * MINECORE_PLANT_RECHARGE_COST_KAS).toLocaleString()} KAS total
+            </div>
+            <button
+              type="button"
+              disabled={refillSlotIndexes.length === 0}
+              className="k-cta-games h-10 w-full shrink-0 px-4 disabled:opacity-50 disabled:grayscale sm:w-auto"
+              onClick={() => confirmBatteryRefill()}
+            >
+              Confirm refill
+            </button>
+          </div>
+        </div>
+      </SelectionModal>
+
       <SelectionModal
         isOpen={activeModal === 'preset'}
         onClose={() => setActiveModal(null)}
@@ -1052,7 +1183,7 @@ export function PlantSlotCard(props: {
               <li key={b.id} className="list-none">
                 <ModalPartRow
                   title={b.label}
-                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} · Daily cap ×${b.efficiency} - reserve units = plant tier (V1)`}
+                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} stored (catalog) · max per slot uses rig charge budget + worker battery bonus.`}
                   owned={owned}
                   inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
                   disabled={rowBlocked}

@@ -49,11 +49,11 @@ export type NFTTier = 'regular' | 'diamond' | 'rarest';
 export function getNFTTier(
   collection: string,
   nftId: number,
-  metadata: ParsedNFTMetadata | null
+  metadata: ParsedNFTMetadata | null,
 ): NFTTier {
   const rarest = RAREST_NFT_IDS[collection];
   if (rarest && rarest.includes(nftId)) return 'rarest';
+  if (isDiamondNFT(collection, metadata)) return 'diamond';
   if (collection === 'KREXPRIME' && KREXPRIME_DIAMOND_IDS.includes(nftId)) return 'diamond';
-  if (collection === 'PIXELKREX' && isDiamondNFT(collection, metadata)) return 'diamond';
   return 'regular';
 }

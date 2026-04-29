@@ -3,6 +3,7 @@
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
 import { MINECORE_DAY_MS, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import type { MinecoreComputeContext } from './compute-context';
 import {
   drainWaterfallRemaining,
   getMaxChargePerSlotMs,
@@ -10,6 +11,7 @@ import {
   sumChargeMs,
 } from './battery-utils';
 import type { MinecoreState, PlantSlotState } from './types';
+import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import {
   plantNftSlotAssignmentValid,
 } from './asset-usage';
@@ -17,6 +19,8 @@ import {
   canStartMiningByEfficiency,
   computeExpectedDiamondsForCycle,
   computeEffectiveCycleDurationMs,
+  computeMaintenanceWearRatio,
+  computePlantDiamondsPer24h,
   computePlantRollingDailyCapCeiling,
 } from './plant-economy';
 import { rollPlantRollingDailyCapIfNeeded } from './daily-cap';
@@ -55,9 +59,14 @@ export function productionClockMs(slot: PlantSlotState, now: number): number {
   return now;
 }
 
-/** Full combined charge (ms) for all installed battery slots. */
-export function getBatteryCapacityMs(slot: PlantSlotState): number {
-  return sumChargeMs(getMaxChargePerSlotMs(slot.setup, slot.type));
+/** Full combined charge (ms) for all installed battery slots (includes global Workers NFT bonus when `state` passed). */
+export function getBatteryCapacityMs(
+  slot: PlantSlotState,
+  state?: MinecoreState,
+  ctx?: MinecoreComputeContext,
+): number {
+  const extra = state ? computeMinecoreBatteryBonusMsPerSlot(state, ctx) : 0;
+  return sumChargeMs(getMaxChargePerSlotMs(slot.setup, slot.type, extra));
 }
 
 export function getTotalBatteryChargeAtSnapshot(slot: PlantSlotState): number {
@@ -74,8 +83,12 @@ export function computePlantReady(state: MinecoreState, slot: PlantSlotState): b
 }
 
 /** One full cycle at current economy (D/24h × effective duration). */
-export function computePlantExpectedDiamonds(state: MinecoreState, slot: PlantSlotState): number {
-  return computeExpectedDiamondsForCycle(state, slot);
+export function computePlantExpectedDiamonds(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  ctx?: MinecoreComputeContext,
+): number {
+  return computeExpectedDiamondsForCycle(state, slot, ctx);
 }
 
 export function computePlantDurationMs(slot: PlantSlotState): number {
@@ -93,7 +106,8 @@ export function computeLiveBatterySlotChargeMs(slot: PlantSlotState, now: number
   if (slot.cycle.pauseBeganAtMs != null) {
     return [...raw];
   }
-  const drainUntil = Math.min(now, slot.cycle.endAtMs);
+  /** Mine-as-you-go: drain until battery empty — nominal cycle end does not stop drain. */
+  const drainUntil = now;
   const elapsed = Math.max(0, drainUntil - slot.batterySnapshotAt);
   const powerFactor = getPowerDrainScale(slot);
   return drainWaterfallRemaining(raw, elapsed * powerFactor);
@@ -117,27 +131,41 @@ export function computeBatteryRuntimeMs(slot: PlantSlotState, now: number): numb
 }
 
 /**
- * Raw diamonds accumulated in the current cycle before siphon (`mintedOffset`).
+ * Raw diamonds accumulated this mining session (integral rate × elapsed), capped by battery drain and rolling daily budget headroom.
  */
-export function computeRawLiveDiamonds(slot: PlantSlotState, now: number): number {
+export function computeRawLiveDiamonds(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): number {
   if (!slot.cycle) return 0;
   const clock = productionClockMs(slot, now);
   const elapsed = Math.max(0, clock - slot.cycle.startAtMs);
   const factor = getPowerDrainScale(slot);
   const totalAtSnap = getTotalBatteryChargeAtSnapshot(slot);
   const emptyAtMs = factor > 0 ? slot.batterySnapshotAt + totalAtSnap / factor : Number.POSITIVE_INFINITY;
-  const maxByBattery = Math.max(0, emptyAtMs - slot.cycle.startAtMs);
-  const effectiveElapsed = Math.min(elapsed, maxByBattery, slot.cycle.durationMs);
-  if (slot.cycle.durationMs <= 0) return 0;
-  return Math.floor((effectiveElapsed / slot.cycle.durationMs) * slot.cycle.expectedDiamonds);
+  const maxByBatteryMs = Math.max(0, emptyAtMs - slot.cycle.startAtMs);
+  const effectiveElapsedMs = Math.min(elapsed, maxByBatteryMs);
+
+  const d24 = computePlantDiamondsPer24h(state, slot, now, ctx);
+  const rawUncapped = Math.floor((effectiveElapsedMs / MINECORE_DAY_MS) * d24);
+
+  const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
+  const cap24h = computePlantRollingDailyCapCeiling(state, rolled, ctx);
+  const maxLive = Math.max(0, cap24h - rolled.dailyCapMinedDiamonds - rolled.diamondsAccumulated);
+  return Math.min(rawUncapped, maxLive);
 }
 
-/**
- * Diamonds remaining in the current cycle (after Refine siphon via `mintedOffset`).
- */
-export function computeLiveDiamonds(slot: PlantSlotState, now: number): number {
+/** Diamonds remaining in the active session (after Refine siphon via `mintedOffset`). */
+export function computeLiveDiamonds(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): number {
   if (!slot.cycle) return 0;
-  const raw = computeRawLiveDiamonds(slot, now);
+  const raw = computeRawLiveDiamonds(state, slot, now, ctx);
   const off = slot.cycle.mintedOffset ?? 0;
   return Math.max(0, raw - off);
 }
@@ -146,12 +174,18 @@ export function computeLiveDiamonds(slot: PlantSlotState, now: number): number {
  * D/min production rate (live, based on machine + current setup).
  * Returns 0 when battery is depleted or no cycle is active.
  */
-export function computeFlowRatePerMin(slot: PlantSlotState, now: number): number {
+export function computeFlowRatePerMin(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): number {
   if (!slot.cycle) return 0;
   if (isCyclePaused(slot, now)) return 0;
   const liveCharge = computeLiveBatteryChargeMs(slot, now);
   if (liveCharge <= 0) return 0;
-  const perMs = slot.cycle.expectedDiamonds / Math.max(1, slot.cycle.durationMs);
+  const d24 = computePlantDiamondsPer24h(state, slot, now, ctx);
+  const perMs = d24 / MINECORE_DAY_MS;
   return perMs * 60_000;
 }
 
@@ -175,10 +209,11 @@ export function computePlantDailyCapProgress(
   state: MinecoreState,
   slot: PlantSlotState,
   now: number,
+  ctx?: MinecoreComputeContext,
 ): { minedTowardCap: number; cap24h: number; ratio: number } {
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-  const cap24h = rolled.unlocked ? computePlantRollingDailyCapCeiling(state, rolled) : 0;
-  const live = rolled.cycle ? computeLiveDiamonds(rolled, now) : 0;
+  const cap24h = rolled.unlocked ? computePlantRollingDailyCapCeiling(state, rolled, ctx) : 0;
+  const live = rolled.cycle ? computeLiveDiamonds(state, rolled, now, ctx) : 0;
   const minedTowardCap = rolled.dailyCapMinedDiamonds + rolled.diamondsAccumulated + live;
   const ratio = cap24h > 0 ? Math.min(1, minedTowardCap / cap24h) : 0;
   return { minedTowardCap, cap24h, ratio };
@@ -195,13 +230,14 @@ export function computeRollingDailyCapWindowRemainingMs(slot: PlantSlotState, no
 export function computeMinecoreRollingDailyCapDeckTotals(
   state: MinecoreState,
   now: number,
+  ctx?: MinecoreComputeContext,
 ): { minedSum: number; capSum: number } {
   let minedSum = 0;
   let capSum = 0;
   for (const slot of state.plantSlots) {
     if (!slot.unlocked || !computePlantReady(state, slot)) continue;
     const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-    const p = computePlantDailyCapProgress(state, rolled, now);
+    const p = computePlantDailyCapProgress(state, rolled, now, ctx);
     minedSum += p.minedTowardCap;
     capSum += p.cap24h;
   }
@@ -209,9 +245,14 @@ export function computeMinecoreRollingDailyCapDeckTotals(
 }
 
 /** True when this plant cannot start another cycle until the rolling 24h window advances (or cap math changes). */
-export function plantDailyCapPreventsNewCycle(state: MinecoreState, slot: PlantSlotState, now: number): boolean {
+export function plantDailyCapPreventsNewCycle(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): boolean {
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-  const p = computePlantDailyCapProgress(state, rolled, now);
+  const p = computePlantDailyCapProgress(state, rolled, now, ctx);
   return p.cap24h > 0 && p.minedTowardCap >= p.cap24h;
 }
 
@@ -240,35 +281,42 @@ export function deriveSlotStatus(
   state: MinecoreState,
   slot: PlantSlotState,
   now: number,
+  ctx?: MinecoreComputeContext,
 ): PlantSlotState['status'] {
   if (!slot.unlocked) return 'EmptySlot';
-  if (slot.needsRepair) return 'NeedsRepair';
+  const wear = computeMaintenanceWearRatio(slot, now);
+  if (wear >= 1 || slot.needsRepair) return 'NeedsRepair';
   if (!computePlantReady(state, slot)) return 'SetupIncomplete';
   if (slot.cycle) {
     if (slot.cycle.pauseBeganAtMs != null) return 'MiningPaused';
+    const capProg = computePlantDailyCapProgress(state, slot, now, ctx);
+    if (capProg.cap24h > 0 && capProg.minedTowardCap >= capProg.cap24h) return 'CreditingReady';
     const liveCharge = computeLiveBatteryChargeMs(slot, now);
-    if (liveCharge <= 0 && now < slot.cycle.endAtMs) return 'BatteryEmpty';
-    if (now >= slot.cycle.endAtMs) return 'ExtractionReady';
+    if (liveCharge <= 0) return 'BatteryEmpty';
     return 'MiningActive';
   }
-  if (plantDailyCapPreventsNewCycle(state, slot, now)) return 'DailyCapReached';
+  if (plantDailyCapPreventsNewCycle(state, slot, now, ctx)) return 'DailyCapReached';
   if (!canStartMiningByEfficiency(slot)) return 'InsufficientPower';
   return 'ReadyToMine';
 }
 
-export function deriveState(state: MinecoreState, now: number): MinecoreState {
+export function deriveState(state: MinecoreState, now: number, ctx?: MinecoreComputeContext): MinecoreState {
   const nextSlots = state.plantSlots.map((s) => {
     const rolled = rollPlantRollingDailyCapIfNeeded(s, now);
     const synced = syncPlantPowerUnitsToCapacity(rolled);
-    return { ...synced, status: deriveSlotStatus(state, synced, now) };
+    return { ...synced, status: deriveSlotStatus(state, synced, now, ctx) };
   });
   return { ...state, plantSlots: nextSlots };
 }
 
 /** Wallet balance plus diamonds locked in active cycles. */
-export function computeMinecoreDiamondsDisplayTotal(state: MinecoreState, now: number): number {
+export function computeMinecoreDiamondsDisplayTotal(
+  state: MinecoreState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): number {
   const inPlants = state.plantSlots.reduce(
-    (acc, p) => acc + p.diamondsAccumulated + (p.cycle ? computeLiveDiamonds(p, now) : 0),
+    (acc, p) => acc + p.diamondsAccumulated + (p.cycle ? computeLiveDiamonds(state, p, now, ctx) : 0),
     0,
   );
   return state.diamondsBalance + inPlants;

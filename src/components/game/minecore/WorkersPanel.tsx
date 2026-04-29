@@ -18,7 +18,8 @@ import {
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
-import { computeMiningNftDeckDiamondBonusPer24h } from '@/lib/game/minecore/plant-economy';
+import { minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
+import { formatMinecoreGlobalDeckBonusLine } from '@/lib/game/minecore/nft-deck-benefits';
 
 function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
   return getMinecoreDeckCollectionAllowlist();
@@ -108,13 +109,18 @@ export function WorkersPanel(props: {
     return () => window.removeEventListener('keydown', onKey);
   }, [buyOpen]);
 
+  const globalDeckBonusLine = useMemo(
+    () => formatMinecoreGlobalDeckBonusLine(props.slots, { nftMetadataByDeckIndex: props.slottedMetadata }),
+    [props.slots, props.slottedMetadata],
+  );
+
   const filteredSlots = useMemo(() => {
     let list = props.slots.map((s, idx) => ({ ...s, originalIndex: idx }));
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter((slot) => {
-        const meta = slot.nftId !== null ? props.slottedMetadata[slot.nftId] : null;
+        const meta = props.slottedMetadata[idx] ?? null;
         return (
           slot.type.toLowerCase().includes(q) ||
           slot.nftId?.toString().includes(q) ||
@@ -154,13 +160,13 @@ export function WorkersPanel(props: {
         <div className="max-w-xl">
           <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Auto-restart mining runs
-            <GameTooltip content="Requires Regen Coil + toggle, or a Foreman NFT. Otherwise runs still finish manually.">
+            <GameTooltip content="Needs Foreman or Regen Coil. Auto-starts only while batteries still hold charge — no paid refills from automation.">
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
                 ?
               </button>
             </GameTooltip>
           </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Opt-in for future auto-chaining when infrastructure is ready.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Optional auto-start after a run ends — only if batteries still have juice.</p>
         </div>
         <button
           type="button"
@@ -183,6 +189,12 @@ export function WorkersPanel(props: {
         <p className="text-[11px] text-amber-700 dark:text-amber-400">No auto-chain yet - add Regen Coil or Foreman NFT.</p>
       ) : null}
 
+      {globalDeckBonusLine ? (
+        <p className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[12px] font-semibold text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+          {globalDeckBonusLine}
+        </p>
+      ) : null}
+
       <CardsFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -202,11 +214,12 @@ export function WorkersPanel(props: {
             nftId: slot.nftId,
             collection: slot.collection,
           };
-          const meta = slot.nftId !== null ? props.slottedMetadata[slot.nftId] : null;
+          const meta = props.slottedMetadata[idx] ?? null;
           const tier = slot.nftId !== null && slot.collection ? getNFTTier(slot.collection, slot.nftId, meta) : null;
           const slotImageUrl = meta?.image ? getBestGatewayUrl(String(meta.image).replace('ipfs://', '')) : null;
           const roleLabel = nftCrewRoleLabel(slot.type);
-          const bonusD24 = slot.nftId != null ? computeMiningNftDeckDiamondBonusPer24h(crewSlot) : 0;
+          const perk =
+            slot.nftId != null && slot.collection ? minecoreDeckBenefits(crewSlot, meta) : { capBonus: 0, batteryMinutes: 0 };
           return (
             <EmptyVeinSlotFrame key={idx} onClick={() => setSelected(idx)} frameClassName="aspect-square">
               <div className="relative flex h-full min-h-[200px] w-full flex-col items-center justify-center pt-9">
@@ -254,8 +267,8 @@ export function WorkersPanel(props: {
                       </span>
                     )}
                     <p className="mt-1.5 max-w-[14rem] text-[11px] font-semibold leading-snug text-sky-800 dark:text-sky-300">
-                      +{bonusD24.toLocaleString()} D/day to plant cap
-                      {slot.type === 'operator' ? ' · speed tier' : slot.type === 'foreman' ? ' · automation' : ''}
+                      +{perk.capBonus.toLocaleString()} rolling cap · +{perk.batteryMinutes} min batteries
+                      {slot.type === 'foreman' ? ' · auto infra when equipped' : ''}
                     </p>
                     <p className="mt-2 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-500">Locked · active</p>
                     <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Click to manage · X clears</p>
