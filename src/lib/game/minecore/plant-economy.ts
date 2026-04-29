@@ -17,7 +17,7 @@ import { normalizePlantSetup, plantNftSlotAssignmentValid } from './asset-usage'
 import type { MinecoreComputeContext } from './compute-context';
 import type { MinecoreState, PlantSlotState } from './types';
 import { hasInstalledBattery } from './battery-utils';
-import { computeMinecoreDailyCapBonusFromNfts, minecoreDeckBenefits } from './nft-deck-benefits';
+import { computeMinecoreDailyCapBonusForPlantCrew, minecoreDeckBenefits } from './nft-deck-benefits';
 
 function plantPowerFactor(slot: PlantSlotState): number {
   return slot.setup.machineId
@@ -132,8 +132,8 @@ function slotSetupComplete(state: MinecoreState, slot: PlantSlotState): boolean 
 }
 
 /**
- * Flat diamond bonus toward rolling cap from this Workers-tab NFT (collection tier only — same rule as global deck).
- * Does not vary by worker/operator/foreman role; deployment bonuses are global in `computeMinecoreDailyCapBonusFromNfts`.
+ * Flat diamond bonus toward rolling cap from this Workers-tab NFT (collection tier only).
+ * Does not vary by worker/operator/foreman role; plant totals sum assigned crew only (`computeMinecoreDailyCapBonusForPlantCrew`).
  */
 export function computeMiningNftDeckDiamondBonusPer24h(
   deck: MiningSlot,
@@ -144,7 +144,7 @@ export function computeMiningNftDeckDiamondBonusPer24h(
 
 /**
  * Maximum diamonds credited toward this plant's rolling 24h window at full mining efficiency.
- * Plant base + machine flat D/24h + global Workers-tab NFT cap bonuses (no battery yield, boost, or output-module % mult).
+ * Plant base + machine flat D/24h + **this plant’s assigned crew** NFT cap bonuses only (no battery or module % on cap).
  * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
 export function computePlantRollingDailyCapCeiling(
@@ -166,11 +166,39 @@ export function computePlantRollingDailyCapCeiling(
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;
 
-  /** Workers-tab NFTs: collection-based rolling cap only (no role/yield/speed multipliers). */
-  const globalDeckCap = computeMinecoreDailyCapBonusFromNfts(state, ctx);
-  const subtotal = base + machinePart + globalDeckCap;
+  const crewDeckCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
+  const subtotal = base + machinePart + crewDeckCap;
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
   return Math.max(0, Math.min(plantMax, Math.floor(subtotal)));
+}
+
+/** Terms that add up to the rolling cap (for UI). `ceiling` matches {@link computePlantRollingDailyCapCeiling}. */
+export type PlantRollingCapBreakdown = {
+  plantBase: number;
+  machineCap: number;
+  crewCap: number;
+  /** Raw sum before plant max clamp */
+  subtotal: number;
+  ceiling: number;
+  plantMax: number;
+};
+
+export function computePlantRollingDailyCapBreakdown(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  ctx?: MinecoreComputeContext,
+): PlantRollingCapBreakdown {
+  const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
+  if (!slot.unlocked) {
+    return { plantBase: 0, machineCap: 0, crewCap: 0, subtotal: 0, ceiling: 0, plantMax };
+  }
+  const plantBase = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
+  const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
+  const machineCap = machine?.diamondsPer24h ?? 0;
+  const crewCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
+  const subtotal = Math.max(0, Math.floor(plantBase + machineCap + crewCap));
+  const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx);
+  return { plantBase, machineCap, crewCap, subtotal, ceiling, plantMax };
 }
 
 /**

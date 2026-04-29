@@ -17,6 +17,7 @@ import {
   computeEffectiveMiningEfficiencyPct,
   computeMaintenanceWearRatio,
   computeMiningEfficiencyPct,
+  computePlantRollingDailyCapBreakdown,
   computeProductionKw,
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
@@ -74,6 +75,13 @@ function clamp01(n: number) {
 const BATTERY_LOW_RECHARGE_THRESHOLD = 0.35;
 
 const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
+
+/** Rolling-cap contributions (diamonds / 24h toward cap) */
+const CAP_CONTRIB_BADGE_CLS =
+  'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
+/** Shared Workers-tab deck runtime (extra minutes on each battery slot max) */
+const BATTERY_DECK_BADGE_CLS =
+  'rounded-full border border-sky-500/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-sky-800 dark:text-sky-300';
 
 function formatDuration(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -261,6 +269,7 @@ function DailyCapBar(props: {
     tipParts.push(
       `Mined toward this plant’s rolling cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`,
     );
+    tipParts.push('Daily cap is plant tier + rig + only the crew assigned to this plant.');
     if (showTimer) {
       tipParts.push(`Cap resets in ${formatCapResetCountdown(props.remainingMs)}.`);
     }
@@ -294,6 +303,28 @@ function DailyCapBar(props: {
           <span className="text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">{displayCap.toLocaleString()}</span>
         </div>
       </div>
+      {props.capStack ? (
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] leading-snug text-zinc-600 dark:text-zinc-400">
+          <span className="font-bold text-zinc-500 dark:text-zinc-400">Cap stack</span>
+          <span className="tabular-nums">
+            <span className="text-emerald-700 dark:text-emerald-400">Plant +{props.capStack.plantBase}</span>
+            <span className="text-zinc-400"> · </span>
+            <span className="text-emerald-700 dark:text-emerald-400">Rig +{props.capStack.machineCap}</span>
+            <span className="text-zinc-400"> · </span>
+            <span className="text-emerald-700 dark:text-emerald-400">Crew +{props.capStack.crewCap}</span>
+            <span className="text-zinc-400"> = </span>
+            <span className="font-black text-zinc-800 dark:text-zinc-200">{props.capStack.subtotal}</span>
+            {props.capStack.ceiling === 0 && props.capStack.subtotal > 0 ? (
+              <span className="font-semibold text-amber-700 dark:text-amber-400"> · finish setup to activate</span>
+            ) : props.capStack.ceiling > 0 && props.capStack.ceiling < props.capStack.subtotal ? (
+              <span className="font-semibold text-violet-700 dark:text-violet-300">
+                {' '}
+                · rolling cap {props.capStack.ceiling} (tier max {props.capStack.plantMax})
+              </span>
+            ) : null}
+          </span>
+        </div>
+      ) : null}
       {props.forceZeroDisplay ? null : (
         <>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
@@ -582,6 +613,10 @@ export function PlantSlotCard(props: {
 
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now, ctx);
+  const capBreakdown = useMemo(
+    () => computePlantRollingDailyCapBreakdown(props.minecoreState, s, ctx),
+    [props.minecoreState, s, ctx],
+  );
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;
   const balKw = prodKw - consKw;
@@ -778,6 +813,7 @@ export function PlantSlotCard(props: {
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
               flowRatePerMin={flowPerMin > 0 ? flowPerMin : undefined}
+              capStack={capBreakdown}
             />
           ) : null}
 
@@ -826,9 +862,14 @@ export function PlantSlotCard(props: {
               installed={!!s.setup.machineId}
               label="Machine"
               value={machineConfig?.label}
+              badges={
+                machineConfig ? (
+                  <span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>
+                ) : undefined
+              }
               tooltip={
                 machineConfig
-                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
+                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h toward rolling cap · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
                   : 'Install a machine to mine. Tap to pick.'
               }
               onClick={() => setActiveModal('machine')}
@@ -838,16 +879,22 @@ export function PlantSlotCard(props: {
               const bid = s.setup.batteryIds[bi] ?? null;
               const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
               const maxEff = maxSlotCharges[bi] ?? 0;
+              const deckBonusMin = nftBattBonusMs > 0 ? Math.max(1, Math.round(nftBattBonusMs / 60_000)) : 0;
               return (
                 <CheckRow
                   key={bi}
                   installed={!!bid}
                   label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
                   value={bcfg?.label}
+                  badges={
+                    bid && deckBonusMin > 0 ? (
+                      <span className={BATTERY_DECK_BADGE_CLS}>+{deckBonusMin}m deck</span>
+                    ) : undefined
+                  }
                   stat={bid && maxEff > 0 ? formatShortBatterySlotRuntime(maxEff) : undefined}
                   tooltip={
                     bcfg
-                      ? `${bcfg.label}: catalog ${Math.round(bcfg.chargeCapacityMs / 60000)}m · stored max ${formatShortBatterySlotRuntime(maxEff)} (rig × budget + NFT bonus). Tap to swap.`
+                      ? `${bcfg.label}: catalog ${Math.round(bcfg.chargeCapacityMs / 60000)}m · slot max ${formatShortBatterySlotRuntime(maxEff)} (rig × budget + Workers-tab deck runtime). Tap to swap.`
                       : 'Add a battery in this slot. Tap to assign.'
                   }
                   onClick={() => {
@@ -867,7 +914,11 @@ export function PlantSlotCard(props: {
                   ? workerSetupDisplay.badges.map((b) => (
                       <span
                         key={b.key}
-                        className="rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300"
+                        className={
+                          b.key === 'foreman-auto'
+                            ? 'rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200'
+                            : CAP_CONTRIB_BADGE_CLS
+                        }
                       >
                         {b.text}
                       </span>

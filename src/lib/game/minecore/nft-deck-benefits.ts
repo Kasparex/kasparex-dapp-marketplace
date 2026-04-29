@@ -5,9 +5,10 @@
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlot } from '@/lib/game/engine';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
+import { normalizePlantSetup } from './asset-usage';
 import { MINECORE_PARTNER_COLLECTIONS, MINECORE_PREMIUM_COLLECTIONS } from './config';
 import type { MinecoreComputeContext } from './compute-context';
-import type { MinecoreState } from './types';
+import type { MinecoreState, PlantSlotState } from './types';
 
 export type MinecoreDeckBenefits = { capBonus: number; batteryMinutes: number };
 
@@ -47,6 +48,27 @@ export function computeMinecoreDailyCapBonusFromNfts(state: MinecoreState, ctx?:
     const deck = slots[i];
     if (!deck?.nftId || !deck.collection) continue;
     sum += minecoreDeckBenefits(deck, deckMetadata(i, ctx)).capBonus;
+  }
+  return sum;
+}
+
+/**
+ * Rolling-cap bonus from NFTs **assigned to this plant’s crew slots** only.
+ * (Global `computeMinecoreDailyCapBonusFromNfts` is for deck-wide UI such as the Workers tab.)
+ */
+export function computeMinecoreDailyCapBonusForPlantCrew(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  ctx?: MinecoreComputeContext,
+): number {
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+  let sum = 0;
+  for (let i = 0; i < idxs.length; i++) {
+    const dj = idxs[i];
+    if (dj == null) continue;
+    const deck = state.nftSlots?.[dj];
+    if (!deck?.nftId || !deck.collection) continue;
+    sum += minecoreDeckBenefits(deck, deckMetadata(dj, ctx)).capBonus;
   }
   return sum;
 }

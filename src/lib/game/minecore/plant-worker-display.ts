@@ -30,7 +30,7 @@ export function describePlantWorkerAssignments(
     const b = minecoreDeckBenefits(deck, ctx?.nftMetadataByDeckIndex?.[ix] ?? null);
     badges.push({
       key: `${ix}-${i}`,
-      text: `+${b.capBonus} cap`,
+      text: `+${b.capBonus} D`,
     });
     if (deck.type === 'foreman') anyForeman = true;
   }
