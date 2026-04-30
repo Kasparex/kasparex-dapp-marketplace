@@ -22,7 +22,7 @@ export type GameItemEffectLine = {
   label: string;
   value: string;
   muted?: boolean;
-  color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'zinc';
+  color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'zinc' | 'red';
 };
 
 function formatGameItemPriceAmount(currency: GameItemCurrency, amount: number): string {
@@ -148,11 +148,13 @@ export function GameItemCard(props: {
                 ? 'text-amber-700 dark:text-amber-300'
                 : e.color === 'rose'
                   ? 'text-rose-700 dark:text-rose-300'
-                  : e.color === 'sky'
-                    ? 'text-sky-700 dark:text-sky-300'
-                    : e.color === 'zinc'
-                      ? 'text-zinc-700 dark:text-zinc-300'
-                      : 'text-emerald-700 dark:text-emerald-300'
+                  : e.color === 'red'
+                    ? 'text-red-600 dark:text-red-400'
+                    : e.color === 'sky'
+                      ? 'text-sky-700 dark:text-sky-300'
+                      : e.color === 'zinc'
+                        ? 'text-zinc-700 dark:text-zinc-300'
+                        : 'text-emerald-700 dark:text-emerald-300'
           }`}
         >
           {e.value}

@@ -3,7 +3,14 @@
 import { useMemo, useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard, type GameItemEffectLine } from '@/components/games/shop/GameItemCard';
-import { MINECORE_INGREDIENT_KEYS, type MinecoreState } from '@/lib/game/minecore';
+import {
+  MINECORE_INGREDIENT_KEYS,
+  type MinecoreBatteryId,
+  type MinecoreMachineId,
+  type MinecoreModuleId,
+  type MinecorePowerNodeId,
+  type MinecoreState,
+} from '@/lib/game/minecore';
 import {
   MINECORE_BATTERIES,
   MINECORE_KW_SCALE,
@@ -130,8 +137,8 @@ export function FabricationPanel(props: {
                 });
                 specifications.push({
                   label: 'Power consumption',
-                  value: `×${cfg.powerConsumptionFactor} drain · ${formatMinecorePowerDisplay(consKw)}`,
-                  color: 'rose',
+                  value: formatMinecorePowerDisplay(consKw),
+                  color: 'red',
                 });
                 specifications.push({
                   label: 'Additional crew',
@@ -144,18 +151,15 @@ export function FabricationPanel(props: {
               if (cfg) {
                 specifications.push({
                   label: 'Stored runtime',
-                  value: `${Math.round(cfg.chargeCapacityMs / 60000)} min @ 1.0× drain`,
+                  value: `${Math.round(cfg.chargeCapacityMs / 60000)} min`,
                   color: 'sky',
                 });
                 const od = cfg.powerDrawMultiplier ?? 1;
                 const extraKw = Math.max(0, (od - 1) * MINECORE_KW_SCALE);
                 specifications.push({
                   label: 'Power consumption',
-                  value:
-                    od <= 1.001
-                      ? 'Baseline bus load'
-                      : `×${od.toFixed(2)} bus · +${formatMinecorePowerDisplay(extraKw)} vs cell`,
-                  color: 'rose',
+                  value: od <= 1.001 ? 'Baseline bus load' : `+${formatMinecorePowerDisplay(extraKw)}`,
+                  color: 'red',
                 });
               }
             } else if (isModule) {
@@ -169,13 +173,13 @@ export function FabricationPanel(props: {
                         ? ` · −${Math.round(cfg.failureReduction * 100)}% strain`
                         : ''
                     }`,
-                    color: 'rose',
+                    color: 'red',
                   });
                 } else if (cfg.failureReduction > 0) {
                   specifications.push({
                     label: 'Power consumption',
                     value: `−${Math.round(cfg.failureReduction * 100)}% strain`,
-                    color: 'rose',
+                    color: 'red',
                   });
                 }
                 if (cfg.kind === 'automation') {
@@ -243,6 +247,7 @@ export function FabricationPanel(props: {
                 key={r.id}
                 title={r.title}
                 category={r.category}
+                ownedCount={ownedCountForBlueprint(s, r)}
                 imageSrc={featuredImageUrl}
                 imageAlt={r.title}
                 description={description}

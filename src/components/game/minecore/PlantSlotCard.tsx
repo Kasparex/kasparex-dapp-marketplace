@@ -181,6 +181,35 @@ function labelForStatus(status: PlantSlotState['status']) {
   return status;
 }
 
+function tooltipForStatus(status: PlantSlotState['status']): string {
+  switch (status) {
+    case 'EmptySlot':
+      return 'This slot has no unlocked plant yet.';
+    case 'SetupIncomplete':
+      return 'Finish setup: machine, batteries, crew, and power as required.';
+    case 'ReadyToMine':
+      return 'Plant is ready — start a mining run when you are set.';
+    case 'MiningActive':
+      return 'Mining is running; diamonds accrue until you stop, hit cap, or the battery empties.';
+    case 'MiningPaused':
+      return 'Run is paused — no new diamonds and no battery drain until you resume.';
+    case 'BatteryEmpty':
+      return 'Battery charge is empty — recharge to mine again.';
+    case 'CreditingReady':
+      return 'Cycle finished — extract or bank accrued diamonds.';
+    case 'NeedsRepair':
+      return 'Maintenance required — repair before normal mining.';
+    case 'NeedsPower':
+      return 'Needs sufficient grid power or charged batteries to start.';
+    case 'InsufficientPower':
+      return 'Total draw exceeds what this plant can supply — adjust rigs, reactors, or batteries.';
+    case 'DailyCapReached':
+      return 'Rolling 24h diamond cap reached for this plant; try again after the reset window.';
+    default:
+      return 'Plant status.';
+  }
+}
+
 function SelectionModal(props: {
   isOpen: boolean;
   onClose: () => void;
@@ -916,31 +945,41 @@ export function PlantSlotCard(props: {
 
           {/* Status badges */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
+            <Tooltip content={tooltipForStatus(s.status)}>
+              <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
+            </Tooltip>
             {s.unlocked && s.setup.machineId ? (
-              <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
+              <Tooltip content="Live mining efficiency from wear and how well power draw matches your plant budget. Higher is better.">
+                <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
+              </Tooltip>
             ) : null}
             {s.unlocked &&
             s.setup.moduleIds.includes('krex-boost') &&
             (s.krexBoostUntilMs ?? 0) > 0 &&
             now < (s.krexBoostUntilMs ?? 0) ? (
-              <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
-                KREX Boost
-              </span>
+              <Tooltip content="KREX Boost is active: diamond yield is multiplied until this timer ends (module must stay equipped).">
+                <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
+                  KREX Boost
+                </span>
+              </Tooltip>
             ) : null}
             {s.unlocked &&
             (((s.kasOverclockDailyBonusUntilMs ?? 0) > 0 &&
               now < (s.kasOverclockDailyBonusUntilMs ?? 0)) ||
               (s.kasOverclockNextCycleExtraDiamonds ?? 0) > 0) ? (
-              <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
-                Overclock
-              </span>
+              <Tooltip content="KAS Overclock: adds a temporary bonus to your rolling daily diamond cap and/or extra diamonds on the next completed cycle.">
+                <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
+                  Overclock
+                </span>
+              </Tooltip>
             ) : null}
-            {props.minecoreState.automation.autoRestart && (
-              <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
-                Auto ON
-              </span>
-            )}
+            {props.minecoreState.automation.autoRestart ? (
+              <Tooltip content="Auto-restart (global): plants with an automation module can start a new run after a cycle when this is on (also use the Workers-tab automation setting as needed).">
+                <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">
+                  Auto ON
+                </span>
+              </Tooltip>
+            ) : null}
           </div>
 
           <button
@@ -1006,7 +1045,7 @@ export function PlantSlotCard(props: {
               }
               tooltip={
                 machineConfig
-                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h toward rolling cap · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
+                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h toward rolling cap · ${formatMinecorePowerDisplay(machineConfig.powerConsumptionFactor * MINECORE_KW_SCALE)} plant draw. Tap to swap.`
                   : 'Mining rig for this plant. Tap to assign.'
               }
               onClick={() => setActiveModal('machine')}
