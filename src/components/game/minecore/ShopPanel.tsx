@@ -11,7 +11,7 @@ import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
 const ENERGY_CELLS_SHOP_IMAGE =
-  'https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg';
+  'https://static.wixstatic.com/media/de4185_932b7c7511f64810be1ee201184df698~mv2.jpg';
 
 function shopIngredientPriceOptions(
   ingredient: MinecoreIngredient,
@@ -51,7 +51,7 @@ export function ShopPanel(props: {
           key="crystalDust"
           title="Crystal Dust"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_65544be623e24c6790937e5377e40aff~mv2.jpg"
           description="Basic crystal substrate used in fabrication."
           priceOptions={shopIngredientPriceOptions('crystalDust', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -72,7 +72,7 @@ export function ShopPanel(props: {
           key="alloyPlates"
           title="Alloy Plates"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_6d286f563d3647e1bffa064743a964dc~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_ec643cd87ced4d668e010b8087b16f88~mv2.jpg"
           description="Structural plates for rigs and modules."
           priceOptions={shopIngredientPriceOptions('alloyPlates', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -93,7 +93,7 @@ export function ShopPanel(props: {
           key="circuitMesh"
           title="Circuit Mesh"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_831004ef92594453bc9d67003bcc9bb8~mv2.jpg"
           description="Control mesh for machine interfaces."
           priceOptions={shopIngredientPriceOptions('circuitMesh', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -135,7 +135,7 @@ export function ShopPanel(props: {
           key="fluxCoils"
           title="Flux Coils"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_c297065d0cde4aa3ba33752207bc911b~mv2.jpg"
           description="Used in mid-tier machines, Flux Arrays, and Regen Coils."
           priceOptions={shopIngredientPriceOptions('fluxCoils', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -156,7 +156,7 @@ export function ShopPanel(props: {
           key="latticeWire"
           title="Lattice Wire"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_5ea218db3f294f958c79fa9fe190aab2~mv2.jpg"
           description="Required for Orbit Siphon, Void Core Cell, reactor cores, and Hash Buffer crafts."
           priceOptions={shopIngredientPriceOptions('latticeWire', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -177,7 +177,7 @@ export function ShopPanel(props: {
           key="helixStabilizers"
           title="Helix Stabilizers"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_75405246c3884d7a9c02e8244966621b~mv2.jpg"
           description="Used for Neon-tier reactors, Prismatic assemblies, and the Stellar Forge line."
           priceOptions={shopIngredientPriceOptions('helixStabilizers', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -198,7 +198,7 @@ export function ShopPanel(props: {
           key="plasmaConduits"
           title="Plasma Conduits"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_3467e302dd0c45b686a27ab66a46ae94~mv2.jpg"
           description="Key feedstock for Arc reactors and high-density containment stacks."
           priceOptions={shopIngredientPriceOptions('plasmaConduits', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -240,7 +240,7 @@ export function ShopPanel(props: {
           key="voidglassFilaments"
           title="Voidglass Filaments"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_2745d6b902274187b11a8f07356c0c92~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_ff5402a614c348cb9df571d98e4d197a~mv2.jpg"
           description="Feeds Stellar Forge blueprints and other void-touched high-power crafts."
           priceOptions={shopIngredientPriceOptions('voidglassFilaments', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -261,7 +261,7 @@ export function ShopPanel(props: {
           key="coreShards"
           title="Core Shards"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_797d265c76e0465ba03f08dc3a8307f6~mv2.jpg"
           description="Dense crystalline shards for orbit-class rigs and deep batteries."
           priceOptions={shopIngredientPriceOptions('coreShards', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -282,7 +282,7 @@ export function ShopPanel(props: {
           key="coolingGel"
           title="Cooling Gel"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_8d65b863efe34a5d8d69d46e3abeb6a4~mv2.jpg"
           description="Thermal transfer gel for Flux Arrays and cooling modules."
           priceOptions={shopIngredientPriceOptions('coolingGel', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -303,7 +303,7 @@ export function ShopPanel(props: {
           key="ariaChips"
           title="ARIA Chips"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_5b35036fe4a94ba3ba3a36dd2e511f01~mv2.jpg"
           description="Analog resonance chips for ARIA Sensors and fusion crafts."
           priceOptions={shopIngredientPriceOptions('ariaChips', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -324,7 +324,7 @@ export function ShopPanel(props: {
           key="nullFragments"
           title="Null Fragments"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_120a35c13a194530b144a0fc36538315~mv2.jpg"
           description="Volatile null-state fragments for hash buffers and void tech."
           priceOptions={shopIngredientPriceOptions('nullFragments', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
@@ -345,7 +345,7 @@ export function ShopPanel(props: {
           key="minecore-reactor-pack-starter"
           title="Reactor craft pack (starter)"
           category="Bundle"
-          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_917204e896754c228ed9d1426e901512~mv2.jpg"
           description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits — craft reactors in Build."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
@@ -371,7 +371,7 @@ export function ShopPanel(props: {
           key="minecore-reactor-pack-advanced"
           title="Reactor craft pack (advanced)"
           category="Bundle"
-          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_efa4ef845e6f46a68271b8bab65e73f0~mv2.jpg"
           description="Lattice wire, shards, null fragments, flux coils, quantum attuners, and voidglass."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(88), originalUnitPrice: 88 },
@@ -397,7 +397,7 @@ export function ShopPanel(props: {
           key="kas-overclock"
           title="KAS Overclock"
           category="Boost"
-          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_31f513aacd3f4691a530065957fc1f6e~mv2.jpg"
           description="Increase the next cycle output for one plant. V1 mock boost."
           effects={[{ label: 'Output', value: '+100%' }]}
           priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(5), originalUnitPrice: 5 }]}
@@ -442,7 +442,7 @@ export function ShopPanel(props: {
           key="power-topup"
           title="Plant recharge"
           category="Utility"
-          imageSrc="https://static.wixstatic.com/media/de4185_1584ecece1e5489dbf13f7d111c44d99~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_dba6bd95290c4ad1bf82e24f19fa4533~mv2.jpg"
           description="Battery refill packs for your first plant: quantity picks how many slots get topped up."
           effects={[
             { label: 'Each pack', value: `One slot refill (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS)` },
@@ -478,7 +478,7 @@ export function ShopPanel(props: {
           key="repair"
           title="Stability Patch"
           category="Repair"
-          imageSrc="https://static.wixstatic.com/media/de4185_c5a695694e8f4cae8ba74e2b46b786eb~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_4d903cbcbbe14481bfd5487838759999~mv2.jpg"
           description="Stock these for when wear climbs but the plant has not hard-locked yet — pair with a paid service from the maintenance panel."
           effects={[{ label: 'Use', value: 'Early service eligibility' }]}
           priceOptions={[
