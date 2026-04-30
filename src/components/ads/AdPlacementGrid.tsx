@@ -12,6 +12,7 @@ import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { featuredAccentForAd } from '@/lib/ads/featuredAccent';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -85,7 +86,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown, relaxHaloFrame
   return (
     <>
       <div className="relative min-w-0 w-full max-w-full" {...pauseOnHover}>
-        <div className={`overflow-hidden w-full max-w-full ${rounded}`}>
+        <div className={`overflow-hidden w-full max-w-full ${rounded} py-1.5`}>
           <div
             className="flex w-full transition-transform duration-300 ease-out motion-reduce:transition-none"
             style={{ transform: `translateX(-${slide * 100}%)` }}
@@ -204,8 +205,9 @@ function FilledAdShell({
 }) {
   const tip = ad.promoTooltip?.trim();
   const featured = ad.featuredHighlight === true;
-  const frameAccent = featured
-    ? 'ring-2 ring-fuchsia-500 shadow-[0_0_22px_-8px_rgba(217,70,239,0.55)] dark:shadow-[0_0_28px_-6px_rgba(217,70,239,0.5)]'
+  const accent = featured ? featuredAccentForAd(ad.id) : null;
+  const frameAccent = featured && accent
+    ? accent.frameClass
     : 'ring-1 ring-inset ring-zinc-200 dark:ring-zinc-700';
 
   const linkEl = (
@@ -216,8 +218,10 @@ function FilledAdShell({
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
       className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameAccent}`}
     >
-      {featured ? (
-        <span className="pointer-events-none absolute top-1.5 right-1.5 z-[2] rounded-md bg-fuchsia-600/95 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white shadow-sm dark:bg-fuchsia-500/95">
+      {featured && accent ? (
+        <span
+          className={`pointer-events-none absolute top-1.5 right-1.5 z-[2] rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white shadow-sm ${accent.badgeClass}`}
+        >
           Featured
         </span>
       ) : null}

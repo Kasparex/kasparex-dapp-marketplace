@@ -8,7 +8,6 @@ import {
   ADS_MIN_DURATION_DAYS,
   ADS_MAX_DURATION_DAYS,
   ADS_FEATURED_HIGHLIGHT_KAS,
-  ADS_KREX_BINDING_FEE_KAS,
   ADS_MAX_PROMO_TOOLTIP_CHARS,
 } from '@/lib/ads/constants';
 import { buildCampaignMetadataV1, type AdImageRef } from '@/lib/ads/metadata';
@@ -19,10 +18,8 @@ import { sendKaspaTransaction, detectKaspaWallets, KASPA_WALLET_PROVIDERS } from
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
-import { minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
@@ -78,8 +75,6 @@ interface CreateAdWizardProps {
   initialSlotIndex?: number;
 }
 
-const ADS_KREX_PRIORITY_FEE_KAS = 0.001;
-
 export function CreateAdWizard({
   isOpen,
   onClose,
@@ -98,7 +93,6 @@ export function CreateAdWizard({
   const [promoTooltip, setPromoTooltip] = useState('');
   const [durationDays, setDurationDays] = useState(7);
   const [featuredHighlight, setFeaturedHighlight] = useState(false);
-  const [payCurrency, setPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
   const [imageSpecError, setImageSpecError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -113,15 +107,13 @@ export function CreateAdWizard({
   const lastPaymentSyncRef = useRef<{ txHash: string; metadataCid: string } | null>(null);
   const durationInputId = useId();
   const slotMenuRootRef = useRef<HTMLDivElement>(null);
-  const payMenuRootRef = useRef<HTMLDivElement>(null);
 
   const [slotMenuOpen, setSlotMenuOpen] = useState(false);
-  const [payMenuOpen, setPayMenuOpen] = useState(false);
 
   const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { ads, refresh: registryRefresh } = useAdsRegistryContext();
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
-  const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
+  const { tier: krexTier } = useKREXBalance();
 
   const l1Ready =
     kaspaState.isConnected && Boolean(kaspaState.address) && Boolean(kaspaState.provider);
@@ -140,15 +132,6 @@ export function CreateAdWizard({
   const priceKas =
     discountedSlotKas > 0 ? Number((discountedSlotKas + featuredAddonKas).toFixed(8)) : 0;
 
-  const priceKrexSmallest = useMemo(() => {
-    if (priceKas <= 0) return 0;
-    const peg = minecoreKrexFromDiscountedKas(priceKas);
-    return Math.floor(peg * Math.pow(10, KREX_DECIMALS));
-  }, [priceKas]);
-
-  const priceKrexHuman = priceKrexSmallest / Math.pow(10, KREX_DECIMALS);
-
-  const bindingSompi = kasToSompi(ADS_KREX_BINDING_FEE_KAS);
   const treasuryAddress = getAdsTreasuryL1Address();
 
   const canProceedSlot = slotId !== null;
@@ -190,7 +173,6 @@ export function CreateAdWizard({
       setPromoTooltip('');
       setDurationDays(7);
       setFeaturedHighlight(false);
-      setPayCurrency('KAS');
       setImageSpecError(null);
       setTxHash(null);
       setMetadataCid(null);
@@ -200,7 +182,6 @@ export function CreateAdWizard({
       lastPaymentSyncRef.current = null;
       if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
       setSlotMenuOpen(false);
-      setPayMenuOpen(false);
       setPhase(!kaspaState.isConnected ? 'connect' : 'form');
       return;
     }
@@ -216,13 +197,11 @@ export function CreateAdWizard({
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node;
       if (slotMenuRootRef.current?.contains(t)) return;
-      if (payMenuRootRef.current?.contains(t)) return;
       setSlotMenuOpen(false);
-      setPayMenuOpen(false);
     };
-    if (slotMenuOpen || payMenuOpen) document.addEventListener('mousedown', onDoc);
+    if (slotMenuOpen) document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
-  }, [slotMenuOpen, payMenuOpen]);
+  }, [slotMenuOpen]);
 
   useEffect(() => {
     if (!isOpen || !slotId || phase !== 'form') return;
@@ -333,42 +312,11 @@ export function CreateAdWizard({
       return;
     }
 
-    if (payCurrency === 'KREX') {
-      if (priceKrexSmallest <= 0) {
-        setError('Invalid KREX amount.');
-        return;
-      }
-      if (krexL1Balance + 1e-12 < priceKrexHuman) {
-        setError('Insufficient KREX on L1 for this campaign.');
-        return;
-      }
-    }
-
     setIsSubmitting(true);
     setError(null);
     setVerifyNote(null);
     try {
       const image = await buildImageRef();
-
-      let krexPaymentTxHash: string | undefined;
-
-      if (payCurrency === 'KREX') {
-        const inscribeJson = {
-          p: 'KRC-20',
-          op: 'transfer',
-          tick: 'KREX',
-          amt: priceKrexSmallest.toString(),
-          to: treasuryAddress,
-        };
-        const kh = await signKrc20Transfer(
-          kaspaState.provider as KaspaWalletProvider,
-          JSON.stringify(inscribeJson),
-          KRC20_TRANSFER_TYPE,
-          treasuryAddress,
-          ADS_KREX_PRIORITY_FEE_KAS,
-        );
-        krexPaymentTxHash = extractKaspaTransactionId(kh) ?? kh;
-      }
 
       const meta = buildCampaignMetadataV1({
         slotId,
@@ -382,9 +330,6 @@ export function CreateAdWizard({
         format,
         featuredHighlight: featuredHighlight || undefined,
         promoTooltip: promoTooltipTrimmed || undefined,
-        paymentCurrency: payCurrency === 'KREX' ? 'KREX' : undefined,
-        priceKrex: payCurrency === 'KREX' ? priceKrexHuman : undefined,
-        krexPaymentTxHash,
       });
 
       const client = getIPFSClient();
@@ -396,7 +341,7 @@ export function CreateAdWizard({
       const payloadHex = buildAdsBindingPayloadHex(cid);
       const plainNote = buildAdsBindingPlainNote(cid);
 
-      const amountSompi = payCurrency === 'KAS' ? kasToSompi(priceKas) : bindingSompi;
+      const amountSompi = kasToSompi(priceKas);
 
       const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
         to: treasuryAddress,
@@ -478,9 +423,6 @@ export function CreateAdWizard({
 
   const installedKaspaWallets = typeof window !== 'undefined' ? detectKaspaWallets() : [];
 
-  const fmtKrex =
-    priceKrexHuman >= 1 ? priceKrexHuman.toFixed(2) : priceKrexHuman.toLocaleString(undefined, { maximumFractionDigits: 6 });
-
   const body = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
       <div
@@ -522,12 +464,12 @@ export function CreateAdWizard({
             <>
               <ModalSectionTitle>Connect wallet</ModalSectionTitle>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                Connect a Kaspa (L1) wallet to reserve a slot, pin campaign metadata, and pay in KAS or KREX. This uses the
-                same connection as the site header.
+                Connect a Kaspa (L1) wallet to reserve a slot, pin campaign metadata, and pay in KAS. This uses the same
+                connection as the site header.
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4">
                 KREX balance across your connected wallets reduces the listed ad price (same tiers as Diamond Veins shop
-                discounts).
+                discounts). Campaign payment is KAS only for now.
               </p>
               {installedKaspaWallets.length > 0 ? (
                 <div className="space-y-2">
@@ -877,13 +819,8 @@ export function CreateAdWizard({
                     <span className="text-zinc-500">(one-time)</span>
                   </p>
                 )}
-                <p className="text-[#02abb8] font-semibold pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-2">
+                <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-2 tabular-nums">
                   Total: {priceKas} KAS
-                  {payCurrency === 'KREX' && (
-                    <span className="block text-zinc-600 dark:text-zinc-400 font-normal mt-1">
-                      Pay ~{fmtKrex} KREX (Minecore peg) + {ADS_KREX_BINDING_FEE_KAS} KAS binding with payload
-                    </span>
-                  )}
                 </p>
               </div>
 
@@ -971,64 +908,13 @@ export function CreateAdWizard({
                 Cancel
               </button>
               <div className="flex flex-wrap items-center gap-2 justify-end ml-auto">
-                <div ref={payMenuRootRef} className="relative overflow-visible">
-                  <button
-                    type="button"
-                    className="k-control-btn min-h-[2.5rem] min-w-[132px]"
-                    onClick={() => setPayMenuOpen((v) => !v)}
-                    aria-expanded={payMenuOpen}
-                    aria-haspopup="listbox"
-                  >
-                    <span className="truncate text-xs font-bold uppercase tracking-wide">
-                      Pay with {payCurrency}
-                    </span>
-                    <svg
-                      className={`w-4 h-4 ml-auto shrink-0 text-zinc-500 transition-transform ${payMenuOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {payMenuOpen && (
-                    <div
-                      role="listbox"
-                      className="absolute right-0 bottom-full z-[10000] mb-1.5 w-44 rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden"
-                    >
-                      {(['KAS', 'KREX'] as const).map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          role="option"
-                          aria-selected={payCurrency === c}
-                          onClick={() => {
-                            setPayCurrency(c);
-                            setPayMenuOpen(false);
-                          }}
-                          className={`w-full px-4 py-2.5 text-left text-sm font-medium transition-colors ${
-                            payCurrency === c
-                              ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20'
-                              : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
                 <button
                   type="button"
                   onClick={() => void handlePay()}
                   disabled={isSubmitting || !canPay}
                   className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
                 >
-                  {isSubmitting
-                    ? 'Sending…'
-                    : payCurrency === 'KAS'
-                      ? `Pay ${priceKas} KAS`
-                      : `Pay ${fmtKrex} KREX`}
+                  {isSubmitting ? 'Sending…' : `Pay ${priceKas} KAS`}
                 </button>
               </div>
             </>
