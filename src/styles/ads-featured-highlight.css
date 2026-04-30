@@ -1,0 +1,419 @@
+/**
+ * Kasparex Ads — Featured Highlight reference stylesheet
+ *
+ * Canonical accent mapping for React remains src/lib/ads/featuredAccent.ts
+ * (Tailwind class strings). Accent index = hash(ad.id) % 12; palette order must match ACCENTS[].
+ *
+ * Use this file when:
+ * - rebuilding UI outside Tailwind,
+ * - tooling/design handoff,
+ * - or migrating components to data-attribute styling:
+ *       data-kasparex-ad-accent="{featuredAccentIndex(ad.id)}"
+ *     (see src/lib/ads/featuredAccent.ts).
+ */
+
+:root {
+  --kasparex-ad-featured-frame-width: 2px;
+  --kasparex-ad-featured-vignette-size: 48px;
+  --kasparex-ad-featured-vignette-spread: -18px;
+
+  /* Palette 0 — fuchsia */
+  --kasparex-ad-accent-0-frame: #d946ef;
+  --kasparex-ad-accent-0-badge-bg: #c026d3;
+  --kasparex-ad-accent-0-badge-fg: #ffffff;
+  --kasparex-ad-accent-0-vignette: rgba(217, 70, 239, 0.38);
+  --kasparex-ad-accent-0-progress-from: #d946ef;
+  --kasparex-ad-accent-0-progress-via: #9333ea;
+  --kasparex-ad-accent-0-progress-to: #c026d3;
+
+  /* Palette 1 — violet */
+  --kasparex-ad-accent-1-frame: #8b5cf6;
+  --kasparex-ad-accent-1-badge-bg: #7c3aed;
+  --kasparex-ad-accent-1-badge-fg: #ffffff;
+  --kasparex-ad-accent-1-vignette: rgba(124, 58, 237, 0.34);
+  --kasparex-ad-accent-1-progress-from: #8b5cf6;
+  --kasparex-ad-accent-1-progress-via: #9333ea;
+  --kasparex-ad-accent-1-progress-to: #4f46e5;
+
+  /* Palette 2 — cyan */
+  --kasparex-ad-accent-2-frame: #06b6d4;
+  --kasparex-ad-accent-2-badge-bg: #0891b2;
+  --kasparex-ad-accent-2-badge-fg: #ffffff;
+  --kasparex-ad-accent-2-vignette: rgba(6, 182, 212, 0.34);
+  --kasparex-ad-accent-2-progress-from: #22d3ee;
+  --kasparex-ad-accent-2-progress-via: #0ea5e9;
+  --kasparex-ad-accent-2-progress-to: #0891b2;
+
+  /* Palette 3 — amber */
+  --kasparex-ad-accent-3-frame: #f59e0b;
+  --kasparex-ad-accent-3-badge-bg: #d97706;
+  --kasparex-ad-accent-3-badge-fg: #ffffff;
+  --kasparex-ad-accent-3-vignette: rgba(245, 158, 11, 0.32);
+  --kasparex-ad-accent-3-progress-from: #fbbf24;
+  --kasparex-ad-accent-3-progress-via: #f97316;
+  --kasparex-ad-accent-3-progress-to: #d97706;
+
+  /* Palette 4 — emerald */
+  --kasparex-ad-accent-4-frame: #10b981;
+  --kasparex-ad-accent-4-badge-bg: #059669;
+  --kasparex-ad-accent-4-badge-fg: #ffffff;
+  --kasparex-ad-accent-4-vignette: rgba(16, 185, 129, 0.32);
+  --kasparex-ad-accent-4-progress-from: #34d399;
+  --kasparex-ad-accent-4-progress-via: #14b8a6;
+  --kasparex-ad-accent-4-progress-to: #059669;
+
+  /* Palette 5 — rose */
+  --kasparex-ad-accent-5-frame: #f43f5e;
+  --kasparex-ad-accent-5-badge-bg: #e11d48;
+  --kasparex-ad-accent-5-badge-fg: #ffffff;
+  --kasparex-ad-accent-5-vignette: rgba(244, 63, 94, 0.32);
+  --kasparex-ad-accent-5-progress-from: #f43f5e;
+  --kasparex-ad-accent-5-progress-via: #db2777;
+  --kasparex-ad-accent-5-progress-to: #e11d48;
+
+  /* Palette 6 — sky */
+  --kasparex-ad-accent-6-frame: #0ea5e9;
+  --kasparex-ad-accent-6-badge-bg: #0284c7;
+  --kasparex-ad-accent-6-badge-fg: #ffffff;
+  --kasparex-ad-accent-6-vignette: rgba(14, 165, 233, 0.32);
+  --kasparex-ad-accent-6-progress-from: #38bdf8;
+  --kasparex-ad-accent-6-progress-via: #3b82f6;
+  --kasparex-ad-accent-6-progress-to: #0284c7;
+
+  /* Palette 7 — orange */
+  --kasparex-ad-accent-7-frame: #f97316;
+  --kasparex-ad-accent-7-badge-bg: #ea580c;
+  --kasparex-ad-accent-7-badge-fg: #ffffff;
+  --kasparex-ad-accent-7-vignette: rgba(249, 115, 22, 0.32);
+  --kasparex-ad-accent-7-progress-from: #fb923c;
+  --kasparex-ad-accent-7-progress-via: #ef4444;
+  --kasparex-ad-accent-7-progress-to: #ea580c;
+
+  /* Palette 8 — pink */
+  --kasparex-ad-accent-8-frame: #ec4899;
+  --kasparex-ad-accent-8-badge-bg: #db2777;
+  --kasparex-ad-accent-8-badge-fg: #ffffff;
+  --kasparex-ad-accent-8-vignette: rgba(236, 72, 153, 0.34);
+  --kasparex-ad-accent-8-progress-from: #ec4899;
+  --kasparex-ad-accent-8-progress-via: #c026d3;
+  --kasparex-ad-accent-8-progress-to: #db2777;
+
+  /* Palette 9 — indigo */
+  --kasparex-ad-accent-9-frame: #6366f1;
+  --kasparex-ad-accent-9-badge-bg: #4f46e5;
+  --kasparex-ad-accent-9-badge-fg: #ffffff;
+  --kasparex-ad-accent-9-vignette: rgba(99, 102, 241, 0.34);
+  --kasparex-ad-accent-9-progress-from: #6366f1;
+  --kasparex-ad-accent-9-progress-via: #7c3aed;
+  --kasparex-ad-accent-9-progress-to: #4338ca;
+
+  /* Palette 10 — lime */
+  --kasparex-ad-accent-10-frame: #84cc16;
+  --kasparex-ad-accent-10-badge-bg: #84cc16;
+  --kasparex-ad-accent-10-badge-fg: #000000;
+  --kasparex-ad-accent-10-vignette: rgba(132, 204, 22, 0.3);
+  --kasparex-ad-accent-10-progress-from: #a3e635;
+  --kasparex-ad-accent-10-progress-via: #10b981;
+  --kasparex-ad-accent-10-progress-to: #65a30d;
+
+  /* Palette 11 — teal */
+  --kasparex-ad-accent-11-frame: #14b8a6;
+  --kasparex-ad-accent-11-badge-bg: #0d9488;
+  --kasparex-ad-accent-11-badge-fg: #ffffff;
+  --kasparex-ad-accent-11-vignette: rgba(20, 184, 166, 0.32);
+  --kasparex-ad-accent-11-progress-from: #2dd4bf;
+  --kasparex-ad-accent-11-progress-via: #06b6d4;
+  --kasparex-ad-accent-11-progress-to: #0d9488;
+}
+
+@layer components {
+  /**
+   * Layout-only Featured pill (matches FEATURED_BADGE_LAYOUT in featuredAccent.ts).
+   * Pair with palette utilities or inline colors.
+   */
+  .kasparex-ad-featured-badge-base {
+    pointer-events: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 35;
+    border-radius: 9999px;
+    padding: 0.125rem 0.5rem;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  }
+
+  /** Absolutely stacked vignette above creative bitmap */
+  .kasparex-ad-featured-vignette-base {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 25;
+    border-radius: inherit;
+  }
+
+  /** Non-featured slot shell default (reference — sliders use Tailwind today) */
+  .kasparex-ad-slot-frame-neutral {
+    border-width: 2px;
+    border-style: solid;
+    border-color: rgb(161 161 170);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.2),
+      0 2px 4px -2px rgb(0 0 0 / 0.15);
+  }
+
+  .dark .kasparex-ad-slot-frame-neutral {
+    border-color: rgb(161 161 170);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.45),
+      0 2px 4px -2px rgb(0 0 0 / 0.35);
+  }
+
+  /* --- Optional: attribute-driven accents (future migration) --- */
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='0'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-0-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='0'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-0-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='0'] {
+    background-color: var(--kasparex-ad-accent-0-badge-bg);
+    color: var(--kasparex-ad-accent-0-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='1'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-1-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='1'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-1-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='1'] {
+    background-color: var(--kasparex-ad-accent-1-badge-bg);
+    color: var(--kasparex-ad-accent-1-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='2'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-2-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='2'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-2-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='2'] {
+    background-color: var(--kasparex-ad-accent-2-badge-bg);
+    color: var(--kasparex-ad-accent-2-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='3'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-3-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='3'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-3-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='3'] {
+    background-color: var(--kasparex-ad-accent-3-badge-bg);
+    color: var(--kasparex-ad-accent-3-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='4'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-4-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='4'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-4-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='4'] {
+    background-color: var(--kasparex-ad-accent-4-badge-bg);
+    color: var(--kasparex-ad-accent-4-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='5'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-5-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='5'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-5-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='5'] {
+    background-color: var(--kasparex-ad-accent-5-badge-bg);
+    color: var(--kasparex-ad-accent-5-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='6'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-6-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='6'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-6-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='6'] {
+    background-color: var(--kasparex-ad-accent-6-badge-bg);
+    color: var(--kasparex-ad-accent-6-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='7'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-7-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='7'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-7-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='7'] {
+    background-color: var(--kasparex-ad-accent-7-badge-bg);
+    color: var(--kasparex-ad-accent-7-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='8'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-8-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='8'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-8-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='8'] {
+    background-color: var(--kasparex-ad-accent-8-badge-bg);
+    color: var(--kasparex-ad-accent-8-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='9'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-9-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='9'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-9-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='9'] {
+    background-color: var(--kasparex-ad-accent-9-badge-bg);
+    color: var(--kasparex-ad-accent-9-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='10'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-10-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='10'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-10-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='10'] {
+    background-color: var(--kasparex-ad-accent-10-badge-bg);
+    color: var(--kasparex-ad-accent-10-badge-fg);
+  }
+
+  .kasparex-ad-featured-frame[data-kasparex-ad-accent='11'] {
+    border: var(--kasparex-ad-featured-frame-width) solid var(--kasparex-ad-accent-11-frame);
+  }
+  .kasparex-ad-featured-vignette[data-kasparex-ad-accent='11'] {
+    box-shadow: inset 0 0 var(--kasparex-ad-featured-vignette-size)
+      var(--kasparex-ad-featured-vignette-spread) var(--kasparex-ad-accent-11-vignette);
+  }
+  .kasparex-ad-featured-badge-base[data-kasparex-ad-accent='11'] {
+    background-color: var(--kasparex-ad-accent-11-badge-bg);
+    color: var(--kasparex-ad-accent-11-badge-fg);
+  }
+
+  /** Inventory progress bar gradient (reference; Tailwind uses from/via/to today) */
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='0'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-0-progress-from),
+      var(--kasparex-ad-accent-0-progress-via),
+      var(--kasparex-ad-accent-0-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='1'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-1-progress-from),
+      var(--kasparex-ad-accent-1-progress-via),
+      var(--kasparex-ad-accent-1-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='2'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-2-progress-from),
+      var(--kasparex-ad-accent-2-progress-via),
+      var(--kasparex-ad-accent-2-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='3'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-3-progress-from),
+      var(--kasparex-ad-accent-3-progress-via),
+      var(--kasparex-ad-accent-3-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='4'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-4-progress-from),
+      var(--kasparex-ad-accent-4-progress-via),
+      var(--kasparex-ad-accent-4-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='5'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-5-progress-from),
+      var(--kasparex-ad-accent-5-progress-via),
+      var(--kasparex-ad-accent-5-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='6'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-6-progress-from),
+      var(--kasparex-ad-accent-6-progress-via),
+      var(--kasparex-ad-accent-6-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='7'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-7-progress-from),
+      var(--kasparex-ad-accent-7-progress-via),
+      var(--kasparex-ad-accent-7-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='8'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-8-progress-from),
+      var(--kasparex-ad-accent-8-progress-via),
+      var(--kasparex-ad-accent-8-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='9'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-9-progress-from),
+      var(--kasparex-ad-accent-9-progress-via),
+      var(--kasparex-ad-accent-9-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='10'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-10-progress-from),
+      var(--kasparex-ad-accent-10-progress-via),
+      var(--kasparex-ad-accent-10-progress-to)
+    );
+  }
+  .kasparex-ad-featured-progress[data-kasparex-ad-accent='11'] {
+    background-image: linear-gradient(
+      to right,
+      var(--kasparex-ad-accent-11-progress-from),
+      var(--kasparex-ad-accent-11-progress-via),
+      var(--kasparex-ad-accent-11-progress-to)
+    );
+  }
+}

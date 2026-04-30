@@ -3,6 +3,8 @@
  *
  * Single visible frame: `solidFrameClass` on the creative shell only (inventory cards no longer stack `outerRing`).
  * Overlay is a light vignette only — inset rings were doubling as a second border.
+ *
+ * CSS mirror (tokens + optional data-attribute classes): `src/styles/ads-featured-highlight.css`
  */
 export type FeaturedAdAccent = {
   solidFrameClass: string;
@@ -101,4 +103,9 @@ function hashId(id: string): number {
 
 export function featuredAccentForAd(id: string): FeaturedAdAccent {
   return ACCENTS[hashId(id) % ACCENTS.length];
+}
+
+/** Matches `data-kasparex-ad-accent="…"` in `src/styles/ads-featured-highlight.css` (0 … ACCENTS.length - 1). */
+export function featuredAccentIndex(id: string): number {
+  return hashId(id) % ACCENTS.length;
 }
