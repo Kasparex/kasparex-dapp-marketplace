@@ -126,12 +126,11 @@
   --kasparex-ad-accent-11-progress-to: #0d9488;
 }
 
-@layer components {
-  /**
-   * Layout-only Featured pill (matches FEATURED_BADGE_LAYOUT in featuredAccent.ts).
-   * Pair with palette utilities or inline colors.
-   */
-  .kasparex-ad-featured-badge-base {
+/**
+ * Layout-only Featured pill (matches FEATURED_BADGE_LAYOUT in featuredAccent.ts).
+ * Pair with palette utilities or inline colors.
+ */
+.kasparex-ad-featured-badge-base {
     pointer-events: none;
     position: absolute;
     top: 0.5rem;
@@ -416,4 +415,3 @@
       var(--kasparex-ad-accent-11-progress-to)
     );
   }
-}
