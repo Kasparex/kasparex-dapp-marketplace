@@ -17,7 +17,15 @@ import {
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_STORAGE_PREFIX, MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
+import {
+  MINECORE_PLANT_RECHARGE_COST_KAS,
+  MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
+  MINECORE_STORAGE_PREFIX,
+  MINECORE_KREX_PER_KAS,
+  MINECORE_PLANT_REPAIR_KAS,
+  MINECORE_STABILITY_PATCH_LIST_KAS,
+  minecoreKrexFromDiscountedKas,
+} from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -509,12 +517,78 @@ export function useMinecore() {
 
   const repairWithKAS = useCallback(
     async (slotIndex: number, amountKas: number) => {
-      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:repair', purchaseType: 'other' });
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(amountKas),
+        skuId: 'minecore:repair',
+        purchaseType: 'other',
+      });
       if (!paid.ok) return false;
-      dispatch({ type: 'Repair', slotIndex, at: Date.now() });
+      dispatch({ type: 'Repair', slotIndex, at: Date.now(), consumeStabilityPatch: false });
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
+  const repairPlantWithPayment = useCallback(
+    async (slotIndex: number, opts: { currency: 'KAS' | 'KREX'; consumeStabilityPatch: boolean }) => {
+      const listKas = MINECORE_PLANT_REPAIR_KAS;
+      const discounted = getKasPriceAfterDiscount(listKas);
+      if (opts.currency === 'KREX') {
+        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+          skuId: opts.consumeStabilityPatch ? 'minecore:maintenance:early:krex' : 'minecore:maintenance:krex',
+          recordActionType: 'maintenance-krex',
+          transactionDetail: { slotIndex, early: opts.consumeStabilityPatch },
+        });
+        if (!paid.ok) return false;
+      } else {
+        const paid = await payKasBestEffort({
+          amountKas: discounted,
+          skuId: opts.consumeStabilityPatch ? 'minecore:maintenance:early' : 'minecore:maintenance',
+          purchaseType: 'other',
+        });
+        if (!paid.ok) return false;
+      }
+      dispatch({
+        type: 'Repair',
+        slotIndex,
+        at: Date.now(),
+        consumeStabilityPatch: opts.consumeStabilityPatch,
+      });
+      return true;
+    },
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
+  );
+
+  const purchaseStabilityPatchesWithKAS = useCallback(
+    async (count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(MINECORE_STABILITY_PATCH_LIST_KAS * q),
+        skuId: 'minecore:shop:stability-patch',
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'AddStabilityPatches', count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
+  const purchaseStabilityPatchesWithKREX = useCallback(
+    async (count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const listKas = MINECORE_STABILITY_PATCH_LIST_KAS * q;
+      const discounted = getKasPriceAfterDiscount(listKas);
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+        skuId: 'minecore:shop:stability-patch:krex',
+        recordActionType: 'stability-patch',
+        transactionDetail: { count: q },
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'AddStabilityPatches', count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
   );
 
   const refine = useCallback(
@@ -765,6 +839,9 @@ export function useMinecore() {
       topUpPowerWithKAS,
       repair,
       repairWithKAS,
+      repairPlantWithPayment,
+      purchaseStabilityPatchesWithKAS,
+      purchaseStabilityPatchesWithKREX,
       refine,
       redeemGrid,
       craftRecipe,

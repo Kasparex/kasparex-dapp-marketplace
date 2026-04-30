@@ -79,6 +79,7 @@ export function createInitialMinecoreState(): MinecoreState {
       refinementPointsSpentOnGrid: 0,
       refinementPointsSpentOnKrex: 0,
     },
+    stabilityPatches: 0,
   };
 }
 

@@ -59,6 +59,21 @@ export function computeEffectiveCycleDurationMs(slot: PlantSlotState): number {
   return Math.max(1, Math.floor(base * stretch));
 }
 
+/**
+ * Format in-universe power for UI. Values passed in are the same kW units used by `computeConsumptionKw` / `computeProductionKw`.
+ * Uses W below 1 kW, kW up to 999, MW, then GW for very large stacks.
+ */
+export function formatMinecorePowerDisplay(kw: number): string {
+  if (!Number.isFinite(kw) || kw <= 0) return '0 kW';
+  const abs = kw;
+  if (abs < 1) return `${Math.round(kw * 1000)} W`;
+  if (abs < 1000) return `${abs >= 10 ? abs.toFixed(0) : abs.toFixed(1)} kW`;
+  const mw = kw / 1000;
+  if (abs < 1_000_000) return `${mw >= 10 ? mw.toFixed(0) : mw.toFixed(2)} MW`;
+  const gw = kw / 1_000_000;
+  return `${gw >= 10 ? gw.toFixed(0) : gw.toFixed(2)} GW`;
+}
+
 export function computeProductionKw(slot: PlantSlotState): number {
   const plant = MINECORE_PLANT_BASE_PRODUCTION_KW[slot.type] ?? MINECORE_PLANT_BASE_PRODUCTION_KW.standard;
   const m = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;

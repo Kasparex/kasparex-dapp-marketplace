@@ -5,7 +5,7 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, minecoreKrexFromDiscountedKas, MINECORE_STABILITY_PATCH_LIST_KAS } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
@@ -470,8 +470,8 @@ export function ShopPanel(props: {
       id: 'repair',
       title: 'Stability Patch',
       category: 'Repair',
-      description: 'Repair a plant marked as Needs repair. V1 mock utility.',
-      baseKasPrice: 2,
+      description: 'Field-sealed kit logged with Core Ops — burns a patch to open an early maintenance window.',
+      baseKasPrice: MINECORE_STABILITY_PATCH_LIST_KAS,
       type: 'item' as const,
       render: () => (
         <GameItemCard
@@ -479,9 +479,21 @@ export function ShopPanel(props: {
           title="Stability Patch"
           category="Repair"
           imageSrc="https://static.wixstatic.com/media/de4185_c5a695694e8f4cae8ba74e2b46b786eb~mv2.jpg"
-          description="Repair a plant marked as Needs repair. V1 mock utility."
-          effects={[{ label: 'Repair', value: 'Clear' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 }]}
+          description="Stock these for when wear climbs but the plant has not hard-locked yet — pair with a paid service from the maintenance panel."
+          effects={[{ label: 'Use', value: 'Early service eligibility' }]}
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(MINECORE_STABILITY_PATCH_LIST_KAS),
+              originalUnitPrice: MINECORE_STABILITY_PATCH_LIST_KAS,
+            },
+            {
+              currency: 'KREX',
+              unitPrice: minecoreKrexFromDiscountedKas(
+                props.getKasPriceAfterDiscount(MINECORE_STABILITY_PATCH_LIST_KAS),
+              ),
+            },
+          ]}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'repair', currency, quantity })}
         />

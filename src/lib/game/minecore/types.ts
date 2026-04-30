@@ -174,6 +174,10 @@ export type MinecoreState = {
   lastConnectedAt:          number | null;
   lastConnectedAddress:     string | null;
   redeemBudget:             MinecoreRedeemBudget;
+  /**
+   * Shop consumable: spend together with KAS/KREX to service a plant before full wear (see MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR).
+   */
+  stabilityPatches:         number;
 };
 
 export type MinecoreEvent =
@@ -218,7 +222,8 @@ export type MinecoreEvent =
   | { type: 'ResumeMining'; slotIndex: number; at: number }
   | { type: 'Extract';      slotIndex: number; at: number }
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
-  | { type: 'Repair';       slotIndex: number; at: number }
+  | { type: 'Repair'; slotIndex: number; at: number; consumeStabilityPatch?: boolean }
+  | { type: 'AddStabilityPatches'; count: number; at: number }
   | { type: 'Refine';       at: number; amount: number; walletAddress: string }
   | {
       type: 'RedeemGrid';

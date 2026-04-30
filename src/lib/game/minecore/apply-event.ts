@@ -11,6 +11,7 @@ import {
   MINECORE_DAILY_GRID_POINTS_CAP,
   MINECORE_DAILY_KREX_POINTS_CAP,
   MINECORE_STARTER_OWNED,
+  MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
 } from './config';
 import {
   computePlantDurationMs,
@@ -43,6 +44,7 @@ import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModul
 import {
   canStartMiningByEfficiency,
   computeGlobalRefineBonusFraction,
+  computeMaintenanceWearRatio,
   minecoreUtcDayKey,
 } from './plant-economy';
 import { creditPlantDailyCap, normalizeAllPlantRollingDailyCaps } from './daily-cap';
@@ -552,9 +554,26 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'Repair': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
+      const wear = computeMaintenanceWearRatio(slot, now);
+      const patches = Math.max(0, Math.floor(s.stabilityPatches ?? 0));
+      if (ev.consumeStabilityPatch) {
+        if (patches < 1) return rederive(s, now);
+        if (wear < MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9 || wear >= 1 - 1e-9) return rederive(s, now);
+        s.stabilityPatches = patches - 1;
+      } else {
+        const due = slot.needsRepair || wear >= 1 - 1e-6;
+        if (!due) return rederive(s, now);
+      }
       slot.needsRepair = false;
       slot.plantLastServicedAtMs = now;
       slot.status = deriveSlotStatus(s, slot, now);
+      return rederive(s, now);
+    }
+
+    case 'AddStabilityPatches': {
+      const n = Math.max(0, Math.floor(ev.count));
+      if (n <= 0) return rederive(s, now);
+      s.stabilityPatches = Math.max(0, Math.floor(s.stabilityPatches ?? 0)) + n;
       return rederive(s, now);
     }
 

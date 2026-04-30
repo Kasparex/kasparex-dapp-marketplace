@@ -12,6 +12,8 @@ import {
   MINECORE_POWER_NODES,
   MINECORE_RECIPES,
 } from '@/lib/game/minecore/config';
+import { MINECORE_FABRICATION_LORE } from '@/lib/game/minecore/fabrication-lore';
+import { formatMinecorePowerDisplay } from '@/lib/game/minecore/plant-economy';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedAssetsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
@@ -31,6 +33,19 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   quantumAttuners: 'Quantum Attuners',
   voidglassFilaments: 'Voidglass Filaments',
 };
+
+function loreForRecipe(outputId: string, kind: string): string {
+  return (
+    MINECORE_FABRICATION_LORE[outputId] ??
+    (kind === 'machine'
+      ? 'Mining rig: sets cycle pace and how hard the plant bus runs per session.'
+      : kind === 'battery'
+        ? 'Energy store: holds runtime for active digs — tier and rig both decide how fast it empties.'
+        : kind === 'powerNode'
+          ? 'Reactor: weld it under Power to lift the plant ceiling so heavier stacks can breathe.'
+          : 'Module: slots into premium or advanced frames to bend output, cycles, cooling, or refine.')
+  );
+}
 
 export function FabricationPanel(props: {
   state: MinecoreState;
@@ -78,7 +93,7 @@ export function FabricationPanel(props: {
 
       <GamePanelCard
         title="Fabrication blueprints"
-        hint="Specs mirror mining math: additive D/24h from rigs, drain × runtime on batteries. Ingredients are craft-only."
+        hint="Specs mirror live plant math. Ingredients are craft-only · assign parts on Mining plants."
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -114,8 +129,8 @@ export function FabricationPanel(props: {
                   color: 'amber',
                 });
                 specifications.push({
-                  label: 'Power (mining)',
-                  value: `Drain ×${cfg.powerConsumptionFactor} · ~${consKw.toFixed(1)} kW`,
+                  label: 'Power consumption',
+                  value: `×${cfg.powerConsumptionFactor} drain · ${formatMinecorePowerDisplay(consKw)}`,
                   color: 'rose',
                 });
                 specifications.push({
@@ -133,22 +148,34 @@ export function FabricationPanel(props: {
                   color: 'sky',
                 });
                 const od = cfg.powerDrawMultiplier ?? 1;
-                if (od > 1.001) {
-                  specifications.push({
-                    label: 'Plant bus draw',
-                    value: `×${od.toFixed(2)} vs Energy Cell baseline`,
-                    color: 'rose',
-                  });
-                }
+                const extraKw = Math.max(0, (od - 1) * MINECORE_KW_SCALE);
+                specifications.push({
+                  label: 'Power consumption',
+                  value:
+                    od <= 1.001
+                      ? 'Baseline bus load'
+                      : `×${od.toFixed(2)} bus · +${formatMinecorePowerDisplay(extraKw)} vs cell`,
+                  color: 'rose',
+                });
               }
             } else if (isModule) {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];
               if (cfg) {
                 if (cfg.kind === 'cooling') {
                   specifications.push({
-                    label: 'Consumption cut',
-                    value: `−${Math.round((cfg.consumptionReduction ?? 0) * 100)}% kW`,
-                    color: 'sky',
+                    label: 'Power consumption',
+                    value: `−${Math.round((cfg.consumptionReduction ?? 0) * 100)}% draw${
+                      cfg.failureReduction > 0
+                        ? ` · −${Math.round(cfg.failureReduction * 100)}% strain`
+                        : ''
+                    }`,
+                    color: 'rose',
+                  });
+                } else if (cfg.failureReduction > 0) {
+                  specifications.push({
+                    label: 'Power consumption',
+                    value: `−${Math.round(cfg.failureReduction * 100)}% strain`,
+                    color: 'rose',
                   });
                 }
                 if (cfg.kind === 'automation') {
@@ -179,18 +206,13 @@ export function FabricationPanel(props: {
                     color: 'amber',
                   });
                 }
-                specifications.push({
-                  label: 'Failure reduction',
-                  value: `−${Math.round(cfg.failureReduction * 100)}%`,
-                  color: 'zinc',
-                });
               }
             } else if (isPowerNode) {
               const cfg = MINECORE_POWER_NODES[r.outputId as keyof typeof MINECORE_POWER_NODES];
               if (cfg) {
                 specifications.push({
                   label: 'Max power',
-                  value: `+${cfg.maxPowerKw} kW (plant)`,
+                  value: `+${formatMinecorePowerDisplay(cfg.maxPowerKw)} (plant)`,
                   color: 'emerald',
                 });
               }
@@ -214,13 +236,7 @@ export function FabricationPanel(props: {
                   ? MINECORE_POWER_NODES[r.outputId as keyof typeof MINECORE_POWER_NODES]?.featuredImageUrl
                   : undefined;
 
-            const description = isMachine
-              ? 'Nominal cycle length per run. Drain × scales battery runtime vs charge; D/24h stacks with your plant base and modules live.'
-              : isBattery
-                ? 'Stores energy for runs; how long it lasts depends on the rig’s drain factor and charge budget.'
-                : isPowerNode
-                  ? 'Fabricate a reactor, then assign it under Power on a plant to raise max kW (helps heavy rigs and modules).'
-                  : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
+            const description = loreForRecipe(r.outputId, r.kind);
 
             return (
               <GameItemCard

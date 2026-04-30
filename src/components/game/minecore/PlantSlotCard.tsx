@@ -19,6 +19,7 @@ import {
   computeMiningEfficiencyPct,
   computePlantRollingDailyCapBreakdown,
   computeProductionKw,
+  formatMinecorePowerDisplay,
   type PlantRollingCapBreakdown,
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
@@ -52,6 +53,7 @@ import {
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_KREX_PER_KAS,
   MINECORE_KW_SCALE,
+  MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
   MINECORE_PLANT_REPAIR_KAS,
   miningWorkerNftSlotsRequired,
   type ModuleConfig,
@@ -480,10 +482,14 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-[10px] text-zinc-700 dark:text-zinc-200">
         <Tooltip content="Power drawn by the rig and modules on this plant.">
-          <span className="cursor-help text-rose-600 dark:text-rose-400">Consumption {props.consKw.toFixed(1)} kW</span>
+          <span className="cursor-help text-rose-600 dark:text-rose-400">
+            Consumption {formatMinecorePowerDisplay(props.consKw)}
+          </span>
         </Tooltip>
         <Tooltip content="Max power this plant can supply: tier base, rig bus, optional reactor.">
-          <span className="cursor-help text-emerald-600 dark:text-emerald-400">Max power {props.prodKw.toFixed(1)} kW</span>
+          <span className="cursor-help text-emerald-600 dark:text-emerald-400">
+            Max power {formatMinecorePowerDisplay(props.prodKw)}
+          </span>
         </Tooltip>
       </div>
       <Tooltip content="Demand (rose) vs max supply (green) on the same scale.">
@@ -505,8 +511,8 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
           <span
             className={`cursor-help ${props.balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}
           >
-            Balance {props.balKw >= 0 ? '+' : ''}
-            {props.balKw.toFixed(1)} kW
+            Balance {props.balKw >= 0 ? '+' : '−'}
+            {formatMinecorePowerDisplay(Math.abs(props.balKw))}
           </span>
         </Tooltip>
         <Tooltip content="Nominal grid efficiency before maintenance wear.">
@@ -581,7 +587,7 @@ function UnifiedBatterySegmentsBar(props: {
 }
 
 /** Distinct from battery tier — violet maintenance health (inverse wear). */
-function MaintenanceWearBar(props: { wearRatio: number }) {
+function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void }) {
   const health = clamp01(1 - props.wearRatio);
   const inner = (
     <div className="space-y-1">
@@ -597,9 +603,20 @@ function MaintenanceWearBar(props: { wearRatio: number }) {
       </div>
     </div>
   );
-  return (
-    <Tooltip content="Efficiency drops over several days until maintenance is due. Repair resets the timer. Plant tier extends service interval.">
+  const trigger = props.onOpen ? (
+    <button
+      type="button"
+      onClick={() => props.onOpen?.()}
+      className="w-full rounded-lg text-left outline-none ring-emerald-500/40 transition-colors hover:bg-zinc-50/80 focus-visible:ring-2 dark:hover:bg-zinc-900/40"
+    >
       {inner}
+    </button>
+  ) : (
+    inner
+  );
+  return (
+    <Tooltip content="Efficiency drops as systems age. Tap for service options. Plant tier stretches the interval.">
+      {trigger}
     </Tooltip>
   );
 }
@@ -624,7 +641,9 @@ export function PlantSlotCard(props: {
   onUnlock: () => void;
   onStart: () => void;
   onExtract: () => void;
-  onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
+  /** Paid service: resets maintenance clock. Pass `consumeStabilityPatch` for early service (requires patch stock). Returns whether payment + dispatch succeeded. */
+  onRepairPlant: (opts: { currency: 'KAS' | 'KREX'; consumeStabilityPatch: boolean }) => boolean | Promise<boolean>;
+  stabilityPatches: number;
   /** Refill battery charge: KAS via treasury send; KREX via L1 KRC-20 transfer (real wallet payment). */
   onRechargePlant: (opts?: {
     batterySlotIndex?: number;
@@ -646,13 +665,19 @@ export function PlantSlotCard(props: {
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
+  const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
   const [refillPayCurrency, setRefillPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
+  const [repairPayCurrency, setRepairPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (batteryRefillModalOpen) setRefillPayCurrency('KAS');
   }, [batteryRefillModalOpen]);
+
+  useEffect(() => {
+    if (maintenanceModalOpen) setRepairPayCurrency('KAS');
+  }, [maintenanceModalOpen]);
 
   useEffect(() => {
     setModalFeedback(null);
@@ -908,7 +933,7 @@ export function PlantSlotCard(props: {
             onClick={() => {
               if (!s.unlocked) return props.onUnlock();
               if (s.status === 'SetupIncomplete') return setActiveModal('machine');
-              if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
+              if (s.status === 'NeedsRepair') return setMaintenanceModalOpen(true);
               if (s.status === 'InsufficientPower') return setActiveModal('powerNode');
               if (s.status === 'DailyCapReached') return;
               if (batteryDeadInRun || s.status === 'NeedsPower')
@@ -1076,7 +1101,9 @@ export function PlantSlotCard(props: {
             </div>
           ) : null}
 
-          {s.unlocked ? <MaintenanceWearBar wearRatio={wearRatio} /> : null}
+          {s.unlocked ? (
+            <MaintenanceWearBar wearRatio={wearRatio} onOpen={() => setMaintenanceModalOpen(true)} />
+          ) : null}
 
           {/* ── Status warnings (above primary action) ── */}
           <div className="space-y-2">
@@ -1107,7 +1134,7 @@ export function PlantSlotCard(props: {
             {s.status === 'InsufficientPower' && (
               <WarningBanner
                 level="warn"
-                message={`Not enough power — ${prodKw.toFixed(1)} vs ${consKw.toFixed(1)} kW (${balKw >= 0 ? '+' : ''}${balKw.toFixed(1)} kW). Aim for ~${effGridPct.toFixed(0)}% grid efficiency (lighter rig or more production).`}
+                message={`Not enough power — ${formatMinecorePowerDisplay(prodKw)} supply vs ${formatMinecorePowerDisplay(consKw)} draw (${balKw >= 0 ? '+' : '−'}${formatMinecorePowerDisplay(Math.abs(balKw))}). Aim for ~${effGridPct.toFixed(0)}% grid efficiency (lighter rig or more production).`}
               />
             )}
             {s.status === 'NeedsPower' && (
@@ -1132,7 +1159,7 @@ export function PlantSlotCard(props: {
       onBuy={async () => {
         if (!s.unlocked) return props.onUnlock();
         if (s.status === 'SetupIncomplete') return setActiveModal('machine');
-        if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
+        if (s.status === 'NeedsRepair') return setMaintenanceModalOpen(true);
         if (s.status === 'InsufficientPower') return setActiveModal('machine');
         if (s.status === 'DailyCapReached') return;
         if (batteryDeadInRun || s.status === 'NeedsPower')
@@ -1151,7 +1178,7 @@ export function PlantSlotCard(props: {
         title="Battery refill"
       >
         <p className="mb-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Choose slots to fully recharge. Pay with KAS or KREX from your connected wallet (L1); KREX uses a real on-chain transfer to the game treasury, same pattern as other KREX shop purchases.
+          Route fresh charge into the slots you pick — the yard bleeds cells until those stacks read full again.
         </p>
         <div className="mb-4 grid gap-2">
           {installedBatteryIndices.map((idx) => {
@@ -1211,6 +1238,84 @@ export function PlantSlotCard(props: {
             );
           })()}
         </div>
+      </SelectionModal>
+
+      <SelectionModal
+        isOpen={maintenanceModalOpen}
+        onClose={() => setMaintenanceModalOpen(false)}
+        title="Plant maintenance"
+      >
+        <p className="mb-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Crews rebalance brakes, replace filters, and re-seat bus links until efficiency climbs back toward spec.
+        </p>
+        {(() => {
+          const patches = Math.max(0, Math.floor(props.stabilityPatches ?? 0));
+          const healthPct = Math.round(clamp01(1 - wearRatio) * 100);
+          const canNormal = s.needsRepair || wearRatio >= 1 - 1e-6;
+          const canEarly =
+            patches > 0 &&
+            wearRatio >= MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9 &&
+            wearRatio < 1 - 1e-6;
+          const canPay = canNormal || canEarly;
+          const consumePatch = !canNormal && canEarly;
+          const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(MINECORE_PLANT_REPAIR_KAS);
+          const payKrex = payKas * MINECORE_KREX_PER_KAS;
+          return (
+            <>
+              <div className="mb-4 rounded-xl border border-zinc-100 bg-white/60 px-3 py-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-950/30">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Plant health </span>
+                <span className="tabular-nums text-violet-600 dark:text-violet-400">{healthPct}%</span>
+                <span className="text-zinc-500 dark:text-zinc-400"> · Stability Patches: </span>
+                <span className="font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{patches}</span>
+              </div>
+              {!canPay ? (
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Systems are within tolerance. After ~{Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}% wear you can spend a Stability Patch from the Shop to request early service, or wait for a hard maintenance lock.
+                </p>
+              ) : (
+                <>
+                  {consumePatch ? (
+                    <p className="mb-3 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                      Uses 1 Stability Patch plus the standard service fee.
+                    </p>
+                  ) : null}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                    <GameCurrencyMenu
+                      ariaLabel="Maintenance payment currency"
+                      value={repairPayCurrency}
+                      onChange={(v) => setRepairPayCurrency(v as 'KAS' | 'KREX')}
+                      options={[
+                        {
+                          value: 'KAS',
+                          label: `${payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS`,
+                        },
+                        {
+                          value: 'KREX',
+                          label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`,
+                        },
+                      ]}
+                      className="min-w-0 flex-1"
+                      buttonClassName="flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                    />
+                    <button
+                      type="button"
+                      className="k-cta-games h-11 min-w-[12rem] flex-[1.15] px-8 text-sm font-bold sm:min-w-[14rem]"
+                      onClick={async () => {
+                        const ok = await props.onRepairPlant({
+                          currency: repairPayCurrency,
+                          consumeStabilityPatch: consumePatch,
+                        });
+                        if (ok) setMaintenanceModalOpen(false);
+                      }}
+                    >
+                      Pay & service
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
       </SelectionModal>
 
       <SelectionModal

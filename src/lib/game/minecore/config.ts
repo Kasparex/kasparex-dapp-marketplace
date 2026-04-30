@@ -131,8 +131,17 @@ export function minecoreKrexFromDiscountedKas(discountedKas: number): number {
 /** KAS repair action — resets maintenance wear clock. */
 export const MINECORE_PLANT_REPAIR_KAS = 1.5;
 
+/** Shop list price per Stability Patch (consumable for early maintenance service). */
+export const MINECORE_STABILITY_PATCH_LIST_KAS = 2;
+
 /** Nominal wall time until efficiency wears to zero without service (~2.5 days before tier/mult). */
 export const MINECORE_MAINTENANCE_PERIOD_MS = 2.5 * 24 * 60 * 60 * 1000;
+
+/**
+ * Wear ratio (0–1) at which a Stability Patch allows paid service before the plant hits full maintenance lockup.
+ * See `apply-event` Repair + PlantSlotCard maintenance modal.
+ */
+export const MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR = 0.42;
 
 /** Extends maintenance interval (higher plant tier = longer efficient runtime). */
 export const MINECORE_PLANT_MAINTENANCE_MULT: Record<PlantType, number> = {

@@ -287,6 +287,10 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
           note: typeof e.note === 'string' ? e.note : '',
         }))
       : base.gridLedger,
+    stabilityPatches:
+      typeof (input as Record<string, unknown>).stabilityPatches === 'number'
+        ? Math.max(0, Math.floor((input as Record<string, unknown>).stabilityPatches as number))
+        : base.stabilityPatches ?? 0,
   };
 
   const repaired = enforcePlantInventoryInvariants(out);

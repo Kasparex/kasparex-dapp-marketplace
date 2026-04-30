@@ -26,7 +26,7 @@ import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPane
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
-import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -401,9 +401,8 @@ export function MinecoreDashboard(_props: {
                     onRechargePlant={async (opts) => {
                       void (await actions.rechargePlant(slotIndex, opts));
                     }}
-                    onRepairWithKAS={async ({ amountKas }) => {
-                      void (await actions.repairWithKAS(slotIndex, amountKas));
-                    }}
+                    stabilityPatches={state.stabilityPatches}
+                    onRepairPlant={(opts) => actions.repairPlantWithPayment(slotIndex, opts)}
                     onInstallPart={(kind, id, batterySlotIndex, minerPosition) => {
                       const batteryIdx = batterySlotIndex ?? 0;
                       switch (kind) {
@@ -644,7 +643,10 @@ export function MinecoreDashboard(_props: {
                   actions.setBoost(0, 'kas-overclock');
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
-                  await actions.repairWithKAS(0, MINECORE_PLANT_REPAIR_KAS);
+                  await actions.purchaseStabilityPatchesWithKAS(q);
+                }
+                if (itemId === 'repair' && currency === 'KREX') {
+                  await actions.purchaseStabilityPatchesWithKREX(q);
                 }
               }}
             />
