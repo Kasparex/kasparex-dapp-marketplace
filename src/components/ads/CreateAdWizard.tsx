@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useId } from 'react';
+import { useState, useEffect, useMemo, useRef, useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AD_SLOTS, getSlotConfig, priceKasForDays } from '@/lib/ads/slots';
 import { getAdsTreasuryL1Address, kasToSompi } from '@/lib/ads/config';
@@ -12,7 +12,7 @@ import {
 } from '@/lib/ads/constants';
 import { buildCampaignMetadataV1, type AdImageRef } from '@/lib/ads/metadata';
 import { buildAdsBindingPayloadHex, buildAdsBindingPlainNote } from '@/lib/ads/payloadHex';
-import type { AdSlotId, AdFormat } from '@/lib/ads/types';
+import type { AdSlotId, AdFormat, AdEntry } from '@/lib/ads/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction, detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -26,7 +26,28 @@ import { KREX_TIERS } from '@/lib/rewards/types';
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { countActiveForSlot } from '@/lib/ads/registryUtils';
-import { AD_CREATIVE_SPECS, defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
+import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
+
+function ModalSectionTitle({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 mb-2 ${className ?? ''}`}>
+      <span
+        className="h-5 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
+        aria-hidden
+      />
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">{children}</p>
+    </div>
+  );
+}
+
+function resolveInitialSlotId(initial: AdSlotId | null | undefined, adsList: AdEntry[]): AdSlotId | null {
+  if (initial) {
+    const cfg = AD_SLOTS.find((s) => s.id === initial);
+    if (cfg && countActiveForSlot(adsList, initial) < cfg.maxAds) return initial;
+  }
+  const first = AD_SLOTS.find((s) => countActiveForSlot(adsList, s.id) < s.maxAds);
+  return first ? (first.id as AdSlotId) : null;
+}
 
 type Phase = 'connect' | 'form' | 'success';
 
@@ -66,9 +87,16 @@ export function CreateAdWizard({
   const [verifyNote, setVerifyNote] = useState<string | null>(null);
   const [connectBusy, setConnectBusy] = useState(false);
   const ipfsFileInputRef = useRef<HTMLInputElement>(null);
+  /** Ignore backdrop closes briefly after native file picker (Windows sends stray clicks). */
+  const suppressBackdropCloseUntilRef = useRef(0);
   const wizardOpenRef = useRef(false);
   const lastPaymentSyncRef = useRef<{ txHash: string; metadataCid: string } | null>(null);
   const durationInputId = useId();
+  const slotMenuRootRef = useRef<HTMLDivElement>(null);
+  const payMenuRootRef = useRef<HTMLDivElement>(null);
+
+  const [slotMenuOpen, setSlotMenuOpen] = useState(false);
+  const [payMenuOpen, setPayMenuOpen] = useState(false);
 
   const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { ads, refresh: registryRefresh } = useAdsRegistryContext();
@@ -127,7 +155,7 @@ export function CreateAdWizard({
     wizardOpenRef.current = true;
 
     if (justOpened) {
-      setSlotId(initialSlotId ?? null);
+      setSlotId(resolveInitialSlotId(initialSlotId, ads));
       setSlotIndex(initialSlotIndex);
       setImageUrl('');
       setImageFile(null);
@@ -145,6 +173,8 @@ export function CreateAdWizard({
       setSyncAdsAfterPayment(false);
       lastPaymentSyncRef.current = null;
       if (ipfsFileInputRef.current) ipfsFileInputRef.current.value = '';
+      setSlotMenuOpen(false);
+      setPayMenuOpen(false);
       setPhase(!kaspaState.isConnected ? 'connect' : 'form');
       return;
     }
@@ -154,7 +184,19 @@ export function CreateAdWizard({
       return;
     }
     setPhase((prev) => (prev === 'connect' ? 'form' : prev === 'success' ? prev : 'form'));
-  }, [isOpen, initialSlotId, initialSlotIndex, kaspaState.isConnected]);
+  }, [isOpen, initialSlotId, initialSlotIndex, kaspaState.isConnected, ads]);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (slotMenuRootRef.current?.contains(t)) return;
+      if (payMenuRootRef.current?.contains(t)) return;
+      setSlotMenuOpen(false);
+      setPayMenuOpen(false);
+    };
+    if (slotMenuOpen || payMenuOpen) document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [slotMenuOpen, payMenuOpen]);
 
   const handleClose = () => {
     if (!isSubmitting) {
@@ -206,9 +248,13 @@ export function CreateAdWizard({
       return;
     }
     let cancelled = false;
-    void validateUploadedImageFile(imageFile, format).then((err) => {
-      if (!cancelled) setImageSpecError(err);
-    });
+    void validateUploadedImageFile(imageFile, format)
+      .then((err) => {
+        if (!cancelled) setImageSpecError(err);
+      })
+      .catch(() => {
+        if (!cancelled) setImageSpecError('Could not validate this image. Try another file.');
+      });
     return () => {
       cancelled = true;
     };
@@ -399,14 +445,28 @@ export function CreateAdWizard({
     priceKrexHuman >= 1 ? priceKrexHuman.toFixed(2) : priceKrexHuman.toLocaleString(undefined, { maximumFractionDigits: 6 });
 
   const body = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={handleClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
       <div
-        className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl max-w-xl w-full border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-hidden flex flex-col"
+        role="presentation"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
+        onMouseDown={(e) => {
+          if (e.button !== 0) return;
+          if (Date.now() < suppressBackdropCloseUntilRef.current) return;
+          if (!isSubmitting && !connectBusy) handleClose();
+        }}
+      />
+      <div
+        className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl max-w-xl w-full border border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-hidden flex flex-col pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Create ad</h2>
+        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span
+              className="h-6 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_12px_rgba(2,171,184,0.35)] -skew-y-12"
+              aria-hidden
+            />
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">Create ad</h2>
+          </div>
           <button
             type="button"
             onClick={handleClose}
@@ -423,6 +483,7 @@ export function CreateAdWizard({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {phase === 'connect' && (
             <>
+              <ModalSectionTitle>Connect wallet</ModalSectionTitle>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                 Connect a Kaspa (L1) wallet to reserve a slot, pin campaign metadata, and pay in KAS or KREX. This uses the
                 same connection as the site header.
@@ -469,43 +530,85 @@ export function CreateAdWizard({
 
           {phase === 'form' && (
             <>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
-                  Slot
-                </p>
+              <div ref={slotMenuRootRef} className="relative overflow-visible">
+                <ModalSectionTitle>Placement</ModalSectionTitle>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
-                  Choose placement and cell index. Only slots with capacity are selectable.
+                  Pick a slot with capacity. Pricing updates after you set duration below.
                 </p>
-                <div className="space-y-2">
-                  {AD_SLOTS.map((s) => {
-                    const active = countActiveForSlot(ads, s.id);
-                    const available = active < s.maxAds;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => available && setSlotId(s.id as AdSlotId)}
-                        disabled={!available}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
-                          slotId === s.id
-                            ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                            : available
-                              ? 'border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/50'
-                              : 'border-zinc-100 dark:border-zinc-800 opacity-60 cursor-not-allowed'
-                        }`}
-                      >
-                        <span className="font-medium">{s.label}</span>
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                          {active}/{s.maxAds} · {s.pricePerDay} KAS/day
+                <button
+                  type="button"
+                  className="k-control-btn w-full min-h-[3.5rem] py-3 px-4 !justify-between gap-3 text-left"
+                  onClick={() => setSlotMenuOpen((v) => !v)}
+                  aria-expanded={slotMenuOpen}
+                  aria-haspopup="listbox"
+                >
+                  <span className="min-w-0 flex-1 truncate font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                    {slotConfig?.label ?? 'Select slot'}
+                  </span>
+                  <span className="shrink-0 text-right text-[11px] font-bold tabular-nums text-zinc-500 dark:text-zinc-400 leading-tight max-w-[9rem] sm:max-w-none">
+                    {slotConfig ? (
+                      <>
+                        <span className="text-zinc-700 dark:text-zinc-300">{slotConfig.pricePerDay} KAS/day</span>
+                        <span className="block text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mt-0.5">
+                          {slotActiveCount}/{slotConfig.maxAds} filled
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      </>
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </span>
+                  <svg
+                    className={`w-4 h-4 shrink-0 text-zinc-500 transition-transform ${slotMenuOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {slotMenuOpen && (
+                  <div
+                    role="listbox"
+                    className="absolute left-0 right-0 top-full z-[10000] mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+                  >
+                    {AD_SLOTS.map((s) => {
+                      const active = countActiveForSlot(ads, s.id);
+                      const available = active < s.maxAds;
+                      const selected = slotId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          disabled={!available}
+                          onClick={() => {
+                            if (!available) return;
+                            setSlotId(s.id as AdSlotId);
+                            setSlotMenuOpen(false);
+                          }}
+                          className={`flex w-full min-h-[3rem] items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors ${
+                            selected
+                              ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                              : available
+                                ? 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                                : 'cursor-not-allowed opacity-45 text-zinc-400 dark:text-zinc-600'
+                          }`}
+                        >
+                          <span className="min-w-0 flex-1 truncate font-semibold">{s.label}</span>
+                          <span className="shrink-0 text-right text-[11px] font-bold tabular-nums leading-tight">
+                            <span>{s.pricePerDay} KAS/day</span>
+                            <span className="block text-[10px] font-semibold opacity-80 mt-0.5">
+                              {active}/{s.maxAds} filled
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="mt-3">
-                  <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                    Cell index (0–{Math.max(0, (getSlotConfig(slotId ?? '')?.maxAds ?? 1) - 1)})
-                  </label>
+                  <ModalSectionTitle>Cell index</ModalSectionTitle>
                   <input
                     type="number"
                     min={0}
@@ -517,29 +620,31 @@ export function CreateAdWizard({
                       if (Number.isNaN(n)) return;
                       setSlotIndex(Math.min(maxI, Math.max(0, n)));
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm"
+                    className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3"
                     disabled={!slotId}
+                    aria-label="Cell index within slot"
                   />
+                  <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">
+                    Range: 0–{Math.max(0, (getSlotConfig(slotId ?? '')?.maxAds ?? 1) - 1)}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
-                  Creative
-                </p>
-                <CreativeRequirementsCallout format={format} />
-
-                <div className="mt-4 space-y-4">
+                <ModalSectionTitle>Creative</ModalSectionTitle>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Image</label>
-                    <div className="flex gap-2 mb-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
+                      Image
+                    </p>
+                    <div className="k-control-group h-10 p-1 flex w-full max-w-md">
                       <button
                         type="button"
                         onClick={() => setImageSource('url')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
                           imageSource === 'url'
-                            ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                            : 'border-zinc-200 dark:border-zinc-700'
+                            ? 'bg-[#02abb8] text-white shadow-sm'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                         }`}
                       >
                         Image URL
@@ -547,56 +652,64 @@ export function CreateAdWizard({
                       <button
                         type="button"
                         onClick={() => setImageSource('file')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
                           imageSource === 'file'
-                            ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                            : 'border-zinc-200 dark:border-zinc-700'
+                            ? 'bg-[#02abb8] text-white shadow-sm'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                         }`}
                       >
                         Upload (IPFS)
                       </button>
                     </div>
                     {imageSource === 'url' ? (
-                      <div>
+                      <div className="mt-3">
                         <input
                           type="url"
                           value={imageUrl}
                           onChange={(e) => setImageUrl(e.target.value)}
                           placeholder="https://..."
-                          className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                          className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
                         />
                         <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
-                          Direct image URL matching the format requirements above.
+                          Direct HTTPS image URL (PNG, JPG, or WebP).
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        <label className="flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
+                      <div className="mt-3 space-y-2">
+                        <div className="relative flex min-h-[10rem] flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
                           <input
                             ref={ipfsFileInputRef}
                             type="file"
                             accept="image/*"
-                            className="sr-only"
+                            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                            onMouseDown={() => {
+                              suppressBackdropCloseUntilRef.current = Date.now() + 2500;
+                            }}
+                            onFocus={() => {
+                              suppressBackdropCloseUntilRef.current = Date.now() + 2500;
+                            }}
                             onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
                           />
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#02abb8]/15 text-[#02abb8] ring-2 ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20">
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
-                            </svg>
+                          <div className="pointer-events-none flex flex-col items-center gap-2.5">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#02abb8]/15 text-[#02abb8] ring-2 ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20">
+                              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                            <div className="text-center">
+                              <span className="block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                Drop an image or click to browse
+                              </span>
+                              <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                                PNG, JPG, or WebP — pinned when you pay
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-center">
-                            <span className="block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                              Drop an image or click to browse
-                            </span>
-                            <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                              PNG, JPG, or WebP, pinned to IPFS when you pay
-                            </span>
-                          </div>
-                        </label>
+                        </div>
                         {imageFile ? (
                           <div className="flex items-center justify-between gap-2 rounded-lg border border-[#02abb8]/25 bg-[#02abb8]/5 px-3 py-2 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10">
                             <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#02abb8]" title={imageFile.name}>
@@ -621,34 +734,30 @@ export function CreateAdWizard({
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                      Link (destination URL)
-                    </label>
+                    <ModalSectionTitle>Link</ModalSectionTitle>
                     <input
                       type="url"
                       value={link}
                       onChange={(e) => setLink(e.target.value)}
                       placeholder="https://..."
-                      className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                      className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Title</label>
+                    <ModalSectionTitle>Title</ModalSectionTitle>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Ad title"
-                      className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
+                      className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
-                  Duration
-                </p>
+                <ModalSectionTitle>Duration</ModalSectionTitle>
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
                   <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Days</span>
                   <div className="flex items-center gap-2">
@@ -692,9 +801,7 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
-                  Premium (L1)
-                </p>
+                <ModalSectionTitle>Premium (L1)</ModalSectionTitle>
                 <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Featured highlight</p>
@@ -725,7 +832,7 @@ export function CreateAdWizard({
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <p className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm">Summary</p>
+                <ModalSectionTitle className="mb-1">Summary</ModalSectionTitle>
                 {krexDiscountPct > 0 && (
                   <p className="line-through opacity-70">
                     Slot list: {basePriceKas} KAS ({durationDays} × {slotConfig?.pricePerDay ?? 0} KAS/day)
@@ -753,7 +860,7 @@ export function CreateAdWizard({
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3 text-xs">
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300">L1 wallet</span>
+                <ModalSectionTitle className="mb-2">L1 wallet</ModalSectionTitle>
                 <p
                   className={`mt-1 ${l1Ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
                 >
@@ -771,26 +878,35 @@ export function CreateAdWizard({
             </>
           )}
 
-          {phase === 'success' && txHash && (
+          {phase === 'success' && (
             <div className="text-center py-4">
-              <p className="text-[#02abb8] font-medium mb-2">Payment sent</p>
-              <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">
-                {extractKaspaTransactionId(txHash) ?? 'Open your wallet history to copy the transaction id.'}
-              </p>
-              {metadataCid && (
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-500 mt-2 break-all">Metadata: {metadataCid}</p>
+              {!txHash ? (
+                <>
+                  <p className="text-[#02abb8] font-medium mb-2">Almost done</p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Confirming payment…</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[#02abb8] font-medium mb-2">Payment sent</p>
+                  <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">
+                    {extractKaspaTransactionId(txHash) ?? 'Open your wallet history to copy the transaction id.'}
+                  </p>
+                  {metadataCid && (
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-500 mt-2 break-all">Metadata: {metadataCid}</p>
+                  )}
+                  {verifyNote && (
+                    <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 text-left">{verifyNote}</p>
+                  )}
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-3 text-left">
+                    KasWare may label the payload as unsupported in the decode view; the transaction still carries the Kasparex
+                    binding the site reads from the public indexer.
+                  </p>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4">
+                    Your ad appears in the public list once the indexer picks up the transaction (usually within a couple of
+                    minutes). Campaigns older than the indexer lookback may not be listed; see Ads overview.
+                  </p>
+                </>
               )}
-              {verifyNote && (
-                <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 text-left">{verifyNote}</p>
-              )}
-              <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-3 text-left">
-                KasWare may label the payload as unsupported in the decode view; the transaction still carries the Kasparex
-                binding the site reads from the public indexer.
-              </p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4">
-                Your ad appears in the public list once the indexer picks up the transaction (usually within a couple of
-                minutes). Campaigns older than the indexer lookback may not be listed; see Ads overview.
-              </p>
             </div>
           )}
 
@@ -827,15 +943,53 @@ export function CreateAdWizard({
                 Cancel
               </button>
               <div className="flex flex-wrap items-center gap-2 justify-end ml-auto">
-                <select
-                  value={payCurrency}
-                  onChange={(e) => setPayCurrency(e.target.value as 'KAS' | 'KREX')}
-                  className="k-filter-select h-10 min-w-[120px] text-xs py-0"
-                  aria-label="Payment currency"
-                >
-                  <option value="KAS">KAS</option>
-                  <option value="KREX">KREX</option>
-                </select>
+                <div ref={payMenuRootRef} className="relative overflow-visible">
+                  <button
+                    type="button"
+                    className="k-control-btn min-h-[2.5rem] min-w-[132px]"
+                    onClick={() => setPayMenuOpen((v) => !v)}
+                    aria-expanded={payMenuOpen}
+                    aria-haspopup="listbox"
+                  >
+                    <span className="truncate text-xs font-bold uppercase tracking-wide">
+                      Pay with {payCurrency}
+                    </span>
+                    <svg
+                      className={`w-4 h-4 ml-auto shrink-0 text-zinc-500 transition-transform ${payMenuOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {payMenuOpen && (
+                    <div
+                      role="listbox"
+                      className="absolute right-0 bottom-full z-[10000] mb-1.5 w-44 rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden"
+                    >
+                      {(['KAS', 'KREX'] as const).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          role="option"
+                          aria-selected={payCurrency === c}
+                          onClick={() => {
+                            setPayCurrency(c);
+                            setPayMenuOpen(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-sm font-medium transition-colors ${
+                            payCurrency === c
+                              ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20'
+                              : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => void handlePay()}
@@ -866,36 +1020,4 @@ export function CreateAdWizard({
   );
 
   return createPortal(body, document.body);
-}
-
-function CreativeRequirementsCallout({ format }: { format: AdFormat }) {
-  const spec = AD_CREATIVE_SPECS[format];
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 text-left dark:border-zinc-700 dark:bg-zinc-800/50">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-[#02abb8]">{spec.title}</p>
-      <ul className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Aspect: </span>
-          {spec.aspectRatioLabel}
-        </li>
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Minimum size: </span>
-          {spec.minWidth}×{spec.minHeight}px
-        </li>
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Recommended: </span>
-          {spec.recommendedWidth}×{spec.recommendedHeight}px
-        </li>
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Max upload: </span>
-          {spec.maxFileSizeMb} MB (PNG, JPG, WebP)
-        </li>
-        {spec.notes.map((n, i) => (
-          <li key={i} className="text-zinc-500 dark:text-zinc-500">
-            · {n}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
 }
