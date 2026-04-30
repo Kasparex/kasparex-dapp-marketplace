@@ -29,14 +29,30 @@ import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { countActiveForSlot, filterActiveAdsForSlot } from '@/lib/ads/registryUtils';
 import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
 
-function ModalSectionTitle({ children, className }: { children: ReactNode; className?: string }) {
+function ModalSectionTitle({
+  children,
+  className,
+  required,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** Shows a red asterisk after the title for required fields. */
+  required?: boolean;
+}) {
   return (
     <div className={`flex items-center gap-3 mb-2 ${className ?? ''}`}>
       <span
         className="h-5 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
         aria-hidden
       />
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">{children}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300 inline-flex items-baseline gap-1 flex-wrap">
+        <span>{children}</span>
+        {required ? (
+          <span className="text-red-500 dark:text-red-400 font-bold normal-case" aria-hidden title="Required">
+            *
+          </span>
+        ) : null}
+      </p>
     </div>
   );
 }
@@ -76,7 +92,7 @@ export function CreateAdWizard({
   const [slotIndex, setSlotIndex] = useState(initialSlotIndex);
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
+  const [imageSource, setImageSource] = useState<'url' | 'file'>('file');
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [promoTooltip, setPromoTooltip] = useState('');
@@ -168,7 +184,7 @@ export function CreateAdWizard({
       setSlotIndex(initialSlotIndex);
       setImageUrl('');
       setImageFile(null);
-      setImageSource('url');
+      setImageSource('file');
       setLink('');
       setTitle('');
       setPromoTooltip('');
@@ -552,13 +568,13 @@ export function CreateAdWizard({
           {phase === 'form' && (
             <>
               <div ref={slotMenuRootRef} className="relative overflow-visible">
-                <ModalSectionTitle>Placement</ModalSectionTitle>
+                <ModalSectionTitle required>Placement</ModalSectionTitle>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
                   Pick a slot with capacity. Pricing updates after you set duration below.
                 </p>
                 <button
                   type="button"
-                  className="k-control-btn w-full min-h-[3.5rem] py-3 px-4 !justify-between gap-3 text-left"
+                  className="k-control-btn w-full min-h-[3.5rem] py-3 px-4 !justify-between gap-3 text-left !bg-zinc-50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] border-zinc-200 dark:!bg-zinc-800/95 dark:border-zinc-600 dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]"
                   onClick={() => setSlotMenuOpen((v) => !v)}
                   aria-expanded={slotMenuOpen}
                   aria-haspopup="listbox"
@@ -631,10 +647,10 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <ModalSectionTitle>Creative</ModalSectionTitle>
+                <ModalSectionTitle required>Creative</ModalSectionTitle>
                 <div className="space-y-4">
                   <div>
-                    <div className="k-control-group h-10 p-1 flex w-full max-w-md">
+                    <div className="k-control-group h-10 p-1 flex w-full">
                       <button
                         type="button"
                         onClick={() => setImageSource('url')}
@@ -665,7 +681,7 @@ export function CreateAdWizard({
                           value={imageUrl}
                           onChange={(e) => setImageUrl(e.target.value)}
                           placeholder="https://..."
-                          className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
+                          className="k-modal-field-input mt-3"
                         />
                         <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-500">
                           Direct HTTPS image URL (PNG, JPG, or WebP).
@@ -731,23 +747,23 @@ export function CreateAdWizard({
                     )}
                   </div>
                   <div>
-                    <ModalSectionTitle>Link</ModalSectionTitle>
+                    <ModalSectionTitle required>Link</ModalSectionTitle>
                     <input
                       type="url"
                       value={link}
                       onChange={(e) => setLink(e.target.value)}
                       placeholder="https://..."
-                      className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
+                      className="k-modal-field-input"
                     />
                   </div>
                   <div>
-                    <ModalSectionTitle>Title</ModalSectionTitle>
+                    <ModalSectionTitle required>Title</ModalSectionTitle>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Ad title"
-                      className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
+                      className="k-modal-field-input"
                     />
                   </div>
                   <div>
@@ -757,7 +773,7 @@ export function CreateAdWizard({
                       onChange={(e) => setPromoTooltip(e.target.value.slice(0, ADS_MAX_PROMO_TOOLTIP_CHARS))}
                       placeholder="Very short line shown in the hover tooltip on your creative"
                       rows={2}
-                      className="k-filter-select w-full min-h-[4rem] resize-y cursor-text bg-white dark:bg-zinc-800 py-2.5 text-sm"
+                      className="k-modal-field-input"
                       maxLength={ADS_MAX_PROMO_TOOLTIP_CHARS}
                     />
                     <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">
@@ -769,7 +785,7 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <ModalSectionTitle>Duration</ModalSectionTitle>
+                <ModalSectionTitle required>Duration</ModalSectionTitle>
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
                   <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Days</span>
                   <div className="flex items-center gap-2">

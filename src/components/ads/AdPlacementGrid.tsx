@@ -22,7 +22,7 @@ function frameForVariant(v: AdPlacementVariant, relaxHaloFrame?: boolean): strin
   }
   if (v === 'sidebar') return 'aspect-[3/2] min-h-[100px] w-full p-3 sm:p-4';
   if (relaxHaloFrame) {
-    return 'aspect-square min-h-[200px] min-w-0 max-w-[260px] mx-auto w-full p-3 sm:p-4';
+    return 'aspect-square min-h-[188px] min-w-0 w-full max-w-full p-2 sm:p-3';
   }
   return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
 }

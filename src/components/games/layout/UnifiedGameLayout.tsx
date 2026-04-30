@@ -43,13 +43,13 @@ export function UnifiedGameLayout({
 }: UnifiedGameLayoutProps) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-      <div className="flex flex-col space-y-6 lg:col-span-8">
+      <div className="flex min-w-0 flex-col space-y-6 lg:col-span-8">
         <GameTabs tabs={tabs} value={currentTab} onChange={onTabChange} />
         {tabAlerts}
         {children}
       </div>
 
-      <div className="flex flex-col space-y-6 lg:col-span-4">
+      <div className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4">
         <GameDeckPanel
           resources={resources}
           footer={deckFooter}
