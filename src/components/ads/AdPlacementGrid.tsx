@@ -12,7 +12,7 @@ import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { featuredAccentForAd } from '@/lib/ads/featuredAccent';
+import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -237,11 +237,7 @@ function FilledAdShell({
         />
       ) : null}
       {featured && accent ? (
-        <span
-          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wide border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.88)] ${accent.badgeClass}`}
-        >
-          Featured
-        </span>
+        <span className={`${FEATURED_BADGE_LAYOUT} ${accent.badgeClass}`}>Featured</span>
       ) : null}
     </Link>
   );

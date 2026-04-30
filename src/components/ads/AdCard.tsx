@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { AdEntry, AdFormat } from '@/lib/ads/types';
 import { getSlotConfig } from '@/lib/ads/slots';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { featuredAccentForAd } from '@/lib/ads/featuredAccent';
+import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
 
 interface AdCardProps {
   ad: AdEntry;
@@ -69,14 +69,11 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
 
   const accent = featured ? featuredAccentForAd(ad.id) : null;
 
-  const shellClass =
-    embedded && featured && accent
-      ? `rounded-xl bg-transparent ${accent.outerRingClass}`
-      : embedded
-        ? 'rounded-xl bg-transparent'
-        : featured && accent
-          ? `rounded-xl bg-white dark:bg-zinc-900/85 shadow-lg shadow-black/12 dark:shadow-black/45 ${accent.outerRingClass}`
-          : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
+  const shellClass = embedded
+    ? 'rounded-xl bg-transparent'
+    : featured && accent
+      ? 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/85 shadow-lg shadow-black/12 dark:shadow-black/45 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10'
+      : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
 
   const hoverGradient = (
     <div className="pointer-events-none absolute inset-0 z-[15] rounded-t-xl bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -89,11 +86,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           className={`pointer-events-none absolute inset-0 z-[25] rounded-t-xl ${accent.overlayClass}`}
           aria-hidden
         />
-        <span
-          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wide border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.88)] ${accent.badgeClass}`}
-        >
-          Featured
-        </span>
+        <span className={`${FEATURED_BADGE_LAYOUT} ${accent.badgeClass}`}>Featured</span>
       </>
     ) : null;
 
