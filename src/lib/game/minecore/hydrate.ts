@@ -1,5 +1,12 @@
 import type { MiningSlot } from '@/lib/game/engine';
-import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState, PlantSetup, PlantCardStatus } from './types';
+import type {
+  MinecorePowerNodeId,
+  MinecoreRedeemBudget,
+  MinecoreState,
+  PlantSlotState,
+  PlantSetup,
+  PlantCardStatus,
+} from './types';
 import { MINECORE_POWER_NODE_IDS } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
@@ -138,8 +145,10 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
       ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
       : undefined;
   const rawPowerNode = typeof setup.powerNodeId === 'string' ? setup.powerNodeId : null;
-  const powerNodeId =
-    rawPowerNode && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(rawPowerNode) ? rawPowerNode : null;
+  const powerNodeId: MinecorePowerNodeId | null =
+    rawPowerNode && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(rawPowerNode)
+      ? (rawPowerNode as MinecorePowerNodeId)
+      : null;
 
   const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(plantType, {
     machineId: null,

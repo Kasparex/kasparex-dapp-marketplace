@@ -529,8 +529,8 @@ export type RecipeId = string;
 export type Recipe = {
   id: RecipeId;
   title: string;
-  kind: 'machine' | 'battery' | 'module';
-  outputId: MinecoreMachineId | MinecoreBatteryId | MinecoreModuleId;
+  kind: 'machine' | 'battery' | 'module' | 'powerNode';
+  outputId: MinecoreMachineId | MinecoreBatteryId | MinecoreModuleId | MinecorePowerNodeId;
   requires: Partial<IngredientBag>;
 };
 
