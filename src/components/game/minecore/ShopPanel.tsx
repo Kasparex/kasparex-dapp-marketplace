@@ -42,12 +42,15 @@ function BoostPlantTargetSelect(props: {
   const unlocked = props.plantSlots.map((p, i) => ({ p, i })).filter((x) => x.p.unlocked);
   if (unlocked.length === 0) return null;
   return (
-    <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-      <span className="font-semibold text-zinc-500 dark:text-zinc-400">Apply to plant</span>
+    <div className="flex flex-col gap-1.5 rounded-lg border border-zinc-100 bg-white/60 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/30">
+      <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        Apply to plant
+      </span>
       <select
-        className="k-control-btn h-9 min-w-[10rem] px-3 text-xs font-semibold"
+        className="k-control-btn h-9 w-full px-3 text-xs font-semibold"
         value={props.value}
         onChange={(e) => props.onChange(Number(e.target.value))}
+        aria-label="Apply to plant"
       >
         {unlocked.map(({ p, i }) => (
           <option key={i} value={i}>
@@ -453,21 +456,23 @@ export function ShopPanel(props: {
       baseKasPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
       type: 'item' as const,
       render: () => (
-        <div key="kas-overclock" className="col-span-full flex flex-col gap-0 sm:col-span-2">
-          <BoostPlantTargetSelect
-            plantSlots={props.plantSlots}
-            value={overclockTargetSlot}
-            onChange={setOverclockTargetSlot}
-          />
+        <div key="kas-overclock" className="col-span-full sm:col-span-2">
           <GameItemCard
             title="KAS Overclock"
             category="Boost"
             imageSrc="https://static.wixstatic.com/media/de4185_a21da156e5fb4f90acf87e8e7a229960~mv2.jpg"
-            description="Applies to the plant you select above: raises your 24h diamond ceiling, then bumps the very next run’s expected yield."
+            description="Applies to the plant you choose below: raises your 24h diamond ceiling, then bumps the very next run’s expected yield."
             effects={[
               { label: 'Daily cap', value: '+100 / 24h', color: 'sky' },
               { label: 'Next cycle', value: '+100 ♦', color: 'sky' },
             ]}
+            belowEffects={
+              <BoostPlantTargetSelect
+                plantSlots={props.plantSlots}
+                value={overclockTargetSlot}
+                onChange={setOverclockTargetSlot}
+              />
+            }
             priceOptions={[
               {
                 currency: 'KAS',

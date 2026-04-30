@@ -72,8 +72,10 @@ export function GameItemCard(props: {
   /** When `hidePricing` is true, omit the footer primary button (e.g. action rendered inside `description`). */
   hideBuyButton?: boolean;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
-  /** When set (e.g. ingredient shop cards), shows count under the title row opposite the title. */
+  /** When set (e.g. ingredient shop cards), shows count on the right of the title row. Gray when 0. */
   ownedCount?: number;
+  /** Rendered below description / effect capsules, above the pricing footer (interactive controls OK). */
+  belowEffects?: React.ReactNode;
 }) {
   const options = props.priceOptions;
   const initialCurrency =
@@ -99,6 +101,11 @@ export function GameItemCard(props: {
   const total = unit * quantity;
   const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
+
+  const ownedInactive = props.ownedCount != null && props.ownedCount <= 0;
+  const ownedBadgeClass = ownedInactive
+    ? 'border-zinc-200 bg-zinc-100/90 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400'
+    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
 
   const priceText = `${formatGameItemPriceAmount(selected?.currency ?? currency, total)} ${selected?.currency ?? currency}`;
 
@@ -194,20 +201,19 @@ export function GameItemCard(props: {
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="mb-2 flex items-start justify-between gap-3">
-          {props.ownedCount != null ? (
-            <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
-              Owned · {props.ownedCount.toLocaleString()}
-            </span>
-          ) : null}
-          <h3
-            className={`min-w-0 flex-1 text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 ${
-              props.ownedCount != null ? 'text-right' : 'truncate'
-            }`}
-            title={props.title}
-          >
+          <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
             {props.title}
           </h3>
-          {props.titleAccessory ? <div className="shrink-0 text-right">{props.titleAccessory}</div> : null}
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {props.ownedCount != null ? (
+              <span
+                className={`rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-wide ${ownedBadgeClass}`}
+              >
+                Owned · {props.ownedCount.toLocaleString()}
+              </span>
+            ) : null}
+            {props.titleAccessory ? <div className="text-right">{props.titleAccessory}</div> : null}
+          </div>
         </div>
 
         <div className="mb-4 min-h-0 flex-grow">
@@ -234,6 +240,8 @@ export function GameItemCard(props: {
           {!props.specifications?.length && !props.ingredients?.length && props.effects && props.effects.length > 0 ? (
             <div className="mt-3 grid gap-2">{props.effects.map(effectLineRow)}</div>
           ) : null}
+
+          {props.belowEffects ? <div className="mt-3">{props.belowEffects}</div> : null}
         </div>
 
         {props.hidePricing ? (
