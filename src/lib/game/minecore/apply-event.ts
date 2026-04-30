@@ -12,6 +12,9 @@ import {
   MINECORE_DAILY_KREX_POINTS_CAP,
   MINECORE_STARTER_OWNED,
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
+  MINECORE_KREX_BOOST_DURATION_MS,
+  MINECORE_KAS_OVERCLOCK_BONUS_WINDOW_MS,
+  MINECORE_KAS_OVERCLOCK_NEXT_CYCLE_FLAT,
 } from './config';
 import {
   computePlantDurationMs,
@@ -115,6 +118,9 @@ function rescaleBatteryToNewCapacity(state: MinecoreState, slot: PlantSlotState,
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
     ...slot,
+    krexBoostUntilMs: slot.krexBoostUntilMs ?? 0,
+    kasOverclockDailyBonusUntilMs: slot.kasOverclockDailyBonusUntilMs ?? 0,
+    kasOverclockNextCycleExtraDiamonds: slot.kasOverclockNextCycleExtraDiamonds ?? 0,
     setup: {
       ...slot.setup,
       moduleIds: [...slot.setup.moduleIds],
@@ -132,7 +138,20 @@ function nextVersion(state: MinecoreState): number {
 
 function rederive(state: MinecoreState, at: number): MinecoreState {
   const slots = state.plantSlots.map((s) => {
-    const synced = syncPlantPowerUnitsToCapacity(s);
+    let working: PlantSlotState = s;
+    const kUntil = working.krexBoostUntilMs ?? 0;
+    if (kUntil > 0 && at >= kUntil) {
+      const nextSetup = normalizePlantSetup(working.type, {
+        ...working.setup,
+        moduleIds: working.setup.moduleIds.filter((id) => id !== 'krex-boost'),
+      });
+      working = {
+        ...working,
+        setup: nextSetup,
+        krexBoostUntilMs: 0,
+      };
+    }
+    const synced = syncPlantPowerUnitsToCapacity(working);
     return { ...synced, status: deriveSlotStatus(state, synced, at) };
   });
   return { ...state, plantSlots: slots };
@@ -399,8 +418,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       }
       if (ev.part.kind === 'modules') {
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
+        const prev = slot.setup.moduleIds;
+        const hadKrex = prev.includes('krex-boost');
         const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
+        const hasKrex = ids.includes('krex-boost');
         slot.setup.moduleIds = ids;
+        if (hasKrex && !hadKrex) {
+          slot.krexBoostUntilMs = ev.at + MINECORE_KREX_BOOST_DURATION_MS;
+        } else if (!hasKrex && hadKrex) {
+          slot.krexBoostUntilMs = 0;
+        }
       }
       if (ev.part.kind === 'boost') slot.setup.boostId = ev.part.id;
       slot.setup = normalizePlantSetup(slot.type, slot.setup);
@@ -419,8 +446,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (slot.needsRepair) return rederive(s, now);
       if (!canStartMiningByEfficiency(slot)) return rederive(s, now);
 
-      const durationMs       = computePlantDurationMs(slot);
-      const expectedDiamonds = computePlantExpectedDiamonds(s, slot);
+      const durationMs = computePlantDurationMs(slot);
+      const extra = Math.max(0, Math.floor(slot.kasOverclockNextCycleExtraDiamonds ?? 0));
+      const baseExpected = computePlantExpectedDiamonds(s, slot, undefined, ev.at);
+      const expectedDiamonds = baseExpected + extra;
+      slot.kasOverclockNextCycleExtraDiamonds = 0;
       if (durationMs <= 0 || expectedDiamonds <= 0) return rederive(s, now);
 
       slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, ev.at);
@@ -574,6 +604,25 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       const n = Math.max(0, Math.floor(ev.count));
       if (n <= 0) return rederive(s, now);
       s.stabilityPatches = Math.max(0, Math.floor(s.stabilityPatches ?? 0)) + n;
+      return rederive(s, now);
+    }
+
+    case 'GrantModuleInventory': {
+      const add = Math.max(0, Math.floor(ev.count));
+      if (add <= 0) return rederive(s, now);
+      const id = ev.moduleId;
+      s.owned.modules[id] = Math.max(0, Math.floor(s.owned.modules[id] ?? 0)) + add;
+      return rederive(s, now);
+    }
+
+    case 'ApplyKasOverclock': {
+      const slot = s.plantSlots[ev.slotIndex];
+      if (!slot || !slot.unlocked) return rederive(s, now);
+      const c = Math.max(1, Math.floor(ev.count));
+      slot.kasOverclockDailyBonusUntilMs = ev.at + MINECORE_KAS_OVERCLOCK_BONUS_WINDOW_MS;
+      slot.kasOverclockNextCycleExtraDiamonds =
+        Math.max(0, Math.floor(slot.kasOverclockNextCycleExtraDiamonds ?? 0)) +
+        MINECORE_KAS_OVERCLOCK_NEXT_CYCLE_FLAT * c;
       return rederive(s, now);
     }
 

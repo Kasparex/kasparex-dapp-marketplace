@@ -72,6 +72,8 @@ export function GameItemCard(props: {
   /** When `hidePricing` is true, omit the footer primary button (e.g. action rendered inside `description`). */
   hideBuyButton?: boolean;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
+  /** When set (e.g. ingredient shop cards), shows count under the title row opposite the title. */
+  ownedCount?: number;
 }) {
   const options = props.priceOptions;
   const initialCurrency =
@@ -192,7 +194,17 @@ export function GameItemCard(props: {
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={props.title}>
+          {props.ownedCount != null ? (
+            <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+              Owned · {props.ownedCount.toLocaleString()}
+            </span>
+          ) : null}
+          <h3
+            className={`min-w-0 flex-1 text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 ${
+              props.ownedCount != null ? 'text-right' : 'truncate'
+            }`}
+            title={props.title}
+          >
             {props.title}
           </h3>
           {props.titleAccessory ? <div className="shrink-0 text-right">{props.titleAccessory}</div> : null}

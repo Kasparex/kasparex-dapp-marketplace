@@ -204,6 +204,20 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     })(),
     dailyCapMinedDiamonds:
       typeof input.dailyCapMinedDiamonds === 'number' ? input.dailyCapMinedDiamonds : base.dailyCapMinedDiamonds,
+    krexBoostUntilMs: (() => {
+      const raw = (input as Record<string, unknown>).krexBoostUntilMs;
+      return typeof raw === 'number' && raw >= 0 ? raw : base.krexBoostUntilMs;
+    })(),
+    kasOverclockDailyBonusUntilMs: (() => {
+      const raw = (input as Record<string, unknown>).kasOverclockDailyBonusUntilMs;
+      return typeof raw === 'number' && raw >= 0 ? raw : base.kasOverclockDailyBonusUntilMs;
+    })(),
+    kasOverclockNextCycleExtraDiamonds: (() => {
+      const raw = (input as Record<string, unknown>).kasOverclockNextCycleExtraDiamonds;
+      return typeof raw === 'number' && Number.isFinite(raw)
+        ? Math.max(0, Math.floor(raw))
+        : base.kasOverclockNextCycleExtraDiamonds;
+    })(),
     plantLastServicedAtMs: (() => {
       const raw = (input as Record<string, unknown>).plantLastServicedAtMs;
       if (typeof raw === 'number' && raw > 0) return raw;

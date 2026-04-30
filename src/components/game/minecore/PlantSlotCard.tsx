@@ -702,8 +702,8 @@ export function PlantSlotCard(props: {
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now, ctx);
   const capBreakdown = useMemo(
-    () => computePlantRollingDailyCapBreakdown(props.minecoreState, s, ctx),
-    [props.minecoreState, s, ctx],
+    () => computePlantRollingDailyCapBreakdown(props.minecoreState, s, ctx, now),
+    [props.minecoreState, s, ctx, now],
   );
   const prodKw = s.unlocked ? computeProductionKw(s) : 0;
   const consKw = s.unlocked && s.setup.machineId ? computeConsumptionKw(s) : 0;

@@ -1,6 +1,8 @@
 import {
   MINECORE_DAY_MS,
+  MINECORE_KAS_OVERCLOCK_DAILY_CAP_FLAT,
   MINECORE_KW_SCALE,
+  MINECORE_KREX_BOOST_YIELD_MULT,
   MINECORE_MACHINES,
   MINECORE_MAINTENANCE_PERIOD_MS,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
@@ -180,10 +182,27 @@ export function computeMiningNftDeckDiamondBonusPer24h(
  * Plant base + machine flat D/24h + **this plant’s assigned crew** NFT cap bonuses only (no battery or module % on cap).
  * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
+/** Active when KREX Boost is slotted and its timer has not expired. */
+export function computePlantKrexYieldMultiplier(slot: PlantSlotState, atMs: number): number {
+  const until = slot.krexBoostUntilMs ?? 0;
+  if (until > 0 && atMs < until && slot.setup.moduleIds.includes('krex-boost')) {
+    return MINECORE_KREX_BOOST_YIELD_MULT;
+  }
+  return 1;
+}
+
+/** Flat bonus diamonds/24h added to rolling cap while KAS Overclock window is active. */
+export function computePlantKasOverclockDailyFlat(slot: PlantSlotState, atMs: number): number {
+  const until = slot.kasOverclockDailyBonusUntilMs ?? 0;
+  if (until > 0 && atMs < until) return MINECORE_KAS_OVERCLOCK_DAILY_CAP_FLAT;
+  return 0;
+}
+
 export function computePlantRollingDailyCapCeiling(
   state: MinecoreState,
   slot: PlantSlotState,
   ctx?: MinecoreComputeContext,
+  atMs: number = Date.now(),
 ): number {
   if (!slot.unlocked || !slotSetupComplete(state, slot)) return 0;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
@@ -201,8 +220,10 @@ export function computePlantRollingDailyCapCeiling(
 
   const crewDeckCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
   const subtotal = base + machinePart + crewDeckCap;
+  const withOverclock = subtotal + computePlantKasOverclockDailyFlat(slot, atMs);
+  const mult = computePlantKrexYieldMultiplier(slot, atMs);
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
-  return Math.max(0, Math.min(plantMax, Math.floor(subtotal)));
+  return Math.max(0, Math.min(plantMax, Math.floor(withOverclock * mult)));
 }
 
 /** Terms that add up to the rolling cap (for UI). `ceiling` matches {@link computePlantRollingDailyCapCeiling}. */
@@ -220,6 +241,7 @@ export function computePlantRollingDailyCapBreakdown(
   state: MinecoreState,
   slot: PlantSlotState,
   ctx?: MinecoreComputeContext,
+  atMs: number = Date.now(),
 ): PlantRollingCapBreakdown {
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
   if (!slot.unlocked) {
@@ -230,7 +252,7 @@ export function computePlantRollingDailyCapBreakdown(
   const machineCap = machine?.diamondsPer24h ?? 0;
   const crewCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
   const subtotal = Math.max(0, Math.floor(plantBase + machineCap + crewCap));
-  const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx);
+  const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx, atMs);
   return { plantBase, machineCap, crewCap, subtotal, ceiling, plantMax };
 }
 
@@ -244,9 +266,9 @@ export function computePlantDiamondsPer24h(
   now?: number,
   ctx?: MinecoreComputeContext,
 ): number {
-  const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx);
-  if (ceiling <= 0) return 0;
   const t = now ?? Date.now();
+  const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx, t);
+  if (ceiling <= 0) return 0;
   const effPct = computeEffectiveMiningEfficiencyPct(slot, t);
   return Math.max(0, Math.floor((ceiling * effPct) / 100));
 }
@@ -258,8 +280,9 @@ export function computeExpectedDiamondsForCycle(
   state: MinecoreState,
   slot: PlantSlotState,
   ctx?: MinecoreComputeContext,
+  atMs: number = Date.now(),
 ): number {
-  const d24 = computePlantDiamondsPer24h(state, slot, Date.now(), ctx);
+  const d24 = computePlantDiamondsPer24h(state, slot, atMs, ctx);
   const dur = computeEffectiveCycleDurationMs(slot);
   if (d24 <= 0 || dur <= 0) return 0;
   return Math.max(0, Math.round((d24 * dur) / MINECORE_DAY_MS));

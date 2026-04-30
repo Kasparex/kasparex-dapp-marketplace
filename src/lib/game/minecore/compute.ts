@@ -86,8 +86,9 @@ export function computePlantExpectedDiamonds(
   state: MinecoreState,
   slot: PlantSlotState,
   ctx?: MinecoreComputeContext,
+  atMs: number = Date.now(),
 ): number {
-  return computeExpectedDiamondsForCycle(state, slot, ctx);
+  return computeExpectedDiamondsForCycle(state, slot, ctx, atMs);
 }
 
 export function computePlantDurationMs(slot: PlantSlotState): number {
@@ -151,7 +152,7 @@ export function computeRawLiveDiamonds(
   const rawUncapped = Math.floor((effectiveElapsedMs / MINECORE_DAY_MS) * d24);
 
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-  const cap24h = computePlantRollingDailyCapCeiling(state, rolled, ctx);
+  const cap24h = computePlantRollingDailyCapCeiling(state, rolled, ctx, now);
   const maxLive = Math.max(0, cap24h - rolled.dailyCapMinedDiamonds - rolled.diamondsAccumulated);
   return Math.min(rawUncapped, maxLive);
 }
@@ -211,7 +212,7 @@ export function computePlantDailyCapProgress(
   ctx?: MinecoreComputeContext,
 ): { minedTowardCap: number; cap24h: number; ratio: number } {
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
-  const cap24h = rolled.unlocked ? computePlantRollingDailyCapCeiling(state, rolled, ctx) : 0;
+  const cap24h = rolled.unlocked ? computePlantRollingDailyCapCeiling(state, rolled, ctx, now) : 0;
   const live = rolled.cycle ? computeLiveDiamonds(state, rolled, now, ctx) : 0;
   const minedTowardCap = rolled.dailyCapMinedDiamonds + rolled.diamondsAccumulated + live;
   const ratio = cap24h > 0 ? Math.min(1, minedTowardCap / cap24h) : 0;

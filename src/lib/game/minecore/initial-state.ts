@@ -34,6 +34,9 @@ function createEmptySlot(index: number): PlantSlotState {
     diamondsAccumulated: 0,
     rollingCapWindowStartMs: 0,
     dailyCapMinedDiamonds: 0,
+    krexBoostUntilMs: 0,
+    kasOverclockDailyBonusUntilMs: 0,
+    kasOverclockNextCycleExtraDiamonds: 0,
   };
 }
 

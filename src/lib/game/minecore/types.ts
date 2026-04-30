@@ -36,7 +36,9 @@ export type MinecoreModuleId =
   | 'aria-sensor'
   | 'vector-drill-chip'
   | 'regen-coil'
-  | 'hash-buffer';
+  | 'hash-buffer'
+  /** Shop module: 2.5× diamond yield for 1 hour after equipped (consumes inventory like other modules). */
+  | 'krex-boost';
 
 /** Craftable supplemental reactors — one equipped per plant; each adds kW to plant max power. */
 export type MinecorePowerNodeId =
@@ -141,6 +143,12 @@ export type PlantSlotState = {
    * Diamonds credited toward the current rolling 24h cap from extract/refine (uncredited stay in live + accumulated).
    */
   dailyCapMinedDiamonds: number;
+  /** KREX Boost module: wall time when yield multiplier expires (0 = inactive). */
+  krexBoostUntilMs: number;
+  /** KAS Overclock: +daily cap bonus active until this timestamp (0 = off). */
+  kasOverclockDailyBonusUntilMs: number;
+  /** KAS Overclock: flat diamonds added to the next started cycle’s expected yield (consumed on StartMining). */
+  kasOverclockNextCycleExtraDiamonds: number;
 };
 
 export type MinecoreAutomationState = {
@@ -224,6 +232,10 @@ export type MinecoreEvent =
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
   | { type: 'Repair'; slotIndex: number; at: number; consumeStabilityPatch?: boolean }
   | { type: 'AddStabilityPatches'; count: number; at: number }
+  /** Shop: add crafted-style module inventory (e.g. KREX Boost charges). */
+  | { type: 'GrantModuleInventory'; moduleId: MinecoreModuleId; count: number; at: number }
+  /** Shop: KAS Overclock — +daily cap for one window and bonus on next cycle for this plant (`count` stacks bonuses). */
+  | { type: 'ApplyKasOverclock'; slotIndex: number; count: number; at: number }
   | { type: 'Refine';       at: number; amount: number; walletAddress: string }
   | {
       type: 'RedeemGrid';

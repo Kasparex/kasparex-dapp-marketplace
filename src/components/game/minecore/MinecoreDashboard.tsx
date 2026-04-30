@@ -531,6 +531,7 @@ export function MinecoreDashboard(_props: {
           {tab === 'shop' && (
             <ShopPanel
               ingredients={state.ingredients}
+              plantSlots={state.plantSlots}
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onBuyIngredient={async ({ ingredient, currency, quantity }) => {
                 const q = Math.max(1, Math.floor(quantity));
@@ -561,7 +562,7 @@ export function MinecoreDashboard(_props: {
                   });
                 }
               }}
-              onBuy={async ({ itemId, currency, quantity }) => {
+              onBuy={async ({ itemId, currency, quantity, boostTargetSlotIndex }) => {
                 const q = Math.max(1, Math.floor(quantity));
                 const isStarterPack = itemId === 'minecore-reactor-pack-starter';
                 const isAdvancedPack = itemId === 'minecore-reactor-pack-advanced';
@@ -640,7 +641,11 @@ export function MinecoreDashboard(_props: {
                   });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {
-                  actions.setBoost(0, 'kas-overclock');
+                  const idx = Math.max(0, Math.floor(boostTargetSlotIndex ?? 0));
+                  await actions.purchaseKasOverclockWithKAS(idx, q);
+                }
+                if (itemId === 'krex-boost' && currency === 'KAS') {
+                  await actions.purchaseKrexBoostChargesWithKAS(q);
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
                   await actions.purchaseStabilityPatchesWithKAS(q);

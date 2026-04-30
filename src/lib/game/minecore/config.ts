@@ -522,6 +522,13 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     failureReduction: 0.1,
     refineBonus: 0.08,
   },
+  'krex-boost': {
+    id: 'krex-boost',
+    label: 'KREX Boost',
+    kind: 'output',
+    outputBonus: 0,
+    failureReduction: 0,
+  },
 };
 
 /** Max module slots per plant tier (standard = modules disabled in UI; enforced in reducer). */
@@ -534,10 +541,21 @@ export const MINECORE_MAX_MODULES_BY_PLANT: Record<PlantType, number> = {
 export type BoostConfig = { id: MinecoreBoostId; label: string; multiplier: number };
 export const MINECORE_BOOSTS: Record<MinecoreBoostId, BoostConfig> = {
   none:              { id: 'none',              label: 'No boost',        multiplier: 1.0 },
-  'krex-boost':      { id: 'krex-boost',        label: 'KREX Boost',      multiplier: 1.5 },
-  'kas-overclock':   { id: 'kas-overclock',     label: 'KAS Overclock',   multiplier: 2.0 },
+  /** Legacy setup field; live yield uses the `krex-boost` module + timer instead. */
+  'krex-boost':      { id: 'krex-boost',        label: 'KREX Boost',      multiplier: 2.5 },
+  'kas-overclock':   { id: 'kas-overclock',     label: 'KAS Overclock',   multiplier: 1.0 },
   'grid-efficiency': { id: 'grid-efficiency',   label: 'GRID Efficiency', multiplier: 1.2 },
 };
+
+/** Shop: one charge is one module inventory unit; equip in a module slot to start the timer. */
+export const MINECORE_KREX_BOOST_SHOP_KAS = 25;
+export const MINECORE_KREX_BOOST_YIELD_MULT = 2.5;
+export const MINECORE_KREX_BOOST_DURATION_MS = 60 * 60 * 1000;
+
+export const MINECORE_KAS_OVERCLOCK_SHOP_KAS = 10;
+export const MINECORE_KAS_OVERCLOCK_DAILY_CAP_FLAT = 100;
+export const MINECORE_KAS_OVERCLOCK_NEXT_CYCLE_FLAT = 100;
+export const MINECORE_KAS_OVERCLOCK_BONUS_WINDOW_MS = MINECORE_DAY_MS;
 
 /** New players start with no ingredients; earn via mining/refine/redeem. */
 export const MINECORE_STARTER_INGREDIENTS: IngredientBag = {
@@ -582,6 +600,7 @@ export const MINECORE_STARTER_OWNED = {
     'vector-drill-chip': 0,
     'regen-coil': 0,
     'hash-buffer': 0,
+    'krex-boost': 0,
   },
   nodes: {
     'flux-node': 0,

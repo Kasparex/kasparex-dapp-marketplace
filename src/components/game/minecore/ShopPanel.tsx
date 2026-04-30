@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, minecoreKrexFromDiscountedKas, MINECORE_STABILITY_PATCH_LIST_KAS } from '@/lib/game/minecore/config';
+import {
+  MINECORE_PLANT_RECHARGE_COST_KAS,
+  minecoreKrexFromDiscountedKas,
+  MINECORE_STABILITY_PATCH_LIST_KAS,
+  MINECORE_KREX_BOOST_SHOP_KAS,
+  MINECORE_KAS_OVERCLOCK_SHOP_KAS,
+} from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
@@ -28,15 +34,55 @@ function shopIngredientPriceOptions(
   return out;
 }
 
+function BoostPlantTargetSelect(props: {
+  plantSlots: MinecoreState['plantSlots'];
+  value: number;
+  onChange: (slotIndex: number) => void;
+}) {
+  const unlocked = props.plantSlots.map((p, i) => ({ p, i })).filter((x) => x.p.unlocked);
+  if (unlocked.length === 0) return null;
+  return (
+    <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+      <span className="font-semibold text-zinc-500 dark:text-zinc-400">Apply to plant</span>
+      <select
+        className="k-control-btn h-9 min-w-[10rem] px-3 text-xs font-semibold"
+        value={props.value}
+        onChange={(e) => props.onChange(Number(e.target.value))}
+      >
+        {unlocked.map(({ p, i }) => (
+          <option key={i} value={i}>
+            Plant {i + 1} · {p.type}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export function ShopPanel(props: {
   ingredients: MinecoreState['ingredients'];
-  onBuy: (args: { itemId: string; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
+  plantSlots: MinecoreState['plantSlots'];
+  onBuy: (args: {
+    itemId: string;
+    currency: GameItemCurrency;
+    quantity: number;
+    boostTargetSlotIndex?: number;
+  }) => void | Promise<void>;
   onBuyIngredient: (args: { ingredient: MinecoreIngredient; currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
   getKasPriceAfterDiscount: (unitPriceKas: number) => number;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
+  const [overclockTargetSlot, setOverclockTargetSlot] = useState(0);
+
+  useEffect(() => {
+    const unlocked = props.plantSlots.map((p, i) => ({ p, i })).filter((x) => x.p.unlocked);
+    if (unlocked.length === 0) return;
+    if (!unlocked.some((x) => x.i === overclockTargetSlot)) {
+      setOverclockTargetSlot(unlocked[0]!.i);
+    }
+  }, [props.plantSlots, overclockTargetSlot]);
 
   const items = [
     {
@@ -53,6 +99,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_65544be623e24c6790937e5377e40aff~mv2.jpg"
           description="Basic crystal substrate used in fabrication."
+          ownedCount={props.ingredients.crystalDust}
           priceOptions={shopIngredientPriceOptions('crystalDust', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -74,6 +121,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_ec643cd87ced4d668e010b8087b16f88~mv2.jpg"
           description="Structural plates for rigs and modules."
+          ownedCount={props.ingredients.alloyPlates}
           priceOptions={shopIngredientPriceOptions('alloyPlates', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -95,6 +143,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_831004ef92594453bc9d67003bcc9bb8~mv2.jpg"
           description="Control mesh for machine interfaces."
+          ownedCount={props.ingredients.circuitMesh}
           priceOptions={shopIngredientPriceOptions('circuitMesh', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -116,6 +165,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc={ENERGY_CELLS_SHOP_IMAGE}
           description="Compact energy units used in power systems."
+          ownedCount={props.ingredients.energyCells}
           priceOptions={shopIngredientPriceOptions('energyCells', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -137,6 +187,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_c297065d0cde4aa3ba33752207bc911b~mv2.jpg"
           description="Used in mid-tier machines, Flux Arrays, and Regen Coils."
+          ownedCount={props.ingredients.fluxCoils}
           priceOptions={shopIngredientPriceOptions('fluxCoils', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -158,6 +209,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_5ea218db3f294f958c79fa9fe190aab2~mv2.jpg"
           description="Required for Orbit Siphon, Void Core Cell, reactor cores, and Hash Buffer crafts."
+          ownedCount={props.ingredients.latticeWire}
           priceOptions={shopIngredientPriceOptions('latticeWire', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -179,6 +231,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_75405246c3884d7a9c02e8244966621b~mv2.jpg"
           description="Used for Neon-tier reactors, Prismatic assemblies, and the Stellar Forge line."
+          ownedCount={props.ingredients.helixStabilizers}
           priceOptions={shopIngredientPriceOptions('helixStabilizers', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -200,6 +253,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_3467e302dd0c45b686a27ab66a46ae94~mv2.jpg"
           description="Key feedstock for Arc reactors and high-density containment stacks."
+          ownedCount={props.ingredients.plasmaConduits}
           priceOptions={shopIngredientPriceOptions('plasmaConduits', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -219,8 +273,9 @@ export function ShopPanel(props: {
           key="quantumAttuners"
           title="Quantum Attuners"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
+          imageSrc="https://static.wixstatic.com/media/de4185_ff7e325bd34f4a4c989a41f1ada65819~mv2.jpg"
           description="Critical for Nexus reactors, advanced bundles, and anomaly-hardened sinks."
+          ownedCount={props.ingredients.quantumAttuners}
           priceOptions={shopIngredientPriceOptions('quantumAttuners', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -242,6 +297,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_ff5402a614c348cb9df571d98e4d197a~mv2.jpg"
           description="Feeds Stellar Forge blueprints and other void-touched high-power crafts."
+          ownedCount={props.ingredients.voidglassFilaments}
           priceOptions={shopIngredientPriceOptions('voidglassFilaments', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -263,6 +319,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_797d265c76e0465ba03f08dc3a8307f6~mv2.jpg"
           description="Dense crystalline shards for orbit-class rigs and deep batteries."
+          ownedCount={props.ingredients.coreShards}
           priceOptions={shopIngredientPriceOptions('coreShards', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -284,6 +341,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_8d65b863efe34a5d8d69d46e3abeb6a4~mv2.jpg"
           description="Thermal transfer gel for Flux Arrays and cooling modules."
+          ownedCount={props.ingredients.coolingGel}
           priceOptions={shopIngredientPriceOptions('coolingGel', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -305,6 +363,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_5b35036fe4a94ba3ba3a36dd2e511f01~mv2.jpg"
           description="Analog resonance chips for ARIA Sensors and fusion crafts."
+          ownedCount={props.ingredients.ariaChips}
           priceOptions={shopIngredientPriceOptions('ariaChips', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -326,6 +385,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_120a35c13a194530b144a0fc36538315~mv2.jpg"
           description="Volatile null-state fragments for hash buffers and void tech."
+          ownedCount={props.ingredients.nullFragments}
           priceOptions={shopIngredientPriceOptions('nullFragments', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
@@ -389,43 +449,74 @@ export function ShopPanel(props: {
       id: 'kas-overclock',
       title: 'KAS Overclock',
       category: 'Boost',
-      description: 'Increase the next cycle output for one plant. V1 mock boost.',
-      baseKasPrice: 5,
+      description: '+100 diamonds to rolling daily cap for 24h and +100 on the next cycle for one plant.',
+      baseKasPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
       type: 'item' as const,
       render: () => (
-        <GameItemCard
-          key="kas-overclock"
-          title="KAS Overclock"
-          category="Boost"
-          imageSrc="https://static.wixstatic.com/media/de4185_31f513aacd3f4691a530065957fc1f6e~mv2.jpg"
-          description="Increase the next cycle output for one plant. V1 mock boost."
-          effects={[{ label: 'Output', value: '+100%' }]}
-          priceOptions={[{ currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(5), originalUnitPrice: 5 }]}
-          buyLabel="Buy"
-          onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'kas-overclock', currency, quantity })}
-        />
+        <div key="kas-overclock" className="col-span-full flex flex-col gap-0 sm:col-span-2">
+          <BoostPlantTargetSelect
+            plantSlots={props.plantSlots}
+            value={overclockTargetSlot}
+            onChange={setOverclockTargetSlot}
+          />
+          <GameItemCard
+            title="KAS Overclock"
+            category="Boost"
+            imageSrc="https://static.wixstatic.com/media/de4185_a21da156e5fb4f90acf87e8e7a229960~mv2.jpg"
+            description="Applies to the plant you select above: raises your 24h diamond ceiling, then bumps the very next run’s expected yield."
+            effects={[
+              { label: 'Daily cap', value: '+100 / 24h', color: 'sky' },
+              { label: 'Next cycle', value: '+100 ♦', color: 'sky' },
+            ]}
+            priceOptions={[
+              {
+                currency: 'KAS',
+                unitPrice: props.getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS),
+                originalUnitPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
+              },
+            ]}
+            quantitySelector={{ min: 1, max: 99 }}
+            buyLabel="Buy"
+            onBuy={({ currency, quantity }) =>
+              props.onBuy({
+                itemId: 'kas-overclock',
+                currency,
+                quantity,
+                boostTargetSlotIndex: overclockTargetSlot,
+              })
+            }
+          />
+        </div>
       ),
     },
     {
       id: 'krex-boost',
       title: 'KREX Boost',
       category: 'Boost',
-      description: 'Apply a yield multiplier. Later this will read your KREX tier and holdings.',
-      baseKasPrice: 0,
+      description: 'Shop module charge: equip in a plant module slot for 2.5× diamond yield for 1 hour.',
+      baseKasPrice: MINECORE_KREX_BOOST_SHOP_KAS,
       type: 'item' as const,
       render: () => (
         <GameItemCard
           key="krex-boost"
           title="KREX Boost"
           category="Boost"
-          imageSrc="https://static.wixstatic.com/media/de4185_82bfb57dc94e463788ab6bccd155249e~mv2.jpg"
-          description="Apply a yield multiplier. Later this will read your KREX tier and holdings."
-          effects={[{ label: 'Output', value: '+50%' }]}
-          priceOptions={[
-            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(25)) },
+          imageSrc="https://static.wixstatic.com/media/de4185_d97bfd713c7745b787956a13ed738af4~mv2.jpg"
+          description="Each purchase adds one charge to your module inventory. Install on a premium or advanced plant (Manage modules). Timer starts when slotted."
+          effects={[
+            { label: 'Yield', value: '2.5× ♦', color: 'emerald' },
+            { label: 'Duration', value: '1 hour', color: 'zinc' },
+            { label: 'Slot', value: 'Module', color: 'zinc' },
           ]}
-          buyDisabled={true}
-          buyLabel="Soon"
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS),
+              originalUnitPrice: MINECORE_KREX_BOOST_SHOP_KAS,
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 99 }}
+          buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'krex-boost', currency, quantity })}
         />
       ),

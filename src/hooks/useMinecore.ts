@@ -25,6 +25,8 @@ import {
   MINECORE_PLANT_REPAIR_KAS,
   MINECORE_STABILITY_PATCH_LIST_KAS,
   minecoreKrexFromDiscountedKas,
+  MINECORE_KREX_BOOST_SHOP_KAS,
+  MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -591,6 +593,36 @@ export function useMinecore() {
     [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
   );
 
+  const purchaseKrexBoostChargesWithKAS = useCallback(
+    async (count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS * q),
+        skuId: 'minecore:shop:krex-boost',
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'GrantModuleInventory', moduleId: 'krex-boost', count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
+  const purchaseKasOverclockWithKAS = useCallback(
+    async (slotIndex: number, count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS * q),
+        skuId: 'minecore:shop:kas-overclock',
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'ApplyKasOverclock', slotIndex, count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
   const refine = useCallback(
     (amount: number) => {
       if (!walletAddr) return;
@@ -858,6 +890,8 @@ export function useMinecore() {
       rechargePlant,
       rechargePlantWithKAS,
       changePlantType,
+      purchaseKrexBoostChargesWithKAS,
+      purchaseKasOverclockWithKAS,
     },
     getKasPriceAfterDiscount,
     nowTick,

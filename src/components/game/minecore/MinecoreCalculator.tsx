@@ -278,7 +278,7 @@ export function MinecoreCalculator() {
           </div>
           {setup.boostId === 'kas-overclock' ? (
             <p className="mt-3 text-[11px] text-amber-700 dark:text-amber-400">
-              KAS Overclock is purchased separately in the shop (5 KAS base in UI) - not added to the totals above.
+              KAS Overclock is purchased separately in the Minecore Shop — not included in these calculator totals.
             </p>
           ) : null}
         </div>
