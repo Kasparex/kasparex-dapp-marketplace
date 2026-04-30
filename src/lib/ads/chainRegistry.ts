@@ -17,7 +17,12 @@ import {
   type AdCampaignMetadataV1,
 } from '@/lib/ads/metadata';
 import { priceKasForDays, getSlotConfig } from '@/lib/ads/slots';
-import { isValidAdPayment } from '@/lib/ads/adPriceValidation';
+import {
+  isValidAdKasPayment,
+  isValidAdKrexBindingKasPaid,
+  isValidAdKrexPriceMeta,
+} from '@/lib/ads/adPriceValidation';
+import { expectedKrexAmtSmallestFromHuman, verifyKrexTreasuryTransfer } from '@/lib/ads/krexPaymentVerify';
 import type { AdEntry } from '@/lib/ads/types';
 
 /** Kaspa REST returns `payload` as hex of on-chain bytes. KasWare often puts ASCII hex of the binding on-chain, so we peel 1–3 hex layers. */
@@ -208,6 +213,7 @@ export function campaignToAdEntry(
     id: `${txId}-${metadataCid}`,
     slotId: meta.slotId,
     slotIndex: meta.slotIndex,
+    featuredHighlight: meta.featuredHighlight === true,
     format: meta.format,
     imageUrl: resolveAdImageUrl(meta.image),
     link: meta.link,
@@ -218,6 +224,29 @@ export function campaignToAdEntry(
     metadataCid,
     txId,
   };
+}
+
+async function verifyAdEconomics(
+  meta: AdCampaignMetadataV1,
+  paidSompi: number,
+  slotBaseKas: number,
+  treasuryPrefixed: string,
+  payerPrefixed: string,
+): Promise<boolean> {
+  const currency = meta.paymentCurrency ?? 'KAS';
+  if (currency === 'KAS') {
+    return isValidAdKasPayment(meta.priceKas, paidSompi, slotBaseKas, meta.featuredHighlight);
+  }
+  if (!isValidAdKrexBindingKasPaid(paidSompi)) return false;
+  if (!meta.priceKrex || !meta.krexPaymentTxHash) return false;
+  if (!isValidAdKrexPriceMeta(meta.priceKas, meta.priceKrex, slotBaseKas, meta.featuredHighlight)) return false;
+  const minAmt = expectedKrexAmtSmallestFromHuman(meta.priceKrex);
+  return verifyKrexTreasuryTransfer({
+    payerAddress: payerPrefixed,
+    treasuryAddress: treasuryPrefixed,
+    krexPaymentTxHash: meta.krexPaymentTxHash,
+    minAmtSmallest: minAmt,
+  });
 }
 
 /**
@@ -252,7 +281,6 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
     const slotCfg = getSlotConfig(meta.slotId);
     if (!slotCfg) continue;
     const baseKas = priceKasForDays(slotCfg, meta.days);
-    if (!isValidAdPayment(meta.priceKas, paid, baseKas)) continue;
 
     const payers = payerAddressesFromTx(tx);
     let payerNorm: string;
@@ -262,6 +290,9 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
       continue;
     }
     if (!payers.has(payerNorm)) continue;
+
+    const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm);
+    if (!econOk) continue;
 
     const startMs = txTimeMs(tx);
     const endMs = startMs + meta.days * 24 * 60 * 60 * 1000;
@@ -321,14 +352,22 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
     return { ok: false, error: 'Unknown slot' };
   }
   const baseKas = priceKasForDays(slotCfg, meta.days);
-  if (!isValidAdPayment(meta.priceKas, paid, baseKas)) {
-    return { ok: false, error: 'Price or amount does not match slot rate (including KREX tier discounts)' };
-  }
 
   const payers = payerAddressesFromTx(tx);
   const payerNorm = normalizeKaspaAddress(meta.payerL1);
   if (!payers.has(payerNorm)) {
     return { ok: false, error: 'Payer does not match transaction inputs' };
+  }
+
+  const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm);
+  if (!econOk) {
+    return {
+      ok: false,
+      error:
+        meta.paymentCurrency === 'KREX'
+          ? 'KREX payment or binding fee does not match metadata (check treasury transfer and binding tx)'
+          : 'Price or amount does not match slot rate (including KREX tier discounts and featured add-on)',
+    };
   }
 
   const cleanCid = metadataCid.replace(/^ipfs:\/\//, '').trim();

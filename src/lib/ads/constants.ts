@@ -12,3 +12,12 @@ export const ADS_MAX_DURATION_DAYS = 365;
 
 /** Max treasury txs to scan per refresh (bounded lookback) */
 export const ADS_TREASURY_TX_LIMIT = 200;
+
+/** Premium add-on: highlighted slot (one-time, not multiplied by duration). No tier discount. */
+export const ADS_FEATURED_HIGHLIGHT_KAS = 20;
+
+/**
+ * Native KAS bundled with the binding payload when the creative fee is settled in KREX (KRC-20).
+ * Keeps an L1 output to the ads treasury for discovery alongside payload-bearing txs.
+ */
+export const ADS_KREX_BINDING_FEE_KAS = 0.02;

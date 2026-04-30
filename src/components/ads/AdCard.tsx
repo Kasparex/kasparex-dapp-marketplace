@@ -60,15 +60,16 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
   const format = ad.format ?? 'rectangle';
   const aspectClass = getAspectClass(format);
   const progressPercent = getProgressPercent(ad.startTime, ad.endTime);
+  const featured = ad.featuredHighlight === true;
+
+  const shellClass = embedded
+    ? 'rounded-xl bg-transparent'
+    : featured
+      ? 'rounded-xl bg-white dark:bg-zinc-900/50 ring-2 ring-fuchsia-500 ring-offset-2 ring-offset-zinc-50 dark:ring-offset-zinc-950 shadow-[0_0_28px_-6px_rgba(217,70,239,0.55)] hover:shadow-[0_0_36px_-4px_rgba(34,211,238,0.35)]'
+      : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
 
   return (
-    <div
-      className={`group overflow-hidden transition-all duration-300 ${
-        embedded
-          ? 'rounded-xl bg-transparent'
-          : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10'
-      }`}
-    >
+    <div className={`group overflow-hidden transition-all duration-300 ${shellClass}`}>
       <Link
         href={ad.link}
         target="_blank"

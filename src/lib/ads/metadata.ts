@@ -9,6 +9,8 @@ export type AdImageRef =
   | { type: 'url'; value: string }
   | { type: 'ipfs'; value: string };
 
+export type AdPaymentCurrency = 'KAS' | 'KREX';
+
 /** Canonical JSON pinned to IPFS before L1 payment */
 export interface AdCampaignMetadataV1 {
   v: typeof AD_METADATA_VERSION;
@@ -22,6 +24,13 @@ export interface AdCampaignMetadataV1 {
   image: AdImageRef;
   format: AdFormat;
   createdAt: string;
+  /** When paying creative fee in KREX — reveal tx id from wallet / indexer hashRev */
+  paymentCurrency?: AdPaymentCurrency;
+  /** Declared KREX total for peg audit (matches minecore KREX-per-KAS on total). */
+  priceKrex?: number;
+  krexPaymentTxHash?: string;
+  /** Flat premium — highlighted placement frame */
+  featuredHighlight?: boolean;
 }
 
 export function buildCampaignMetadataV1(input: {
@@ -34,8 +43,12 @@ export function buildCampaignMetadataV1(input: {
   link: string;
   image: AdImageRef;
   format: AdFormat;
+  paymentCurrency?: AdPaymentCurrency;
+  priceKrex?: number;
+  krexPaymentTxHash?: string;
+  featuredHighlight?: boolean;
 }): AdCampaignMetadataV1 {
-  return {
+  const row: AdCampaignMetadataV1 = {
     v: AD_METADATA_VERSION,
     slotId: input.slotId,
     slotIndex: input.slotIndex,
@@ -48,6 +61,13 @@ export function buildCampaignMetadataV1(input: {
     format: input.format,
     createdAt: new Date().toISOString(),
   };
+  if (input.paymentCurrency === 'KREX') {
+    row.paymentCurrency = 'KREX';
+    if (input.priceKrex != null) row.priceKrex = input.priceKrex;
+    if (input.krexPaymentTxHash) row.krexPaymentTxHash = input.krexPaymentTxHash;
+  }
+  if (input.featuredHighlight === true) row.featuredHighlight = true;
+  return row;
 }
 
 export function isValidSlotId(id: string): id is AdSlotId {
@@ -82,8 +102,20 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   const im = image as Record<string, unknown>;
   if (im.type !== 'url' && im.type !== 'ipfs') return null;
   if (typeof im.value !== 'string' || !im.value.trim()) return null;
+  const pcRaw = o.paymentCurrency;
+  const paymentCurrency =
+    pcRaw === 'KREX' || pcRaw === 'KAS' ? (pcRaw as AdPaymentCurrency) : undefined;
+  const priceKrex = typeof o.priceKrex === 'number' && Number.isFinite(o.priceKrex) ? o.priceKrex : undefined;
+  const krexPaymentTxHash =
+    typeof o.krexPaymentTxHash === 'string' && o.krexPaymentTxHash.trim() ? o.krexPaymentTxHash.trim() : undefined;
+  const featuredHighlight = o.featuredHighlight === true;
+
+  if (paymentCurrency === 'KREX') {
+    if (!krexPaymentTxHash || priceKrex == null || priceKrex <= 0) return null;
+  }
+
   const sid = slotId as AdSlotId;
-  return {
+  const base: AdCampaignMetadataV1 = {
     v: 1,
     slotId: sid,
     slotIndex,
@@ -96,6 +128,11 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
     format: fmt as AdFormat,
     createdAt: typeof o.createdAt === 'string' ? o.createdAt : new Date().toISOString(),
   };
+  if (paymentCurrency) base.paymentCurrency = paymentCurrency;
+  if (priceKrex != null) base.priceKrex = priceKrex;
+  if (krexPaymentTxHash) base.krexPaymentTxHash = krexPaymentTxHash;
+  if (featuredHighlight) base.featuredHighlight = true;
+  return base;
 }
 
 /** Resolve display URL for Next/Image or img */
