@@ -15,6 +15,10 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   nullFragments: 'Null Fragments',
   fluxCoils: 'Flux Coils',
   latticeWire: 'Lattice Wire',
+  helixStabilizers: 'Helix Stabilizers',
+  plasmaConduits: 'Plasma Conduits',
+  quantumAttuners: 'Quantum Attuners',
+  voidglassFilaments: 'Voidglass Filaments',
 };
 
 export function InventoryPanel(props: { state: MinecoreState }) {
