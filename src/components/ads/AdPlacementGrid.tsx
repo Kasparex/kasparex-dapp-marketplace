@@ -206,10 +206,8 @@ function FilledAdShell({
   const tip = ad.promoTooltip?.trim();
   const featured = ad.featuredHighlight === true;
   const accent = featured ? featuredAccentForAd(ad.id) : null;
-  const frameAccent =
-    featured && accent
-      ? accent.frameClass
-      : 'border border-zinc-300 dark:border-zinc-600 box-border';
+  const frameEdge =
+    featured && accent ? '' : 'border border-zinc-300 dark:border-zinc-600 box-border';
 
   const linkEl = (
     <Link
@@ -217,16 +215,29 @@ function FilledAdShell({
       target="_blank"
       rel="noopener noreferrer sponsored"
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
-      className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameAccent}`}
+      className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`}
     >
+      <Image
+        src={ad.imageUrl}
+        alt={ad.title}
+        fill
+        className="object-cover z-0"
+        sizes="240px"
+        unoptimized
+      />
+      {featured && accent ? (
+        <div
+          className={`pointer-events-none absolute inset-0 z-[3] ${rounded} ${accent.overlayClass}`}
+          aria-hidden
+        />
+      ) : null}
       {featured && accent ? (
         <span
-          className={`pointer-events-none absolute top-1.5 right-1.5 z-[2] rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white shadow-sm ring-1 ring-black/20 ${accent.badgeClass}`}
+          className={`pointer-events-none absolute top-2 right-2 z-[4] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-md ring-1 ring-black/30 ${accent.badgeClass}`}
         >
           Featured
         </span>
       ) : null}
-      <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover" sizes="240px" unoptimized />
     </Link>
   );
   return tip ? <Tooltip content={tip}>{linkEl}</Tooltip> : linkEl;

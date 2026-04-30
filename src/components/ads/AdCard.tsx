@@ -68,20 +68,30 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
   const promoTip = ad.promoTooltip?.trim();
 
   const accent = featured ? featuredAccentForAd(ad.id) : null;
-  const featuredShell = accent?.frameClass ?? '';
 
   const shellClass = embedded
-    ? featured
-      ? `rounded-xl bg-zinc-950/30 dark:bg-zinc-950/40 ${featuredShell}`
-      : 'rounded-xl bg-transparent'
+    ? 'rounded-xl bg-transparent'
     : featured
-      ? `rounded-xl bg-white dark:bg-zinc-900/50 ${featuredShell} hover:brightness-[1.02] dark:hover:brightness-110`
+      ? 'rounded-xl border-2 border-[#02abb8]/35 bg-white dark:bg-zinc-900/50 shadow-[0_0_24px_-8px_rgba(2,171,184,0.35)]'
       : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
 
+  const featuredOnCreative =
+    featured && accent ? (
+      <>
+        <div
+          className={`pointer-events-none absolute inset-0 z-[3] rounded-t-xl ${accent.overlayClass}`}
+          aria-hidden
+        />
+        <span
+          className={`pointer-events-none absolute top-2 right-2 z-[6] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-md ring-1 ring-black/30 ${accent.badgeClass}`}
+        >
+          Featured
+        </span>
+      </>
+    ) : null;
+
   return (
-    <div
-      className={`group transition-all duration-300 ${shellClass} ${featured ? '' : 'overflow-hidden'}`}
-    >
+    <div className={`group transition-all duration-300 overflow-hidden ${shellClass}`}>
       {promoTip ? (
         <Tooltip content={promoTip}>
           <Link
@@ -89,17 +99,18 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
             target="_blank"
             rel="noopener noreferrer sponsored"
             aria-label={`${ad.title}. ${promoTip}`}
-            className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
+            className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden rounded-t-xl`}
           >
             <Image
               src={ad.imageUrl}
               alt={ad.title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className="object-cover z-0 transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
               unoptimized
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            {featuredOnCreative}
+            <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           </Link>
         </Tooltip>
       ) : (
@@ -107,17 +118,18 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           href={ad.link}
           target="_blank"
           rel="noopener noreferrer sponsored"
-          className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
+          className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden rounded-t-xl`}
         >
           <Image
             src={ad.imageUrl}
             alt={ad.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="object-cover z-0 transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          {featuredOnCreative}
+          <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         </Link>
       )}
       <div className="p-4">
