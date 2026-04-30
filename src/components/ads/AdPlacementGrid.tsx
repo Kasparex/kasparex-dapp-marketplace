@@ -207,7 +207,9 @@ function FilledAdShell({
   const featured = ad.featuredHighlight === true;
   const accent = featured ? featuredAccentForAd(ad.id) : null;
   const frameEdge =
-    featured && accent ? '' : 'border border-zinc-300 dark:border-zinc-600 box-border';
+    featured && accent
+      ? accent.solidFrameClass
+      : 'border-2 border-zinc-400 dark:border-zinc-300 dark:border-zinc-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
 
   const linkEl = (
     <Link
@@ -236,7 +238,7 @@ function FilledAdShell({
       ) : null}
       {featured && accent ? (
         <span
-          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide shadow-md ring-2 ring-black/40 ${accent.badgeClass}`}
+          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wide border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.88)] ${accent.badgeClass}`}
         >
           Featured
         </span>

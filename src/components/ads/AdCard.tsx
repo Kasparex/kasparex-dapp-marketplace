@@ -90,7 +90,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           aria-hidden
         />
         <span
-          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide shadow-md ring-2 ring-black/45 ${accent.badgeClass}`}
+          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wide border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.88)] ${accent.badgeClass}`}
         >
           Featured
         </span>
@@ -123,7 +123,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
             target="_blank"
             rel="noopener noreferrer sponsored"
             aria-label={`${ad.title}. ${promoTip}`}
-            className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}`}
+            className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}${
+              featured && accent ? ` ${accent.solidFrameClass}` : ''
+            }`}
           >
             {creativeInner}
           </Link>
@@ -133,7 +135,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           href={ad.link}
           target="_blank"
           rel="noopener noreferrer sponsored"
-          className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}`}
+          className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}${
+            featured && accent ? ` ${accent.solidFrameClass}` : ''
+          }`}
         >
           {creativeInner}
         </Link>
@@ -176,7 +180,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
         <div className="space-y-1.5">
           <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 transition-all duration-500"
+              className={`h-full rounded-full bg-gradient-to-r transition-all duration-500 ${
+                featured && accent ? accent.progressBarClass : 'from-pink-500 to-fuchsia-500'
+              }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
