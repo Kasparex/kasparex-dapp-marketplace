@@ -7,6 +7,7 @@ import {
   computePlantReady,
   computeRollingDailyCapWindowRemainingMs,
   getBatteryCapacityMs,
+  getPowerDrainScale,
   getPowerUnitCap,
   computeBatteryRuntimeMs,
   computeLiveBatterySlotChargeMs,
@@ -557,59 +558,117 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
 function UnifiedBatterySegmentsBar(props: {
   liveSlotMs: number[];
   maxSlotMs: number[];
-  runtimeLabel: string;
-  aggregateRatio: number;
+  /** Wall-clock mining time left at the current rig draw rate (stored charge ÷ draw factor). */
+  miningLeftMs: number;
+  /** Wall-clock mining time if the whole pack were full at this rig’s draw. */
+  miningMaxMs: number;
+  /** Stored charge remaining (nominal ms), same basis as cell capacities / crew bonuses. */
+  liveChargeMs: number;
+  /** Full pack nominal capacity (ms). */
+  capacityMs: number;
+  /** Effective draw multiplier vs baseline (from rig + bus load). Explains fast drain vs nominal hours. */
+  powerDrawFactor: number;
   onSlotPress: (slotIndex: number, installed: boolean) => void;
 }) {
+  const miningLeftMs = Math.max(0, props.miningLeftMs);
+  const miningMaxMs = Math.max(0, props.miningMaxMs);
+  const miningFrac = miningMaxMs > 1e-6 ? clamp01(miningLeftMs / miningMaxMs) : 0;
+  const hasPackStats = miningMaxMs > 0 && props.powerDrawFactor > 0;
+  const miningLabel =
+    miningLeftMs > 0 ? formatDuration(miningLeftMs) : props.liveChargeMs <= 0 && props.capacityMs > 0 ? 'Empty' : '—';
   const inner = (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Energy · runtime</span>
-        <span className="text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{props.runtimeLabel}</span>
+      <div className="flex items-start justify-between gap-2">
+        <Tooltip content="Top value is how long this plant can keep mining right now, at the current rig’s power draw. That is shorter than the “hours” on cells because draw burns stored charge faster than the nominal pack clock.">
+          <span className="cursor-help text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Energy · mining runtime</span>
+        </Tooltip>
+        <span className="text-right text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{miningLabel}</span>
       </div>
+      {hasPackStats ? (
+        <div className="space-y-1">
+          <Tooltip
+            content={`Stored charge is tracked in nominal pack time (see cells). This rig runs at ×${props.powerDrawFactor >= 10 ? props.powerDrawFactor.toFixed(1) : props.powerDrawFactor.toFixed(2)} effective draw, so one hour of stored charge lasts about ${props.powerDrawFactor > 1e-6 ? formatDuration(60_000 * 60 / props.powerDrawFactor) : '—'} of mining.`}
+          >
+            <div className="cursor-help space-y-0.5">
+              <div className="flex items-center justify-between gap-2 text-[10px] font-semibold tabular-nums">
+                <span className="text-sky-700 dark:text-sky-300">{formatDuration(miningLeftMs)} left</span>
+                <span className="font-medium text-zinc-500 dark:text-zinc-400">{formatDuration(miningMaxMs)} max</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                <div
+                  className="h-full rounded-full bg-sky-500 transition-[width] duration-500 dark:bg-sky-500"
+                  style={{ width: `${Math.round(miningFrac * 100)}%` }}
+                />
+              </div>
+            </div>
+          </Tooltip>
+          <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
+            Nominal charge{' '}
+            <span className="font-mono font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
+              {props.liveChargeMs > 0 ? formatDuration(props.liveChargeMs) : '0'}
+            </span>
+            {' / '}
+            <span className="font-mono font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
+              {formatDuration(props.capacityMs)}
+            </span>
+            {' · Rig draw '}
+            <span className="font-mono font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
+              ×{props.powerDrawFactor >= 10 ? props.powerDrawFactor.toFixed(1) : props.powerDrawFactor.toFixed(2)}
+            </span>
+          </p>
+        </div>
+      ) : null}
       <div className="flex items-end justify-center gap-2">
         {props.maxSlotMs.map((max, i) => {
           const live = props.liveSlotMs[i] ?? 0;
           const installed = max > 0;
           const r = installed ? live / max : 0;
           const fillCls = tierBatteryFillCls(r);
-          const slotRuntimeLabel = installed ? formatShortBatterySlotRuntime(max) : '—';
+          const slotRuntimeLabel = installed ? formatShortBatterySlotRuntime(live) : '—';
           return (
-            <button
+            <Tooltip
               key={i}
-              type="button"
-              onClick={() => props.onSlotPress(i, installed)}
-              className="group flex flex-col items-center gap-0.5 rounded-lg p-0.5 outline-none ring-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              content={
+                installed
+                  ? `Nominal charge left in this slot (${formatShortBatterySlotRuntime(live)} of ${formatShortBatterySlotRuntime(max)}). Drain runs slot 1 → slot 2 first.`
+                  : 'Empty slot — tap to install a battery.'
+              }
             >
-              <div
-                className={`relative h-16 w-9 overflow-hidden rounded-md border-2 bg-zinc-100/90 dark:bg-zinc-900/90 ${
-                  installed
-                    ? 'border-zinc-700 dark:border-zinc-400'
-                    : 'border-zinc-300 opacity-60 dark:border-zinc-600'
-                }`}
+              <button
+                type="button"
+                onClick={() => props.onSlotPress(i, installed)}
+                className="group flex flex-col items-center gap-0.5 rounded-lg p-0.5 outline-none ring-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/60"
               >
                 <div
-                  className={`absolute inset-x-0 top-0 mx-auto h-1 w-3 rounded-b-sm ${installed ? 'bg-zinc-700 dark:bg-zinc-400' : 'bg-zinc-400 dark:bg-zinc-600'}`}
-                  aria-hidden
-                />
-                {installed ? (
-                  <div className={`absolute bottom-0 left-0 right-0 transition-all duration-500 ${fillCls}`} style={{ height: `${clamp01(r) * 100}%` }} />
-                ) : null}
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-0.5">
-                  <span className="max-w-full truncate text-center text-[9px] font-black tabular-nums leading-none text-zinc-800 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] dark:text-zinc-100 dark:drop-shadow-[0_0_4px_rgba(0,0,0,0.85)]">
-                    {slotRuntimeLabel}
-                  </span>
+                  className={`relative h-16 w-9 overflow-hidden rounded-md border-2 bg-zinc-100/90 dark:bg-zinc-900/90 ${
+                    installed
+                      ? 'border-zinc-700 dark:border-zinc-400'
+                      : 'border-zinc-300 opacity-60 dark:border-zinc-600'
+                  }`}
+                >
+                  <div
+                    className={`absolute inset-x-0 top-0 mx-auto h-1 w-3 rounded-b-sm ${installed ? 'bg-zinc-700 dark:bg-zinc-400' : 'bg-zinc-400 dark:bg-zinc-600'}`}
+                    aria-hidden
+                  />
+                  {installed ? (
+                    <div className={`absolute bottom-0 left-0 right-0 transition-all duration-500 ${fillCls}`} style={{ height: `${clamp01(r) * 100}%` }} />
+                  ) : null}
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-0.5">
+                    <span className="max-w-full truncate text-center text-[9px] font-black tabular-nums leading-none text-zinc-800 drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] dark:text-zinc-100 dark:drop-shadow-[0_0_4px_rgba(0,0,0,0.85)]">
+                      {slotRuntimeLabel}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <span className={`text-[9px] font-bold ${installed ? 'text-zinc-500' : 'text-zinc-400'}`}>{i + 1}</span>
-            </button>
+                <span className={`text-[9px] font-bold ${installed ? 'text-zinc-500' : 'text-zinc-400'}`}>{i + 1}</span>
+              </button>
+            </Tooltip>
           );
         })}
       </div>
     </div>
   );
   return (
-    <Tooltip content="Battery slots drain in order. Tap a pillar to assign a cell or open recharge.">
+    <Tooltip content="Battery slots drain in order (first slot, then next). Cell numbers are nominal charge remaining in that slot; the timer and blue bar show mining time at this rig’s draw rate. Tap a cell to recharge.">
       <div>{inner}</div>
     </Tooltip>
   );
@@ -727,6 +786,9 @@ export function PlantSlotCard(props: {
     cycle != null &&
     cycle.pauseBeganAtMs == null;
   const batteryRuntimeMs = capacityMs > 0 && s.setup.machineId ? computeBatteryRuntimeMs(s, now) : 0;
+  const powerDrawFactor = s.unlocked && s.setup.machineId ? getPowerDrainScale(s) : 0;
+  const miningMaxAtRigMs =
+    capacityMs > 0 && powerDrawFactor > 0 && s.setup.machineId ? capacityMs / powerDrawFactor : 0;
 
   const capRemainingMs = s.unlocked ? computeRollingDailyCapWindowRemainingMs(s, now) : 0;
   const dailyCap = computePlantDailyCapProgress(props.minecoreState, s, now, ctx);
@@ -1140,10 +1202,11 @@ export function PlantSlotCard(props: {
               <UnifiedBatterySegmentsBar
                 liveSlotMs={liveSlotCharges}
                 maxSlotMs={maxSlotCharges}
-                runtimeLabel={
-                  capacityMs > 0 && s.setup.machineId ? formatDuration(batteryRuntimeMs) : '—'
-                }
-                aggregateRatio={batteryRatio}
+                miningLeftMs={batteryRuntimeMs}
+                miningMaxMs={miningMaxAtRigMs}
+                liveChargeMs={liveChargeMs}
+                capacityMs={capacityMs}
+                powerDrawFactor={powerDrawFactor}
                 onSlotPress={(slotIdx, installed) => {
                   if (!installed) {
                     setBatterySlotFocus(slotIdx);
