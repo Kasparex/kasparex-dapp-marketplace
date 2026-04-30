@@ -329,6 +329,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         diamondsAccumulated: 0,
         rollingCapWindowStartMs: 0,
         dailyCapMinedDiamonds: 0,
+        krexBoostUntilMs: 0,
+        kasOverclockDailyBonusUntilMs: 0,
+        kasOverclockNextCycleExtraDiamonds: 0,
       };
       s.plantSlots.push(newSlot);
       s.nextSlotCostKas = Math.max(MINECORE_DEFAULT_NEXT_SLOT_COST_KAS, s.nextSlotCostKas);

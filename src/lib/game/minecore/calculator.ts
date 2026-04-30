@@ -127,6 +127,9 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, min
     diamondsAccumulated: 0,
     rollingCapWindowStartMs: 1,
     dailyCapMinedDiamonds: 0,
+    krexBoostUntilMs: 0,
+    kasOverclockDailyBonusUntilMs: 0,
+    kasOverclockNextCycleExtraDiamonds: 0,
   };
 }
 
