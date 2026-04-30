@@ -215,25 +215,28 @@ function FilledAdShell({
       target="_blank"
       rel="noopener noreferrer sponsored"
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
-      className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`}
+      className={`${frameClassName} ${rounded} relative isolate block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`}
     >
-      <Image
-        src={ad.imageUrl}
-        alt={ad.title}
-        fill
-        className="object-cover z-0"
-        sizes="240px"
-        unoptimized
-      />
+      {/* Image stays in z-0 layer so featured chrome paints above the bitmap (Next/Image compositing). */}
+      <span className={`absolute inset-0 z-0 overflow-hidden ${rounded}`}>
+        <Image
+          src={ad.imageUrl}
+          alt={ad.title}
+          fill
+          className="object-cover"
+          sizes="240px"
+          unoptimized
+        />
+      </span>
       {featured && accent ? (
         <div
-          className={`pointer-events-none absolute inset-0 z-[3] ${rounded} ${accent.overlayClass}`}
+          className={`pointer-events-none absolute inset-0 z-[25] ${rounded} ${accent.overlayClass}`}
           aria-hidden
         />
       ) : null}
       {featured && accent ? (
         <span
-          className={`pointer-events-none absolute top-2 right-2 z-[4] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-md ring-1 ring-black/30 ${accent.badgeClass}`}
+          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide shadow-md ring-2 ring-black/40 ${accent.badgeClass}`}
         >
           Featured
         </span>

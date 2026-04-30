@@ -69,26 +69,50 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
 
   const accent = featured ? featuredAccentForAd(ad.id) : null;
 
-  const shellClass = embedded
-    ? 'rounded-xl bg-transparent'
-    : featured
-      ? 'rounded-xl border-2 border-[#02abb8]/35 bg-white dark:bg-zinc-900/50 shadow-[0_0_24px_-8px_rgba(2,171,184,0.35)]'
-      : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
+  const shellClass =
+    embedded && featured && accent
+      ? `rounded-xl bg-transparent ${accent.outerRingClass}`
+      : embedded
+        ? 'rounded-xl bg-transparent'
+        : featured && accent
+          ? `rounded-xl bg-white dark:bg-zinc-900/85 shadow-lg shadow-black/12 dark:shadow-black/45 ${accent.outerRingClass}`
+          : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
 
-  const featuredOnCreative =
+  const hoverGradient = (
+    <div className="pointer-events-none absolute inset-0 z-[15] rounded-t-xl bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+  );
+
+  const featuredLayers =
     featured && accent ? (
       <>
         <div
-          className={`pointer-events-none absolute inset-0 z-[3] rounded-t-xl ${accent.overlayClass}`}
+          className={`pointer-events-none absolute inset-0 z-[25] rounded-t-xl ${accent.overlayClass}`}
           aria-hidden
         />
         <span
-          className={`pointer-events-none absolute top-2 right-2 z-[6] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-md ring-1 ring-black/30 ${accent.badgeClass}`}
+          className={`pointer-events-none absolute top-2 right-2 z-[35] rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide shadow-md ring-2 ring-black/45 ${accent.badgeClass}`}
         >
           Featured
         </span>
       </>
     ) : null;
+
+  const creativeInner = (
+    <>
+      <span className="absolute inset-0 z-0 overflow-hidden rounded-t-xl">
+        <Image
+          src={ad.imageUrl}
+          alt={ad.title}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+          unoptimized
+        />
+      </span>
+      {hoverGradient}
+      {featuredLayers}
+    </>
+  );
 
   return (
     <div className={`group transition-all duration-300 overflow-hidden ${shellClass}`}>
@@ -99,18 +123,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
             target="_blank"
             rel="noopener noreferrer sponsored"
             aria-label={`${ad.title}. ${promoTip}`}
-            className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden rounded-t-xl`}
+            className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}`}
           >
-            <Image
-              src={ad.imageUrl}
-              alt={ad.title}
-              fill
-              className="object-cover z-0 transition-transform duration-500 group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
-              unoptimized
-            />
-            {featuredOnCreative}
-            <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            {creativeInner}
           </Link>
         </Tooltip>
       ) : (
@@ -118,18 +133,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           href={ad.link}
           target="_blank"
           rel="noopener noreferrer sponsored"
-          className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden rounded-t-xl`}
+          className={`relative isolate block w-full overflow-hidden rounded-t-xl bg-zinc-100/80 dark:bg-zinc-900/95 ${aspectClass}`}
         >
-          <Image
-            src={ad.imageUrl}
-            alt={ad.title}
-            fill
-            className="object-cover z-0 transition-transform duration-500 group-hover:scale-[1.03]"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
-            unoptimized
-          />
-          {featuredOnCreative}
-          <div className="absolute inset-0 z-[5] bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          {creativeInner}
         </Link>
       )}
       <div className="p-4">
