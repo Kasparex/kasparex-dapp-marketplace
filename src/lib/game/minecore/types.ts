@@ -3,12 +3,14 @@ import type { GridLedgerEntry, MinecoreNftPerkTier, MiningSlotType } from '@/lib
 export type MinecoreIngredient =
   | 'crystalDust' | 'alloyPlates' | 'circuitMesh' | 'energyCells'
   | 'coreShards' | 'coolingGel' | 'ariaChips' | 'nullFragments'
-  | 'fluxCoils' | 'latticeWire';
+  | 'fluxCoils' | 'latticeWire'
+  | 'helixStabilizers' | 'plasmaConduits' | 'quantumAttuners' | 'voidglassFilaments';
 
 export const MINECORE_INGREDIENT_KEYS: MinecoreIngredient[] = [
   'crystalDust', 'alloyPlates', 'circuitMesh', 'energyCells',
   'coreShards', 'coolingGel', 'ariaChips', 'nullFragments',
   'fluxCoils', 'latticeWire',
+  'helixStabilizers', 'plasmaConduits', 'quantumAttuners', 'voidglassFilaments',
 ];
 
 export type MinecoreMachineId =
@@ -36,10 +38,21 @@ export type MinecoreModuleId =
   | 'regen-coil'
   | 'hash-buffer';
 
-/** Craftable supplemental max-power units (a.k.a. “Nodes”) — one equipped per plant, adds kW to the plant max. */
-export type MinecorePowerNodeId = 'flux-node' | 'lattice-node' | 'core-node';
+/** Craftable supplemental reactors — one equipped per plant; each adds kW to plant max power. */
+export type MinecorePowerNodeId =
+  | 'flux-node'
+  | 'lattice-node'
+  | 'core-node'
+  | 'prismatic-reactor'
+  | 'stellar-forge-reactor';
 
-export const MINECORE_POWER_NODE_IDS: MinecorePowerNodeId[] = ['flux-node', 'lattice-node', 'core-node'];
+export const MINECORE_POWER_NODE_IDS: MinecorePowerNodeId[] = [
+  'flux-node',
+  'lattice-node',
+  'core-node',
+  'prismatic-reactor',
+  'stellar-forge-reactor',
+];
 
 export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
 
@@ -68,13 +81,13 @@ export type OwnedItems = {
   batteries: Record<MinecoreBatteryId, number>;
   workers:   Record<MinecoreWorkerId, number>;
   modules:   Record<MinecoreModuleId, number>;
-  /** Fabricated supplemental power (“Nodes”) — inventory count before assigning to a plant. */
+  /** Fabricated reactors — inventory count before assigning to a plant (`nodes` key is legacy persistence). */
   nodes:     Record<MinecorePowerNodeId, number>;
 };
 
 export type PlantSetup = {
   machineId: MinecoreMachineId | null;
-  /** Optional Node adds max power (kW) at this plant. One slot — swap like a rig. */
+  /** Optional reactor adds max power (kW) at this plant. One slot — swap like a rig. */
   powerNodeId: MinecorePowerNodeId | null;
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
@@ -170,6 +183,8 @@ export type MinecoreEvent =
   | { type: 'AddSlot';          at: number }
   | { type: 'CraftRecipe';      at: number; recipeId: string }
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }
+  /** In-game GRID balance (redeemable total) shop purchase — no L1 transaction. */
+  | { type: 'BuyIngredientWithGrid'; at: number; ingredient: MinecoreIngredient; amount: number; gridCost: number }
   | { type: 'DeployNFT';        at: number; slotIndex: number; nftId: number; collection: string }
   | { type: 'RemoveNFT';        at: number; slotIndex: number }
   | { type: 'SyncMinecoreNftPerkTier'; at: number; slotIndex: number; tier: MinecoreNftPerkTier | null }

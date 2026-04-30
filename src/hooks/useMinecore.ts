@@ -321,6 +321,81 @@ export function useMinecore() {
     [krexTier]
   );
 
+  /** L1 KREX (KRC-20) transfer to game treasury — same flow as plant recharge. */
+  const payKrexTreasury = useCallback(
+    async (
+      amountKrex: number,
+      meta: { skuId: string; recordActionType: string; transactionDetail?: Record<string, unknown> },
+    ) => {
+      setLastPaymentError(null);
+      if (!walletState.isConnected || !walletState.provider || !walletState.address) {
+        setLastPaymentError('Wallet connection required');
+        return { ok: false as const };
+      }
+      if (!DEFAULT_TREASURY) {
+        setLastPaymentError('Treasury address not configured');
+        return { ok: false as const };
+      }
+      if (krexL1Balance + 1e-12 < amountKrex) {
+        setLastPaymentError('Insufficient KREX balance on L1 for this purchase');
+        return { ok: false as const };
+      }
+      try {
+        const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
+        if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
+          setLastPaymentError('KREX amount too small to transfer');
+          return { ok: false as const };
+        }
+        const inscribeJson = {
+          p: 'KRC-20',
+          op: 'transfer',
+          tick: 'KREX',
+          amt: amountSmallest.toString(),
+          to: DEFAULT_TREASURY,
+        };
+        const txHash = await signKrc20Transfer(
+          walletState.provider,
+          JSON.stringify(inscribeJson),
+          KRC20_TRANSFER_TYPE,
+          DEFAULT_TREASURY,
+          KREX_RECHARGE_PRIORITY_FEE_KAS,
+        );
+
+        void recordL1Reward({
+          userAddress: walletState.address,
+          dappId: 'minecore',
+          actionType: meta.recordActionType,
+          actionValue: amountKrex,
+          txHash,
+          network: 'L1',
+        }).catch(() => {});
+
+        try {
+          window.dispatchEvent(
+            new CustomEvent('record-transaction', {
+              detail: {
+                type: meta.skuId,
+                currency: 'KREX',
+                amount: amountKrex,
+                txHash,
+                status: 'completed',
+                ...meta.transactionDetail,
+              },
+            }),
+          );
+        } catch {
+          // ignore
+        }
+
+        return { ok: true as const, txHash };
+      } catch (e) {
+        setLastPaymentError(e instanceof Error ? e.message : 'KREX payment failed');
+        return { ok: false as const };
+      }
+    },
+    [walletState.isConnected, walletState.provider, walletState.address, krexL1Balance],
+  );
+
   const unlockSlot = useCallback(
     async (slotIndex: number, amountKas: number) => {
       const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:slot:unlock', purchaseType: 'slot' });
@@ -495,69 +570,14 @@ export function useMinecore() {
       };
 
       if (currency === 'KREX') {
-        setLastPaymentError(null);
-        if (!walletState.isConnected || !walletState.provider || !walletState.address) {
-          setLastPaymentError('Wallet connection required');
-          return false;
-        }
-        if (!DEFAULT_TREASURY) {
-          setLastPaymentError('Treasury address not configured');
-          return false;
-        }
-        if (krexL1Balance < priceKrex) {
-          setLastPaymentError('Insufficient KREX balance on L1 for this recharge');
-          return false;
-        }
-        try {
-          const amountSmallest = Math.floor(priceKrex * Math.pow(10, KREX_DECIMALS));
-          const inscribeJson = {
-            p: 'KRC-20',
-            op: 'transfer',
-            tick: 'KREX',
-            amt: amountSmallest.toString(),
-            to: DEFAULT_TREASURY,
-          };
-          const txHash = await signKrc20Transfer(
-            walletState.provider,
-            JSON.stringify(inscribeJson),
-            KRC20_TRANSFER_TYPE,
-            DEFAULT_TREASURY,
-            KREX_RECHARGE_PRIORITY_FEE_KAS,
-          );
-
-          void recordL1Reward({
-            userAddress: walletState.address,
-            dappId: 'minecore',
-            actionType: 'recharge-krex',
-            actionValue: priceKrex,
-            txHash,
-            network: 'L1',
-          }).catch(() => {});
-
-          try {
-            window.dispatchEvent(
-              new CustomEvent('record-transaction', {
-                detail: {
-                  type: 'minecore-plant-recharge',
-                  currency: 'KREX',
-                  amount: priceKrex,
-                  slotCount: indexes.length,
-                  plantIndex: slotIndex,
-                  txHash,
-                  status: 'completed',
-                },
-              }),
-            );
-          } catch {
-            // ignore
-          }
-
-          dispatch(payload);
-          return true;
-        } catch (e) {
-          setLastPaymentError(e instanceof Error ? e.message : 'KREX recharge failed');
-          return false;
-        }
+        const paid = await payKrexTreasury(priceKrex, {
+          skuId: 'minecore:plant:recharge',
+          recordActionType: 'recharge-krex',
+          transactionDetail: { slotCount: indexes.length, plantIndex: slotIndex },
+        });
+        if (!paid.ok) return false;
+        dispatch(payload);
+        return true;
       }
 
       const paid = await payKasBestEffort({
@@ -569,15 +589,7 @@ export function useMinecore() {
       dispatch(payload);
       return true;
     },
-    [
-      dispatch,
-      payKasBestEffort,
-      getKasPriceAfterDiscount,
-      walletState.isConnected,
-      walletState.provider,
-      walletState.address,
-      krexL1Balance,
-    ],
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
   );
 
   const rechargePlantWithKAS = useCallback(
@@ -666,6 +678,58 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
   );
 
+  const purchaseIngredientWithKREX = useCallback(
+    async (ingredient: MinecoreIngredient, opts: { amount: number; amountKrex: number }) => {
+      const paid = await payKrexTreasury(opts.amountKrex, {
+        skuId: `minecore:ingredient:${ingredient}:krex`,
+        recordActionType: 'shop-ingredient-krex',
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'AddIngredients', at: Date.now(), ingredient, amount: opts.amount });
+      return true;
+    },
+    [dispatch, payKrexTreasury],
+  );
+
+  const purchaseIngredientPackWithKREX = useCallback(
+    async (pack: Partial<Record<MinecoreIngredient, number>>, opts: { amountKrex: number; skuId: string }) => {
+      const paid = await payKrexTreasury(opts.amountKrex, {
+        skuId: opts.skuId,
+        recordActionType: 'shop-pack-krex',
+      });
+      if (!paid.ok) return false;
+      const at = Date.now();
+      for (const [k, v] of Object.entries(pack)) {
+        const n = Math.max(0, Math.floor(Number(v) || 0));
+        if (n > 0) {
+          dispatch({ type: 'AddIngredients', at, ingredient: k as MinecoreIngredient, amount: n });
+        }
+      }
+      return true;
+    },
+    [dispatch, payKrexTreasury],
+  );
+
+  const purchaseIngredientWithGrid = useCallback(
+    (ingredient: MinecoreIngredient, opts: { amount: number; gridCost: number }) => {
+      const bal = mcRef.current.gridRedeemableTotal ?? 0;
+      if (bal + 1e-9 < opts.gridCost) {
+        setLastPaymentError('Insufficient GRID redeemable balance for this purchase');
+        return false;
+      }
+      setLastPaymentError(null);
+      dispatch({
+        type: 'BuyIngredientWithGrid',
+        at: Date.now(),
+        ingredient,
+        amount: opts.amount,
+        gridCost: opts.gridCost,
+      });
+      return true;
+    },
+    [dispatch],
+  );
+
   return {
     state: derived,
     slottedMetadata,
@@ -708,6 +772,9 @@ export function useMinecore() {
       setAutomation,
       purchaseIngredientWithKAS,
       purchaseIngredientPackWithKAS,
+      purchaseIngredientWithKREX,
+      purchaseIngredientPackWithKREX,
+      purchaseIngredientWithGrid,
       refillBattery,
       refillBatteryWithKAS,
       rechargePlant,

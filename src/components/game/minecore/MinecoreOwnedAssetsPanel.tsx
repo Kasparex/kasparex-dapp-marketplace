@@ -27,6 +27,10 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   nullFragments: 'Null Fragments',
   fluxCoils: 'Flux Coils',
   latticeWire: 'Lattice Wire',
+  helixStabilizers: 'Helix Stabilizers',
+  plasmaConduits: 'Plasma Conduits',
+  quantumAttuners: 'Quantum Attuners',
+  voidglassFilaments: 'Voidglass Filaments',
 };
 
 function OwnedCapsule(props: {
@@ -140,7 +144,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
         </div>
 
         <div>
-          <SectionTitle>Nodes</SectionTitle>
+          <SectionTitle>Reactors</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_POWER_NODES).map((node) => {
               const total = Number(state.owned.nodes?.[node.id] ?? 0);

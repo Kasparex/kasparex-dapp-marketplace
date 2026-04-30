@@ -26,6 +26,10 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   nullFragments: 'Null Fragments',
   fluxCoils: 'Flux Coils',
   latticeWire: 'Lattice Wire',
+  helixStabilizers: 'Helix Stabilizers',
+  plasmaConduits: 'Plasma Conduits',
+  quantumAttuners: 'Quantum Attuners',
+  voidglassFilaments: 'Voidglass Filaments',
 };
 
 export function FabricationPanel(props: {
@@ -48,13 +52,13 @@ export function FabricationPanel(props: {
     return true;
   };
 
-  const categories = ['All', 'Machine', 'Battery', 'Module', 'Node'];
+  const categories = ['All', 'Machine', 'Battery', 'Module', 'Reactor'];
 
   const filteredRecipes = useMemo(() => {
     const recipes = MINECORE_RECIPES.map((r) => ({
       ...r,
       category:
-        r.kind === 'powerNode' ? 'Node' : r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
+        r.kind === 'powerNode' ? 'Reactor' : r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
     }));
     let list = recipes.filter((item) => {
       if (category !== 'all' && category !== 'All') {
@@ -207,7 +211,7 @@ export function FabricationPanel(props: {
               : isBattery
                 ? 'Stores energy for runs; how long it lasts depends on the rig’s drain factor and charge budget.'
                 : isPowerNode
-                  ? 'Fabricate a Node, then assign it under Power on a plant to raise max kW (helps heavy rigs and modules).'
+                  ? 'Fabricate a reactor, then assign it under Power on a plant to raise max kW (helps heavy rigs and modules).'
                   : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
 
             return (

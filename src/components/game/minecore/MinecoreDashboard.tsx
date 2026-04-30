@@ -27,7 +27,8 @@ import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewards
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND } from '@/lib/game/minecore/config';
-import { CALC_INGREDIENT_KAS } from '@/lib/game/minecore/calculator';
+import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_KREX, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
+import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -533,27 +534,86 @@ export function MinecoreDashboard(_props: {
               ingredients={state.ingredients}
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
               onBuyIngredient={async ({ ingredient, currency, quantity }) => {
+                const q = Math.max(1, Math.floor(quantity));
                 if (currency === 'KAS') {
-                  const unit = CALC_INGREDIENT_KAS[ingredient];
-                  await actions.purchaseIngredientWithKAS(ingredient, {
-                    amount: quantity,
-                    amountKas: unit * quantity,
+                  const unit = CALC_INGREDIENT_KAS[ingredient as MinecoreIngredient];
+                  await actions.purchaseIngredientWithKAS(ingredient as MinecoreIngredient, {
+                    amount: q,
+                    amountKas: unit * q,
+                  });
+                  return;
+                }
+                if (currency === 'KREX') {
+                  const unit = CALC_INGREDIENT_KREX[ingredient as MinecoreIngredient];
+                  if (unit == null) return;
+                  await actions.purchaseIngredientWithKREX(ingredient as MinecoreIngredient, {
+                    amount: q,
+                    amountKrex: unit * q,
+                  });
+                  return;
+                }
+                if (currency === 'GRID') {
+                  const unit = CALC_INGREDIENT_GRID[ingredient as MinecoreIngredient];
+                  if (unit == null) return;
+                  actions.purchaseIngredientWithGrid(ingredient as MinecoreIngredient, {
+                    amount: q,
+                    gridCost: unit * q,
                   });
                 }
               }}
               onBuy={async ({ itemId, currency, quantity }) => {
-                if (itemId === 'minecore-node-pack-starter' && currency === 'KAS') {
-                  const q = Math.max(1, Math.floor(quantity));
+                const q = Math.max(1, Math.floor(quantity));
+                const isStarterPack = itemId === 'minecore-reactor-pack-starter';
+                const isAdvancedPack = itemId === 'minecore-reactor-pack-advanced';
+
+                if (isStarterPack && currency === 'KAS') {
                   await actions.purchaseIngredientPackWithKAS(
-                    { circuitMesh: 14 * q, energyCells: 9 * q, fluxCoils: 6 * q },
-                    { amountKas: 42 * q, skuId: 'minecore:shop:node-pack-starter' },
+                    {
+                      circuitMesh: 14 * q,
+                      energyCells: 9 * q,
+                      fluxCoils: 6 * q,
+                      helixStabilizers: 5 * q,
+                      plasmaConduits: 4 * q,
+                    },
+                    { amountKas: 42 * q, skuId: 'minecore:shop:reactor-pack-starter' },
                   );
                 }
-                if (itemId === 'minecore-node-pack-advanced' && currency === 'KAS') {
-                  const q = Math.max(1, Math.floor(quantity));
+                if (isStarterPack && currency === 'KREX') {
+                  await actions.purchaseIngredientPackWithKREX(
+                    {
+                      circuitMesh: 14 * q,
+                      energyCells: 9 * q,
+                      fluxCoils: 6 * q,
+                      helixStabilizers: 5 * q,
+                      plasmaConduits: 4 * q,
+                    },
+                    { amountKrex: 36 * q, skuId: 'minecore:shop:reactor-pack-starter:krex' },
+                  );
+                }
+                if (isAdvancedPack && currency === 'KAS') {
                   await actions.purchaseIngredientPackWithKAS(
-                    { latticeWire: 12 * q, coreShards: 5 * q, nullFragments: 2 * q, fluxCoils: 10 * q },
-                    { amountKas: 88 * q, skuId: 'minecore:shop:node-pack-advanced' },
+                    {
+                      latticeWire: 12 * q,
+                      coreShards: 5 * q,
+                      nullFragments: 2 * q,
+                      fluxCoils: 10 * q,
+                      quantumAttuners: 4 * q,
+                      voidglassFilaments: 3 * q,
+                    },
+                    { amountKas: 88 * q, skuId: 'minecore:shop:reactor-pack-advanced' },
+                  );
+                }
+                if (isAdvancedPack && currency === 'KREX') {
+                  await actions.purchaseIngredientPackWithKREX(
+                    {
+                      latticeWire: 12 * q,
+                      coreShards: 5 * q,
+                      nullFragments: 2 * q,
+                      fluxCoils: 10 * q,
+                      quantumAttuners: 4 * q,
+                      voidglassFilaments: 3 * q,
+                    },
+                    { amountKrex: 74 * q, skuId: 'minecore:shop:reactor-pack-advanced:krex' },
                   );
                 }
                 if (itemId === 'power-topup' && currency === 'KAS') {

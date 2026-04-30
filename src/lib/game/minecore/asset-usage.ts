@@ -339,7 +339,7 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
     );
     const owned = state.owned.nodes[id] ?? 0;
     if (assigned > owned) {
-      return `Not enough Nodes (${assigned} on plants vs ${owned} owned for this type). Craft in Build or unlink elsewhere.`;
+      return `Not enough reactors (${assigned} on plants vs ${owned} owned for this type). Craft in Build or unlink elsewhere.`;
     }
   }
 

@@ -6,9 +6,27 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
-import { CALC_INGREDIENT_KAS } from '@/lib/game/minecore/calculator';
+import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_KREX, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
+
+const ENERGY_CELLS_SHOP_IMAGE =
+  'https://chatgpt.com/backend-api/estuary/content?id=file_00000000ed7c7243b07f0725d59a4a3b&ts=493761&p=fs&cid=1&sig=7c0e575dc68b2c9a2b2f0066c274dac99578872d82c5b61ceea9b9d7c554ce31&v=0';
+
+function shopIngredientPriceOptions(
+  ingredient: MinecoreIngredient,
+  getKasPriceAfterDiscount: (unitPriceKas: number) => number,
+) {
+  const base = CALC_INGREDIENT_KAS[ingredient];
+  const out: { currency: GameItemCurrency; unitPrice: number; originalUnitPrice?: number; disabled?: boolean }[] = [
+    { currency: 'KAS', unitPrice: getKasPriceAfterDiscount(base), originalUnitPrice: base },
+  ];
+  const kx = CALC_INGREDIENT_KREX[ingredient];
+  if (kx != null) out.push({ currency: 'KREX', unitPrice: kx });
+  const gd = CALC_INGREDIENT_GRID[ingredient];
+  if (gd != null) out.push({ currency: 'GRID', unitPrice: gd });
+  return out;
+}
 
 export function ShopPanel(props: {
   ingredients: MinecoreState['ingredients'];
@@ -35,10 +53,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
           description="Basic crystal substrate used in fabrication."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(0.5), originalUnitPrice: 0.5 },
-            { currency: 'KREX', unitPrice: 0.5 },
-          ]}
+          priceOptions={shopIngredientPriceOptions('crystalDust', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'crystalDust', currency, quantity })}
@@ -59,10 +74,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_6d286f563d3647e1bffa064743a964dc~mv2.jpg"
           description="Structural plates for rigs and modules."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2), originalUnitPrice: 2 },
-            { currency: 'KREX', unitPrice: 1.2 },
-          ]}
+          priceOptions={shopIngredientPriceOptions('alloyPlates', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'alloyPlates', currency, quantity })}
@@ -83,11 +95,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
           description="Control mesh for machine interfaces."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1.5), originalUnitPrice: 1.5 },
-            { currency: 'KREX', unitPrice: 1.0 },
-            { currency: 'GRID', unitPrice: 0.4 },
-          ]}
+          priceOptions={shopIngredientPriceOptions('circuitMesh', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'circuitMesh', currency, quantity })}
@@ -106,13 +114,9 @@ export function ShopPanel(props: {
           key="energyCells"
           title="Energy Cells"
           category="Ingredient"
-          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          imageSrc={ENERGY_CELLS_SHOP_IMAGE}
           description="Compact energy units used in power systems."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(3), originalUnitPrice: 3 },
-            { currency: 'KREX', unitPrice: 2.5 },
-            { currency: 'GRID', unitPrice: 0.3 },
-          ]}
+          priceOptions={shopIngredientPriceOptions('energyCells', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'energyCells', currency, quantity })}
@@ -133,10 +137,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
           description="Used in mid-tier machines, Flux Arrays, and Regen Coils."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(1.2), originalUnitPrice: 1.2 },
-            { currency: 'KREX', unitPrice: 1.0 },
-          ]}
+          priceOptions={shopIngredientPriceOptions('fluxCoils', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'fluxCoils', currency, quantity })}
@@ -148,7 +149,7 @@ export function ShopPanel(props: {
       title: 'Lattice Wire',
       category: 'Ingredient',
       description: 'Structured conductor mesh for orbit-class hardware.',
-      baseKasPrice: 2.5,
+      baseKasPrice: CALC_INGREDIENT_KAS.latticeWire,
       type: 'ingredient' as const,
       render: () => (
         <GameItemCard
@@ -156,14 +157,95 @@ export function ShopPanel(props: {
           title="Lattice Wire"
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
-          description="Required for Orbit Siphon, Void Core Cell, and Hash Buffer crafts."
-          priceOptions={[
-            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(2.5), originalUnitPrice: 2.5 },
-            { currency: 'KREX', unitPrice: 2.0 },
-          ]}
+          description="Required for Orbit Siphon, Void Core Cell, reactor cores, and Hash Buffer crafts."
+          priceOptions={shopIngredientPriceOptions('latticeWire', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'latticeWire', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'helixStabilizers',
+      title: 'Helix Stabilizers',
+      category: 'Ingredient',
+      description: 'Twin-helix braces that tame reactor magnetic drift in the Minecore yards.',
+      baseKasPrice: CALC_INGREDIENT_KAS.helixStabilizers,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="helixStabilizers"
+          title="Helix Stabilizers"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg"
+          description="Used for Neon-tier reactors, Prismatic assemblies, and the Stellar Forge line."
+          priceOptions={shopIngredientPriceOptions('helixStabilizers', props.getKasPriceAfterDiscount)}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'helixStabilizers', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'plasmaConduits',
+      title: 'Plasma Conduits',
+      category: 'Ingredient',
+      description: 'Ribbon channels that route arc plasma without cooking the bus bars.',
+      baseKasPrice: CALC_INGREDIENT_KAS.plasmaConduits,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="plasmaConduits"
+          title="Plasma Conduits"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg"
+          description="Key feedstock for Arc reactors and high-density containment stacks."
+          priceOptions={shopIngredientPriceOptions('plasmaConduits', props.getKasPriceAfterDiscount)}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'plasmaConduits', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'quantumAttuners',
+      title: 'Quantum Attuners',
+      category: 'Ingredient',
+      description: 'Cryo-tuned resonators that lock chaotic hash-energy into clean lattice modes.',
+      baseKasPrice: CALC_INGREDIENT_KAS.quantumAttuners,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="quantumAttuners"
+          title="Quantum Attuners"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
+          description="Critical for Nexus reactors, advanced bundles, and anomaly-hardened sinks."
+          priceOptions={shopIngredientPriceOptions('quantumAttuners', props.getKasPriceAfterDiscount)}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'quantumAttuners', currency, quantity })}
+        />
+      ),
+    },
+    {
+      id: 'voidglassFilaments',
+      title: 'Voidglass Filaments',
+      category: 'Ingredient',
+      description: 'Hair-thin strands tempered in null-space — they glow when the grid complains.',
+      baseKasPrice: CALC_INGREDIENT_KAS.voidglassFilaments,
+      type: 'ingredient' as const,
+      render: () => (
+        <GameItemCard
+          key="voidglassFilaments"
+          title="Voidglass Filaments"
+          category="Ingredient"
+          imageSrc="https://static.wixstatic.com/media/de4185_2745d6b902274187b11a8f07356c0c92~mv2.jpg"
+          description="Feeds Stellar Forge blueprints and other void-touched high-power crafts."
+          priceOptions={shopIngredientPriceOptions('voidglassFilaments', props.getKasPriceAfterDiscount)}
+          quantitySelector={{ min: 1, max: 999 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'voidglassFilaments', currency, quantity })}
         />
       ),
     },
@@ -181,13 +263,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
           description="Dense crystalline shards for orbit-class rigs and deep batteries."
-          priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.coreShards),
-              originalUnitPrice: CALC_INGREDIENT_KAS.coreShards,
-            },
-          ]}
+          priceOptions={shopIngredientPriceOptions('coreShards', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coreShards', currency, quantity })}
@@ -208,13 +284,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
           description="Thermal transfer gel for Flux Arrays and cooling modules."
-          priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.coolingGel),
-              originalUnitPrice: CALC_INGREDIENT_KAS.coolingGel,
-            },
-          ]}
+          priceOptions={shopIngredientPriceOptions('coolingGel', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'coolingGel', currency, quantity })}
@@ -235,13 +305,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg"
           description="Analog resonance chips for ARIA Sensors and fusion crafts."
-          priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.ariaChips),
-              originalUnitPrice: CALC_INGREDIENT_KAS.ariaChips,
-            },
-          ]}
+          priceOptions={shopIngredientPriceOptions('ariaChips', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'ariaChips', currency, quantity })}
@@ -262,13 +326,7 @@ export function ShopPanel(props: {
           category="Ingredient"
           imageSrc="https://static.wixstatic.com/media/de4185_5fd245ec2afe4a1e9a3c495261924b99~mv2.jpg"
           description="Volatile null-state fragments for hash buffers and void tech."
-          priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(CALC_INGREDIENT_KAS.nullFragments),
-              originalUnitPrice: CALC_INGREDIENT_KAS.nullFragments,
-            },
-          ]}
+          priceOptions={shopIngredientPriceOptions('nullFragments', props.getKasPriceAfterDiscount)}
           quantitySelector={{ min: 1, max: 999 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuyIngredient({ ingredient: 'nullFragments', currency, quantity })}
@@ -276,51 +334,53 @@ export function ShopPanel(props: {
       ),
     },
     {
-      id: 'minecore-node-pack-starter',
-      title: 'Node craft pack (starter)',
+      id: 'minecore-reactor-pack-starter',
+      title: 'Reactor craft pack (starter)',
       category: 'Bundle',
-      description: 'Ingredients tuned for Flux and Lattice Node blueprints.',
+      description: 'Ingredients tuned for Arc and Neon reactor blueprints.',
       baseKasPrice: 42,
       type: 'item' as const,
       render: () => (
         <GameItemCard
-          key="minecore-node-pack-starter"
-          title="Node craft pack (starter)"
+          key="minecore-reactor-pack-starter"
+          title="Reactor craft pack (starter)"
           category="Bundle"
           imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
-          description="Circuit mesh, energy cells, and flux coils — craft Nodes in Build."
+          description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits — craft reactors in Build."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
+            { currency: 'KREX', unitPrice: 36 },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) =>
-            props.onBuy({ itemId: 'minecore-node-pack-starter', currency, quantity })
+            props.onBuy({ itemId: 'minecore-reactor-pack-starter', currency, quantity })
           }
         />
       ),
     },
     {
-      id: 'minecore-node-pack-advanced',
-      title: 'Node craft pack (advanced)',
+      id: 'minecore-reactor-pack-advanced',
+      title: 'Reactor craft pack (advanced)',
       category: 'Bundle',
-      description: 'Higher-tier ingredients for Lattice and Core Nodes.',
+      description: 'Higher-tier feedstock for Nexus reactors and the Stellar Forge line.',
       baseKasPrice: 88,
       type: 'item' as const,
       render: () => (
         <GameItemCard
-          key="minecore-node-pack-advanced"
-          title="Node craft pack (advanced)"
+          key="minecore-reactor-pack-advanced"
+          title="Reactor craft pack (advanced)"
           category="Bundle"
           imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
-          description="Lattice wire, core shards, null fragments, flux coils."
+          description="Lattice wire, shards, null fragments, flux coils, quantum attuners, and voidglass."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(88), originalUnitPrice: 88 },
+            { currency: 'KREX', unitPrice: 74 },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) =>
-            props.onBuy({ itemId: 'minecore-node-pack-advanced', currency, quantity })
+            props.onBuy({ itemId: 'minecore-reactor-pack-advanced', currency, quantity })
           }
         />
       ),

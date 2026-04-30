@@ -22,6 +22,7 @@ import {
   type PlantRollingCapBreakdown,
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { Tooltip } from '@/components/ui/Tooltip';
 import {
   canAssignBatteryToPlantSlot,
@@ -480,7 +481,7 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
         <Tooltip content="Power drawn by the rig and modules on this plant.">
           <span className="cursor-help text-rose-600 dark:text-rose-400">Consumption {props.consKw.toFixed(1)} kW</span>
         </Tooltip>
-        <Tooltip content="Max power this plant can supply: tier base, rig bus, optional Node.">
+        <Tooltip content="Max power this plant can supply: tier base, rig bus, optional reactor.">
           <span className="cursor-help text-emerald-600 dark:text-emerald-400">Max power {props.prodKw.toFixed(1)} kW</span>
         </Tooltip>
       </div>
@@ -986,7 +987,7 @@ export function PlantSlotCard(props: {
             <CheckRow
               installed={!!nodeConfig}
               label="Power"
-              value={nodeConfig?.label ?? 'Optional — tap to add a Node'}
+              value={nodeConfig?.label ?? 'Optional — tap to add a reactor'}
               badges={
                 nodeConfig ? (
                   <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-amber-900 dark:text-amber-200">
@@ -996,8 +997,8 @@ export function PlantSlotCard(props: {
               }
               tooltip={
                 nodeConfig
-                  ? `Node installed: +${nodeConfig.maxPowerKw} kW to this plant’s max power. Tap to swap or remove.`
-                  : 'Optional Node crafted in Build — raises max plant power (kW). Tap to pick.'
+                  ? `Reactor installed: +${nodeConfig.maxPowerKw} kW to this plant’s max power. Tap to swap or remove.`
+                  : 'Optional reactor crafted in Build — raises max plant power (kW). Tap to pick.'
               }
               onClick={() => setActiveModal('powerNode')}
               disabled={!canEditParts}
@@ -1180,18 +1181,23 @@ export function PlantSlotCard(props: {
             const payKrex = payKas;
             return (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                <select
+                <GameCurrencyMenu
+                  ariaLabel="Battery refill payment currency"
                   value={refillPayCurrency}
-                  onChange={(e) => setRefillPayCurrency(e.target.value as 'KAS' | 'KREX')}
-                  className="k-filter-select k-price-select h-11 w-full min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-                >
-                  <option value="KAS">
-                    {payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS (wallet)
-                  </option>
-                  <option value="KREX">
-                    {payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (L1 wallet)
-                  </option>
-                </select>
+                  onChange={(v) => setRefillPayCurrency(v as 'KAS' | 'KREX')}
+                  options={[
+                    {
+                      value: 'KAS',
+                      label: `${payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS (wallet)`,
+                    },
+                    {
+                      value: 'KREX',
+                      label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (L1 wallet)`,
+                    },
+                  ]}
+                  className="min-w-0 flex-1"
+                  buttonClassName="flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                />
                 <button
                   type="button"
                   disabled={refillSlotIndexes.length === 0}
@@ -1323,7 +1329,7 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'powerNode'}
         onClose={() => setActiveModal(null)}
-        title="Assign Node"
+        title="Assign reactor"
       >
         {modalFeedback ? (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
@@ -1331,7 +1337,7 @@ export function PlantSlotCard(props: {
           </p>
         ) : null}
         <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-          Nodes add max power (kW) at this plant. Craft them in Build. Optional — helps balance heavy rigs and modules.
+          Reactors add max power (kW) at this plant. Craft them in Build. Optional — helps balance heavy rigs and modules.
         </p>
         <ul className="space-y-2">
           {Object.values(MINECORE_POWER_NODES).map((node) => {
@@ -1355,7 +1361,7 @@ export function PlantSlotCard(props: {
                   disabledHint={
                     rowBlocked
                       ? owned <= 0
-                        ? 'Craft this Node in Build — none owned.'
+                        ? 'Craft this reactor in Build — none owned.'
                         : 'Every owned unit of this type is already on plants.'
                       : undefined
                   }
@@ -1374,8 +1380,8 @@ export function PlantSlotCard(props: {
           })}
         </ul>
         <ModalActionRow
-          title="Remove Node"
-          subtitle="Returns Node to inventory."
+          title="Remove reactor"
+          subtitle="Returns reactor to inventory."
           destructive
           disabled={!s.setup.powerNodeId}
           onClick={() => {

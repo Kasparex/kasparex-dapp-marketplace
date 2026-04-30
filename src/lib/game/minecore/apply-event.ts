@@ -183,6 +183,17 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       return rederive(s, now);
     }
 
+    case 'BuyIngredientWithGrid': {
+      const amt = Math.max(0, Math.floor(ev.amount));
+      const cost = Math.max(0, ev.gridCost);
+      if (amt <= 0 || cost <= 0) return rederive(s, now);
+      const bal = s.gridRedeemableTotal ?? 0;
+      if (bal + 1e-9 < cost) return rederive(s, now);
+      s.gridRedeemableTotal = bal - cost;
+      s.ingredients[ev.ingredient] = Math.max(0, (s.ingredients[ev.ingredient] ?? 0) + amt);
+      return rederive(s, now);
+    }
+
     case 'DeployNFT': {
       const slot = s.nftSlots?.[ev.slotIndex];
       if (!slot) return rederive(s, now);

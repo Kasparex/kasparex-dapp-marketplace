@@ -300,7 +300,7 @@ export type BatteryConfig = {
 
 export type PowerNodeConfig = {
   id: MinecorePowerNodeId;
-  /** Display name; UI line: “Nodes”. */
+  /** Display name; UI: “Reactors”. */
   label: string;
   featuredImageUrl?: string;
   /** Adds this many kW to plant max power (same units as tier base + rig bus). */
@@ -310,24 +310,38 @@ export type PowerNodeConfig = {
 export const MINECORE_POWER_NODES: Record<MinecorePowerNodeId, PowerNodeConfig> = {
   'flux-node': {
     id: 'flux-node',
-    label: 'Flux Node',
+    label: 'Arc Reactor',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg',
     maxPowerKw: 6,
   },
   'lattice-node': {
     id: 'lattice-node',
-    label: 'Lattice Node',
+    label: 'Neon Reactor',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg',
     maxPowerKw: 12,
   },
   'core-node': {
     id: 'core-node',
-    label: 'Core Node',
+    label: 'Nexus Reactor',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg',
     maxPowerKw: 20,
+  },
+  'prismatic-reactor': {
+    id: 'prismatic-reactor',
+    label: 'Prismatic Reactor',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
+    maxPowerKw: 26,
+  },
+  'stellar-forge-reactor': {
+    id: 'stellar-forge-reactor',
+    label: 'Stellar Forge Reactor',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
+    maxPowerKw: 34,
   },
 };
 
@@ -489,6 +503,10 @@ export const MINECORE_STARTER_INGREDIENTS: IngredientBag = {
   nullFragments: 0,
   fluxCoils: 0,
   latticeWire: 0,
+  helixStabilizers: 0,
+  plasmaConduits: 0,
+  quantumAttuners: 0,
+  voidglassFilaments: 0,
 };
 
 export const MINECORE_STARTER_OWNED = {
@@ -521,6 +539,8 @@ export const MINECORE_STARTER_OWNED = {
     'flux-node': 0,
     'lattice-node': 0,
     'core-node': 0,
+    'prismatic-reactor': 0,
+    'stellar-forge-reactor': 0,
   },
 } as const;
 
@@ -627,23 +647,49 @@ export const MINECORE_RECIPES: Recipe[] = [
   },
   {
     id: 'flux-node',
-    title: 'Flux Node',
+    title: 'Arc Reactor',
     kind: 'powerNode',
     outputId: 'flux-node',
-    requires: { circuitMesh: 6, energyCells: 3, fluxCoils: 2 },
+    requires: { circuitMesh: 6, energyCells: 3, fluxCoils: 2, plasmaConduits: 1 },
   },
   {
     id: 'lattice-node',
-    title: 'Lattice Node',
+    title: 'Neon Reactor',
     kind: 'powerNode',
     outputId: 'lattice-node',
-    requires: { alloyPlates: 12, latticeWire: 6, fluxCoils: 5, coreShards: 1 },
+    requires: { alloyPlates: 12, latticeWire: 6, fluxCoils: 5, coreShards: 1, helixStabilizers: 2 },
   },
   {
     id: 'core-node',
-    title: 'Core Node',
+    title: 'Nexus Reactor',
     kind: 'powerNode',
     outputId: 'core-node',
-    requires: { latticeWire: 10, nullFragments: 1, coreShards: 3, fluxCoils: 8 },
+    requires: { latticeWire: 10, nullFragments: 1, coreShards: 3, fluxCoils: 8, quantumAttuners: 2 },
+  },
+  {
+    id: 'prismatic-reactor',
+    title: 'Prismatic Reactor',
+    kind: 'powerNode',
+    outputId: 'prismatic-reactor',
+    requires: {
+      latticeWire: 8,
+      helixStabilizers: 6,
+      plasmaConduits: 4,
+      fluxCoils: 6,
+      crystalDust: 30,
+    },
+  },
+  {
+    id: 'stellar-forge-reactor',
+    title: 'Stellar Forge Reactor',
+    kind: 'powerNode',
+    outputId: 'stellar-forge-reactor',
+    requires: {
+      quantumAttuners: 5,
+      voidglassFilaments: 4,
+      coreShards: 4,
+      nullFragments: 2,
+      helixStabilizers: 10,
+    },
   },
 ];

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -285,21 +286,17 @@ export function GameItemCard(props: {
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               {options.length > 1 ? (
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="k-filter-select k-price-select h-10 w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
-                >
-                  {options.map((o) => {
+                <GameCurrencyMenu
+                  ariaLabel="Payment currency"
+                  value={String(currency)}
+                  onChange={(v) => setCurrency(v as GameItemCurrency)}
+                  options={options.map((o) => {
                     const t = (o.unitPrice ?? 0) * quantity;
                     const txt = `${t.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${o.currency}`;
-                    return (
-                      <option key={o.currency} value={o.currency} disabled={o.disabled}>
-                        {txt}
-                      </option>
-                    );
+                    return { value: o.currency, label: txt, disabled: o.disabled };
                   })}
-                </select>
+                  className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
+                />
               ) : (
                 <div className="k-control-btn h-10 w-full px-4 font-black tabular-nums sm:w-auto sm:flex-1">
                   {priceText}
