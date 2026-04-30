@@ -41,6 +41,15 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
   voidglassFilaments: 'Voidglass Filaments',
 };
 
+function ownedCountForBlueprint(state: MinecoreState, r: (typeof MINECORE_RECIPES)[number]): number {
+  const id = r.outputId;
+  if (r.kind === 'machine') return Math.max(0, Math.floor(state.owned.machines[id as MinecoreMachineId] ?? 0));
+  if (r.kind === 'battery') return Math.max(0, Math.floor(state.owned.batteries[id as MinecoreBatteryId] ?? 0));
+  if (r.kind === 'module') return Math.max(0, Math.floor(state.owned.modules[id as MinecoreModuleId] ?? 0));
+  if (r.kind === 'powerNode') return Math.max(0, Math.floor(state.owned.nodes[id as MinecorePowerNodeId] ?? 0));
+  return 0;
+}
+
 function loreForRecipe(outputId: string, kind: string): string {
   return (
     MINECORE_FABRICATION_LORE[outputId] ??
