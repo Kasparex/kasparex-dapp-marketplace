@@ -2,7 +2,7 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_DAY_MS, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import { MINECORE_DAY_MS, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
 import type { MinecoreComputeContext } from './compute-context';
 import {
   drainWaterfallRemaining,
@@ -22,16 +22,15 @@ import {
   computeMaintenanceWearRatio,
   computePlantDiamondsPer24h,
   computePlantRollingDailyCapCeiling,
+  getPlantPowerDrawFactor,
 } from './plant-economy';
 import { rollPlantRollingDailyCapIfNeeded } from './daily-cap';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Power consumption factor for the machine installed in this slot (1.0 = baseline). */
+/** Power consumption factor: machine × per-battery bus overhead (reactors add production kW to balance this). */
 export function getPlantPowerFactor(slot: PlantSlotState): number {
-  return slot.setup.machineId
-    ? (MINECORE_MACHINES[slot.setup.machineId]?.powerConsumptionFactor ?? 1)
-    : 1;
+  return getPlantPowerDrawFactor(slot);
 }
 
 /** Machine draw only - the rig sets consumption; there is no separate power-plant layer. */

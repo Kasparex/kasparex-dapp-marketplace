@@ -11,7 +11,7 @@ import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
 const ENERGY_CELLS_SHOP_IMAGE =
-  'https://chatgpt.com/backend-api/estuary/content?id=file_00000000ed7c7243b07f0725d59a4a3b&ts=493761&p=fs&cid=1&sig=7c0e575dc68b2c9a2b2f0066c274dac99578872d82c5b61ceea9b9d7c554ce31&v=0';
+  'https://static.wixstatic.com/media/de4185_2dada52dbeed41eb8ab36d1d5695fda3~mv2.png';
 
 function shopIngredientPriceOptions(
   ingredient: MinecoreIngredient,

@@ -132,6 +132,14 @@ export function FabricationPanel(props: {
                   value: `${Math.round(cfg.chargeCapacityMs / 60000)} min @ 1.0× drain`,
                   color: 'sky',
                 });
+                const od = cfg.powerDrawMultiplier ?? 1;
+                if (od > 1.001) {
+                  specifications.push({
+                    label: 'Plant bus draw',
+                    value: `×${od.toFixed(2)} vs Energy Cell baseline`,
+                    color: 'rose',
+                  });
+                }
               }
             } else if (isModule) {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];

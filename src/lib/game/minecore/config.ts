@@ -210,7 +210,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_772173d870a0427d8ad8942004d7933b~mv2.jpg',
     durationMs: 10 * 60_000,
     baseOutput: 50,
-    powerConsumptionFactor: 1.0,
+    powerConsumptionFactor: 1.35,
     powerGridContribution: 1,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 50,
@@ -222,7 +222,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg',
     durationMs: 30 * 60_000,
     baseOutput: 180,
-    powerConsumptionFactor: 1.5,
+    powerConsumptionFactor: 2.1,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 200,
@@ -234,7 +234,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
     durationMs: 60 * 60_000,
     baseOutput: 420,
-    powerConsumptionFactor: 2.5,
+    powerConsumptionFactor: 3.5,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.04,
     diamondsPer24h: 450,
@@ -246,7 +246,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
     durationMs: 6 * 60 * 60_000,
     baseOutput: 3200,
-    powerConsumptionFactor: 6.0,
+    powerConsumptionFactor: 8.2,
     powerGridContribution: 3,
     powerBudgetMultiplier: 1.1,
     diamondsPer24h: 1200,
@@ -256,7 +256,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     label: 'Magma Tap',
     durationMs: 18 * 60_000,
     baseOutput: 320,
-    powerConsumptionFactor: 1.8,
+    powerConsumptionFactor: 2.5,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.06,
     diamondsPer24h: 350,
@@ -266,7 +266,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     label: 'Orbit Siphon',
     durationMs: 90 * 60_000,
     baseOutput: 950,
-    powerConsumptionFactor: 3.2,
+    powerConsumptionFactor: 4.5,
     powerGridContribution: 4,
     powerBudgetMultiplier: 1.14,
     diamondsPer24h: 700,
@@ -296,6 +296,11 @@ export type BatteryConfig = {
    * Actual runtime = chargeCapacityMs / machine.powerConsumptionFactor.
    */
   chargeCapacityMs: number;
+  /**
+   * Multiplies rig bus draw (kW) while installed — dense packs stress the plant bus; stack across slots.
+   * 1.0 = no extra overhead.
+   */
+  powerDrawMultiplier?: number;
 };
 
 export type PowerNodeConfig = {
@@ -354,6 +359,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     efficiency: 1.0,
     powerCapacity: 0,
     chargeCapacityMs: 10 * 60_000,
+    powerDrawMultiplier: 1.0,
   },
   'battery-pack': {
     id: 'battery-pack',
@@ -363,6 +369,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     efficiency: 1.15,
     powerCapacity: 0,
     chargeCapacityMs: 60 * 60_000,
+    powerDrawMultiplier: 1.06,
   },
   'diamond-capacitor': {
     id: 'diamond-capacitor',
@@ -372,10 +379,32 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     efficiency: 1.3,
     powerCapacity: 0,
     chargeCapacityMs: 120 * 60_000,
+    powerDrawMultiplier: 1.1,
   },
-  'grid-battery': { id: 'grid-battery', label: 'Grid Battery', efficiency: 1.5, powerCapacity: 0, chargeCapacityMs: 360 * 60_000 },
-  'flux-array': { id: 'flux-array', label: 'Flux Array', efficiency: 1.12, powerCapacity: 0, chargeCapacityMs: 45 * 60_000 },
-  'void-core-cell': { id: 'void-core-cell', label: 'Void Core Cell', efficiency: 1.35, powerCapacity: 0, chargeCapacityMs: 240 * 60_000 },
+  'grid-battery': {
+    id: 'grid-battery',
+    label: 'Grid Battery',
+    efficiency: 1.5,
+    powerCapacity: 0,
+    chargeCapacityMs: 360 * 60_000,
+    powerDrawMultiplier: 1.14,
+  },
+  'flux-array': {
+    id: 'flux-array',
+    label: 'Flux Array',
+    efficiency: 1.12,
+    powerCapacity: 0,
+    chargeCapacityMs: 45 * 60_000,
+    powerDrawMultiplier: 1.08,
+  },
+  'void-core-cell': {
+    id: 'void-core-cell',
+    label: 'Void Core Cell',
+    efficiency: 1.35,
+    powerCapacity: 0,
+    chargeCapacityMs: 240 * 60_000,
+    powerDrawMultiplier: 1.16,
+  },
 };
 
 export type WorkerConfig = {

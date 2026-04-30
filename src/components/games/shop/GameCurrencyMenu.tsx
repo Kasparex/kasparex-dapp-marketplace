@@ -1,41 +1,118 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export type GameCurrencyMenuOption = { value: string; label: string; disabled?: boolean };
 
 /**
- * Stylized currency / option picker matching {@link CardsFilterBar} sort control (rounded-xl, chevron, emerald selection).
+ * Stylized currency picker; menu is portaled to `document.body` with fixed positioning so it is not clipped by
+ * parent `overflow-hidden` (e.g. {@link KxListingCard}).
  */
 export function GameCurrencyMenu(props: {
   value: string;
   onChange: (next: string) => void;
   options: GameCurrencyMenuOption[];
   ariaLabel?: string;
-  /** Dropdown aligns with button edge. */
   align?: 'left' | 'right';
   className?: string;
   buttonClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const domId = useId();
   const listboxId = `${domId}-listbox`;
 
+  const updateMenuPosition = () => {
+    const el = buttonRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const w = Math.max(r.width, 170);
+    const left = props.align === 'right' ? r.right - w : r.left;
+    setMenuPos({
+      top: r.bottom + 6,
+      left,
+      width: w,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    updateMenuPosition();
+  }, [open, props.align, props.options.length]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onScrollOrResize = () => updateMenuPosition();
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, [open]);
+
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (buttonRef.current?.contains(t)) return;
+      if (menuRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
   const current = props.options.find((o) => o.value === props.value) ?? props.options[0];
-  const alignCls = props.align === 'right' ? 'right-0' : 'left-0';
+
+  const menu =
+    open && props.options.length > 0 && menuPos && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            id={listboxId}
+            ref={menuRef}
+            role="listbox"
+            className="max-h-72 overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+            style={{
+              position: 'fixed',
+              top: menuPos.top,
+              left: menuPos.left,
+              width: menuPos.width,
+              zIndex: 100000,
+            }}
+          >
+            {props.options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                role="option"
+                aria-selected={o.value === props.value}
+                disabled={o.disabled}
+                onClick={() => {
+                  if (o.disabled) return;
+                  props.onChange(o.value);
+                  setOpen(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  o.value === props.value
+                    ? 'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                    : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
-    <div className={`relative ${props.className ?? ''}`} ref={wrapRef}>
+    <div className={`relative ${props.className ?? ''}`}>
       <button
+        ref={buttonRef}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -60,36 +137,7 @@ export function GameCurrencyMenu(props: {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-
-      {open && props.options.length > 0 ? (
-        <div
-          id={listboxId}
-          role="listbox"
-          className={`absolute z-[9999] mt-1.5 max-h-72 min-w-full overflow-auto rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 ${alignCls}`}
-        >
-          {props.options.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              role="option"
-              aria-selected={o.value === props.value}
-              disabled={o.disabled}
-              onClick={() => {
-                if (o.disabled) return;
-                props.onChange(o.value);
-                setOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                o.value === props.value
-                  ? 'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-                  : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      {menu}
     </div>
   );
 }

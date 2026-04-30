@@ -5,6 +5,7 @@ import {
   MINECORE_MAINTENANCE_PERIOD_MS,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
   MINECORE_MODULES,
+  MINECORE_BATTERIES,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_MAINTENANCE_MULT,
   MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
@@ -20,10 +21,22 @@ import type { MinecoreState, PlantSlotState } from './types';
 import { hasInstalledBattery } from './battery-utils';
 import { computeMinecoreDailyCapBonusForPlantCrew, minecoreDeckBenefits } from './nft-deck-benefits';
 
-function plantPowerFactor(slot: PlantSlotState): number {
-  return slot.setup.machineId
+/** Machine draw × installed battery bus overhead — used for kW balance, efficiency, and battery drain rate. */
+export function getPlantPowerDrawFactor(slot: PlantSlotState): number {
+  const machineFactor = slot.setup.machineId
     ? (MINECORE_MACHINES[slot.setup.machineId]?.powerConsumptionFactor ?? 1)
     : 1;
+  let batteryOverhead = 1;
+  for (const bid of slot.setup.batteryIds ?? []) {
+    if (bid == null) continue;
+    const m = MINECORE_BATTERIES[bid]?.powerDrawMultiplier;
+    if (m != null && Number.isFinite(m) && m > 0) batteryOverhead *= m;
+  }
+  return machineFactor * batteryOverhead;
+}
+
+function plantPowerFactor(slot: PlantSlotState): number {
+  return getPlantPowerDrawFactor(slot);
 }
 
 /** UTC calendar day for daily redeem caps. */

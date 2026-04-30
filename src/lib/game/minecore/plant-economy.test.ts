@@ -131,6 +131,31 @@ function makeSlot(
   assert.ok(computeConsumptionKw(cooled) < computeConsumptionKw(plain));
 }
 
+// Higher-tier battery adds bus draw overhead vs Energy Cell (reactors / cooling offset this)
+{
+  const cell = makeSlot({
+    type: 'premium',
+    setup: {
+      machineId: 'pulse-drill',
+      batteryIds: ['energy-cell', null],
+      workerNftDeckSlotIndices: [0],
+      moduleIds: [],
+      boostId: 'none',
+    },
+  });
+  const pack = makeSlot({
+    type: 'premium',
+    setup: {
+      machineId: 'pulse-drill',
+      batteryIds: ['battery-pack', null],
+      workerNftDeckSlotIndices: [0],
+      moduleIds: [],
+      boostId: 'none',
+    },
+  });
+  assert.ok(computeConsumptionKw(pack) > computeConsumptionKw(cell));
+}
+
 // Offline: after battery depletes, diamond accrual does not keep growing
 {
   const start = 10_000;
@@ -145,7 +170,7 @@ function makeSlot(
       moduleIds: [],
       boostId: 'none',
     },
-    batterySlotChargeMs: [60_000],
+    batterySlotChargeMs: [90 * 60_000],
     batterySnapshotAt: start,
     cycle: {
       startAtMs: start,
@@ -160,8 +185,8 @@ function makeSlot(
     ...mcWorker,
     plantSlots: mcWorker.plantSlots.map((p, i) => (i === 0 ? slot : p)),
   };
-  const tAfterDead = start + 120_000;
-  const tLater = start + 500_000;
+  const tAfterDead = start + 5_000_000;
+  const tLater = start + 8_000_000;
   const rawAfter = computeRawLiveDiamonds(state, slot, tAfterDead);
   const rawLater = computeRawLiveDiamonds(state, slot, tLater);
   assert.ok(rawAfter > 0, 'partial yield before/at depletion');
