@@ -27,7 +27,9 @@ function minecoreWithDeployedWorker(assignments: 1 | 2): MinecoreState {
 
 const mcWorker = minecoreWithDeployedWorker(1);
 
-function makeSlot(partial: Partial<PlantSlotState> & { setup: Partial<PlantSlotState['setup']> }): PlantSlotState {
+function makeSlot(
+  partial: Omit<Partial<PlantSlotState>, 'setup'> & { setup: Partial<PlantSlotState['setup']> },
+): PlantSlotState {
   const type = partial.type ?? template.type;
   const n = getPlantBatterySlotCount(type);
   const raw = partial.setup.batteryIds ?? template.setup.batteryIds;
