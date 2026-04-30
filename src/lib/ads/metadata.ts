@@ -84,7 +84,7 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   if (!data || typeof data !== 'object') return null;
   const o = data as Record<string, unknown>;
   if (o.v !== 1) return null;
-  const slotId = o.slotId;
+  const slotIdRaw = o.slotId;
   const payerL1 = o.payerL1;
   const title = o.title;
   const link = o.link;
@@ -92,7 +92,10 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   const priceKas = o.priceKas;
   const slotIndex = o.slotIndex;
   const image = o.image;
-  if (typeof slotId !== 'string' || !isValidSlotId(slotId)) return null;
+  if (typeof slotIdRaw !== 'string' || !isValidSlotId(slotIdRaw)) return null;
+  const canonicalSlotId = (
+    slotIdRaw === 'GAMES_PLAY_RAIL_RIGHT' ? 'HALO_GAMES_RIGHT' : slotIdRaw
+  ) as AdSlotId;
   if (typeof payerL1 !== 'string' || !payerL1.startsWith('kaspa:')) return null;
   if (typeof title !== 'string' || !title.trim()) return null;
   if (typeof link !== 'string' || !link.trim()) return null;
