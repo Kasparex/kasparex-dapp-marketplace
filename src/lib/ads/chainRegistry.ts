@@ -330,7 +330,7 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
     return { ok: false, error: 'txHash and metadataCid required' };
   }
 
-  const tx = await getRestTransactionById(txHash);
+  const tx = await getRestTransactionById(txHash, { maxAttempts: 9, delayMs: 300 });
   if (!tx) {
     return { ok: false, error: 'Transaction not found' };
   }

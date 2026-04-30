@@ -356,9 +356,16 @@ export function CreateAdWizard({
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
+      // Wallet work is done — show success immediately. Verification hits public REST (often lags after broadcast).
+      setPhase('success');
+      setVerifyNote('Checking transaction on the network…');
+      setIsSubmitting(false);
+      onSuccess?.();
+      setSyncAdsAfterPayment(true);
+
       let verifyOk = false;
       let lastVerifyMessage: string | null = null;
-      const maxVerifyAttempts = 10;
+      const maxVerifyAttempts = 5;
       for (let attempt = 0; attempt < maxVerifyAttempts; attempt++) {
         try {
           const vr = await fetch('/api/ads/verify', {
@@ -382,8 +389,8 @@ export function CreateAdWizard({
           }
           lastVerifyMessage =
             attempt < maxVerifyAttempts - 1
-              ? 'Waiting for the network indexer…'
-              : 'Transaction not found after several tries. If payment succeeded, check KasWare or a block explorer; the Ads list updates within a few minutes.';
+              ? 'Waiting for the public indexer…'
+              : 'We could not load this transaction from Kaspa REST yet. If payment succeeded in KasWare, the Ads list usually updates within a few minutes — refresh the Ads page or try again later.';
         } catch {
           lastVerifyMessage =
             attempt < maxVerifyAttempts - 1
@@ -392,14 +399,10 @@ export function CreateAdWizard({
         }
         if (verifyOk) break;
         if (attempt < maxVerifyAttempts - 1) {
-          await new Promise((r) => setTimeout(r, 1400 + attempt * 400));
+          await new Promise((r) => setTimeout(r, 2800));
         }
       }
       setVerifyNote(lastVerifyMessage);
-
-      setPhase('success');
-      onSuccess?.();
-      setSyncAdsAfterPayment(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Transaction failed');
     } finally {
@@ -860,7 +863,15 @@ export function CreateAdWizard({
                     <p className="text-[10px] text-zinc-500 dark:text-zinc-500 mt-2 break-all">Metadata: {metadataCid}</p>
                   )}
                   {verifyNote && (
-                    <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 text-left">{verifyNote}</p>
+                    <p
+                      className={`text-sm mt-3 text-left ${
+                        verifyNote.startsWith('Checking transaction')
+                          ? 'text-zinc-500 dark:text-zinc-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                      }`}
+                    >
+                      {verifyNote}
+                    </p>
                   )}
                   <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-3 text-left">
                     KasWare may label the payload as unsupported in the decode view; the transaction still carries the Kasparex

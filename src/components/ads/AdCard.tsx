@@ -67,17 +67,21 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
   const featured = ad.featuredHighlight === true;
   const promoTip = ad.promoTooltip?.trim();
 
-  const featuredShell = featured ? featuredAccentForAd(ad.id).frameClass : '';
+  const accent = featured ? featuredAccentForAd(ad.id) : null;
+  const featuredShell = accent?.frameClass ?? '';
+
   const shellClass = embedded
     ? featured
-      ? `rounded-xl bg-transparent ${featuredShell}`
+      ? `rounded-xl bg-zinc-950/30 dark:bg-zinc-950/40 ${featuredShell}`
       : 'rounded-xl bg-transparent'
     : featured
       ? `rounded-xl bg-white dark:bg-zinc-900/50 ${featuredShell} hover:brightness-[1.02] dark:hover:brightness-110`
       : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:border-pink-500 hover:shadow-xl hover:shadow-pink-500/10';
 
   return (
-    <div className={`group overflow-hidden transition-all duration-300 ${shellClass}`}>
+    <div
+      className={`group transition-all duration-300 ${shellClass} ${featured ? '' : 'overflow-hidden'}`}
+    >
       {promoTip ? (
         <Tooltip content={promoTip}>
           <Link
