@@ -27,6 +27,7 @@ import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
+import type { MinecoreIngredient } from '@/lib/game/minecore/types';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
@@ -370,6 +371,13 @@ export function useMinecore() {
     [dispatch]
   );
 
+  const installPowerNode = useCallback(
+    (slotIndex: number, id: PlantSlotState['setup']['powerNodeId']) => {
+      dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'powerNode', id } });
+    },
+    [dispatch],
+  );
+
   const assignPlantWorkerNftDeck = useCallback(
     (slotIndex: number, deckSlotIndex: number | null, workerSlotPosition = 0) => {
       dispatch({
@@ -638,6 +646,26 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
+  const purchaseIngredientPackWithKAS = useCallback(
+    async (pack: Partial<Record<MinecoreIngredient, number>>, opts: { amountKas: number; skuId: string }) => {
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(opts.amountKas),
+        skuId: opts.skuId,
+        purchaseType: 'other',
+      });
+      if (!paid.ok) return false;
+      const at = Date.now();
+      for (const [k, v] of Object.entries(pack)) {
+        const n = Math.max(0, Math.floor(Number(v) || 0));
+        if (n > 0) {
+          dispatch({ type: 'AddIngredients', at, ingredient: k as MinecoreIngredient, amount: n });
+        }
+      }
+      return true;
+    },
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
   return {
     state: derived,
     slottedMetadata,
@@ -660,6 +688,7 @@ export function useMinecore() {
       purchaseNftDeckSlot,
       installMachine,
       installBattery,
+      installPowerNode,
       assignPlantWorkerNftDeck,
       setModules,
       setBoost,
@@ -678,6 +707,7 @@ export function useMinecore() {
       removeNFT,
       setAutomation,
       purchaseIngredientWithKAS,
+      purchaseIngredientPackWithKAS,
       refillBattery,
       refillBatteryWithKAS,
       rechargePlant,

@@ -162,24 +162,23 @@ export function MinecoreDashboard(_props: {
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="flex w-full min-w-0 flex-col items-end gap-0.5 tabular-nums">
-            <span className="flex items-baseline justify-end gap-1">
-              <span className="text-xl font-black leading-none text-amber-400 dark:text-amber-300">
-                {diamondsDisplayTotal.toLocaleString()}
-              </span>
-              <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-              <span className="text-xl font-black leading-none text-amber-400 dark:text-amber-300">
-                {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}
-              </span>
+          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
+            <span className="text-amber-400 dark:text-amber-300">{diamondsDisplayTotal.toLocaleString()}</span>
+            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}
             </span>
-            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-              ~
-              <span className="font-black text-amber-500 dark:text-amber-400">
-                {gridRedeemEstimateToday.toLocaleString()}
-              </span>{' '}
-              GRID today (est.)
-            </span>
+            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
           </span>
+        ),
+        subValue: (
+          <>
+            ~
+            <span className="font-black text-amber-500 dark:text-amber-400">
+              {gridRedeemEstimateToday.toLocaleString()}
+            </span>{' '}
+            GRID today (est.)
+          </>
         ),
         description: 'In-game currency',
         tooltip: 'Diamonds you earn in plants; refine them into redeem points. Opens Redeem.',
@@ -416,6 +415,9 @@ export function MinecoreDashboard(_props: {
                         case 'crewWorkerNftDeck':
                           actions.assignPlantWorkerNftDeck(slotIndex, id as number | null, minerPosition ?? 0);
                           break;
+                        case 'powerNode':
+                          actions.installPowerNode(slotIndex, id);
+                          break;
                         case 'modules':
                           actions.setModules(slotIndex, id);
                           break;
@@ -540,6 +542,20 @@ export function MinecoreDashboard(_props: {
                 }
               }}
               onBuy={async ({ itemId, currency, quantity }) => {
+                if (itemId === 'minecore-node-pack-starter' && currency === 'KAS') {
+                  const q = Math.max(1, Math.floor(quantity));
+                  await actions.purchaseIngredientPackWithKAS(
+                    { circuitMesh: 14 * q, energyCells: 9 * q, fluxCoils: 6 * q },
+                    { amountKas: 42 * q, skuId: 'minecore:shop:node-pack-starter' },
+                  );
+                }
+                if (itemId === 'minecore-node-pack-advanced' && currency === 'KAS') {
+                  const q = Math.max(1, Math.floor(quantity));
+                  await actions.purchaseIngredientPackWithKAS(
+                    { latticeWire: 12 * q, coreShards: 5 * q, nullFragments: 2 * q, fluxCoils: 10 * q },
+                    { amountKas: 88 * q, skuId: 'minecore:shop:node-pack-advanced' },
+                  );
+                }
                 if (itemId === 'power-topup' && currency === 'KAS') {
                   const p0 = state.plantSlots[0];
                   const n = p0 ? getPlantBatterySlotCount(p0.type) : 1;

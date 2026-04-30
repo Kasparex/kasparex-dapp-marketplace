@@ -4,6 +4,7 @@ import type {
   MinecoreBoostId,
   MinecoreMachineId,
   MinecoreModuleId,
+  MinecorePowerNodeId,
   MinecoreWorkerId,
   PlantType,
 } from './types';
@@ -297,6 +298,39 @@ export type BatteryConfig = {
   chargeCapacityMs: number;
 };
 
+export type PowerNodeConfig = {
+  id: MinecorePowerNodeId;
+  /** Display name; UI line: “Nodes”. */
+  label: string;
+  featuredImageUrl?: string;
+  /** Adds this many kW to plant max power (same units as tier base + rig bus). */
+  maxPowerKw: number;
+};
+
+export const MINECORE_POWER_NODES: Record<MinecorePowerNodeId, PowerNodeConfig> = {
+  'flux-node': {
+    id: 'flux-node',
+    label: 'Flux Node',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg',
+    maxPowerKw: 6,
+  },
+  'lattice-node': {
+    id: 'lattice-node',
+    label: 'Lattice Node',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg',
+    maxPowerKw: 12,
+  },
+  'core-node': {
+    id: 'core-node',
+    label: 'Core Node',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg',
+    maxPowerKw: 20,
+  },
+};
+
 export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'energy-cell': {
     id: 'energy-cell',
@@ -483,6 +517,11 @@ export const MINECORE_STARTER_OWNED = {
     'regen-coil': 0,
     'hash-buffer': 0,
   },
+  nodes: {
+    'flux-node': 0,
+    'lattice-node': 0,
+    'core-node': 0,
+  },
 } as const;
 
 export type RecipeId = string;
@@ -585,5 +624,26 @@ export const MINECORE_RECIPES: Recipe[] = [
     kind: 'module',
     outputId: 'hash-buffer',
     requires: { latticeWire: 6, circuitMesh: 10, crystalDust: 40 },
+  },
+  {
+    id: 'flux-node',
+    title: 'Flux Node',
+    kind: 'powerNode',
+    outputId: 'flux-node',
+    requires: { circuitMesh: 6, energyCells: 3, fluxCoils: 2 },
+  },
+  {
+    id: 'lattice-node',
+    title: 'Lattice Node',
+    kind: 'powerNode',
+    outputId: 'lattice-node',
+    requires: { alloyPlates: 12, latticeWire: 6, fluxCoils: 5, coreShards: 1 },
+  },
+  {
+    id: 'core-node',
+    title: 'Core Node',
+    kind: 'powerNode',
+    outputId: 'core-node',
+    requires: { latticeWire: 10, nullFragments: 1, coreShards: 3, fluxCoils: 8 },
   },
 ];

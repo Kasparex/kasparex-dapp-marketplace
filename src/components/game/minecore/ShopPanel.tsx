@@ -276,6 +276,56 @@ export function ShopPanel(props: {
       ),
     },
     {
+      id: 'minecore-node-pack-starter',
+      title: 'Node craft pack (starter)',
+      category: 'Bundle',
+      description: 'Ingredients tuned for Flux and Lattice Node blueprints.',
+      baseKasPrice: 42,
+      type: 'item' as const,
+      render: () => (
+        <GameItemCard
+          key="minecore-node-pack-starter"
+          title="Node craft pack (starter)"
+          category="Bundle"
+          imageSrc="https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg"
+          description="Circuit mesh, energy cells, and flux coils — craft Nodes in Build."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
+          ]}
+          quantitySelector={{ min: 1, max: 99 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) =>
+            props.onBuy({ itemId: 'minecore-node-pack-starter', currency, quantity })
+          }
+        />
+      ),
+    },
+    {
+      id: 'minecore-node-pack-advanced',
+      title: 'Node craft pack (advanced)',
+      category: 'Bundle',
+      description: 'Higher-tier ingredients for Lattice and Core Nodes.',
+      baseKasPrice: 88,
+      type: 'item' as const,
+      render: () => (
+        <GameItemCard
+          key="minecore-node-pack-advanced"
+          title="Node craft pack (advanced)"
+          category="Bundle"
+          imageSrc="https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg"
+          description="Lattice wire, core shards, null fragments, flux coils."
+          priceOptions={[
+            { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(88), originalUnitPrice: 88 },
+          ]}
+          quantitySelector={{ min: 1, max: 99 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) =>
+            props.onBuy({ itemId: 'minecore-node-pack-advanced', currency, quantity })
+          }
+        />
+      ),
+    },
+    {
       id: 'kas-overclock',
       title: 'KAS Overclock',
       category: 'Boost',

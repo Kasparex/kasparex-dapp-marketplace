@@ -9,6 +9,7 @@ import {
   MINECORE_PLANT_MAINTENANCE_MULT,
   MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_PRODUCTION_KW,
+  MINECORE_POWER_NODES,
   MINECORE_POWER_CRITICAL_RATIO,
 } from './config';
 import type { MiningSlot } from '@/lib/game/engine';
@@ -49,7 +50,11 @@ export function computeProductionKw(slot: PlantSlotState): number {
   const plant = MINECORE_PLANT_BASE_PRODUCTION_KW[slot.type] ?? MINECORE_PLANT_BASE_PRODUCTION_KW.standard;
   const m = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const grid = m?.powerGridContribution ?? 0;
-  return plant + grid * MINECORE_KW_SCALE;
+  const nodeKw =
+    slot.setup.powerNodeId != null
+      ? (MINECORE_POWER_NODES[slot.setup.powerNodeId]?.maxPowerKw ?? 0)
+      : 0;
+  return plant + grid * MINECORE_KW_SCALE + nodeKw;
 }
 
 export function computeConsumptionKw(slot: PlantSlotState): number {

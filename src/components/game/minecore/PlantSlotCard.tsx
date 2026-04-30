@@ -28,6 +28,8 @@ import {
   countBatteriesAssigned,
   countMachinesAssigned,
   countMachinesAssignedExcept,
+  countPowerNodesAssigned,
+  countPowerNodesAssignedExcept,
   countModuleAssignments,
   countWorkerNftDeckAssignmentsExcept,
   displayAssignedCount,
@@ -42,6 +44,7 @@ import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
   MINECORE_MODULES,
+  MINECORE_POWER_NODES,
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_PRESETS,
@@ -290,37 +293,39 @@ function DailyCapBar(props: {
   const displayMined = props.forceZeroDisplay ? 0 : Math.floor(props.mined);
   const displayCap = props.forceZeroDisplay ? 0 : Math.max(0, Math.floor(props.cap));
 
-  const tip = props.forceZeroDisplay
-    ? 'Finish machine, battery, and crew setup to track diamonds against this plant’s 24h limit.'
-    : 'How much of this plant’s rolling 24h diamond budget you’ve used.';
+  const countdownBlock = showCountdown ? (
+    <Tooltip content="Time left until this plant’s 24h diamond budget resets.">
+      <span
+        className={`font-mono text-lg font-black tabular-nums tracking-tight sm:text-xl ${
+          props.forceZeroDisplay ? 'text-zinc-500 dark:text-zinc-500' : 'text-sky-600 dark:text-sky-300'
+        }`}
+      >
+        {formatCapResetCountdown(props.remainingMs)}
+      </span>
+    </Tooltip>
+  ) : null;
 
-  const inner = (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-        <div className="min-w-0 shrink-0">
-          {showCountdown ? (
-            <span
-              className={`font-mono text-lg font-black tabular-nums tracking-tight sm:text-xl ${
-                props.forceZeroDisplay
-                  ? 'text-zinc-500 dark:text-zinc-500'
-                  : 'text-sky-600 dark:text-sky-300'
-              }`}
-            >
-              {formatCapResetCountdown(props.remainingMs)}
-            </span>
-          ) : null}
-        </div>
-        <div className="min-w-0 flex-1 text-right">
-          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
-            <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
-            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
-            <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
-            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
-          </span>
-        </div>
-      </div>
-      {props.capStack ? (
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] leading-snug text-zinc-600 dark:text-zinc-400">
+  const counterBlock = (
+    <Tooltip
+      content={
+        props.forceZeroDisplay
+          ? 'Complete setup to see your rolling cap and mined total.'
+          : 'Diamonds mined this window versus your current 24h cap.'
+      }
+    >
+      <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl cursor-help">
+        <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
+        <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+        <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
+        <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
+      </span>
+    </Tooltip>
+  );
+
+  const capStackBlock =
+    props.capStack != null ? (
+      <Tooltip content="Pieces that build your rolling 24h diamond limit for this plant.">
+        <div className="flex cursor-help flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] leading-snug text-zinc-600 dark:text-zinc-400">
           <span className="font-bold text-zinc-500 dark:text-zinc-400">Cap stack</span>
           <span className="tabular-nums">
             <span className="text-emerald-700 dark:text-emerald-400">Plant +{props.capStack.plantBase}</span>
@@ -340,26 +345,41 @@ function DailyCapBar(props: {
             ) : null}
           </span>
         </div>
-      ) : null}
-      {props.forceZeroDisplay ? null : (
-        <>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-            <div
-              className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
-              style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
-            />
-          </div>
-          {props.capReached ? (
-            <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              Rolling 24h cap reached for this plant. Refine in Redeem, or wait for the next window.
-            </div>
-          ) : null}
-        </>
-      )}
+      </Tooltip>
+    ) : null;
+
+  const progressBlock =
+    props.forceZeroDisplay ? null : (
+      <Tooltip content="How much of this 24h diamond budget you have already used.">
+        <div className="h-2.5 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+          <div
+            className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
+            style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
+          />
+        </div>
+      </Tooltip>
+    );
+
+  const capReachedBlock =
+    !props.forceZeroDisplay && props.capReached ? (
+      <Tooltip content="Wait for the timer to start a new 24h window, or refine diamonds in Redeem.">
+        <div className="cursor-help text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+          Rolling 24h cap reached for this plant. Refine in Redeem, or wait for the next window.
+        </div>
+      </Tooltip>
+    ) : null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-zinc-100 pt-2 dark:border-zinc-800">
+        <div className="min-w-0 shrink-0">{countdownBlock}</div>
+        <div className="min-w-0 flex-1 text-right">{counterBlock}</div>
+      </div>
+      {capStackBlock}
+      {progressBlock}
+      {capReachedBlock}
     </div>
   );
-
-  return <Tooltip content={tip}>{inner}</Tooltip>;
 }
 
 /** Same capsule chrome as ModalPartRow, for Remove / secondary actions (no Owned/In use columns). */
@@ -448,7 +468,7 @@ function tierBatteryFillCls(ratio: number): string {
   return 'bg-emerald-500';
 }
 
-/** Consumption vs Production sharing one track; Balance label uses plant power capacity story. */
+/** Consumption vs max-power sharing one track; Balance label uses surplus kW story. */
 function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: number; effGridPct: number }) {
   const sum = props.prodKw + props.consKw;
   const denom = sum > 1e-9 ? sum : 1;
@@ -457,29 +477,43 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
   const inner = (
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-[10px] text-zinc-700 dark:text-zinc-200">
-        <span className="text-rose-600 dark:text-rose-400">Consumption {props.consKw.toFixed(1)} kW</span>
-        <span className="text-emerald-600 dark:text-emerald-400">Production {props.prodKw.toFixed(1)} kW</span>
+        <Tooltip content="Power drawn by the rig and modules on this plant.">
+          <span className="cursor-help text-rose-600 dark:text-rose-400">Consumption {props.consKw.toFixed(1)} kW</span>
+        </Tooltip>
+        <Tooltip content="Max power this plant can supply: tier base, rig bus, optional Node.">
+          <span className="cursor-help text-emerald-600 dark:text-emerald-400">Max power {props.prodKw.toFixed(1)} kW</span>
+        </Tooltip>
       </div>
-      <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-        <div className="h-full bg-rose-500 transition-[width] duration-500" style={{ width: `${consFrac * 100}%` }} title="Consumption" />
-        <div className="h-full bg-emerald-500 transition-[width] duration-500" style={{ width: `${prodFrac * 100}%` }} title="Production" />
-      </div>
+      <Tooltip content="Demand (rose) vs max supply (green) on the same scale.">
+        <div className="h-2.5 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+          <div className="flex h-full w-full">
+            <div
+              className="h-full flex-none bg-rose-500 transition-[width] duration-500"
+              style={{ width: `${consFrac * 100}%` }}
+            />
+            <div
+              className="h-full flex-none bg-emerald-500 transition-[width] duration-500"
+              style={{ width: `${prodFrac * 100}%` }}
+            />
+          </div>
+        </div>
+      </Tooltip>
       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold">
-        <span className={props.balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}>
-          Balance {props.balKw >= 0 ? '+' : ''}
-          {props.balKw.toFixed(1)} kW
-        </span>
-        <span className="text-zinc-600 dark:text-zinc-300">Grid eff {props.effGridPct.toFixed(0)}%</span>
+        <Tooltip content="Max power minus consumption — headroom for efficiency.">
+          <span
+            className={`cursor-help ${props.balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}
+          >
+            Balance {props.balKw >= 0 ? '+' : ''}
+            {props.balKw.toFixed(1)} kW
+          </span>
+        </Tooltip>
+        <Tooltip content="Nominal grid efficiency before maintenance wear.">
+          <span className="cursor-help text-zinc-600 dark:text-zinc-300">Grid eff {props.effGridPct.toFixed(0)}%</span>
+        </Tooltip>
       </div>
     </div>
   );
-  return (
-    <Tooltip
-      content={`Plant power grid: consumption draws from the machine (and modules); production is plant tier + rig bus. Balance is surplus to feed efficiency. Grid efficiency ${props.effGridPct.toFixed(0)}% (before maintenance wear).`}
-    >
-      {inner}
-    </Tooltip>
-  );
+  return inner;
 }
 
 /** One mini battery silhouette per slot — empty slots inactive; click installs or opens refill modal from parent. */
@@ -607,7 +641,7 @@ export function PlantSlotCard(props: {
   const now = props.now;
   const ctx = props.minecoreComputeContext;
 
-  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'preset' | null>(null);
+  const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
@@ -657,6 +691,7 @@ export function PlantSlotCard(props: {
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
+  const nodeConfig      = s.setup.powerNodeId ? MINECORE_POWER_NODES[s.setup.powerNodeId] : null;
   const powerUnitCount  = getPlantBatterySlotCount(s.type);
   const installedBatteryIndices = useMemo(() => {
     const ids = normalizeBatteryIds(s.setup, s.type);
@@ -872,7 +907,7 @@ export function PlantSlotCard(props: {
               if (!s.unlocked) return props.onUnlock();
               if (s.status === 'SetupIncomplete') return setActiveModal('machine');
               if (s.status === 'NeedsRepair') return props.onRepairWithKAS({ amountKas: MINECORE_PLANT_REPAIR_KAS });
-              if (s.status === 'InsufficientPower') return setActiveModal('machine');
+              if (s.status === 'InsufficientPower') return setActiveModal('powerNode');
               if (s.status === 'DailyCapReached') return;
               if (batteryDeadInRun || s.status === 'NeedsPower')
                 return installedBatteryIndices.length ? openBatteryRefillModal() : undefined;
@@ -894,63 +929,8 @@ export function PlantSlotCard(props: {
             <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Setup</div>
             <div className="max-h-[220px] space-y-0.5 overflow-y-auto px-1 pr-2 custom-scrollbar">
             <CheckRow
-              installed={!!s.setup.machineId}
-              label="Machine"
-              value={machineConfig?.label}
-              badges={
-                machineConfig ? (
-                  <span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>
-                ) : undefined
-              }
-              tooltip={
-                machineConfig
-                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h toward rolling cap · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
-                  : 'Install a machine to mine. Tap to pick.'
-              }
-              onClick={() => setActiveModal('machine')}
-              disabled={!canEditParts}
-            />
-            {Array.from({ length: powerUnitCount }, (_, bi) => {
-              const bid = s.setup.batteryIds[bi] ?? null;
-              const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
-              const maxEff = maxSlotCharges[bi] ?? 0;
-              const deckBonusMin = nftBattBonusMs > 0 ? Math.max(1, Math.round(nftBattBonusMs / 60_000)) : 0;
-              return (
-                <CheckRow
-                  key={bi}
-                  installed={!!bid}
-                  label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
-                  value={bcfg?.label}
-                  badges={
-                    bid ? (
-                      <>
-                        {deckBonusMin > 0 ? (
-                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Workers-tab NFTs.">
-                            +{deckBonusMin}m crew NFT
-                          </span>
-                        ) : null}
-                        {maxEff > 0 ? (
-                          <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
-                        ) : null}
-                      </>
-                    ) : undefined
-                  }
-                  tooltip={
-                    bcfg
-                      ? 'Battery cell in this slot. Crew NFT bonuses add extra stored runtime on each slot. Tap to swap or replace.'
-                      : 'Add a battery in this slot. Tap to assign.'
-                  }
-                  onClick={() => {
-                    setBatterySlotFocus(bi);
-                    setActiveModal('battery');
-                  }}
-                  disabled={!canEditParts}
-                />
-              );
-            })}
-            <CheckRow
               installed={plantNftSlotAssignmentValid(props.minecoreState, s)}
-              label="Workers"
+              label="Crew"
               value={workerSetupValue}
               badges={
                 workerSetupDisplay.badges.length > 0
@@ -968,8 +948,25 @@ export function PlantSlotCard(props: {
                     ))
                   : undefined
               }
-              tooltip="Pick Workers-tab NFTs already deployed there. Each slot one plant only — tap to change."
+              tooltip="Crew NFTs from the Workers tab. One row per plant. Tap to link or change."
               onClick={() => setActiveModal('worker')}
+              disabled={!canEditParts}
+            />
+            <CheckRow
+              installed={!!s.setup.machineId}
+              label="Machines"
+              value={machineConfig?.label}
+              badges={
+                machineConfig ? (
+                  <span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>
+                ) : undefined
+              }
+              tooltip={
+                machineConfig
+                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h toward rolling cap · ×${machineConfig.powerConsumptionFactor} drain · ×${machineConfig.powerBudgetMultiplier.toFixed(2)} charge. Tap to swap.`
+                  : 'Mining rig for this plant. Tap to assign.'
+              }
+              onClick={() => setActiveModal('machine')}
               disabled={!canEditParts}
             />
             {s.type !== 'standard' ? (
@@ -981,11 +978,68 @@ export function PlantSlotCard(props: {
                     ? `${s.setup.moduleIds.length} equipped · tap to manage`
                     : 'None equipped · tap to add'
                 }
-                tooltip={s.type === 'premium' ? 'Premium: tap to add or swap modules.' : 'Advanced: tap to add or swap modules.'}
+                tooltip={s.type === 'premium' ? 'Premium: add or swap modules.' : 'Advanced: add or swap modules.'}
                 onClick={() => setActiveModal('modules')}
                 disabled={!canEditParts}
               />
             ) : null}
+            <CheckRow
+              installed={!!nodeConfig}
+              label="Power"
+              value={nodeConfig?.label ?? 'Optional — tap to add a Node'}
+              badges={
+                nodeConfig ? (
+                  <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-amber-900 dark:text-amber-200">
+                    +{nodeConfig.maxPowerKw} kW max
+                  </span>
+                ) : undefined
+              }
+              tooltip={
+                nodeConfig
+                  ? `Node installed: +${nodeConfig.maxPowerKw} kW to this plant’s max power. Tap to swap or remove.`
+                  : 'Optional Node crafted in Build — raises max plant power (kW). Tap to pick.'
+              }
+              onClick={() => setActiveModal('powerNode')}
+              disabled={!canEditParts}
+            />
+            {Array.from({ length: powerUnitCount }, (_, bi) => {
+              const bid = s.setup.batteryIds[bi] ?? null;
+              const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
+              const maxEff = maxSlotCharges[bi] ?? 0;
+              const deckBonusMin = nftBattBonusMs > 0 ? Math.max(1, Math.round(nftBattBonusMs / 60_000)) : 0;
+              return (
+                <CheckRow
+                  key={bi}
+                  installed={!!bid}
+                  label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Batteries'}
+                  value={bcfg?.label}
+                  badges={
+                    bid ? (
+                      <>
+                        {deckBonusMin > 0 ? (
+                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Workers-tab NFTs.">
+                            +{deckBonusMin}m crew NFT
+                          </span>
+                        ) : null}
+                        {maxEff > 0 ? (
+                          <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
+                        ) : null}
+                      </>
+                    ) : undefined
+                  }
+                  tooltip={
+                    bcfg
+                      ? 'Stored energy for mining runs. Tap to swap or recharge.'
+                      : 'Assign a battery pack. Tap to pick.'
+                  }
+                  onClick={() => {
+                    setBatterySlotFocus(bi);
+                    setActiveModal('battery');
+                  }}
+                  disabled={!canEditParts}
+                />
+              );
+            })}
             </div>
           </div>
 
@@ -1033,7 +1087,7 @@ export function PlantSlotCard(props: {
             {s.status === 'SetupIncomplete' && (
               <WarningBanner
                 level="warn"
-                message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !hasInstalledBattery(s.setup, s.type) && 'Battery', !plantNftSlotAssignmentValid(props.minecoreState, s) && 'Workers'].filter(Boolean).join(', ')}`}
+                message={`✗ Missing: ${[!s.setup.machineId && 'Machine', !hasInstalledBattery(s.setup, s.type) && 'Battery', !plantNftSlotAssignmentValid(props.minecoreState, s) && 'Crew'].filter(Boolean).join(', ')}`}
               />
             )}
             {batteryEmpty && s.status !== 'MiningPaused' && (
@@ -1261,6 +1315,71 @@ export function PlantSlotCard(props: {
           disabled={!s.setup.machineId}
           onClick={() => {
             props.onInstallPart('machine', null);
+            setActiveModal(null);
+          }}
+        />
+      </SelectionModal>
+
+      <SelectionModal
+        isOpen={activeModal === 'powerNode'}
+        onClose={() => setActiveModal(null)}
+        title="Assign Node"
+      >
+        {modalFeedback ? (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+            {modalFeedback}
+          </p>
+        ) : null}
+        <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+          Nodes add max power (kW) at this plant. Craft them in Build. Optional — helps balance heavy rigs and modules.
+        </p>
+        <ul className="space-y-2">
+          {Object.values(MINECORE_POWER_NODES).map((node) => {
+            const owned = props.minecoreState.owned.nodes[node.id] ?? 0;
+            const assignedElsewhere = countPowerNodesAssignedExcept(
+              props.minecoreState.plantSlots,
+              node.id,
+              props.slotArrayIndex,
+            );
+            const canPick = assignedElsewhere + 1 <= owned;
+            const isInstalled = s.setup.powerNodeId === node.id;
+            const rowBlocked = !canPick && !isInstalled;
+            return (
+              <li key={node.id} className="list-none">
+                <ModalPartRow
+                  title={node.label}
+                  subtitle={`+${node.maxPowerKw} kW max power · stacks with plant tier and rig bus`}
+                  owned={owned}
+                  inUse={displayAssignedCount(countPowerNodesAssigned(props.minecoreState.plantSlots, node.id), owned)}
+                  disabled={rowBlocked}
+                  disabledHint={
+                    rowBlocked
+                      ? owned <= 0
+                        ? 'Craft this Node in Build — none owned.'
+                        : 'Every owned unit of this type is already on plants.'
+                      : undefined
+                  }
+                  selected={isInstalled}
+                  onClick={() => {
+                    if (s.setup.powerNodeId === node.id) {
+                      setActiveModal(null);
+                      return;
+                    }
+                    props.onInstallPart('powerNode', node.id);
+                    setActiveModal(null);
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
+        <ModalActionRow
+          title="Remove Node"
+          subtitle="Returns Node to inventory."
+          destructive
+          disabled={!s.setup.powerNodeId}
+          onClick={() => {
+            props.onInstallPart('powerNode', null);
             setActiveModal(null);
           }}
         />

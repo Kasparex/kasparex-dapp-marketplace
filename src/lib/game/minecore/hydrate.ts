@@ -1,5 +1,6 @@
 import type { MiningSlot } from '@/lib/game/engine';
 import type { MinecoreRedeemBudget, MinecoreState, PlantSlotState, PlantSetup, PlantCardStatus } from './types';
+import { MINECORE_POWER_NODE_IDS } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState } from './compute';
@@ -30,6 +31,7 @@ function mergeOwnedInventory(input: unknown, base: MinecoreState['owned']): Mine
     batteries: { ...base.batteries, ...(isRecord((input as Record<string, unknown>).batteries) ? (input as any).batteries : {}) },
     workers: { ...base.workers, ...(isRecord((input as Record<string, unknown>).workers) ? (input as any).workers : {}) },
     modules: { ...base.modules, ...(isRecord((input as Record<string, unknown>).modules) ? (input as any).modules : {}) },
+    nodes: { ...base.nodes, ...(isRecord((input as Record<string, unknown>).nodes) ? (input as any).nodes : {}) },
   };
 }
 
@@ -135,8 +137,13 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
       ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
       : undefined;
+  const rawPowerNode = typeof setup.powerNodeId === 'string' ? setup.powerNodeId : null;
+  const powerNodeId =
+    rawPowerNode && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(rawPowerNode) ? rawPowerNode : null;
+
   const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(plantType, {
     machineId: null,
+    powerNodeId: null,
     batteryIds: [],
     moduleIds: [],
     boostId: 'none',
@@ -154,6 +161,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     status: typeof input.status === 'string' ? mapLegacyPlantStatus(input.status as string) : base.status,
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
+      powerNodeId,
       batteryIds,
       /* LEGACY saves may contain setup.workerId / fabricated workforce - ignored; use NFT decks only. */
       workerNftDeckSlotIndices,

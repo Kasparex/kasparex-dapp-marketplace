@@ -19,6 +19,7 @@ function createEmptySlot(index: number): PlantSlotState {
     status: 'EmptySlot',
     setup: {
       machineId: null,
+      powerNodeId: null,
       batteryIds: [null],
       workerNftDeckSlotIndices: [null],
       moduleIds: [],
@@ -55,6 +56,7 @@ export function createInitialMinecoreState(): MinecoreState {
       batteries: { ...MINECORE_STARTER_OWNED.batteries },
       workers: { ...MINECORE_STARTER_OWNED.workers },
       modules: { ...MINECORE_STARTER_OWNED.modules },
+      nodes: { ...MINECORE_STARTER_OWNED.nodes },
     },
     plantSlots: (() => {
       const slots = Array.from({ length: MINECORE_DEFAULT_PLANT_SLOTS }, (_, i) => createEmptySlot(i));

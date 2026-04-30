@@ -82,6 +82,7 @@ export function MinecoreCalculator() {
     const batteryPick = CALC_BATTERY_ORDER[batteryIdx] ?? null;
     return {
       machineId: CALC_MACHINE_ORDER[machineIdx] ?? null,
+      powerNodeId: null,
       batteryIds: Array.from({ length: n }, () => batteryPick),
       workerNftDeckSlotIndices: [0],
       moduleIds,

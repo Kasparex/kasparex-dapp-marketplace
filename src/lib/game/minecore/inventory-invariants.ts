@@ -5,6 +5,7 @@ import type {
   MinecoreState,
   PlantSlotState,
 } from './types';
+import { MINECORE_POWER_NODE_IDS } from './types';
 import { getPlantBatterySlotCount } from './battery-utils';
 import { normalizePlantSetup } from './asset-usage';
 
@@ -46,6 +47,20 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
       const idx = indices.shift();
       if (idx === undefined) break;
       plantSlots[idx].setup.machineId = null;
+    }
+  }
+
+  for (const nid of MINECORE_POWER_NODE_IDS) {
+    const owned = Math.max(0, state.owned.nodes?.[nid] ?? 0);
+    const indices = plantSlots
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.unlocked && p.setup.powerNodeId === nid)
+      .map(({ i }) => i)
+      .sort((a, b) => b - a);
+    while (indices.length > owned) {
+      const idx = indices.shift();
+      if (idx === undefined) break;
+      plantSlots[idx].setup.powerNodeId = null;
     }
   }
 

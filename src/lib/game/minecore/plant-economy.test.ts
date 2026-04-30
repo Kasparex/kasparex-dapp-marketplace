@@ -47,7 +47,7 @@ function makeSlot(partial: Partial<PlantSlotState> & { setup: PlantSlotState['se
     cycle: null,
     ...partial,
     type,
-    setup: { ...partial.setup, batteryIds, moduleIds: partial.setup.moduleIds ?? [] },
+    setup: { ...template.setup, ...partial.setup, batteryIds, moduleIds: partial.setup.moduleIds ?? [] },
   };
 }
 

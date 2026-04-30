@@ -9,6 +9,7 @@ import {
   MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MODULES,
+  MINECORE_POWER_NODES,
   MINECORE_RECIPES,
 } from '@/lib/game/minecore/config';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -47,12 +48,13 @@ export function FabricationPanel(props: {
     return true;
   };
 
-  const categories = ['All', 'Machine', 'Battery', 'Module'];
+  const categories = ['All', 'Machine', 'Battery', 'Module', 'Node'];
 
   const filteredRecipes = useMemo(() => {
     const recipes = MINECORE_RECIPES.map((r) => ({
       ...r,
-      category: r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
+      category:
+        r.kind === 'powerNode' ? 'Node' : r.kind.charAt(0).toUpperCase() + r.kind.slice(1),
     }));
     let list = recipes.filter((item) => {
       if (category !== 'all' && category !== 'All') {
@@ -88,6 +90,7 @@ export function FabricationPanel(props: {
             const isMachine = r.kind === 'machine';
             const isBattery = r.kind === 'battery';
             const isModule = r.kind === 'module';
+            const isPowerNode = r.kind === 'powerNode';
 
             const specifications: GameItemEffectLine[] = [];
 
@@ -170,6 +173,15 @@ export function FabricationPanel(props: {
                   color: 'zinc',
                 });
               }
+            } else if (isPowerNode) {
+              const cfg = MINECORE_POWER_NODES[r.outputId as keyof typeof MINECORE_POWER_NODES];
+              if (cfg) {
+                specifications.push({
+                  label: 'Max power',
+                  value: `+${cfg.maxPowerKw} kW (plant)`,
+                  color: 'emerald',
+                });
+              }
             }
 
             const ingredients: GameItemEffectLine[] = Object.entries(r.requires)
@@ -186,13 +198,17 @@ export function FabricationPanel(props: {
               ? MINECORE_MACHINES[r.outputId as keyof typeof MINECORE_MACHINES]?.featuredImageUrl
               : isBattery
                 ? MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES]?.featuredImageUrl
-                : undefined;
+                : isPowerNode
+                  ? MINECORE_POWER_NODES[r.outputId as keyof typeof MINECORE_POWER_NODES]?.featuredImageUrl
+                  : undefined;
 
             const description = isMachine
               ? 'Nominal cycle length per run. Drain × scales battery runtime vs charge; D/24h stacks with your plant base and modules live.'
               : isBattery
-                ? 'Adds production kW to your plant bus. Charge drains during runs based on the machine’s drain factor; max stored time uses rig charge budget and worker battery bonuses.'
-                : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
+                ? 'Stores energy for runs; how long it lasts depends on the rig’s drain factor and charge budget.'
+                : isPowerNode
+                  ? 'Fabricate a Node, then assign it under Power on a plant to raise max kW (helps heavy rigs and modules).'
+                  : 'Install on Premium/Advanced plants. Affects output, kW balance, cycles, or refining per module type.';
 
             return (
               <GameItemCard

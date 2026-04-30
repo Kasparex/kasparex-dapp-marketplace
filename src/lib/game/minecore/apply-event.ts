@@ -10,6 +10,7 @@ import {
   MINECORE_KREX_PER_REFINEMENT_POINT,
   MINECORE_DAILY_GRID_POINTS_CAP,
   MINECORE_DAILY_KREX_POINTS_CAP,
+  MINECORE_STARTER_OWNED,
 } from './config';
 import {
   computePlantDurationMs,
@@ -38,7 +39,7 @@ import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import type { IngredientBag } from './types';
-import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModuleId, MinecoreState, PlantSlotState } from './types';
+import type { MinecoreBatteryId, MinecoreEvent, MinecoreMachineId, MinecoreModuleId, MinecorePowerNodeId, MinecoreState, PlantSlotState } from './types';
 import {
   canStartMiningByEfficiency,
   computeGlobalRefineBonusFraction,
@@ -112,7 +113,12 @@ function rescaleBatteryToNewCapacity(state: MinecoreState, slot: PlantSlotState,
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
     ...slot,
-    setup: { ...slot.setup, moduleIds: [...slot.setup.moduleIds], batteryIds: [...(slot.setup.batteryIds ?? [])], workerNftDeckSlotIndices: [...(slot.setup.workerNftDeckSlotIndices ?? [])] },
+    setup: {
+      ...slot.setup,
+      moduleIds: [...slot.setup.moduleIds],
+      batteryIds: [...(slot.setup.batteryIds ?? [])],
+      workerNftDeckSlotIndices: [...(slot.setup.workerNftDeckSlotIndices ?? [])],
+    },
     cycle: slot.cycle ? { ...slot.cycle } : null,
     batterySlotChargeMs: [...(slot.batterySlotChargeMs ?? [])],
   };
@@ -142,6 +148,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       batteries: { ...state.owned.batteries },
       workers:   { ...state.owned.workers },
       modules:   { ...state.owned.modules },
+      nodes:     { ...MINECORE_STARTER_OWNED.nodes, ...(state.owned.nodes ?? {}) },
     },
     plantSlots: state.plantSlots.map(cloneSlot),
     nftSlots:   state.nftSlots ? state.nftSlots.map((x) => ({ ...x })) : [],
@@ -240,6 +247,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (recipe.kind === 'machine') s.owned.machines[recipe.outputId as MinecoreMachineId] = (s.owned.machines[recipe.outputId as MinecoreMachineId] ?? 0) + 1;
       if (recipe.kind === 'battery') s.owned.batteries[recipe.outputId as MinecoreBatteryId] = (s.owned.batteries[recipe.outputId as MinecoreBatteryId] ?? 0) + 1;
       if (recipe.kind === 'module')  s.owned.modules[recipe.outputId as MinecoreModuleId] = (s.owned.modules[recipe.outputId as MinecoreModuleId] ?? 0) + 1;
+      if (recipe.kind === 'powerNode') {
+        const pid = recipe.outputId as MinecorePowerNodeId;
+        s.owned.nodes[pid] = (s.owned.nodes[pid] ?? 0) + 1;
+      }
 
       return rederive(s, now);
     }
@@ -271,6 +282,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         type:             'standard',
         setup: {
           machineId: null,
+          powerNodeId: null,
           batteryIds: [null],
           workerNftDeckSlotIndices: [null],
           moduleIds: [],
@@ -368,6 +380,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (ev.part.kind === 'crewWorkerNftDeck') {
         const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
         slot.setup = { ...slot.setup, workerNftDeckSlotIndices: nx.workerNftDeckSlotIndices };
+      }
+      if (ev.part.kind === 'powerNode') {
+        slot.setup = { ...slot.setup, powerNodeId: ev.part.id };
       }
       if (ev.part.kind === 'modules') {
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];

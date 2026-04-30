@@ -8,12 +8,13 @@ import {
   countBatteriesAssigned,
   countMachinesAssigned,
   countModuleAssignments,
+  countPowerNodesAssigned,
   displayAssignedCount,
   nftDeckRoleLabel,
   nftTabSlotDeployments,
   MINECORE_NFT_CREW_ROLES_ORDER,
 } from '@/lib/game/minecore/asset-usage';
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_PLANT_PRESETS } from '@/lib/game/minecore/config';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_POWER_NODES, MINECORE_PLANT_PRESETS } from '@/lib/game/minecore/config';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -128,23 +129,42 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
         </div>
 
         <div>
-          <SectionTitle>Batteries</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {Object.values(MINECORE_BATTERIES).map((b) => {
-              const total = Number(state.owned.batteries[b.id] ?? 0);
-              const inUse = countBatteriesAssigned(slots, b.id);
-              return <OwnedCapsule key={b.id} label={b.label} inUse={inUse} total={total} accent={total > 0} />;
-            })}
-          </div>
-        </div>
-
-        <div>
           <SectionTitle>Modules</SectionTitle>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Object.values(MINECORE_MODULES).map((mod) => {
               const total = Number(state.owned.modules[mod.id] ?? 0);
               const inUse = countModuleAssignments(slots, mod.id);
               return <OwnedCapsule key={mod.id} label={mod.label} inUse={inUse} total={total} accent={total > 0} />;
+            })}
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>Nodes</SectionTitle>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.values(MINECORE_POWER_NODES).map((node) => {
+              const total = Number(state.owned.nodes?.[node.id] ?? 0);
+              const inUse = countPowerNodesAssigned(slots, node.id);
+              return (
+                <OwnedCapsule
+                  key={node.id}
+                  label={node.label}
+                  inUse={inUse}
+                  total={total}
+                  accent={total > 0}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <SectionTitle>Batteries</SectionTitle>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.values(MINECORE_BATTERIES).map((b) => {
+              const total = Number(state.owned.batteries[b.id] ?? 0);
+              const inUse = countBatteriesAssigned(slots, b.id);
+              return <OwnedCapsule key={b.id} label={b.label} inUse={inUse} total={total} accent={total > 0} />;
             })}
           </div>
         </div>
