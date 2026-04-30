@@ -89,24 +89,6 @@ export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {
   voidglassFilaments: 5.5,
 };
 
-/** Minecore shop: list KREX price per ingredient unit (L1 wallet transfer). */
-export const CALC_INGREDIENT_KREX: Partial<Record<MinecoreIngredient, number>> = {
-  crystalDust: 0.5,
-  alloyPlates: 1.2,
-  circuitMesh: 1.0,
-  energyCells: 2.5,
-  coreShards: 3.5,
-  coolingGel: 1.8,
-  ariaChips: 2.2,
-  nullFragments: 4,
-  fluxCoils: 1.0,
-  latticeWire: 2.0,
-  helixStabilizers: 2.8,
-  plasmaConduits: 3.4,
-  quantumAttuners: 4.5,
-  voidglassFilaments: 4.2,
-};
-
 /** Minecore shop: in-game GRID (redeemable balance) price per ingredient unit. */
 export const CALC_INGREDIENT_GRID: Partial<Record<MinecoreIngredient, number>> = {
   circuitMesh: 0.4,

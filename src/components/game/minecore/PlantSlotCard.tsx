@@ -50,6 +50,7 @@ import {
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
+  MINECORE_KREX_PER_KAS,
   MINECORE_KW_SCALE,
   MINECORE_PLANT_REPAIR_KAS,
   miningWorkerNftSlotsRequired,
@@ -1178,7 +1179,7 @@ export function PlantSlotCard(props: {
             const n = refillSlotIndexes.length;
             const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * n;
             const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(listKas);
-            const payKrex = payKas;
+            const payKrex = payKas * MINECORE_KREX_PER_KAS;
             return (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
                 <GameCurrencyMenu
@@ -1192,7 +1193,7 @@ export function PlantSlotCard(props: {
                     },
                     {
                       value: 'KREX',
-                      label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (L1 wallet)`,
+                      label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX (L1 wallet)`,
                     },
                   ]}
                   className="min-w-0 flex-1"

@@ -118,6 +118,16 @@ export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
 export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
+/**
+ * L1 KREX per 1 KAS for Minecore shop/recharge (treasury transfers peg list KAS via tier discount, then × this rate).
+ */
+export const MINECORE_KREX_PER_KAS = 7706;
+
+export function minecoreKrexFromDiscountedKas(discountedKas: number): number {
+  if (!Number.isFinite(discountedKas) || discountedKas <= 0) return 0;
+  return discountedKas * MINECORE_KREX_PER_KAS;
+}
+
 /** KAS repair action — resets maintenance wear clock. */
 export const MINECORE_PLANT_REPAIR_KAS = 1.5;
 

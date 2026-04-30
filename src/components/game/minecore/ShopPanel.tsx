@@ -5,24 +5,24 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import type { MinecoreIngredient, MinecoreState } from '@/lib/game/minecore';
-import { MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
-import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_KREX, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
 const ENERGY_CELLS_SHOP_IMAGE =
-  'https://static.wixstatic.com/media/de4185_2dada52dbeed41eb8ab36d1d5695fda3~mv2.png';
+  'https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg';
 
 function shopIngredientPriceOptions(
   ingredient: MinecoreIngredient,
   getKasPriceAfterDiscount: (unitPriceKas: number) => number,
 ) {
   const base = CALC_INGREDIENT_KAS[ingredient];
+  const discountedKas = getKasPriceAfterDiscount(base);
   const out: { currency: GameItemCurrency; unitPrice: number; originalUnitPrice?: number; disabled?: boolean }[] = [
-    { currency: 'KAS', unitPrice: getKasPriceAfterDiscount(base), originalUnitPrice: base },
+    { currency: 'KAS', unitPrice: discountedKas, originalUnitPrice: base },
+    { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(discountedKas) },
   ];
-  const kx = CALC_INGREDIENT_KREX[ingredient];
-  if (kx != null) out.push({ currency: 'KREX', unitPrice: kx });
   const gd = CALC_INGREDIENT_GRID[ingredient];
   if (gd != null) out.push({ currency: 'GRID', unitPrice: gd });
   return out;
@@ -349,7 +349,7 @@ export function ShopPanel(props: {
           description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits — craft reactors in Build."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
-            { currency: 'KREX', unitPrice: 36 },
+            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(42)) },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
@@ -375,7 +375,7 @@ export function ShopPanel(props: {
           description="Lattice wire, shards, null fragments, flux coils, quantum attuners, and voidglass."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(88), originalUnitPrice: 88 },
-            { currency: 'KREX', unitPrice: 74 },
+            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(88)) },
           ]}
           quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
@@ -421,7 +421,9 @@ export function ShopPanel(props: {
           imageSrc="https://static.wixstatic.com/media/de4185_82bfb57dc94e463788ab6bccd155249e~mv2.jpg"
           description="Apply a yield multiplier. Later this will read your KREX tier and holdings."
           effects={[{ label: 'Output', value: '+50%' }]}
-          priceOptions={[{ currency: 'KREX', unitPrice: 25 }]}
+          priceOptions={[
+            { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(25)) },
+          ]}
           buyDisabled={true}
           buyLabel="Soon"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'krex-boost', currency, quantity })}
@@ -450,6 +452,12 @@ export function ShopPanel(props: {
               currency: 'KAS',
               unitPrice: props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS),
               originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
+            },
+            {
+              currency: 'KREX',
+              unitPrice: minecoreKrexFromDiscountedKas(
+                props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS),
+              ),
             },
           ]}
           quantitySelector={{ min: 1, max: 10 }}

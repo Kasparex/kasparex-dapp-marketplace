@@ -25,6 +25,13 @@ export type GameItemEffectLine = {
   color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'zinc';
 };
 
+function formatGameItemPriceAmount(currency: GameItemCurrency, amount: number): string {
+  return amount.toLocaleString(undefined, {
+    maximumFractionDigits: currency === 'KREX' ? 2 : 6,
+    minimumFractionDigits: 0,
+  });
+}
+
 export function GameItemCard(props: {
   icon?: React.ReactNode;
   imageSrc?: string;
@@ -91,7 +98,7 @@ export function GameItemCard(props: {
   const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
 
-  const priceText = `${total.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${selected?.currency ?? currency}`;
+  const priceText = `${formatGameItemPriceAmount(selected?.currency ?? currency, total)} ${selected?.currency ?? currency}`;
 
   function setQty(next: number) {
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
@@ -170,7 +177,7 @@ export function GameItemCard(props: {
           )}
         </div>
 
-        <div className="pointer-events-none absolute left-4 top-4 z-20">
+        <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">
           <span className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-200">
             {props.category}
           </span>
@@ -292,7 +299,7 @@ export function GameItemCard(props: {
                   onChange={(v) => setCurrency(v as GameItemCurrency)}
                   options={options.map((o) => {
                     const t = (o.unitPrice ?? 0) * quantity;
-                    const txt = `${t.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${o.currency}`;
+                    const txt = `${formatGameItemPriceAmount(o.currency, t)} ${o.currency}`;
                     return { value: o.currency, label: txt, disabled: o.disabled };
                   })}
                   className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"

@@ -26,8 +26,8 @@ import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPane
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
-import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND } from '@/lib/game/minecore/config';
-import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_KREX, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
+import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_PLANT_REPAIR_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
@@ -544,11 +544,12 @@ export function MinecoreDashboard(_props: {
                   return;
                 }
                 if (currency === 'KREX') {
-                  const unit = CALC_INGREDIENT_KREX[ingredient as MinecoreIngredient];
-                  if (unit == null) return;
+                  const unitKas = CALC_INGREDIENT_KAS[ingredient as MinecoreIngredient];
+                  const amountKrex = minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(unitKas)) * q;
+                  if (amountKrex <= 0) return;
                   await actions.purchaseIngredientWithKREX(ingredient as MinecoreIngredient, {
                     amount: q,
-                    amountKrex: unit * q,
+                    amountKrex,
                   });
                   return;
                 }
@@ -587,7 +588,10 @@ export function MinecoreDashboard(_props: {
                       helixStabilizers: 5 * q,
                       plasmaConduits: 4 * q,
                     },
-                    { amountKrex: 36 * q, skuId: 'minecore:shop:reactor-pack-starter:krex' },
+                    {
+                      amountKrex: minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(42)) * q,
+                      skuId: 'minecore:shop:reactor-pack-starter:krex',
+                    },
                   );
                 }
                 if (isAdvancedPack && currency === 'KAS') {
@@ -613,7 +617,10 @@ export function MinecoreDashboard(_props: {
                       quantumAttuners: 4 * q,
                       voidglassFilaments: 3 * q,
                     },
-                    { amountKrex: 74 * q, skuId: 'minecore:shop:reactor-pack-advanced:krex' },
+                    {
+                      amountKrex: minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(88)) * q,
+                      skuId: 'minecore:shop:reactor-pack-advanced:krex',
+                    },
                   );
                 }
                 if (itemId === 'power-topup' && currency === 'KAS') {
@@ -622,6 +629,15 @@ export function MinecoreDashboard(_props: {
                   const count = Math.max(1, Math.min(quantity, n));
                   await actions.rechargePlantWithKAS(0, {
                     batterySlotIndexes: Array.from({ length: count }, (_, i) => i),
+                  });
+                }
+                if (itemId === 'power-topup' && currency === 'KREX') {
+                  const p0 = state.plantSlots[0];
+                  const n = p0 ? getPlantBatterySlotCount(p0.type) : 1;
+                  const count = Math.max(1, Math.min(quantity, n));
+                  await actions.rechargePlant(0, {
+                    batterySlotIndexes: Array.from({ length: count }, (_, i) => i),
+                    currency: 'KREX',
                   });
                 }
                 if (itemId === 'kas-overclock' && currency === 'KAS') {

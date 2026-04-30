@@ -8,7 +8,7 @@ import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
-import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 
@@ -54,6 +54,9 @@ export function MinecorePowerPanel(props: {
   const batterySyncPrice = props.getKasPriceAfterDiscount(KAS_BATTERY_SYNC);
   const reservePackPrice = props.getKasPriceAfterDiscount(KAS_RESERVE_PACK);
   const runtimeBundlePrice = props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS);
+  const batterySyncPriceKrex = batterySyncPrice * MINECORE_KREX_PER_KAS;
+  const reservePackPriceKrex = reservePackPrice * MINECORE_KREX_PER_KAS;
+  const runtimeBundlePriceKrex = runtimeBundlePrice * MINECORE_KREX_PER_KAS;
 
   const plantsCard = (
     <GamePanelCard
@@ -215,7 +218,7 @@ export function MinecorePowerPanel(props: {
             buyDisabled={!slot?.unlocked || !hasInstalledBattery(slot?.setup, slot?.type)}
             priceOptions={[
               { currency: 'KAS', unitPrice: batterySyncPrice, originalUnitPrice: KAS_BATTERY_SYNC },
-              { currency: 'KREX', unitPrice: batterySyncPrice },
+              { currency: 'KREX', unitPrice: batterySyncPriceKrex },
             ]}
             onBuy={({ currency }) => {
               if (slot?.unlocked && hasInstalledBattery(slot.setup, slot.type)) void props.onBatterySync(slot.index, currency);
@@ -234,7 +237,7 @@ export function MinecorePowerPanel(props: {
             buyDisabled={!slot?.unlocked}
             priceOptions={[
               { currency: 'KAS', unitPrice: reservePackPrice, originalUnitPrice: KAS_RESERVE_PACK },
-              { currency: 'KREX', unitPrice: reservePackPrice },
+              { currency: 'KREX', unitPrice: reservePackPriceKrex },
             ]}
             onBuy={({ currency }) => {
               if (slot?.unlocked) void props.onReservePack(slot.index, currency);
@@ -257,7 +260,7 @@ export function MinecorePowerPanel(props: {
                 unitPrice: runtimeBundlePrice,
                 originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
               },
-              { currency: 'KREX', unitPrice: runtimeBundlePrice },
+              { currency: 'KREX', unitPrice: runtimeBundlePriceKrex },
             ]}
             onBuy={({ currency }) => {
               if (slot?.unlocked && hasInstalledBattery(slot.setup, slot.type)) void props.onRuntimeBundle(slot.index, currency);

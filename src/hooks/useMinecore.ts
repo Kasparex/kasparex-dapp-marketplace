@@ -17,7 +17,7 @@ import {
   type PlantSlotState,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
+import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_STORAGE_PREFIX, MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -559,7 +559,8 @@ export function useMinecore() {
       }
       const currency = opts?.currency ?? 'KAS';
       const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length;
-      const priceKrex = getKasPriceAfterDiscount(listKas);
+      const payKas = getKasPriceAfterDiscount(listKas);
+      const payKrex = payKas * MINECORE_KREX_PER_KAS;
 
       const payload = {
         type: 'RechargePlant' as const,
@@ -570,7 +571,7 @@ export function useMinecore() {
       };
 
       if (currency === 'KREX') {
-        const paid = await payKrexTreasury(priceKrex, {
+        const paid = await payKrexTreasury(payKrex, {
           skuId: 'minecore:plant:recharge',
           recordActionType: 'recharge-krex',
           transactionDetail: { slotCount: indexes.length, plantIndex: slotIndex },
@@ -581,7 +582,7 @@ export function useMinecore() {
       }
 
       const paid = await payKasBestEffort({
-        amountKas: priceKrex,
+        amountKas: payKas,
         skuId: 'minecore:plant:recharge',
         purchaseType: 'other',
       });
