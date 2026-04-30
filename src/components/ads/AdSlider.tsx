@@ -6,9 +6,22 @@ import { AdPlacementGrid } from '@/components/ads/AdPlacementGrid';
 interface AdSliderProps {
   slotId: AdSlotId;
   relaxHaloFrame?: boolean;
+  /**
+   * Narrow aside columns (profile sidebar, vBlog article rail) use `sidebar` framing.
+   * Defaults by slot: `VBLOG_ARTICLE_ASIDE_BOTTOM`, `SIDEBAR_RANDOM` → sidebar; halos → halo.
+   */
+  variant?: 'halo' | 'sidebar';
 }
 
-/** Halo placement: Diamond Veins–style grid of ad cells (replaces rotating slider). */
-export function AdSlider({ slotId, relaxHaloFrame }: AdSliderProps) {
-  return <AdPlacementGrid slotId={slotId} variant="halo" relaxHaloFrame={relaxHaloFrame} />;
+function defaultPlacementVariant(slotId: AdSlotId): 'halo' | 'sidebar' {
+  if (slotId === 'VBLOG_ARTICLE_ASIDE_BOTTOM' || slotId === 'SIDEBAR_RANDOM') return 'sidebar';
+  return 'halo';
+}
+
+/** Hero halos + sidebar rails: carousel grid of ad cells. */
+export function AdSlider({ slotId, relaxHaloFrame, variant }: AdSliderProps) {
+  const v = variant ?? defaultPlacementVariant(slotId);
+  return (
+    <AdPlacementGrid slotId={slotId} variant={v} relaxHaloFrame={v === 'halo' ? relaxHaloFrame : false} />
+  );
 }

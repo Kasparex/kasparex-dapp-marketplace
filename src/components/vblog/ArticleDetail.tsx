@@ -426,7 +426,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           </div>
         </div>
 
-        <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
+        <div className="w-full min-w-0 shrink-0 lg:w-[320px] xl:w-[340px] lg:sticky lg:top-24 lg:self-start">
           <ArticleSidebar article={article} />
         </div>
       </div>

@@ -5,6 +5,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { AdSlotColumn } from '@/components/ads/AdSlotColumn';
 
 interface ArticleSidebarProps {
     article: VBlogArticle;
@@ -128,9 +129,9 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
                 className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-900/55 p-5 sm:p-6"
             >
                 <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8] mb-3">Ad slots</h4>
-                <div className="flex items-center justify-center min-h-[200px]">
+                <AdSlotColumn className="rounded-xl">
                     <AdSlider slotId="VBLOG_ARTICLE_ASIDE_BOTTOM" />
-                </div>
+                </AdSlotColumn>
             </div>
         </div>
     );

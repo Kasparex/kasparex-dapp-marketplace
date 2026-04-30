@@ -18,9 +18,10 @@ export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 /** One outer frame per slide: aspect + padding inside the dashed/solid shell */
 function frameForVariant(v: AdPlacementVariant, relaxHaloFrame?: boolean): string {
   if (v === 'footer') {
-    return 'aspect-[32/11] min-h-[100px] max-h-[124px] w-full p-2 sm:p-3';
+    return 'aspect-[32/11] min-h-[120px] max-h-[152px] w-full min-w-0 max-w-full p-2 sm:p-3';
   }
-  if (v === 'sidebar') return 'aspect-[3/2] min-h-[100px] w-full p-3 sm:p-4';
+  if (v === 'sidebar')
+    return 'aspect-[3/2] min-h-[112px] min-w-0 w-full max-w-full p-2 sm:p-3';
   if (relaxHaloFrame) {
     return 'aspect-square min-h-[188px] min-w-0 w-full max-w-full p-2 sm:p-3';
   }
@@ -83,7 +84,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown, relaxHaloFrame
 
   return (
     <>
-      <div className="relative w-full max-w-full" {...pauseOnHover}>
+      <div className="relative min-w-0 w-full max-w-full" {...pauseOnHover}>
         <div className={`overflow-hidden w-full max-w-full ${rounded}`}>
           <div
             className="flex w-full transition-transform duration-300 ease-out motion-reduce:transition-none"
@@ -202,14 +203,24 @@ function FilledAdShell({
   rounded: string;
 }) {
   const tip = ad.promoTooltip?.trim();
+  const featured = ad.featuredHighlight === true;
+  const frameAccent = featured
+    ? 'ring-2 ring-fuchsia-500 shadow-[0_0_22px_-8px_rgba(217,70,239,0.55)] dark:shadow-[0_0_28px_-6px_rgba(217,70,239,0.5)]'
+    : 'ring-1 ring-inset ring-zinc-200 dark:ring-zinc-700';
+
   const linkEl = (
     <Link
       href={ad.link}
       target="_blank"
       rel="noopener noreferrer sponsored"
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
-      className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-700`}
+      className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameAccent}`}
     >
+      {featured ? (
+        <span className="pointer-events-none absolute top-1.5 right-1.5 z-[2] rounded-md bg-fuchsia-600/95 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white shadow-sm dark:bg-fuchsia-500/95">
+          Featured
+        </span>
+      ) : null}
       <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover" sizes="240px" unoptimized />
     </Link>
   );
