@@ -1011,7 +1011,7 @@ export function PlantSlotCard(props: {
                 <CheckRow
                   key={bi}
                   installed={!!bid}
-                  label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Batteries'}
+                  label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
                   value={bcfg?.label}
                   badges={
                     bid ? (
