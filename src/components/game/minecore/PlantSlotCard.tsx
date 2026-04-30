@@ -283,13 +283,10 @@ function DailyCapBar(props: {
   forceZeroDisplay: boolean;
   capReached: boolean;
   remainingMs: number;
-  /** Live mining throughput (0.0 when idle or paused). */
-  flowRatePerMin: number;
   capStack?: PlantRollingCapBreakdown;
 }) {
   const r = clamp01(props.ratio);
   const showCountdown = props.remainingMs > 0;
-  const displayFlow = props.forceZeroDisplay ? 0 : Math.max(0, props.flowRatePerMin);
   const displayMined = props.forceZeroDisplay ? 0 : Math.floor(props.mined);
   const displayCap = props.forceZeroDisplay ? 0 : Math.max(0, Math.floor(props.cap));
 
@@ -300,13 +297,7 @@ function DailyCapBar(props: {
   const inner = (
     <div className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-          <span className="text-lg font-black tabular-nums tracking-tight sm:text-xl">
-            <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
-            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
-            <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
-            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
-          </span>
+        <div className="min-w-0 shrink-0">
           {showCountdown ? (
             <span
               className={`font-mono text-lg font-black tabular-nums tracking-tight sm:text-xl ${
@@ -319,12 +310,13 @@ function DailyCapBar(props: {
             </span>
           ) : null}
         </div>
-        <div className="shrink-0">
-          <Tooltip content="Diamonds per minute right now.">
-            <span className="inline-block font-mono text-lg font-bold tabular-nums tracking-tight text-emerald-600 sm:text-xl dark:text-emerald-400">
-              {displayFlow.toFixed(1)} D/min
-            </span>
-          </Tooltip>
+        <div className="min-w-0 flex-1 text-right">
+          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
+            <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
+            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
+            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
+          </span>
         </div>
       </div>
       {props.capStack ? (
@@ -597,7 +589,7 @@ export function PlantSlotCard(props: {
   onStart: () => void;
   onExtract: () => void;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
-  /** Refill battery charge (KAS wallet or KREX in-game, same as Power tab). */
+  /** Refill battery charge: KAS via treasury send; KREX via L1 KRC-20 transfer (real wallet payment). */
   onRechargePlant: (opts?: {
     batterySlotIndex?: number;
     batterySlotIndexes?: number[];
@@ -836,6 +828,15 @@ export function PlantSlotCard(props: {
         ) : undefined
       }
       title={`Mining Plant ${props.slotArrayIndex + 1}`}
+      titleAccessory={
+        s.unlocked ? (
+          <Tooltip content="Diamonds per minute right now (0 when not running).">
+            <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-base">
+              {(!setupReady ? 0 : Math.max(0, flowPerMin)).toFixed(1)} D/min
+            </span>
+          </Tooltip>
+        ) : undefined
+      }
       category={preset.label}
       description={
         <div className="space-y-3">
@@ -847,7 +848,6 @@ export function PlantSlotCard(props: {
               forceZeroDisplay={!setupReady}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
-              flowRatePerMin={flowPerMin}
               capStack={capBreakdown}
             />
           ) : null}
@@ -1057,7 +1057,7 @@ export function PlantSlotCard(props: {
             {s.status === 'NeedsPower' && (
               <WarningBanner
                 level="error"
-                message="Open battery refill — pay per slot with KAS (wallet) or KREX (in-game). Tap a battery pillar above."
+                message="Open battery refill — pay per slot with KAS or KREX from your L1 wallet. Tap a battery pillar above."
               />
             )}
             {s.status === 'NeedsRepair' && (
@@ -1095,7 +1095,7 @@ export function PlantSlotCard(props: {
         title="Battery refill"
       >
         <p className="mb-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Choose slots to fully recharge. Pay with KAS (wallet) or KREX (in-game), same rates as the Power tab.
+          Choose slots to fully recharge. Pay with KAS or KREX from your connected wallet (L1); KREX uses a real on-chain transfer to the game treasury, same pattern as other KREX shop purchases.
         </p>
         <div className="mb-4 grid gap-2">
           {installedBatteryIndices.map((idx) => {
@@ -1135,7 +1135,7 @@ export function PlantSlotCard(props: {
                     {payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS (wallet)
                   </option>
                   <option value="KREX">
-                    {payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (in-game)
+                    {payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (L1 wallet)
                   </option>
                 </select>
                 <button

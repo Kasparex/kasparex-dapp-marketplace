@@ -20,7 +20,8 @@ import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
@@ -28,6 +29,7 @@ import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-i
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
+const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
 
 /** Persisted game state is keyed only by Kaspa L1 address — no shared guest bucket. */
 function walletStorageKey(address: string) {
@@ -56,7 +58,7 @@ function savePersistedMinecore(key: string, state: MinecoreState) {
 
 export function useMinecore() {
   const { state: walletState } = useKaspaWallet();
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
 
   const walletAddr = walletState.address?.trim() ?? '';
 
@@ -458,7 +460,7 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
-  /** Refill selected battery slot(s). KAS = wallet payment; KREX = in-game (same pattern as Power tab). */
+  /** Refill selected battery slot(s). KAS = L1 KAS send; KREX = L1 KRC-20 transfer to treasury (same wallet flow as Garage). */
   const rechargePlant = useCallback(
     async (
       slotIndex: number,
@@ -473,6 +475,9 @@ export function useMinecore() {
         indexes = [0];
       }
       const currency = opts?.currency ?? 'KAS';
+      const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length;
+      const priceKrex = getKasPriceAfterDiscount(listKas);
+
       const payload = {
         type: 'RechargePlant' as const,
         slotIndex,
@@ -482,12 +487,73 @@ export function useMinecore() {
       };
 
       if (currency === 'KREX') {
-        dispatch(payload);
-        return true;
+        setLastPaymentError(null);
+        if (!walletState.isConnected || !walletState.provider || !walletState.address) {
+          setLastPaymentError('Wallet connection required');
+          return false;
+        }
+        if (!DEFAULT_TREASURY) {
+          setLastPaymentError('Treasury address not configured');
+          return false;
+        }
+        if (krexL1Balance < priceKrex) {
+          setLastPaymentError('Insufficient KREX balance on L1 for this recharge');
+          return false;
+        }
+        try {
+          const amountSmallest = Math.floor(priceKrex * Math.pow(10, KREX_DECIMALS));
+          const inscribeJson = {
+            p: 'KRC-20',
+            op: 'transfer',
+            tick: 'KREX',
+            amt: amountSmallest.toString(),
+            to: DEFAULT_TREASURY,
+          };
+          const txHash = await signKrc20Transfer(
+            walletState.provider,
+            JSON.stringify(inscribeJson),
+            KRC20_TRANSFER_TYPE,
+            DEFAULT_TREASURY,
+            KREX_RECHARGE_PRIORITY_FEE_KAS,
+          );
+
+          void recordL1Reward({
+            userAddress: walletState.address,
+            dappId: 'minecore',
+            actionType: 'recharge-krex',
+            actionValue: priceKrex,
+            txHash,
+            network: 'L1',
+          }).catch(() => {});
+
+          try {
+            window.dispatchEvent(
+              new CustomEvent('record-transaction', {
+                detail: {
+                  type: 'minecore-plant-recharge',
+                  currency: 'KREX',
+                  amount: priceKrex,
+                  slotCount: indexes.length,
+                  plantIndex: slotIndex,
+                  txHash,
+                  status: 'completed',
+                },
+              }),
+            );
+          } catch {
+            // ignore
+          }
+
+          dispatch(payload);
+          return true;
+        } catch (e) {
+          setLastPaymentError(e instanceof Error ? e.message : 'KREX recharge failed');
+          return false;
+        }
       }
 
       const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length),
+        amountKas: priceKrex,
         skuId: 'minecore:plant:recharge',
         purchaseType: 'other',
       });
@@ -495,7 +561,15 @@ export function useMinecore() {
       dispatch(payload);
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+    [
+      dispatch,
+      payKasBestEffort,
+      getKasPriceAfterDiscount,
+      walletState.isConnected,
+      walletState.provider,
+      walletState.address,
+      krexL1Balance,
+    ],
   );
 
   const rechargePlantWithKAS = useCallback(
