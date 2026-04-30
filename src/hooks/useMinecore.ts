@@ -458,9 +458,12 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
-  /** Paid KAS: refill battery slot(s); cost scales with how many slots you refill. Does not add reserve units. */
-  const rechargePlantWithKAS = useCallback(
-    async (slotIndex: number, opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[] }) => {
+  /** Refill selected battery slot(s). KAS = wallet payment; KREX = in-game (same pattern as Power tab). */
+  const rechargePlant = useCallback(
+    async (
+      slotIndex: number,
+      opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[]; currency?: 'KAS' | 'KREX' },
+    ) => {
       let indexes: number[];
       if (opts?.batterySlotIndexes && opts.batterySlotIndexes.length > 0) {
         indexes = opts.batterySlotIndexes;
@@ -469,22 +472,36 @@ export function useMinecore() {
       } else {
         indexes = [0];
       }
+      const currency = opts?.currency ?? 'KAS';
+      const payload = {
+        type: 'RechargePlant' as const,
+        slotIndex,
+        at: Date.now(),
+        batterySlotIndexes: indexes.length > 1 ? indexes : undefined,
+        batterySlotIndex: indexes.length === 1 ? indexes[0] : undefined,
+      };
+
+      if (currency === 'KREX') {
+        dispatch(payload);
+        return true;
+      }
+
       const paid = await payKasBestEffort({
         amountKas: getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length),
         skuId: 'minecore:plant:recharge',
         purchaseType: 'other',
       });
       if (!paid.ok) return false;
-      dispatch({
-        type: 'RechargePlant',
-        slotIndex,
-        at: Date.now(),
-        batterySlotIndexes: indexes.length > 1 ? indexes : undefined,
-        batterySlotIndex: indexes.length === 1 ? indexes[0] : undefined,
-      });
+      dispatch(payload);
       return true;
     },
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
+  const rechargePlantWithKAS = useCallback(
+    (slotIndex: number, opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[] }) =>
+      rechargePlant(slotIndex, { ...opts, currency: 'KAS' }),
+    [rechargePlant],
   );
 
   const redeemGrid = useCallback(
@@ -589,6 +606,7 @@ export function useMinecore() {
       purchaseIngredientWithKAS,
       refillBattery,
       refillBatteryWithKAS,
+      rechargePlant,
       rechargePlantWithKAS,
       changePlantType,
     },

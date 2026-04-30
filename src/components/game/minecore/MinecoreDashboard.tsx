@@ -392,13 +392,14 @@ export function MinecoreDashboard(_props: {
                     slot={slot}
                     slotArrayIndex={slotIndex}
                     now={nowTick}
+                    getKasPriceAfterDiscount={getKasPriceAfterDiscount}
                     onUnlock={() => void actions.unlockSlot(slotIndex, slot.unlockCostKas)}
                     onStart={() => actions.startMining(slotIndex)}
                     onStopMining={() => actions.stopMining(slotIndex)}
                     onResumeMining={() => actions.resumeMining(slotIndex)}
                     onExtract={() => actions.extract(slotIndex)}
                     onRechargePlant={async (opts) => {
-                      void (await actions.rechargePlantWithKAS(slotIndex, opts));
+                      void (await actions.rechargePlant(slotIndex, opts));
                     }}
                     onRepairWithKAS={async ({ amountKas }) => {
                       void (await actions.repairWithKAS(slotIndex, amountKas));

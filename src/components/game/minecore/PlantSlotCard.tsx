@@ -80,9 +80,36 @@ const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
 /** Rolling-cap contributions (diamonds / 24h toward cap) */
 const CAP_CONTRIB_BADGE_CLS =
   'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
-/** Shared Workers-tab deck runtime (extra minutes on each battery slot max) */
-const BATTERY_DECK_BADGE_CLS =
+/** Crew NFT runtime bonus + slot max runtime (same sky capsule family) */
+const BATTERY_SKY_BADGE_CLS =
   'rounded-full border border-sky-500/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-sky-800 dark:text-sky-300';
+
+function ToggleSwitch(props: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  id?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      id={props.id}
+      role="switch"
+      aria-checked={props.checked}
+      disabled={props.disabled}
+      onClick={() => props.onChange(!props.checked)}
+      className={`relative h-7 w-11 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:ring-2 focus-visible:ring-sky-500/50 disabled:opacity-40 ${
+        props.checked ? 'bg-sky-500 dark:bg-sky-600' : 'bg-zinc-300 dark:bg-zinc-600'
+      }`}
+    >
+      <span
+        className={`pointer-events-none absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-[left] duration-200 ${
+          props.checked ? 'left-[calc(100%-1.35rem)]' : 'left-1'
+        }`}
+      />
+    </button>
+  );
+}
 
 function formatDuration(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -247,7 +274,7 @@ function CheckRow(props: {
   );
 }
 
-/** Daily cap: rolling 24h from plant activation; countdown in tooltip + progress bar. */
+/** Daily cap: rolling 24h from plant activation; visible cap reset timer + progress bar. */
 function DailyCapBar(props: {
   mined: number;
   cap: number;
@@ -256,13 +283,13 @@ function DailyCapBar(props: {
   forceZeroDisplay: boolean;
   capReached: boolean;
   remainingMs: number;
-  /** Live mining throughput while a session is running (D/min). */
-  flowRatePerMin?: number;
+  /** Live mining throughput (0.0 when idle or paused). */
+  flowRatePerMin: number;
   capStack?: PlantRollingCapBreakdown;
 }) {
   const r = clamp01(props.ratio);
-  const showTimer = props.remainingMs > 0 && !props.forceZeroDisplay;
-  const showFlow = props.flowRatePerMin != null && props.flowRatePerMin > 0 && !props.forceZeroDisplay;
+  const showCapResetTimer = props.remainingMs > 0 && !props.forceZeroDisplay;
+  const displayFlow = props.forceZeroDisplay ? 0 : Math.max(0, props.flowRatePerMin);
   const displayMined = props.forceZeroDisplay ? 0 : Math.floor(props.mined);
   const displayCap = props.forceZeroDisplay ? 0 : Math.max(0, Math.floor(props.cap));
 
@@ -272,7 +299,7 @@ function DailyCapBar(props: {
       `Mined toward this plant’s rolling cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`,
     );
     tipParts.push('Daily cap is plant tier + rig + only the crew assigned to this plant.');
-    if (showTimer) {
+    if (showCapResetTimer) {
       tipParts.push(`Cap resets in ${formatCapResetCountdown(props.remainingMs)}.`);
     }
   } else {
@@ -282,17 +309,23 @@ function DailyCapBar(props: {
 
   const inner = (
     <div className="space-y-2">
-      <div className="flex min-h-[2.25rem] flex-wrap items-center justify-end gap-x-4 gap-y-1">
+      <div className="flex min-h-[2.25rem] flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        {showCapResetTimer ? (
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[9px] font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">24h cap resets</span>
+            <span className="font-mono text-sm font-black tabular-nums text-sky-600 dark:text-sky-300 sm:text-base">
+              {formatCapResetCountdown(props.remainingMs)}
+            </span>
+          </div>
+        ) : (
+          <div className="min-w-[6rem]" aria-hidden />
+        )}
         <div className="shrink-0 text-right">
-          {showFlow ? (
-            <Tooltip content="Live mining throughput (diamonds per minute) while this plant runs.">
-              <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
-                {props.flowRatePerMin!.toFixed(1)} D/min
-              </span>
-            </Tooltip>
-          ) : (
-            <span className="font-mono text-sm font-semibold tabular-nums text-zinc-400 dark:text-zinc-500">—</span>
-          )}
+          <Tooltip content="Diamonds mined per minute right now (0 when not running).">
+            <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
+              {displayFlow.toFixed(1)} D/min
+            </span>
+          </Tooltip>
         </div>
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
@@ -524,9 +557,9 @@ function UnifiedBatterySegmentsBar(props: {
     </div>
   );
   return (
-    <div title={`Battery waterfall: slot 1 drains first. Combined runtime ≈ ${props.runtimeLabel}. About ${(props.aggregateRatio * 100).toFixed(0)}% charge remaining.`}>
-      {inner}
-    </div>
+    <Tooltip content="Battery slots drain in order. Tap a pillar to assign a cell or open recharge.">
+      <div>{inner}</div>
+    </Tooltip>
   );
 }
 
@@ -575,12 +608,18 @@ export function PlantSlotCard(props: {
   onStart: () => void;
   onExtract: () => void;
   onRepairWithKAS: (args: { amountKas: number }) => void | Promise<void>;
-  /** KAS: refill battery charge only (one or more slots); does not add reserve units. */
-  onRechargePlant: (opts?: { batterySlotIndex?: number; batterySlotIndexes?: number[] }) => void | Promise<void>;
+  /** Refill battery charge (KAS wallet or KREX in-game, same as Power tab). */
+  onRechargePlant: (opts?: {
+    batterySlotIndex?: number;
+    batterySlotIndexes?: number[];
+    currency?: 'KAS' | 'KREX';
+  }) => void | Promise<void>;
   onStopMining: () => void;
   onResumeMining: () => void;
   onInstallPart: (kind: any, id: any, batterySlotIndex?: number, workerSlotPosition?: number) => void;
   onChangePlantType: (type: any, cost: number) => void;
+  /** For refill modal pricing (KAS after KREX tier discount). */
+  getKasPriceAfterDiscount?: (listKas: number) => number;
 }) {
   /** Always read live slot from reducer-backed array so UI/actions cannot drift from `slotArrayIndex` (fixes stale/wrong `slot` prop). */
   const s = props.minecoreState.plantSlots[props.slotArrayIndex] ?? props.slot;
@@ -591,7 +630,12 @@ export function PlantSlotCard(props: {
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
+  const [refillPayCurrency, setRefillPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (batteryRefillModalOpen) setRefillPayCurrency('KAS');
+  }, [batteryRefillModalOpen]);
 
   useEffect(() => {
     setModalFeedback(null);
@@ -706,8 +750,8 @@ export function PlantSlotCard(props: {
   function confirmBatteryRefill() {
     const sorted = [...refillSlotIndexes].sort((a, b) => a - b);
     if (sorted.length === 0) return;
-    if (sorted.length === 1) void props.onRechargePlant({ batterySlotIndex: sorted[0] });
-    else void props.onRechargePlant({ batterySlotIndexes: sorted });
+    if (sorted.length === 1) void props.onRechargePlant({ batterySlotIndex: sorted[0], currency: refillPayCurrency });
+    else void props.onRechargePlant({ batterySlotIndexes: sorted, currency: refillPayCurrency });
     setBatteryRefillModalOpen(false);
   }
 
@@ -814,7 +858,7 @@ export function PlantSlotCard(props: {
               forceZeroDisplay={!setupReady}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
-              flowRatePerMin={flowPerMin > 0 ? flowPerMin : undefined}
+              flowRatePerMin={flowPerMin}
               capStack={capBreakdown}
             />
           ) : null}
@@ -889,14 +933,22 @@ export function PlantSlotCard(props: {
                   label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
                   value={bcfg?.label}
                   badges={
-                    bid && deckBonusMin > 0 ? (
-                      <span className={BATTERY_DECK_BADGE_CLS}>+{deckBonusMin}m deck</span>
+                    bid ? (
+                      <>
+                        {deckBonusMin > 0 ? (
+                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Workers-tab NFTs.">
+                            +{deckBonusMin}m crew NFT
+                          </span>
+                        ) : null}
+                        {maxEff > 0 ? (
+                          <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
+                        ) : null}
+                      </>
                     ) : undefined
                   }
-                  stat={bid && maxEff > 0 ? formatShortBatterySlotRuntime(maxEff) : undefined}
                   tooltip={
                     bcfg
-                      ? `${bcfg.label}: catalog ${Math.round(bcfg.chargeCapacityMs / 60000)}m · slot max ${formatShortBatterySlotRuntime(maxEff)} (rig × budget + Workers-tab deck runtime). Tap to swap.`
+                      ? 'Battery cell in this slot. Crew NFT bonuses add extra stored runtime on each slot. Tap to swap or replace.'
                       : 'Add a battery in this slot. Tap to assign.'
                   }
                   onClick={() => {
@@ -1016,7 +1068,7 @@ export function PlantSlotCard(props: {
             {s.status === 'NeedsPower' && (
               <WarningBanner
                 level="error"
-                message={`Open battery refill — ${MINECORE_PLANT_RECHARGE_COST_KAS} KAS per slot. Tap a battery icon above to choose slots.`}
+                message="Open battery refill — pay per slot with KAS (wallet) or KREX (in-game). Tap a battery pillar above."
               />
             )}
             {s.status === 'NeedsRepair' && (
@@ -1053,47 +1105,61 @@ export function PlantSlotCard(props: {
         onClose={() => setBatteryRefillModalOpen(false)}
         title="Battery refill"
       >
-        <p className="mb-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Pick slots to top up. Each billed separately at{' '}
-          <span className="font-black text-zinc-900 dark:text-zinc-100">{MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span>{' '}
-          (matches Shop recharge styling).
+        <p className="mb-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Choose slots to fully recharge. Pay with KAS (wallet) or KREX (in-game), same rates as the Power tab.
         </p>
         <div className="mb-4 grid gap-2">
-          {installedBatteryIndices.map((idx) => (
-            <label
-              key={idx}
-              className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30"
-            >
-              <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                Slot {idx + 1} · max {formatShortBatterySlotRuntime(maxSlotCharges[idx] ?? 0)}
-              </span>
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-zinc-400"
-                checked={refillSlotIndexes.includes(idx)}
-                onChange={() =>
-                  setRefillSlotIndexes((prev) =>
-                    prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx].sort((a, b) => a - b),
-                  )
-                }
-              />
-            </label>
-          ))}
+          {installedBatteryIndices.map((idx) => {
+            const on = refillSlotIndexes.includes(idx);
+            return (
+              <div
+                key={idx}
+                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-100 bg-white/60 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/30"
+              >
+                <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Slot {idx + 1}</span>
+                <ToggleSwitch
+                  checked={on}
+                  onChange={(next) =>
+                    setRefillSlotIndexes((prev) =>
+                      next ? [...prev, idx].sort((a, b) => a - b) : prev.filter((x) => x !== idx),
+                    )
+                  }
+                />
+              </div>
+            );
+          })}
         </div>
         <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="k-control-btn flex h-10 w-full items-center justify-center px-4 font-black tabular-nums sm:flex-1">
-              {(refillSlotIndexes.length * MINECORE_PLANT_RECHARGE_COST_KAS).toLocaleString()} KAS total
-            </div>
-            <button
-              type="button"
-              disabled={refillSlotIndexes.length === 0}
-              className="k-cta-games h-10 w-full shrink-0 px-4 disabled:opacity-50 disabled:grayscale sm:w-auto"
-              onClick={() => confirmBatteryRefill()}
-            >
-              Confirm refill
-            </button>
-          </div>
+          {(() => {
+            const n = refillSlotIndexes.length;
+            const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * n;
+            const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(listKas);
+            const payKrex = payKas;
+            return (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                <select
+                  value={refillPayCurrency}
+                  onChange={(e) => setRefillPayCurrency(e.target.value as 'KAS' | 'KREX')}
+                  className="k-filter-select k-price-select h-11 w-full min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="KAS">
+                    {payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS (wallet)
+                  </option>
+                  <option value="KREX">
+                    {payKrex.toLocaleString(undefined, { maximumFractionDigits: 6 })} KREX (in-game)
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  disabled={refillSlotIndexes.length === 0}
+                  className="k-cta-games h-11 min-w-[12rem] flex-[1.15] px-8 text-sm font-bold disabled:opacity-50 disabled:grayscale sm:min-w-[14rem]"
+                  onClick={() => confirmBatteryRefill()}
+                >
+                  Pay & refill
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </SelectionModal>
 
