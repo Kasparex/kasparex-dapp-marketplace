@@ -58,13 +58,6 @@ export const AD_SLOTS: AdSlotConfig[] = [
     rotation: 'slider',
   },
   {
-    id: 'GAMES_PLAY_RAIL_RIGHT',
-    label: 'Games play rail (right column bottom)',
-    pricePerDay: 100,
-    maxAds: 5,
-    rotation: 'slider',
-  },
-  {
     id: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     label: 'vBlog article aside (bottom)',
     pricePerDay: 80,

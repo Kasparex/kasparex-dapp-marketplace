@@ -11,15 +11,19 @@ import type { AdEntry, AdSlotId } from '@/lib/ads/types';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
 /** One outer frame per slide: aspect + padding inside the dashed/solid shell */
-function frameForVariant(v: AdPlacementVariant): string {
+function frameForVariant(v: AdPlacementVariant, relaxHaloFrame?: boolean): string {
   if (v === 'footer') {
     return 'aspect-[32/11] min-h-[100px] max-h-[124px] w-full p-2 sm:p-3';
   }
   if (v === 'sidebar') return 'aspect-[3/2] min-h-[100px] w-full p-3 sm:p-4';
+  if (relaxHaloFrame) {
+    return 'aspect-square min-h-[200px] min-w-0 max-w-[260px] mx-auto w-full p-3 sm:p-4';
+  }
   return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
 }
 
@@ -29,9 +33,11 @@ interface AdPlacementGridProps {
   slotId: AdSlotId;
   variant: AdPlacementVariant;
   maxCellsShown?: number;
+  /** Taller halo cell (e.g. games dashboard rail) — does not affect footer/sidebar variants. */
+  relaxHaloFrame?: boolean;
 }
 
-export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementGridProps) {
+export function AdPlacementGrid({ slotId, variant, maxCellsShown, relaxHaloFrame }: AdPlacementGridProps) {
   const { ads, refresh } = useAdsRegistryContext();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardSlot, setWizardSlot] = useState<AdSlotId | null>(null);
@@ -85,7 +91,7 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown }: AdPlacementG
           >
             {cells.map((cellIndex) => {
               const ad = byIndex.get(cellIndex);
-              const frame = frameForVariant(variant);
+              const frame = frameForVariant(variant, relaxHaloFrame);
               return (
                 <div
                   key={cellIndex}
@@ -195,15 +201,17 @@ function FilledAdShell({
   frameClassName: string;
   rounded: string;
 }) {
-  return (
+  const tip = ad.promoTooltip?.trim();
+  const linkEl = (
     <Link
       href={ad.link}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      title={ad.title}
+      aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
       className={`${frameClassName} ${rounded} relative block w-full overflow-hidden bg-zinc-100 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-700`}
     >
       <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover" sizes="240px" unoptimized />
     </Link>
   );
+  return tip ? <Tooltip content={tip}>{linkEl}</Tooltip> : linkEl;
 }

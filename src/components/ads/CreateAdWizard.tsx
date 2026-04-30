@@ -9,6 +9,7 @@ import {
   ADS_MAX_DURATION_DAYS,
   ADS_FEATURED_HIGHLIGHT_KAS,
   ADS_KREX_BINDING_FEE_KAS,
+  ADS_MAX_PROMO_TOOLTIP_CHARS,
 } from '@/lib/ads/constants';
 import { buildCampaignMetadataV1, type AdImageRef } from '@/lib/ads/metadata';
 import { buildAdsBindingPayloadHex, buildAdsBindingPlainNote } from '@/lib/ads/payloadHex';
@@ -25,7 +26,7 @@ import { minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
-import { countActiveForSlot } from '@/lib/ads/registryUtils';
+import { countActiveForSlot, filterActiveAdsForSlot } from '@/lib/ads/registryUtils';
 import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
 
 function ModalSectionTitle({ children, className }: { children: ReactNode; className?: string }) {
@@ -41,9 +42,11 @@ function ModalSectionTitle({ children, className }: { children: ReactNode; class
 }
 
 function resolveInitialSlotId(initial: AdSlotId | null | undefined, adsList: AdEntry[]): AdSlotId | null {
-  if (initial) {
-    const cfg = AD_SLOTS.find((s) => s.id === initial);
-    if (cfg && countActiveForSlot(adsList, initial) < cfg.maxAds) return initial;
+  const normalized =
+    initial === 'GAMES_PLAY_RAIL_RIGHT' ? ('HALO_GAMES_RIGHT' as AdSlotId) : initial;
+  if (normalized) {
+    const cfg = AD_SLOTS.find((s) => s.id === normalized);
+    if (cfg && countActiveForSlot(adsList, normalized) < cfg.maxAds) return normalized;
   }
   const first = AD_SLOTS.find((s) => countActiveForSlot(adsList, s.id) < s.maxAds);
   return first ? (first.id as AdSlotId) : null;
@@ -76,6 +79,7 @@ export function CreateAdWizard({
   const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
+  const [promoTooltip, setPromoTooltip] = useState('');
   const [durationDays, setDurationDays] = useState(7);
   const [featuredHighlight, setFeaturedHighlight] = useState(false);
   const [payCurrency, setPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
@@ -135,10 +139,15 @@ export function CreateAdWizard({
   const slotActiveCount = slotId ? countActiveForSlot(ads, slotId) : 0;
   const slotAvailable = slotConfig && slotActiveCount < slotConfig.maxAds;
 
+  const promoTooltipTrimmed = promoTooltip.trim();
+  const promoTooltipOk =
+    promoTooltipTrimmed.length === 0 || promoTooltipTrimmed.length <= ADS_MAX_PROMO_TOOLTIP_CHARS;
+
   const canProceedDetails = Boolean(
     (imageSource === 'url' ? imageUrl.trim() : imageFile) &&
       link.trim() &&
       title.trim() &&
+      promoTooltipOk &&
       (imageSource !== 'file' || !imageSpecError),
   );
 
@@ -162,6 +171,7 @@ export function CreateAdWizard({
       setImageSource('url');
       setLink('');
       setTitle('');
+      setPromoTooltip('');
       setDurationDays(7);
       setFeaturedHighlight(false);
       setPayCurrency('KAS');
@@ -197,6 +207,16 @@ export function CreateAdWizard({
     if (slotMenuOpen || payMenuOpen) document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [slotMenuOpen, payMenuOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !slotId || phase !== 'form') return;
+    const max = getSlotConfig(slotId)?.maxAds ?? 1;
+    const active = filterActiveAdsForSlot(ads, slotId);
+    const occupied = new Set(active.map((a) => a.slotIndex ?? 0));
+    if (!occupied.has(slotIndex)) return;
+    const free = [...Array(max).keys()].find((i) => !occupied.has(i));
+    if (free !== undefined) setSlotIndex(free);
+  }, [isOpen, slotId, ads, slotIndex, phase]);
 
   const handleClose = () => {
     if (!isSubmitting) {
@@ -345,6 +365,7 @@ export function CreateAdWizard({
         image,
         format,
         featuredHighlight: featuredHighlight || undefined,
+        promoTooltip: promoTooltipTrimmed || undefined,
         paymentCurrency: payCurrency === 'KREX' ? 'KREX' : undefined,
         priceKrex: payCurrency === 'KREX' ? priceKrexHuman : undefined,
         krexPaymentTxHash,
@@ -607,36 +628,12 @@ export function CreateAdWizard({
                     })}
                   </div>
                 )}
-                <div className="mt-3">
-                  <ModalSectionTitle>Cell index</ModalSectionTitle>
-                  <input
-                    type="number"
-                    min={0}
-                    max={Math.max(0, (getSlotConfig(slotId ?? '')?.maxAds ?? 1) - 1)}
-                    value={slotIndex}
-                    onChange={(e) => {
-                      const maxI = Math.max(0, (getSlotConfig(slotId ?? '')?.maxAds ?? 1) - 1);
-                      const n = parseInt(e.target.value, 10);
-                      if (Number.isNaN(n)) return;
-                      setSlotIndex(Math.min(maxI, Math.max(0, n)));
-                    }}
-                    className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3"
-                    disabled={!slotId}
-                    aria-label="Cell index within slot"
-                  />
-                  <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">
-                    Range: 0–{Math.max(0, (getSlotConfig(slotId ?? '')?.maxAds ?? 1) - 1)}
-                  </p>
-                </div>
               </div>
 
               <div>
                 <ModalSectionTitle>Creative</ModalSectionTitle>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
-                      Image
-                    </p>
                     <div className="k-control-group h-10 p-1 flex w-full max-w-md">
                       <button
                         type="button"
@@ -752,6 +749,21 @@ export function CreateAdWizard({
                       placeholder="Ad title"
                       className="k-filter-select w-full min-h-[2.75rem] cursor-text bg-white dark:bg-zinc-800 appearance-auto pr-3 text-sm"
                     />
+                  </div>
+                  <div>
+                    <ModalSectionTitle>Hover promo (optional)</ModalSectionTitle>
+                    <textarea
+                      value={promoTooltip}
+                      onChange={(e) => setPromoTooltip(e.target.value.slice(0, ADS_MAX_PROMO_TOOLTIP_CHARS))}
+                      placeholder="Very short line shown in the hover tooltip on your creative"
+                      rows={2}
+                      className="k-filter-select w-full min-h-[4rem] resize-y cursor-text bg-white dark:bg-zinc-800 py-2.5 text-sm"
+                      maxLength={ADS_MAX_PROMO_TOOLTIP_CHARS}
+                    />
+                    <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">
+                      {promoTooltip.length}/{ADS_MAX_PROMO_TOOLTIP_CHARS} characters
+                      {!promoTooltipOk ? ' — shorten to continue' : ''}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -872,7 +884,7 @@ export function CreateAdWizard({
 
               {initialSlotId && slotConfig && (
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Prefilled slot: <strong>{slotConfig.label}</strong> · cell #{slotIndex}
+                  Prefilled slot: <strong>{slotConfig.label}</strong>
                 </p>
               )}
             </>

@@ -53,13 +53,8 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     slotId: 'HALO_GAMES_RIGHT',
     title: 'Games halo',
     href: '/games#ad-slot-games-halo',
-    placement: 'Kasparex Games listing, halo header right',
-  },
-  {
-    slotId: 'GAMES_PLAY_RAIL_RIGHT',
-    title: 'Games play rail',
-    href: '/games/minecore#ad-slot-games-play-rail',
-    placement: 'All Kasparex game play dashboards, right column bottom (unified layout)',
+    placement:
+      'Kasparex Games listing (halo) and all game play dashboards (right column); one shared slot pool',
   },
   {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',

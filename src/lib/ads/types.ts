@@ -38,6 +38,8 @@ export interface AdEntry {
   imageUrl: string;
   link: string;
   title: string;
+  /** Short optional message shown in the standard site tooltip on hover. */
+  promoTooltip?: string;
   startTime: string;
   endTime: string;
   priorityWeight?: number;

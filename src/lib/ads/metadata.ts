@@ -1,6 +1,6 @@
 import type { AdFormat, AdSlotId } from './types';
 import { AD_SLOTS } from './slots';
-import { ADS_MAX_DURATION_DAYS, ADS_MIN_DURATION_DAYS } from './constants';
+import { ADS_MAX_DURATION_DAYS, ADS_MIN_DURATION_DAYS, ADS_MAX_PROMO_TOOLTIP_CHARS } from './constants';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 export const AD_METADATA_VERSION = 1 as const;
@@ -31,6 +31,8 @@ export interface AdCampaignMetadataV1 {
   krexPaymentTxHash?: string;
   /** Flat premium — highlighted placement frame */
   featuredHighlight?: boolean;
+  /** Optional short promo line for hover tooltip on the creative */
+  promoTooltip?: string;
 }
 
 export function buildCampaignMetadataV1(input: {
@@ -47,6 +49,7 @@ export function buildCampaignMetadataV1(input: {
   priceKrex?: number;
   krexPaymentTxHash?: string;
   featuredHighlight?: boolean;
+  promoTooltip?: string;
 }): AdCampaignMetadataV1 {
   const row: AdCampaignMetadataV1 = {
     v: AD_METADATA_VERSION,
@@ -67,10 +70,13 @@ export function buildCampaignMetadataV1(input: {
     if (input.krexPaymentTxHash) row.krexPaymentTxHash = input.krexPaymentTxHash;
   }
   if (input.featuredHighlight === true) row.featuredHighlight = true;
+  const tip = input.promoTooltip?.trim();
+  if (tip && tip.length <= ADS_MAX_PROMO_TOOLTIP_CHARS) row.promoTooltip = tip;
   return row;
 }
 
 export function isValidSlotId(id: string): id is AdSlotId {
+  if (id === 'GAMES_PLAY_RAIL_RIGHT') return true;
   return AD_SLOTS.some((s) => s.id === id);
 }
 
@@ -94,8 +100,15 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   if (days < ADS_MIN_DURATION_DAYS || days > ADS_MAX_DURATION_DAYS) return null;
   if (typeof priceKas !== 'number' || priceKas <= 0) return null;
   if (typeof slotIndex !== 'number' || !Number.isInteger(slotIndex) || slotIndex < 0) return null;
-  const slotCfg = AD_SLOTS.find((s) => s.id === slotId);
+  const slotCfg = AD_SLOTS.find((s) => s.id === canonicalSlotId);
   if (!slotCfg || slotIndex >= slotCfg.maxAds) return null;
+  const promoRaw = o.promoTooltip;
+  let promoTooltip: string | undefined;
+  if (typeof promoRaw === 'string') {
+    const t = promoRaw.trim();
+    if (t.length > ADS_MAX_PROMO_TOOLTIP_CHARS) return null;
+    if (t.length > 0) promoTooltip = t;
+  }
   const fmt = o.format;
   if (fmt !== 'square' && fmt !== 'rectangle' && fmt !== 'tall') return null;
   if (!image || typeof image !== 'object') return null;
@@ -114,10 +127,9 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
     if (!krexPaymentTxHash || priceKrex == null || priceKrex <= 0) return null;
   }
 
-  const sid = slotId as AdSlotId;
   const base: AdCampaignMetadataV1 = {
     v: 1,
-    slotId: sid,
+    slotId: canonicalSlotId,
     slotIndex,
     days,
     priceKas,
@@ -132,6 +144,7 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   if (priceKrex != null) base.priceKrex = priceKrex;
   if (krexPaymentTxHash) base.krexPaymentTxHash = krexPaymentTxHash;
   if (featuredHighlight) base.featuredHighlight = true;
+  if (promoTooltip) base.promoTooltip = promoTooltip;
   return base;
 }
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { AdEntry, AdFormat } from '@/lib/ads/types';
 import { getSlotConfig } from '@/lib/ads/slots';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface AdCardProps {
   ad: AdEntry;
@@ -54,13 +55,16 @@ function getAspectClass(format: AdFormat): string {
 }
 
 export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) {
-  const slotConfig = getSlotConfig(ad.slotId);
+  const slotConfig = getSlotConfig(
+    ad.slotId === 'GAMES_PLAY_RAIL_RIGHT' ? 'HALO_GAMES_RIGHT' : ad.slotId,
+  );
   const slotLabel = slotConfig?.label ?? ad.slotId;
   const expiresText = formatExpires(ad.endTime);
   const format = ad.format ?? 'rectangle';
   const aspectClass = getAspectClass(format);
   const progressPercent = getProgressPercent(ad.startTime, ad.endTime);
   const featured = ad.featuredHighlight === true;
+  const promoTip = ad.promoTooltip?.trim();
 
   const shellClass = embedded
     ? 'rounded-xl bg-transparent'
@@ -70,22 +74,44 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
 
   return (
     <div className={`group overflow-hidden transition-all duration-300 ${shellClass}`}>
-      <Link
-        href={ad.link}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
-      >
-        <Image
-          src={ad.imageUrl}
-          alt={ad.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      </Link>
+      {promoTip ? (
+        <Tooltip content={promoTip}>
+          <Link
+            href={ad.link}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            aria-label={`${ad.title}. ${promoTip}`}
+            className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
+          >
+            <Image
+              src={ad.imageUrl}
+              alt={ad.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          </Link>
+        </Tooltip>
+      ) : (
+        <Link
+          href={ad.link}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className={`block relative w-full ${aspectClass} bg-zinc-100/80 dark:bg-zinc-900/95 overflow-hidden`}
+        >
+          <Image
+            src={ad.imageUrl}
+            alt={ad.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        </Link>
+      )}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate flex-1 min-w-0">{ad.title}</h3>

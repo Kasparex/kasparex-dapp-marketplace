@@ -218,6 +218,7 @@ export function campaignToAdEntry(
     imageUrl: resolveAdImageUrl(meta.image),
     link: meta.link,
     title: meta.title,
+    promoTooltip: meta.promoTooltip?.trim() || undefined,
     startTime: new Date(startMs).toISOString(),
     endTime: new Date(endMs).toISOString(),
     payerL1: meta.payerL1,

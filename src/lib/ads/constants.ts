@@ -21,3 +21,6 @@ export const ADS_FEATURED_HIGHLIGHT_KAS = 20;
  * Keeps an L1 output to the ads treasury for discovery alongside payload-bearing txs.
  */
 export const ADS_KREX_BINDING_FEE_KAS = 0.02;
+
+/** Optional hover promo line on ad creatives (stored in campaign metadata). */
+export const ADS_MAX_PROMO_TOOLTIP_CHARS = 120;

@@ -3,16 +3,33 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 const ADS_START_SLACK_MS = 5 * 60 * 1000;
 
+/** Legacy rail slot merged into Games Halo for display and capacity. */
+function slotIdsMatchingPlacement(slotId: string): string[] {
+  if (slotId === 'HALO_GAMES_RIGHT') return ['HALO_GAMES_RIGHT', 'GAMES_PLAY_RAIL_RIGHT'];
+  return [slotId];
+}
+
+function matchesPlacement(ad: AdEntry, slotId: string): boolean {
+  return slotIdsMatchingPlacement(slotId).includes(ad.slotId);
+}
+
 export function filterActiveAdsForSlot(ads: AdEntry[], slotId: string): AdEntry[] {
   const nowMs = Date.now();
   return ads
     .filter(
       (ad) =>
-        ad.slotId === slotId &&
+        matchesPlacement(ad, slotId) &&
         new Date(ad.startTime).getTime() - ADS_START_SLACK_MS <= nowMs &&
         new Date(ad.endTime).getTime() > nowMs
     )
-    .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
+    .sort((a, b) => {
+      const ia = a.slotIndex ?? 0;
+      const ib = b.slotIndex ?? 0;
+      if (ia !== ib) return ia - ib;
+      if (a.slotId === 'HALO_GAMES_RIGHT' && b.slotId !== 'HALO_GAMES_RIGHT') return -1;
+      if (b.slotId === 'HALO_GAMES_RIGHT' && a.slotId !== 'HALO_GAMES_RIGHT') return 1;
+      return 0;
+    });
 }
 
 export function getRandomActiveAdForSlotFromList(ads: AdEntry[], slotId: string): AdEntry | null {
