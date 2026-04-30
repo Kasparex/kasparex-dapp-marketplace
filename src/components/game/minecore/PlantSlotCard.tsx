@@ -288,54 +288,43 @@ function DailyCapBar(props: {
   capStack?: PlantRollingCapBreakdown;
 }) {
   const r = clamp01(props.ratio);
-  const showCapResetTimer = props.remainingMs > 0 && !props.forceZeroDisplay;
+  const showCountdown = props.remainingMs > 0;
   const displayFlow = props.forceZeroDisplay ? 0 : Math.max(0, props.flowRatePerMin);
   const displayMined = props.forceZeroDisplay ? 0 : Math.floor(props.mined);
   const displayCap = props.forceZeroDisplay ? 0 : Math.max(0, Math.floor(props.cap));
 
-  const tipParts: string[] = [];
-  if (!props.forceZeroDisplay && props.cap > 0) {
-    tipParts.push(
-      `Mined toward this plant’s rolling cap (${Math.floor(props.mined).toLocaleString()} / ${props.cap.toLocaleString()}).`,
-    );
-    tipParts.push('Daily cap is plant tier + rig + only the crew assigned to this plant.');
-    if (showCapResetTimer) {
-      tipParts.push(`Cap resets in ${formatCapResetCountdown(props.remainingMs)}.`);
-    }
-  } else {
-    tipParts.push('Install machine, battery, and worker to unlock your rolling cap.');
-  }
-  const tip = tipParts.join(' ');
+  const tip = props.forceZeroDisplay
+    ? 'Finish machine, battery, and crew setup to track diamonds against this plant’s 24h limit.'
+    : 'How much of this plant’s rolling 24h diamond budget you’ve used.';
 
   const inner = (
     <div className="space-y-2">
-      <div className="flex min-h-[2.25rem] flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        {showCapResetTimer ? (
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[9px] font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">24h cap resets</span>
-            <span className="font-mono text-sm font-black tabular-nums text-sky-600 dark:text-sky-300 sm:text-base">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-zinc-100 pt-2 dark:border-zinc-800">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+          <span className="text-lg font-black tabular-nums tracking-tight sm:text-xl">
+            <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
+            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
+            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
+          </span>
+          {showCountdown ? (
+            <span
+              className={`font-mono text-lg font-black tabular-nums tracking-tight sm:text-xl ${
+                props.forceZeroDisplay
+                  ? 'text-zinc-500 dark:text-zinc-500'
+                  : 'text-sky-600 dark:text-sky-300'
+              }`}
+            >
               {formatCapResetCountdown(props.remainingMs)}
             </span>
-          </div>
-        ) : (
-          <div className="min-w-[6rem]" aria-hidden />
-        )}
-        <div className="shrink-0 text-right">
-          <Tooltip content="Diamonds mined per minute right now (0 when not running).">
-            <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
+          ) : null}
+        </div>
+        <div className="shrink-0">
+          <Tooltip content="Diamonds per minute right now.">
+            <span className="inline-block font-mono text-lg font-bold tabular-nums tracking-tight text-emerald-600 sm:text-xl dark:text-emerald-400">
               {displayFlow.toFixed(1)} D/min
             </span>
           </Tooltip>
-        </div>
-      </div>
-      <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-          Available mined / Daily cap
-        </span>
-        <div className="flex items-baseline gap-1.5 tabular-nums">
-          <span className="text-lg font-black text-amber-400 sm:text-xl dark:text-amber-300">{displayMined.toLocaleString()}</span>
-          <span className="text-sm font-bold text-zinc-400 dark:text-zinc-500">/</span>
-          <span className="text-lg font-black text-emerald-600 sm:text-xl dark:text-emerald-400">{displayCap.toLocaleString()}</span>
         </div>
       </div>
       {props.capStack ? (
