@@ -644,8 +644,15 @@ export function MinecoreDashboard(_props: {
                   const idx = Math.max(0, Math.floor(boostTargetSlotIndex ?? 0));
                   await actions.purchaseKasOverclockWithKAS(idx, q);
                 }
+                if (itemId === 'kas-overclock' && currency === 'KREX') {
+                  const idx = Math.max(0, Math.floor(boostTargetSlotIndex ?? 0));
+                  await actions.purchaseKasOverclockWithKREX(idx, q);
+                }
                 if (itemId === 'krex-boost' && currency === 'KAS') {
                   await actions.purchaseKrexBoostChargesWithKAS(q);
+                }
+                if (itemId === 'krex-boost' && currency === 'KREX') {
+                  await actions.purchaseKrexBoostChargesWithKREX(q);
                 }
                 if (itemId === 'repair' && currency === 'KAS') {
                   await actions.purchaseStabilityPatchesWithKAS(q);

@@ -456,42 +456,47 @@ export function ShopPanel(props: {
       baseKasPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
       type: 'item' as const,
       render: () => (
-        <div key="kas-overclock" className="col-span-full sm:col-span-2">
-          <GameItemCard
-            title="KAS Overclock"
-            category="Boost"
-            imageSrc="https://static.wixstatic.com/media/de4185_a21da156e5fb4f90acf87e8e7a229960~mv2.jpg"
-            description="Applies to the plant you choose below: raises your 24h diamond ceiling, then bumps the very next run’s expected yield."
-            effects={[
-              { label: 'Daily cap', value: '+100 / 24h', color: 'sky' },
-              { label: 'Next cycle', value: '+100 ♦', color: 'sky' },
-            ]}
-            belowEffects={
-              <BoostPlantTargetSelect
-                plantSlots={props.plantSlots}
-                value={overclockTargetSlot}
-                onChange={setOverclockTargetSlot}
-              />
-            }
-            priceOptions={[
-              {
-                currency: 'KAS',
-                unitPrice: props.getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS),
-                originalUnitPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
-              },
-            ]}
-            quantitySelector={{ min: 1, max: 99 }}
-            buyLabel="Buy"
-            onBuy={({ currency, quantity }) =>
-              props.onBuy({
-                itemId: 'kas-overclock',
-                currency,
-                quantity,
-                boostTargetSlotIndex: overclockTargetSlot,
-              })
-            }
-          />
-        </div>
+        <GameItemCard
+          key="kas-overclock"
+          title="KAS Overclock"
+          category="Boost"
+          imageSrc="https://static.wixstatic.com/media/de4185_a21da156e5fb4f90acf87e8e7a229960~mv2.jpg"
+          description="Applies to the plant you choose below: raises your 24h diamond ceiling, then bumps the very next run’s expected yield."
+          effects={[
+            { label: 'Daily cap', value: '+100 / 24h', color: 'sky' },
+            { label: 'Next cycle', value: '+100 ♦', color: 'sky' },
+          ]}
+          belowEffects={
+            <BoostPlantTargetSelect
+              plantSlots={props.plantSlots}
+              value={overclockTargetSlot}
+              onChange={setOverclockTargetSlot}
+            />
+          }
+          priceOptions={[
+            {
+              currency: 'KAS',
+              unitPrice: props.getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS),
+              originalUnitPrice: MINECORE_KAS_OVERCLOCK_SHOP_KAS,
+            },
+            {
+              currency: 'KREX',
+              unitPrice: minecoreKrexFromDiscountedKas(
+                props.getKasPriceAfterDiscount(MINECORE_KAS_OVERCLOCK_SHOP_KAS),
+              ),
+            },
+          ]}
+          quantitySelector={{ min: 1, max: 99 }}
+          buyLabel="Buy"
+          onBuy={({ currency, quantity }) =>
+            props.onBuy({
+              itemId: 'kas-overclock',
+              currency,
+              quantity,
+              boostTargetSlotIndex: overclockTargetSlot,
+            })
+          }
+        />
       ),
     },
     {
@@ -518,6 +523,12 @@ export function ShopPanel(props: {
               currency: 'KAS',
               unitPrice: props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS),
               originalUnitPrice: MINECORE_KREX_BOOST_SHOP_KAS,
+            },
+            {
+              currency: 'KREX',
+              unitPrice: minecoreKrexFromDiscountedKas(
+                props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS),
+              ),
             },
           ]}
           quantitySelector={{ min: 1, max: 99 }}

@@ -170,7 +170,7 @@ function labelForStatus(status: PlantSlotState['status']) {
   if (status === 'EmptySlot')       return 'Empty slot';
   if (status === 'SetupIncomplete') return 'Setup incomplete';
   if (status === 'ReadyToMine')     return 'Ready';
-  if (status === 'MiningActive')    return 'Mining active';
+  if (status === 'MiningActive')    return 'Active';
   if (status === 'MiningPaused')    return 'Paused';
   if (status === 'BatteryEmpty')    return 'Battery empty';
   if (status === 'CreditingReady') return 'Crediting';
@@ -919,6 +919,22 @@ export function PlantSlotCard(props: {
             <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
             {s.unlocked && s.setup.machineId ? (
               <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
+            ) : null}
+            {s.unlocked &&
+            s.setup.moduleIds.includes('krex-boost') &&
+            (s.krexBoostUntilMs ?? 0) > 0 &&
+            now < (s.krexBoostUntilMs ?? 0) ? (
+              <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
+                KREX Boost
+              </span>
+            ) : null}
+            {s.unlocked &&
+            (((s.kasOverclockDailyBonusUntilMs ?? 0) > 0 &&
+              now < (s.kasOverclockDailyBonusUntilMs ?? 0)) ||
+              (s.kasOverclockNextCycleExtraDiamonds ?? 0) > 0) ? (
+              <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
+                Overclock
+              </span>
             ) : null}
             {props.minecoreState.automation.autoRestart && (
               <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-800 dark:text-sky-300">

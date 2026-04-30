@@ -623,6 +623,40 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
   );
 
+  const purchaseKrexBoostChargesWithKREX = useCallback(
+    async (count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const listKas = MINECORE_KREX_BOOST_SHOP_KAS * q;
+      const discounted = getKasPriceAfterDiscount(listKas);
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+        skuId: 'minecore:shop:krex-boost:krex',
+        recordActionType: 'shop-krex-boost',
+        transactionDetail: { count: q },
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'GrantModuleInventory', moduleId: 'krex-boost', count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
+  );
+
+  const purchaseKasOverclockWithKREX = useCallback(
+    async (slotIndex: number, count: number) => {
+      const q = Math.max(1, Math.floor(count));
+      const listKas = MINECORE_KAS_OVERCLOCK_SHOP_KAS * q;
+      const discounted = getKasPriceAfterDiscount(listKas);
+      const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+        skuId: 'minecore:shop:kas-overclock:krex',
+        recordActionType: 'shop-kas-overclock',
+        transactionDetail: { slotIndex, count: q },
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'ApplyKasOverclock', slotIndex, count: q, at: Date.now() });
+      return true;
+    },
+    [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
+  );
+
   const refine = useCallback(
     (amount: number) => {
       if (!walletAddr) return;
@@ -891,7 +925,9 @@ export function useMinecore() {
       rechargePlantWithKAS,
       changePlantType,
       purchaseKrexBoostChargesWithKAS,
+      purchaseKrexBoostChargesWithKREX,
       purchaseKasOverclockWithKAS,
+      purchaseKasOverclockWithKREX,
     },
     getKasPriceAfterDiscount,
     nowTick,
