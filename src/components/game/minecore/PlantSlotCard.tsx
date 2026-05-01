@@ -961,6 +961,11 @@ export function PlantSlotCard(props: {
       imageSrc={plantFeaturedUrl}
       imageAlt={preset.label}
       onMediaClick={showFeaturedPlantArt && plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
+      mediaTapTooltip={
+        showFeaturedPlantArt && plantFeaturedUrl && canEditParts
+          ? 'Click the plant image to open setup and upgrade the plant (tier, rig, crew, modules).'
+          : undefined
+      }
       mediaOverlayBottom={
         showFeaturedPlantArt && plantFeaturedUrl ? (
           <>
@@ -1038,26 +1043,37 @@ export function PlantSlotCard(props: {
                 </span>
               </Tooltip>
             ) : null}
-            {s.unlocked && foremanDeployed ? (
-              <Tooltip
-                content={
-                  autoRestartInfra
-                    ? 'Per-plant AUTO: when on, this plant starts another run after a cycle if batteries still hold charge. No paid refills from automation. Tap to toggle.'
-                    : 'Preference is saved per plant. Deploy a Foreman NFT and add Regen Coil (or keep Foreman infra) so AUTO can actually chain cycles.'
-                }
-              >
-                <button
-                  type="button"
-                  onClick={() => props.onTogglePlantAutoRestartMining?.(!s.autoRestartMining)}
-                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide transition-opacity ${
-                    s.autoRestartMining
-                      ? 'cursor-pointer border-sky-500/30 bg-sky-500/15 text-sky-800 hover:opacity-90 dark:text-sky-300'
-                      : 'cursor-pointer border-zinc-400/35 bg-zinc-200/50 text-zinc-700 hover:opacity-90 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300'
-                  }`}
+            {s.unlocked ? (
+              !foremanDeployed ? (
+                <Tooltip content="Assign a Foreman NFT on the Workers tab to unlock per-plant AUTO. Until then the control stays off.">
+                  <span
+                    className="inline-flex items-center rounded-full border border-zinc-300/40 bg-zinc-100/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-zinc-400 opacity-80 dark:border-zinc-600/50 dark:bg-zinc-800/50 dark:text-zinc-500"
+                    aria-disabled
+                  >
+                    Auto · off
+                  </span>
+                </Tooltip>
+              ) : (
+                <Tooltip
+                  content={
+                    autoRestartInfra
+                      ? 'Per-plant AUTO: when on, this plant starts another run after a cycle if batteries still hold charge. No paid refills from automation. Tap to toggle.'
+                      : 'AUTO is saved per plant. Add Regen Coil (or keep Foreman staffed) so automation infra can chain cycles after you turn AUTO on.'
+                  }
                 >
-                  Auto {s.autoRestartMining ? 'on' : 'off'}
-                </button>
-              </Tooltip>
+                  <button
+                    type="button"
+                    onClick={() => props.onTogglePlantAutoRestartMining?.(!s.autoRestartMining)}
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide transition-opacity ${
+                      s.autoRestartMining
+                        ? 'cursor-pointer border-sky-500/30 bg-sky-500/15 text-sky-800 hover:opacity-90 dark:text-sky-300'
+                        : 'cursor-pointer border-zinc-400/35 bg-zinc-200/50 text-zinc-700 hover:opacity-90 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300'
+                    }`}
+                  >
+                    Auto {s.autoRestartMining ? 'on' : 'off'}
+                  </button>
+                </Tooltip>
+              )
             ) : null}
           </div>
 

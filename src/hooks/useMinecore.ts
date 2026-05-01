@@ -11,6 +11,7 @@ import {
   computePlantReady,
   computeLiveBatteryChargeMs,
   minecoreAutoRestartInfrastructureActive,
+  minecoreForemanDeployed,
   hasInstalledBattery,
   type MinecoreState,
   type MinecoreBatteryId,
@@ -173,6 +174,7 @@ export function useMinecore() {
    */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
+    if (!minecoreForemanDeployed(mcRef.current)) return;
     if (!minecoreAutoRestartInfrastructureActive(mcRef.current)) return;
 
     const now = Date.now();

@@ -29,6 +29,7 @@ import {
   deriveSlotStatus,
   plantDailyCapPreventsNewCycle,
   syncPlantPowerUnitsToCapacity,
+  minecoreForemanDeployed,
 } from './compute';
 import {
   distributeWaterfallToMax,
@@ -238,6 +239,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
       }
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
+      if (!s.automation.foremanActive) {
+        for (const ps of s.plantSlots) {
+          ps.autoRestartMining = false;
+        }
+      }
       clampAllPlantBatteryChargesToCaps(s, now);
       return rederive(s, now);
     }
@@ -264,7 +270,12 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'SetPlantAutoRestartMining': {
       const plant = s.plantSlots[ev.slotIndex];
       if (!plant?.unlocked) return rederive(s, now);
-      plant.autoRestartMining = Boolean(ev.enabled);
+      if (!ev.enabled) {
+        plant.autoRestartMining = false;
+        return rederive(s, now);
+      }
+      if (!minecoreForemanDeployed(s)) return rederive(s, now);
+      plant.autoRestartMining = true;
       return rederive(s, now);
     }
 

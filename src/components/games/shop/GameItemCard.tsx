@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
@@ -41,6 +42,8 @@ export function GameItemCard(props: {
   imageAlt?: string;
   /** When set with `imageSrc`, the media image is clickable (e.g. open upgrade modal). */
   onMediaClick?: () => void;
+  /** Hover hint when the plant image opens setup (Mining cards). */
+  mediaTapTooltip?: React.ReactNode;
   /** Optional overlay in the media area. */
   mediaOverlay?: React.ReactNode;
   /** Optional bottom overlay (e.g. plant stat capsules). */
@@ -174,29 +177,37 @@ export function GameItemCard(props: {
     );
   }
 
+  let mainMedia: React.ReactNode;
+  if (!props.imageSrc) {
+    mainMedia = (
+      <div className="flex h-12 w-12 items-center justify-center text-3xl text-zinc-400 dark:text-zinc-600">{props.icon ?? '⬡'}</div>
+    );
+  } else if (props.onMediaClick) {
+    const imgBtn = (
+      <button
+        type="button"
+        onClick={props.onMediaClick}
+        className="absolute inset-0 z-[1] block h-full w-full cursor-pointer border-0 bg-transparent p-0"
+        aria-label={props.imageAlt ?? props.title}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={props.imageSrc} alt="" className="pointer-events-none h-full w-full object-cover" />
+      </button>
+    );
+    mainMedia = props.mediaTapTooltip ? <Tooltip content={props.mediaTapTooltip}>{imgBtn}</Tooltip> : imgBtn;
+  } else {
+    mainMedia = (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={props.imageSrc} alt={props.imageAlt ?? props.title} className="h-full w-full object-cover" />
+    );
+  }
+
   return (
     <KxListingCard accent="games" className="relative flex min-h-0 flex-col">
       <KxListingCardMedia aspectClass="aspect-[3/2]">
         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
         <div className="absolute inset-0 flex items-center justify-center">
-          {props.imageSrc ? (
-            props.onMediaClick ? (
-              <button
-                type="button"
-                onClick={props.onMediaClick}
-                className="absolute inset-0 z-[1] block h-full w-full cursor-pointer border-0 bg-transparent p-0"
-                aria-label={props.imageAlt ?? props.title}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={props.imageSrc} alt="" className="pointer-events-none h-full w-full object-cover" />
-              </button>
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={props.imageSrc} alt={props.imageAlt ?? props.title} className="h-full w-full object-cover" />
-            )
-          ) : (
-            <div className="flex h-12 w-12 items-center justify-center text-3xl text-zinc-400 dark:text-zinc-600">{props.icon ?? '⬡'}</div>
-          )}
+          {mainMedia}
         </div>
 
         <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">

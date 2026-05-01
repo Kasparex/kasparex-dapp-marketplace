@@ -34,6 +34,7 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower } from '@/components/games/icons/TabIcons';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
+import { CrewPlantFeaturesPanel } from '@/components/game/minecore/CrewPlantFeaturesPanel';
 import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -514,13 +515,15 @@ export function MinecoreDashboard(_props: {
               <WorkersPanel
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}
-                plantSlots={state.plantSlots}
-                autoRestartInfrastructureActive={autoRestartInfrastructureActive}
                 onDeploy={actions.deployNFT}
                 onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
                 onPurchaseExtraSlot={actions.purchaseNftDeckSlot}
                 slotPurchaseKas={getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS)}
                 miningAllowed={miningAllowed}
+              />
+              <CrewPlantFeaturesPanel
+                plantSlots={state.plantSlots}
+                autoRestartInfrastructureActive={autoRestartInfrastructureActive}
               />
             </div>
           )}

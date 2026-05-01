@@ -233,7 +233,7 @@ export function FabricationPanel(props: {
                       value: 'Qualifies plant for AUTO',
                       color: 'emerald',
                       specTooltip:
-                        'Together with Foreman NFT (or another auto infra source), allows AUTO on the Mining plant card to chain runs. Toggle is per plant once Foreman is deployed.',
+                        'Supplies automation infrastructure alongside a Foreman on crew: when AUTO is on at a plant, runs can chain after each cycle (toggle stays locked until Foreman is assigned).',
                     });
                   }
                 }
