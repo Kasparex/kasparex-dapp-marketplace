@@ -1,6 +1,6 @@
 'use client';
 
-import type { MinecoreState, PlantSlotState, MinecoreModuleId } from '@/lib/game/minecore';
+import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerNodeId } from '@/lib/game/minecore';
 import {
   computeLiveBatteryChargeMs,
   computePlantDailyCapProgress,
@@ -36,7 +36,6 @@ import {
   countMachinesAssigned,
   countMachinesAssignedExcept,
   countPowerNodesAssigned,
-  countPowerNodesAssignedExcept,
   countModuleAssignments,
   countWorkerNftDeckAssignmentsExcept,
   displayAssignedCount,
@@ -70,6 +69,7 @@ import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 import {
   getPlantBatterySlotCount,
+  getPlantPowerNodeSlotCount,
   hasInstalledBattery,
   getMaxChargePerSlotMs,
   normalizeBatteryIds,
@@ -85,6 +85,26 @@ import * as Icons from 'lucide-react';
 
 function clamp01(n: number) {
   return n <= 0 ? 0 : n >= 1 ? 1 : n;
+}
+
+function togglePowerNodeSlotAssignment(
+  ids: readonly (MinecorePowerNodeId | null)[],
+  nodeId: MinecorePowerNodeId,
+  direction: 'add' | 'remove',
+): (MinecorePowerNodeId | null)[] {
+  const copy = [...ids];
+  if (direction === 'add') {
+    const fi = copy.indexOf(null);
+    if (fi >= 0) copy[fi] = nodeId;
+    return copy;
+  }
+  for (let i = copy.length - 1; i >= 0; i--) {
+    if (copy[i] === nodeId) {
+      copy[i] = null;
+      break;
+    }
+  }
+  return copy;
 }
 
 /** Show auxiliary Recharge CTA only when charge is below this fraction of capacity. */
@@ -527,7 +547,7 @@ function tierBatteryFillCls(ratio: number): string {
 }
 
 /** Grid load = consumption ÷ max supply; drives efficiency bands and mining eligibility. */
-function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: number; effGridPct: number }) {
+function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: number }) {
   const rawLoad = props.prodKw > 1e-9 ? props.consKw / props.prodKw : Number.POSITIVE_INFINITY;
   const zone = powerLoadZoneLabel(rawLoad);
   const barPct = Number.isFinite(rawLoad) ? Math.min(100, rawLoad * 100) : 100;
@@ -591,7 +611,7 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
           />
         </div>
       </Tooltip>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold">
+      <div className="text-[10px] font-semibold">
         <Tooltip
           content={gameTooltipRich(
             'Power balance',
@@ -605,18 +625,9 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
             {formatMinecorePowerDisplay(Math.abs(props.balKw))}
           </span>
         </Tooltip>
-        <Tooltip
-          content={gameTooltipRich(
-            'Grid efficiency',
-            'Nominal efficiency from the load band (before maintenance wear is applied to live yield).',
-          )}
-        >
-          <span className="cursor-help text-zinc-600 dark:text-zinc-300">Grid eff {props.effGridPct.toFixed(0)}%</span>
-        </Tooltip>
-      </div>
-      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+        <span className="text-zinc-400 dark:text-zinc-500"> · </span>
         <Tooltip content={barTip}>
-          <span className="cursor-help">
+          <span className="cursor-help text-zinc-500 dark:text-zinc-400">
             Load {loadPctLabel} · {zoneLabel}
             {rawLoad > MINECORE_POWER_CRITICAL_LOAD ? ' · above critical band' : ''}
           </span>
@@ -883,7 +894,15 @@ export function PlantSlotCard(props: {
 
   // ── Config lookups ───────────────────────────────────────────────────────
   const machineConfig   = s.setup.machineId ? MINECORE_MACHINES[s.setup.machineId] : null;
-  const nodeConfig      = s.setup.powerNodeId ? MINECORE_POWER_NODES[s.setup.powerNodeId] : null;
+  const powerNodeSlots = normalizePlantSetup(s.type, s.setup).powerNodeIds;
+  const reactorBonusKw = powerNodeSlots.reduce(
+    (sum, id) => sum + (id ? MINECORE_POWER_NODES[id]?.maxPowerKw ?? 0 : 0),
+    0,
+  );
+  const reactorFilledCount = powerNodeSlots.filter(Boolean).length;
+  const reactorLabels = powerNodeSlots
+    .map((id) => (id ? MINECORE_POWER_NODES[id]?.label : null))
+    .filter((x): x is string => x != null);
   const powerUnitCount  = getPlantBatterySlotCount(s.type);
   const installedBatteryIndices = useMemo(() => {
     const ids = normalizeBatteryIds(s.setup, s.type);
@@ -1351,26 +1370,42 @@ export function PlantSlotCard(props: {
               />
             ) : null}
             <CheckRow
-              installed={!!nodeConfig}
+              installed={reactorFilledCount > 0}
               label="Power"
-              value={nodeConfig?.label ?? 'Optional - tap to add a reactor'}
+              value={
+                reactorFilledCount === 0
+                  ? 'Optional - tap to add reactors'
+                  : reactorFilledCount === 1 && reactorLabels[0]
+                    ? `${reactorLabels[0]} · tap to manage`
+                    : `${reactorFilledCount} reactors · tap to manage`
+              }
               badges={
-                nodeConfig ? (
+                reactorBonusKw > 0 ? (
                   <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-amber-900 dark:text-amber-200">
-                    +{nodeConfig.maxPowerKw} kW max
+                    +{reactorBonusKw} kW max
                   </span>
                 ) : undefined
               }
               tooltip={
-                nodeConfig
+                reactorFilledCount === 0
                   ? gameTooltipRich(
-                      nodeConfig.label,
-                      <>Adds +{nodeConfig.maxPowerKw} kW to max plant power. Tap to swap or clear.</>,
+                      'Reactor slots',
+                      'Optional reactors crafted in Build. Raises max plant power so heavy rigs stay in a safe load band.',
                     )
-                  : gameTooltipRich(
-                      'Reactor slot',
-                      'Optional reactor crafted in Build. Raises max plant power so heavy rigs stay in a safe load band.',
-                    )
+                  : reactorFilledCount === 1 && reactorLabels[0]
+                    ? gameTooltipRich(
+                        reactorLabels[0],
+                        <>
+                          Adds +{reactorBonusKw} kW to max plant power. Tap to add, remove, or reorder assignments.
+                        </>,
+                      )
+                    : gameTooltipRich(
+                        'Reactors',
+                        <>
+                          <p>+{reactorBonusKw} kW total max power from this plant&apos;s reactors.</p>
+                          <p className="mt-1">{reactorLabels.join(' · ')}</p>
+                        </>,
+                      )
               }
               onClick={() => setActiveModal('powerNode')}
               disabled={!canEditParts}
@@ -1428,7 +1463,7 @@ export function PlantSlotCard(props: {
               <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Power grid
               </div>
-              <PowerGridBalanceBar prodKw={prodKw} consKw={consKw} balKw={balKw} effGridPct={effGridPct} />
+              <PowerGridBalanceBar prodKw={prodKw} consKw={consKw} balKw={balKw} />
             </div>
           ) : null}
 
@@ -1770,27 +1805,43 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'powerNode'}
         onClose={() => setActiveModal(null)}
-        title="Assign reactor"
+        title="Assign reactors"
       >
         {modalFeedback ? (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
             {modalFeedback}
           </p>
         ) : null}
-        <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-          Reactors add max power (kW) at this plant. Craft them in Build. Optional - helps balance heavy rigs and modules.
+        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Tap a row to toggle. This plant has {powerNodeSlots.length} reactor slot
+          {powerNodeSlots.length === 1 ? '' : 's'} (matches reserve-unit pillars). Craft reactors in Build - optional;
+          they add max power (kW).
         </p>
         <ul className="space-y-2">
           {Object.values(MINECORE_POWER_NODES).map((node) => {
             const owned = props.minecoreState.owned.nodes[node.id] ?? 0;
-            const assignedElsewhere = countPowerNodesAssignedExcept(
-              props.minecoreState.plantSlots,
-              node.id,
-              props.slotArrayIndex,
-            );
-            const canPick = assignedElsewhere + 1 <= owned;
-            const isInstalled = s.setup.powerNodeId === node.id;
-            const rowBlocked = !canPick && !isInstalled;
+            const cntHere = powerNodeSlots.filter((x) => x === node.id).length;
+            const isSelected = cntHere > 0;
+            const nextIfAdd = togglePowerNodeSlotAssignment(powerNodeSlots, node.id, 'add');
+            const slotsFull = !powerNodeSlots.some((x) => x == null);
+            const reactorAddBlocked =
+              !isSelected &&
+              (slotsFull ||
+                !inventoryAllowsPlantSetup(props.minecoreState, props.slotArrayIndex, {
+                  ...s.setup,
+                  powerNodeIds: nextIfAdd,
+                }));
+            const rowBlocked = reactorAddBlocked && !isSelected;
+            const blockReason =
+              slotsFull && !isSelected
+                ? 'All reactor slots are full - remove one or upgrade plant tier.'
+                : explainPlantSetupBlock(props.minecoreState, props.slotArrayIndex, {
+                    ...s.setup,
+                    powerNodeIds: nextIfAdd,
+                  }) ??
+                  (owned <= 0
+                    ? 'Craft this reactor in Build - none owned.'
+                    : 'Every owned unit of this type is already on plants.');
             return (
               <li key={node.id} className="list-none">
                 <ModalPartRow
@@ -1799,34 +1850,41 @@ export function PlantSlotCard(props: {
                   owned={owned}
                   inUse={displayAssignedCount(countPowerNodesAssigned(props.minecoreState.plantSlots, node.id), owned)}
                   disabled={rowBlocked}
-                  disabledHint={
-                    rowBlocked
-                      ? owned <= 0
-                        ? 'Craft this reactor in Build - none owned.'
-                        : 'Every owned unit of this type is already on plants.'
-                      : undefined
-                  }
-                  selected={isInstalled}
+                  disabledHint={rowBlocked ? blockReason : undefined}
+                  selected={isSelected}
                   onClick={() => {
-                    if (s.setup.powerNodeId === node.id) {
-                      setActiveModal(null);
-                      return;
-                    }
-                    props.onInstallPart('powerNode', node.id);
-                    setActiveModal(null);
+                    if (rowBlocked && !isSelected) return;
+                    const next = isSelected
+                      ? togglePowerNodeSlotAssignment(powerNodeSlots, node.id, 'remove')
+                      : nextIfAdd;
+                    props.onInstallPart('powerNodes', next);
                   }}
+                  trailing={
+                    isSelected ? (
+                      cntHere > 1 ? (
+                        <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-amber-800 dark:text-amber-200">
+                          ×{cntHere}
+                        </span>
+                      ) : (
+                        <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" />
+                      )
+                    ) : undefined
+                  }
                 />
               </li>
             );
           })}
         </ul>
         <ModalActionRow
-          title="Remove reactor"
-          subtitle="Returns reactor to inventory."
+          title="Clear all reactors"
+          subtitle="Returns every reactor on this plant to inventory."
           destructive
-          disabled={!s.setup.powerNodeId}
+          disabled={!powerNodeSlots.some(Boolean)}
           onClick={() => {
-            props.onInstallPart('powerNode', null);
+            props.onInstallPart(
+              'powerNodes',
+              Array.from({ length: getPlantPowerNodeSlotCount(s.type) }, () => null),
+            );
             setActiveModal(null);
           }}
         />

@@ -96,10 +96,10 @@ export function computeProductionKw(slot: PlantSlotState): number {
   const plant = MINECORE_PLANT_BASE_PRODUCTION_KW[slot.type] ?? MINECORE_PLANT_BASE_PRODUCTION_KW.standard;
   const m = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const grid = m?.powerGridContribution ?? 0;
-  const nodeKw =
-    slot.setup.powerNodeId != null
-      ? (MINECORE_POWER_NODES[slot.setup.powerNodeId]?.maxPowerKw ?? 0)
-      : 0;
+  let nodeKw = 0;
+  for (const nid of normalizePlantSetup(slot.type, slot.setup).powerNodeIds) {
+    if (nid) nodeKw += MINECORE_POWER_NODES[nid]?.maxPowerKw ?? 0;
+  }
   return plant + grid * MINECORE_KW_SCALE + nodeKw;
 }
 

@@ -40,7 +40,7 @@ export type MinecoreModuleId =
   /** Shop module: 2.5× diamond yield for 1 hour after equipped (consumes inventory like other modules). */
   | 'krex-boost';
 
-/** Craftable supplemental reactors - one equipped per plant; each adds kW to plant max power. */
+/** Craftable supplemental reactors - tier gives 1 / 2 / 4 slots; each adds kW to plant max power. */
 export type MinecorePowerNodeId =
   | 'flux-node'
   | 'lattice-node'
@@ -89,8 +89,8 @@ export type OwnedItems = {
 
 export type PlantSetup = {
   machineId: MinecoreMachineId | null;
-  /** Optional reactor adds max power (kW) at this plant. One slot - swap like a rig. */
-  powerNodeId: MinecorePowerNodeId | null;
+  /** Reactor slots (count matches reserve-unit tier: 1 / 2 / 4). Each adds max power (kW); optional like batteries. */
+  powerNodeIds: (MinecorePowerNodeId | null)[];
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
   /**
@@ -226,7 +226,7 @@ export type MinecoreEvent =
         | { kind: 'battery'; id: MinecoreBatteryId | null; /** Which battery slot (0..n-1) on this plant. */ batterySlotIndex?: number }
         | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null; workerSlotPosition?: number }
         | { kind: 'crewWorkerNftDecks'; indices: (number | null)[] }
-        | { kind: 'powerNode'; id: MinecorePowerNodeId | null }
+        | { kind: 'powerNodes'; ids: (MinecorePowerNodeId | null)[] }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };
     }

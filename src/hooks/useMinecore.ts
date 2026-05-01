@@ -38,7 +38,7 @@ import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
-import type { MinecoreIngredient } from '@/lib/game/minecore/types';
+import type { MinecoreIngredient, MinecorePowerNodeId } from '@/lib/game/minecore/types';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
@@ -459,12 +459,9 @@ export function useMinecore() {
     [dispatch]
   );
 
-  const installPowerNode = useCallback(
-    (slotIndex: number, id: PlantSlotState['setup']['powerNodeId']) => {
-      dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'powerNode', id } });
-    },
-    [dispatch],
-  );
+  const setPlantPowerNodes = useCallback((slotIndex: number, ids: (MinecorePowerNodeId | null)[]) => {
+    dispatch({ type: 'InstallPart', slotIndex, at: Date.now(), part: { kind: 'powerNodes', ids } });
+  }, [dispatch]);
 
   const assignPlantWorkerNftDeck = useCallback(
     (slotIndex: number, deckSlotIndex: number | null, workerSlotPosition = 0) => {
@@ -905,7 +902,7 @@ export function useMinecore() {
       purchaseNftDeckSlot,
       installMachine,
       installBattery,
-      installPowerNode,
+      setPlantPowerNodes,
       assignPlantWorkerNftDeck,
       assignPlantCrewDeckIndices,
       setModules,

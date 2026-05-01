@@ -17,6 +17,7 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
       batteryIds: [...(s.setup.batteryIds ?? [])],
       moduleIds: [...s.setup.moduleIds],
       workerNftDeckSlotIndices: [...(s.setup.workerNftDeckSlotIndices ?? [])],
+      powerNodeIds: [...(s.setup.powerNodeIds ?? [])],
     },
     cycle: s.cycle ? { ...s.cycle } : null,
     batterySlotChargeMs: [...(s.batterySlotChargeMs ?? [])],
@@ -34,6 +35,10 @@ function cloneSlots(slots: PlantSlotState[]): PlantSlotState[] {
  */
 export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreState {
   const plantSlots = cloneSlots(state.plantSlots);
+  for (let i = 0; i < plantSlots.length; i++) {
+    const p = plantSlots[i];
+    plantSlots[i] = { ...p, setup: normalizePlantSetup(p.type, p.setup) };
+  }
 
   const MACHINE_IDS = Object.keys(state.owned.machines) as MinecoreMachineId[];
   for (const mid of MACHINE_IDS) {
@@ -52,15 +57,19 @@ export function enforcePlantInventoryInvariants(state: MinecoreState): MinecoreS
 
   for (const nid of MINECORE_POWER_NODE_IDS) {
     const owned = Math.max(0, state.owned.nodes?.[nid] ?? 0);
-    const indices = plantSlots
-      .map((p, i) => ({ p, i }))
-      .filter(({ p }) => p.unlocked && p.setup.powerNodeId === nid)
-      .map(({ i }) => i)
-      .sort((a, b) => b - a);
-    while (indices.length > owned) {
-      const idx = indices.shift();
-      if (idx === undefined) break;
-      plantSlots[idx].setup.powerNodeId = null;
+    const placements: { si: number; pi: number }[] = [];
+    plantSlots.forEach((p, si) => {
+      if (!p.unlocked) return;
+      const ids = normalizePlantSetup(p.type, p.setup).powerNodeIds;
+      ids.forEach((id, pi) => {
+        if (id === nid) placements.push({ si, pi });
+      });
+    });
+    placements.sort((a, b) => (a.si !== b.si ? b.si - a.si : b.pi - a.pi));
+    while (placements.length > owned) {
+      const pl = placements.shift();
+      if (!pl) break;
+      plantSlots[pl.si].setup.powerNodeIds[pl.pi] = null;
     }
   }
 

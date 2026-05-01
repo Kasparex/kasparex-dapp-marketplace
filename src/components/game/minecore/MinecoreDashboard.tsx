@@ -409,8 +409,8 @@ export function MinecoreDashboard(_props: {
                         case 'crewWorkerNftDeck':
                           actions.assignPlantWorkerNftDeck(slotIndex, id as number | null, minerPosition ?? 0);
                           break;
-                        case 'powerNode':
-                          actions.installPowerNode(slotIndex, id);
+                        case 'powerNodes':
+                          actions.setPlantPowerNodes(slotIndex, id);
                           break;
                         case 'modules':
                           actions.setModules(slotIndex, id);
