@@ -16,7 +16,7 @@ import {
   MINECORE_POWER_NODES,
   miningWorkerNftSlotsRequired,
 } from './config';
-import { getPlantBatterySlotCount } from './battery-utils';
+import { getPlantBatterySlotCount, getPlantPowerNodeSlotCount, normalizePowerNodeIds } from './battery-utils';
 
 export function normalizeWorkerDeckIndices(
   plantType: PlantSlotState['type'],
@@ -47,13 +47,14 @@ export function normalizePlantSetup(type: PlantSlotState['type'], setup: PlantSe
     i < (setup.batteryIds?.length ?? 0) ? ((setup.batteryIds![i] ?? null) as MinecoreBatteryId | null) : null,
   );
   const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(type, setup as PlantSetup & { workerNftDeckSlotIndex?: number | null });
+  const powerNodeIds = normalizePowerNodeIds(setup, type);
   return {
     machineId: setup.machineId,
-    powerNodeId: setup.powerNodeId != null && MINECORE_POWER_NODES[setup.powerNodeId] ? setup.powerNodeId : null,
     workerNftDeckSlotIndices,
     moduleIds: [...setup.moduleIds],
     batteryIds,
     boostId: setup.boostId ?? 'none',
+    powerNodeIds,
   };
 }
 
@@ -63,7 +64,7 @@ export type InstallPartPayload =
   | { kind: 'battery'; id: MinecoreBatteryId | null; batterySlotIndex?: number }
   | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null; workerSlotPosition?: number }
   | { kind: 'crewWorkerNftDecks'; indices: (number | null)[] }
-  | { kind: 'powerNode'; id: MinecorePowerNodeId | null }
+  | { kind: 'powerNodes'; ids: (MinecorePowerNodeId | null)[] }
   | { kind: 'modules'; ids: MinecoreModuleId[] }
   | { kind: 'boost'; id: MinecoreBoostId };
 
@@ -143,14 +144,19 @@ export function countMachinesAssignedExcept(slots: PlantSlotState[], id: Minecor
 }
 
 export function countPowerNodesAssigned(slots: PlantSlotState[], id: MinecorePowerNodeId): number {
-  return slots.reduce((n, p) => n + (p.unlocked && p.setup.powerNodeId === id ? 1 : 0), 0);
+  return slots.reduce((n, p) => {
+    if (!p.unlocked) return n;
+    const ids = normalizePlantSetup(p.type, p.setup).powerNodeIds;
+    return n + ids.filter((x) => x === id).length;
+  }, 0);
 }
 
 export function countPowerNodesAssignedExcept(slots: PlantSlotState[], id: MinecorePowerNodeId, exceptSlotIndex: number): number {
-  return slots.reduce(
-    (n, p, i) => n + (p.unlocked && i !== exceptSlotIndex && p.setup.powerNodeId === id ? 1 : 0),
-    0,
-  );
+  return slots.reduce((n, p, i) => {
+    if (!p.unlocked || i === exceptSlotIndex) return n;
+    const ids = normalizePlantSetup(p.type, p.setup).powerNodeIds;
+    return n + ids.filter((x) => x === id).length;
+  }, 0);
 }
 
 /** Next setup after applying `InstallPart`-style payload (no battery rescaling). */
@@ -161,6 +167,7 @@ export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: Insta
     batteryIds: [...base.batteryIds],
     moduleIds: [...base.moduleIds],
     workerNftDeckSlotIndices: [...base.workerNftDeckSlotIndices],
+    powerNodeIds: [...base.powerNodeIds],
   };
   if (part.kind === 'machine') {
     setup.machineId = part.id;
@@ -197,8 +204,13 @@ export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: Insta
     });
     return setup;
   }
-  if (part.kind === 'powerNode') {
-    setup.powerNodeId = part.id;
+  if (part.kind === 'powerNodes') {
+    const n = getPlantPowerNodeSlotCount(slot.type);
+    const incoming = part.ids ?? [];
+    setup.powerNodeIds = Array.from({ length: n }, (_, i) => {
+      const v = incoming[i];
+      return v != null && MINECORE_POWER_NODES[v] ? v : null;
+    });
     return setup;
   }
   if (part.kind === 'modules') {
@@ -256,17 +268,15 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
     if (assigned > (state.owned.machines[id] ?? 0)) return false;
   }
 
-  const powerNodeIds = new Set<MinecorePowerNodeId>();
+  const reactorTotals = new Map<MinecorePowerNodeId, number>();
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    if (p.setup.powerNodeId) powerNodeIds.add(p.setup.powerNodeId);
+    for (const nid of normalizePlantSetup(p.type, p.setup).powerNodeIds) {
+      if (nid) reactorTotals.set(nid, (reactorTotals.get(nid) ?? 0) + 1);
+    }
   }
-  for (const id of powerNodeIds) {
-    const assigned = hypotheticalSlots.reduce(
-      (n, p) => n + (p.unlocked && p.setup.powerNodeId === id ? 1 : 0),
-      0,
-    );
-    if (assigned > (state.owned.nodes[id] ?? 0)) return false;
+  for (const [id, c] of reactorTotals) {
+    if (c > (state.owned.nodes[id] ?? 0)) return false;
   }
 
   const batTotals = new Map<MinecoreBatteryId, number>();
@@ -355,16 +365,14 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
     }
   }
 
-  const powerNodeIds = new Set<MinecorePowerNodeId>();
+  const reactorTotalsExplain = new Map<MinecorePowerNodeId, number>();
   for (const p of hypotheticalSlots) {
     if (!p.unlocked) continue;
-    if (p.setup.powerNodeId) powerNodeIds.add(p.setup.powerNodeId);
+    for (const nid of normalizePlantSetup(p.type, p.setup).powerNodeIds) {
+      if (nid) reactorTotalsExplain.set(nid, (reactorTotalsExplain.get(nid) ?? 0) + 1);
+    }
   }
-  for (const id of powerNodeIds) {
-    const assigned = hypotheticalSlots.reduce(
-      (n, p) => n + (p.unlocked && p.setup.powerNodeId === id ? 1 : 0),
-      0,
-    );
+  for (const [id, assigned] of reactorTotalsExplain) {
     const owned = state.owned.nodes[id] ?? 0;
     if (assigned > owned) {
       return `Not enough reactors (${assigned} on plants vs ${owned} owned for this type). Craft in Build or unlink elsewhere.`;

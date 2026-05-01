@@ -1,8 +1,35 @@
-import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
-import type { MinecoreBatteryId, PlantSetup, PlantType } from './types';
+import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_PLANT_BASE_POWER_UNITS, MINECORE_POWER_NODES } from './config';
+import type { MinecoreBatteryId, MinecorePowerNodeId, PlantSetup, PlantType } from './types';
 
 export function getPlantBatterySlotCount(plantType: PlantType): number {
   return Math.max(1, MINECORE_PLANT_BASE_POWER_UNITS[plantType] ?? 1);
+}
+
+/** Reactor install slots mirror reserve-unit / battery pillar count per tier. */
+export function getPlantPowerNodeSlotCount(plantType: PlantType): number {
+  return getPlantBatterySlotCount(plantType);
+}
+
+/**
+ * Pad reactor ids to plant tier slot count. Hydrate may pass legacy `powerNodeId` on interim objects.
+ */
+export function normalizePowerNodeIds(
+  setup: PlantSetup & { powerNodeId?: MinecorePowerNodeId | null },
+  plantType: PlantType,
+): (MinecorePowerNodeId | null)[] {
+  const n = getPlantPowerNodeSlotCount(plantType);
+  const legacy =
+    setup.powerNodeId != null && MINECORE_POWER_NODES[setup.powerNodeId] ? setup.powerNodeId : null;
+  const raw = Array.isArray(setup.powerNodeIds) ? setup.powerNodeIds : null;
+  const fromRaw =
+    raw && raw.length > 0
+      ? raw.map((x) => (x != null && MINECORE_POWER_NODES[x] ? x : null))
+      : null;
+  return Array.from({ length: n }, (_, i) => {
+    if (fromRaw && i < fromRaw.length) return fromRaw[i] ?? null;
+    if (legacy != null && !fromRaw && i === 0) return legacy;
+    return null;
+  });
 }
 
 /**

@@ -38,6 +38,7 @@ import {
   getPlantBatterySlotCount,
   hasInstalledBattery,
   normalizeBatteryIds,
+  normalizePowerNodeIds,
   sumChargeMs,
 } from './battery-utils';
 import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
@@ -135,6 +136,7 @@ function cloneSlot(slot: PlantSlotState): PlantSlotState {
       moduleIds: [...slot.setup.moduleIds],
       batteryIds: [...(slot.setup.batteryIds ?? [])],
       workerNftDeckSlotIndices: [...(slot.setup.workerNftDeckSlotIndices ?? [])],
+      powerNodeIds: [...(slot.setup.powerNodeIds ?? [])],
     },
     cycle: slot.cycle ? { ...slot.cycle } : null,
     batterySlotChargeMs: [...(slot.batterySlotChargeMs ?? [])],
@@ -335,7 +337,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         type:             'standard',
         setup: {
           machineId: null,
-          powerNodeId: null,
+          powerNodeIds: [null],
           batteryIds: [null],
           workerNftDeckSlotIndices: [null],
           moduleIds: [],
@@ -378,7 +380,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const max = MINECORE_MAX_MODULES_BY_PLANT[ev.plantType];
         slot.setup.moduleIds = slot.setup.moduleIds.slice(0, max);
       }
-      slot.setup = { ...slot.setup, batteryIds: normalizeBatteryIds({ ...slot.setup, batteryIds: slot.setup.batteryIds }, ev.plantType) };
+      slot.setup = {
+        ...slot.setup,
+        batteryIds: normalizeBatteryIds({ ...slot.setup, batteryIds: slot.setup.batteryIds }, ev.plantType),
+        powerNodeIds: normalizePowerNodeIds(slot.setup, ev.plantType),
+      };
       const newMax = slotMaxMs(s, slot);
       const newTotal = sumChargeMs(newMax);
       if (newTotal <= 0) {
@@ -443,8 +449,9 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
         slot.setup = { ...slot.setup, workerNftDeckSlotIndices: nx.workerNftDeckSlotIndices };
       }
-      if (ev.part.kind === 'powerNode') {
-        slot.setup = { ...slot.setup, powerNodeId: ev.part.id };
+      if (ev.part.kind === 'powerNodes') {
+        const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
+        slot.setup = { ...slot.setup, powerNodeIds: nx.powerNodeIds };
       }
       if (ev.part.kind === 'modules') {
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];

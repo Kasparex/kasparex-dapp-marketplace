@@ -12,7 +12,7 @@ import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
 import { deriveState, minecorePlantHasForemanInCrew } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
-import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
+import { ensureBatterySlotChargeLength, getPlantBatterySlotCount, normalizePowerNodeIds } from './battery-utils';
 import { enforcePlantInventoryInvariants } from './inventory-invariants';
 import { normalizeWorkerDeckIndices } from './asset-usage';
 
@@ -144,15 +144,34 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     typeof setup.workerNftDeckSlotIndex === 'number' && Number.isFinite(setup.workerNftDeckSlotIndex)
       ? Math.max(0, Math.floor(setup.workerNftDeckSlotIndex as number))
       : undefined;
-  const rawPowerNode = typeof setup.powerNodeId === 'string' ? setup.powerNodeId : null;
-  const powerNodeId: MinecorePowerNodeId | null =
-    rawPowerNode && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(rawPowerNode)
-      ? (rawPowerNode as MinecorePowerNodeId)
+  const rawPowerArr = Array.isArray(setup.powerNodeIds)
+    ? (setup.powerNodeIds as unknown[]).map((x) =>
+        typeof x === 'string' && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(x)
+          ? (x as MinecorePowerNodeId)
+          : null,
+      )
+    : null;
+  const legacyPn =
+    typeof setup.powerNodeId === 'string' && (MINECORE_POWER_NODE_IDS as readonly string[]).includes(setup.powerNodeId)
+      ? (setup.powerNodeId as MinecorePowerNodeId)
       : null;
+
+  const powerNodeIds = normalizePowerNodeIds(
+    {
+      machineId: null,
+      batteryIds: [],
+      workerNftDeckSlotIndices: [],
+      moduleIds: [],
+      boostId: 'none',
+      powerNodeIds: rawPowerArr ?? [],
+      powerNodeId: legacyPn,
+    } as PlantSetup & { powerNodeId?: MinecorePowerNodeId | null },
+    plantType,
+  );
 
   const workerNftDeckSlotIndices = normalizeWorkerDeckIndices(plantType, {
     machineId: null,
-    powerNodeId: null,
+    powerNodeIds: [],
     batteryIds: [],
     moduleIds: [],
     boostId: 'none',
@@ -170,7 +189,7 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
     status: typeof input.status === 'string' ? mapLegacyPlantStatus(input.status as string) : base.status,
     setup: {
       machineId: typeof setup.machineId === 'string' ? (setup.machineId as any) : null,
-      powerNodeId,
+      powerNodeIds,
       batteryIds,
       /* LEGACY saves may contain setup.workerId / fabricated workforce - ignored; use NFT decks only. */
       workerNftDeckSlotIndices,
