@@ -343,7 +343,7 @@ export const MINECORE_POWER_NODES: Record<MinecorePowerNodeId, PowerNodeConfig> 
     id: 'flux-node',
     label: 'Arc Reactor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_6ec39904e3c2471d9dcfcde1aea447a2~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_bc4836603d17459a947c573a8ff52a87~mv2.jpg',
     maxPowerKw: 6,
   },
   'lattice-node': {
@@ -371,7 +371,7 @@ export const MINECORE_POWER_NODES: Record<MinecorePowerNodeId, PowerNodeConfig> 
     id: 'stellar-forge-reactor',
     label: 'Stellar Forge Reactor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_9bcd83657edd4a3dad6a456186e8bc41~mv2.jpg',
     maxPowerKw: 34,
   },
 };
@@ -401,7 +401,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     id: 'diamond-capacitor',
     label: 'Diamond Capacitor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_2745d6b902274187b11a8f07356c0c92~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_737459b7146d40dc85e5a4984d49fd91~mv2.jpg',
     efficiency: 1.3,
     powerCapacity: 0,
     chargeCapacityMs: 120 * 60_000,
@@ -481,6 +481,8 @@ export type ModuleConfig = {
   refineBonus?: number;
   /** Added to plant grid consumption (kW); cooling modules apply their reduction after additive draws. */
   gridConsumptionKw?: number;
+  /** Build-tab blueprint card art (optional). */
+  featuredImageUrl?: string;
 };
 
 export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
@@ -509,6 +511,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     outputBonus: 0.06,
     failureReduction: 0.06,
     gridConsumptionKw: 0.07,
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_5336df32b6614a288973c5081e9c2bb6~mv2.jpg',
   },
   'vector-drill-chip': {
     id: 'vector-drill-chip',

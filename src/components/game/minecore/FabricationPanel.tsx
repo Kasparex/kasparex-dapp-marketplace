@@ -283,7 +283,9 @@ export function FabricationPanel(props: {
                 ? MINECORE_BATTERIES[r.outputId as keyof typeof MINECORE_BATTERIES]?.featuredImageUrl
                 : isPowerNode
                   ? MINECORE_POWER_NODES[r.outputId as keyof typeof MINECORE_POWER_NODES]?.featuredImageUrl
-                  : undefined;
+                  : isModule
+                    ? MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES]?.featuredImageUrl
+                    : undefined;
 
             const description = loreForRecipe(r.outputId, r.kind);
 
