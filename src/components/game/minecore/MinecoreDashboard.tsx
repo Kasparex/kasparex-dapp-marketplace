@@ -423,6 +423,9 @@ export function MinecoreDashboard(_props: {
                     onTogglePlantAutoRestartMining={(enabled) =>
                       actions.setPlantAutoRestartMining(slotIndex, enabled)
                     }
+                    onAssignPlantCrewDeckIndices={(indices) =>
+                      actions.assignPlantCrewDeckIndices(slotIndex, indices)
+                    }
                   />
                 ))}
 

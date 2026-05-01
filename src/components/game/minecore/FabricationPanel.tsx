@@ -144,7 +144,7 @@ export function FabricationPanel(props: {
                 specifications.push({
                   label: 'Plant cap (adds to base)',
                   value: `+${cfg.diamondsPer24h.toLocaleString()} D / 24h`,
-                  color: 'accent',
+                  color: 'amber',
                   specTooltip:
                     'Adds flat diamonds per 24h toward this plant’s rolling cap on the Mining tab. Stacks with plant tier, crew NFT bonuses, Overclock, and KREX Boost (cap math), then grid efficiency applies to realized D/24h.',
                 });

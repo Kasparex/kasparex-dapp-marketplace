@@ -61,6 +61,7 @@ import {
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
   MINECORE_PLANT_REPAIR_KAS,
   MINECORE_POWER_CRITICAL_LOAD,
+  fabricatedOperatorSlotsCapacity,
   miningWorkerNftSlotsRequired,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
@@ -73,7 +74,7 @@ import {
   normalizeBatteryIds,
   ensureBatterySlotChargeLength,
 } from '@/lib/game/minecore/battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot } from '@/lib/game/minecore/nft-deck-benefits';
+import { computeMinecoreBatteryBonusMsPerSlot, minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -809,6 +810,8 @@ export function PlantSlotCard(props: {
   onStopMining: () => void;
   onResumeMining: () => void;
   onInstallPart: (kind: any, id: any, batterySlotIndex?: number, workerSlotPosition?: number) => void;
+  /** Single dispatch when assigning multiple crew deck links (avoids duplicate cycle resets). */
+  onAssignPlantCrewDeckIndices: (indices: (number | null)[]) => void;
   onChangePlantType: (type: any, cost: number) => void;
   /** For refill modal pricing (KAS after KREX tier discount). */
   getKasPriceAfterDiscount?: (listKas: number) => number;
@@ -823,6 +826,7 @@ export function PlantSlotCard(props: {
   const autoRestartInfra = minecoreAutoRestartInfrastructureActive(props.minecoreState);
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
+  const [workerSlotFocus, setWorkerSlotFocus] = useState(0);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
@@ -920,6 +924,8 @@ export function PlantSlotCard(props: {
 
   const workerIndices = normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices;
   const needWorkers = miningWorkerNftSlotsRequired(s.type);
+  const rigCrewNeed = fabricatedOperatorSlotsCapacity(s.setup.machineId);
+  const crewPlantUndersized = Boolean(s.setup.machineId && rigCrewNeed > needWorkers);
   let workerFilled = 0;
   for (let i = 0; i < needWorkers; i++) {
     if (workerIndices[i] != null) workerFilled++;
@@ -1257,6 +1263,12 @@ export function PlantSlotCard(props: {
           <div className="space-y-0.5 rounded-xl border border-zinc-100 bg-white/60 px-1 py-1 dark:border-zinc-800 dark:bg-zinc-950/30">
             <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Setup</div>
             <div className="max-h-[220px] space-y-0.5 overflow-y-auto px-1 pr-2 custom-scrollbar">
+            {crewPlantUndersized ? (
+              <WarningBanner
+                level="warn"
+                message={`${machineConfig?.label ?? 'This rig'} needs ${rigCrewNeed} staffed crew links; ${preset.label} supports ${needWorkers}. Upgrade the plant or swap rigs.`}
+              />
+            ) : null}
             <CheckRow
               installed={plantNftSlotAssignmentValid(props.minecoreState, s)}
               label="Crew"
@@ -1279,9 +1291,22 @@ export function PlantSlotCard(props: {
               }
               tooltip={gameTooltipRich(
                 'Crew',
-                'Links one Workers-tab deck row to this plant. NFTs must be deployed on Workers first.',
+                <>
+                  <p>
+                    {preset.label} has {needWorkers} crew position{needWorkers === 1 ? '' : 's'} — link distinct Workers-tab NFT rows (Worker / Operator / Foreman).
+                    Each adds rolling-cap and battery bonuses per collection tier.
+                  </p>
+                  {machineConfig ? (
+                    <p className="mt-1">
+                      Your rig ({machineConfig.label}) needs {rigCrewNeed} staffed crew link{rigCrewNeed === 1 ? '' : 's'} before mining can start.
+                    </p>
+                  ) : null}
+                </>,
               )}
-              onClick={() => setActiveModal('worker')}
+              onClick={() => {
+                setWorkerSlotFocus(0);
+                setActiveModal('worker');
+              }}
               disabled={!canEditParts}
             />
             <CheckRow
@@ -1877,18 +1902,50 @@ export function PlantSlotCard(props: {
       <SelectionModal
         isOpen={activeModal === 'worker'}
         onClose={() => setActiveModal(null)}
-        title="Assign mining NFT"
+        title={needWorkers > 1 ? `Assign crew · position ${workerSlotFocus + 1} of ${needWorkers}` : 'Assign crew'}
       >
         {modalFeedback ? (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
             {modalFeedback}
           </p>
         ) : null}
+        {crewPlantUndersized ? (
+          <WarningBanner
+            level="warn"
+            message={`${machineConfig?.label ?? 'This rig'} needs ${rigCrewNeed} staffed crew links; ${MINECORE_PLANT_PRESETS[s.type ?? 'standard'].label} supports ${needWorkers}. Upgrade the plant or swap rigs.`}
+          />
+        ) : null}
+        {needWorkers > 1 ? (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {Array.from({ length: needWorkers }, (_, si) => (
+              <button
+                key={si}
+                type="button"
+                onClick={() => setWorkerSlotFocus(si)}
+                className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                  workerSlotFocus === si
+                    ? 'border-amber-500/60 bg-amber-500/15 text-amber-950 dark:text-amber-100'
+                    : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-300 dark:hover:bg-zinc-800/80'
+                }`}
+              >
+                Crew {si + 1}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
           <div className="font-semibold text-zinc-700 dark:text-zinc-300">From the Workers tab</div>
           <p className="mt-1 leading-snug text-zinc-500 dark:text-zinc-400">
-            Choose which Workers-tab NFT this plant uses - one NFT per plant. Rows that are empty or already linked to another plant are disabled below.
+            {needWorkers > 1
+              ? `Pick which Workers-tab NFT fills crew position ${workerSlotFocus + 1}. Each plant tier allows ${needWorkers} distinct crew link${needWorkers === 1 ? '' : 's'}. Tap another Crew tab above to assign additional positions.`
+              : 'Pick which Workers-tab NFT staffs this plant. Higher tiers unlock more crew positions on the Mining card.'}{' '}
+            Rows that are empty or already linked to another plant are disabled below.
           </p>
+          {machineConfig ? (
+            <p className="mt-2 border-t border-zinc-200 pt-2 font-semibold text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+              Rig requirement: {machineConfig.label} needs {rigCrewNeed} staffed crew link{rigCrewNeed === 1 ? '' : 's'} (including this plant’s slots).
+            </p>
+          ) : null}
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
               const { filled, capacity } = nftTabSlotDeployments(nftStaffSlots, role);
@@ -1906,16 +1963,26 @@ export function PlantSlotCard(props: {
         <ul className="space-y-2">
           {miningDeckRows.map(({ slot: deckSlot, deckIdx }) => {
             const deployed = deckSlot.nftId != null && deckSlot.collection;
-            const assignedHere = normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices[0] === deckIdx;
+            const idxs = normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices;
+            const assignedHere = idxs[workerSlotFocus] === deckIdx;
+            const assignedOtherOnPlant = idxs.some((x, i) => i !== workerSlotFocus && x === deckIdx);
             const usedElsewhere = countWorkerNftDeckAssignmentsExcept(
               props.minecoreState.plantSlots,
               deckIdx,
               props.slotArrayIndex,
             );
-            const rowBlocked = !deployed || (!assignedHere && usedElsewhere >= 1);
+            const rowBlocked = !deployed || (!assignedHere && !assignedOtherOnPlant && usedElsewhere >= 1);
+            const meta = ctx?.nftMetadataByDeckIndex?.[deckIdx] ?? null;
+            const perk = minecoreDeckBenefits(deckSlot, meta);
+            const roleHint =
+              deckSlot.type === 'foreman'
+                ? ' · qualifies this plant for AUTO when staffed here'
+                : deckSlot.type === 'operator'
+                  ? ' · operator-grade roster slot'
+                  : '';
             const subtitle = deployed
-              ? `${nftDeckRoleLabel(deckSlot.type)} · Workers slot #${deckIdx + 1} · NFT #${deckSlot.nftId}`
-              : `Empty - assign an NFT on the Workers tab for this row.`;
+              ? `${nftDeckRoleLabel(deckSlot.type)} · Workers row #${deckIdx + 1} · NFT #${deckSlot.nftId} · +${perk.capBonus.toLocaleString()} rolling cap · +${perk.batteryMinutes} min batteries${roleHint}`
+              : `Empty - deploy an NFT on the Workers tab for this row.`;
             return (
               <li key={deckIdx} className="list-none">
                 <ModalPartRow
@@ -1937,7 +2004,14 @@ export function PlantSlotCard(props: {
                       setActiveModal(null);
                       return;
                     }
-                    props.onInstallPart('crewWorkerNftDeck', deckIdx, undefined, 0);
+                    const need = needWorkers;
+                    const base = [...normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices];
+                    while (base.length < need) base.push(null);
+                    for (let i = 0; i < base.length; i++) {
+                      if (i !== workerSlotFocus && base[i] === deckIdx) base[i] = null;
+                    }
+                    base[workerSlotFocus] = deckIdx;
+                    props.onAssignPlantCrewDeckIndices(base.slice(0, need));
                     setActiveModal(null);
                   }}
                 />
@@ -1946,12 +2020,26 @@ export function PlantSlotCard(props: {
           })}
         </ul>
         <ModalActionRow
-          title="Clear worker link for this plant"
-          subtitle="Unlinks only this plant - the NFT stays on the Workers tab."
+          title={`Clear crew position ${workerSlotFocus + 1}`}
+          subtitle="Unlinks only this slot on this plant — the NFT stays on the Workers tab."
           destructive
-          disabled={normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices[0] == null}
+          disabled={normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices[workerSlotFocus] == null}
           onClick={() => {
-            props.onInstallPart('crewWorkerNftDeck', null, undefined, 0);
+            const need = needWorkers;
+            const base = [...normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices];
+            while (base.length < need) base.push(null);
+            base[workerSlotFocus] = null;
+            props.onAssignPlantCrewDeckIndices(base.slice(0, need));
+            setActiveModal(null);
+          }}
+        />
+        <ModalActionRow
+          title="Clear all crew links on this plant"
+          subtitle="Clears every crew position for this plant."
+          destructive
+          disabled={normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices.every((x) => x == null)}
+          onClick={() => {
+            props.onAssignPlantCrewDeckIndices(Array.from({ length: needWorkers }, () => null));
             setActiveModal(null);
           }}
         />

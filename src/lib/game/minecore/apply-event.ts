@@ -439,6 +439,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
         slot.setup = { ...slot.setup, workerNftDeckSlotIndices: nx.workerNftDeckSlotIndices };
       }
+      if (ev.part.kind === 'crewWorkerNftDecks') {
+        const nx = nextPlantSetupAfterInstallPart(slot, ev.part);
+        slot.setup = { ...slot.setup, workerNftDeckSlotIndices: nx.workerNftDeckSlotIndices };
+      }
       if (ev.part.kind === 'powerNode') {
         slot.setup = { ...slot.setup, powerNodeId: ev.part.id };
       }

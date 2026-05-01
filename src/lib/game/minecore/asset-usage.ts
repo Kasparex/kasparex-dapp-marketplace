@@ -9,7 +9,13 @@ import type {
   PlantSlotState,
 } from './types';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
-import { MINECORE_MAX_MODULES_BY_PLANT, MINECORE_POWER_NODES, miningWorkerNftSlotsRequired } from './config';
+import {
+  fabricatedOperatorSlotsCapacity,
+  MINECORE_MAX_MODULES_BY_PLANT,
+  MINECORE_PLANT_PRESETS,
+  MINECORE_POWER_NODES,
+  miningWorkerNftSlotsRequired,
+} from './config';
 import { getPlantBatterySlotCount } from './battery-utils';
 
 export function normalizeWorkerDeckIndices(
@@ -56,6 +62,7 @@ export type InstallPartPayload =
   | { kind: 'machine'; id: MinecoreMachineId | null }
   | { kind: 'battery'; id: MinecoreBatteryId | null; batterySlotIndex?: number }
   | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null; workerSlotPosition?: number }
+  | { kind: 'crewWorkerNftDecks'; indices: (number | null)[] }
   | { kind: 'powerNode'; id: MinecorePowerNodeId | null }
   | { kind: 'modules'; ids: MinecoreModuleId[] }
   | { kind: 'boost'; id: MinecoreBoostId };
@@ -71,10 +78,13 @@ function miningDeckAtIndexValid(state: MinecoreState, idx: number): boolean {
 
 /** Every required worker-slot position has a distinct, valid NFT deck binding. */
 export function plantNftSlotAssignmentValid(state: MinecoreState, slot: PlantSlotState): boolean {
-  const need = miningWorkerNftSlotsRequired(slot.type);
+  const plantCrewSlots = miningWorkerNftSlotsRequired(slot.type);
+  const machineNeed = fabricatedOperatorSlotsCapacity(slot.setup.machineId);
+  if (machineNeed > plantCrewSlots) return false;
+
   const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
   const used = new Set<number>();
-  for (let i = 0; i < need; i++) {
+  for (let i = 0; i < plantCrewSlots; i++) {
     const idx = idxs[i];
     if (idx == null || idx < 0) return false;
     if (used.has(idx)) return false;
@@ -177,6 +187,16 @@ export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: Insta
     setup.workerNftDeckSlotIndices = copy;
     return setup;
   }
+  if (part.kind === 'crewWorkerNftDecks') {
+    const need = miningWorkerNftSlotsRequired(slot.type);
+    const incoming = part.indices ?? [];
+    setup.workerNftDeckSlotIndices = Array.from({ length: need }, (_, i) => {
+      const v = incoming[i];
+      if (v == null || !Number.isFinite(v)) return null;
+      return Math.max(0, Math.floor(Number(v)));
+    });
+    return setup;
+  }
   if (part.kind === 'powerNode') {
     setup.powerNodeId = part.id;
     return setup;
@@ -216,6 +236,8 @@ export function inventoryAllowsPlantSetup(state: MinecoreState, slotIndex: numbe
   const target = state.plantSlots[slotIndex];
   if (!target) return false;
   const normalizedNext = normalizePlantSetup(target.type, nextSetup);
+  const plantCrewSlots = miningWorkerNftSlotsRequired(target.type);
+  if (fabricatedOperatorSlotsCapacity(normalizedNext.machineId) > plantCrewSlots) return false;
   const hypotheticalSlots = state.plantSlots.map((p, i) => ({
     ...p,
     setup: normalizePlantSetup(p.type, i === slotIndex ? normalizedNext : p.setup),
@@ -306,6 +328,12 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
   const target = state.plantSlots[slotIndex];
   if (!target) return 'Plant slot unavailable.';
   const normalizedNext = normalizePlantSetup(target.type, nextSetup);
+  const plantCrew = miningWorkerNftSlotsRequired(target.type);
+  const machineNeed = fabricatedOperatorSlotsCapacity(normalizedNext.machineId);
+  if (machineNeed > plantCrew) {
+    const preset = MINECORE_PLANT_PRESETS[target.type];
+    return `This rig needs ${machineNeed} staffed crew links; ${preset?.label ?? 'this plant tier'} supports ${plantCrew}. Upgrade the plant or pick a smaller rig.`;
+  }
   const hypotheticalSlots = state.plantSlots.map((p, i) => ({
     ...p,
     setup: normalizePlantSetup(p.type, i === slotIndex ? normalizedNext : p.setup),

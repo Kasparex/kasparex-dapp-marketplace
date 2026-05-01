@@ -225,6 +225,7 @@ export type MinecoreEvent =
         | { kind: 'machine';  id: MinecoreMachineId | null }
         | { kind: 'battery'; id: MinecoreBatteryId | null; /** Which battery slot (0..n-1) on this plant. */ batterySlotIndex?: number }
         | { kind: 'crewWorkerNftDeck'; deckSlotIndex: number | null; workerSlotPosition?: number }
+        | { kind: 'crewWorkerNftDecks'; indices: (number | null)[] }
         | { kind: 'powerNode'; id: MinecorePowerNodeId | null }
         | { kind: 'modules';  ids: MinecoreModuleId[] }
         | { kind: 'boost';    id: MinecoreBoostId };

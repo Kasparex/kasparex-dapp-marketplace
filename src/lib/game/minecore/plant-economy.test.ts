@@ -17,15 +17,25 @@ import type { MinecoreState, PlantSlotState } from './types';
 const initial = createInitialMinecoreState();
 const template = initial.plantSlots[0]!;
 
-function minecoreWithDeployedWorker(assignments: 1 | 2): MinecoreState {
+function minecoreWithDeployedWorker(count: number): MinecoreState {
   const s = createInitialMinecoreState();
   const slots = [...(s.nftSlots ?? [])];
-  if (slots[0]) slots[0] = { ...slots[0], type: 'worker', nftId: 1, collection: 'KREXPRIME' };
-  if (assignments === 2 && slots[1]) slots[1] = { ...slots[1], type: 'operator', nftId: 2, collection: 'PIXELKREX' };
+  const cols = ['KREXPRIME', 'PIXELKREX', 'KREXPRIME'] as const;
+  const types = ['worker', 'operator', 'worker'] as const;
+  for (let i = 0; i < count && i < slots.length; i++) {
+    if (slots[i]) {
+      slots[i] = {
+        ...slots[i],
+        type: types[i % types.length]!,
+        nftId: i + 1,
+        collection: cols[i % cols.length]!,
+      };
+    }
+  }
   return { ...s, nftSlots: slots };
 }
 
-const mcWorker = minecoreWithDeployedWorker(1);
+const mcWorker = minecoreWithDeployedWorker(3);
 
 function makeSlot(
   partial: Omit<Partial<PlantSlotState>, 'setup'> & { setup: Partial<PlantSlotState['setup']> },
@@ -96,7 +106,7 @@ function makeSlot(
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null, null, null],
-      workerNftDeckSlotIndices: [0],
+      workerNftDeckSlotIndices: [0, 1, 2],
       moduleIds: [],
       boostId: 'none',
     },
@@ -113,7 +123,7 @@ function makeSlot(
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null],
-      workerNftDeckSlotIndices: [0],
+      workerNftDeckSlotIndices: [0, 1],
       moduleIds: [],
       boostId: 'none',
     },
@@ -123,7 +133,7 @@ function makeSlot(
     setup: {
       machineId: 'pulse-drill',
       batteryIds: ['energy-cell', null],
-      workerNftDeckSlotIndices: [0],
+      workerNftDeckSlotIndices: [0, 1],
       moduleIds: ['cooling-module'],
       boostId: 'none',
     },

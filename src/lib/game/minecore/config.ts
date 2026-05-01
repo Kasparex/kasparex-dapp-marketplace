@@ -41,23 +41,20 @@ export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   advanced: 4,
 };
 
-/** Worker NFT deck bindings required per plant - one Workers-tab slot reference only (V2). */
-export const MINECORE_MINING_NFT_CREW_SLOTS_REQUIRED: Record<PlantType, number> = {
+/**
+ * Crew positions on each plant (distinct Workers-tab NFT links).
+ * Standard / Premium / Advanced support 1 / 2 / 3 crew rows respectively.
+ */
+export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
   standard: 1,
-  premium: 1,
-  advanced: 1,
+  premium: 2,
+  advanced: 3,
 };
 
 export function miningWorkerNftSlotsRequired(plantType: PlantType): number {
-  return Math.max(1, MINECORE_MINING_NFT_CREW_SLOTS_REQUIRED[plantType] ?? 1);
+  const n = MINECORE_PLANT_WORKFORCE_CAPACITY[plantType];
+  return Math.max(1, Math.floor(Number.isFinite(n) ? n : 1));
 }
-
-/** Workforce slots shown on plant setup (assigned crew / capacity). */
-export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
-  standard: 1,
-  premium: 3,
-  advanced: 5,
-};
 
 /** kW display scale: production/consumption derived from grid + draw factors. */
 export const MINECORE_KW_SCALE = 4;
@@ -232,8 +229,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_772173d870a0427d8ad8942004d7933b~mv2.jpg',
     durationMs: 10 * 60_000,
     baseOutput: 50,
-    powerConsumptionFactor: 1.35,
-    miningSpeedMultiplier: 1,
+    powerConsumptionFactor: 1.55,
+    miningSpeedMultiplier: 1.06,
     powerGridContribution: 1,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 50,
@@ -245,8 +242,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg',
     durationMs: 30 * 60_000,
     baseOutput: 180,
-    powerConsumptionFactor: 2.1,
-    miningSpeedMultiplier: 1.12,
+    powerConsumptionFactor: 2.45,
+    miningSpeedMultiplier: 1.18,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 200,
@@ -258,8 +255,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
     durationMs: 60 * 60_000,
     baseOutput: 420,
-    powerConsumptionFactor: 3.5,
-    miningSpeedMultiplier: 1.22,
+    powerConsumptionFactor: 4.15,
+    miningSpeedMultiplier: 1.28,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.04,
     diamondsPer24h: 450,
@@ -271,8 +268,9 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
       'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
     durationMs: 6 * 60 * 60_000,
     baseOutput: 3200,
-    powerConsumptionFactor: 8.2,
-    miningSpeedMultiplier: 1.38,
+    additionalCrewRequired: 1,
+    powerConsumptionFactor: 10,
+    miningSpeedMultiplier: 2.5,
     powerGridContribution: 3,
     powerBudgetMultiplier: 1.1,
     diamondsPer24h: 1200,
@@ -282,8 +280,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     label: 'Magma Tap',
     durationMs: 18 * 60_000,
     baseOutput: 320,
-    powerConsumptionFactor: 2.5,
-    miningSpeedMultiplier: 1.1,
+    powerConsumptionFactor: 2.95,
+    miningSpeedMultiplier: 1.15,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.06,
     diamondsPer24h: 350,
@@ -293,8 +291,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     label: 'Orbit Siphon',
     durationMs: 90 * 60_000,
     baseOutput: 950,
-    powerConsumptionFactor: 4.5,
-    miningSpeedMultiplier: 1.28,
+    powerConsumptionFactor: 5.35,
+    miningSpeedMultiplier: 1.36,
     powerGridContribution: 4,
     powerBudgetMultiplier: 1.14,
     diamondsPer24h: 700,
