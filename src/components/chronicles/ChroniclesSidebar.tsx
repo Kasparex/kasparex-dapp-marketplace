@@ -9,6 +9,7 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { ChroniclesNavGroup, ChroniclesNavSublink } from '@/components/chronicles/ChroniclesNavGroup';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
   getAllCharacters,
   getAllLocations,
@@ -138,7 +139,11 @@ export function ChroniclesSidebar() {
         headingClassName="text-xs sm:text-sm font-black text-[#02abb8] uppercase tracking-[0.18em] mb-4 px-2"
       >
         <nav className="space-y-1">
-          <Tooltip content="Overview" side="right" align="start">
+          <Tooltip
+            side="right"
+            align="start"
+            content={gameTooltipRich('Overview', 'Chronicles landing: story intro, hubs, and high-level navigation.')}
+          >
             <Link href="/chronicles">
               <SidebarNavItem label="Overview" icon={homeIcon} active={isOverview} labelClassName={navLabelClass} />
             </Link>

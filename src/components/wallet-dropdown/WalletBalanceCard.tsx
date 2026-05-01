@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export function WalletBalanceCard({
   value,
@@ -61,7 +62,7 @@ export function WalletBalanceCard({
                 </Tooltip>
               ) : null}
               {onOpenExplorer ? (
-                <Tooltip content="Open in explorer">
+                <Tooltip content={gameTooltipRich('Block explorer', 'Opens this address or activity in the network explorer.')}>
                   <button
                     type="button"
                     onClick={onOpenExplorer}

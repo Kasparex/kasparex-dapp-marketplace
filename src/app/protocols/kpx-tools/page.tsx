@@ -23,6 +23,7 @@ import { useKpxIndexer } from '@/hooks/useKpxIndexer';
 import { isStorageMassErrorMessage } from '@/lib/chronicles/leaderboard/massMode';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 type KpxKind = 'pf' | 'ver' | 'lnk' | 'cm';
 
@@ -666,12 +667,24 @@ export default function KpxToolsPage() {
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <Tooltip content="Checks your inputs and server rules. No KAS is sent." side="top">
+              <Tooltip
+                side="top"
+                content={gameTooltipRich(
+                  'Validate only',
+                  'Checks your inputs and server rules. No KAS is sent.',
+                )}
+              >
                 <button type="button" className="k-control-btn" onClick={handleValidate} disabled={busy}>
                   Check before sending
                 </button>
               </Tooltip>
-              <Tooltip content="Builds the update, checks it, then opens your wallet to sign a real KAS transfer with the update attached." side="top">
+              <Tooltip
+                side="top"
+                content={gameTooltipRich(
+                  'Sign & broadcast',
+                  'Builds the update, validates it, then opens your wallet to sign a real KAS transfer with the update attached.',
+                )}
+              >
                 <button
                   type="button"
                   className="k-control-btn border-[#02abb8]/50 bg-[#02abb8]/10 font-black hover:bg-[#02abb8]/20"
@@ -695,7 +708,10 @@ export default function KpxToolsPage() {
                   ) : owner ? (
                     <span className="text-xs text-zinc-500">Network: {net}</span>
                   ) : null}
-                  <Tooltip content="Fetch the latest indexer snapshot again." side="left">
+                  <Tooltip
+                    side="left"
+                    content={gameTooltipRich('Refresh indexer readout', 'Fetch the latest Kasparex indexer snapshot again for your address.')}
+                  >
                     <button
                       type="button"
                       className="k-control-btn h-8 px-3 text-xs"

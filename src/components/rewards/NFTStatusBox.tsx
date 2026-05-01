@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
@@ -8,6 +9,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { NFT_POINTS } from '@/lib/nft/points';
 import { getPartnerCollections } from '@/lib/nft/collections';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type NFTStatusBoxLayout = 'default' | 'compact-cards';
 
@@ -168,11 +170,18 @@ export function NFTStatusBox({
       label: string,
       ok: boolean,
       sub?: string,
-      tooltip?: string,
+      tooltip?: ReactNode,
       onClick?: () => void,
       okClass = 'text-green-600 dark:text-green-400'
-    ) => (
-      <Tooltip content={tooltip || label}>
+    ) => {
+      const tip =
+        tooltip ??
+        gameTooltipRich(
+          label,
+          ok ? 'Detected in your connected wallet.' : 'Not detected for your connected wallet.',
+        );
+      return (
+        <Tooltip content={tip}>
         <div
           role={onClick ? 'button' : undefined}
           tabIndex={onClick ? 0 : undefined}
@@ -198,7 +207,8 @@ export function NFTStatusBox({
           {sub ? <div className="text-[10px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
         </div>
       </Tooltip>
-    );
+      );
+    };
 
     return (
       <>
@@ -211,7 +221,12 @@ export function NFTStatusBox({
                   Active
                 </span>
               ) : null}
-              <Tooltip content="View NFT rewards">
+              <Tooltip
+                content={gameTooltipRich(
+                  'NFT rewards',
+                  'Opens a breakdown of multiplier, fee discounts, and points by NFT tier.',
+                )}
+              >
                 <button
                   type="button"
                   className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded"
@@ -231,12 +246,24 @@ export function NFTStatusBox({
           ) : (
             <>
               <div className="grid grid-cols-2 gap-1.5">
-                {miniCard('KREXPRIME', status.hasKREXPRIME, undefined, 'Open KREXPRIME on KaspaCom (buy NFTs)', () => {
-                  window.open('https://www.kaspa.com/nft/collections/KREXPRIME', '_blank', 'noopener,noreferrer');
-                })}
-                {miniCard('PIXELKREX', status.hasPIXELKREX, undefined, 'Open PIXELKREX on KaspaCom (buy NFTs)', () => {
-                  window.open('https://www.kaspa.com/nft/collections/PIXELKREX', '_blank', 'noopener,noreferrer');
-                })}
+                {miniCard(
+                  'KREXPRIME',
+                  status.hasKREXPRIME,
+                  undefined,
+                  gameTooltipRich('KREXPRIME', 'Opens the KREXPRIME collection on KaspaCom to browse or buy NFTs.'),
+                  () => {
+                    window.open('https://www.kaspa.com/nft/collections/KREXPRIME', '_blank', 'noopener,noreferrer');
+                  },
+                )}
+                {miniCard(
+                  'PIXELKREX',
+                  status.hasPIXELKREX,
+                  undefined,
+                  gameTooltipRich('PIXELKREX', 'Opens the PIXELKREX collection on KaspaCom to browse or buy NFTs.'),
+                  () => {
+                    window.open('https://www.kaspa.com/nft/collections/PIXELKREX', '_blank', 'noopener,noreferrer');
+                  },
+                )}
               </div>
 
               {!premiumCollectionsOnly && partnerCollections.length > 0 && status.partnerCollections ? (
@@ -258,9 +285,39 @@ export function NFTStatusBox({
               ) : null}
 
               <div className="grid grid-cols-3 gap-1">
-                {miniCard('🖼️', compactAny, undefined, 'Standard NFTs', onOpenNftPage, 'text-blue-600 dark:text-blue-400')}
-                {miniCard('💎', compactDiamond, undefined, 'Diamond NFTs', onOpenNftPage, 'text-purple-600 dark:text-purple-400')}
-                {miniCard('⭐', hasRarestNFT, undefined, 'Rarest NFTs', onOpenNftPage, 'text-yellow-600 dark:text-yellow-400')}
+                {miniCard(
+                  '🖼️',
+                  compactAny,
+                  undefined,
+                  gameTooltipRich(
+                    'Standard NFTs',
+                    'Tap to open your NFT dashboard when any qualifying standard-tier NFT is detected.',
+                  ),
+                  onOpenNftPage,
+                  'text-blue-600 dark:text-blue-400',
+                )}
+                {miniCard(
+                  '💎',
+                  compactDiamond,
+                  undefined,
+                  gameTooltipRich(
+                    'Diamond NFTs',
+                    'Tap to open your NFT dashboard when a diamond-tier NFT is detected.',
+                  ),
+                  onOpenNftPage,
+                  'text-purple-600 dark:text-purple-400',
+                )}
+                {miniCard(
+                  '⭐',
+                  hasRarestNFT,
+                  undefined,
+                  gameTooltipRich(
+                    'Rarest NFTs',
+                    'Tap to open your NFT dashboard when a rarest-tier NFT (#515 PIXELKREX or #345 KREXPRIME) is detected.',
+                  ),
+                  onOpenNftPage,
+                  'text-yellow-600 dark:text-yellow-400',
+                )}
               </div>
 
               {compactAny ? (
@@ -309,15 +366,22 @@ export function NFTStatusBox({
                 Active
               </span>
             )}
-            <button
-              className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
-              onClick={() => setShowModal(true)}
-              aria-label="View NFT rewards"
+            <Tooltip
+              content={gameTooltipRich(
+                'NFT rewards',
+                'Opens a breakdown of multiplier, fee discounts, and points by NFT tier.',
+              )}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+              <button
+                className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                onClick={() => setShowModal(true)}
+                aria-label="View NFT rewards"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </Tooltip>
           </div>
         </div>
 

@@ -16,6 +16,7 @@ import {
 } from '@/lib/chronicles/leaderboard/payload';
 import { getLocalReadConfirmed, recordLocalPendingTx, recordLocalRead } from '@/lib/chronicles/leaderboard/localState';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
 import { isStorageMassErrorMessage, readHighMassMode, retryKasCandidates, writeHighMassMode } from '@/lib/chronicles/leaderboard/massMode';
@@ -154,7 +155,14 @@ export function ChroniclesReadConfirmCard({
             </a>
           </div>
         </div>
-        <Tooltip content="See leaderboard" side="top" align="end">
+        <Tooltip
+          side="top"
+          align="end"
+          content={gameTooltipRich(
+            'Chronicles leaderboard',
+            'Opens the leaderboard with rankings, checkpoints, and read-reward points.',
+          )}
+        >
           <a href="/chronicles/leaderboard" className="k-control-btn shrink-0">
             Leaderboard
           </a>

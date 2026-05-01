@@ -34,6 +34,7 @@ import { WalletMiniCard } from '@/components/wallet-dropdown/WalletMiniCard';
 import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickActionsRow';
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { BRIDGE_URLS, getAddressExplorerUrl, shortenAddress } from '@/lib/walletUi';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
@@ -334,7 +335,12 @@ export function KasWareWalletButton() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                       Tiers & Benefits (Total)
                     </div>
-                    <Tooltip content="View tier rewards & benefits">
+                    <Tooltip
+                      content={gameTooltipRich(
+                        'Tier rewards',
+                        'Opens perks for your Total tier: multiplier, fees, NFT bonuses, and points.',
+                      )}
+                    >
                       <button
                         type="button"
                         onClick={() => setIsRewardsOpen(true)}
@@ -383,7 +389,12 @@ export function KasWareWalletButton() {
               </div>
 
               <div className="px-4 pb-3">
-                <Tooltip content="Open node status (coming soon)">
+                <Tooltip
+                  content={gameTooltipRich(
+                    'Node status',
+                    'Placeholder for operators: staking, sync, and health (coming soon).',
+                  )}
+                >
                   <button
                     type="button"
                     onClick={() => {

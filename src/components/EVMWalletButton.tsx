@@ -35,6 +35,7 @@ import { WalletQuickActionsRow } from '@/components/wallet-dropdown/WalletQuickA
 import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { BRIDGE_URLS, getAddressExplorerUrl, getNetworkBridgeUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -157,7 +158,7 @@ export function EVMWalletButton() {
           aria-label="EVM Wallet"
         >
           {/* Network badge (opens chain switcher) */}
-          <Tooltip content="Switch L2 network">
+          <Tooltip content={gameTooltipRich('L2 network', 'Opens the chain switcher so you can pick the correct Layer-2 network.')}>
             <span
               role="button"
               tabIndex={0}
@@ -337,7 +338,12 @@ export function EVMWalletButton() {
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                       Tiers & Benefits (Total)
                     </div>
-                    <Tooltip content="View tier rewards & benefits">
+                    <Tooltip
+                      content={gameTooltipRich(
+                        'Tier rewards',
+                        'Opens perks for your Total tier: multiplier, fees, and points on L2.',
+                      )}
+                    >
                       <button
                         type="button"
                         onClick={() => setIsRewardsOpen(true)}
@@ -391,7 +397,12 @@ export function EVMWalletButton() {
               </div>
 
               <div className="px-4 pb-3">
-                <Tooltip content="Open node status (coming soon)">
+                <Tooltip
+                  content={gameTooltipRich(
+                    'Node status',
+                    'Placeholder for operators: staking, sync, and health (coming soon).',
+                  )}
+                >
                   <button
                     type="button"
                     onClick={() => {
