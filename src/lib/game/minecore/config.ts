@@ -232,7 +232,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     id: 'pulse-drill',
     label: 'Pulse Drill',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_772173d870a0427d8ad8942004d7933b~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_9a8e9e0f9a4b47028dad8d18153896b4~mv2.jpg',
     durationMs: 10 * 60_000,
     baseOutput: 50,
     powerConsumptionFactor: 1.55,
@@ -245,7 +245,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     id: 'crystal-extractor',
     label: 'Crystal Extractor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_8e87fe8e88e14bfa87be41e55404f1ae~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_a1ee1760488e4edb958a9fbd3a490c39~mv2.png',
     durationMs: 30 * 60_000,
     baseOutput: 180,
     powerConsumptionFactor: 2.45,
@@ -258,7 +258,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     id: 'deep-vein-rig',
     label: 'Deep Vein Rig',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_94e88ca725894d308f61d46025e21a5f~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_6db526b602914e9d811af87e66ac35d4~mv2.png',
     durationMs: 60 * 60_000,
     baseOutput: 420,
     powerConsumptionFactor: 4.15,
@@ -271,7 +271,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     id: 'quantum-fracturer',
     label: 'Quantum Fracturer',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_f4994f6c36084bba859d88d0108d7bb0~mv2.png',
     durationMs: 6 * 60 * 60_000,
     baseOutput: 3200,
     additionalCrewRequired: 1,
@@ -295,6 +295,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'orbit-siphon': {
     id: 'orbit-siphon',
     label: 'Orbit Siphon',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_306e9f3f5a774a78aa8c71a6a8fd0e1f~mv2.jpg',
     durationMs: 90 * 60_000,
     baseOutput: 950,
     powerConsumptionFactor: 5.35,
@@ -350,21 +352,21 @@ export const MINECORE_POWER_NODES: Record<MinecorePowerNodeId, PowerNodeConfig> 
     id: 'lattice-node',
     label: 'Neon Reactor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_7721a64db1da45929e94b9d96b3a668b~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_8b8192a064ca4e7bad388fd171697625~mv2.jpg',
     maxPowerKw: 12,
   },
   'core-node': {
     id: 'core-node',
     label: 'Nexus Reactor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_ebe4ca7ed61a450ca4c0f547b5c567c3~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_ccb909265e76479e996bde0ff9d6d5a4~mv2.jpg',
     maxPowerKw: 20,
   },
   'prismatic-reactor': {
     id: 'prismatic-reactor',
     label: 'Prismatic Reactor',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_cdbc21d0648249749f9ea46cbca80d71~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_9c74c1fedbad4ab3861f7134f804de96~mv2.jpg',
     maxPowerKw: 26,
   },
   'stellar-forge-reactor': {
@@ -381,7 +383,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     id: 'energy-cell',
     label: 'Energy Cell',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_566df01398ff40738aeeab280c3cd03e~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_14d1f9e64e7142208d4affcb2dc0e2db~mv2.jpg',
     efficiency: 1.0,
     powerCapacity: 0,
     chargeCapacityMs: 10 * 60_000,
@@ -391,7 +393,7 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
     id: 'battery-pack',
     label: 'Battery Pack',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_db5ee3ec937e40fa973ac04124553609~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_eb1d0e77aa1848a2bae9105cc3909d1d~mv2.jpg',
     efficiency: 1.15,
     powerCapacity: 0,
     chargeCapacityMs: 60 * 60_000,
@@ -418,6 +420,8 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'flux-array': {
     id: 'flux-array',
     label: 'Flux Array',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_c81fd0cc2e3d4619950395a6e1cc8749~mv2.jpg',
     efficiency: 1.12,
     powerCapacity: 0,
     chargeCapacityMs: 45 * 60_000,
@@ -426,6 +430,8 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'void-core-cell': {
     id: 'void-core-cell',
     label: 'Void Core Cell',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_dfb3307700134acd88b4ceb291e2e941~mv2.jpg',
     efficiency: 1.35,
     powerCapacity: 0,
     chargeCapacityMs: 240 * 60_000,
@@ -489,6 +495,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   'cooling-module': {
     id: 'cooling-module',
     label: 'Cooling Module',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_0830e63d896947688953c577d63e4e61~mv2.jpg',
     kind: 'cooling',
     outputBonus: 0,
     failureReduction: 0.05,
@@ -498,6 +506,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   'stability-module': {
     id: 'stability-module',
     label: 'Stability Module',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_b3ae772a574b41568fb8ae0695363981~mv2.jpg',
     kind: 'stability',
     outputBonus: 0.02,
     failureReduction: 0.08,
@@ -525,6 +535,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   'regen-coil': {
     id: 'regen-coil',
     label: 'Regen Coil',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_adf72f1b62ae480eabd844d56fd2b485~mv2.jpg',
     kind: 'automation',
     autoRestartMining: true,
     outputBonus: 0.03,
@@ -535,6 +547,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   'hash-buffer': {
     id: 'hash-buffer',
     label: 'Hash Buffer',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_32a45bad3d5c45bc806c3c7f69f378b6~mv2.jpg',
     kind: 'refining',
     outputBonus: 0,
     failureReduction: 0.1,
