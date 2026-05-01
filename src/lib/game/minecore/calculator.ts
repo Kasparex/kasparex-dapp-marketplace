@@ -131,6 +131,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, min
     krexBoostUntilMs: 0,
     kasOverclockDailyBonusUntilMs: 0,
     kasOverclockNextCycleExtraDiamonds: 0,
+    autoRestartMining: false,
   };
 }
 
