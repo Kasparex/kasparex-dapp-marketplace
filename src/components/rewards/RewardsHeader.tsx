@@ -19,7 +19,7 @@ export function RewardsHeader() {
             Rewards, perks &amp; badges
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Browse everything you can unlock across Kasparex — filter by type, search benefits, and see what’s already active for your wallet.
+            Browse everything you can unlock across Kasparex: filter by type, search benefits, and see what is already active for your wallet.
           </p>
         </div>
       </div>

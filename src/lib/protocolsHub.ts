@@ -1,5 +1,5 @@
 /**
- * Kasparex Protocols hub — catalog entries for listing, filters, and deep links.
+ * Kasparex Protocols hub - catalog entries for listing, filters, and deep links.
  * Kinds map to sidebar buckets; URL ?kind= uses the same ids (comma-separated for OR).
  */
 
@@ -27,7 +27,7 @@ export interface ProtocolHubItem {
 export const PROTOCOL_HUB_ITEMS: ProtocolHubItem[] = [
   {
     id: 'kpx-v1-overview',
-    title: 'kpx v1 — overview',
+    title: 'kpx v1 - overview',
     subtitle: 'Kaspa-wide identity & creator payloads',
     description: 'How kpx v1 encodes portable JSON on Kaspa transactions so wallets and indexers agree on meaning.',
     href: '/knowledge-base/kpx-v1-overview',
@@ -79,7 +79,7 @@ export const PROTOCOL_HUB_ITEMS: ProtocolHubItem[] = [
     id: 'kpx-broadcast-tool',
     title: 'Post identity updates',
     subtitle: 'Wallet-friendly broadcast form',
-    description: 'Compose, validate, and send kpx payloads with KasWare or Kastle — self-send flow with optional priority fee.',
+    description: 'Compose, validate, and send kpx payloads with KasWare or Kastle - self-send flow with optional priority fee.',
     href: '/protocols/kpx-tools',
     bucket: 'tool',
     suite: 'kpx',

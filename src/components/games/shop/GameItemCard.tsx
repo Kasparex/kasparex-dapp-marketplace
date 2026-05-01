@@ -5,6 +5,7 @@ import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -169,7 +170,7 @@ export function GameItemCard(props: {
       </div>
     );
     return e.specTooltip ? (
-      <Tooltip key={e.label} content={e.specTooltip}>
+      <Tooltip key={e.label} content={gameTooltipRich(e.label, e.specTooltip)}>
         <div className="block cursor-help">{row}</div>
       </Tooltip>
     ) : (

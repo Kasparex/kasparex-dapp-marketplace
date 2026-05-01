@@ -2,7 +2,7 @@
  * Deterministic accent per creative (`hash(id)`): stable SSR/hydration, visually varied across campaigns.
  *
  * Single visible frame: `solidFrameClass` on the creative shell only (inventory cards no longer stack `outerRing`).
- * Overlay is a light vignette only — inset rings were doubling as a second border.
+ * Overlay is a light vignette only - inset rings were doubling as a second border.
  *
  * CSS mirror (tokens + optional data-attribute classes): `src/styles/ads-featured-highlight.css`
  */

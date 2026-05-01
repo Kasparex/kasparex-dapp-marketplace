@@ -492,10 +492,10 @@ function OverviewTab({
 
         <Card title="Public links">
           <div className="grid sm:grid-cols-2 gap-3">
-            <InfoPill label="Website" value={website || '—'} />
-            <InfoPill label="GitHub" value={github || '—'} />
-            <InfoPill label="X" value={x || '—'} />
-            <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : '—'} />
+            <InfoPill label="Website" value={website || '-'} />
+            <InfoPill label="GitHub" value={github || ' - '} />
+            <InfoPill label="X" value={x || ' - '} />
+            <InfoPill label="Kaspa" value={kaspaAddress ? formatKaspaAddress(kaspaAddress).display : ' - '} />
           </div>
         </Card>
 
@@ -1134,7 +1134,7 @@ function KnsTab({
           <div>
             <SectionTitle title="KNS" />
             <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : '—'}</span>
+              Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : ' - '}</span>
               {primaryName ? <span className="ml-2"><CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" /></span> : null}
             </div>
           </div>
@@ -1237,10 +1237,10 @@ function SettingsTab({
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-4">
             <SectionTitle title="Link L2 wallet (proof)" />
             <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
-              Canonical identity: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{kaspaAddress || '—'}</span>
+              Canonical identity: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{kaspaAddress || ' - '}</span>
             </div>
             <div className="mt-2 text-[11px] text-zinc-600 dark:text-zinc-400">
-              Connected EVM: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{connectedEvmAddress || '—'}</span>
+              Connected EVM: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{connectedEvmAddress || ' - '}</span>
             </div>
 
             <div className="mt-4 flex flex-col sm:flex-row gap-3">

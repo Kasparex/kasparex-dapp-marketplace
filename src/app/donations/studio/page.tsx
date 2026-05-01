@@ -41,10 +41,10 @@ export default function DonationsStudioPage() {
   const chainId = useChainId();
   const { address, isConnected } = useAccount();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
-  /** CrowdKAS escrow on Igra Mainnet — used for all reads so studio state works even when the wallet is on another chain. */
+  /** CrowdKAS escrow on Igra Mainnet - used for all reads so studio state works even when the wallet is on another chain. */
   const igraEscrowAddress = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrow');
   const writeEscrowAddress = getContractAddress(chainId, 'DonationEscrow');
-  /** CrowdKAS V2 escrow on Igra Mainnet — multi-campaign + explicit donation method. */
+  /** CrowdKAS V2 escrow on Igra Mainnet - multi-campaign + explicit donation method. */
   const igraEscrowV2Address = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrowV2');
   const writeEscrowV2Address = getContractAddress(chainId, 'DonationEscrowV2');
   const currentChain = chainId ? getChainById(chainId) : null;
@@ -964,7 +964,7 @@ export default function DonationsStudioPage() {
                             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.07] dark:bg-emerald-950/25 p-4 mb-4">
                               <p className="text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-300 mb-2">Premium modules</p>
                               <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
-                                Unlock featured placement on the campaign listing, the Kaspa L1 tip jar, and other upgrades—pay with Kaspa (L1), then confirm one transaction on Igra.
+                                Unlock featured placement on the campaign listing, the Kaspa L1 tip jar, and other upgrades - pay with Kaspa (L1), then confirm one transaction on Igra.
                                 All unlocks are managed from the Modules page.
                               </p>
                               <Link

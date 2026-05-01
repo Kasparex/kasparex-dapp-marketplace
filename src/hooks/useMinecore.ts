@@ -43,7 +43,7 @@ import type { MinecoreIngredient } from '@/lib/game/minecore/types';
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
 const KREX_RECHARGE_PRIORITY_FEE_KAS = 0.001;
 
-/** Persisted game state is keyed only by Kaspa L1 address — no shared guest bucket. */
+/** Persisted game state is keyed only by Kaspa L1 address - no shared guest bucket. */
 function walletStorageKey(address: string) {
   return `${MINECORE_STORAGE_PREFIX}:${address.trim()}`;
 }
@@ -170,7 +170,7 @@ export function useMinecore() {
 
   /**
    * Auto-restart mining after a run ends (CreditingReady / BatteryEmpty / DailyCapReached → ReadyToMine).
-   * Requires batteries installed with charge; never refills power or batteries — Foreman energy-cell refill removed.
+   * Requires batteries installed with charge; never refills power or batteries - Foreman energy-cell refill removed.
    */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
@@ -204,7 +204,7 @@ export function useMinecore() {
   }, [walletState.isConnected, walletAddr, derived.plantSlots, dispatch]);
 
   /**
-   * When a run ends (cycle complete or battery empty), bank mined diamonds to the wallet immediately — no separate Extract step.
+   * When a run ends (cycle complete or battery empty), bank mined diamonds to the wallet immediately - no separate Extract step.
    */
   const autoBankPrevStatusRef = useRef<Record<number, string>>({});
   useEffect(() => {
@@ -334,7 +334,7 @@ export function useMinecore() {
     [krexTier]
   );
 
-  /** L1 KREX (KRC-20) transfer to game treasury — same flow as plant recharge. */
+  /** L1 KREX (KRC-20) transfer to game treasury - same flow as plant recharge. */
   const payKrexTreasury = useCallback(
     async (
       amountKrex: number,

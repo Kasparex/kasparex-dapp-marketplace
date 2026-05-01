@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type StatusDotTone = 'ok' | 'warn' | 'bad' | 'info';
 
@@ -23,7 +24,7 @@ export function StatusDot({
           : 'bg-zinc-400 dark:bg-zinc-500';
 
   return (
-    <Tooltip content={tooltip}>
+    <Tooltip content={gameTooltipRich('Status', tooltip)}>
       <span className={['inline-flex h-2.5 w-2.5 rounded-full', cls, className].join(' ')} aria-hidden />
     </Tooltip>
   );

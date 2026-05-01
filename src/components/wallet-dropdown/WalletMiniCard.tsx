@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export function WalletMiniCard({
   title,
@@ -54,7 +55,7 @@ export function WalletMiniCard({
             <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">{right}</div>
           ) : null}
           {onInfo ? (
-            <Tooltip content={`Info: ${title}`}>
+            <Tooltip content={gameTooltipRich('More details', `Opens help or context for ${title}.`)}>
               <button
                 type="button"
                 className="p-1 rounded hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 transition-colors"
@@ -72,14 +73,19 @@ export function WalletMiniCard({
       <div className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{value}</div>
       {tierBadgeText ? (
         <div className="mt-1">
-          <Tooltip content={sub || `Tier ${tierBadgeText}`}>
+          <Tooltip
+            content={gameTooltipRich(
+              'KREX tier',
+              sub ?? `Your current tier badge is ${tierBadgeText}.`,
+            )}
+          >
             <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8] font-black uppercase tracking-widest">
               Tier {tierBadgeText}
             </span>
           </Tooltip>
         </div>
       ) : sub ? (
-        <Tooltip content={sub}>
+        <Tooltip content={gameTooltipRich(title, sub)}>
           <div className="text-[11px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div>
         </Tooltip>
       ) : null}

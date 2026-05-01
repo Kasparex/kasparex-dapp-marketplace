@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { computeRewardBreakdown, rewardsPoolPercent, rewardsSplits, rewardsWalletAddress } from '@/lib/leaderboard/rewardsPool';
 import { nodeFirstGet } from '@/lib/nodes/node-first';
 
@@ -86,7 +87,11 @@ export function ProjectedRewardsCards() {
             Estimated from rewards wallet balance. These values are live until the season snapshot is finalized.
           </p>
         </div>
-        <Tooltip content={helpText} side="left" align="start">
+        <Tooltip
+          content={gameTooltipRich('How projected rewards are calculated', helpText)}
+          side="left"
+          align="start"
+        >
           <button type="button" className="k-control-btn h-9 px-3 text-xs">
             How calculated
           </button>

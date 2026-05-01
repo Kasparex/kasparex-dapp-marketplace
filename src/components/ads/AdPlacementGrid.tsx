@@ -12,6 +12,7 @@ import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
@@ -35,7 +36,7 @@ interface AdPlacementGridProps {
   slotId: AdSlotId;
   variant: AdPlacementVariant;
   maxCellsShown?: number;
-  /** Taller halo cell (e.g. games dashboard rail) — does not affect footer/sidebar variants. */
+  /** Taller halo cell (e.g. games dashboard rail) - does not affect footer/sidebar variants. */
   relaxHaloFrame?: boolean;
 }
 
@@ -241,5 +242,5 @@ function FilledAdShell({
       ) : null}
     </Link>
   );
-  return tip ? <Tooltip content={tip}>{linkEl}</Tooltip> : linkEl;
+  return tip ? <Tooltip content={gameTooltipRich(ad.title, tip)}>{linkEl}</Tooltip> : linkEl;
 }

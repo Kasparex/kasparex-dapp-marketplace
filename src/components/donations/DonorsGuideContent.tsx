@@ -7,7 +7,7 @@ export function DonorsGuideContent() {
         <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS · Donors</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Claims, refunds &amp; what you should know</h1>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Short guide for people who donate — especially on <strong>L2 escrow</strong> campaigns.
+          Short guide for people who donate - especially on <strong>L2 escrow</strong> campaigns.
         </p>
       </div>
 
@@ -22,7 +22,7 @@ export function DonorsGuideContent() {
           </li>
           <li>
             If the campaign <strong>does not reach the goal</strong> by the deadline, funds are not automatically sent back to everyone. You use{' '}
-            <strong>Claim refund</strong> yourself when the contract allows it — connect the same wallet you donated with and submit the refund transaction.
+            <strong>Claim refund</strong> yourself when the contract allows it - connect the same wallet you donated with and submit the refund transaction.
           </li>
           <li>Always confirm the campaign page and contract match the network you expect (e.g. Igra Mainnet).</li>
         </ul>
@@ -31,7 +31,7 @@ export function DonorsGuideContent() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L1 direct (Kaspa)</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Donations go straight to the creator&apos;s Kaspa address. There is <strong>no escrow refund path</strong> on-chain like L2 — support is between you and the creator.
+          Donations go straight to the creator&apos;s Kaspa address. There is <strong>no escrow refund path</strong> on-chain like L2 - support is between you and the creator.
           Perks or points may still apply according to how the app records or displays them.
         </p>
       </section>
@@ -40,7 +40,7 @@ export function DonorsGuideContent() {
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Revenue Tree &amp; fees</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           On L2 escrow, part of the donation may route to the platform fee system (Revenue Tree) as defined in the contract. That does not replace your refund rights when a
-          campaign fails — refunds are still handled through the escrow <strong>claim refund</strong> flow when applicable.
+          campaign fails - refunds are still handled through the escrow <strong>claim refund</strong> flow when applicable.
         </p>
       </section>
 

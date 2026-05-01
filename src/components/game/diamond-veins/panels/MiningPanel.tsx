@@ -86,7 +86,7 @@ export function MiningPanel({
             Power
             <GameTooltip
               title="Power"
-              description="Used MW versus site cap. Oversubscribing the cap reduces efficiency (brownout) — upgrade power in the Power tab."
+              description="Used MW versus site cap. Oversubscribing the cap reduces efficiency (brownout) - upgrade power in the Power tab."
             >
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
                 ?
@@ -127,7 +127,7 @@ export function MiningPanel({
             <div className="flex items-baseline gap-3">
               <GameTooltip
                 title="Diamond balance"
-                description="Total in-game diamonds across five vein types that accrue in the background — see the breakdown below."
+                description="Total in-game diamonds across five vein types that accrue in the background - see the breakdown below."
               >
                 <h2 className="cursor-help text-5xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100 lg:text-6xl">
                   {Math.floor(diamonds).toLocaleString()}

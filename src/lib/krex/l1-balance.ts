@@ -53,7 +53,7 @@ async function tryKasWareBalance(address: string): Promise<number | null> {
     }
 
     if (typeof win.kasware.isConnected === 'function' && !win.kasware.isConnected()) {
-      console.log('[KREX L1] KasWare present but not connected — using indexer');
+      console.log('[KREX L1] KasWare present but not connected - using indexer');
       return null;
     }
     

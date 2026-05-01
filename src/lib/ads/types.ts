@@ -31,7 +31,7 @@ export interface AdEntry {
   slotId: AdSlotId;
   /** Cell index within the slot grid (0 .. maxAds-1) */
   slotIndex?: number;
-  /** Paid featured capsule — stronger border / emphasis in listings. */
+  /** Paid featured capsule - stronger border / emphasis in listings. */
   featuredHighlight?: boolean;
   /** Template type for mosaic layout: square, wide rectangle, or tall rectangle. */
   format: AdFormat;

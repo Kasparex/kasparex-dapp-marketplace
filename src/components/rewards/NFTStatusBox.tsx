@@ -202,7 +202,7 @@ export function NFTStatusBox({
             {label}
           </div>
           <div className={`text-[12px] font-semibold leading-tight ${ok ? okClass : 'text-zinc-500 dark:text-zinc-500'}`}>
-            {ok ? '✓ Held' : '—'}
+            {ok ? '✓ Held' : '-'}
           </div>
           {sub ? <div className="text-[10px] text-zinc-500 dark:text-zinc-500 truncate">{sub}</div> : null}
         </div>

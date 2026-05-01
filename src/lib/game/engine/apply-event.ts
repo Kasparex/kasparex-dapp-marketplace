@@ -101,7 +101,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         refinementPoints,
         diamondsRefined: amount,
         gridCheckpointScore,
-        note: 'Refine checkpoint — claim GRID on L2 via Rewards & Points when your pool route is live.',
+        note: 'Refine checkpoint - claim GRID on L2 via Rewards & Points when your pool route is live.',
       };
       next.diamonds = 0;
       next.diamondInventory = {

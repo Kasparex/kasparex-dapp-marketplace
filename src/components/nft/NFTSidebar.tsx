@@ -15,7 +15,7 @@ export interface NFTSidebarProps {
   onTabChange: (tab: TabType) => void;
   collectionSlug?: string;
   isListingPage?: boolean;
-  /** /nft/roadmap — minimal nav, no collection tabs */
+  /** /nft/roadmap - minimal nav, no collection tabs */
   isRoadmapPage?: boolean;
   /** Listing: switch to Collections tab and scroll to section */
   onListingSectionNavigate?: (sectionId: string) => void;

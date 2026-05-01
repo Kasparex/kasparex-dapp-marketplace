@@ -16,7 +16,7 @@ export function allowedAdTotalsKasFromSlotBase(slotBaseKas: number, featuredHigh
   return [...new Set(prices)].sort((a, b) => a - b);
 }
 
-/** Legacy helper — slot-only base (no featured add-on). */
+/** Legacy helper - slot-only base (no featured add-on). */
 export function allowedAdPricesKasFromBase(baseKas: number): number[] {
   return allowedAdTotalsKasFromSlotBase(baseKas, false);
 }
@@ -89,7 +89,7 @@ export function isValidAdKrexPriceMeta(
 }
 
 /**
- * @deprecated Use isValidAdKasPayment / KREX helpers — kept for older imports if any.
+ * @deprecated Use isValidAdKasPayment / KREX helpers - kept for older imports if any.
  */
 export function isValidAdPayment(metaPriceKas: number, paidSompi: number, baseKas: number): boolean {
   return isValidAdKasPayment(metaPriceKas, paidSompi, baseKas, false);

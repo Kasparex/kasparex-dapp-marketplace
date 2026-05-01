@@ -17,9 +17,9 @@ import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationE
 import { getChainById } from '@/lib/wagmi';
 
 const ROADMAP_ITEMS = [
-  { title: 'Campaign updates feed', detail: 'Milestones and optional IPFS attachments — planned.' },
-  { title: 'Custom CTA buttons', detail: 'Extra links on campaign pages — planned.' },
-  { title: 'Supporter roles', detail: 'Lightweight tiers — planned.' },
+  { title: 'Campaign updates feed', detail: 'Milestones and optional IPFS attachments - planned.' },
+  { title: 'Custom CTA buttons', detail: 'Extra links on campaign pages - planned.' },
+  { title: 'Supporter roles', detail: 'Lightweight tiers - planned.' },
 ] as const;
 
 export default function CrowdKasModulesPage() {
@@ -241,7 +241,7 @@ export default function CrowdKasModulesPage() {
               <ul className="text-sm text-zinc-500 dark:text-zinc-400 space-y-2 list-disc pl-5">
                 {ROADMAP_ITEMS.map((item) => (
                   <li key={item.title}>
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.title}</span> — {item.detail}
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.title}</span> - {item.detail}
                   </li>
                 ))}
               </ul>

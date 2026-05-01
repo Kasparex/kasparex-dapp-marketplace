@@ -1,5 +1,9 @@
 export const CHRONICLES_LB_HIGH_MASS_MODE_KEY = 'chronicles-lb-high-mass-mode-v1';
 
+/** UI copy for leaderboard read-confirm high-mass toggle tooltips (no em dash). */
+export const CHRONICLES_HIGH_MASS_MODE_HELP =
+  "Use when the wallet shows 'Storage mass exceeds maximum'. Retries with larger KAS amounts so the wallet selects fewer inputs. If needed, compound in KasWare: Wallet > UTXO > Compound.";
+
 export function isStorageMassErrorMessage(msg: string): boolean {
   const m = msg.toLowerCase();
   return m.includes('storage mass exceeds maximum') || (m.includes('mass') && m.includes('maximum'));

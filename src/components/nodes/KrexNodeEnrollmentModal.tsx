@@ -337,7 +337,7 @@ export function KrexNodeEnrollmentModal(props: {
         sleepMs = Math.min(12_000, Math.floor(sleepMs * 1.25));
       }
       throw new Error(
-        'Your transaction is broadcast, but it is still not visible to the indexer. It will verify automatically as soon as it appears; you can close this modal and come back later — it will not send another payment.'
+        'Your transaction is broadcast, but it is still not visible to the indexer. It will verify automatically as soon as it appears; you can close this modal and come back later - it will not send another payment.'
       );
 
     } catch (e) {
@@ -591,12 +591,12 @@ export function KrexNodeEnrollmentModal(props: {
                 <div>
                   To:{' '}
                   <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">
-                    {runtimeConfig?.onchainVerify?.toAddress || '—'}
+                    {runtimeConfig?.onchainVerify?.toAddress || '-'}
                   </span>
                 </div>
                 <div>
                   Payload:{' '}
-                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">{verifyPayload || '—'}</span>
+                  <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">{verifyPayload || ' - '}</span>
                 </div>
                 {verifyPending ? (
                   <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
@@ -783,7 +783,7 @@ export function KrexNodeEnrollmentModal(props: {
               ) : (
                 <>
                   <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                    Your node is enrolled. Save the secret securely — it’s required for signed pings.
+                    Your node is enrolled. Save the secret securely - it’s required for signed pings.
                   </div>
                   {enrollResult?.node_id && <CopyRow label="node_id" value={enrollResult.node_id} />}
                   {enrollResult?.node_secret && <CopyRow label="node_secret (HMAC)" value={enrollResult.node_secret} />}

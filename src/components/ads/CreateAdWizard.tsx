@@ -356,7 +356,7 @@ export function CreateAdWizard({
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
-      // Wallet work is done — show success immediately. Verification hits public REST (often lags after broadcast).
+      // Wallet work is done - show success immediately. Verification hits public REST (often lags after broadcast).
       setPhase('success');
       setVerifyNote('Checking transaction on the network…');
       setIsSubmitting(false);
@@ -390,7 +390,7 @@ export function CreateAdWizard({
           lastVerifyMessage =
             attempt < maxVerifyAttempts - 1
               ? 'Waiting for the public indexer…'
-              : 'We could not load this transaction from Kaspa REST yet. If payment succeeded in KasWare, the Ads list usually updates within a few minutes — refresh the Ads page or try again later.';
+              : 'We could not load this transaction from Kaspa REST yet. If payment succeeded in KasWare, the Ads list usually updates within a few minutes - refresh the Ads page or try again later.';
         } catch {
           lastVerifyMessage =
             attempt < maxVerifyAttempts - 1
@@ -536,7 +536,7 @@ export function CreateAdWizard({
                         </span>
                       </>
                     ) : (
-                      <span>—</span>
+                      <span> - </span>
                     )}
                   </span>
                   <svg
@@ -663,7 +663,7 @@ export function CreateAdWizard({
                                 Drop an image or click to browse
                               </span>
                               <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
-                                PNG, JPG, or WebP — pinned when you pay
+                                PNG, JPG, or WebP - pinned when you pay
                               </span>
                             </div>
                           </div>
@@ -723,7 +723,7 @@ export function CreateAdWizard({
                     />
                     <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">
                       {promoTooltip.length}/{ADS_MAX_PROMO_TOOLTIP_CHARS} characters
-                      {!promoTooltipOk ? ' — shorten to continue' : ''}
+                      {!promoTooltipOk ? ' - shorten to continue' : ''}
                     </p>
                   </div>
                 </div>
@@ -780,7 +780,7 @@ export function CreateAdWizard({
                     <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Featured highlight</p>
                     <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
                       More visible placement with a colorful frame for the duration of the campaign. One-time{' '}
-                      {ADS_FEATURED_HIGHLIGHT_KAS} KAS — not per day.
+                      {ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.
                     </p>
                   </div>
                   <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">

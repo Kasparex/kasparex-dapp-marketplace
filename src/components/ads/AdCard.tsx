@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { AdEntry, AdFormat } from '@/lib/ads/types';
 import { getSlotConfig } from '@/lib/ads/slots';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
 
 interface AdCardProps {
@@ -110,7 +111,7 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
   return (
     <div className={`group transition-all duration-300 overflow-hidden ${shellClass}`}>
       {promoTip ? (
-        <Tooltip content={promoTip}>
+        <Tooltip content={gameTooltipRich(ad.title, promoTip)}>
           <Link
             href={ad.link}
             target="_blank"

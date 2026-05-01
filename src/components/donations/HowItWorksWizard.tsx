@@ -55,7 +55,7 @@ function buildSteps(role: Role, method: Method): { title: string; body: string }
     {
       title: 'Safety in plain language',
       body:
-        'Kaspa L1 donations are normal on-chain payments. Anyone can verify they happened. The “safety” is about transparency — not escrow custody.',
+        'Kaspa L1 donations are normal on-chain payments. Anyone can verify they happened. The “safety” is about transparency - not escrow custody.',
     },
   ];
 }

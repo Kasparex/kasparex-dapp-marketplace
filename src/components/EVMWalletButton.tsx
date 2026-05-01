@@ -321,7 +321,7 @@ export function EVMWalletButton() {
                     value={
                       gridTokenAddress
                         ? (isBalanceVisible ? (isGridLoading ? '…' : gridFormatted) : '***')
-                        : '—'
+                        : '-'
                     }
                     sub={gridTokenAddress ? undefined : 'Not deployed'}
                     onClick={() => {
@@ -377,7 +377,7 @@ export function EVMWalletButton() {
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-zinc-500 dark:text-zinc-400">NFTs (L2 bridged)</span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">—</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100"> - </span>
                     </div>
                     <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
                       L1 NFTs are not shown here.
@@ -416,7 +416,7 @@ export function EVMWalletButton() {
                       <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                         Node status
                       </div>
-                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
+                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400"> - </div>
                     </div>
                     <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
                       Coming soon for node operators.

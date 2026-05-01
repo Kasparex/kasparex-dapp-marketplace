@@ -19,14 +19,14 @@ export function GameTabs<T extends string>(props: {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // All drag state in refs — zero re-renders during the drag
+  // All drag state in refs - zero re-renders during the drag
   const dragging = useRef(false);
   const startX = useRef(0);
   const startScroll = useRef(0);
   const lastX = useRef(0);
   const velocity = useRef(0);
   const rafId = useRef<number | null>(null);
-  const totalMoved = useRef(0); // total px moved — suppresses click if > threshold
+  const totalMoved = useRef(0); // total px moved - suppresses click if > threshold
 
   // ── Scroll-state tracker ─────────────────────────────────────────────────
   const updateScrollState = useCallback(() => {

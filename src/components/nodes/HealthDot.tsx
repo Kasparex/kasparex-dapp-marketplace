@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type HealthLevel = 'healthy' | 'degraded' | 'down' | 'unknown';
 
@@ -20,7 +21,7 @@ function dotClass(level: HealthLevel): string {
 
 export function HealthDot(props: { level: HealthLevel; label: string; className?: string }) {
   return (
-    <Tooltip content={props.label} side="top" align="center">
+    <Tooltip content={gameTooltipRich('Health', props.label)} side="top" align="center">
       <span
         className={[
           'inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-zinc-900',

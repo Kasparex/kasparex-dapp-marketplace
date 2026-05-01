@@ -11,6 +11,7 @@ import { sortLocationsByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) {
   const [search, setSearch] = useState('');
@@ -112,7 +113,7 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
               <ChronicleThumb imageUrl={l.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <div className="p-5 sm:p-6">
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                  <Tooltip content={l.name} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Location', l.name)} side="top" align="start">
                     <span className="block">{l.name}</span>
                   </Tooltip>
                 </h3>

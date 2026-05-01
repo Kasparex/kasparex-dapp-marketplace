@@ -17,7 +17,7 @@ export const PROTOCOL_FAMILIES: ProtocolFamily[] = [
     slug: 'kpx',
     shortLabel: 'KPX',
     name: 'KPX protocol',
-    description: 'Kaspa-wide payloads for identity, verification, EVM links, and content commits — indexed by Kasparex.',
+    description: 'Kaspa-wide payloads for identity, verification, EVM links, and content commits - indexed by Kasparex.',
     status: 'live',
   },
   {

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type GameInteraction = {
   title: string;
@@ -21,12 +22,15 @@ export function GameInteractionsPanel(props: { interactions?: GameInteraction[];
         {interactions.map((c) => (
           <li key={`${c.title}-${c.toHref ?? c.toSlug ?? 'x'}`} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
             <Tooltip
-              content={[
-                c.punch,
-                c.requirement ? `Requirement: ${c.requirement}` : null,
-              ]
-                .filter(Boolean)
-                .join('\n')}
+              content={gameTooltipRich(
+                c.title,
+                <>
+                  <p>{c.punch}</p>
+                  {c.requirement ? (
+                    <p className="mt-1 opacity-95">Requirement: {c.requirement}</p>
+                  ) : null}
+                </>,
+              )}
             >
               <Link
                 href={c.toHref ?? (c.toSlug ? `/games/${c.toSlug}` : '/games')}

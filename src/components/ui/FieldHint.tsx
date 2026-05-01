@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export function FieldHint({
   text,
@@ -14,7 +15,7 @@ export function FieldHint({
   ariaLabel?: string;
 }) {
   return (
-    <Tooltip content={<span className="block text-left leading-snug">{text}</span>} side={side} align={align} className="max-w-sm">
+    <Tooltip content={gameTooltipRich('Field hint', text)} side={side} align={align} className="max-w-sm">
       <button
         type="button"
         className="inline-flex shrink-0 rounded p-0.5 text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-[#02abb8] dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-[#66dfe8]"

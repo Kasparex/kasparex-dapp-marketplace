@@ -29,7 +29,7 @@ export default function DonationsHowItWorksPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS</p>
                 <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">What happens after a campaign ends?</h1>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  A super simple guide to funds, safety, and refunds — plus how this fits into Revenue Tree.
+                  A super simple guide to funds, safety, and refunds - plus how this fits into Revenue Tree.
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
                   Prefer one page with donor tips?{' '}

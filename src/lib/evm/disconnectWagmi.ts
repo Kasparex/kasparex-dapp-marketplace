@@ -6,7 +6,7 @@ import { config } from '@/lib/wagmi';
 /**
  * Persist "disconnected" shims for every configured connector so injected providers
  * (e.g. KasWare's shared `window.ethereum`) cannot immediately re-attach via
- * `accountsChanged` after we disconnect — wagmi otherwise clears the shim on that path.
+ * `accountsChanged` after we disconnect - wagmi otherwise clears the shim on that path.
  */
 async function persistInjectedDisconnectShims(): Promise<void> {
   const storage = config.storage;

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type ChroniclesFilterOption<T extends string> = { value: T; label: string };
 
@@ -42,7 +43,7 @@ export function ChroniclesFilterDropdown<T extends string>({
 
   return (
     <div ref={rootRef} className="relative flex-shrink-0 overflow-visible">
-      <Tooltip content={label} side="bottom" align="start">
+      <Tooltip content={gameTooltipRich('Active filter', label)} side="bottom" align="start">
         <button
           type="button"
           aria-label={ariaLabel}

@@ -23,7 +23,7 @@ export function PowerPanel({
           Power budget
           <GameTooltip
             title="Power budget"
-            description="Each drill draws MW. If total draw exceeds your cap, mining efficiency scales down — expand the grid to avoid brownouts."
+            description="Each drill draws MW. If total draw exceeds your cap, mining efficiency scales down - expand the grid to avoid brownouts."
           >
             <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
               ?

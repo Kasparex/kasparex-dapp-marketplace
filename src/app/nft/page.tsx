@@ -184,7 +184,7 @@ export default function NFTPage() {
                       </h2>
                       <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-3xl">
                         Other verified KRC-721 collections can map to the standard tier for global leaderboard NFT slot
-                        scoring and future cross-app perks. They are not listed as full tool targets here yet—this
+                        scoring and future cross-app perks. They are not listed as full tool targets here yet - this
                         section is informational only.
                       </p>
                     </div>

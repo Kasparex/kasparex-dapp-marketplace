@@ -11,6 +11,7 @@ import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -161,7 +162,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                   </div>
                 </div>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  <Tooltip content={c.title} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Chapter', c.title)} side="top" align="start">
                     <span className="block">{c.title}</span>
                   </Tooltip>
                 </h3>

@@ -442,7 +442,7 @@ export function MinecoreDashboard(_props: {
                                 {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS.
                               </>
                             ) : (
-                              <>{krexTier} — no tier discount on KAS; you pay the list price.</>
+                              <>{krexTier} - no tier discount on KAS; you pay the list price.</>
                             )}
                           </>,
                         )}

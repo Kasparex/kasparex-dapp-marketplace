@@ -24,12 +24,12 @@ export interface AdCampaignMetadataV1 {
   image: AdImageRef;
   format: AdFormat;
   createdAt: string;
-  /** When paying creative fee in KREX — reveal tx id from wallet / indexer hashRev */
+  /** When paying creative fee in KREX - reveal tx id from wallet / indexer hashRev */
   paymentCurrency?: AdPaymentCurrency;
   /** Declared KREX total for peg audit (matches minecore KREX-per-KAS on total). */
   priceKrex?: number;
   krexPaymentTxHash?: string;
-  /** Flat premium — highlighted placement frame */
+  /** Flat premium - highlighted placement frame */
   featuredHighlight?: boolean;
   /** Optional short promo line for hover tooltip on the creative */
   promoTooltip?: string;

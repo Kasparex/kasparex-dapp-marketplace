@@ -42,13 +42,13 @@ export function PointsTables() {
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
                 <td className="py-3 pr-6 font-semibold" title="Activation unlocks slots 2 and 3 for scoring in the current season.">Activate slot (2–3)</td>
                 <td className="py-3 pr-6">{CHRONICLES_LB_SLOT_ACTIVATION_KAS} KAS</td>
-                <td className="py-3 pr-6">—</td>
+                <td className="py-3 pr-6"> - </td>
                 <td className="py-3">Unlocks slot for scoring.</td>
               </tr>
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
                 <td className="py-3 pr-6 font-semibold" title="Set and clear updates use last-write-wins and only active slots count.">Set / clear slot</td>
                 <td className="py-3 pr-6">{CHRONICLES_LB_SLOT_CHANGE_KAS} KAS</td>
-                <td className="py-3 pr-6">—</td>
+                <td className="py-3 pr-6"> - </td>
                 <td className="py-3">Score comes from what’s currently inserted in active slots.</td>
               </tr>
             </tbody>
@@ -89,15 +89,15 @@ export function PointsTables() {
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
                 <td className="py-3 pr-6 font-semibold">Partner collections</td>
                 <td className="py-3 pr-6 font-black text-zinc-900 dark:text-zinc-100">{NFT_POINTS.partner.base}</td>
-                <td className="py-3 pr-6">—</td>
-                <td className="py-3 pr-6">—</td>
-                <td className="py-3">{Object.keys(NFT_POINTS.partnerCollections).join(', ') || '—'}</td>
+                <td className="py-3 pr-6"> - </td>
+                <td className="py-3 pr-6"> - </td>
+                <td className="py-3">{Object.keys(NFT_POINTS.partnerCollections).join(', ') || '-'}</td>
               </tr>
               <tr className="border-t border-zinc-200 dark:border-zinc-800">
                 <td className="py-3 pr-6 font-semibold">Standard collections</td>
                 <td className="py-3 pr-6 font-black text-zinc-900 dark:text-zinc-100">{NFT_POINTS.standard.base}</td>
-                <td className="py-3 pr-6">—</td>
-                <td className="py-3 pr-6">—</td>
+                <td className="py-3 pr-6"> - </td>
+                <td className="py-3 pr-6"> - </td>
                 <td className="py-3">Any other supported collection</td>
               </tr>
             </tbody>

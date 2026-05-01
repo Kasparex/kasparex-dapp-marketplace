@@ -9,7 +9,7 @@ const SUBCARD =
   'p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50';
 
 /**
- * Practical setup content for `/nodes` (Setup tab) — same card shell as the dashboard.
+ * Practical setup content for `/nodes` (Setup tab) - same card shell as the dashboard.
  */
 export function KrexNodeSetupGuide() {
   return (
@@ -36,7 +36,7 @@ export function KrexNodeSetupGuide() {
             </div>
             <div className={SUBCARD}>
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Lightweight</h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">128–256 MB RAM and low CPU — suitable for VPS or Raspberry Pi.</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">128–256 MB RAM and low CPU - suitable for VPS or Raspberry Pi.</p>
             </div>
             <div className={SUBCARD}>
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Rewards</h3>
@@ -86,11 +86,11 @@ export function KrexNodeSetupGuide() {
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">How to run</h2>
           <ol className="list-decimal pl-5 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
             <li>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Enroll</span> — connect your Kaspa wallet on this
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Enroll</span> - connect your Kaspa wallet on this
               page and use the <strong>Enroll</strong> tab (or the header action) to bind your wallet and receive a node secret.
             </li>
             <li>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Install</span> — use{' '}
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Install</span> - use{' '}
               <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">packages/krex-node</code> or the{' '}
               <a
                 href="https://github.com/Kasparex/kasparex-krex-node"
@@ -101,7 +101,7 @@ export function KrexNodeSetupGuide() {
               .
             </li>
             <li>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Configure</span> — point{' '}
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Configure</span> - point{' '}
               <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">apiBaseUrl</code> at the production Worker URL and
               set <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">nodeId</code> /{' '}
               <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">hmacSecret</code> from enrollment.

@@ -35,7 +35,9 @@ import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { chroniclesLbEffectivePriceKas } from '@/lib/chronicles/leaderboard/pricing';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
+  CHRONICLES_HIGH_MASS_MODE_HELP,
   isStorageMassErrorMessage,
   readHighMassMode,
   retryKasCandidates,
@@ -307,13 +309,7 @@ export function ChroniclesEntitySlots({
                   writeHighMassMode(next);
                 }}
               />
-              <Tooltip
-                content={
-                  "Use this when wallet shows 'Storage mass exceeds maximum'. It retries with larger KAS amounts to help wallet select fewer inputs. If needed, compound in KasWare: wallet > UTXO tab > Compound."
-                }
-                side="top"
-                align="end"
-              >
+              <Tooltip content={gameTooltipRich('High-mass mode', CHRONICLES_HIGH_MASS_MODE_HELP)} side="top" align="end">
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
                   i
                 </span>

@@ -15,7 +15,7 @@ function MapAttributionChrome() {
 export type OsmRegionMarker = {
   id: string;
   label: string;
-  /** Explicit WGS84 — avoids tuple [lat,lng] ambiguity with some Leaflet typings. */
+  /** Explicit WGS84 - avoids tuple [lat,lng] ambiguity with some Leaflet typings. */
   position: { lat: number; lng: number };
   total: number;
   mirror: number;

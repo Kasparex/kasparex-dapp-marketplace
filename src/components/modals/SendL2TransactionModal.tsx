@@ -55,7 +55,7 @@ export function SendL2TransactionModal({
   const { writeContractAsync } = useWriteContract();
 
   const krexBalanceDisplay = useMemo(() => {
-    if (!krexBalRaw || typeof krexDecimals !== 'number') return '—';
+    if (!krexBalRaw || typeof krexDecimals !== 'number') return '-';
     const denom = BigInt(10) ** BigInt(krexDecimals);
     const whole = (krexBalRaw as bigint) / denom;
     const frac = (krexBalRaw as bigint) % denom;
@@ -193,7 +193,7 @@ export function SendL2TransactionModal({
                     {tab === 'kas'
                       ? nativeBal
                         ? `${Number(nativeBal.formatted).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${nativeBal.symbol}`
-                        : '—'
+                        : ' - '
                       : krexBalanceDisplay}
                   </div>
                 </div>

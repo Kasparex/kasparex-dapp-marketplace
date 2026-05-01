@@ -40,7 +40,7 @@ function kasCostTooltip(title: string, baseKas: number, payKas: number, discount
       </>
     ) : (
       <>
-        List {baseKas.toLocaleString()} KAS — you pay {payKas.toLocaleString()} KAS ({tierShort}).
+        List {baseKas.toLocaleString()} KAS - you pay {payKas.toLocaleString()} KAS ({tierShort}).
       </>
     );
   return gameTooltipRich(title, desc);

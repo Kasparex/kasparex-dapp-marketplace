@@ -3,7 +3,7 @@
 import { AdSlider } from '@/components/ads/AdSlider';
 
 /**
- * Right-column ads on game dashboards — shares the same slot pool as the Kasparex Games halo
+ * Right-column ads on game dashboards - shares the same slot pool as the Kasparex Games halo
  * (`HALO_GAMES_RIGHT`). Sticky within the column while scrolling so creatives stay in view longer.
  */
 export function GamesPlayAdRail() {

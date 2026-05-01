@@ -24,7 +24,7 @@ function normalizeHexTx(h: string): string {
   return h.trim().replace(/^0x/i, '').toLowerCase();
 }
 
-/** Kasplex lists reveal ids as `hashRev`; wallets/explorers may show byte-reversed id — accept either. */
+/** Kasplex lists reveal ids as `hashRev`; wallets/explorers may show byte-reversed id - accept either. */
 function reverseHexBytePairs(hex64: string): string {
   const h = normalizeHexTx(hex64);
   if (h.length % 2 !== 0) return h;

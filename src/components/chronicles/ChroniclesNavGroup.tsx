@@ -4,6 +4,7 @@ import { useEffect, useId, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const STORAGE_KEY = 'chronicles-nav-expanded';
 
@@ -99,7 +100,7 @@ export function ChroniclesNavGroup({
             }}
             className="flex-1 min-w-0"
           >
-            <Tooltip content={label} side="right" align="start">
+            <Tooltip content={gameTooltipRich('Section', label)} side="right" align="start">
               <span className="text-xs font-bold uppercase tracking-wide block min-w-0 leading-tight truncate whitespace-nowrap text-left">
                 {label}
               </span>
@@ -152,7 +153,11 @@ export function ChroniclesNavSublink({
         className={`k-sidebar-item group opacity-60 cursor-default text-zinc-500 dark:text-zinc-500 ${activeClass}`.trim()}
         title="Draft: sync from content/story-management to data/chronicles or unlock via Vault"
       >
-        <Tooltip content={label} side="right" align="start">
+        <Tooltip
+          content={gameTooltipRich('Draft entry', `${label}. Sync from content/story-management into data/chronicles or unlock via Vault.`)}
+          side="right"
+          align="start"
+        >
           <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
             {label}
           </span>
@@ -164,7 +169,7 @@ export function ChroniclesNavSublink({
   return (
     <Link href={href}>
       <div className={`k-sidebar-item group ${activeClass}`.trim()}>
-        <Tooltip content={label} side="right" align="start">
+        <Tooltip content={gameTooltipRich('Chronicles page', `${label}: open this link.`)} side="right" align="start">
           <span className="text-xs font-bold uppercase tracking-wide flex-1 min-w-0 leading-snug break-words line-clamp-2 pl-6 text-left">
             {label}
           </span>

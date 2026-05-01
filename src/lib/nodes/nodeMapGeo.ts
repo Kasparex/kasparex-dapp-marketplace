@@ -1,5 +1,5 @@
 /**
- * Geography for the /nodes map — 100% static, no geocoding APIs or usage-based costs.
+ * Geography for the /nodes map - 100% static, no geocoding APIs or usage-based costs.
  *
  * Resolution order:
  * 1. Explicit WGS84 in `region`, e.g. `52.2297,21.0122` (comma-separated lat,lng).

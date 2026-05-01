@@ -353,7 +353,7 @@ export function KaspaL1WalletButton() {
                       <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                         Node status
                       </div>
-                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">—</div>
+                      <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400"> - </div>
                     </div>
                     <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1">
                       Coming soon for node operators.

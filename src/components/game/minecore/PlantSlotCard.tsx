@@ -538,7 +538,7 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
         : zone === 'strained'
           ? 'bg-amber-500'
           : 'bg-rose-600';
-  const loadPctLabel = Number.isFinite(rawLoad) ? `${Math.min(999, Math.round(rawLoad * 100))}%` : '—';
+  const loadPctLabel = Number.isFinite(rawLoad) ? `${Math.min(999, Math.round(rawLoad * 100))}%` : '-';
 
   const barTip = gameTooltipRich(
     'Power grid load',
@@ -547,8 +547,8 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
       <ul className="mt-1.5 list-disc space-y-0.5 pl-3">
         <li>0–25%: optimal performance</li>
         <li>25–50%: good performance</li>
-        <li>50–75%: strained — add or upgrade Power in Setup</li>
-        <li>Above 75%: critical — mining cannot run until load drops</li>
+        <li>50–75%: strained. Add or upgrade Power in Setup.</li>
+        <li>Above 75%: critical. Mining cannot run until load drops.</li>
       </ul>
     </>,
   );
@@ -1075,7 +1075,7 @@ export function PlantSlotCard(props: {
                 s.type === 'standard'
                   ? 'Standard plants cannot mount premium or advanced-only modules.'
                   : s.type === 'premium'
-                    ? 'Premium plants unlock fabrication module slots — see Modules in setup.'
+                    ? 'Premium plants unlock fabrication module slots - see Modules in setup.'
                     : 'Advanced plants support the widest module layouts.',
               )}
             >
@@ -1136,7 +1136,7 @@ export function PlantSlotCard(props: {
               <Tooltip
                 content={gameTooltipRich(
                   'KREX Boost',
-                  'Yield multiplier applies while the countdown runs — keep KREX Boost mounted.',
+                  'Yield multiplier applies while the countdown runs - keep KREX Boost mounted.',
                 )}
               >
                 <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
@@ -1180,7 +1180,7 @@ export function PlantSlotCard(props: {
                     autoRestartInfra
                       ? gameTooltipRich(
                           'Per-plant AUTO',
-                          'When on, starts another run after a cycle if batteries still carry charge. Automation never buys refills — tap to toggle.',
+                          'When on, starts another run after a cycle if batteries still carry charge. Automation never buys refills - tap to toggle.',
                         )
                       : gameTooltipRich(
                           'Per-plant AUTO',

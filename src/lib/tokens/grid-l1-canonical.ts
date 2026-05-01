@@ -1,5 +1,5 @@
 /**
- * Canonical GRID (KRC-20) on Kaspa L1 mainnet — facts for UI / config.
+ * Canonical GRID (KRC-20) on Kaspa L1 mainnet - facts for UI / config.
  * Full deployment record: docs/GRID_L1_MAINNET_KRC20_DEPLOYMENT.md
  * Bridged L2: docs/GRID_L2_BRIDGED_KATBRIDGE_DEPLOYMENT.md · `grid-l2-bridged.ts`
  */

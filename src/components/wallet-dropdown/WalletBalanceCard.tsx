@@ -38,7 +38,13 @@ export function WalletBalanceCard({
           {(onCopyAddress || onOpenExplorer) ? (
             <div className="flex items-center gap-1 shrink-0">
               {onCopyAddress ? (
-                <Tooltip content={copied ? 'Copied' : 'Copy'}>
+                <Tooltip
+                  content={
+                    copied
+                      ? gameTooltipRich('Copied', 'Address was copied to your clipboard.')
+                      : gameTooltipRich('Copy address', 'Copies your wallet address to the clipboard.')
+                  }
+                >
                   <button
                     type="button"
                     onClick={() => {

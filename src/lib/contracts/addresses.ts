@@ -2,7 +2,7 @@
  * Contract Addresses
  *
  * GRID: canonical KRC-20 on L1; **mainnet** `GRIDToken` here = Katbridge ERC-20 only (`src/lib/tokens/grid-l2-bridged.ts`).
- * Legacy lab GRID on Kasplex testnet is cleared—use **tGRID** on Igra Galleon testnet for sandboxes, or set env for experiments.
+ * Legacy lab GRID on Kasplex testnet is cleared - use **tGRID** on Igra Galleon testnet for sandboxes, or set env for experiments.
  */
 
 // Helper to safely get env var (handles both server and client side)

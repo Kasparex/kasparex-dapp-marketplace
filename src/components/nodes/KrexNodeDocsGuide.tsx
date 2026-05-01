@@ -44,7 +44,7 @@ export function KrexNodeDocsGuide() {
                 target="_blank"
                 rel="noreferrer"
               >
-                GitHub — kasparex-krex-node
+                GitHub - kasparex-krex-node
               </a>
             </li>
           </ul>

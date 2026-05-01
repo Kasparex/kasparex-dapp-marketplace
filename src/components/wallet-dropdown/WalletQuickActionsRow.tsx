@@ -1,6 +1,7 @@
 'use client';
 
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type WalletQuickAction = {
   id: string;
@@ -55,7 +56,10 @@ export function WalletQuickActionsRow({
         {actions.slice(0, 4).map((a) => {
           const isPrimary = a.variant === 'primary';
           return (
-            <Tooltip key={a.id} content={a.tooltip || a.label}>
+            <Tooltip
+              key={a.id}
+              content={gameTooltipRich(a.label, a.tooltip ?? `Runs ${a.label.toLowerCase()} from your wallet menu.`)}
+            >
               <button
                 type="button"
                 onClick={a.onClick}

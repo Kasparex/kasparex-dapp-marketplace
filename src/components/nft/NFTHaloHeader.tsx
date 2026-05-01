@@ -40,7 +40,7 @@ export function NFTHaloHeader({
                     </span>
                   </h1>
                   <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-                    Rarity checks, trait analysis, and PFP building for premium collections—plus partner drops and
+                    Rarity checks, trait analysis, and PFP building for premium collections - plus partner drops and
                     leaderboard context for the wider Kaspa NFT ecosystem.
                   </p>
                 </>

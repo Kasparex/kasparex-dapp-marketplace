@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -359,19 +360,11 @@ export function Header() {
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
-          <Tooltip
-            content={
-              <span className="block max-w-xs text-left leading-snug">
-                Open the Kasparex dApps marketplace (Hub home).
-              </span>
-            }
-            side="bottom"
-            align="start"
-          >
+          <Tooltip content={gameTooltipRich('Hub home', 'Open the Kasparex dApps marketplace (Hub home).')} side="bottom" align="start">
             <Link
               href="/dapps"
               className="flex items-center gap-2 sm:gap-3"
-              aria-label="Kasparex — dApps marketplace home"
+              aria-label="Kasparex: dApps marketplace home"
             >
               {!logoError ? (
                 <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">

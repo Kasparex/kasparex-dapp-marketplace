@@ -72,7 +72,7 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
                         Verified
                       </span>
                     ) : (
-                      <span className="text-zinc-400">—</span>
+                      <span className="text-zinc-400"> - </span>
                     )}
                   </td>
                   <td className="py-2.5 pr-4 text-sm">

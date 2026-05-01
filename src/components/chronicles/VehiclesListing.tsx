@@ -11,6 +11,7 @@ import { sortVehiclesByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const kinds: { id: VehicleKind; label: string }[] = [
   { id: 'vehicle', label: 'Vehicles' },
@@ -96,7 +97,7 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
               >
                 <span className="flex items-center gap-4 min-w-0">
                   <ChronicleThumb imageUrl={v.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
-                  <Tooltip content={v.name} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Vehicle', v.name)} side="top" align="start">
                     <span className="truncate">{v.name}</span>
                   </Tooltip>
                 </span>
@@ -119,7 +120,7 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
               <div className="p-5 sm:p-6">
                 <p className="text-[10px] font-black text-[#02abb8] uppercase mb-1">{v.kind}</p>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                  <Tooltip content={v.name} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Vehicle', v.name)} side="top" align="start">
                     <span className="block">{v.name}</span>
                   </Tooltip>
                 </h3>

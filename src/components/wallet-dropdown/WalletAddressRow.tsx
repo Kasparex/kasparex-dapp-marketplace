@@ -2,6 +2,7 @@
 
 import { Avatar } from '@/components/Avatar';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useState } from 'react';
 
 export function WalletAddressRow({
@@ -36,7 +37,7 @@ export function WalletAddressRow({
       </div>
       <div className="flex items-center gap-1">
         {onProfile ? (
-          <Tooltip content={profileLabel}>
+          <Tooltip content={gameTooltipRich('Profile', profileLabel)}>
             <button
               type="button"
               onClick={onProfile}
@@ -50,7 +51,7 @@ export function WalletAddressRow({
           </Tooltip>
         ) : null}
         {onRefresh ? (
-          <Tooltip content={refreshLabel}>
+          <Tooltip content={gameTooltipRich('Refresh', refreshLabel)}>
             <button
               type="button"
               onClick={onRefresh}
@@ -64,7 +65,13 @@ export function WalletAddressRow({
             </button>
           </Tooltip>
         ) : null}
-        <Tooltip content={copied ? 'Copied' : copyLabel}>
+        <Tooltip
+          content={
+            copied
+              ? gameTooltipRich('Copied', 'Address was copied to your clipboard.')
+              : gameTooltipRich('Copy address', copyLabel)
+          }
+        >
           <button
             type="button"
             onClick={async () => {
@@ -87,7 +94,7 @@ export function WalletAddressRow({
           </button>
         </Tooltip>
         {onOpenExplorer ? (
-          <Tooltip content={explorerLabel}>
+          <Tooltip content={gameTooltipRich('Block explorer', explorerLabel)}>
             <button
               type="button"
               onClick={onOpenExplorer}

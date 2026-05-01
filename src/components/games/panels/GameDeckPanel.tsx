@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 export type GameDeckResource = {
   id: string;
@@ -111,7 +112,8 @@ export function GameDeckPanel(props: {
           value: props.rewardWeight.value,
           subValue: props.rewardWeight.subValue,
           description: 'Combined reward potential',
-          tooltip: 'Your total reward weight determines your share of GRID distribution. Click to view details.',
+          tooltip:
+            'Your total reward weight decides your share of GRID distribution when snapshots run. Tap this row to view details.',
           accent: 'diamonds' as const,
           onClick: props.rewardWeight.onClick,
         }]
@@ -142,7 +144,12 @@ export function GameDeckPanel(props: {
       >
         {props.featured?.image ? (
           <div className="mb-4">
-            <Tooltip content={props.featured.tooltip ?? 'Click to open overview'}>
+            <Tooltip
+              content={gameTooltipRich(
+                'Featured',
+                props.featured.tooltip ?? 'Tap to open the game overview or spotlight for this title.',
+              )}
+            >
               <button
                 type="button"
                 onClick={() => props.featured?.onOpenOverview?.()}
@@ -165,7 +172,7 @@ export function GameDeckPanel(props: {
             const clickable = typeof r.onClick === 'function';
             const Row = clickable ? 'button' : 'div';
             const Wrapper = r.tooltip ? Tooltip : null;
-            const wrapperProps = r.tooltip ? ({ content: r.tooltip } as const) : null;
+            const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
             const innerContent = (
               <>
                 <div className="min-w-0 flex-1">

@@ -211,7 +211,7 @@ export function DonationL1TipJar({
         <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-3 mt-4">
           <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 mb-1">{gift?.label?.trim() || 'Creator gift'}</p>
           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
-            The creator may share a thank-you link or note after you donate on L1 (honor system — not locked by the app).
+            The creator may share a thank-you link or note after you donate on L1 (honor system - not locked by the app).
           </p>
           {!revealed ? (
             <button
@@ -219,7 +219,7 @@ export function DonationL1TipJar({
               onClick={() => setRevealed(true)}
               className="text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline"
             >
-              I donated on L1 — reveal gift
+              I donated on L1 - reveal gift
             </button>
           ) : (
             <div className="text-sm text-zinc-700 dark:text-zinc-300 space-y-2">

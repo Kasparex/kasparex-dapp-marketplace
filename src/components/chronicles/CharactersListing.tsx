@@ -11,6 +11,7 @@ import { sortCharactersByName } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const kinds: { id: CharacterKind; label: string }[] = [
   { id: 'person', label: 'People' },
@@ -101,7 +102,7 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
               >
                 <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
                 <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
-                  <Tooltip content={c.name} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Character', c.name)} side="top" align="start">
                     <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{c.name}</span>
                   </Tooltip>
                   <span className="text-xs text-zinc-500 uppercase">{c.kind}</span>
@@ -124,7 +125,7 @@ export function CharactersListing({ initial }: { initial: ChronicleCharacter[] }
               <div className="p-5 sm:p-6">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8] mb-1">{c.kind}</p>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                  <Tooltip content={c.name} side="top" align="start">
+                  <Tooltip content={gameTooltipRich('Character', c.name)} side="top" align="start">
                     <span className="block">{c.name}</span>
                   </Tooltip>
                 </h3>
