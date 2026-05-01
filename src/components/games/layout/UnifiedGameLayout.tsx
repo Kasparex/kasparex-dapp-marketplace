@@ -23,6 +23,10 @@ interface UnifiedGameLayoutProps {
   children: ReactNode;
   onOpenOverview?: () => void;
   deckFooter?: ReactNode;
+  /** Tooltip on the Game Deck featured image. */
+  deckFeaturedTooltip?: string;
+  /** Whether to show the Deck “i” helper (default true). */
+  showDeckInfoButton?: boolean;
   /** Renders below the Game Deck card (e.g. Minecore owned assets). */
   belowDeck?: ReactNode;
   /** Renders under tab bar (dismissible alerts, etc.). */
@@ -38,6 +42,8 @@ export function UnifiedGameLayout({
   children,
   onOpenOverview,
   deckFooter,
+  deckFeaturedTooltip,
+  showDeckInfoButton,
   belowDeck,
   tabAlerts,
 }: UnifiedGameLayoutProps) {
@@ -56,8 +62,9 @@ export function UnifiedGameLayout({
           featured={{
             image: game.featuredImage || game.image || '',
             onOpenOverview: onOpenOverview || (() => onTabChange('overview')),
-            tooltip: 'Game details'
+            tooltip: deckFeaturedTooltip ?? 'Game details',
           }}
+          showDeckHelpButton={showDeckInfoButton !== false}
         />
         {belowDeck}
         <GameInteractionsPanel interactions={game.connections || []} />

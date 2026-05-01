@@ -135,8 +135,7 @@ export function MinecorePowerPanel(props: {
           Live snapshot
           <GameTooltip
             content={
-              `Mining spends reserve units while draining batteries. Recharge (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS/slot) only restores battery charge — it doesn’t add reserve slots beyond plant tier. ` +
-              'Reserve cap follows plant tier; rigs/kW affect drain speed.'
+              `Mining spends reserve units while draining batteries (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS/slot restores charge only — no extra reserves beyond plant tier). Reserve cap follows plant tier.`
             }
           >
             <button

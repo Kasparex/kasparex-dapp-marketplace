@@ -21,21 +21,19 @@ import {
   computeEffectiveCycleDurationMs,
   computeMaintenanceWearRatio,
   computePlantDiamondsPer24h,
+  computePlantMiningSpeedMultiplier,
   computePlantRollingDailyCapCeiling,
-  getPlantPowerDrawFactor,
 } from './plant-economy';
 import { rollPlantRollingDailyCapIfNeeded } from './daily-cap';
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+/** Nominal drain: elapsed wall time consumes stored charge 1:1 (rigs/modules do not shorten battery runtime). */
+const BATTERY_CHARGE_DRAIN_RATE = 1;
 
-/** Power consumption factor: machine × per-battery bus overhead (reactors add production kW to balance this). */
-export function getPlantPowerFactor(slot: PlantSlotState): number {
-  return getPlantPowerDrawFactor(slot);
-}
-
-/** Machine draw only - the rig sets consumption; there is no separate power-plant layer. */
-export function getPowerDrainScale(slot: PlantSlotState): number {
-  return getPlantPowerFactor(slot);
+/**
+ * @deprecated Battery drain no longer scales with rig tier; retained as `1` for save/API compatibility.
+ */
+export function getPowerDrainScale(_slot: PlantSlotState): number {
+  return BATTERY_CHARGE_DRAIN_RATE;
 }
 
 /**
@@ -109,25 +107,19 @@ export function computeLiveBatterySlotChargeMs(slot: PlantSlotState, now: number
   /** Mine-as-you-go: drain until battery empty — nominal cycle end does not stop drain. */
   const drainUntil = now;
   const elapsed = Math.max(0, drainUntil - slot.batterySnapshotAt);
-  const powerFactor = getPowerDrainScale(slot);
-  return drainWaterfallRemaining(raw, elapsed * powerFactor);
+  return drainWaterfallRemaining(raw, elapsed * BATTERY_CHARGE_DRAIN_RATE);
 }
 
 /**
- * Live total battery charge (ms). Drains at machine draw rate while a cycle is active.
+ * Live total battery charge (ms).
  */
 export function computeLiveBatteryChargeMs(slot: PlantSlotState, now: number): number {
   return sumChargeMs(computeLiveBatterySlotChargeMs(slot, now));
 }
 
-/**
- * How long (in real ms) the battery will continue to run at the current machine's draw rate.
- * E.g. 30 min charge / 2.0 power factor = 15 min real runtime.
- */
+/** Remaining stored charge while mining (same basis as nominal cell capacity). */
 export function computeBatteryRuntimeMs(slot: PlantSlotState, now: number): number {
-  const charge      = computeLiveBatteryChargeMs(slot, now);
-  const powerFactor = getPowerDrainScale(slot);
-  return powerFactor > 0 ? charge / powerFactor : 0;
+  return Math.max(0, computeLiveBatteryChargeMs(slot, now));
 }
 
 /**
@@ -142,14 +134,14 @@ export function computeRawLiveDiamonds(
   if (!slot.cycle) return 0;
   const clock = productionClockMs(slot, now);
   const elapsed = Math.max(0, clock - slot.cycle.startAtMs);
-  const factor = getPowerDrainScale(slot);
   const totalAtSnap = getTotalBatteryChargeAtSnapshot(slot);
-  const emptyAtMs = factor > 0 ? slot.batterySnapshotAt + totalAtSnap / factor : Number.POSITIVE_INFINITY;
+  const emptyAtMs = slot.batterySnapshotAt + totalAtSnap / BATTERY_CHARGE_DRAIN_RATE;
   const maxByBatteryMs = Math.max(0, emptyAtMs - slot.cycle.startAtMs);
   const effectiveElapsedMs = Math.min(elapsed, maxByBatteryMs);
 
   const d24 = computePlantDiamondsPer24h(state, slot, now, ctx);
-  const rawUncapped = Math.floor((effectiveElapsedMs / MINECORE_DAY_MS) * d24);
+  const speedMult = computePlantMiningSpeedMultiplier(slot);
+  const rawUncapped = Math.floor(((effectiveElapsedMs / MINECORE_DAY_MS) * d24 * speedMult));
 
   const rolled = rollPlantRollingDailyCapIfNeeded(slot, now);
   const cap24h = computePlantRollingDailyCapCeiling(state, rolled, ctx, now);
@@ -185,8 +177,9 @@ export function computeFlowRatePerMin(
   const liveCharge = computeLiveBatteryChargeMs(slot, now);
   if (liveCharge <= 0) return 0;
   const d24 = computePlantDiamondsPer24h(state, slot, now, ctx);
+  const speedMult = computePlantMiningSpeedMultiplier(slot);
   const perMs = d24 / MINECORE_DAY_MS;
-  return perMs * 60_000;
+  return perMs * 60_000 * speedMult;
 }
 
 /** UI: cycle bar progress (frozen while paused) and time remaining in the cycle window. */

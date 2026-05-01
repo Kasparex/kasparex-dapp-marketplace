@@ -1,4 +1,5 @@
 import {
+  MINECORE_DAY_MS,
   MINECORE_GRID_PER_REFINEMENT_POINT,
   MINECORE_KREX_PER_REFINEMENT_POINT,
   MINECORE_PLANT_PRESETS,
@@ -11,9 +12,9 @@ import {
   computePlantDurationMs,
   computePlantExpectedDiamonds,
   getBatteryCapacityMs,
-  getPowerDrainScale,
   getPowerUnitCap,
 } from './compute';
+import { computePlantDiamondsPer24h, computePlantMiningSpeedMultiplier } from './plant-economy';
 import { getMaxChargePerSlotMs } from './battery-utils';
 import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import { createInitialMinecoreState } from './initial-state';
@@ -157,7 +158,8 @@ export type MinecoreCalculatorResult = {
   cycleDurationLabel: string;
   batteryCapacityMs: number;
   batteryCapacityLabel: string;
-  drainScale: number;
+  /** Mining throughput multiplier from rig + qualifying modules (no battery drain coupling). */
+  miningSpeedMultiplier: number;
   batteryRuntimeMs: number;
   batteryRuntimeLabel: string;
   batteryLimitsCycle: boolean;
@@ -205,13 +207,15 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
   const expected = computePlantExpectedDiamonds(mcState, slot);
   const durationMs = computePlantDurationMs(slot);
   const capMs = getBatteryCapacityMs(slot, mcState);
-  const drain = getPowerDrainScale(slot);
-  const runtimeMs = drain > 0 ? capMs / drain : 0;
+  const runtimeMs = capMs;
   const effectiveMs = Math.min(runtimeMs, durationMs);
   const partial = diamondsForPartialCycle(expected, durationMs, effectiveMs);
 
-  const perMs = durationMs > 0 ? expected / durationMs : 0;
-  const flow = capMs > 0 && drain > 0 && durationMs > 0 ? perMs * 60_000 : 0;
+  const at = Date.now();
+  const d24 = computePlantDiamondsPer24h(mcState, slot, at);
+  const speedMult = computePlantMiningSpeedMultiplier(slot);
+  const flow =
+    capMs > 0 && durationMs > 0 ? (d24 / MINECORE_DAY_MS) * 60_000 * speedMult : 0;
 
   const wallHours = effectiveMs / 3_600_000;
   const dPerHour = wallHours > 0 ? partial / wallHours : 0;
@@ -234,7 +238,7 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
     cycleDurationLabel: formatDuration(durationMs),
     batteryCapacityMs: capMs,
     batteryCapacityLabel: formatDuration(capMs),
-    drainScale: drain,
+    miningSpeedMultiplier: speedMult,
     batteryRuntimeMs: runtimeMs,
     batteryRuntimeLabel: formatDuration(runtimeMs),
     batteryLimitsCycle: runtimeMs < durationMs - 1e-6,

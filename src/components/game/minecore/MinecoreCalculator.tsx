@@ -114,7 +114,7 @@ export function MinecoreCalculator() {
       <div className="space-y-6">
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
           <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Plant build</h2>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Drag sliders - results use the same math as the live game (yield, battery cap, drain).</p>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Drag sliders — results use the same math as the live game (yield, battery capacity, extraction speed).</p>
 
           <div className="mt-5 space-y-5">
             <SliderRow
@@ -241,8 +241,8 @@ export function MinecoreCalculator() {
             <div className="font-semibold text-zinc-800 dark:text-zinc-200">Timing</div>
             <ul className="mt-1 list-inside list-disc space-y-0.5">
               <li>Cycle length: {result.cycleDurationLabel}</li>
-              <li>Battery budget: {result.batteryCapacityLabel} (× machine charge budget)</li>
-              <li>Drain scale: ×{result.drainScale.toFixed(3)} (machine draw)</li>
+              <li>Battery budget: {result.batteryCapacityLabel} (× machine charge budget multiplier)</li>
+              <li>Mining speed: ×{result.miningSpeedMultiplier.toFixed(3)} extraction (rig + modules)</li>
               <li>Runtime at full charge: {result.batteryRuntimeLabel}</li>
               <li>Reserve cap: {result.reserveCap} units</li>
             </ul>

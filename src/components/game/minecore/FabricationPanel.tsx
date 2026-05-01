@@ -54,9 +54,9 @@ function loreForRecipe(outputId: string, kind: string): string {
   return (
     MINECORE_FABRICATION_LORE[outputId] ??
     (kind === 'machine'
-      ? 'Mining rig: sets cycle pace and how hard the plant bus runs per session.'
+      ? 'Mining rig: sets cycle pace, grid draw, extraction speed, and rolling cap bonuses.'
       : kind === 'battery'
-        ? 'Energy store: holds runtime for active digs — tier and rig both decide how fast it empties.'
+        ? 'Energy store: holds nominal runtime charge; rigs do not shorten it — tiers add capacity and efficiency.'
         : kind === 'powerNode'
           ? 'Reactor: weld it under Power to lift the plant ceiling so heavier stacks can breathe.'
           : 'Module: slots into premium or advanced frames to bend output, cycles, cooling, or refine.')
@@ -150,6 +150,11 @@ export function FabricationPanel(props: {
                   color: 'red',
                 });
                 specifications.push({
+                  label: 'Mining speed',
+                  value: `×${cfg.miningSpeedMultiplier.toFixed(2)} extraction`,
+                  color: 'amber',
+                });
+                specifications.push({
                   label: 'Additional crew',
                   value: extraCrew <= 0 ? 'No' : `+${extraCrew} slots`,
                   color: 'zinc',
@@ -163,12 +168,10 @@ export function FabricationPanel(props: {
                   value: `${Math.round(cfg.chargeCapacityMs / 60000)} min`,
                   color: 'sky',
                 });
-                const od = cfg.powerDrawMultiplier ?? 1;
-                const extraKw = Math.max(0, (od - 1) * MINECORE_KW_SCALE);
                 specifications.push({
-                  label: 'Power consumption',
-                  value: od <= 1.001 ? 'Baseline bus load' : `+${formatMinecorePowerDisplay(extraKw)}`,
-                  color: 'red',
+                  label: 'Cell efficiency',
+                  value: `${((cfg.efficiency ?? 1) * 100).toFixed(0)}%`,
+                  color: 'emerald',
                 });
               }
             } else if (isModule) {
@@ -216,6 +219,15 @@ export function FabricationPanel(props: {
                   specifications.push({
                     label: 'Refine bonus',
                     value: `+${Math.round((cfg.refineBonus ?? 0) * 100)}%`,
+                    color: 'amber',
+                  });
+                }
+                const sid = String(r.outputId);
+                const ob = cfg.outputBonus ?? 0;
+                if (ob > 0 && sid !== 'krex-boost') {
+                  specifications.push({
+                    label: 'Mining speed',
+                    value: `+${Math.round(ob * 100)}% extraction`,
                     color: 'amber',
                   });
                 }

@@ -95,6 +95,8 @@ export function GameDeckPanel(props: {
     onOpenOverview?: () => void;
     tooltip?: string;
   };
+  /** When false (e.g. Minecore), hide the Deck “i” modal trigger. Defaults true. */
+  showDeckHelpButton?: boolean;
   /** Prepends a standard "Reward Weight / Combined reward potential" capsule */
   rewardWeight?: { value: string; subValue?: string; onClick?: () => void };
 }) {
@@ -117,21 +119,25 @@ export function GameDeckPanel(props: {
     ...props.resources,
   ];
 
+  const showDeckHelp = props.showDeckHelpButton !== false;
+
   return (
     <>
-      {deckInfoOpen && <DeckInfoModal onClose={() => setDeckInfoOpen(false)} />}
+      {showDeckHelp && deckInfoOpen && <DeckInfoModal onClose={() => setDeckInfoOpen(false)} />}
       <GamePanelCard
         title={props.title ?? 'Game Deck'}
         hint="Values update live as you play."
         right={
-          <button
-            type="button"
-            onClick={() => setDeckInfoOpen(true)}
-            aria-label="About Game Deck capsules"
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 transition-colors hover:border-emerald-400 hover:text-emerald-600 dark:border-zinc-600 dark:text-zinc-400 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
-          >
-            i
-          </button>
+          showDeckHelp ? (
+            <button
+              type="button"
+              onClick={() => setDeckInfoOpen(true)}
+              aria-label="About Game Deck capsules"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 transition-colors hover:border-emerald-400 hover:text-emerald-600 dark:border-zinc-600 dark:text-zinc-400 dark:hover:border-emerald-500 dark:hover:text-emerald-400"
+            >
+              i
+            </button>
+          ) : undefined
         }
       >
         {props.featured?.image ? (
@@ -178,9 +184,7 @@ export function GameDeckPanel(props: {
                     {r.value}
                   </div>
                   {r.subValue ? (
-                    <div className={`mt-0.5 text-[11px] font-semibold ${r.accent ? accentValueClass(r.accent) : 'text-zinc-500 dark:text-zinc-500'}`}>
-                      {r.subValue}
-                    </div>
+                    <div className="mt-0.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
                   ) : null}
                 </div>
               </>

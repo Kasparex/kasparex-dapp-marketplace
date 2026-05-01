@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { GameTabs } from '@/components/games/layout/GameTabs';
-import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
@@ -52,6 +50,9 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
+
+const MINECORE_DECK_FEATURED_TOOLTIP =
+  'Kaspaland ops: Vector’s crews chase the Diamonds Veins for raw stones—Kasparex Minecore story, not the Cipher Diamond Veins game.';
 
 export function MinecoreDashboard(_props: {
   featuredImage?: string;
@@ -174,11 +175,7 @@ export function MinecoreDashboard(_props: {
         ),
         subValue: (
           <>
-            ~
-            <span className="font-black text-amber-500 dark:text-amber-400">
-              {gridRedeemEstimateToday.toLocaleString()}
-            </span>{' '}
-            GRID today (est.)
+            ~ <span className="font-semibold tabular-nums">{gridRedeemEstimateToday.toLocaleString()}</span> GRID today (est.)
           </>
         ),
         description: 'In-game currency',
@@ -193,14 +190,10 @@ export function MinecoreDashboard(_props: {
         value: Math.floor(state.refinementPointsTotal).toLocaleString(),
         subValue: (
           <>
-            ~
-            <span className="font-black text-emerald-600 dark:text-emerald-400">
-              {Math.floor(state.refinementPointsTotal * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}
-            </span>{' '}
-            GRID total
+            ~ <span className="font-semibold tabular-nums">{Math.floor(state.refinementPointsTotal * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}</span> GRID total
           </>
         ),
-        description: 'From refining diamonds',
+        description: 'Redeemable points',
         tooltip: 'Points from refining. Trade for GRID on Redeem (daily cap).',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
@@ -209,8 +202,8 @@ export function MinecoreDashboard(_props: {
         id: 'grid_token',
         label: 'GRID',
         value: gridL1Balance.toLocaleString(),
-        description: 'Wallet balance',
-        tooltip: 'GRID tokens on-chain (L2).',
+        description: 'Reward token',
+        tooltip: 'GRID tokens on-chain (Kasplex L2).',
         accent: 'grid' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -227,7 +220,7 @@ export function MinecoreDashboard(_props: {
         id: 'kas',
         label: 'KAS',
         value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-        description: 'Wallet balance',
+        description: 'Payment currency',
         tooltip: 'KAS on L1 — unlocks, shop, plant refill.',
         accent: 'kas' as const,
         onClick: () => setTab('shop' as const),
@@ -346,6 +339,8 @@ export function MinecoreDashboard(_props: {
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
+          deckFeaturedTooltip={MINECORE_DECK_FEATURED_TOOLTIP}
+          showDeckInfoButton={false}
           tabAlerts={tabAlerts}
         >
           {tab === 'overview' && (

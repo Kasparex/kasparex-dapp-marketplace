@@ -203,10 +203,13 @@ export type MachineConfig = {
    */
   additionalCrewRequired?: number;
   /**
-   * How fast this machine drains battery charge.
-   * 1.0 = baseline (Pulse Drill).
+   * kW consumption curve for grid efficiency only (does not shorten battery runtime).
    */
   powerConsumptionFactor: number;
+  /**
+   * Multiplier on diamond accrual rate (≥ 1). Battery drain is nominal; speed differentiates rigs.
+   */
+  miningSpeedMultiplier: number;
   /**
    * kW production contribution to the plant bus (display; reserve unit count is plant-tier only in V1).
    */
@@ -230,6 +233,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 10 * 60_000,
     baseOutput: 50,
     powerConsumptionFactor: 1.35,
+    miningSpeedMultiplier: 1,
     powerGridContribution: 1,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 50,
@@ -242,6 +246,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 30 * 60_000,
     baseOutput: 180,
     powerConsumptionFactor: 2.1,
+    miningSpeedMultiplier: 1.12,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.0,
     diamondsPer24h: 200,
@@ -254,6 +259,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 60 * 60_000,
     baseOutput: 420,
     powerConsumptionFactor: 3.5,
+    miningSpeedMultiplier: 1.22,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.04,
     diamondsPer24h: 450,
@@ -266,6 +272,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 6 * 60 * 60_000,
     baseOutput: 3200,
     powerConsumptionFactor: 8.2,
+    miningSpeedMultiplier: 1.38,
     powerGridContribution: 3,
     powerBudgetMultiplier: 1.1,
     diamondsPer24h: 1200,
@@ -276,6 +283,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 18 * 60_000,
     baseOutput: 320,
     powerConsumptionFactor: 2.5,
+    miningSpeedMultiplier: 1.1,
     powerGridContribution: 2,
     powerBudgetMultiplier: 1.06,
     diamondsPer24h: 350,
@@ -286,6 +294,7 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
     durationMs: 90 * 60_000,
     baseOutput: 950,
     powerConsumptionFactor: 4.5,
+    miningSpeedMultiplier: 1.28,
     powerGridContribution: 4,
     powerBudgetMultiplier: 1.14,
     diamondsPer24h: 700,
@@ -310,15 +319,9 @@ export type BatteryConfig = {
    * @deprecated for cap math - use {@link MINECORE_PLANT_BASE_POWER_UNITS}
    */
   powerCapacity: number;
-  /**
-   * How many ms of base charge this battery holds at powerConsumptionFactor = 1.0.
-   * Actual runtime = chargeCapacityMs / machine.powerConsumptionFactor.
-   */
+  /** Nominal milliseconds of stored charge when the slot is full (runtime tracks charge 1:1). */
   chargeCapacityMs: number;
-  /**
-   * Multiplies rig bus draw (kW) while installed — dense packs stress the plant bus; stack across slots.
-   * 1.0 = no extra overhead.
-   */
+  /** @deprecated No longer affects consumption or drain; retained in JSON saves. */
   powerDrawMultiplier?: number;
 };
 

@@ -7,7 +7,6 @@ import {
   MINECORE_MAINTENANCE_PERIOD_MS,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
   MINECORE_MODULES,
-  MINECORE_BATTERIES,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_MAINTENANCE_MULT,
   MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
@@ -23,22 +22,39 @@ import type { MinecoreState, PlantSlotState } from './types';
 import { hasInstalledBattery } from './battery-utils';
 import { computeMinecoreDailyCapBonusForPlantCrew, minecoreDeckBenefits } from './nft-deck-benefits';
 
-/** Machine draw × installed battery bus overhead — used for kW balance, efficiency, and battery drain rate. */
+/**
+ * Rig power draw (kW curve) only — used for `computeConsumptionKw` / grid efficiency.
+ * Batteries do not penalize consumption or battery runtime.
+ */
 export function getPlantPowerDrawFactor(slot: PlantSlotState): number {
-  const machineFactor = slot.setup.machineId
+  return slot.setup.machineId
     ? (MINECORE_MACHINES[slot.setup.machineId]?.powerConsumptionFactor ?? 1)
     : 1;
-  let batteryOverhead = 1;
-  for (const bid of slot.setup.batteryIds ?? []) {
-    if (bid == null) continue;
-    const m = MINECORE_BATTERIES[bid]?.powerDrawMultiplier;
-    if (m != null && Number.isFinite(m) && m > 0) batteryOverhead *= m;
-  }
-  return machineFactor * batteryOverhead;
 }
 
 function plantPowerFactor(slot: PlantSlotState): number {
   return getPlantPowerDrawFactor(slot);
+}
+
+/**
+ * Diamonds accrue faster with better rigs and output-style modules (excluding krex-boost; cap already applies KREX yield there).
+ */
+export function computePlantMiningSpeedMultiplier(slot: PlantSlotState): number {
+  const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
+  let m = machine?.miningSpeedMultiplier ?? 1;
+  if (!Number.isFinite(m) || m < 1) m = 1;
+
+  if (slot.type === 'standard') return m;
+
+  for (const id of slot.setup.moduleIds) {
+    if (id === 'krex-boost') continue;
+    const mod = MINECORE_MODULES[id];
+    const b = mod?.outputBonus;
+    if (b != null && Number.isFinite(b) && b > 0) {
+      m *= 1 + b;
+    }
+  }
+  return m;
 }
 
 /** UTC calendar day for daily redeem caps. */
@@ -285,7 +301,8 @@ export function computeExpectedDiamondsForCycle(
   const d24 = computePlantDiamondsPer24h(state, slot, atMs, ctx);
   const dur = computeEffectiveCycleDurationMs(slot);
   if (d24 <= 0 || dur <= 0) return 0;
-  return Math.max(0, Math.round((d24 * dur) / MINECORE_DAY_MS));
+  const speed = computePlantMiningSpeedMultiplier(slot);
+  return Math.max(0, Math.round(((d24 * dur) / MINECORE_DAY_MS) * speed));
 }
 
 /** Sum refining bonuses from all unlocked plants (for Refine event). */
