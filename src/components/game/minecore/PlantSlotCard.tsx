@@ -1948,7 +1948,7 @@ export function PlantSlotCard(props: {
               return raw.slice(0, needWorkers);
             })();
             const assignedOnPlant = padded.includes(deckIdx);
-            const filledCount = padded.reduce((n, x) => n + (x != null ? 1 : 0), 0);
+            const filledCount = padded.filter((x) => x != null).length;
             const usedElsewhere = countWorkerNftDeckAssignmentsExcept(
               props.minecoreState.plantSlots,
               deckIdx,
