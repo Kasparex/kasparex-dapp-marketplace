@@ -45,7 +45,7 @@ const TABS = [
   { id: 'mining', label: '1. Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
   { id: 'fabrication', label: '2. Build', icon: <IconBoosters /> },
   { id: 'power', label: '3. Power', icon: <IconPower /> },
-  { id: 'workers', label: '4. Workers', icon: <IconWorkers /> },
+  { id: 'workers', label: '4. Crew', icon: <IconWorkers /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
 ] as const;
@@ -659,9 +659,6 @@ export function MinecoreDashboard(_props: {
                 if (itemId === 'kas-overclock' && currency === 'KREX') {
                   const idx = Math.max(0, Math.floor(boostTargetSlotIndex ?? 0));
                   await actions.purchaseKasOverclockWithKREX(idx, q);
-                }
-                if (itemId === 'krex-boost' && currency === 'KAS') {
-                  await actions.purchaseKrexBoostChargesWithKAS(q);
                 }
                 if (itemId === 'krex-boost' && currency === 'KREX') {
                   await actions.purchaseKrexBoostChargesWithKREX(q);

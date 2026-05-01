@@ -10,6 +10,7 @@ import {
   minecoreKrexFromDiscountedKas,
   MINECORE_STABILITY_PATCH_LIST_KAS,
   MINECORE_KREX_BOOST_SHOP_KAS,
+  MINECORE_KREX_BOOST_YIELD_MULT,
   MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
@@ -503,7 +504,8 @@ export function ShopPanel(props: {
       id: 'krex-boost',
       title: 'KREX Boost',
       category: 'Boost',
-      description: 'Shop module charge: equip in a plant module slot for 2.5× diamond yield for 1 hour.',
+      description:
+        'One-time module charge (buy with KREX only): equip on a premium or advanced plant — × diamond yield for 1 hour, then the charge is gone.',
       baseKasPrice: MINECORE_KREX_BOOST_SHOP_KAS,
       type: 'item' as const,
       render: () => (
@@ -512,18 +514,13 @@ export function ShopPanel(props: {
           title="KREX Boost"
           category="Boost"
           imageSrc="https://static.wixstatic.com/media/de4185_d97bfd713c7745b787956a13ed738af4~mv2.jpg"
-          description="Each purchase adds one charge to your module inventory. Install on a premium or advanced plant (Manage modules). Timer starts when slotted."
+          description="Each purchase adds one consumable charge to module inventory. Slotted use lasts 1 hour at × yield — timer consumes the charge when it ends, or if you unequip early. KREX payment only."
           effects={[
-            { label: 'Yield', value: '2.5× ♦', color: 'emerald' },
-            { label: 'Duration', value: '1 hour', color: 'zinc' },
-            { label: 'Slot', value: 'Module', color: 'zinc' },
+            { label: 'Yield', value: `${MINECORE_KREX_BOOST_YIELD_MULT}× ♦`, color: 'emerald' },
+            { label: 'Duration', value: '1 hour active', color: 'zinc' },
+            { label: 'Slot', value: 'Module · premium/advanced', color: 'zinc' },
           ]}
           priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS),
-              originalUnitPrice: MINECORE_KREX_BOOST_SHOP_KAS,
-            },
             {
               currency: 'KREX',
               unitPrice: minecoreKrexFromDiscountedKas(

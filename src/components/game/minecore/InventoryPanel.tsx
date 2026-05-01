@@ -52,7 +52,7 @@ export function InventoryPanel(props: { state: MinecoreState }) {
           </div>
 
           <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/30">
-            <div className="text-xs font-black uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Workers</div>
+            <div className="text-xs font-black uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Fabricated crew</div>
             <div className="mt-3 space-y-1 text-sm">
               {Object.entries(s.owned.workers).map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between">

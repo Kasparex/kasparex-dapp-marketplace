@@ -406,11 +406,11 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
   }
   for (const [deckIdx, c] of deckUses) {
     if (c > 1) {
-      return 'That Workers-tab NFT is already linked to another plant.';
+      return 'That Crew-tab NFT row is already linked to another plant.';
     }
     const deck = state.nftSlots?.[deckIdx];
     if (!deck || !MINING_PLANT_NFT_DECK_TYPES.has(deck.type) || deck.nftId == null || !deck.collection) {
-      return 'Put a Worker, Operator, or Foreman NFT in that Workers-tab row first, then link it here.';
+      return 'Put a Worker, Operator, or Foreman NFT in that Crew-tab row first, then link it here.';
     }
   }
 
@@ -425,11 +425,11 @@ export function explainPlantSetupBlock(state: MinecoreState, slotIndex: number, 
       if (raw == null || raw < 0 || !Number.isFinite(raw)) continue;
       const n = Math.max(0, Math.floor(Number(raw)));
       if (usedLocal.has(n)) {
-        return 'This plant links two crew slots to the same Workers-tab row. Use two different NFT rows.';
+        return 'This plant links two crew slots to the same Crew-tab row. Use two different NFT rows.';
       }
       usedLocal.add(n);
       if (!miningDeckAtIndexValid(hypoState, n)) {
-        return 'Put a Worker, Operator, or Foreman NFT in that Workers-tab row first, then link it here.';
+        return 'Put a Worker, Operator, or Foreman NFT in that Crew-tab row first, then link it here.';
       }
     }
   }

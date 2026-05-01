@@ -1,4 +1,6 @@
 import {
+  MINECORE_BATTERY_GRID_DRAW_BASE_KW,
+  MINECORE_BATTERIES,
   MINECORE_DAY_MS,
   MINECORE_KAS_OVERCLOCK_DAILY_CAP_FLAT,
   MINECORE_KW_SCALE,
@@ -6,6 +8,7 @@ import {
   MINECORE_MACHINES,
   MINECORE_MAINTENANCE_PERIOD_MS,
   MINECORE_MIN_MINING_EFFICIENCY_PCT,
+  MINECORE_MODULE_DEFAULT_GRID_DRAW_KW,
   MINECORE_MODULES,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
   MINECORE_PLANT_MAINTENANCE_MULT,
@@ -19,12 +22,12 @@ import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { normalizePlantSetup, plantNftSlotAssignmentValid } from './asset-usage';
 import type { MinecoreComputeContext } from './compute-context';
 import type { MinecoreState, PlantSlotState } from './types';
-import { hasInstalledBattery } from './battery-utils';
+import { hasInstalledBattery, normalizeBatteryIds } from './battery-utils';
 import { computeMinecoreDailyCapBonusForPlantCrew, minecoreDeckBenefits } from './nft-deck-benefits';
 
 /**
- * Rig power draw (kW curve) only - used for `computeConsumptionKw` / grid efficiency.
- * Batteries do not penalize consumption or battery runtime.
+ * Rig power draw (kW curve) - base term for `computeConsumptionKw` / grid efficiency.
+ * Batteries and modules add extra draw on top; see `computeConsumptionKw`.
  */
 export function getPlantPowerDrawFactor(slot: PlantSlotState): number {
   return slot.setup.machineId
@@ -104,10 +107,26 @@ export function computeProductionKw(slot: PlantSlotState): number {
 }
 
 export function computeConsumptionKw(slot: PlantSlotState): number {
+  const setup = normalizePlantSetup(slot.type, slot.setup);
   const factor = plantPowerFactor(slot);
   let cons = factor * MINECORE_KW_SCALE;
+
+  for (const bid of normalizeBatteryIds(setup, slot.type)) {
+    if (!bid) continue;
+    const mult = MINECORE_BATTERIES[bid]?.powerDrawMultiplier ?? 1;
+    cons += mult * MINECORE_BATTERY_GRID_DRAW_BASE_KW;
+  }
+
   if (slot.type !== 'standard') {
-    for (const id of slot.setup.moduleIds) {
+    for (const id of setup.moduleIds) {
+      const mod = MINECORE_MODULES[id];
+      if (!mod) continue;
+      cons += mod.gridConsumptionKw ?? MINECORE_MODULE_DEFAULT_GRID_DRAW_KW;
+    }
+  }
+
+  if (slot.type !== 'standard') {
+    for (const id of setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
       if (mod?.kind === 'cooling' && mod.consumptionReduction != null) {
         cons *= Math.max(0.15, 1 - mod.consumptionReduction);

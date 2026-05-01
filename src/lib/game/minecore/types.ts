@@ -94,7 +94,7 @@ export type PlantSetup = {
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
   /**
-   * Single Workers-tab NFT slot index (`minecoreState.nftSlots`). One index per plant. Distinct indices per plant globally.
+   * Single Crew-tab NFT slot index (`minecoreState.nftSlots`). One index per plant. Distinct indices per plant globally.
    */
   workerNftDeckSlotIndices: (number | null)[];
   moduleIds: MinecoreModuleId[];
@@ -249,4 +249,6 @@ export type MinecoreEvent =
       points: number;
       token: 'GRID' | 'KREX';
       walletAddress: string;
-    };
+    }
+  /** Wall-clock maintenance: strip expired KREX Boost modules and consume charges (sync persisted state). */
+  | { type: 'PurgeExpiredKrexBoost'; at: number };

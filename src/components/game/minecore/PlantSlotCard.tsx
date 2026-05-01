@@ -61,6 +61,8 @@ import {
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
   MINECORE_PLANT_REPAIR_KAS,
   MINECORE_POWER_CRITICAL_LOAD,
+  MINECORE_KREX_BOOST_DURATION_MS,
+  MINECORE_KREX_BOOST_YIELD_MULT,
   fabricatedOperatorSlotsCapacity,
   miningWorkerNftSlotsRequired,
   type ModuleConfig,
@@ -579,7 +581,15 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-[10px] text-zinc-700 dark:text-zinc-200">
         <Tooltip
-          content={gameTooltipRich('Consumption', 'Power drawn by the rig and active modules on this plant (kW).')}
+          content={gameTooltipRich(
+            'Consumption',
+            <>
+              <p>
+                Draw from your mining rig, every installed battery pack, and active modules on this plant (kW). More gear
+                raises load — add reactors or cooling to stay in a safe band.
+              </p>
+            </>,
+          )}
         >
           <span className="cursor-help text-rose-600 dark:text-rose-400">
             Consumption {formatMinecorePowerDisplay(props.consKw)}
@@ -611,7 +621,7 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
           />
         </div>
       </Tooltip>
-      <div className="text-[10px] font-semibold">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] font-semibold">
         <Tooltip
           content={gameTooltipRich(
             'Power balance',
@@ -625,9 +635,8 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
             {formatMinecorePowerDisplay(Math.abs(props.balKw))}
           </span>
         </Tooltip>
-        <span className="text-zinc-400 dark:text-zinc-500"> · </span>
         <Tooltip content={barTip}>
-          <span className="cursor-help text-zinc-500 dark:text-zinc-400">
+          <span className="ml-auto shrink-0 cursor-help text-right text-zinc-500 dark:text-zinc-400">
             Load {loadPctLabel} · {zoneLabel}
             {rawLoad > MINECORE_POWER_CRITICAL_LOAD ? ' · above critical band' : ''}
           </span>
@@ -1161,7 +1170,17 @@ export function PlantSlotCard(props: {
               <Tooltip
                 content={gameTooltipRich(
                   'KREX Boost',
-                  'Yield multiplier applies while the countdown runs - keep KREX Boost mounted.',
+                  <>
+                    <p>
+                      One-time charge: buying adds inventory you equip here; when the timer ends (or you unequip while it is
+                      running) that charge is consumed — buy again for another run.
+                    </p>
+                    <p className="mt-1">
+                      Active for {Math.round(MINECORE_KREX_BOOST_DURATION_MS / 3_600_000)} hour
+                      {Math.round(MINECORE_KREX_BOOST_DURATION_MS / 3_600_000) === 1 ? '' : 's'} · diamond yield ×
+                      {MINECORE_KREX_BOOST_YIELD_MULT.toFixed(1)} while mounted.
+                    </p>
+                  </>,
                 )}
               >
                 <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
@@ -1189,7 +1208,7 @@ export function PlantSlotCard(props: {
                 <Tooltip
                   content={gameTooltipRich(
                     'AUTO locked',
-                    'Link a Foreman from Workers into this plant’s Crew row in Mining setup. Workers or Operators alone do not unlock AUTO.',
+                    'Link a Foreman from the Crew tab into this plant’s Crew row in Mining setup. Worker or Operator NFTs alone do not unlock AUTO.',
                   )}
                 >
                   <span
@@ -1312,7 +1331,7 @@ export function PlantSlotCard(props: {
                 'Crew',
                 <>
                   <p>
-                    {preset.label} has {needWorkers} crew position{needWorkers === 1 ? '' : 's'} — link distinct Workers-tab NFT rows (Worker / Operator / Foreman).
+                    {preset.label} has {needWorkers} crew position{needWorkers === 1 ? '' : 's'} — link distinct Crew-tab NFT rows (Worker / Operator / Foreman roles).
                     Each adds rolling-cap and battery bonuses per collection tier.
                   </p>
                   {machineConfig ? (
@@ -1425,7 +1444,7 @@ export function PlantSlotCard(props: {
                     bid ? (
                       <>
                         {deckBonusMin > 0 ? (
-                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Workers-tab NFTs.">
+                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
                             +{deckBonusMin}m crew NFT
                           </span>
                         ) : null}
@@ -1971,7 +1990,7 @@ export function PlantSlotCard(props: {
           />
         ) : null}
         <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-          Tap rows to toggle selection, like Modules. You can pick up to {needWorkers} distinct Workers-tab NFT
+          Tap rows to toggle selection, like Modules. You can pick up to {needWorkers} distinct Crew-tab NFT deck row
           {needWorkers === 1 ? '' : 's'} for this plant.
           {machineConfig ? (
             <>
@@ -1982,7 +2001,7 @@ export function PlantSlotCard(props: {
           Rows that are empty or already linked to another plant are disabled.
         </p>
         <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[11px] dark:border-zinc-700 dark:bg-zinc-900/50">
-          <div className="font-semibold text-zinc-700 dark:text-zinc-300">Workers tab roster</div>
+          <div className="font-semibold text-zinc-700 dark:text-zinc-300">Crew tab roster</div>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
               const { filled, capacity } = nftTabSlotDeployments(nftStaffSlots, role);
@@ -2040,8 +2059,8 @@ export function PlantSlotCard(props: {
                   ? ' · operator-grade roster slot'
                   : '';
             const subtitle = deployed
-              ? `${nftDeckRoleLabel(deckSlot.type)} · Workers row #${deckIdx + 1} · NFT #${deckSlot.nftId} · +${perk.capBonus.toLocaleString()} rolling cap · +${perk.batteryMinutes} min batteries${roleHint}`
-              : `Empty - deploy an NFT on the Workers tab for this row.`;
+              ? `${nftDeckRoleLabel(deckSlot.type)} · Crew row #${deckIdx + 1} · NFT #${deckSlot.nftId} · +${perk.capBonus.toLocaleString()} rolling cap · +${perk.batteryMinutes} min batteries${roleHint}`
+              : `Empty - deploy an NFT on the Crew tab for this row.`;
             return (
               <li key={deckIdx} className="list-none">
                 <ModalPartRow
@@ -2053,8 +2072,8 @@ export function PlantSlotCard(props: {
                   disabledHint={
                     rowBlockedOtherPlant
                       ? !deployed
-                        ? 'Put an NFT in this Workers-tab row first.'
-                        : 'Another plant already uses this Workers-tab NFT. Unlink there or choose a different row.'
+                        ? 'Put an NFT in this Crew-tab row first.'
+                        : 'Another plant already uses this Crew-tab NFT row. Unlink there or choose a different row.'
                       : crewAddBlocked
                         ? filledCount >= needWorkers
                           ? `This plant only supports ${needWorkers} crew link${needWorkers === 1 ? '' : 's'}. Toggle one off to add another.`

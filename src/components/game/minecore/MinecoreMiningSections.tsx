@@ -50,7 +50,7 @@ export function MinecoreVeinBreakdownByMachine(props: {
         Vein breakdown (by machine)
         <GameTooltip
           title="Vein breakdown totals"
-          description="Effective D/24h applies live power efficiency to your rolling cap ceiling - plant base, rig throughput, and Workers-tab bonuses (including Overclock and KREX Boost on the cap). Cycle column is one full mining run at the current setup."
+          description="Effective D/24h applies live power efficiency to your rolling cap ceiling - plant base, rig throughput, and Crew-tab NFT bonuses (including Overclock and KREX Boost on the cap). Cycle column is one full mining run at the current setup."
         >
           <button
             type="button"

@@ -166,6 +166,20 @@ export function useMinecore() {
     });
   }, []);
 
+  /** Persist expired KREX Boost: strip module + consume charge on cooldown end (sync persisted inventory). */
+  useEffect(() => {
+    if (!walletAddr) return;
+    const expired = mc.plantSlots.some(
+      (slot) =>
+        slot.unlocked &&
+        (slot.krexBoostUntilMs ?? 0) > 0 &&
+        nowTick >= (slot.krexBoostUntilMs ?? 0) &&
+        slot.setup.moduleIds.includes('krex-boost'),
+    );
+    if (!expired) return;
+    dispatch({ type: 'PurgeExpiredKrexBoost', at: nowTick });
+  }, [walletAddr, nowTick, mc.plantSlots, mc.version, dispatch]);
+
   const prevAutomationRestartRef = useRef<Record<number, string>>({});
 
   /**
@@ -602,21 +616,6 @@ export function useMinecore() {
     [dispatch, payKrexTreasury, getKasPriceAfterDiscount],
   );
 
-  const purchaseKrexBoostChargesWithKAS = useCallback(
-    async (count: number) => {
-      const q = Math.max(1, Math.floor(count));
-      const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(MINECORE_KREX_BOOST_SHOP_KAS * q),
-        skuId: 'minecore:shop:krex-boost',
-        purchaseType: 'other',
-      });
-      if (!paid.ok) return false;
-      dispatch({ type: 'GrantModuleInventory', moduleId: 'krex-boost', count: q, at: Date.now() });
-      return true;
-    },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
-  );
-
   const purchaseKasOverclockWithKAS = useCallback(
     async (slotIndex: number, count: number) => {
       const q = Math.max(1, Math.floor(count));
@@ -934,10 +933,9 @@ export function useMinecore() {
       rechargePlant,
       rechargePlantWithKAS,
       changePlantType,
-      purchaseKrexBoostChargesWithKAS,
-      purchaseKrexBoostChargesWithKREX,
       purchaseKasOverclockWithKAS,
       purchaseKasOverclockWithKREX,
+      purchaseKrexBoostChargesWithKREX,
     },
     getKasPriceAfterDiscount,
     nowTick,

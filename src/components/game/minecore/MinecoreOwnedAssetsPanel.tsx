@@ -38,7 +38,7 @@ function OwnedCapsule(props: {
   inUse: number;
   total: number;
   accent: boolean;
-  /** Shown below the main tooltip copy (e.g. NFT deck on Workers tab). */
+  /** Shown below the main tooltip copy (e.g. NFT deck on Crew tab). */
   tooltipExtra?: ReactNode;
 }) {
   const tooltipContent = (
@@ -183,7 +183,7 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
     <div className="space-y-2">
       <p className="font-semibold">Filled / Deck capacity</p>
       <p className="text-xs opacity-90">
-        NFT roles equipped on Workers vs slots on your deck row (extra purchased slots extend that row&apos;s capacity).
+        NFT roles equipped on the Crew tab vs slots on your deck row (extra purchased slots extend that row&apos;s capacity).
       </p>
     </div>
   );
@@ -207,14 +207,14 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
   );
 }
 
-/** Workers tab: three role capsules - filled NFT vs deck capacity per role. */
+/** Crew tab: three role capsules - filled NFT vs deck capacity per role. */
 export function MinecoreOwnedWorkersPanel(props: {
   nftSlots: MinecoreState['nftSlots'];
 }) {
   const nft = props.nftSlots ?? [];
 
   return (
-    <GamePanelCard title="Assigned Workers" hint="Filled vs capacity for Worker, Operator, and Foreman rows on your deck.">
+    <GamePanelCard title="Crew deck" hint="Filled vs capacity for Worker, Operator, and Foreman rows on your Crew tab.">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
           const { filled, capacity } = nftTabSlotDeployments(nft, role);

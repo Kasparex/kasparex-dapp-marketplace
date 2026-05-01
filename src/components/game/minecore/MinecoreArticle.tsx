@@ -22,7 +22,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
             </div>
             <div className={`flex flex-col justify-center ${body}`}>
               {props.hint ? <p className="font-medium text-zinc-700 dark:text-zinc-300">{props.hint}</p> : null}
-              <p>Use the tabs to craft parts, run power plants, assign NFT crew on Workers (Worker / Operator / Foreman), then refine and redeem.</p>
+              <p>Use the tabs to craft parts, run power plants, assign NFT crew on the Crew tab (Worker / Operator / Foreman roles), then refine and redeem.</p>
             </div>
           </div>
         </GamePanelCard>
@@ -70,7 +70,7 @@ export function MinecoreArticle(props: { featuredImage?: string; gameName?: stri
           <ul className={ulFlow}>
             <li>Machine: defines extraction capability and base output</li>
             <li>Power system: supplies energy required for operation</li>
-            <li>NFT crew decks: Worker / Operator / Foreman roles (assign matching KREXPRIME or PIXELKREX NFTs on the Workers tab; each plant picks a Worker deck slot for bonuses)</li>
+            <li>NFT crew decks: Worker / Operator / Foreman roles (assign matching KREXPRIME or PIXELKREX NFTs on the Crew tab; each plant links deck rows for bonuses)</li>
             <li>Modules: enhance stability, output, or introduce special effects</li>
             <li>Boost layer: adds multipliers powered by KREX or supported by KAS</li>
             <li>Ingredients: required to craft and maintain all components</li>

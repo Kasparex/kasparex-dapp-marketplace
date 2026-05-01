@@ -59,6 +59,12 @@ export function miningWorkerNftSlotsRequired(plantType: PlantType): number {
 /** kW display scale: production/consumption derived from grid + draw factors. */
 export const MINECORE_KW_SCALE = 4;
 
+/** Extra grid draw per installed battery pack (kW); scaled by each battery’s {@link BatteryConfig.powerDrawMultiplier}. */
+export const MINECORE_BATTERY_GRID_DRAW_BASE_KW = 0.12;
+
+/** Default grid draw when a module omits {@link ModuleConfig.gridConsumptionKw}. */
+export const MINECORE_MODULE_DEFAULT_GRID_DRAW_KW = 0.055;
+
 export const MINECORE_PLANT_BASE_PRODUCTION_KW: Record<PlantType, number> = {
   standard: 6,
   premium: 14,
@@ -319,7 +325,7 @@ export type BatteryConfig = {
   powerCapacity: number;
   /** Nominal milliseconds of stored charge when the slot is full (runtime tracks charge 1:1). */
   chargeCapacityMs: number;
-  /** @deprecated No longer affects consumption or drain; retained in JSON saves. */
+  /** Scales {@link MINECORE_BATTERY_GRID_DRAW_BASE_KW} for grid consumption load (larger packs draw more). */
   powerDrawMultiplier?: number;
 };
 
@@ -459,7 +465,7 @@ export type ModuleConfig = {
   label: string;
   kind: MinecoreModuleKind;
   /**
-   * When true (and Workers “Auto-restart” is on), finished cycles can chain automatically for plants that have this module.
+   * When true (and Crew “Auto-restart” is on), finished cycles can chain automatically for plants that have this module.
    */
   autoRestartMining?: boolean;
   /** Output modules: +fraction of (base+machine) per 24h. */
@@ -473,6 +479,8 @@ export type ModuleConfig = {
   efficiencyFloorBonus?: number;
   /** Refining: +fraction to refinement points from this plant’s worker context (applied globally at refine). */
   refineBonus?: number;
+  /** Added to plant grid consumption (kW); cooling modules apply their reduction after additive draws. */
+  gridConsumptionKw?: number;
 };
 
 export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
@@ -483,6 +491,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     outputBonus: 0,
     failureReduction: 0.05,
     consumptionReduction: 0.12,
+    gridConsumptionKw: 0.04,
   },
   'stability-module': {
     id: 'stability-module',
@@ -491,6 +500,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     outputBonus: 0.02,
     failureReduction: 0.08,
     efficiencyFloorBonus: 10,
+    gridConsumptionKw: 0.06,
   },
   'aria-sensor': {
     id: 'aria-sensor',
@@ -498,6 +508,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     kind: 'output',
     outputBonus: 0.06,
     failureReduction: 0.06,
+    gridConsumptionKw: 0.07,
   },
   'vector-drill-chip': {
     id: 'vector-drill-chip',
@@ -505,6 +516,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     kind: 'output',
     outputBonus: 0.08,
     failureReduction: 0.04,
+    gridConsumptionKw: 0.08,
   },
   'regen-coil': {
     id: 'regen-coil',
@@ -514,6 +526,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     outputBonus: 0.03,
     failureReduction: 0.03,
     cycleDurationBonus: 0.1,
+    gridConsumptionKw: 0.055,
   },
   'hash-buffer': {
     id: 'hash-buffer',
@@ -522,6 +535,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     outputBonus: 0,
     failureReduction: 0.1,
     refineBonus: 0.08,
+    gridConsumptionKw: 0.06,
   },
   'krex-boost': {
     id: 'krex-boost',
@@ -529,6 +543,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     kind: 'output',
     outputBonus: 0,
     failureReduction: 0,
+    gridConsumptionKw: 0.1,
   },
 };
 

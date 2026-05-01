@@ -148,10 +148,11 @@ function nextVersion(state: MinecoreState): number {
 }
 
 function rederive(state: MinecoreState, at: number): MinecoreState {
+  let krexChargesConsumed = 0;
   const slots = state.plantSlots.map((s) => {
     let working: PlantSlotState = s;
     const kUntil = working.krexBoostUntilMs ?? 0;
-    if (kUntil > 0 && at >= kUntil) {
+    if (kUntil > 0 && at >= kUntil && working.setup.moduleIds.includes('krex-boost')) {
       const nextSetup = normalizePlantSetup(working.type, {
         ...working.setup,
         moduleIds: working.setup.moduleIds.filter((id) => id !== 'krex-boost'),
@@ -161,11 +162,23 @@ function rederive(state: MinecoreState, at: number): MinecoreState {
         setup: nextSetup,
         krexBoostUntilMs: 0,
       };
+      krexChargesConsumed += 1;
     }
     const synced = syncPlantPowerUnitsToCapacity(working);
     return { ...synced, status: deriveSlotStatus(state, synced, at) };
   });
-  return { ...state, plantSlots: slots };
+  const modulesOwned =
+    krexChargesConsumed > 0
+      ? {
+          ...state.owned.modules,
+          'krex-boost': Math.max(0, (state.owned.modules['krex-boost'] ?? 0) - krexChargesConsumed),
+        }
+      : state.owned.modules;
+  return {
+    ...state,
+    owned: { ...state.owned, modules: modulesOwned },
+    plantSlots: slots,
+  };
 }
 
 export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): MinecoreState {
@@ -200,6 +213,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
   }
 
   switch (ev.type) {
+    case 'PurgeExpiredKrexBoost': {
+      return rederive(s, ev.at);
+    }
+
     case 'ConnectWallet': {
       s.lastConnectedAt      = ev.at;
       s.lastConnectedAddress = ev.address;
@@ -460,9 +477,15 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
         const hasKrex = ids.includes('krex-boost');
         slot.setup.moduleIds = ids;
-        if (hasKrex && !hadKrex) {
+        if (!hasKrex && hadKrex) {
+          const until = slot.krexBoostUntilMs ?? 0;
+          if (until > now) {
+            s.owned.modules['krex-boost'] = Math.max(0, (s.owned.modules['krex-boost'] ?? 0) - 1);
+          }
+          slot.krexBoostUntilMs = 0;
+        } else if (hasKrex && !hadKrex) {
           slot.krexBoostUntilMs = ev.at + MINECORE_KREX_BOOST_DURATION_MS;
-        } else if (!hasKrex && hadKrex) {
+        } else if (!hasKrex && !hadKrex) {
           slot.krexBoostUntilMs = 0;
         }
       }
