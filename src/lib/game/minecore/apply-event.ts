@@ -29,7 +29,7 @@ import {
   deriveSlotStatus,
   plantDailyCapPreventsNewCycle,
   syncPlantPowerUnitsToCapacity,
-  minecoreForemanDeployed,
+  minecorePlantHasForemanInCrew,
 } from './compute';
 import {
   distributeWaterfallToMax,
@@ -77,6 +77,13 @@ function clampAllPlantBatteryChargesToCaps(state: MinecoreState, now: number) {
     arr = ensureBatterySlotChargeLength(arr, n, 0).map((c, i) => Math.min(c, maxArr[i] ?? 0));
     slot.batterySlotChargeMs = arr;
     slot.batterySnapshotAt = now;
+  }
+}
+
+/** Clear AUTO on plants whose Crew row no longer links a staffed Foreman deck slot. */
+function clampPlantAutoRestartMiningToForemanCrew(s: MinecoreState) {
+  for (const p of s.plantSlots) {
+    if (!minecorePlantHasForemanInCrew(s, p)) p.autoRestartMining = false;
   }
 }
 
@@ -223,6 +230,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.minecorePerkTier = getNFTTier(ev.collection, ev.nftId, null);
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
       clampAllPlantBatteryChargesToCaps(s, now);
+      clampPlantAutoRestartMiningToForemanCrew(s);
       return rederive(s, now);
     }
 
@@ -239,11 +247,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         }
       }
       s.automation.foremanActive = Boolean(s.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null));
-      if (!s.automation.foremanActive) {
-        for (const ps of s.plantSlots) {
-          ps.autoRestartMining = false;
-        }
-      }
+      clampPlantAutoRestartMiningToForemanCrew(s);
       clampAllPlantBatteryChargesToCaps(s, now);
       return rederive(s, now);
     }
@@ -274,7 +278,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         plant.autoRestartMining = false;
         return rederive(s, now);
       }
-      if (!minecoreForemanDeployed(s)) return rederive(s, now);
+      if (!minecorePlantHasForemanInCrew(s, plant)) return rederive(s, now);
       plant.autoRestartMining = true;
       return rederive(s, now);
     }
@@ -388,6 +392,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       }
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
+      clampPlantAutoRestartMiningToForemanCrew(s);
       return rederive(s, now);
     }
 
@@ -453,6 +458,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (ev.part.kind === 'boost') slot.setup.boostId = ev.part.id;
       slot.setup = normalizePlantSetup(slot.type, slot.setup);
       slot.status = deriveSlotStatus(s, slot, now);
+      clampPlantAutoRestartMiningToForemanCrew(s);
       return rederive(s, now);
     }
 

@@ -11,7 +11,7 @@ import {
   computeBatteryRuntimeMs,
   computeLiveBatterySlotChargeMs,
   computeFlowRatePerMin,
-  minecoreForemanDeployed,
+  minecorePlantHasForemanInCrew,
   minecoreAutoRestartInfrastructureActive,
 } from '@/lib/game/minecore/compute';
 import {
@@ -733,7 +733,7 @@ export function PlantSlotCard(props: {
   const s = props.minecoreState.plantSlots[props.slotArrayIndex] ?? props.slot;
   const now = props.now;
   const ctx = props.minecoreComputeContext;
-  const foremanDeployed = minecoreForemanDeployed(props.minecoreState);
+  const foremanInPlantCrew = minecorePlantHasForemanInCrew(props.minecoreState, s);
   const autoRestartInfra = minecoreAutoRestartInfrastructureActive(props.minecoreState);
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
@@ -1044,8 +1044,8 @@ export function PlantSlotCard(props: {
               </Tooltip>
             ) : null}
             {s.unlocked ? (
-              !foremanDeployed ? (
-                <Tooltip content="Assign a Foreman NFT on the Workers tab to unlock per-plant AUTO. Until then the control stays off.">
+              !foremanInPlantCrew ? (
+                <Tooltip content="Link a Foreman from your Workers deck to this plant's Crew row (Mining setup) to unlock per-plant AUTO. Workers or Operators alone do not unlock it.">
                   <span
                     className="inline-flex items-center rounded-full border border-zinc-300/40 bg-zinc-100/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-zinc-400 opacity-80 dark:border-zinc-600/50 dark:bg-zinc-800/50 dark:text-zinc-500"
                     aria-disabled

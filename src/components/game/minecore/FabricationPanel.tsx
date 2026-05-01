@@ -233,7 +233,7 @@ export function FabricationPanel(props: {
                       value: 'Qualifies plant for AUTO',
                       color: 'emerald',
                       specTooltip:
-                        'Supplies automation infrastructure alongside a Foreman on crew: when AUTO is on at a plant, runs can chain after each cycle (toggle stays locked until Foreman is assigned).',
+                        'Supplies automation infrastructure for chaining: AUTO must be on per plant, with a Foreman linked in that plant Crew row on Mining (crew roster Foreman alone is not enough).',
                     });
                   }
                 }

@@ -47,7 +47,7 @@ export function CrewPlantFeaturesPanel(props: {
             <tr className="align-top">
               <td className="px-3 py-2 font-semibold text-zinc-800 dark:text-zinc-200">Per-plant AUTO</td>
               <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Chains next run if batteries hold charge.</td>
-              <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Foreman on crew · infra (Foreman or Regen Coil).</td>
+              <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Foreman linked in plant Crew · infra OK.</td>
               <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Mining · AUTO badge</td>
             </tr>
             <tr className="align-top">

@@ -150,8 +150,8 @@ export type PlantSlotState = {
   /** KAS Overclock: flat diamonds added to the next started cycle’s expected yield (consumed on StartMining). */
   kasOverclockNextCycleExtraDiamonds: number;
   /**
-   * Auto-restart a new mining run after a cycle ends, when infra allows (Foreman or Regen Coil).
-   * Toggled per plant on the Mining card when Foreman is installed.
+   * Auto-restart a new mining run after a cycle ends, when infra allows (Foreman or Regen Coil module).
+   * Toggle per plant on the Mining card only when that plant's Crew row links a staffed Foreman deck slot.
    */
   autoRestartMining: boolean;
 };

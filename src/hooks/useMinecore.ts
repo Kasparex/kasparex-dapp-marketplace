@@ -11,7 +11,7 @@ import {
   computePlantReady,
   computeLiveBatteryChargeMs,
   minecoreAutoRestartInfrastructureActive,
-  minecoreForemanDeployed,
+  minecorePlantHasForemanInCrew,
   hasInstalledBattery,
   type MinecoreState,
   type MinecoreBatteryId,
@@ -174,7 +174,6 @@ export function useMinecore() {
    */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
-    if (!minecoreForemanDeployed(mcRef.current)) return;
     if (!minecoreAutoRestartInfrastructureActive(mcRef.current)) return;
 
     const now = Date.now();
@@ -183,6 +182,7 @@ export function useMinecore() {
     for (let slotIdx = 0; slotIdx < slots.length; slotIdx++) {
       const rawSlot = mcRef.current.plantSlots[slotIdx];
       if (!rawSlot?.unlocked) continue;
+      if (!minecorePlantHasForemanInCrew(mcRef.current, rawSlot)) continue;
       if (!rawSlot.autoRestartMining) continue;
 
       const st = slots[slotIdx]?.status;

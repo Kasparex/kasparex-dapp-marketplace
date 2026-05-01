@@ -2,7 +2,7 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_DAY_MS, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS } from './config';
+import { MINECORE_DAY_MS, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS, miningWorkerNftSlotsRequired } from './config';
 import type { MinecoreComputeContext } from './compute-context';
 import {
   drainWaterfallRemaining,
@@ -13,6 +13,7 @@ import {
 import type { MinecoreState, PlantSlotState } from './types';
 import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import {
+  normalizePlantSetup,
   plantNftSlotAssignmentValid,
 } from './asset-usage';
 import {
@@ -256,9 +257,27 @@ export function syncPlantPowerUnitsToCapacity(slot: PlantSlotState): PlantSlotSt
   return { ...slot, powerRemaining: Math.max(0, cap) };
 }
 
-/** True when at least one Foreman NFT is assigned in the crew deck (unlocks AUTO controls on Mining plants). */
+/** True when at least one Foreman NFT is assigned in the crew deck (global roster). */
 export function minecoreForemanDeployed(state: MinecoreState): boolean {
   return Boolean(state.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null && x.collection));
+}
+
+/**
+ * True when this plant's Crew row links a deck slot whose role is Foreman and holds an NFT.
+ * Per-plant AUTO on Mining cards requires this (a Foreman elsewhere in the roster is not enough).
+ */
+export function minecorePlantHasForemanInCrew(state: MinecoreState, slot: PlantSlotState): boolean {
+  if (!slot.unlocked) return false;
+  const decks = state.nftSlots ?? [];
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices ?? [];
+  const need = miningWorkerNftSlotsRequired(slot.type);
+  for (let i = 0; i < need; i++) {
+    const ix = idxs[i];
+    if (ix == null || ix < 0) continue;
+    const d = decks[ix];
+    if (d?.type === 'foreman' && d.nftId != null && d.collection) return true;
+  }
+  return false;
 }
 
 /** Foreman NFT or an installed auto-restart module (e.g. Regen Coil) unlocks automated cycle chaining. */

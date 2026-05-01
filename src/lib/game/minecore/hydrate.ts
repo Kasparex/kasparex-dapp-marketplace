@@ -10,7 +10,7 @@ import type {
 import { MINECORE_POWER_NODE_IDS } from './types';
 import { MINECORE_INGREDIENT_KEYS } from './types';
 import { createInitialMinecoreState } from './initial-state';
-import { deriveState, minecoreForemanDeployed } from './compute';
+import { deriveState, minecorePlantHasForemanInCrew } from './compute';
 import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount } from './battery-utils';
 import { enforcePlantInventoryInvariants } from './inventory-invariants';
@@ -321,13 +321,15 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
         : base.stabilityPatches ?? 0,
   };
 
-  let plantSlotsWithAuto = out.plantSlots;
-  if (!minecoreForemanDeployed(out)) {
-    plantSlotsWithAuto = out.plantSlots.map((p) => ({ ...p, autoRestartMining: false }));
-  }
+  let plantSlotsWithAuto = out.plantSlots.map((p) => ({
+    ...p,
+    autoRestartMining: Boolean(p.autoRestartMining && minecorePlantHasForemanInCrew(out, p)),
+  }));
 
   const outClamped =
-    plantSlotsWithAuto === out.plantSlots ? out : { ...out, plantSlots: plantSlotsWithAuto };
+    plantSlotsWithAuto.every((p, i) => p.autoRestartMining === out.plantSlots[i]?.autoRestartMining)
+      ? out
+      : { ...out, plantSlots: plantSlotsWithAuto };
 
   const repaired = enforcePlantInventoryInvariants(outClamped);
   return deriveState(repaired, Date.now());
