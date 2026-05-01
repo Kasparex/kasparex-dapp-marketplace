@@ -14,7 +14,7 @@ const KaspaL1WalletButton = dynamic(
   { ssr: false }
 );
 
-const LORE_STORY = `Krex left Cipher Vaults across Kaspaland — sealed chambers of encrypted power.\n\nEach vault contains corrupted fragments of ARIA’s early memory, scrambled into rune-grids and sequence locks. The Null Gang tried to weaponize these fragments, but their interference only made the ciphers harder.\n\nYour job is simple: pay the entry, decode the cipher, and reconstruct the key before the vault collapses. Those who clear more vaults prove their skill and earn stronger checkpoint history for future GRID distribution.`;
+const LORE_STORY = `Krex left Cipher Vaults across Kaspaland - sealed chambers of encrypted power.\n\nEach vault contains corrupted fragments of ARIA’s early memory, scrambled into rune-grids and sequence locks. The Null Gang tried to weaponize these fragments, but their interference only made the ciphers harder.\n\nYour job is simple: pay the entry, decode the cipher, and reconstruct the key before the vault collapses. Those who clear more vaults prove their skill and earn stronger checkpoint history for future GRID distribution.`;
 
 function CipherVaultsContent() {
   const { state } = useKaspaWallet();

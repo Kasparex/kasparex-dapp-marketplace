@@ -159,7 +159,7 @@ function ConnectionsContent() {
                         <td className="p-4">
                           <StatusDot tone={dot.tone} tooltip={dot.tip} />
                         </td>
-                        <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.requirement ?? '—'}</td>
+                        <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.requirement ?? '-'}</td>
                         <td className="p-4 text-zinc-700 dark:text-zinc-300">{row.punch}</td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.entry}</td>
                         <td className="p-4 text-zinc-600 dark:text-zinc-400">{row.rewards}</td>

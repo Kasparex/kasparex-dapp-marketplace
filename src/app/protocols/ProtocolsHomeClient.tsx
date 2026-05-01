@@ -39,7 +39,7 @@ export function ProtocolsHomeContent() {
                     </span>
                   </h1>
                   <p className="mb-8 max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-lg">
-                    Pick a protocol family to open its hub: tools you can run today, HTTP APIs, use cases, and docs — starting with{' '}
+                    Pick a protocol family to open its hub: tools you can run today, HTTP APIs, use cases, and docs - starting with{' '}
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">kpx</span> on Kaspa.
                   </p>
                   <div className="flex flex-wrap gap-4">

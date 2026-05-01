@@ -257,7 +257,7 @@ export const gamesRegistry: UnifiedGame[] = [
       name: "Krex's Chronicles: Mystery Quiz",
       slug: 'kaspa-quiz',
       description:
-        "A mysterious 10-level quiz run through Krex's Chronicles. Each level contains 5 lore questions — clear them to unlock deeper chapters.",
+        "A mysterious 10-level quiz run through Krex's Chronicles. Each level contains 5 lore questions - clear them to unlock deeper chapters.",
       instructions:
         "Pay the entry fee to start. Answer 5 questions per level. Use boosters (KREX tier + NFTs) to increase your score multiplier.",
       gameType: 'trivia',
@@ -290,7 +290,7 @@ export const gamesRegistry: UnifiedGame[] = [
       {
         toSlug: 'cipher-vaults',
         title: 'Solve the real locks',
-        punch: 'Quiz trained your mind. Cipher Vaults tests it for real—decode the grid and record checkpoints.',
+        punch: 'Quiz trained your mind. Cipher Vaults tests it for real - decode the grid and record checkpoints.',
         actionKey: 'none',
         actionHint: 'Start a Cipher Vault run and submit a clear.',
       },

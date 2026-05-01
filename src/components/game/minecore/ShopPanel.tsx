@@ -290,7 +290,7 @@ export function ShopPanel(props: {
       id: 'voidglassFilaments',
       title: 'Voidglass Filaments',
       category: 'Ingredient',
-      description: 'Hair-thin strands tempered in null-space — they glow when the grid complains.',
+      description: 'Hair-thin strands tempered in null-space - they glow when the grid complains.',
       baseKasPrice: CALC_INGREDIENT_KAS.voidglassFilaments,
       type: 'ingredient' as const,
       render: () => (
@@ -409,7 +409,7 @@ export function ShopPanel(props: {
           title="Reactor craft pack (starter)"
           category="Bundle"
           imageSrc="https://static.wixstatic.com/media/de4185_917204e896754c228ed9d1426e901512~mv2.jpg"
-          description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits — craft reactors in Build."
+          description="Circuit mesh, energy cells, flux coils, helix braces, and plasma conduits - craft reactors in Build."
           priceOptions={[
             { currency: 'KAS', unitPrice: props.getKasPriceAfterDiscount(42), originalUnitPrice: 42 },
             { currency: 'KREX', unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(42)) },
@@ -577,7 +577,7 @@ export function ShopPanel(props: {
       id: 'repair',
       title: 'Stability Patch',
       category: 'Repair',
-      description: 'Field-sealed kit logged with Core Ops — burns a patch to open an early maintenance window.',
+      description: 'Field-sealed kit logged with Core Ops - burns a patch to open an early maintenance window.',
       baseKasPrice: MINECORE_STABILITY_PATCH_LIST_KAS,
       type: 'item' as const,
       render: () => (
@@ -586,7 +586,7 @@ export function ShopPanel(props: {
           title="Stability Patch"
           category="Repair"
           imageSrc="https://static.wixstatic.com/media/de4185_4d903cbcbbe14481bfd5487838759999~mv2.jpg"
-          description="Stock these for when wear climbs but the plant has not hard-locked yet — pair with a paid service from the maintenance panel."
+          description="Stock these for when wear climbs but the plant has not hard-locked yet - pair with a paid service from the maintenance panel."
           effects={[{ label: 'Use', value: 'Early service eligibility' }]}
           priceOptions={[
             {

@@ -69,7 +69,7 @@ function PageInner() {
                 featuredImage={game.featuredImage ?? ''}
                 gameDescription={game.description}
                 gameName={game.name}
-                loreStory="Null Gang interference is never random — it’s a test of your weak points. Choose your responses like you’re writing policy: once deployed, it echoes."
+                loreStory="Null Gang interference is never random - it’s a test of your weak points. Choose your responses like you’re writing policy: once deployed, it echoes."
               />
             )}
           </div>

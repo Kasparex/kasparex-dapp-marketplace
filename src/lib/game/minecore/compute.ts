@@ -104,7 +104,7 @@ export function computeLiveBatterySlotChargeMs(slot: PlantSlotState, now: number
   if (slot.cycle.pauseBeganAtMs != null) {
     return [...raw];
   }
-  /** Mine-as-you-go: drain until battery empty — nominal cycle end does not stop drain. */
+  /** Mine-as-you-go: drain until battery empty - nominal cycle end does not stop drain. */
   const drainUntil = now;
   const elapsed = Math.max(0, drainUntil - slot.batterySnapshotAt);
   return drainWaterfallRemaining(raw, elapsed * BATTERY_CHARGE_DRAIN_RATE);
@@ -254,6 +254,11 @@ export function syncPlantPowerUnitsToCapacity(slot: PlantSlotState): PlantSlotSt
   if (!slot.unlocked) return slot;
   const cap = getPowerUnitCap(slot);
   return { ...slot, powerRemaining: Math.max(0, cap) };
+}
+
+/** True when at least one Foreman NFT is assigned in the crew deck (unlocks AUTO controls on Mining plants). */
+export function minecoreForemanDeployed(state: MinecoreState): boolean {
+  return Boolean(state.nftSlots?.some((x) => x.type === 'foreman' && x.nftId != null && x.collection));
 }
 
 /** Foreman NFT or an installed auto-restart module (e.g. Regen Coil) unlocks automated cycle chaining. */

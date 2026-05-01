@@ -85,7 +85,7 @@ export function computeMinecoreBatteryBonusMsPerSlot(state: MinecoreState, ctx?:
   return min * 60 * 1000;
 }
 
-/** UI line for Workers tab — empty string when nothing deployed. */
+/** UI line for Workers tab - empty string when nothing deployed. */
 export function formatMinecoreGlobalDeckBonusLine(
   slots: readonly MiningSlot[],
   ctx?: MinecoreComputeContext,

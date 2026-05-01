@@ -203,7 +203,7 @@ export function ProtocolFamilyDetailContent({ family }: { family: ProtocolFamily
                   >
                     <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100">Knowledge Base</h3>
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      Browse all Kasparex guides — including deep dives on kpx record types and security notes.
+                      Browse all Kasparex guides - including deep dives on kpx record types and security notes.
                     </p>
                     <span className="mt-3 inline-block text-sm font-bold text-[#02abb8]">Browse →</span>
                   </Link>

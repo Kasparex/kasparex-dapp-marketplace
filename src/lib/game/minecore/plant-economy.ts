@@ -23,7 +23,7 @@ import { hasInstalledBattery } from './battery-utils';
 import { computeMinecoreDailyCapBonusForPlantCrew, minecoreDeckBenefits } from './nft-deck-benefits';
 
 /**
- * Rig power draw (kW curve) only — used for `computeConsumptionKw` / grid efficiency.
+ * Rig power draw (kW curve) only - used for `computeConsumptionKw` / grid efficiency.
  * Batteries do not penalize consumption or battery runtime.
  */
 export function getPlantPowerDrawFactor(slot: PlantSlotState): number {
@@ -168,7 +168,7 @@ export function computeMaintenanceWearRatio(slot: PlantSlotState, now: number): 
   return Math.min(1, Math.max(0, (now - start) / period));
 }
 
-/** Grid balance × maintenance — used for live D/24h while mining. */
+/** Grid balance × maintenance - used for live D/24h while mining. */
 export function computeEffectiveMiningEfficiencyPct(slot: PlantSlotState, now: number): number {
   if (slot.needsRepair) return 0;
   const wear = computeMaintenanceWearRatio(slot, now);
@@ -247,8 +247,14 @@ export type PlantRollingCapBreakdown = {
   plantBase: number;
   machineCap: number;
   crewCap: number;
-  /** Raw sum before plant max clamp */
+  /** Plant + rig + crew before boosts */
   subtotal: number;
+  /** KAS Overclock bonus added to rolling cap (/24h) while active */
+  kasOverclockFlat: number;
+  /** KREX Boost yield multiplier on rolling cap (1 when inactive) */
+  krexYieldMult: number;
+  /** Floor after yield mult, before tier max clamp */
+  floorAfterYieldMult: number;
   ceiling: number;
   plantMax: number;
 };
@@ -261,15 +267,38 @@ export function computePlantRollingDailyCapBreakdown(
 ): PlantRollingCapBreakdown {
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
   if (!slot.unlocked) {
-    return { plantBase: 0, machineCap: 0, crewCap: 0, subtotal: 0, ceiling: 0, plantMax };
+    return {
+      plantBase: 0,
+      machineCap: 0,
+      crewCap: 0,
+      subtotal: 0,
+      kasOverclockFlat: 0,
+      krexYieldMult: 1,
+      floorAfterYieldMult: 0,
+      ceiling: 0,
+      plantMax,
+    };
   }
   const plantBase = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const machineCap = machine?.diamondsPer24h ?? 0;
   const crewCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
   const subtotal = Math.max(0, Math.floor(plantBase + machineCap + crewCap));
+  const kasOverclockFlat = computePlantKasOverclockDailyFlat(slot, atMs);
+  const krexYieldMult = computePlantKrexYieldMultiplier(slot, atMs);
+  const floorAfterYieldMult = Math.max(0, Math.floor((subtotal + kasOverclockFlat) * krexYieldMult));
   const ceiling = computePlantRollingDailyCapCeiling(state, slot, ctx, atMs);
-  return { plantBase, machineCap, crewCap, subtotal, ceiling, plantMax };
+  return {
+    plantBase,
+    machineCap,
+    crewCap,
+    subtotal,
+    kasOverclockFlat,
+    krexYieldMult,
+    floorAfterYieldMult,
+    ceiling,
+    plantMax,
+  };
 }
 
 /**

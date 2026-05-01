@@ -118,6 +118,7 @@ function rescaleBatteryToNewCapacity(state: MinecoreState, slot: PlantSlotState,
 function cloneSlot(slot: PlantSlotState): PlantSlotState {
   return {
     ...slot,
+    autoRestartMining: Boolean(slot.autoRestartMining),
     krexBoostUntilMs: slot.krexBoostUntilMs ?? 0,
     kasOverclockDailyBonusUntilMs: slot.kasOverclockDailyBonusUntilMs ?? 0,
     kasOverclockNextCycleExtraDiamonds: slot.kasOverclockNextCycleExtraDiamonds ?? 0,
@@ -174,9 +175,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     plantSlots: state.plantSlots.map(cloneSlot),
     nftSlots:   state.nftSlots ? state.nftSlots.map((x) => ({ ...x })) : [],
     gridLedger: [...(state.gridLedger ?? [])],
-    automation: state.automation
-      ? { ...state.automation }
-      : { autoRestart: false, foremanActive: false },
+    automation: state.automation ? { ...state.automation } : { foremanActive: false },
     krexRedeemableTotal: state.krexRedeemableTotal ?? 0,
     redeemBudget: state.redeemBudget
       ? { ...state.redeemBudget }
@@ -262,6 +261,13 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       return rederive(s, now);
     }
 
+    case 'SetPlantAutoRestartMining': {
+      const plant = s.plantSlots[ev.slotIndex];
+      if (!plant?.unlocked) return rederive(s, now);
+      plant.autoRestartMining = Boolean(ev.enabled);
+      return rederive(s, now);
+    }
+
     case 'CraftRecipe': {
       const recipe = MINECORE_RECIPES.find((r) => r.id === ev.recipeId);
       if (!recipe) return rederive(s, now);
@@ -332,6 +338,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         krexBoostUntilMs: 0,
         kasOverclockDailyBonusUntilMs: 0,
         kasOverclockNextCycleExtraDiamonds: 0,
+        autoRestartMining: false,
       };
       s.plantSlots.push(newSlot);
       s.nextSlotCostKas = Math.max(MINECORE_DEFAULT_NEXT_SLOT_COST_KAS, s.nextSlotCostKas);
@@ -463,7 +470,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
 
       slot.powerRemaining = getPowerUnitCap(slot);
 
-      /** Long nominal window — mining ends by battery or daily cap, not wall-clock cycle length. */
+      /** Long nominal window - mining ends by battery or daily cap, not wall-clock cycle length. */
       const nominalEndMs = ev.at + 100 * MINECORE_DAY_MS;
 
       slot.cycle = {

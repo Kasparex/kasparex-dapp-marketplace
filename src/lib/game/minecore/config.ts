@@ -101,7 +101,7 @@ export const MINECORE_DISPLAY_POOL_GRID_REMAINING = (() => {
 
 /**
  * Partner-branded collections (Minecore global perks). Add slug strings as collections launch.
- * KREXPRIME / PIXELKREX use dedicated tier ladders in code — do not duplicate here.
+ * KREXPRIME / PIXELKREX use dedicated tier ladders in code - do not duplicate here.
  */
 export const MINECORE_PARTNER_COLLECTIONS: readonly string[] = [];
 
@@ -128,7 +128,7 @@ export function minecoreKrexFromDiscountedKas(discountedKas: number): number {
   return discountedKas * MINECORE_KREX_PER_KAS;
 }
 
-/** KAS repair action — resets maintenance wear clock. */
+/** KAS repair action - resets maintenance wear clock. */
 export const MINECORE_PLANT_REPAIR_KAS = 1.5;
 
 /** Shop list price per Stability Patch (consumable for early maintenance service). */

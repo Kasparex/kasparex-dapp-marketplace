@@ -20,7 +20,8 @@ const veinIconClass: Record<string, string> = {
   'quantum-fracturer': 'text-amber-400',
 };
 
-export function MinecoreMiningSections(props: {
+/** Vein-style totals grouped by rig type (shown on the Power tab). */
+export function MinecoreVeinBreakdownByMachine(props: {
   state: MinecoreState;
   computeCtx?: MinecoreComputeContext;
 }) {
@@ -44,55 +45,58 @@ export function MinecoreMiningSections(props: {
   }, [state, computeCtx]);
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-          Vein breakdown (by machine)
-          <GameTooltip content="Totals use the Minecore economy: effective D/24h applies live power efficiency to your rolling cap ceiling (plant base + rig throughput + Workers-tab bonuses). Cycle column is one full run at current setup.">
-            <button
-              type="button"
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"
+    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+        Vein breakdown (by machine)
+        <GameTooltip content="Totals use the Minecore economy: effective D/24h applies live power efficiency to your rolling cap ceiling (plant base + rig throughput + Workers-tab bonuses, including Overclock and KREX Boost on the cap). Cycle column is one full run at current setup.">
+          <button
+            type="button"
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"
+          >
+            ?
+          </button>
+        </GameTooltip>
+      </h3>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {MACHINE_IDS.map((k) => {
+          const row = byMachine.get(k) ?? { count: 0, d24Sum: 0, cycleSum: 0 };
+          const cfg = MINECORE_MACHINES[k];
+          return (
+            <div
+              key={k}
+              className="flex justify-between rounded-lg border border-zinc-100 px-3 py-2 text-sm dark:border-zinc-800"
             >
-              ?
-            </button>
-          </GameTooltip>
-        </h3>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {MACHINE_IDS.map((k) => {
-            const row = byMachine.get(k) ?? { count: 0, d24Sum: 0, cycleSum: 0 };
-            const cfg = MINECORE_MACHINES[k];
-            return (
-              <div
-                key={k}
-                className="flex justify-between rounded-lg border border-zinc-100 px-3 py-2 text-sm dark:border-zinc-800"
-              >
-                <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                  <DiamondIcon className={`h-4 w-4 ${veinIconClass[k] ?? 'text-zinc-400'}`} />
-                  {cfg.label}
-                </span>
-                <span className="text-right font-mono font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {row.count > 0 ? (
-                    <>
-                      {row.count} plant{row.count === 1 ? '' : 's'} · {row.d24Sum.toLocaleString()} D/24h · {row.cycleSum.toLocaleString()}{' '}
-                      / cycle
-                    </>
-                  ) : (
-                    '-'
-                  )}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
+                <DiamondIcon className={`h-4 w-4 ${veinIconClass[k] ?? 'text-zinc-400'}`} />
+                {cfg.label}
+              </span>
+              <span className="text-right font-mono font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                {row.count > 0 ? (
+                  <>
+                    {row.count} plant{row.count === 1 ? '' : 's'} · {row.d24Sum.toLocaleString()} D/24h · {row.cycleSum.toLocaleString()}{' '}
+                    / cycle
+                  </>
+                ) : (
+                  '-'
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
-
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Mining runs on plant timers and saved timestamps - progress continues while you are away. Refine checkpoints accrue GRID score; see{' '}
-        <Link href="/rewards-and-points" className="text-emerald-600 underline dark:text-emerald-400">
-          GRID rewards
-        </Link>
-        .
-      </p>
     </div>
+  );
+}
+
+/** Footer copy on the Mining tab (progress while away + GRID link). */
+export function MinecoreMiningTabFooter() {
+  return (
+    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      Mining runs on plant timers and saved timestamps - progress continues while you are away. Refine checkpoints accrue GRID score; see{' '}
+      <Link href="/rewards-and-points" className="text-emerald-600 underline dark:text-emerald-400">
+        GRID rewards
+      </Link>
+      .
+    </p>
   );
 }

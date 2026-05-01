@@ -114,7 +114,7 @@ export function MinecoreCalculator() {
       <div className="space-y-6">
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
           <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Plant build</h2>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Drag sliders — results use the same math as the live game (yield, battery capacity, extraction speed).</p>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Drag sliders - results use the same math as the live game (yield, battery capacity, extraction speed).</p>
 
           <div className="mt-5 space-y-5">
             <SliderRow
@@ -278,7 +278,7 @@ export function MinecoreCalculator() {
           </div>
           {setup.boostId === 'kas-overclock' ? (
             <p className="mt-3 text-[11px] text-amber-700 dark:text-amber-400">
-              KAS Overclock is purchased separately in the Minecore Shop — not included in these calculator totals.
+              KAS Overclock is purchased separately in the Minecore Shop - not included in these calculator totals.
             </p>
           ) : null}
         </div>

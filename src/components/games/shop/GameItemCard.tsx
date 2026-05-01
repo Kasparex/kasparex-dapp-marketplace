@@ -3,6 +3,7 @@
 import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type GameItemCurrency = 'KAS' | 'KREX' | 'GRID' | 'TICKET' | string;
 
@@ -22,7 +23,9 @@ export type GameItemEffectLine = {
   label: string;
   value: string;
   muted?: boolean;
-  color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'zinc' | 'red';
+  /** Short help on fabrication spec rows; omit on ingredient lines. */
+  specTooltip?: string;
+  color?: 'emerald' | 'amber' | 'rose' | 'sky' | 'zinc' | 'red' | 'accent';
 };
 
 function formatGameItemPriceAmount(currency: GameItemCurrency, amount: number): string {
@@ -134,9 +137,8 @@ export function GameItemCard(props: {
   }
 
   function effectLineRow(e: GameItemEffectLine) {
-    return (
+    const row = (
       <div
-        key={e.label}
         className="flex items-center justify-between rounded-lg border border-zinc-100 bg-white/60 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30"
       >
         <span className="font-semibold text-zinc-600 dark:text-zinc-400">{e.label}</span>
@@ -154,12 +156,21 @@ export function GameItemCard(props: {
                       ? 'text-sky-700 dark:text-sky-300'
                       : e.color === 'zinc'
                         ? 'text-zinc-700 dark:text-zinc-300'
-                        : 'text-emerald-700 dark:text-emerald-300'
+                        : e.color === 'accent'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-emerald-700 dark:text-emerald-300'
           }`}
         >
           {e.value}
         </span>
       </div>
+    );
+    return e.specTooltip ? (
+      <Tooltip key={e.label} content={e.specTooltip}>
+        <div className="block cursor-help">{row}</div>
+      </Tooltip>
+    ) : (
+      <div key={e.label}>{row}</div>
     );
   }
 

@@ -37,6 +37,7 @@ function createEmptySlot(index: number): PlantSlotState {
     krexBoostUntilMs: 0,
     kasOverclockDailyBonusUntilMs: 0,
     kasOverclockNextCycleExtraDiamonds: 0,
+    autoRestartMining: false,
   };
 }
 
@@ -74,7 +75,7 @@ export function createInitialMinecoreState(): MinecoreState {
     nextSlotCostKas: MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
     nftSlots,
     gridLedger: [],
-    automation: { autoRestart: false, foremanActive: false },
+    automation: { foremanActive: false },
     lastConnectedAt: null,
     lastConnectedAddress: null,
     redeemBudget: {

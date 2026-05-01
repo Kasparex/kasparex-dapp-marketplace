@@ -218,6 +218,10 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
         ? Math.max(0, Math.floor(raw))
         : base.kasOverclockNextCycleExtraDiamonds;
     })(),
+    autoRestartMining: (() => {
+      const raw = (input as Record<string, unknown>).autoRestartMining;
+      return typeof raw === 'boolean' ? raw : base.autoRestartMining;
+    })(),
     plantLastServicedAtMs: (() => {
       const raw = (input as Record<string, unknown>).plantLastServicedAtMs;
       if (typeof raw === 'number' && raw > 0) return raw;
@@ -257,7 +261,18 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     : base.redeemBudget;
 
   const nftSlots = Array.isArray(input.nftSlots) ? normalizeMinecoreNftSlots(input.nftSlots as unknown[]) : base.nftSlots;
-  const plantSlotsHydrated = clampPlantSlotsNftDeckIndices(plantSlots, nftSlots.length);
+  const clampedPlantSlots = clampPlantSlotsNftDeckIndices(plantSlots, nftSlots.length);
+  const legacyGlobalAutoRestart =
+    isRecord(input.automation) && typeof (input.automation as Record<string, unknown>).autoRestart === 'boolean'
+      ? Boolean((input.automation as Record<string, unknown>).autoRestart)
+      : false;
+  const plantSlotsHydrated = clampedPlantSlots.map((slot, i) => {
+    const raw = plantSlotsRaw[i];
+    if (isRecord(raw) && !('autoRestartMining' in raw)) {
+      return { ...slot, autoRestartMining: legacyGlobalAutoRestart };
+    }
+    return slot;
+  });
 
   const out: MinecoreState = {
     ...base,
@@ -285,7 +300,6 @@ export function hydrateMinecoreState(input: unknown): MinecoreState {
     nftSlots,
     automation: isRecord(input.automation)
       ? {
-          autoRestart: typeof input.automation.autoRestart === 'boolean' ? input.automation.autoRestart : base.automation.autoRestart,
           foremanActive: typeof input.automation.foremanActive === 'boolean' ? input.automation.foremanActive : base.automation.foremanActive,
         }
       : base.automation,

@@ -40,7 +40,7 @@ export type MinecoreModuleId =
   /** Shop module: 2.5× diamond yield for 1 hour after equipped (consumes inventory like other modules). */
   | 'krex-boost';
 
-/** Craftable supplemental reactors — one equipped per plant; each adds kW to plant max power. */
+/** Craftable supplemental reactors - one equipped per plant; each adds kW to plant max power. */
 export type MinecorePowerNodeId =
   | 'flux-node'
   | 'lattice-node'
@@ -83,13 +83,13 @@ export type OwnedItems = {
   batteries: Record<MinecoreBatteryId, number>;
   workers:   Record<MinecoreWorkerId, number>;
   modules:   Record<MinecoreModuleId, number>;
-  /** Fabricated reactors — inventory count before assigning to a plant (`nodes` key is legacy persistence). */
+  /** Fabricated reactors - inventory count before assigning to a plant (`nodes` key is legacy persistence). */
   nodes:     Record<MinecorePowerNodeId, number>;
 };
 
 export type PlantSetup = {
   machineId: MinecoreMachineId | null;
-  /** Optional reactor adds max power (kW) at this plant. One slot — swap like a rig. */
+  /** Optional reactor adds max power (kW) at this plant. One slot - swap like a rig. */
   powerNodeId: MinecorePowerNodeId | null;
   /** One entry per plant power-unit slot (1 / 2 / 4 by tier). null = empty slot. */
   batteryIds: (MinecoreBatteryId | null)[];
@@ -149,11 +149,15 @@ export type PlantSlotState = {
   kasOverclockDailyBonusUntilMs: number;
   /** KAS Overclock: flat diamonds added to the next started cycle’s expected yield (consumed on StartMining). */
   kasOverclockNextCycleExtraDiamonds: number;
+  /**
+   * Auto-restart a new mining run after a cycle ends, when infra allows (Foreman or Regen Coil).
+   * Toggled per plant on the Mining card when Foreman is installed.
+   */
+  autoRestartMining: boolean;
 };
 
 export type MinecoreAutomationState = {
-  autoRestart:    boolean;
-  foremanActive:  boolean;
+  foremanActive: boolean;
 };
 
 /** Client-side redeem budget (honest mode until server enforces pool). */
@@ -195,13 +199,14 @@ export type MinecoreEvent =
   | { type: 'AddSlot';          at: number }
   | { type: 'CraftRecipe';      at: number; recipeId: string }
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }
-  /** In-game GRID balance (redeemable total) shop purchase — no L1 transaction. */
+  /** In-game GRID balance (redeemable total) shop purchase - no L1 transaction. */
   | { type: 'BuyIngredientWithGrid'; at: number; ingredient: MinecoreIngredient; amount: number; gridCost: number }
   | { type: 'DeployNFT';        at: number; slotIndex: number; nftId: number; collection: string }
   | { type: 'RemoveNFT';        at: number; slotIndex: number }
   | { type: 'SyncMinecoreNftPerkTier'; at: number; slotIndex: number; tier: MinecoreNftPerkTier | null }
   | { type: 'AddNftDeckSlot';   at: number; slotType: MiningSlotType }
-  | { type: 'SetAutomation';    at: number; patch: Partial<MinecoreAutomationState> }
+  | { type: 'SetAutomation'; at: number; patch: Partial<MinecoreAutomationState> }
+  | { type: 'SetPlantAutoRestartMining'; at: number; slotIndex: number; enabled: boolean }
   | { type: 'RefillBattery';    slotIndex: number; at: number }  // refill battery to full
   /** Paid KAS action: refill one or more battery slots (no new reserve units). */
   | {
@@ -234,7 +239,7 @@ export type MinecoreEvent =
   | { type: 'AddStabilityPatches'; count: number; at: number }
   /** Shop: add crafted-style module inventory (e.g. KREX Boost charges). */
   | { type: 'GrantModuleInventory'; moduleId: MinecoreModuleId; count: number; at: number }
-  /** Shop: KAS Overclock — +daily cap for one window and bonus on next cycle for this plant (`count` stacks bonuses). */
+  /** Shop: KAS Overclock - +daily cap for one window and bonus on next cycle for this plant (`count` stacks bonuses). */
   | { type: 'ApplyKasOverclock'; slotIndex: number; count: number; at: number }
   | { type: 'Refine';       at: number; amount: number; walletAddress: string }
   | {

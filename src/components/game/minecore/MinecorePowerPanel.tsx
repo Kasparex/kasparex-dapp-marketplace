@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
-import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
 import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
+import { MinecoreVeinBreakdownByMachine } from '@/components/game/minecore/MinecoreMiningSections';
 
 /** KAS paid upgrades (V1 - wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
 const KAS_BATTERY_SYNC = 3;
@@ -32,24 +32,6 @@ export function MinecorePowerPanel(props: {
   const { state, now } = props;
   const [targetSlot, setTargetSlot] = useState(0);
 
-  let totalCap = 0;
-  let totalRemaining = 0;
-  let activeDraw = 0;
-  let aggregateFlow = 0;
-
-  for (const p of state.plantSlots) {
-    if (!p.unlocked) continue;
-    const cap = getPowerUnitCap(p);
-    if (cap <= 0) continue;
-    totalCap += cap;
-    totalRemaining += Math.min(cap, Math.max(0, p.powerRemaining));
-    const flowPerMin = computeFlowRatePerMin(props.state, p, now, props.computeCtx);
-    if (flowPerMin > 0) {
-      activeDraw += 1;
-      aggregateFlow += flowPerMin;
-    }
-  }
-
   const slot = state.plantSlots[targetSlot];
   const batterySyncPrice = props.getKasPriceAfterDiscount(KAS_BATTERY_SYNC);
   const reservePackPrice = props.getKasPriceAfterDiscount(KAS_RESERVE_PACK);
@@ -61,7 +43,7 @@ export function MinecorePowerPanel(props: {
   const plantsCard = (
     <GamePanelCard
       title="Plants"
-      hint="Reserve units, battery %, and recharge shortcuts - detailed rig/power breakdown stays on the Mining tab."
+      hint="Per-plant flow, battery %, and reserve units. Use Mining tab for plant setup and battery slot refills."
     >
       <ul className="space-y-2 text-sm">
         {state.plantSlots.map((p) => {
@@ -125,63 +107,11 @@ export function MinecorePowerPanel(props: {
     </GamePanelCard>
   );
 
-  const siteEnergyAndRecharge = (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <GamePanelCard
-        title="Site energy"
-        hint="Reserve units and battery %. Paid refill topping up battery charge — Mining tab has slot picker."
-      >
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">
-          Live snapshot
-          <GameTooltip
-            content={
-              `Mining spends reserve units while draining batteries (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS/slot restores charge only — no extra reserves beyond plant tier). Reserve cap follows plant tier.`
-            }
-          >
-            <button
-              type="button"
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600"
-              aria-label="Help"
-            >
-              ?
-            </button>
-          </GameTooltip>
-        </h3>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Reserve {totalRemaining.toLocaleString()} of {totalCap.toLocaleString()} power units across unlocked plants · active runs {activeDraw} · flow{' '}
-          <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{aggregateFlow.toFixed(1)} D/min</span>
-          {totalCap > 0 ? (
-            <>
-              {' '}
-              · pool <span className="font-semibold tabular-nums">{Math.round((totalRemaining / Math.max(1, totalCap)) * 100)}%</span>
-            </>
-          ) : null}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <GameTooltip content="Dev: add reserve units to plant 1 without KAS.">
-            <button
-              type="button"
-              onClick={props.onDemoTopUpFirstPlant}
-              className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
-            >
-              Demo: +5 units (plant 1)
-            </button>
-          </GameTooltip>
-        </div>
-      </GamePanelCard>
-
-      <GamePanelCard title="Recharge" hint="Same as the mining plant KAS action.">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Same as Mining plant recharge — restores battery charge for{' '}
-          <span className="font-semibold text-zinc-800 dark:text-zinc-200">{MINECORE_PLANT_RECHARGE_COST_KAS} KAS</span> per slot filled on that plant.
-        </p>
-      </GamePanelCard>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       {plantsCard}
+
+      <MinecoreVeinBreakdownByMachine state={state} computeCtx={props.computeCtx} />
 
       <GamePanelCard
         title="Power upgrades"
@@ -267,8 +197,6 @@ export function MinecorePowerPanel(props: {
           />
         </div>
       </GamePanelCard>
-
-      {siteEnergyAndRecharge}
     </div>
   );
 }

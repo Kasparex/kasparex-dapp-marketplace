@@ -54,7 +54,7 @@ function DeckInfoModal({ onClose }: { onClose: () => void }) {
           ✕
         </button>
 
-        <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Game Deck — How it works</h3>
+        <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Game Deck - How it works</h3>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           The deck tracks your key resources. Values update live as you play.
         </p>

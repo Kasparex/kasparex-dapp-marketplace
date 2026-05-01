@@ -207,7 +207,7 @@ export default function KpxToolsPage() {
         setParseErr(body.error ?? 'Validation failed');
         return;
       }
-      setParseOk(`Looks good — ready to send (${body.byteLength ?? '?'} bytes).`);
+      setParseOk(`Looks good - ready to send (${body.byteLength ?? '?'} bytes).`);
     } catch (e) {
       setParseErr(e instanceof Error ? e.message : 'Build failed');
       setPreviewJson('');
@@ -337,7 +337,7 @@ export default function KpxToolsPage() {
                 {kaspa.isConnected && owner ? (
                   <span className="font-mono text-zinc-900 dark:text-zinc-100">{owner}</span>
                 ) : (
-                  <span className="font-semibold text-amber-700 dark:text-amber-300">Not connected — use the header wallet menu.</span>
+                  <span className="font-semibold text-amber-700 dark:text-amber-300">Not connected - use the header wallet menu.</span>
                 )}
               </span>
             </div>
@@ -555,7 +555,7 @@ export default function KpxToolsPage() {
                   <label className="no-k-style block min-w-0">
                     <div className="mb-1 flex items-center gap-1.5">
                       <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Ethereum address</span>
-                      <FieldHint text="Standard 0x… address on Ethereum-compatible networks. Double-check — mistakes are permanent on-chain." />
+                      <FieldHint text="Standard 0x… address on Ethereum-compatible networks. Double-check - mistakes are permanent on-chain." />
                     </div>
                     <input
                       className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -618,7 +618,7 @@ export default function KpxToolsPage() {
                 <label className="no-k-style block min-w-0">
                   <div className="mb-1 flex items-center gap-1.5">
                     <span className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Fingerprint (64 hex characters)</span>
-                    <FieldHint text="A content hash you already computed — exactly 64 lowercase hex characters (256 bits). This is the tamper-evident fingerprint apps will compare against." />
+                    <FieldHint text="A content hash you already computed - exactly 64 lowercase hex characters (256 bits). This is the tamper-evident fingerprint apps will compare against." />
                   </div>
                   <input
                     className="mt-1 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-xs text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
@@ -773,7 +773,7 @@ export default function KpxToolsPage() {
                               null,
                               2
                             )
-                          : '—'}
+                          : '-'}
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950">
@@ -793,7 +793,7 @@ export default function KpxToolsPage() {
                               null,
                               2
                             )
-                          : '—'}
+                          : '-'}
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
@@ -813,7 +813,7 @@ export default function KpxToolsPage() {
                               null,
                               2
                             )
-                          : '—'}
+                          : '-'}
                       </pre>
                     </div>
                     <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2">
@@ -833,7 +833,7 @@ export default function KpxToolsPage() {
                               null,
                               2
                             )
-                          : '—'}
+                          : '-'}
                       </pre>
                     </div>
                   </div>

@@ -23,7 +23,7 @@ export const hubProjects: HubProject[] = [
     name: 'Kasparex Protocols',
     category: 'Standards',
     description:
-      'Open protocols, tools, documentation, and reference implementations for identity, publishing, and cross-chain workflows on Kaspa — aligned with Kasparex indexers.',
+      'Open protocols, tools, documentation, and reference implementations for identity, publishing, and cross-chain workflows on Kaspa - aligned with Kasparex indexers.',
     route: '/protocols',
     status: 'beta',
   },

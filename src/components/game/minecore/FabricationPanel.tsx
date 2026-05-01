@@ -56,7 +56,7 @@ function loreForRecipe(outputId: string, kind: string): string {
     (kind === 'machine'
       ? 'Mining rig: sets cycle pace, grid draw, extraction speed, and rolling cap bonuses.'
       : kind === 'battery'
-        ? 'Energy store: holds nominal runtime charge; rigs do not shorten it — tiers add capacity and efficiency.'
+        ? 'Energy store: holds nominal runtime charge; rigs do not shorten wall-clock drain. Higher tiers add capacity and efficiency.'
         : kind === 'powerNode'
           ? 'Reactor: weld it under Power to lift the plant ceiling so heavier stacks can breathe.'
           : 'Module: slots into premium or advanced frames to bend output, cycles, cooling, or refine.')
@@ -135,29 +135,38 @@ export function FabricationPanel(props: {
                 const consKw = cfg.powerConsumptionFactor * MINECORE_KW_SCALE;
                 const extraCrew = cfg.additionalCrewRequired ?? 0;
                 specifications.push({
-                  label: 'Duration',
-                  value: `${Math.round(cfg.durationMs / 60000)} min`,
-                  color: 'sky',
+                  label: 'Mining speed',
+                  value: `×${cfg.miningSpeedMultiplier.toFixed(2)} extraction`,
+                  color: 'accent',
+                  specTooltip:
+                    'Applied while a run is active on the Mining tab. Multiplies live diamond flow toward your rolling /24h budget (same math as the plant D/min readout).',
                 });
                 specifications.push({
                   label: 'Plant cap (adds to base)',
                   value: `+${cfg.diamondsPer24h.toLocaleString()} D / 24h`,
-                  color: 'amber',
+                  color: 'accent',
+                  specTooltip:
+                    'Adds flat diamonds per 24h toward this plant’s rolling cap on the Mining tab. Stacks with plant tier, crew NFT bonuses, Overclock, and KREX Boost (cap math), then grid efficiency applies to realized D/24h.',
                 });
                 specifications.push({
                   label: 'Power consumption',
                   value: formatMinecorePowerDisplay(consKw),
                   color: 'red',
+                  specTooltip:
+                    'Grid draw for this rig at the plant. Used on the Mining tab for production vs consumption (kW balance) and mining efficiency; it does not change battery wall-clock drain.',
                 });
                 specifications.push({
-                  label: 'Mining speed',
-                  value: `×${cfg.miningSpeedMultiplier.toFixed(2)} extraction`,
-                  color: 'amber',
+                  label: 'Duration',
+                  value: `${Math.round(cfg.durationMs / 60000)} min`,
+                  color: 'sky',
+                  specTooltip: 'Nominal cycle length used for expected-yield estimates; live runs can end earlier on daily cap or empty battery.',
                 });
                 specifications.push({
                   label: 'Additional crew',
                   value: extraCrew <= 0 ? 'No' : `+${extraCrew} slots`,
                   color: 'zinc',
+                  specTooltip:
+                    'Extra Worker-tab NFT rows this rig needs on the plant checklist before you can start mining.',
                 });
               }
             } else if (isBattery) {
@@ -167,31 +176,47 @@ export function FabricationPanel(props: {
                   label: 'Stored runtime',
                   value: `${Math.round(cfg.chargeCapacityMs / 60000)} min`,
                   color: 'sky',
+                  specTooltip:
+                    'Per-slot charge budget on the Mining plant. Shown in Energy / battery pillars; longer runtime before refill at nominal 1:1 drain.',
                 });
                 specifications.push({
                   label: 'Cell efficiency',
                   value: `${((cfg.efficiency ?? 1) * 100).toFixed(0)}%`,
                   color: 'emerald',
+                  specTooltip:
+                    'Improves realized mining efficiency on the Mining tab when this cell is installed (maintenance / grid headroom interaction).',
                 });
               }
             } else if (isModule) {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];
               if (cfg) {
+                const sid = String(r.outputId);
+                const ob = cfg.outputBonus ?? 0;
+                if (ob > 0 && sid !== 'krex-boost') {
+                  specifications.push({
+                    label: 'Mining speed',
+                    value: `+${Math.round(ob * 100)}% extraction`,
+                    color: 'accent',
+                    specTooltip:
+                      'Increases extraction rate on the Mining plant while equipped (stacked with rig mining speed). Does not change the rolling cap formula by itself.',
+                  });
+                }
                 if (cfg.kind === 'cooling') {
                   specifications.push({
                     label: 'Power consumption',
                     value: `−${Math.round((cfg.consumptionReduction ?? 0) * 100)}% draw${
-                      cfg.failureReduction > 0
-                        ? ` · −${Math.round(cfg.failureReduction * 100)}% strain`
-                        : ''
+                      cfg.failureReduction > 0 ? ` · −${Math.round(cfg.failureReduction * 100)}% strain` : ''
                     }`,
                     color: 'red',
+                    specTooltip:
+                      'Lowers rig/module draw on this plant’s Mining tab kW balance, improving grid efficiency and maintenance strain.',
                   });
                 } else if (cfg.failureReduction > 0) {
                   specifications.push({
                     label: 'Power consumption',
                     value: `−${Math.round(cfg.failureReduction * 100)}% strain`,
                     color: 'red',
+                    specTooltip: 'Reduces wear strain from power stress on this plant (Mining tab efficiency interaction).',
                   });
                 }
                 if (cfg.kind === 'automation') {
@@ -199,12 +224,16 @@ export function FabricationPanel(props: {
                     label: 'Cycle stretch',
                     value: `+${Math.round((cfg.cycleDurationBonus ?? 0) * 100)}% duration`,
                     color: 'sky',
+                    specTooltip:
+                      'Extends expected cycle yield window for this plant when figuring cycle diamonds (Mining / calculator).',
                   });
                   if (cfg.autoRestartMining) {
                     specifications.push({
                       label: 'Auto-restart',
-                      value: 'Needs Workers toggle + this module',
+                      value: 'Qualifies plant for AUTO',
                       color: 'emerald',
+                      specTooltip:
+                        'Together with Foreman NFT (or another auto infra source), allows AUTO on the Mining plant card to chain runs. Toggle is per plant once Foreman is deployed.',
                     });
                   }
                 }
@@ -213,6 +242,7 @@ export function FabricationPanel(props: {
                     label: 'Efficiency floor',
                     value: `+${cfg.efficiencyFloorBonus ?? 0} pts`,
                     color: 'emerald',
+                    specTooltip: 'Raises minimum mining efficiency on this plant while mounted (Mining tab Eff %).',
                   });
                 }
                 if (cfg.kind === 'refining') {
@@ -220,15 +250,7 @@ export function FabricationPanel(props: {
                     label: 'Refine bonus',
                     value: `+${Math.round((cfg.refineBonus ?? 0) * 100)}%`,
                     color: 'amber',
-                  });
-                }
-                const sid = String(r.outputId);
-                const ob = cfg.outputBonus ?? 0;
-                if (ob > 0 && sid !== 'krex-boost') {
-                  specifications.push({
-                    label: 'Mining speed',
-                    value: `+${Math.round(ob * 100)}% extraction`,
-                    color: 'amber',
+                    specTooltip: 'Extra refinement points when you refine diamonds (Redeem workflow), not live D/min.',
                   });
                 }
               }
@@ -239,6 +261,8 @@ export function FabricationPanel(props: {
                   label: 'Max power',
                   value: `+${formatMinecorePowerDisplay(cfg.maxPowerKw)} (plant)`,
                   color: 'emerald',
+                  specTooltip:
+                    'Adds kW headroom on the assigned plant (Mining tab reactor row and power balance). Craft here, assign under the plant’s Power / reactor slot.',
                 });
               }
             }

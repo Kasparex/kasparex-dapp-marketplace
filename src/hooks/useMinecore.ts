@@ -173,7 +173,7 @@ export function useMinecore() {
    */
   useEffect(() => {
     if (!walletState.isConnected || !walletAddr) return;
-    if (!mc.automation.autoRestart || !minecoreAutoRestartInfrastructureActive(mcRef.current)) return;
+    if (!minecoreAutoRestartInfrastructureActive(mcRef.current)) return;
 
     const now = Date.now();
     const slots = derived.plantSlots;
@@ -181,6 +181,7 @@ export function useMinecore() {
     for (let slotIdx = 0; slotIdx < slots.length; slotIdx++) {
       const rawSlot = mcRef.current.plantSlots[slotIdx];
       if (!rawSlot?.unlocked) continue;
+      if (!rawSlot.autoRestartMining) continue;
 
       const st = slots[slotIdx]?.status;
       if (!st) continue;
@@ -198,7 +199,7 @@ export function useMinecore() {
 
       dispatch({ type: 'StartMining', slotIndex: slotIdx, at: now });
     }
-  }, [walletState.isConnected, walletAddr, derived.plantSlots, mc.automation.autoRestart, dispatch]);
+  }, [walletState.isConnected, walletAddr, derived.plantSlots, dispatch]);
 
   /**
    * When a run ends (cycle complete or battery empty), bank mined diamonds to the wallet immediately — no separate Extract step.
@@ -781,8 +782,8 @@ export function useMinecore() {
     }
   }, [dispatch]);
 
-  const setAutomation = useCallback((patch: { autoRestart?: boolean }) => {
-    dispatch({ type: 'SetAutomation', at: Date.now(), patch });
+  const setPlantAutoRestartMining = useCallback((slotIndex: number, enabled: boolean) => {
+    dispatch({ type: 'SetPlantAutoRestartMining', at: Date.now(), slotIndex, enabled });
   }, [dispatch]);
 
   const purchaseIngredientWithKAS = useCallback(
@@ -913,7 +914,7 @@ export function useMinecore() {
       craftRecipe,
       deployNFT,
       removeNFT,
-      setAutomation,
+      setPlantAutoRestartMining,
       purchaseIngredientWithKAS,
       purchaseIngredientPackWithKAS,
       purchaseIngredientWithKREX,

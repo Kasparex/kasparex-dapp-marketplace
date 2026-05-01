@@ -2,12 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
+import type { MinecoreState } from '@/lib/game/minecore';
 import { nftTabSlotDeployments, MINECORE_NFT_CREW_ROLES_ORDER, nftCrewRoleLabel } from '@/lib/game/minecore/asset-usage';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import * as Icons from 'lucide-react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -43,7 +43,7 @@ function minecoreDeckModalCopy(type: MiningSlotType): { title: string; descripti
       return {
         title: 'Foreman slot',
         description:
-          'Deploy a Premium or Partner NFT as Foreman - adds flat diamonds per day plus auto-restart infrastructure when enabled.',
+          'Deploy a Premium or Partner NFT as Foreman - unlocks AUTO controls on Mining plant cards and satisfies part of automation infrastructure.',
       };
     default:
       return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };
@@ -53,10 +53,8 @@ function minecoreDeckModalCopy(type: MiningSlotType): { title: string; descripti
 export function WorkersPanel(props: {
   slots: MiningSlot[];
   slottedMetadata: Record<number, ParsedNFTMetadata>;
-  autoRestart: boolean;
-  /** True when Foreman is active or a plant has Regen Coil (automation can actually chain cycles). */
+  plantSlots: MinecoreState['plantSlots'];
   autoRestartInfrastructureActive: boolean;
-  onToggleAutoRestart: (enabled: boolean) => void;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
   onRemove: (slotIndex: number) => void;
   /** Paid KAS (after tier discount) to append one NFT deck slot of chosen type. */
@@ -147,6 +145,12 @@ export function WorkersPanel(props: {
     return list;
   }, [props.slots, searchQuery, statusFilter, sortBy, props.slottedMetadata]);
 
+  const automationStats = useMemo(() => {
+    const unlocked = props.plantSlots.filter((p) => p.unlocked);
+    const withAuto = unlocked.filter((p) => p.autoRestartMining).length;
+    return { unlockedCount: unlocked.length, plantsWithAuto: withAuto };
+  }, [props.plantSlots]);
+
   const modalSlot = selected !== null ? (props.slots[selected] ?? null) : null;
   const modalCopy = modalSlot ? minecoreDeckModalCopy(modalSlot.type) : null;
   const currentRef =
@@ -156,39 +160,6 @@ export function WorkersPanel(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
-        <div className="max-w-xl">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
-            Auto-restart mining runs
-            <GameTooltip content="Needs Foreman or Regen Coil. Auto-starts only while batteries still hold charge — no paid refills from automation.">
-              <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
-                ?
-              </button>
-            </GameTooltip>
-          </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Optional auto-start after a run ends — only if batteries still have juice.</p>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-label={props.autoRestart ? 'Disable auto-restart mining' : 'Enable auto-restart mining'}
-          aria-checked={props.autoRestart}
-          onClick={() => props.onToggleAutoRestart(!props.autoRestart)}
-          className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 ${
-            props.autoRestart ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'
-          }`}
-        >
-          <span
-            className={`pointer-events-none inline-block h-7 w-7 rounded-full bg-white shadow transition ${
-              props.autoRestart ? 'translate-x-6' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
-      </div>
-      {props.autoRestart && !props.autoRestartInfrastructureActive ? (
-        <p className="text-[11px] text-amber-700 dark:text-amber-400">No auto-chain yet - add Regen Coil or Foreman NFT.</p>
-      ) : null}
-
       {globalDeckBonusLine ? (
         <p className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[12px] font-semibold text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
           {globalDeckBonusLine}
@@ -297,6 +268,59 @@ export function WorkersPanel(props: {
             </button>
           </div>
         ) : null}
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Crew-linked Minecore features</h3>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          Reference for how Workers deck NFTs tie into plants. Individual controls stay on Mining (plants) or Build (modules).
+        </p>
+        <p className="mt-2 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+          AUTO infra ready (Foreman staffed or Regen Coil):{' '}
+          <span className={props.autoRestartInfrastructureActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}>
+            {props.autoRestartInfrastructureActive ? 'Yes' : 'No'}
+          </span>
+          · Unlocked plants with AUTO toggled on:{' '}
+          <span className="font-mono tabular-nums">
+            {automationStats.unlockedCount === 0
+              ? '0 (no unlocked plants)'
+              : `${automationStats.plantsWithAuto}/${automationStats.unlockedCount}`}
+          </span>
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-100 dark:border-zinc-800">
+          <table className="w-full min-w-[720px] text-left text-[11px]">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <th className="px-3 py-2 font-bold text-zinc-700 dark:text-zinc-300">Feature</th>
+                <th className="px-3 py-2 font-bold text-zinc-700 dark:text-zinc-300">Effect</th>
+                <th className="px-3 py-2 font-bold text-zinc-700 dark:text-zinc-300">Requirement</th>
+                <th className="px-3 py-2 font-bold text-zinc-700 dark:text-zinc-300">Where set</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tr className="align-top">
+                <td className="px-3 py-2 font-semibold text-zinc-800 dark:text-zinc-200">Per-plant auto-restart</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">
+                  Chains another mining run after a cycle ends when batteries still hold charge (no wallet refills).
+                </td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Foreman deployed (shows AUTO on plant) + infra (Foreman or Regen Coil).</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Mining tab · AUTO on each plant card</td>
+              </tr>
+              <tr className="align-top">
+                <td className="px-3 py-2 font-semibold text-zinc-800 dark:text-zinc-200">Rolling cap bonus</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Flat diamonds / 24h added toward the rolling cap from crew tiers.</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Worker / Operator / Foreman slots filled with allowed NFTs.</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Workers tab assigns deck rows; Mining tab binds rows per plant.</td>
+              </tr>
+              <tr className="align-top">
+                <td className="px-3 py-2 font-semibold text-zinc-800 dark:text-zinc-200">Battery runtime bonus</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Extra stored runtime per tier on battery pillars.</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Qualifying NFTs in the deck (tier metadata).</td>
+                <td className="px-3 py-2 text-zinc-600 dark:text-zinc-400">Passive while slotted · shown on plant Energy readouts</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {buyOpen && props.onPurchaseExtraSlot ? (

@@ -69,7 +69,7 @@ function PageInner() {
                 featuredImage={game.featuredImage ?? ''}
                 gameDescription={game.description}
                 gameName={game.name}
-                loreStory="ARIA’s fragments flicker in short windows. Lock them fast, lock them clean — and you’ll be ready for the vault grids that don’t forgive mistakes."
+                loreStory="ARIA’s fragments flicker in short windows. Lock them fast, lock them clean - and you’ll be ready for the vault grids that don’t forgive mistakes."
               />
             )}
           </div>

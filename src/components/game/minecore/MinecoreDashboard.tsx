@@ -22,7 +22,7 @@ import { ShopPanel } from '@/components/game/minecore/ShopPanel';
 import { MinecoreArticle } from '@/components/game/minecore/MinecoreArticle';
 import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPanel';
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
-import { MinecoreMiningSections } from '@/components/game/minecore/MinecoreMiningSections';
+import { MinecoreMiningTabFooter } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
@@ -52,7 +52,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 const MINECORE_DECK_FEATURED_TOOLTIP =
-  'Kaspaland ops: Vector’s crews chase the Diamonds Veins for raw stones—Kasparex Minecore story, not the Cipher Diamond Veins game.';
+  'Beneath the neon spine of Kaspaland, Diamond Veins pulse with raw energy. Minecore, built and controlled by Krex and his crew, drills into these unstable depths to extract Diamonds from the heart of the network. This is not just mining, it is tapping into the force that powers Kaspaland.';
 
 export function MinecoreDashboard(_props: {
   featuredImage?: string;
@@ -212,7 +212,7 @@ export function MinecoreDashboard(_props: {
         label: 'KREX',
         value: krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
         description: 'Utility token',
-        tooltip: `KREX on L1 — tier ${krexTier} lowers some KAS shop prices.`,
+        tooltip: `KREX on L1 - tier ${krexTier} lowers some KAS shop prices.`,
         accent: 'krex' as const,
         onClick: () => setKrexWizardOpen(true),
       },
@@ -221,7 +221,7 @@ export function MinecoreDashboard(_props: {
         label: 'KAS',
         value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
         description: 'Payment currency',
-        tooltip: 'KAS on L1 — unlocks, shop, plant refill.',
+        tooltip: 'KAS on L1 - unlocks, shop, plant refill.',
         accent: 'kas' as const,
         onClick: () => setTab('shop' as const),
       },
@@ -421,6 +421,9 @@ export function MinecoreDashboard(_props: {
                       }
                     }}
                     onChangePlantType={(type, cost) => actions.changePlantType(slotIndex, type, cost)}
+                    onTogglePlantAutoRestartMining={(enabled) =>
+                      actions.setPlantAutoRestartMining(slotIndex, enabled)
+                    }
                   />
                 ))}
 
@@ -464,7 +467,7 @@ export function MinecoreDashboard(_props: {
                 </div>
               </div>
 
-              <MinecoreMiningSections state={state} computeCtx={minecoreComputeContext} />
+              <MinecoreMiningTabFooter />
             </div>
           )}
 
@@ -511,9 +514,8 @@ export function MinecoreDashboard(_props: {
               <WorkersPanel
                 slots={state.nftSlots}
                 slottedMetadata={slottedMetadata}
-                autoRestart={state.automation.autoRestart}
+                plantSlots={state.plantSlots}
                 autoRestartInfrastructureActive={autoRestartInfrastructureActive}
-                onToggleAutoRestart={(enabled) => actions.setAutomation({ autoRestart: enabled })}
                 onDeploy={actions.deployNFT}
                 onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
                 onPurchaseExtraSlot={actions.purchaseNftDeckSlot}
