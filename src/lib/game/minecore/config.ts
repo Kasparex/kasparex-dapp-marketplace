@@ -71,8 +71,8 @@ export const MINECORE_PLANT_BASE_PRODUCTION_KW: Record<PlantType, number> = {
 /** Below this efficiency %, a new mining cycle cannot start (`InsufficientPower`). */
 export const MINECORE_MIN_MINING_EFFICIENCY_PCT = 12;
 
-/** Large deficit: efficiency treated as 0 for mining. */
-export const MINECORE_POWER_CRITICAL_RATIO = 0.45;
+/** Load = consumption / max plant power (see `computePlantPowerLoadRatio`). Above this threshold mining stops. */
+export const MINECORE_POWER_CRITICAL_LOAD = 0.75;
 
 /** Refinement: points per diamond before module bonuses. */
 export const MINECORE_REFINE_POINTS_PER_DIAMOND = 1;

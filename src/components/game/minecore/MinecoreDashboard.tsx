@@ -12,7 +12,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import {
   computeMinecoreDiamondsDisplayTotal,
   computeMinecoreRollingDailyCapDeckTotals,
-  minecoreAutoRestartInfrastructureActive,
 } from '@/lib/game/minecore/compute';
 import { minecoreUtcDayKey } from '@/lib/game/minecore/plant-economy';
 import { getPlantBatterySlotCount } from '@/lib/game/minecore/battery-utils';
@@ -36,6 +35,7 @@ import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPow
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { CrewPlantFeaturesPanel } from '@/components/game/minecore/CrewPlantFeaturesPanel';
 import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import * as Icons from 'lucide-react';
@@ -138,8 +138,6 @@ export function MinecoreDashboard(_props: {
     () => computeMinecoreRollingDailyCapDeckTotals(state, nowTick, minecoreComputeContext),
     [state, nowTick, minecoreComputeContext],
   );
-  const autoRestartInfrastructureActive = useMemo(() => minecoreAutoRestartInfrastructureActive(state), [state]);
-
   const gridRedeemEstimateToday = useMemo(() => {
     const today = minecoreUtcDayKey(nowTick);
     const rb = state.redeemBudget;
@@ -434,11 +432,20 @@ export function MinecoreDashboard(_props: {
                       <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
                       <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
                       <Tooltip
-                        content={`List ${state.nextSlotCostKas.toLocaleString()} KAS. ${krexTier}${
-                          krexDiscountPct > 0
-                            ? ` tier: ${krexDiscountPct}% off in-game KAS.`
-                            : ' - no tier discount on KAS.'
-                        }`}
+                        content={gameTooltipRich(
+                          'Add Mining Plant pricing',
+                          <>
+                            List {state.nextSlotCostKas.toLocaleString()} KAS.{' '}
+                            {krexDiscountPct > 0 ? (
+                              <>
+                                {krexTier}: {krexDiscountPct}% tier discount applies in-game; you pay{' '}
+                                {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS.
+                              </>
+                            ) : (
+                              <>{krexTier} — no tier discount on KAS; you pay the list price.</>
+                            )}
+                          </>,
+                        )}
                       >
                         <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
                           {krexDiscountPct > 0 ? (
@@ -459,7 +466,12 @@ export function MinecoreDashboard(_props: {
                         </div>
                       </Tooltip>
                     </div>
-                    <Tooltip content="V1 mock action. This will wire into KAS payment later through the global payments SDK.">
+                    <Tooltip
+                      content={gameTooltipRich(
+                        'Add plant row',
+                        'V1 mock action; will wire into KAS payment later through the global payments SDK.',
+                      )}
+                    >
                       <button type="button" onClick={() => void actions.addSlot(state.nextSlotCostKas)} className="k-cta-games h-11 px-6 text-sm">
                         Add
                       </button>
@@ -521,10 +533,7 @@ export function MinecoreDashboard(_props: {
                 slotPurchaseKas={getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS)}
                 miningAllowed={miningAllowed}
               />
-              <CrewPlantFeaturesPanel
-                plantSlots={state.plantSlots}
-                autoRestartInfrastructureActive={autoRestartInfrastructureActive}
-              />
+              <CrewPlantFeaturesPanel />
             </div>
           )}
 

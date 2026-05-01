@@ -8,6 +8,7 @@ import { CIPHER_TICKET_REDEEM_RATE_POINTS, CIPHER_VAULTS_TREASURY_ADDRESS, CIPHE
 import { CipherGridLockedPreview } from './CipherGridLockedPreview';
 import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { GameTabs } from '@/components/games/layout/GameTabs';
@@ -124,13 +125,18 @@ export function CipherVaultsDashboard({
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex flex-wrap items-center gap-6">
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Cipher Tickets</span>
-            <Tooltip content="Tickets let you start a vault run without paying KAS. Earn them by redeeming Diamond Veins refinement points.">
+            <Tooltip
+              content={gameTooltipRich(
+                'Cipher Tickets',
+                'Spend tickets to start a vault run instead of paying KAS. Earn them by redeeming Diamond Veins refinement points.',
+              )}
+            >
               <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400 cursor-help">
                 {tickets.available.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-400 font-semibold">avail</span>
               </span>
             </Tooltip>
             <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Treasury</span>
-            <Tooltip content="Entry fees are sent here on L1.">
+            <Tooltip content={gameTooltipRich('Treasury address', 'Entry fees are sent to this address on Kaspa L1.')}>
               <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-help">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
             </Tooltip>
           </div>
@@ -228,7 +234,12 @@ export function CipherVaultsDashboard({
                 <div>
                   <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 inline-flex items-center gap-2">
                     Start a run
-                    <Tooltip content="Starting a run creates a single active attempt. If you already have an active run, end it first to avoid accidental duplicate payments.">
+                    <Tooltip
+                      content={gameTooltipRich(
+                        'Start a run',
+                        'Creates one active attempt at a time. If you already have an active run, end it first to avoid duplicate payments.',
+                      )}
+                    >
                       <button
                         type="button"
                         className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"
@@ -399,7 +410,12 @@ export function CipherVaultsDashboard({
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-3">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
                 Redeem Diamond Veins refinement
-                <Tooltip content="Tickets are tracked in Cipher Vaults. This V1 redemption does not burn points inside Diamond Veins, but Cipher Vaults will only let you redeem each point once (it tracks redeemed totals).">
+                <Tooltip
+                  content={gameTooltipRich(
+                    'Redeem refinement',
+                    'Tickets are tracked in Cipher Vaults. This V1 flow does not burn points inside Diamond Veins, but each refinement point can only be redeemed once here (redeemed totals are tracked).',
+                  )}
+                >
                   <button
                     type="button"
                     className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-600 dark:border-zinc-600 dark:text-zinc-300"

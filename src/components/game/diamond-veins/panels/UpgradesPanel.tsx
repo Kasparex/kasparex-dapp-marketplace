@@ -58,7 +58,10 @@ export function UpgradesPanel({
     <div className="space-y-6">
       <div className="rounded-2xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          <GameTooltip content="KREX tier reduces Garage KREX prices. KAS path uses native L1 send to the Garage address; receipts are registered server-side for idempotency.">
+          <GameTooltip
+            title="Shop rules"
+            description="Higher KREX tiers reduce Garage KREX prices. The KAS path uses native L1 sends to the Garage address; receipts are registered server-side for idempotent purchases."
+          >
             <span className="cursor-help border-b border-dotted border-zinc-400 font-semibold text-zinc-800 dark:text-zinc-200">
               Shop rules
             </span>

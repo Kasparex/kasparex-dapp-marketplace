@@ -1,7 +1,9 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_PLANT_PRESETS,
@@ -11,7 +13,7 @@ import {
 
 function CostCapsule(props: {
   label: string;
-  tooltip: string;
+  tooltip: ReactNode;
   children: React.ReactNode;
   accent?: boolean;
 }) {
@@ -30,12 +32,18 @@ function CostCapsule(props: {
   return <Tooltip content={props.tooltip}>{inner}</Tooltip>;
 }
 
-function kasTooltip(baseKas: number, payKas: number, discountPct: number, tierShort: string): string {
-  return `List ${baseKas.toLocaleString()} KAS. ${tierShort}${
-    discountPct > 0
-      ? ` applies ${discountPct}% off; you pay ${payKas.toLocaleString()} KAS.`
-      : ` - you pay ${payKas.toLocaleString()} KAS.`
-  }`;
+function kasCostTooltip(title: string, baseKas: number, payKas: number, discountPct: number, tierShort: string): ReactNode {
+  const desc =
+    discountPct > 0 ? (
+      <>
+        List price {baseKas.toLocaleString()} KAS. {tierShort} applies {discountPct}% off; you pay {payKas.toLocaleString()} KAS.
+      </>
+    ) : (
+      <>
+        List {baseKas.toLocaleString()} KAS — you pay {payKas.toLocaleString()} KAS ({tierShort}).
+      </>
+    );
+  return gameTooltipRich(title, desc);
 }
 
 function KasPriceLine(props: { baseKas: number; payKas: number; discountPct: number }) {
@@ -74,7 +82,7 @@ export function MinecoreMaintenanceCostsPanel(props: {
           key={label}
           label={label}
           accent={accent}
-          tooltip="No KAS charge when the plant is idle or paused."
+          tooltip={gameTooltipRich(label, 'No KAS charge when the plant is idle or paused for this action.')}
         >
           <span className="font-mono text-xs font-semibold text-zinc-500 dark:text-zinc-400">Free</span>
         </CostCapsule>
@@ -82,7 +90,12 @@ export function MinecoreMaintenanceCostsPanel(props: {
     }
     const pay = props.getKasPriceAfterDiscount(baseKas);
     return (
-      <CostCapsule key={label} label={label} accent={accent} tooltip={kasTooltip(baseKas, pay, props.krexDiscountPct, tierShort)}>
+      <CostCapsule
+        key={label}
+        label={label}
+        accent={accent}
+        tooltip={kasCostTooltip(label, baseKas, pay, props.krexDiscountPct, tierShort)}
+      >
         <KasPriceLine baseKas={baseKas} payKas={pay} discountPct={props.krexDiscountPct} />
       </CostCapsule>
     );
@@ -105,7 +118,12 @@ export function MinecoreMaintenanceCostsPanel(props: {
         {row('Swap setup parts', 0, false, true)}
         {props.onOpenKrexWizard ? (
           <div className="col-span-2">
-            <Tooltip content="Higher tiers discount list KAS on mining actions. Opens KREX purchase.">
+            <Tooltip
+              content={gameTooltipRich(
+                'KREX tier discounts',
+                'Higher tiers shave list KAS on mining-related actions; tap to open KREX purchase.',
+              )}
+            >
               <button
                 type="button"
                 onClick={props.onOpenKrexWizard}

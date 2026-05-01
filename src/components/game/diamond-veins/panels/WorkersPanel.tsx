@@ -32,7 +32,10 @@ export function WorkersPanel({
         <div>
           <h3 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Auto-restart mining runs
-            <GameTooltip content="When enabled, the server can restart your last mining run after it ends, up to your daily cap. Assign a Foreman (PIXELKREX) for a higher cap.">
+            <GameTooltip
+              title="Auto-restart mining runs"
+              description="When enabled, the server can restart your last mining run after it ends, up to your daily cap. Assign a Foreman (PIXELKREX) for a higher cap."
+            >
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
                 ?
               </button>

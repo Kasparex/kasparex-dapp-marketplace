@@ -70,7 +70,10 @@ export function MiningPanel({
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Flow rate
-            <GameTooltip content="Diamonds per second from workers, operators, machines, boosts, and power headroom.">
+            <GameTooltip
+              title="Flow rate"
+              description="Diamonds per second from workers, operators, machines, boosts, and available power headroom."
+            >
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
                 ?
               </button>
@@ -81,7 +84,10 @@ export function MiningPanel({
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Power
-            <GameTooltip content="Used MW vs cap. If demand exceeds cap, efficiency drops (brownout). Buy power upgrades in the Power tab.">
+            <GameTooltip
+              title="Power"
+              description="Used MW versus site cap. Oversubscribing the cap reduces efficiency (brownout) — upgrade power in the Power tab."
+            >
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
                 ?
               </button>
@@ -95,7 +101,10 @@ export function MiningPanel({
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Automation
-            <GameTooltip content="Foreman NFT enables higher auto-restart caps. Toggle auto-restart in Workers when a Foreman is assigned. Server applies auto-restarts when you sync.">
+            <GameTooltip
+              title="Automation"
+              description="A Foreman NFT unlocks higher auto-restart caps; toggle auto-restart on the Workers tab. The server applies restarts when you sync."
+            >
               <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
                 ?
               </button>
@@ -116,7 +125,10 @@ export function MiningPanel({
           <div className="space-y-1 text-center sm:text-left">
             <span className="text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-500">Mining</span>
             <div className="flex items-baseline gap-3">
-              <GameTooltip content="Total in-game diamonds. Five vein types accrue in the background (see breakdown below).">
+              <GameTooltip
+                title="Diamond balance"
+                description="Total in-game diamonds across five vein types that accrue in the background — see the breakdown below."
+              >
                 <h2 className="cursor-help text-5xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100 lg:text-6xl">
                   {Math.floor(diamonds).toLocaleString()}
                 </h2>
@@ -144,7 +156,10 @@ export function MiningPanel({
       <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
           Vein breakdown (by type)
-          <GameTooltip content="Weights shift with your Worker/Operator traits. Rubble fills pacing when no strong vein affinity.">
+          <GameTooltip
+            title="Vein mix"
+            description="Weights shift with Worker and Operator traits. Rubble fills pacing when no vein has a strong affinity."
+          >
             <button type="button" className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold dark:border-zinc-600">
               ?
             </button>

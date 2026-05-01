@@ -12,7 +12,7 @@ import {
   MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_PRODUCTION_KW,
   MINECORE_POWER_NODES,
-  MINECORE_POWER_CRITICAL_RATIO,
+  MINECORE_POWER_CRITICAL_LOAD,
 } from './config';
 import type { MiningSlot } from '@/lib/game/engine';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -136,25 +136,47 @@ export function computeEfficiencyBonusPoints(slot: PlantSlotState): number {
 }
 
 /**
- * Effective mining efficiency 0–100 from kW balance, plus stability module bonuses.
- * 100% when production >= consumption.
+ * Grid load: consumption / max supply (plant + rig bus + reactor).
+ * 1.0 = fully loaded; values above 1 mean draw exceeds capacity before other limits.
  */
-export function computeMiningEfficiencyPct(slot: PlantSlotState): number {
+export function computePlantPowerLoadRatio(slot: PlantSlotState): number {
   const prod = computeProductionKw(slot);
   const cons = computeConsumptionKw(slot);
-  if (cons <= 0) return 100;
-  const ratio = prod / cons;
+  if (prod <= 1e-9) return Number.POSITIVE_INFINITY;
+  return cons / prod;
+}
+
+export function powerLoadZoneLabel(loadRatio: number): 'optimal' | 'good' | 'strained' | 'critical' {
+  if (!Number.isFinite(loadRatio) || loadRatio > MINECORE_POWER_CRITICAL_LOAD) return 'critical';
+  if (loadRatio <= 0.25) return 'optimal';
+  if (loadRatio <= 0.5) return 'good';
+  if (loadRatio <= MINECORE_POWER_CRITICAL_LOAD) return 'strained';
+  return 'critical';
+}
+
+/**
+ * Effective mining efficiency 0–100 from grid load bands (plus stability module bonus).
+ * Bands: 0–25% load optimal, 25–50% good, 50–75% strained, above 75% critical (mining halts).
+ */
+export function computeMiningEfficiencyPct(slot: PlantSlotState): number {
+  const L = computePlantPowerLoadRatio(slot);
+  if (L > MINECORE_POWER_CRITICAL_LOAD) return 0;
+
   let base: number;
-  if (ratio >= 1) base = 100;
-  else if (ratio <= MINECORE_POWER_CRITICAL_RATIO) base = 0;
-  else {
-    base =
-      ((ratio - MINECORE_POWER_CRITICAL_RATIO) / (1 - MINECORE_POWER_CRITICAL_RATIO)) * 100;
+  if (L <= 0.25) {
+    base = 100;
+  } else if (L <= 0.5) {
+    base = 100 - ((L - 0.25) / 0.25) * 10;
+  } else if (L <= MINECORE_POWER_CRITICAL_LOAD) {
+    base = 90 - ((L - 0.5) / (MINECORE_POWER_CRITICAL_LOAD - 0.5)) * 40;
+  } else {
+    base = 0;
   }
   return Math.min(100, Math.max(0, base + computeEfficiencyBonusPoints(slot)));
 }
 
 export function canStartMiningByEfficiency(slot: PlantSlotState): boolean {
+  if (computePlantPowerLoadRatio(slot) > MINECORE_POWER_CRITICAL_LOAD) return false;
   return computeMiningEfficiencyPct(slot) >= MINECORE_MIN_MINING_EFFICIENCY_PCT;
 }
 

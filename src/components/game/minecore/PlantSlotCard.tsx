@@ -19,6 +19,7 @@ import {
   computeEffectiveMiningEfficiencyPct,
   computeMaintenanceWearRatio,
   computeMiningEfficiencyPct,
+  powerLoadZoneLabel,
   computePlantRollingDailyCapBreakdown,
   computeProductionKw,
   formatMinecorePowerDisplay,
@@ -27,6 +28,7 @@ import {
 } from '@/lib/game/minecore/plant-economy';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { Tooltip } from '@/components/ui/Tooltip';
 import {
   canAssignBatteryToPlantSlot,
@@ -58,6 +60,7 @@ import {
   MINECORE_KW_SCALE,
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
   MINECORE_PLANT_REPAIR_KAS,
+  MINECORE_POWER_CRITICAL_LOAD,
   miningWorkerNftSlotsRequired,
   type ModuleConfig,
 } from '@/lib/game/minecore/config';
@@ -184,32 +187,35 @@ function labelForStatus(status: PlantSlotState['status']) {
   return status;
 }
 
-function tooltipForStatus(status: PlantSlotState['status']): string {
+function tooltipForStatus(status: PlantSlotState['status']): ReactNode {
   switch (status) {
     case 'EmptySlot':
-      return 'This slot has no unlocked plant yet.';
+      return gameTooltipRich('Empty slot', 'This row has no unlocked plant yet.');
     case 'SetupIncomplete':
-      return 'Finish setup: machine, batteries, crew, and power as required.';
+      return gameTooltipRich('Setup incomplete', 'Finish machine, batteries, crew, and power as required for this plant.');
     case 'ReadyToMine':
-      return 'Plant is ready - start a mining run when you are set.';
+      return gameTooltipRich('Ready', 'Plant is configured; start a mining run when you want.');
     case 'MiningActive':
-      return 'Mining is running; diamonds accrue until you stop, hit cap, or the battery empties.';
+      return gameTooltipRich('Active', 'Mining is running. Diamonds accrue until you stop, hit the cap, or the battery empties.');
     case 'MiningPaused':
-      return 'Run is paused - no new diamonds and no battery drain until you resume.';
+      return gameTooltipRich('Paused', 'Run is paused: no new diamonds and no battery drain until you resume.');
     case 'BatteryEmpty':
-      return 'Battery charge is empty - recharge to mine again.';
+      return gameTooltipRich('Battery empty', 'No charge left in the installed pack. Recharge to mine again.');
     case 'CreditingReady':
-      return 'Cycle finished - extract or bank accrued diamonds.';
+      return gameTooltipRich('Crediting', 'Cycle finished; accrued diamonds are settling (no further action needed here).');
     case 'NeedsRepair':
-      return 'Maintenance required - repair before normal mining.';
+      return gameTooltipRich('Needs repair', 'Maintenance exceeded safe wear. Repair before normal mining.');
     case 'NeedsPower':
-      return 'Needs sufficient grid power or charged batteries to start.';
+      return gameTooltipRich('Needs power', 'Grid or stored energy is too low to start a safe run.');
     case 'InsufficientPower':
-      return 'Total draw exceeds what this plant can supply - adjust rigs, reactors, or batteries.';
+      return gameTooltipRich(
+        'Grid overload',
+        'Draw is too high versus this plant’s max power (above the critical load band). Upgrade or add reactors in Setup, trim draw with cooling modules, or swap rigs until load drops.',
+      );
     case 'DailyCapReached':
-      return 'Rolling 24h diamond cap reached for this plant; try again after the reset window.';
+      return gameTooltipRich('24h cap', 'Rolling diamond budget for this plant is exhausted for the current window.');
     default:
-      return 'Plant status.';
+      return gameTooltipRich('Plant status', 'Current state for this mining plant.');
   }
 }
 
@@ -264,7 +270,7 @@ function CheckRow(props: {
   stat?: string;
   statTone?: 'default' | 'rose';
   badges?: ReactNode;
-  tooltip: string;
+  tooltip: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
 }) {
@@ -345,7 +351,12 @@ function DailyCapBar(props: {
       : '';
 
   const countdownBlock = showCountdown ? (
-    <Tooltip content="Time left until this plant’s 24h diamond budget resets.">
+    <Tooltip
+      content={gameTooltipRich(
+        'Cap reset timer',
+        'Time left until this plant’s rolling 24h diamond budget window resets.',
+      )}
+    >
       <span
         className={`font-mono text-lg font-black tabular-nums tracking-tight sm:text-xl ${
           props.forceZeroDisplay ? 'text-zinc-500 dark:text-zinc-500' : 'text-sky-600 dark:text-sky-300'
@@ -356,16 +367,23 @@ function DailyCapBar(props: {
     </Tooltip>
   ) : null;
 
+  const counterTip =
+    props.forceZeroDisplay
+      ? gameTooltipRich('Rolling cap', 'Complete setup to see your rolling cap and mined total.')
+      : capStackHint
+        ? gameTooltipRich('Mined versus cap', (
+            <>
+              <p>Diamonds mined so far this 24h window compared to your effective ceiling.</p>
+              <p className="mt-1 whitespace-pre-wrap text-[11px] leading-snug opacity-95">{capStackHint}</p>
+            </>
+          ))
+        : gameTooltipRich(
+            'Mined versus cap',
+            'Diamonds mined so far this 24h rolling window versus your budget for that window.',
+          );
+
   const counterBlock = (
-    <Tooltip
-      content={
-        props.forceZeroDisplay
-          ? 'Complete setup to see your rolling cap and mined total.'
-          : capStackHint
-            ? `Mined this 24h window vs your cap.\n${capStackHint}`
-            : 'Mined this 24h window vs your cap.'
-      }
-    >
+    <Tooltip content={counterTip}>
       <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl cursor-help">
         <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
         <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
@@ -377,7 +395,12 @@ function DailyCapBar(props: {
 
   const progressBlock =
     props.forceZeroDisplay ? null : (
-      <Tooltip content="Share of this plant’s 24h diamond budget already used.">
+      <Tooltip
+        content={gameTooltipRich(
+          'Cap progress',
+          'Share of this plant’s 24h diamond budget already consumed in the current rolling window.',
+        )}
+      >
         <div className="h-2.5 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
           <div
             className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
@@ -389,7 +412,12 @@ function DailyCapBar(props: {
 
   const capReachedBlock =
     !props.forceZeroDisplay && props.capReached ? (
-      <Tooltip content="Wait for the timer to start a new 24h window, or refine diamonds in Redeem.">
+      <Tooltip
+        content={gameTooltipRich(
+          'Cap reached',
+          'Wait for the reset timer above, or move diamonds through Redeem. You cannot start extra cycles against this ceiling until it refreshes.',
+        )}
+      >
         <div className="cursor-help text-[11px] font-semibold text-amber-600 dark:text-amber-400">
           Rolling 24h cap reached for this plant. Refine in Redeem, or wait for the next window.
         </div>
@@ -479,7 +507,7 @@ function ModalPartRow(props: {
   );
   if (props.disabled && props.disabledHint) {
     return (
-      <Tooltip content={props.disabledHint}>
+      <Tooltip content={gameTooltipRich('Cannot use this part', props.disabledHint)}>
         <span className="block w-full">{btn}</span>
       </Tooltip>
     );
@@ -496,42 +524,78 @@ function tierBatteryFillCls(ratio: number): string {
   return 'bg-emerald-500';
 }
 
-/** Consumption vs max-power sharing one track; Balance label uses surplus kW story. */
+/** Grid load = consumption ÷ max supply; drives efficiency bands and mining eligibility. */
 function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: number; effGridPct: number }) {
-  const sum = props.prodKw + props.consKw;
-  const denom = sum > 1e-9 ? sum : 1;
-  const consFrac = clamp01(props.consKw / denom);
-  const prodFrac = clamp01(props.prodKw / denom);
-  const inner = (
+  const rawLoad = props.prodKw > 1e-9 ? props.consKw / props.prodKw : Number.POSITIVE_INFINITY;
+  const zone = powerLoadZoneLabel(rawLoad);
+  const barPct = Number.isFinite(rawLoad) ? Math.min(100, rawLoad * 100) : 100;
+  const zoneLabel = zone === 'optimal' ? 'Optimal' : zone === 'good' ? 'Good' : zone === 'strained' ? 'Strained' : 'Critical';
+  const fillCls =
+    zone === 'optimal'
+      ? 'bg-emerald-500'
+      : zone === 'good'
+        ? 'bg-lime-500'
+        : zone === 'strained'
+          ? 'bg-amber-500'
+          : 'bg-rose-600';
+  const loadPctLabel = Number.isFinite(rawLoad) ? `${Math.min(999, Math.round(rawLoad * 100))}%` : '—';
+
+  const barTip = gameTooltipRich(
+    'Power grid load',
+    <>
+      <p>Load is consumption divided by max plant power. It sets grid efficiency before maintenance wear.</p>
+      <ul className="mt-1.5 list-disc space-y-0.5 pl-3">
+        <li>0–25%: optimal performance</li>
+        <li>25–50%: good performance</li>
+        <li>50–75%: strained — add or upgrade Power in Setup</li>
+        <li>Above 75%: critical — mining cannot run until load drops</li>
+      </ul>
+    </>,
+  );
+
+  return (
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-[10px] text-zinc-700 dark:text-zinc-200">
-        <Tooltip content="Power drawn by the rig and modules on this plant.">
+        <Tooltip
+          content={gameTooltipRich('Consumption', 'Power drawn by the rig and active modules on this plant (kW).')}
+        >
           <span className="cursor-help text-rose-600 dark:text-rose-400">
             Consumption {formatMinecorePowerDisplay(props.consKw)}
           </span>
         </Tooltip>
-        <Tooltip content="Max power this plant can supply: tier base, rig bus, optional reactor.">
+        <Tooltip
+          content={gameTooltipRich(
+            'Max power',
+            'Supply budget from plant tier, rig bus contribution, and any reactor you installed (kW).',
+          )}
+        >
           <span className="cursor-help text-emerald-600 dark:text-emerald-400">
             Max power {formatMinecorePowerDisplay(props.prodKw)}
           </span>
         </Tooltip>
       </div>
-      <Tooltip content="Demand (rose) vs max supply (green) on the same scale.">
-        <div className="h-2.5 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-          <div className="flex h-full w-full">
+      <Tooltip content={barTip}>
+        <div className="relative h-3 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+          {[25, 50, 75].map((pct) => (
             <div
-              className="h-full flex-none bg-rose-500 transition-[width] duration-500"
-              style={{ width: `${consFrac * 100}%` }}
+              key={pct}
+              className="pointer-events-none absolute bottom-0 top-0 z-10 w-px bg-zinc-900/20 dark:bg-zinc-100/25"
+              style={{ left: `${pct}%` }}
             />
-            <div
-              className="h-full flex-none bg-emerald-500 transition-[width] duration-500"
-              style={{ width: `${prodFrac * 100}%` }}
-            />
-          </div>
+          ))}
+          <div
+            className={`absolute bottom-0 left-0 top-0 z-[1] ${fillCls} transition-[width] duration-500`}
+            style={{ width: `${barPct}%` }}
+          />
         </div>
       </Tooltip>
       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold">
-        <Tooltip content="Max power minus consumption - headroom for efficiency.">
+        <Tooltip
+          content={gameTooltipRich(
+            'Power balance',
+            'Max power minus consumption. Positive means spare headroom; negative means you are over budget on paper.',
+          )}
+        >
           <span
             className={`cursor-help ${props.balKw >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'}`}
           >
@@ -539,13 +603,25 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
             {formatMinecorePowerDisplay(Math.abs(props.balKw))}
           </span>
         </Tooltip>
-        <Tooltip content="Nominal grid efficiency before maintenance wear.">
+        <Tooltip
+          content={gameTooltipRich(
+            'Grid efficiency',
+            'Nominal efficiency from the load band (before maintenance wear is applied to live yield).',
+          )}
+        >
           <span className="cursor-help text-zinc-600 dark:text-zinc-300">Grid eff {props.effGridPct.toFixed(0)}%</span>
+        </Tooltip>
+      </div>
+      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+        <Tooltip content={barTip}>
+          <span className="cursor-help">
+            Load {loadPctLabel} · {zoneLabel}
+            {rawLoad > MINECORE_POWER_CRITICAL_LOAD ? ' · above critical band' : ''}
+          </span>
         </Tooltip>
       </div>
     </div>
   );
-  return inner;
 }
 
 /** One mini battery silhouette per slot - empty slots inactive; click installs or opens refill modal from parent. */
@@ -562,22 +638,33 @@ function UnifiedBatterySegmentsBar(props: {
   const miningMaxMs = Math.max(0, props.miningMaxMs);
   const miningFrac = miningMaxMs > 1e-6 ? clamp01(miningLeftMs / miningMaxMs) : 0;
   const hasPackStats = miningMaxMs > 0;
-  const miningLabel =
-    miningLeftMs > 0 ? formatDuration(miningLeftMs) : props.liveChargeMs <= 0 && props.capacityMs > 0 ? 'Empty' : '-';
 
   return (
     <div className="space-y-1.5 rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
-      <div className="flex items-start justify-between gap-2">
-        <Tooltip content="Stored energy remaining for this run - same nominal clock as the tanks below.">
-          <span className="cursor-help text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-            Energy · mining runtime
-          </span>
-        </Tooltip>
-        <span className="text-right text-xs font-black tabular-nums text-zinc-800 dark:text-zinc-100">{miningLabel}</span>
-      </div>
+      <Tooltip
+        content={gameTooltipRich(
+          'Energy · mining runtime',
+          'Charge left in the active run versus the capacity of your installed pack. Slot pillars below drain in order (1 → 2 …).',
+        )}
+      >
+        <span className="block cursor-help text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+          Energy · mining runtime
+        </span>
+      </Tooltip>
       {hasPackStats ? (
         <div className="space-y-1">
-          <Tooltip content="Charge left versus a full pack; slots drain in order (1 → 2 …).">
+          <Tooltip
+            content={gameTooltipRich(
+              'Run charge',
+              <>
+                <p>How much stored runtime remains for the current mining session versus a full pack.</p>
+                <p className="mt-1">
+                  Total pack: {props.liveChargeMs > 0 ? formatDuration(props.liveChargeMs) : '0'} /{' '}
+                  {formatDuration(props.capacityMs)}
+                </p>
+              </>,
+            )}
+          >
             <div className="cursor-help space-y-0.5">
               <div className="flex items-center justify-between gap-2 text-[10px] font-semibold tabular-nums">
                 <span className="text-sky-700 dark:text-sky-300">{formatDuration(miningLeftMs)} left</span>
@@ -590,18 +677,6 @@ function UnifiedBatterySegmentsBar(props: {
                 />
               </div>
             </div>
-          </Tooltip>
-          <Tooltip content="Total nominal charge remaining vs installed pack ceiling.">
-            <p className="cursor-help text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
-              Nominal charge{' '}
-              <span className="font-mono font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
-                {props.liveChargeMs > 0 ? formatDuration(props.liveChargeMs) : '0'}
-              </span>
-              {' / '}
-              <span className="font-mono font-bold tabular-nums text-zinc-600 dark:text-zinc-300">
-                {formatDuration(props.capacityMs)}
-              </span>
-            </p>
           </Tooltip>
         </div>
       ) : null}
@@ -617,8 +692,14 @@ function UnifiedBatterySegmentsBar(props: {
               key={i}
               content={
                 installed
-                  ? `Slot ${i + 1}: ${formatShortBatterySlotRuntime(live)} left of ${formatShortBatterySlotRuntime(max)} nominal. Earlier slots drain first.`
-                  : 'Empty slot - tap to assign a battery.'
+                  ? gameTooltipRich(
+                      `Battery pillar ${i + 1}`,
+                      <>
+                        {formatShortBatterySlotRuntime(live)} left of {formatShortBatterySlotRuntime(max)} stored runtime.
+                        Earlier pillars drain first during a run.
+                      </>,
+                    )
+                  : gameTooltipRich(`Empty pillar ${i + 1}`, 'Tap to assign a battery pack from inventory.')
               }
             >
               <button
@@ -685,7 +766,12 @@ function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void }) {
     inner
   );
   return (
-    <Tooltip content="Efficiency drops as systems age. Tap for service options. Plant tier stretches the interval.">
+    <Tooltip
+      content={gameTooltipRich(
+        'Maintenance wear',
+        'Efficiency declines as uptime accumulates since last service. Tap for repair options; plant tier stretches the interval.',
+      )}
+    >
       {trigger}
     </Tooltip>
   );
@@ -963,25 +1049,35 @@ export function PlantSlotCard(props: {
       onMediaClick={showFeaturedPlantArt && plantFeaturedUrl && canEditParts ? () => setActiveModal('preset') : undefined}
       mediaTapTooltip={
         showFeaturedPlantArt && plantFeaturedUrl && canEditParts
-          ? 'Click the plant image to open setup and upgrade the plant (tier, rig, crew, modules).'
+          ? gameTooltipRich(
+              'Plant artwork',
+              'Opens the plant preset and setup flow: tier, rig, crew link, reactors, modules, and batteries.',
+            )
           : undefined
       }
       mediaOverlayBottom={
         showFeaturedPlantArt && plantFeaturedUrl ? (
           <>
             <Tooltip
-              content={`Base diamond budget for this plant tier (${preset.label}): ${baseCapDisplay} D/24h reference before rigs and modules.`}
+              content={gameTooltipRich(
+                'Base tier budget',
+                <>
+                  Reference D/24h for {preset.label} before rigs and modules change the ceiling.
+                  <span className="mt-1 block font-mono">{baseCapDisplay.toLocaleString()} D</span>
+                </>,
+              )}
             >
               <span className={statCapsuleCls}>{baseCapDisplay.toLocaleString()} Diamonds</span>
             </Tooltip>
             <Tooltip
-              content={
+              content={gameTooltipRich(
+                'Module tier',
                 s.type === 'standard'
-                  ? 'Standard plants do not mount premium/advanced modules.'
+                  ? 'Standard plants cannot mount premium or advanced-only modules.'
                   : s.type === 'premium'
-                    ? 'Premium tier allows module slots for boosts (see Manage modules).'
-                    : 'Advanced tier supports additional module slots and configurations.'
-              }
+                    ? 'Premium plants unlock fabrication module slots — see Modules in setup.'
+                    : 'Advanced plants support the widest module layouts.',
+              )}
             >
               <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
             </Tooltip>
@@ -991,7 +1087,12 @@ export function PlantSlotCard(props: {
       title={`Mining Plant ${props.slotArrayIndex + 1}`}
       titleAccessory={
         s.unlocked ? (
-          <Tooltip content="Diamonds per minute right now (0 when not running).">
+          <Tooltip
+            content={gameTooltipRich(
+              'Live yield rate',
+              'Diamonds credited per minute at the current rig, batteries, crew, grid load, modules, and wear.',
+            )}
+          >
             <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-base">
               {(!setupReady ? 0 : Math.max(0, flowPerMin)).toFixed(1)} D/min
             </span>
@@ -1019,7 +1120,12 @@ export function PlantSlotCard(props: {
               <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
             </Tooltip>
             {s.unlocked && s.setup.machineId ? (
-              <Tooltip content="Live mining efficiency from wear and how well power draw matches your plant budget. Higher is better.">
+              <Tooltip
+                content={gameTooltipRich(
+                  'Efficiency badge',
+                  'Combines maintenance wear with grid load bands. Raise max power or trim draw for a healthier score.',
+                )}
+              >
                 <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
               </Tooltip>
             ) : null}
@@ -1027,7 +1133,12 @@ export function PlantSlotCard(props: {
             s.setup.moduleIds.includes('krex-boost') &&
             (s.krexBoostUntilMs ?? 0) > 0 &&
             now < (s.krexBoostUntilMs ?? 0) ? (
-              <Tooltip content="KREX Boost is active: diamond yield is multiplied until this timer ends (module must stay equipped).">
+              <Tooltip
+                content={gameTooltipRich(
+                  'KREX Boost',
+                  'Yield multiplier applies while the countdown runs — keep KREX Boost mounted.',
+                )}
+              >
                 <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
                   KREX Boost
                 </span>
@@ -1037,7 +1148,12 @@ export function PlantSlotCard(props: {
             (((s.kasOverclockDailyBonusUntilMs ?? 0) > 0 &&
               now < (s.kasOverclockDailyBonusUntilMs ?? 0)) ||
               (s.kasOverclockNextCycleExtraDiamonds ?? 0) > 0) ? (
-              <Tooltip content="KAS Overclock: adds a temporary bonus to your rolling daily diamond cap and/or extra diamonds on the next completed cycle.">
+              <Tooltip
+                content={gameTooltipRich(
+                  'KAS Overclock',
+                  'Temporarily boosts the rolling cap ceiling and/or adds flat diamonds to your next completed cycle.',
+                )}
+              >
                 <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
                   Overclock
                 </span>
@@ -1045,7 +1161,12 @@ export function PlantSlotCard(props: {
             ) : null}
             {s.unlocked ? (
               !foremanInPlantCrew ? (
-                <Tooltip content="Link a Foreman from your Workers deck to this plant's Crew row (Mining setup) to unlock per-plant AUTO. Workers or Operators alone do not unlock it.">
+                <Tooltip
+                  content={gameTooltipRich(
+                    'AUTO locked',
+                    'Link a Foreman from Workers into this plant’s Crew row in Mining setup. Workers or Operators alone do not unlock AUTO.',
+                  )}
+                >
                   <span
                     className="inline-flex items-center rounded-full border border-zinc-300/40 bg-zinc-100/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-zinc-400 opacity-80 dark:border-zinc-600/50 dark:bg-zinc-800/50 dark:text-zinc-500"
                     aria-disabled
@@ -1057,8 +1178,14 @@ export function PlantSlotCard(props: {
                 <Tooltip
                   content={
                     autoRestartInfra
-                      ? 'Per-plant AUTO: when on, this plant starts another run after a cycle if batteries still hold charge. No paid refills from automation. Tap to toggle.'
-                      : 'AUTO is saved per plant. Add Regen Coil (or keep Foreman staffed) so automation infra can chain cycles after you turn AUTO on.'
+                      ? gameTooltipRich(
+                          'Per-plant AUTO',
+                          'When on, starts another run after a cycle if batteries still carry charge. Automation never buys refills — tap to toggle.',
+                        )
+                      : gameTooltipRich(
+                          'Per-plant AUTO',
+                          'Preference is saved here. Add automation infra (e.g. Regen Coil) so runs can chain once you turn AUTO on.',
+                        )
                   }
                 >
                   <button
@@ -1150,7 +1277,10 @@ export function PlantSlotCard(props: {
                     ))
                   : undefined
               }
-              tooltip="Crew NFTs from the Workers tab. One row per plant. Tap to link or change."
+              tooltip={gameTooltipRich(
+                'Crew',
+                'Links one Workers-tab deck row to this plant. NFTs must be deployed on Workers first.',
+              )}
               onClick={() => setActiveModal('worker')}
               disabled={!canEditParts}
             />
@@ -1165,8 +1295,18 @@ export function PlantSlotCard(props: {
               }
               tooltip={
                 machineConfig
-                  ? `${machineConfig.label}: +${machineConfig.diamondsPer24h} D/24h rolling cap · ×${machineConfig.miningSpeedMultiplier.toFixed(2)} mining speed · ${formatMinecorePowerDisplay(machineConfig.powerConsumptionFactor * MINECORE_KW_SCALE)} grid draw. Tap to swap.`
-                  : 'Mining rig for this plant. Tap to assign.'
+                  ? gameTooltipRich(
+                      machineConfig.label,
+                      <>
+                        <p>
+                          +{machineConfig.diamondsPer24h} D/24h toward rolling cap · ×
+                          {machineConfig.miningSpeedMultiplier.toFixed(2)} mining speed ·{' '}
+                          {formatMinecorePowerDisplay(machineConfig.powerConsumptionFactor * MINECORE_KW_SCALE)} draw.
+                        </p>
+                        <p className="mt-1">Tap to swap rigs from inventory.</p>
+                      </>,
+                    )
+                  : gameTooltipRich('Mining rig', 'Pick a machine for this plant.')
               }
               onClick={() => setActiveModal('machine')}
               disabled={!canEditParts}
@@ -1180,7 +1320,10 @@ export function PlantSlotCard(props: {
                     ? `${s.setup.moduleIds.length} equipped · tap to manage`
                     : 'None equipped · tap to add'
                 }
-                tooltip={s.type === 'premium' ? 'Premium: add or swap modules.' : 'Advanced: add or swap modules.'}
+                tooltip={gameTooltipRich(
+                  'Modules',
+                  s.type === 'premium' ? 'Premium plants can mount boost modules.' : 'Advanced plants support more module slots.',
+                )}
                 onClick={() => setActiveModal('modules')}
                 disabled={!canEditParts}
               />
@@ -1198,8 +1341,14 @@ export function PlantSlotCard(props: {
               }
               tooltip={
                 nodeConfig
-                  ? `Reactor installed: +${nodeConfig.maxPowerKw} kW to this plant’s max power. Tap to swap or remove.`
-                  : 'Optional reactor crafted in Build - raises max plant power (kW). Tap to pick.'
+                  ? gameTooltipRich(
+                      nodeConfig.label,
+                      <>Adds +{nodeConfig.maxPowerKw} kW to max plant power. Tap to swap or clear.</>,
+                    )
+                  : gameTooltipRich(
+                      'Reactor slot',
+                      'Optional reactor crafted in Build. Raises max plant power so heavy rigs stay in a safe load band.',
+                    )
               }
               onClick={() => setActiveModal('powerNode')}
               disabled={!canEditParts}
@@ -1231,8 +1380,14 @@ export function PlantSlotCard(props: {
                   }
                   tooltip={
                     bcfg
-                      ? 'Stored energy for mining runs. Tap to swap or recharge.'
-                      : 'Assign a battery pack. Tap to pick.'
+                      ? gameTooltipRich(
+                          `${bcfg.label}`,
+                          'Stored energy for mining cycles. Tap to swap packs or refill from treasury.',
+                        )
+                      : gameTooltipRich(
+                          powerUnitCount > 1 ? `Battery pillar ${bi + 1}` : 'Battery',
+                          'Pick a fabricated battery pack. Each pillar holds one unit; earlier pillars drain first during a run.',
+                        )
                   }
                   onClick={() => {
                     setBatterySlotFocus(bi);
