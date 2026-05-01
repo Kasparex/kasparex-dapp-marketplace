@@ -284,6 +284,8 @@ export const MINECORE_MACHINES: Record<MinecoreMachineId, MachineConfig> = {
   'magma-tap': {
     id: 'magma-tap',
     label: 'Magma Tap',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_e29760261c8c4a2ab82a56c6419f1274~mv2.png',
     durationMs: 18 * 60_000,
     baseOutput: 320,
     powerConsumptionFactor: 2.95,
@@ -412,6 +414,8 @@ export const MINECORE_BATTERIES: Record<MinecoreBatteryId, BatteryConfig> = {
   'grid-battery': {
     id: 'grid-battery',
     label: 'Grid Battery',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_caf93d8b16e4402583d5f74ea216312b~mv2.png',
     efficiency: 1.5,
     powerCapacity: 0,
     chargeCapacityMs: 360 * 60_000,
@@ -527,6 +531,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   'vector-drill-chip': {
     id: 'vector-drill-chip',
     label: 'Vector Drill Chip',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_4a53fb6e829342a9ac78aeb9e7e93050~mv2.png',
     kind: 'output',
     outputBonus: 0.08,
     failureReduction: 0.04,
