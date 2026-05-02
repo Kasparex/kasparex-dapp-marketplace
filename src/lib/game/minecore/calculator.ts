@@ -3,7 +3,6 @@ import {
   MINECORE_GRID_PER_REFINEMENT_POINT,
   MINECORE_KREX_PER_REFINEMENT_POINT,
   MINECORE_PLANT_PRESETS,
-  MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_REFINE_POINTS_PER_DIAMOND,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
@@ -17,6 +16,7 @@ import {
 import { computePlantDiamondsPer24h, computePlantMiningSpeedMultiplier } from './plant-economy';
 import { getMaxChargePerSlotMs } from './battery-utils';
 import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
+import { listKasForBatterySlotRecharge } from './recharge-pricing';
 import { createInitialMinecoreState } from './initial-state';
 import { KREXPRIME_DIAMOND_IDS, RAREST_NFT_IDS } from '@/lib/game/diamond-veins-config';
 import type {
@@ -225,7 +225,7 @@ export function runMinecoreCalculator(input: MinecoreCalculatorInput): MinecoreC
   const refine = partial * MINECORE_REFINE_POINTS_PER_DIAMOND;
   const gridR = refine * MINECORE_GRID_PER_REFINEMENT_POINT;
 
-  const kasRecharge = MINECORE_PLANT_RECHARGE_COST_KAS;
+  const kasRecharge = listKasForBatterySlotRecharge(mcState, slot, 0);
   const kasRechargeD = applyKasDiscount(kasRecharge, kasDiscountPct);
 
   const preset = MINECORE_PLANT_PRESETS[plantType];

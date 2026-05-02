@@ -82,6 +82,10 @@ import {
   ensureBatterySlotChargeLength,
 } from '@/lib/game/minecore/battery-utils';
 import { computeMinecoreBatteryBonusMsPerSlot, minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
+import {
+  listKasForBatterySlotRecharge,
+  sumListKasForBatterySlotRecharge,
+} from '@/lib/game/minecore/recharge-pricing';
 import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -94,13 +98,35 @@ function clamp01(n: number) {
   return n <= 0 ? 0 : n >= 1 ? 1 : n;
 }
 
-/** Maintenance bar fill: violet (~258°) at full health → red at 0%. */
+/** Maintenance bar fill: violet (badge hue) → navy → orange → red as health drops. */
 function maintenanceMeterFillCss(health: number): string {
   const h = clamp01(health);
-  const hue = Math.round(258 * h);
-  const sat = Math.round(68 + 18 * h);
-  const lig = Math.round(54 - 14 * (1 - h));
-  return `hsl(${hue} ${sat}% ${lig}%)`;
+  const purple = { hue: 262, sat: 83, lig: 58 };
+  const navy = { hue: 222, sat: 55, lig: 38 };
+  const orange = { hue: 28, sat: 92, lig: 54 };
+  const red = { hue: 0, sat: 72, lig: 50 };
+
+  type C = { hue: number; sat: number; lig: number };
+  function mix(a: C, b: C, u: number): C {
+    return {
+      hue: a.hue + (b.hue - a.hue) * u,
+      sat: a.sat + (b.sat - a.sat) * u,
+      lig: a.lig + (b.lig - a.lig) * u,
+    };
+  }
+
+  let c: C;
+  if (h >= 0.62) {
+    const u = (h - 0.62) / (1 - 0.62);
+    c = mix(navy, purple, u);
+  } else if (h >= 0.35) {
+    const u = (h - 0.35) / (0.62 - 0.35);
+    c = mix(orange, navy, u);
+  } else {
+    const u = h <= 0 ? 0 : h / 0.35;
+    c = mix(red, orange, u);
+  }
+  return `hsl(${Math.round(c.hue)} ${Math.round(c.sat)}% ${Math.round(c.lig)}%)`;
 }
 
 function togglePowerNodeSlotAssignment(
@@ -786,30 +812,39 @@ function UnifiedBatterySegmentsBar(props: {
   );
 }
 
-/** Distinct from battery tier - violet maintenance health (inverse wear); fill hue shifts toward red as health drops. */
-function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void }) {
+/** Distinct from battery tier — maintenance health (inverse wear); fill shifts purple → navy → orange → red. */
+function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void; embedded?: boolean }) {
   const health = clamp01(1 - props.wearRatio);
   const fill = maintenanceMeterFillCss(health);
-  const inner = (
+  const pct = Math.round(health * 100);
+  const widthPct = Math.max(2, pct);
+  const barTrack = (
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+      <div
+        className="h-full rounded-full transition-[width,background-color] duration-700"
+        style={{
+          width: `${widthPct}%`,
+          backgroundColor: fill,
+        }}
+      />
+    </div>
+  );
+  const inner = props.embedded ? (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-black tabular-nums transition-colors duration-700 shrink-0" style={{ color: fill }}>
+        {pct}%
+      </span>
+      <div className="min-w-0 flex-1">{barTrack}</div>
+    </div>
+  ) : (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Maintenance</span>
-        <span
-          className="text-xs font-black tabular-nums transition-colors duration-700"
-          style={{ color: fill }}
-        >
-          {Math.round(health * 100)}%
+        <span className="text-xs font-black tabular-nums transition-colors duration-700" style={{ color: fill }}>
+          {pct}%
         </span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-        <div
-          className="h-full rounded-full transition-[width,background-color] duration-700"
-          style={{
-            width: `${Math.max(2, Math.round(health * 100))}%`,
-            backgroundColor: fill,
-          }}
-        />
-      </div>
+      {barTrack}
     </div>
   );
   const trigger = props.onOpen ? (
@@ -1071,6 +1106,16 @@ export function PlantSlotCard(props: {
   const liveSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(liveSlotChargesRaw, powerUnitCount, 0) : [];
   const maxSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(maxSlotChargesRaw, powerUnitCount, 0) : [];
 
+  const refillListKasRange = useMemo(() => {
+    if (!s.unlocked || installedBatteryIndices.length === 0) {
+      return { min: MINECORE_PLANT_RECHARGE_COST_KAS, max: MINECORE_PLANT_RECHARGE_COST_KAS };
+    }
+    const prices = installedBatteryIndices.map((bi) =>
+      listKasForBatterySlotRecharge(props.minecoreState, s, bi, ctx),
+    );
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }, [s, props.minecoreState, ctx, installedBatteryIndices]);
+
   function openBatteryRefillModal(prefSlot?: number) {
     if (installedBatteryIndices.length === 0) return;
     if (prefSlot !== undefined && installedBatteryIndices.includes(prefSlot)) {
@@ -1097,14 +1142,20 @@ export function PlantSlotCard(props: {
   } else if (s.status === 'NeedsRepair') {
     actionLabel = `Repair - ${MINECORE_PLANT_REPAIR_KAS} KAS`;
   } else if (batteryDeadInRun || s.status === 'NeedsPower') {
-    actionLabel = `Refill battery - ${MINECORE_PLANT_RECHARGE_COST_KAS}+ KAS`;
+    const rk = refillListKasRange;
+    const refillHint =
+      rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
+    actionLabel = `Refill battery — ${refillHint}`;
   } else if (
     s.status === 'ReadyToMine' &&
     liveChargeMs <= 0 &&
     hasInstalledBattery(s.setup, s.type) &&
     s.setup.machineId
   ) {
-    actionLabel = `Refill battery - ${MINECORE_PLANT_RECHARGE_COST_KAS}+ KAS`;
+    const rk = refillListKasRange;
+    const refillHint =
+      rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
+    actionLabel = `Refill battery — ${refillHint}`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
   } else if (s.status === 'DailyCapReached') {
@@ -1180,8 +1231,11 @@ export function PlantSlotCard(props: {
       mediaTapTooltip={
         showFeaturedPlantArt && plantFeaturedUrl && canEditParts
           ? gameTooltipRich(
-              'Plant artwork',
-              'Opens the plant preset and setup flow: tier, rig, crew link, reactors, modules, and batteries.',
+              'Click to Upgrade',
+              <>
+                Tap the plant image to open setup. Choose your mining plant tier and upgrade rigs, crew links, reactors,
+                modules, and batteries from there.
+              </>,
             )
           : undefined
       }
@@ -1605,7 +1659,12 @@ export function PlantSlotCard(props: {
           ) : null}
 
           {s.unlocked ? (
-            <MaintenanceWearBar wearRatio={wearRatio} onOpen={() => setMaintenanceModalOpen(true)} />
+            <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
+              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Maintenance
+              </div>
+              <MaintenanceWearBar wearRatio={wearRatio} embedded onOpen={() => setMaintenanceModalOpen(true)} />
+            </div>
           ) : null}
 
           {/* ── Status warnings (above primary action) ── */}
@@ -1710,8 +1769,8 @@ export function PlantSlotCard(props: {
         </div>
         <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
           {(() => {
-            const n = refillSlotIndexes.length;
-            const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * n;
+            const sorted = [...refillSlotIndexes].sort((a, b) => a - b);
+            const listKas = sumListKasForBatterySlotRecharge(props.minecoreState, s, sorted, ctx);
             const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(listKas);
             const payKrex = payKas * MINECORE_KREX_PER_KAS;
             return (

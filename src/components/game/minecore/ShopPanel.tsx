@@ -13,6 +13,11 @@ import {
   MINECORE_KREX_BOOST_YIELD_MULT,
   MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
+import {
+  MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR,
+  MINECORE_RECHARGE_INCLUDED_HOURS,
+  listKasForBatterySlotRecharge,
+} from '@/lib/game/minecore/recharge-pricing';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
@@ -64,6 +69,7 @@ function BoostPlantTargetSelect(props: {
 }
 
 export function ShopPanel(props: {
+  minecoreState: MinecoreState;
   ingredients: MinecoreState['ingredients'];
   plantSlots: MinecoreState['plantSlots'];
   onBuy: (args: {
@@ -538,37 +544,47 @@ export function ShopPanel(props: {
       id: 'power-topup',
       title: 'Plant recharge',
       category: 'Utility',
-      description: 'Refills battery charge on plant 1 (each quantity fills another battery slot).',
+      description: 'Refills battery charge on plant 1 (each quantity fills another battery slot). Price scales with each slot pack capacity.',
       baseKasPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
       type: 'item' as const,
-      render: () => (
-        <GameItemCard
-          key="power-topup"
-          title="Plant recharge"
-          category="Utility"
-          imageSrc="https://static.wixstatic.com/media/de4185_dba6bd95290c4ad1bf82e24f19fa4533~mv2.jpg"
-          description="Battery refill packs for your first plant: quantity picks how many slots get topped up."
-          effects={[
-            { label: 'Each pack', value: `One slot refill (${MINECORE_PLANT_RECHARGE_COST_KAS} KAS)` },
-          ]}
-          priceOptions={[
-            {
-              currency: 'KAS',
-              unitPrice: props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS),
-              originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
-            },
-            {
-              currency: 'KREX',
-              unitPrice: minecoreKrexFromDiscountedKas(
-                props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS),
-              ),
-            },
-          ]}
-          quantitySelector={{ min: 1, max: 10 }}
-          buyLabel="Buy"
-          onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'power-topup', currency, quantity })}
-        />
-      ),
+      render: () => {
+        const p0 = props.minecoreState.plantSlots[0];
+        const slot0List =
+          p0?.unlocked ? listKasForBatterySlotRecharge(props.minecoreState, p0, 0) : MINECORE_PLANT_RECHARGE_COST_KAS;
+        return (
+          <GameItemCard
+            key="power-topup"
+            title="Plant recharge"
+            category="Utility"
+            imageSrc="https://static.wixstatic.com/media/de4185_dba6bd95290c4ad1bf82e24f19fa4533~mv2.jpg"
+            description="Battery refill packs for your first plant: quantity picks how many slots get topped up."
+            effects={[
+              {
+                label: 'Pricing',
+                value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS covers ~${MINECORE_RECHARGE_INCLUDED_HOURS}h runtime per slot + ${MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR} KAS per extra hour of capacity`,
+              },
+              {
+                label: 'Shop display',
+                value: 'Uses pillar 1 list KAS × quantity as a guide; payment matches each slot’s capacity',
+              },
+            ]}
+            priceOptions={[
+              {
+                currency: 'KAS',
+                unitPrice: props.getKasPriceAfterDiscount(slot0List),
+                originalUnitPrice: slot0List,
+              },
+              {
+                currency: 'KREX',
+                unitPrice: minecoreKrexFromDiscountedKas(props.getKasPriceAfterDiscount(slot0List)),
+              },
+            ]}
+            quantitySelector={{ min: 1, max: 10 }}
+            buyLabel="Buy"
+            onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'power-topup', currency, quantity })}
+          />
+        );
+      },
     },
     {
       id: 'repair',

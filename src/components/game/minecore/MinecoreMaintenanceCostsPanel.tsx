@@ -10,6 +10,10 @@ import {
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_PLANT_REPAIR_KAS,
 } from '@/lib/game/minecore/config';
+import {
+  MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR,
+  MINECORE_RECHARGE_INCLUDED_HOURS,
+} from '@/lib/game/minecore/recharge-pricing';
 
 function CostCapsule(props: {
   label: string;
@@ -109,7 +113,26 @@ export function MinecoreMaintenanceCostsPanel(props: {
       <div className="grid grid-cols-2 gap-2">
         {row('Activate plant slot', MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, true)}
         {row('Add plant row', props.nextSlotCostKas, true)}
-        {row('Recharge (battery refill)', MINECORE_PLANT_RECHARGE_COST_KAS, true)}
+        <CostCapsule
+          key="minecore-recharge-cost"
+          label="Recharge (battery refill)"
+          accent={true}
+          tooltip={gameTooltipRich(
+            'Recharge (battery refill)',
+            <>
+              Price is per battery pillar: {MINECORE_PLANT_RECHARGE_COST_KAS.toLocaleString()} KAS covers about{' '}
+              {MINECORE_RECHARGE_INCLUDED_HOURS} hour of runtime on that pillar, then{' '}
+              {MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR.toLocaleString()} KAS for each additional hour of effective capacity (rounded up).
+              Multi-slot selections sum each pillar; Battery sync fills every mounted pack at once.
+            </>,
+          )}
+        >
+          <KasPriceLine
+            baseKas={MINECORE_PLANT_RECHARGE_COST_KAS}
+            payKas={props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS)}
+            discountPct={props.krexDiscountPct}
+          />
+        </CostCapsule>
         {row('Repair plant', MINECORE_PLANT_REPAIR_KAS, true)}
         {premium.costKas <= 0
           ? row(`Upgrade → ${premium.label}`, 0, false, true)

@@ -7,13 +7,22 @@ import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import * as Icons from 'lucide-react';
 import type { MinecoreState } from '@/lib/game/minecore';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
-import { MINECORE_PLANT_PRESETS, MINECORE_PLANT_RECHARGE_COST_KAS, MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
+import {
+  MINECORE_PLANT_PRESETS,
+  MINECORE_KREX_PER_KAS,
+  MINECORE_PLANT_RECHARGE_COST_KAS,
+} from '@/lib/game/minecore/config';
+import {
+  listKasForBatterySlotRecharge,
+  MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR,
+  MINECORE_RECHARGE_INCLUDED_HOURS,
+  sumListKasForPlantBatteryRefill,
+} from '@/lib/game/minecore/recharge-pricing';
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { MinecoreVeinBreakdownByMachine } from '@/components/game/minecore/MinecoreMiningSections';
 
 /** KAS paths use wallet sends; KREX paths use the same SKU pricing via treasury KRC-20 transfer (`payKrexTreasury`). */
-const KAS_BATTERY_SYNC = 3;
 const KAS_RESERVE_PACK = 6;
 const RESERVE_PACK_UNITS = 3;
 
@@ -33,9 +42,13 @@ export function MinecorePowerPanel(props: {
   const [targetSlot, setTargetSlot] = useState(0);
 
   const slot = state.plantSlots[targetSlot];
-  const batterySyncPrice = props.getKasPriceAfterDiscount(KAS_BATTERY_SYNC);
+  const batterySyncList =
+    slot?.unlocked ? sumListKasForPlantBatteryRefill(props.state, slot, props.computeCtx) : MINECORE_PLANT_RECHARGE_COST_KAS;
+  const batterySyncPrice = props.getKasPriceAfterDiscount(batterySyncList);
   const reservePackPrice = props.getKasPriceAfterDiscount(KAS_RESERVE_PACK);
-  const runtimeBundlePrice = props.getKasPriceAfterDiscount(MINECORE_PLANT_RECHARGE_COST_KAS);
+  const runtimeBundleList =
+    slot?.unlocked ? listKasForBatterySlotRecharge(props.state, slot, 0, props.computeCtx) : MINECORE_PLANT_RECHARGE_COST_KAS;
+  const runtimeBundlePrice = props.getKasPriceAfterDiscount(runtimeBundleList);
   const batterySyncPriceKrex = batterySyncPrice * MINECORE_KREX_PER_KAS;
   const reservePackPriceKrex = reservePackPrice * MINECORE_KREX_PER_KAS;
   const runtimeBundlePriceKrex = runtimeBundlePrice * MINECORE_KREX_PER_KAS;
@@ -52,6 +65,9 @@ export function MinecorePowerPanel(props: {
           const batteryPct = capMs > 0 ? Math.round((liveCharge / capMs) * 100) : 0;
           const flowPerMin = computeFlowRatePerMin(props.state, p, now, props.computeCtx);
           const unitCap = getPowerUnitCap(p);
+          const rechargeList = p.unlocked
+            ? listKasForBatterySlotRecharge(props.state, p, 0, props.computeCtx)
+            : MINECORE_PLANT_RECHARGE_COST_KAS;
 
           return (
             <li
@@ -94,7 +110,7 @@ export function MinecorePowerPanel(props: {
                     disabled={!hasInstalledBattery(p.setup, p.type)}
                     className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-bold text-sky-800 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-200 dark:hover:bg-sky-500/15"
                   >
-                    Recharge ({MINECORE_PLANT_RECHARGE_COST_KAS} KAS)
+                    Recharge ({rechargeList.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS)
                   </button>
                 </div>
               ) : (
@@ -138,15 +154,19 @@ export function MinecorePowerPanel(props: {
             icon={<Icons.BatteryCharging className="h-8 w-8 text-sky-500/90" strokeWidth={1.75} />}
             title="Battery sync"
             category="Battery"
-            description="Restore battery charge for one slot (matches Mining recharge)."
+            description="Restore full charge on every mounted battery pillar (same total as summing Mining-tab refills)."
             effects={[
               { label: 'Effect', value: '100% charge', color: 'sky' },
               { label: 'Best for', value: 'Mid-cycle top-up' },
+              {
+                label: 'Pricing',
+                value: `All mounted pillars · +${MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR} KAS per hr beyond ${MINECORE_RECHARGE_INCLUDED_HOURS}h cap`,
+              },
             ]}
             buyLabel={!slot?.unlocked ? 'Locked' : !hasInstalledBattery(slot?.setup, slot?.type) ? 'Install battery first' : 'Pay'}
             buyDisabled={!slot?.unlocked || !hasInstalledBattery(slot?.setup, slot?.type)}
             priceOptions={[
-              { currency: 'KAS', unitPrice: batterySyncPrice, originalUnitPrice: KAS_BATTERY_SYNC },
+              { currency: 'KAS', unitPrice: batterySyncPrice, originalUnitPrice: batterySyncList },
               { currency: 'KREX', unitPrice: batterySyncPriceKrex },
             ]}
             onBuy={({ currency }) => {
@@ -179,7 +199,10 @@ export function MinecorePowerPanel(props: {
             description="Battery refill charge via mining recharge pricing."
             effects={[
               { label: 'Includes', value: 'Battery charge only', color: 'emerald' },
-              { label: 'Nominal', value: `${MINECORE_PLANT_RECHARGE_COST_KAS} KAS` },
+              {
+                label: 'List (pillar 1)',
+                value: `${runtimeBundleList.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS`,
+              },
             ]}
             buyLabel={!slot?.unlocked ? 'Locked' : !hasInstalledBattery(slot?.setup, slot?.type) ? 'Install battery first' : 'Pay'}
             buyDisabled={!slot?.unlocked || !hasInstalledBattery(slot?.setup, slot?.type)}
@@ -187,7 +210,7 @@ export function MinecorePowerPanel(props: {
               {
                 currency: 'KAS',
                 unitPrice: runtimeBundlePrice,
-                originalUnitPrice: MINECORE_PLANT_RECHARGE_COST_KAS,
+                originalUnitPrice: runtimeBundleList,
               },
               { currency: 'KREX', unitPrice: runtimeBundlePriceKrex },
             ]}

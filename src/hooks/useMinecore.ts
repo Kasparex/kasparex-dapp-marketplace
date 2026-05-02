@@ -21,7 +21,6 @@ import {
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import {
-  MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_STORAGE_PREFIX,
   MINECORE_KREX_PER_KAS,
@@ -40,6 +39,10 @@ import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
+import {
+  sumListKasForBatterySlotRecharge,
+  sumListKasForPlantBatteryRefill,
+} from '@/lib/game/minecore/recharge-pricing';
 import type { MinecoreIngredient, MinecorePowerNodeId } from '@/lib/game/minecore/types';
 
 const DEFAULT_TREASURY = process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '';
@@ -736,9 +739,13 @@ export function useMinecore() {
   );
 
   const refillBatteryWithKAS = useCallback(
-    async (slotIndex: number, amountKas: number) => {
+    async (slotIndex: number) => {
+      const mc = mcRef.current;
+      const slot = mc.plantSlots[slotIndex];
+      if (!slot?.unlocked) return false;
+      const listKas = sumListKasForPlantBatteryRefill(mc, slot, minecoreComputeContext);
       const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(amountKas),
+        amountKas: getKasPriceAfterDiscount(listKas),
         skuId: 'minecore:battery:refill',
         purchaseType: 'other',
       });
@@ -746,7 +753,7 @@ export function useMinecore() {
       dispatch({ type: 'RefillBattery', slotIndex, at: Date.now() });
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount, minecoreComputeContext],
   );
 
   /** Refill selected battery slot(s). KAS = L1 KAS send; KREX = L1 KRC-20 transfer to treasury (same wallet flow as Garage). */
@@ -764,7 +771,9 @@ export function useMinecore() {
         indexes = [0];
       }
       const currency = opts?.currency ?? 'KAS';
-      const listKas = MINECORE_PLANT_RECHARGE_COST_KAS * indexes.length;
+      const slot = mcRef.current.plantSlots[slotIndex];
+      if (!slot) return false;
+      const listKas = sumListKasForBatterySlotRecharge(mcRef.current, slot, indexes, minecoreComputeContext);
       const payKas = getKasPriceAfterDiscount(listKas);
       const payKrex = payKas * MINECORE_KREX_PER_KAS;
 
@@ -796,7 +805,7 @@ export function useMinecore() {
       dispatch(payload);
       return true;
     },
-    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount, minecoreComputeContext],
   );
 
   const rechargePlantWithKAS = useCallback(

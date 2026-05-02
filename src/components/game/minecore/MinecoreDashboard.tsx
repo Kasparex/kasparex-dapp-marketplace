@@ -14,7 +14,7 @@ import {
   computeMinecoreDiamondsDisplayTotal,
   computeMinecoreRollingDailyCapDeckTotals,
 } from '@/lib/game/minecore/compute';
-import { getPlantBatterySlotCount } from '@/lib/game/minecore/battery-utils';
+import { getPlantBatterySlotCount, normalizeBatteryIds } from '@/lib/game/minecore/battery-utils';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
 import { ShopPanel } from '@/components/game/minecore/ShopPanel';
@@ -184,13 +184,12 @@ export function MinecoreDashboard(_props: {
         subValue: (
           <>
             <span className="font-semibold tabular-nums">{deckLiveYieldPerMin.toFixed(1)}</span>
-            <span className="font-bold text-zinc-500 dark:text-zinc-400"> ♦/min</span>
-            <span className="text-zinc-500 dark:text-zinc-500"> live combined</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/min (total)</span>
           </>
         ),
         description: 'In-game currency',
         tooltip:
-          'Diamonds you earn in plants; refine into redeem points. Subtext is total live yield (D/min) summed over every plant that is actively mining right now. Opens Redeem.',
+          'Diamonds you earn in plants; refine into redeem points. Subtext is total live diamond yield rate (D/min) summed across plants that are actively mining right now. Opens Redeem.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('redeem' as const),
@@ -513,11 +512,18 @@ export function MinecoreDashboard(_props: {
                 void actions.rechargePlantWithKAS(idx);
               }}
               onBatterySync={async (idx, currency) => {
+                const slot = state.plantSlots[idx];
+                if (!slot?.unlocked) return;
+                const ids = normalizeBatteryIds(slot.setup, slot.type);
+                const batterySlotIndexes = ids
+                  .map((id, i) => (id != null ? i : null))
+                  .filter((x): x is number => x != null);
+                if (batterySlotIndexes.length === 0) return;
                 if (currency === 'KREX') {
-                  await actions.rechargePlant(idx, { currency: 'KREX' });
+                  await actions.rechargePlant(idx, { batterySlotIndexes, currency: 'KREX' });
                   return;
                 }
-                await actions.refillBatteryWithKAS(idx, 3);
+                await actions.refillBatteryWithKAS(idx);
               }}
               onReservePack={async (idx, currency) => {
                 if (currency === 'KREX') {
@@ -557,6 +563,7 @@ export function MinecoreDashboard(_props: {
 
           {tab === 'shop' && (
             <ShopPanel
+              minecoreState={state}
               ingredients={state.ingredients}
               plantSlots={state.plantSlots}
               getKasPriceAfterDiscount={getKasPriceAfterDiscount}
