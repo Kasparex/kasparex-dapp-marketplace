@@ -23,6 +23,7 @@ import { MinecorePowerPanel } from '@/components/game/minecore/MinecorePowerPane
 import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewardsPanel';
 import { MinecoreMiningTabFooter } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
+import { MinecoreBulkMiningButton } from '@/components/game/minecore/MinecoreBulkMiningButton';
 import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
@@ -124,6 +125,18 @@ export function MinecoreDashboard(_props: {
     }
     return entries;
   }, [state.plantSlots, miningSearch, miningCategory, miningSort]);
+
+  const showRedeemBulkMining =
+    state.refinementPointsTotal > 0 || (state.gridLedger?.length ?? 0) > 0;
+
+  const bulkMiningControl = (
+    <MinecoreBulkMiningButton
+      plantSlots={state.plantSlots}
+      miningAllowed={miningAllowed}
+      onStartAll={actions.startMiningAllPlants}
+      onStopAll={actions.stopMiningAllPlants}
+    />
+  );
 
   const canPayWithL1 =
     Boolean(wallet.isConnected) && (wallet.provider === 'kasware' || wallet.provider === 'kastle');
@@ -375,6 +388,7 @@ export function MinecoreDashboard(_props: {
                 categories={['Unlocked', 'Locked', 'Active']}
                 sortBy={miningSort}
                 onSortChange={setMiningSort}
+                trailing={bulkMiningControl}
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -695,6 +709,17 @@ export function MinecoreDashboard(_props: {
                   gridRedeemablePending: state.gridRedeemableTotal,
                   krexRedeemablePending: state.krexRedeemableTotal,
                 }}
+                diamondRefinementFooter={
+                  showRedeemBulkMining ? (
+                    <MinecoreBulkMiningButton
+                      plantSlots={state.plantSlots}
+                      miningAllowed={miningAllowed}
+                      onStartAll={actions.startMiningAllPlants}
+                      onStopAll={actions.stopMiningAllPlants}
+                      compact
+                    />
+                  ) : undefined
+                }
               />
             </div>
           )}

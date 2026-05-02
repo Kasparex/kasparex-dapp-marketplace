@@ -1,6 +1,6 @@
 'use client';
 
-import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerNodeId } from '@/lib/game/minecore';
+import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerNodeId, MinecoreBatteryId } from '@/lib/game/minecore';
 import {
   computeLiveBatteryChargeMs,
   computePlantDailyCapProgress,
@@ -864,6 +864,7 @@ export function PlantSlotCard(props: {
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
+  const [batteryInstallConfirmId, setBatteryInstallConfirmId] = useState<MinecoreBatteryId | null>(null);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
@@ -882,6 +883,22 @@ export function PlantSlotCard(props: {
   useEffect(() => {
     setModalFeedback(null);
   }, [activeModal]);
+
+  useEffect(() => {
+    if (activeModal !== 'battery') setBatteryInstallConfirmId(null);
+  }, [activeModal]);
+
+  useEffect(() => {
+    if (batteryInstallConfirmId == null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setBatteryInstallConfirmId(null);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [batteryInstallConfirmId]);
 
   const dispatchInstallPartPayload = useCallback(
     (part: InstallPartPayload) => {
@@ -2019,6 +2036,10 @@ export function PlantSlotCard(props: {
                             setModalFeedback('This pack is already in this slot.');
                             return;
                           }
+                          if (curAtPillar == null) {
+                            setBatteryInstallConfirmId(b.id);
+                            return;
+                          }
                           dispatchInstallPartPayload({
                             kind: 'battery',
                             id: b.id,
@@ -2055,6 +2076,57 @@ export function PlantSlotCard(props: {
           );
         })()}
       </SelectionModal>
+
+      {batteryInstallConfirmId != null && typeof window !== 'undefined'
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+              role="presentation"
+              onClick={() => setBatteryInstallConfirmId(null)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="battery-install-confirm-title"
+                className="max-w-sm rounded-xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 id="battery-install-confirm-title" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Install battery pack?
+                </h4>
+                <p className="mt-2 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+                  After you install it on this pillar, you cannot change the pack model until this pillar is fully empty (0%
+                  runtime left).
+                </p>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBatteryInstallConfirmId(null)}
+                    className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      dispatchInstallPartPayload({
+                        kind: 'battery',
+                        id: batteryInstallConfirmId,
+                        batterySlotIndex: batterySlotFocus,
+                      });
+                      setBatteryInstallConfirmId(null);
+                      setActiveModal(null);
+                    }}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <SelectionModal
         isOpen={activeModal === 'worker'}

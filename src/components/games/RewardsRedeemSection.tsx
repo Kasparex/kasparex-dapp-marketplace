@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { payKaspaL1 } from '@/lib/games/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import {
@@ -35,6 +35,7 @@ export function RewardsRedeemSection({
   onRefine,
   onRedeem,
   minecoreExtras,
+  diamondRefinementFooter,
   children,
 }: {
   diamondsBalance: number;
@@ -43,7 +44,9 @@ export function RewardsRedeemSection({
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   /** When set (e.g. Minecore tab), shows pool + daily caps from shared config. */
   minecoreExtras?: MinecoreRedeemExtras;
-  children?: React.ReactNode;
+  /** Shown inside the Diamond Refinement panel (e.g. bulk restart mining after refine stops plants). */
+  diamondRefinementFooter?: ReactNode;
+  children?: ReactNode;
 }) {
   const [refineAmount, setRefineAmount] = useState<number | ''>('');
   const [redeemPoints, setRedeemPoints] = useState<number | ''>('');
@@ -176,6 +179,12 @@ export function RewardsRedeemSection({
             ) : null}
           </div>
         </div>
+
+        {diamondRefinementFooter ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            {diamondRefinementFooter}
+          </div>
+        ) : null}
       </div>
 
       {/* ── Token Redemption ── */}

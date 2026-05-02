@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { RewardsRedeemSection, type MinecoreRedeemExtras } from '@/components/games/RewardsRedeemSection';
 
@@ -12,6 +12,7 @@ export function MinecoreRewardsPanel({
   onRefine,
   onRedeem,
   minecoreExtras,
+  diamondRefinementFooter,
 }: {
   address: string | undefined;
   diamondsBalance: number;
@@ -20,6 +21,7 @@ export function MinecoreRewardsPanel({
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   minecoreExtras?: MinecoreRedeemExtras;
+  diamondRefinementFooter?: ReactNode;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
 
@@ -51,6 +53,7 @@ export function MinecoreRewardsPanel({
         onRefine={onRefine}
         onRedeem={onRedeem}
         minecoreExtras={minecoreExtras}
+        diamondRefinementFooter={diamondRefinementFooter}
       >
 
       <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">

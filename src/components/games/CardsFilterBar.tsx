@@ -12,6 +12,8 @@ export interface CardsFilterBarProps {
   onSortChange: (val: string) => void;
   /** Optional right-aligned label per category key (excludes `all`). */
   categoryTrailing?: Partial<Record<string, ReactNode>>;
+  /** Rendered after search + dropdowns (e.g. bulk actions). */
+  trailing?: ReactNode;
 }
 
 export function CardsFilterBar({
@@ -23,6 +25,7 @@ export function CardsFilterBar({
   sortBy,
   onSortChange,
   categoryTrailing,
+  trailing,
 }: CardsFilterBarProps) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -56,7 +59,7 @@ export function CardsFilterBar({
   const currentCategoryLabel = category === 'all' ? 'All Categories' : category;
 
   return (
-    <div className="flex items-center gap-3 w-full mb-6 overflow-visible flex-nowrap">
+    <div className="flex flex-wrap items-center gap-3 w-full mb-6 overflow-visible">
       {/* Search */}
       <div className="flex-1 min-w-[200px]">
         <input
@@ -156,6 +159,8 @@ export function CardsFilterBar({
           </div>
         )}
       </div>
+
+      {trailing ? <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">{trailing}</div> : null}
     </div>
   );
 }

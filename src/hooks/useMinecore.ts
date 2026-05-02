@@ -139,6 +139,8 @@ export function useMinecore() {
   const minecoreComputeContext = useMemo((): MinecoreComputeContext => ({ nftMetadataByDeckIndex: slottedMetadata }), [
     slottedMetadata,
   ]);
+  const minecoreComputeContextRef = useRef(minecoreComputeContext);
+  minecoreComputeContextRef.current = minecoreComputeContext;
 
   // Derive statuses from timestamps (progress + completed state) without mutating persisted state each second.
   const nowTick = useNowTick(1000);
@@ -526,6 +528,27 @@ export function useMinecore() {
 
   const stopMining = useCallback((slotIndex: number) => {
     dispatch({ type: 'StopMining', slotIndex, at: Date.now() });
+  }, [dispatch]);
+
+  const startMiningAllPlants = useCallback(() => {
+    if (!miningAllowed) return;
+    const at = Date.now();
+    const snapshot = deriveState(mcRef.current, at, minecoreComputeContextRef.current);
+    snapshot.plantSlots.forEach((slot, slotIndex) => {
+      if (slot.unlocked && slot.status === 'ReadyToMine') {
+        dispatch({ type: 'StartMining', slotIndex, at });
+      }
+    });
+  }, [dispatch, miningAllowed]);
+
+  const stopMiningAllPlants = useCallback(() => {
+    const at = Date.now();
+    const snapshot = deriveState(mcRef.current, at, minecoreComputeContextRef.current);
+    snapshot.plantSlots.forEach((slot, slotIndex) => {
+      if (slot.unlocked && slot.status === 'MiningActive') {
+        dispatch({ type: 'StopMining', slotIndex, at });
+      }
+    });
   }, [dispatch]);
 
   const resumeMining = useCallback((slotIndex: number) => {
@@ -932,6 +955,8 @@ export function useMinecore() {
       setBoost,
       startMining,
       stopMining,
+      startMiningAllPlants,
+      stopMiningAllPlants,
       resumeMining,
       extract,
       topUpPower,
