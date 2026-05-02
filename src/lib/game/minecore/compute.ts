@@ -230,6 +230,19 @@ export function computeFlowRatePerMin(
   return perMs * 60_000 * speedMult;
 }
 
+/** Sum of live D/min across plants that are actively draining battery (paused / idle plants contribute 0). */
+export function computeMinecoreDeckLiveYieldRatePerMin(
+  state: MinecoreState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): number {
+  let sum = 0;
+  for (const slot of state.plantSlots) {
+    sum += computeFlowRatePerMin(state, slot, now, ctx);
+  }
+  return sum;
+}
+
 /** UI: cycle bar progress (frozen while paused) and time remaining in the cycle window. */
 export function computeCycleProgress(slot: PlantSlotState, now: number): { progress: number; remainingMs: number } {
   const c = slot.cycle;

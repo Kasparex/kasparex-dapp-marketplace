@@ -86,11 +86,21 @@ import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
+import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function clamp01(n: number) {
   return n <= 0 ? 0 : n >= 1 ? 1 : n;
+}
+
+/** Maintenance bar fill: violet (~258°) at full health → red at 0%. */
+function maintenanceMeterFillCss(health: number): string {
+  const h = clamp01(health);
+  const hue = Math.round(258 * h);
+  const sat = Math.round(68 + 18 * h);
+  const lig = Math.round(54 - 14 * (1 - h));
+  return `hsl(${hue} ${sat}% ${lig}%)`;
 }
 
 function togglePowerNodeSlotAssignment(
@@ -417,7 +427,8 @@ function DailyCapBar(props: {
 
   const counterBlock = (
     <Tooltip content={counterTip}>
-      <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl cursor-help">
+      <span className="inline-flex cursor-help flex-wrap items-baseline justify-end gap-x-0 gap-y-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
+        <DiamondIcon className="mr-0.5 inline-block h-4 w-4 shrink-0 translate-y-px text-sky-400" title="" />
         <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
         <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
         <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
@@ -775,19 +786,28 @@ function UnifiedBatterySegmentsBar(props: {
   );
 }
 
-/** Distinct from battery tier - violet maintenance health (inverse wear). */
+/** Distinct from battery tier - violet maintenance health (inverse wear); fill hue shifts toward red as health drops. */
 function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void }) {
   const health = clamp01(1 - props.wearRatio);
+  const fill = maintenanceMeterFillCss(health);
   const inner = (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Maintenance</span>
-        <span className="text-xs font-black tabular-nums text-violet-600 dark:text-violet-400">{Math.round(health * 100)}%</span>
+        <span
+          className="text-xs font-black tabular-nums transition-colors duration-700"
+          style={{ color: fill }}
+        >
+          {Math.round(health * 100)}%
+        </span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
         <div
-          className="h-full rounded-full bg-violet-500 transition-[width] duration-700"
-          style={{ width: `${Math.max(2, Math.round(health * 100))}%` }}
+          className="h-full rounded-full transition-[width,background-color] duration-700"
+          style={{
+            width: `${Math.max(2, Math.round(health * 100))}%`,
+            backgroundColor: fill,
+          }}
         />
       </div>
     </div>
@@ -990,6 +1010,10 @@ export function PlantSlotCard(props: {
     return ids.map((id, i) => (id ? i : null)).filter((x): x is number => x != null);
   }, [s.setup, s.type]);
   const setupReady = computePlantReady(props.minecoreState, s);
+  const maintSlowdownPct =
+    setupReady && s.setup.machineId
+      ? Math.max(0, Math.min(100, Math.round(effGridPct - effDisplayPct)))
+      : 0;
 
   const nftStaffSlots = props.minecoreState.nftSlots ?? [];
 
@@ -1193,16 +1217,38 @@ export function PlantSlotCard(props: {
       title={`Mining Plant ${props.slotArrayIndex + 1}`}
       titleAccessory={
         s.unlocked ? (
-          <Tooltip
-            content={gameTooltipRich(
-              'Live yield rate',
-              'Diamonds credited per minute at the current rig, batteries, crew, grid load, modules, and wear.',
-            )}
-          >
-            <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-base">
-              {(!setupReady ? 0 : Math.max(0, flowPerMin)).toFixed(1)} D/min
-            </span>
-          </Tooltip>
+          <div className="inline-flex max-w-[min(100%,22rem)] flex-wrap items-center justify-end gap-x-1.5 gap-y-1 sm:max-w-none">
+            {setupReady && s.setup.machineId && maintSlowdownPct > 0 ? (
+              <Tooltip
+                content={gameTooltipRich(
+                  'Maintenance slowdown',
+                  <>
+                    <p>
+                      Grid-side efficiency is {effGridPct.toFixed(0)}%. Wear since last service reduces realized mining to{' '}
+                      {effDisplayPct.toFixed(0)}%.
+                    </p>
+                    <p className="mt-1">
+                      About −{maintSlowdownPct}% versus peak until you repair or service this plant (rolling cap math uses the same effective score).
+                    </p>
+                  </>,
+                )}
+              >
+                <span className="inline-flex shrink-0 cursor-help items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black tabular-nums tracking-wide text-violet-900 dark:text-violet-200">
+                  −{maintSlowdownPct}%
+                </span>
+              </Tooltip>
+            ) : null}
+            <Tooltip
+              content={gameTooltipRich(
+                'Live yield rate',
+                'Diamonds credited per minute at the current rig, batteries, crew, grid load, modules, and wear.',
+              )}
+            >
+              <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-base">
+                {(!setupReady ? 0 : Math.max(0, flowPerMin)).toFixed(1)} D/min
+              </span>
+            </Tooltip>
+          </div>
         ) : undefined
       }
       category={preset.label}

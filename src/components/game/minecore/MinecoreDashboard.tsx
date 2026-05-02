@@ -10,10 +10,10 @@ import { useMinecore } from '@/hooks/useMinecore';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import {
+  computeMinecoreDeckLiveYieldRatePerMin,
   computeMinecoreDiamondsDisplayTotal,
   computeMinecoreRollingDailyCapDeckTotals,
 } from '@/lib/game/minecore/compute';
-import { minecoreUtcDayKey } from '@/lib/game/minecore/plant-economy';
 import { getPlantBatterySlotCount } from '@/lib/game/minecore/battery-utils';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
 import { FabricationPanel } from '@/components/game/minecore/FabricationPanel';
@@ -24,7 +24,7 @@ import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewards
 import { MinecoreMiningTabFooter } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MinecoreBulkMiningButton } from '@/components/game/minecore/MinecoreBulkMiningButton';
-import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_DAILY_GRID_POINTS_CAP, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -152,15 +152,10 @@ export function MinecoreDashboard(_props: {
     () => computeMinecoreRollingDailyCapDeckTotals(state, nowTick, minecoreComputeContext),
     [state, nowTick, minecoreComputeContext],
   );
-  const gridRedeemEstimateToday = useMemo(() => {
-    const today = minecoreUtcDayKey(nowTick);
-    const rb = state.redeemBudget;
-    const spent = rb?.dayKey === today ? rb.refinementPointsSpentOnGrid : 0;
-    const ptsLeft = Math.max(0, MINECORE_DAILY_GRID_POINTS_CAP - spent);
-    const ptsFromDiamonds = Math.floor(diamondsDisplayTotal * MINECORE_REFINE_POINTS_PER_DIAMOND);
-    const pts = Math.min(ptsFromDiamonds, ptsLeft);
-    return Math.floor(pts * MINECORE_GRID_PER_REFINEMENT_POINT);
-  }, [diamondsDisplayTotal, state.redeemBudget, nowTick]);
+  const deckLiveYieldPerMin = useMemo(
+    () => computeMinecoreDeckLiveYieldRatePerMin(state, nowTick, minecoreComputeContext),
+    [state, nowTick, minecoreComputeContext],
+  );
 
   const openOverview = () => {
     setTab('overview');
@@ -188,11 +183,14 @@ export function MinecoreDashboard(_props: {
         ),
         subValue: (
           <>
-            ~ <span className="font-semibold tabular-nums">{gridRedeemEstimateToday.toLocaleString()}</span> GRID today (est.)
+            <span className="font-semibold tabular-nums">{deckLiveYieldPerMin.toFixed(1)}</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400"> ♦/min</span>
+            <span className="text-zinc-500 dark:text-zinc-500"> live combined</span>
           </>
         ),
         description: 'In-game currency',
-        tooltip: 'Diamonds you earn in plants; refine them into redeem points. Opens Redeem.',
+        tooltip:
+          'Diamonds you earn in plants; refine into redeem points. Subtext is total live yield (D/min) summed over every plant that is actively mining right now. Opens Redeem.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('redeem' as const),
@@ -241,7 +239,7 @@ export function MinecoreDashboard(_props: {
     ],
     [
       diamondsDisplayTotal,
-      gridRedeemEstimateToday,
+      deckLiveYieldPerMin,
       deckRollingCaps.capSum,
       state.refinementPointsTotal,
       krexL1Balance,
