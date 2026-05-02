@@ -171,7 +171,7 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     icon: 'Hammer',
     description: 'Basic mining operations. Affordable and reliable.',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_d52e2042c19c4204b3444b0abc092907~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_20f6148d91ca410ba4e3ec8dae8784e7~mv2.png',
   },
   premium: {
     type: 'premium',
@@ -180,7 +180,7 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     icon: 'ShieldCheck',
     description: 'Upgraded infrastructure. Supports higher-tier machines.',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_3465aa5b8434481885a1410c1bc21e81~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_5ea48177c9034a89ba58e44c60c15c51~mv2.png',
   },
   advanced: {
     type: 'advanced',
@@ -189,7 +189,7 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     icon: 'Zap',
     description: 'Industrial-scale mining. Unlocks maximum output and specialized rigs.',
     featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_f111775c52e745558259653a82d38c39~mv2.jpg',
+      'https://static.wixstatic.com/media/de4185_da16975f19d8437195ef88d1915cde44~mv2.png',
   },
 };
 
