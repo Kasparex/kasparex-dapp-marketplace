@@ -5,8 +5,7 @@ import assert from 'node:assert/strict';
 import { createInitialMinecoreState } from './initial-state';
 import { applyMinecoreEvent } from './apply-event';
 import { normalizePlantSetup } from './asset-usage';
-import { sumChargeMs, hasInstalledBattery, normalizeBatteryIds, getMaxChargePerSlotMs, ensureBatterySlotChargeLength } from './battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
+import { sumChargeMs, hasInstalledBattery, normalizeBatteryIds } from './battery-utils';
 
 function minecoreWithWorkerDeployed() {
   const s = createInitialMinecoreState();
@@ -60,7 +59,7 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
   assert.ok(Math.abs(afterTotal - beforeTotal) <= 1, `same battery reinstall preserves charge (${beforeTotal} vs ${afterTotal})`);
 }
 
-// First battery install into an empty pillar starts fully charged on that pillar (other pillars unchanged)
+// First battery install into empty pillar starts empty until paid recharge (no free implicit fill)
 {
   let s = unlockedPlantStandard(0, null);
   const at = Date.now();
@@ -70,13 +69,10 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
     at,
     part: { kind: 'battery', id: 'energy-cell', batterySlotIndex: 0 },
   });
-  const slot = s.plantSlots[0]!;
-  const bonus = computeMinecoreBatteryBonusMsPerSlot(s);
-  const caps = getMaxChargePerSlotMs(slot.setup, slot.type, bonus);
-  assert.deepEqual(ensureBatterySlotChargeLength(slot.batterySlotChargeMs, caps.length, 0), caps);
+  assert.equal(sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs), 0, 'equip into empty pillar starts at zero charge');
 }
 
-// Remove → reinstall on empty pillar: full charge again on that slot
+// Remove → reinstall: only after pillar is drained (0 ms)
 {
   let s = unlockedPlantStandard(0);
   const at = Date.now();
@@ -89,10 +85,7 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
     at: at + 1,
     part: { kind: 'battery', id: 'energy-cell', batterySlotIndex: 0 },
   });
-  const slot = s.plantSlots[0]!;
-  const bonus = computeMinecoreBatteryBonusMsPerSlot(s);
-  const caps = getMaxChargePerSlotMs(slot.setup, slot.type, bonus);
-  assert.deepEqual(ensureBatterySlotChargeLength(slot.batterySlotChargeMs, caps.length, 0), caps);
+  assert.equal(sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs), 0, 'reinstall after remove stays empty until recharge');
 }
 
 // Cannot remove or swap pack while pillar still holds runtime charge

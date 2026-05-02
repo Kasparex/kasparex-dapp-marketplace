@@ -90,7 +90,7 @@ function clampPlantAutoRestartMiningToForemanCrew(s: MinecoreState) {
   }
 }
 
-/** Preserve total charge when machine (charge budget) or per-slot battery changes. Swaps use rescale; mounting on an **empty** pillar fills that slot to max. */
+/** Preserve total charge energy when machine (charge budget) or per-slot battery changes. No implicit full charge when mounting from empty—players recharge paid paths or Extract/refine flows. */
 function rescaleBatteryToNewCapacity(
   state: MinecoreState,
   slot: PlantSlotState,
@@ -466,28 +466,13 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
           ev.part.batterySlotIndex != null
             ? Math.max(0, Math.min(n - 1, Math.floor(ev.part.batterySlotIndex)))
             : 0;
-        const prevId =
-          idx < (slot.setup.batteryIds?.length ?? 0)
-            ? ((slot.setup.batteryIds![idx] ?? null) as MinecoreBatteryId | null)
-            : null;
         const nextIds = Array.from({ length: n }, (_, i) =>
           (i < (slot.setup.batteryIds?.length ?? 0) ? slot.setup.batteryIds![i] : null) as MinecoreBatteryId | null
         );
         nextIds[idx] = ev.part.id;
         slot.setup = { ...slot.setup, batteryIds: nextIds };
         if (ev.part.id && MINECORE_BATTERIES[ev.part.id]) {
-          if (prevId == null) {
-            const caps = slotMaxMs(s, slot);
-            const live = ensureBatterySlotChargeLength(slot.batterySlotChargeMs, n, 0).map((c, i) =>
-              Math.min(c, oldMax[i] ?? 0),
-            );
-            const arr = ensureBatterySlotChargeLength(live, caps.length, 0);
-            arr[idx] = caps[idx] ?? 0;
-            slot.batterySlotChargeMs = arr.map((c, i) => Math.min(c, caps[i] ?? 0));
-            slot.batterySnapshotAt = now;
-          } else {
-            rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
-          }
+          rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
         } else {
           slot.batterySlotChargeMs = Array.from({ length: n }, () => 0);
           slot.batterySnapshotAt = now;

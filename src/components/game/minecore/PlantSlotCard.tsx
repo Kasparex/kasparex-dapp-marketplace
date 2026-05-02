@@ -1999,7 +1999,7 @@ export function PlantSlotCard(props: {
               {curAtPillar != null ? (
                 <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
                   {pillarDrained
-                    ? 'Pillar drained — you can remove or swap packs. Swapping models keeps this pillar empty until you recharge; removing returns the slot so a new mount starts fully charged.'
+                    ? 'Pillar drained — you can remove or swap packs. After mounting, recharge fills charge (no free implicit refill).'
                     : 'Drain this pillar to 0% runtime before removing or swapping — avoids losing partial charge.'}
                 </p>
               ) : null}
@@ -2062,7 +2062,7 @@ export function PlantSlotCard(props: {
                   title="Remove battery from this slot"
                   subtitle={
                     pillarDrained
-                      ? 'Returns pack to inventory. Mounting a pack on this empty pillar starts it fully charged.'
+                      ? 'Returns pack to inventory; mounting again starts empty until you recharge.'
                       : 'Drain this pillar to 0% runtime before removing this pack.'
                   }
                   destructive

@@ -598,6 +598,7 @@ export function ShopPanel(props: {
               ),
             },
           ]}
+          quantitySelector={{ min: 1, max: 99 }}
           buyLabel="Buy"
           onBuy={({ currency, quantity }) => props.onBuy({ itemId: 'repair', currency, quantity })}
         />
