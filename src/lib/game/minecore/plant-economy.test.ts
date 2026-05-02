@@ -7,6 +7,7 @@ import { hydrateMinecoreState } from './hydrate';
 import {
   computeMiningEfficiencyPct,
   computePlantDiamondsPer24h,
+  computePlantRollingDailyCapBreakdown,
   computeProductionKw,
   computeConsumptionKw,
 } from './plant-economy';
@@ -114,6 +115,36 @@ function makeSlot(
   const dStd = computePlantDiamondsPer24h(mcWorker, std);
   const dAdv = computePlantDiamondsPer24h(mcWorker, adv);
   assert.ok(dAdv > dStd);
+}
+
+// Output modules contribute flat D/24h toward rolling cap breakdown (not mining speed mult)
+{
+  const base = makeSlot({
+    type: 'premium',
+    setup: {
+      machineId: 'pulse-drill',
+      batteryIds: ['energy-cell', null],
+      workerNftDeckSlotIndices: [0, 1],
+      moduleIds: [],
+      boostId: 'none',
+    },
+  });
+  const withSensor = makeSlot({
+    type: 'premium',
+    setup: {
+      machineId: 'pulse-drill',
+      batteryIds: ['energy-cell', null],
+      workerNftDeckSlotIndices: [0, 1],
+      moduleIds: ['aria-sensor'],
+      boostId: 'none',
+    },
+  });
+  const now = Date.now();
+  const b0 = computePlantRollingDailyCapBreakdown(mcWorker, base, undefined, now);
+  const b1 = computePlantRollingDailyCapBreakdown(mcWorker, withSensor, undefined, now);
+  assert.equal(b0.moduleFlat, 0);
+  assert.equal(b1.moduleFlat, 35);
+  assert.ok(b1.subtotal >= b0.subtotal + 35 - 1e-6);
 }
 
 // Cooling module reduces consumption vs baseline

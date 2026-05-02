@@ -46,6 +46,9 @@ import {
   normalizePlantSetup,
   plantNftSlotAssignmentValid,
   explainPlantSetupBlock,
+  nextPlantSetupAfterInstallPart,
+  normalizedPlantSetupsEqual,
+  type InstallPartPayload,
 } from '@/lib/game/minecore/asset-usage';
 import {
   MINECORE_BATTERIES,
@@ -79,7 +82,7 @@ import {
 } from '@/lib/game/minecore/battery-utils';
 import { computeMinecoreBatteryBonusMsPerSlot, minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
-import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
 
@@ -237,7 +240,10 @@ function tooltipForStatus(status: PlantSlotState['status']): ReactNode {
         'Draw is too high versus this plant’s max power (above the critical load band). Upgrade or add reactors in Setup, trim draw with cooling modules, or swap rigs until load drops.',
       );
     case 'DailyCapReached':
-      return gameTooltipRich('24h cap', 'Rolling diamond budget for this plant is exhausted for the current window.');
+      return gameTooltipRich(
+        '24h cap',
+        'This plant hit its rolling diamond ceiling for the current window. Wait for the countdown on the cap bar, or raise the ceiling (stronger rig, crew cap bonuses, Overclock, active KREX Boost). Refining does not reset this extraction budget.',
+      );
     default:
       return gameTooltipRich('Plant status', 'Current state for this mining plant.');
   }
@@ -363,7 +369,9 @@ function DailyCapBar(props: {
     props.capStack != null && !props.forceZeroDisplay
       ? (() => {
           const cs = props.capStack;
-          let line = `Cap stack: Plant +${cs.plantBase} · Rig +${cs.machineCap} · Crew +${cs.crewCap} = ${cs.subtotal} base /24h`;
+          let line = `Cap stack: Plant +${cs.plantBase} · Rig +${cs.machineCap} · Crew +${cs.crewCap}`;
+          if (cs.moduleFlat > 0) line += ` · Modules +${cs.moduleFlat}`;
+          line += ` = ${cs.subtotal} base /24h`;
           if (cs.kasOverclockFlat > 0) line += ` · Overclock +${cs.kasOverclockFlat}`;
           if (cs.krexYieldMult > 1) line += ` · ×${cs.krexYieldMult} KREX Boost yield on rolling cap`;
           line += ` → effective ceiling ${cs.ceiling} D/24h (matches Emerald total)`;
@@ -439,11 +447,18 @@ function DailyCapBar(props: {
       <Tooltip
         content={gameTooltipRich(
           'Cap reached',
-          'Wait for the reset timer above, or move diamonds through Redeem. You cannot start extra cycles against this ceiling until it refreshes.',
+          <>
+            <p>
+              Rolling extraction budget for this plant is full until the window resets (see countdown on the cap bar) or your ceiling rises from a better rig, crew bonuses, Overclock, or KREX Boost.
+            </p>
+            <p className="mt-1 opacity-95">
+              Refining diamonds does not free headroom toward this cap—you still wait for the rolling window or a higher ceiling.
+            </p>
+          </>,
         )}
       >
         <div className="cursor-help text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-          Rolling 24h cap reached for this plant. Refine in Redeem, or wait for the next window.
+          Rolling 24h cap reached. Wait for reset or raise ceiling (rig / crew / boosts); refining alone does not restart extraction against this cap.
         </div>
       </Tooltip>
     ) : null;
@@ -822,7 +837,7 @@ export function PlantSlotCard(props: {
   /** Paid service: resets maintenance clock. Pass `consumeStabilityPatch` for early service (requires patch stock). Returns whether payment + dispatch succeeded. */
   onRepairPlant: (opts: { currency: 'KAS' | 'KREX'; consumeStabilityPatch: boolean }) => boolean | Promise<boolean>;
   stabilityPatches: number;
-  /** Refill battery charge: KAS via treasury send; KREX via L1 KRC-20 transfer (real wallet payment). */
+  /** Paid recharge: fills selected battery slot(s) after KAS send or KREX treasury transfer. */
   onRechargePlant: (opts?: {
     batterySlotIndex?: number;
     batterySlotIndexes?: number[];
@@ -866,6 +881,40 @@ export function PlantSlotCard(props: {
   useEffect(() => {
     setModalFeedback(null);
   }, [activeModal]);
+
+  const dispatchInstallPartPayload = useCallback(
+    (part: InstallPartPayload) => {
+      const nextSetup = nextPlantSetupAfterInstallPart(s, part);
+      if (normalizedPlantSetupsEqual(s.type, s.setup, nextSetup)) return;
+      switch (part.kind) {
+        case 'machine':
+          props.onInstallPart('machine', part.id);
+          break;
+        case 'battery':
+          props.onInstallPart('battery', part.id, part.batterySlotIndex);
+          break;
+        case 'powerNodes':
+          props.onInstallPart('powerNodes', part.ids);
+          break;
+        case 'modules':
+          props.onInstallPart('modules', part.ids);
+          break;
+        default:
+          break;
+      }
+    },
+    [s, props.onInstallPart],
+  );
+
+  const assignCrewIfChanged = useCallback(
+    (indices: (number | null)[]) => {
+      const part: InstallPartPayload = { kind: 'crewWorkerNftDecks', indices };
+      const nextSetup = nextPlantSetupAfterInstallPart(s, part);
+      if (normalizedPlantSetupsEqual(s.type, s.setup, nextSetup)) return;
+      props.onAssignPlantCrewDeckIndices(indices);
+    },
+    [s, props.onAssignPlantCrewDeckIndices],
+  );
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
@@ -1495,7 +1544,7 @@ export function PlantSlotCard(props: {
             {s.status === 'DailyCapReached' && (
               <WarningBanner
                 level="warn"
-                message="Daily diamond budget hit for this plant. Refine or wait for the timer - press Start when you’re ready."
+                message={`Rolling 24h extraction cap reached (${formatCapResetCountdown(capRemainingMs)} until window rolls). Raise ceiling via rig, crew, Overclock, or KREX Boost—or wait. Refining does not reset this budget.`}
               />
             )}
             {s.status === 'SetupIncomplete' && (
@@ -1801,7 +1850,7 @@ export function PlantSlotCard(props: {
                       setActiveModal(null);
                       return;
                     }
-                    props.onInstallPart('machine', m.id);
+                    dispatchInstallPartPayload({ kind: 'machine', id: m.id });
                     setActiveModal(null);
                   }}
                 />
@@ -1815,7 +1864,7 @@ export function PlantSlotCard(props: {
           destructive
           disabled={!s.setup.machineId}
           onClick={() => {
-            props.onInstallPart('machine', null);
+            dispatchInstallPartPayload({ kind: 'machine', id: null });
             setActiveModal(null);
           }}
         />
@@ -1876,7 +1925,7 @@ export function PlantSlotCard(props: {
                     const next = isSelected
                       ? togglePowerNodeSlotAssignment(powerNodeSlots, node.id, 'remove')
                       : nextIfAdd;
-                    props.onInstallPart('powerNodes', next);
+                    dispatchInstallPartPayload({ kind: 'powerNodes', ids: next });
                   }}
                   trailing={
                     isSelected ? (
@@ -1900,10 +1949,10 @@ export function PlantSlotCard(props: {
           destructive
           disabled={!powerNodeSlots.some(Boolean)}
           onClick={() => {
-            props.onInstallPart(
-              'powerNodes',
-              Array.from({ length: getPlantPowerNodeSlotCount(s.type) }, () => null),
-            );
+            dispatchInstallPartPayload({
+              kind: 'powerNodes',
+              ids: Array.from({ length: getPlantPowerNodeSlotCount(s.type) }, () => null),
+            });
             setActiveModal(null);
           }}
         />
@@ -1952,7 +2001,11 @@ export function PlantSlotCard(props: {
                       setModalFeedback('This pack is already in this slot.');
                       return;
                     }
-                    props.onInstallPart('battery', b.id, batterySlotFocus);
+                    dispatchInstallPartPayload({
+                      kind: 'battery',
+                      id: b.id,
+                      batterySlotIndex: batterySlotFocus,
+                    });
                     setActiveModal(null);
                   }}
                 />
@@ -1966,7 +2019,11 @@ export function PlantSlotCard(props: {
             subtitle="Returns pack to inventory; charge state resets for this slot."
             destructive
             onClick={() => {
-              props.onInstallPart('battery', null, batterySlotFocus);
+              dispatchInstallPartPayload({
+                kind: 'battery',
+                id: null,
+                batterySlotIndex: batterySlotFocus,
+              });
               setActiveModal(null);
             }}
           />
@@ -2094,7 +2151,7 @@ export function PlantSlotCard(props: {
                     setModalFeedback(null);
                     if (assignedOnPlant) {
                       const next = padded.map((x) => (x === deckIdx ? null : x));
-                      props.onAssignPlantCrewDeckIndices(next);
+                      assignCrewIfChanged(next);
                       return;
                     }
                     if (crewAddBlocked) {
@@ -2116,7 +2173,7 @@ export function PlantSlotCard(props: {
                     const fi = padded.indexOf(null);
                     if (fi < 0) return;
                     const next = padded.map((x, i) => (i === fi ? deckIdx : x));
-                    props.onAssignPlantCrewDeckIndices(next);
+                    assignCrewIfChanged(next);
                   }}
                   trailing={
                     assignedOnPlant ? (
@@ -2134,7 +2191,7 @@ export function PlantSlotCard(props: {
           destructive
           disabled={normalizePlantSetup(s.type, s.setup).workerNftDeckSlotIndices.every((x) => x == null)}
           onClick={() => {
-            props.onAssignPlantCrewDeckIndices(Array.from({ length: needWorkers }, () => null));
+            assignCrewIfChanged(Array.from({ length: needWorkers }, () => null));
           }}
         />
       </SelectionModal>
@@ -2159,8 +2216,12 @@ export function PlantSlotCard(props: {
             const moduleAddBlocked =
               !isSelected &&
               !inventoryAllowsPlantSetup(props.minecoreState, props.slotArrayIndex, { ...s.setup, moduleIds: nextIfAdd });
+            const flatCap = m.diamondsPer24hFlat ?? 0;
             const specParts = [
-              m.kind === 'output' ? `+${(m.outputBonus * 100).toFixed(0)}% extraction` : '',
+              flatCap > 0 ? `+${flatCap} D/24h cap` : '',
+              m.kind === 'output' && flatCap <= 0 && (m.outputBonus ?? 0) > 0
+                ? `+${(m.outputBonus * 100).toFixed(0)}% extraction`
+                : '',
               m.kind === 'cooling' ? `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW` : '',
               m.kind === 'automation' ? `+${((m.cycleDurationBonus ?? 0) * 100).toFixed(0)}% cycle` : '',
               m.kind === 'stability' ? `+${m.efficiencyFloorBonus ?? 0} eff. floor` : '',
@@ -2190,7 +2251,7 @@ export function PlantSlotCard(props: {
                     const next = current.includes(m.id as MinecoreModuleId)
                       ? current.filter((x) => x !== m.id)
                       : [...current, m.id as MinecoreModuleId].slice(0, maxM);
-                    props.onInstallPart('modules', next);
+                    dispatchInstallPartPayload({ kind: 'modules', ids: next });
                   }}
                   trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" /> : undefined}
                 />
@@ -2204,7 +2265,7 @@ export function PlantSlotCard(props: {
             subtitle="Unequips every module from this plant."
             destructive
             onClick={() => {
-              props.onInstallPart('modules', []);
+              dispatchInstallPartPayload({ kind: 'modules', ids: [] });
               setActiveModal(null);
             }}
           />

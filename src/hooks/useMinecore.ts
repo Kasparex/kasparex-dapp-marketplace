@@ -536,6 +536,20 @@ export function useMinecore() {
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
   );
 
+  const topUpPowerWithKREX = useCallback(
+    async (slotIndex: number, opts: { added: number; amountKrex: number }) => {
+      const paid = await payKrexTreasury(opts.amountKrex, {
+        skuId: 'minecore:power:topup:krex',
+        recordActionType: 'power-topup-krex',
+        transactionDetail: { slotIndex, added: opts.added },
+      });
+      if (!paid.ok) return false;
+      dispatch({ type: 'TopUpPower', slotIndex, at: Date.now(), added: opts.added });
+      return true;
+    },
+    [dispatch, payKrexTreasury],
+  );
+
   const repair = useCallback((slotIndex: number) => {
     dispatch({ type: 'Repair', slotIndex, at: Date.now() });
   }, [dispatch]);
@@ -672,10 +686,6 @@ export function useMinecore() {
     },
     [dispatch, walletAddr],
   );
-
-  const refillBattery = useCallback((slotIndex: number) => {
-    dispatch({ type: 'RefillBattery', slotIndex, at: Date.now() });
-  }, [dispatch]);
 
   const refillBatteryWithKAS = useCallback(
     async (slotIndex: number, amountKas: number) => {
@@ -912,6 +922,7 @@ export function useMinecore() {
       extract,
       topUpPower,
       topUpPowerWithKAS,
+      topUpPowerWithKREX,
       repair,
       repairWithKAS,
       repairPlantWithPayment,
@@ -928,7 +939,6 @@ export function useMinecore() {
       purchaseIngredientWithKREX,
       purchaseIngredientPackWithKREX,
       purchaseIngredientWithGrid,
-      refillBattery,
       refillBatteryWithKAS,
       rechargePlant,
       rechargePlantWithKAS,

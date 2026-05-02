@@ -12,7 +12,7 @@ import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { MinecoreVeinBreakdownByMachine } from '@/components/game/minecore/MinecoreMiningSections';
 
-/** KAS paid upgrades (V1 - wired to refill / top-up / recharge actions). KREX uses the same in-game actions without L1 KAS. */
+/** KAS paths use wallet sends; KREX paths use the same SKU pricing via treasury KRC-20 transfer (`payKrexTreasury`). */
 const KAS_BATTERY_SYNC = 3;
 const KAS_RESERVE_PACK = 6;
 const RESERVE_PACK_UNITS = 3;

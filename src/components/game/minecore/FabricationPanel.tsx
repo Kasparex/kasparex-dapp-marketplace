@@ -191,14 +191,14 @@ export function FabricationPanel(props: {
               const cfg = MINECORE_MODULES[r.outputId as keyof typeof MINECORE_MODULES];
               if (cfg) {
                 const sid = String(r.outputId);
-                const ob = cfg.outputBonus ?? 0;
-                if (ob > 0 && sid !== 'krex-boost') {
+                const flatCap = cfg.diamondsPer24hFlat ?? 0;
+                if (flatCap > 0 && sid !== 'krex-boost') {
                   specifications.push({
-                    label: 'Mining speed',
-                    value: `+${Math.round(ob * 100)}% extraction`,
-                    color: 'accent',
+                    label: 'Rolling cap',
+                    value: `+${flatCap.toLocaleString()} D / 24h`,
+                    color: 'amber',
                     specTooltip:
-                      'Increases extraction rate on the Mining plant while equipped (stacked with rig mining speed). Does not change the rolling cap formula by itself.',
+                      'Adds flat diamonds per 24h toward this plant’s rolling extraction ceiling while mounted (premium/advanced). Rig mining speed multiplier is unchanged.',
                   });
                 }
                 if (cfg.kind === 'cooling') {

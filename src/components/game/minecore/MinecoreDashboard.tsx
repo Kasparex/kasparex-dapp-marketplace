@@ -501,22 +501,24 @@ export function MinecoreDashboard(_props: {
               }}
               onBatterySync={async (idx, currency) => {
                 if (currency === 'KREX') {
-                  actions.refillBattery(idx);
+                  await actions.rechargePlant(idx, { currency: 'KREX' });
                   return;
                 }
                 await actions.refillBatteryWithKAS(idx, 3);
               }}
               onReservePack={async (idx, currency) => {
                 if (currency === 'KREX') {
-                  actions.topUpPower(idx, 3);
+                  await actions.topUpPowerWithKREX(idx, {
+                    added: 3,
+                    amountKrex: minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(6)),
+                  });
                   return;
                 }
                 await actions.topUpPowerWithKAS(idx, { added: 3, amountKas: 6 });
               }}
               onRuntimeBundle={async (idx, currency) => {
                 if (currency === 'KREX') {
-                  actions.topUpPower(idx, 1);
-                  actions.refillBattery(idx);
+                  await actions.rechargePlant(idx, { currency: 'KREX' });
                   return;
                 }
                 await actions.rechargePlantWithKAS(idx);

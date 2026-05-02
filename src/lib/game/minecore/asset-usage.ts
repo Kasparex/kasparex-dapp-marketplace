@@ -41,6 +41,30 @@ export function normalizeWorkerDeckIndices(
 }
 
 /** Pad battery slots + worker deck indices + stable boost id so inventory math matches plant tier (fixes short/partial saves). */
+function arraysEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+/**
+ * Normalized equality for InstallPart no-op detection (module order ignored).
+ */
+export function normalizedPlantSetupsEqual(type: PlantSlotState['type'], a: PlantSetup, b: PlantSetup): boolean {
+  const na = normalizePlantSetup(type, a);
+  const nb = normalizePlantSetup(type, b);
+  const sa = [...na.moduleIds].slice().sort().join('\0');
+  const sb = [...nb.moduleIds].slice().sort().join('\0');
+  return (
+    na.machineId === nb.machineId &&
+    na.boostId === nb.boostId &&
+    sa === sb &&
+    arraysEqual(na.batteryIds, nb.batteryIds) &&
+    arraysEqual(na.workerNftDeckSlotIndices, nb.workerNftDeckSlotIndices) &&
+    arraysEqual(na.powerNodeIds, nb.powerNodeIds)
+  );
+}
+
 export function normalizePlantSetup(type: PlantSlotState['type'], setup: PlantSetup): PlantSetup {
   const n = getPlantBatterySlotCount(type);
   const batteryIds = Array.from({ length: n }, (_, i) =>

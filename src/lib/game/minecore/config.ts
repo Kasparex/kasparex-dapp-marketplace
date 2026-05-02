@@ -478,8 +478,10 @@ export type ModuleConfig = {
    * When true (and Crew “Auto-restart” is on), finished cycles can chain automatically for plants that have this module.
    */
   autoRestartMining?: boolean;
-  /** Output modules: +fraction of (base+machine) per 24h. */
+  /** Legacy field; mining bonus moved to {@link diamondsPer24hFlat}. Kept 0 for migrated modules. */
   outputBonus: number;
+  /** Flat diamonds / 24h added to this plant’s rolling cap ceiling (premium/advanced only). */
+  diamondsPer24hFlat?: number;
   failureReduction: number;
   /** Cooling: reduces consumption kW fraction (0–1). */
   consumptionReduction?: number;
@@ -513,7 +515,7 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_b3ae772a574b41568fb8ae0695363981~mv2.jpg',
     kind: 'stability',
-    outputBonus: 0.02,
+    outputBonus: 0,
     failureReduction: 0.08,
     efficiencyFloorBonus: 10,
     gridConsumptionKw: 0.06,
@@ -522,7 +524,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     id: 'aria-sensor',
     label: 'ARIA Sensor',
     kind: 'output',
-    outputBonus: 0.06,
+    outputBonus: 0,
+    diamondsPer24hFlat: 35,
     failureReduction: 0.06,
     gridConsumptionKw: 0.07,
     featuredImageUrl:
@@ -534,7 +537,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_4a53fb6e829342a9ac78aeb9e7e93050~mv2.png',
     kind: 'output',
-    outputBonus: 0.08,
+    outputBonus: 0,
+    diamondsPer24hFlat: 45,
     failureReduction: 0.04,
     gridConsumptionKw: 0.08,
   },
@@ -545,7 +549,8 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
       'https://static.wixstatic.com/media/de4185_adf72f1b62ae480eabd844d56fd2b485~mv2.jpg',
     kind: 'automation',
     autoRestartMining: true,
-    outputBonus: 0.03,
+    outputBonus: 0,
+    diamondsPer24hFlat: 18,
     failureReduction: 0.03,
     cycleDurationBonus: 0.1,
     gridConsumptionKw: 0.055,

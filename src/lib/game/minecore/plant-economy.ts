@@ -40,24 +40,25 @@ function plantPowerFactor(slot: PlantSlotState): number {
 }
 
 /**
- * Diamonds accrue faster with better rigs and output-style modules (excluding krex-boost; cap already applies KREX yield there).
+ * Diamonds accrue faster with better rigs (mining speed multiplier only).
+ * Modules raise output via flat rolling-cap bonuses in {@link computePlantRollingDailyCapCeiling}.
  */
 export function computePlantMiningSpeedMultiplier(slot: PlantSlotState): number {
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   let m = machine?.miningSpeedMultiplier ?? 1;
   if (!Number.isFinite(m) || m < 1) m = 1;
-
-  if (slot.type === 'standard') return m;
-
-  for (const id of slot.setup.moduleIds) {
-    if (id === 'krex-boost') continue;
-    const mod = MINECORE_MODULES[id];
-    const b = mod?.outputBonus;
-    if (b != null && Number.isFinite(b) && b > 0) {
-      m *= 1 + b;
-    }
-  }
   return m;
+}
+
+/** Sum of flat D/24h each mounted module adds to the rolling cap ceiling (premium/advanced). */
+export function computePlantModuleDiamondCapContribution(slot: PlantSlotState): number {
+  if (slot.type === 'standard') return 0;
+  let n = 0;
+  for (const id of slot.setup.moduleIds) {
+    const flat = MINECORE_MODULES[id]?.diamondsPer24hFlat;
+    if (flat != null && Number.isFinite(flat) && flat > 0) n += flat;
+  }
+  return Math.floor(n);
 }
 
 /** UTC calendar day for daily redeem caps. */
@@ -236,7 +237,7 @@ export function computeMiningNftDeckDiamondBonusPer24h(
 
 /**
  * Maximum diamonds credited toward this plant's rolling 24h window at full mining efficiency.
- * Plant base + machine flat D/24h + **this plant’s assigned crew** NFT cap bonuses only (no battery or module % on cap).
+ * Plant base + machine flat D/24h + module flat D/24h + **this plant’s assigned crew** NFT cap bonuses (no battery bonuses on cap).
  * (Live power deficit does not shrink this ceiling; it lowers realized output via `computePlantDiamondsPer24h`.)
  */
 /** Active when KREX Boost is slotted and its timer has not expired. */
@@ -274,9 +275,10 @@ export function computePlantRollingDailyCapCeiling(
 
   const base = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_BASE_DIAMONDS_PER_24H.standard;
   const machinePart = machine.diamondsPer24h;
+  const moduleFlat = computePlantModuleDiamondCapContribution(slot);
 
   const crewDeckCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
-  const subtotal = base + machinePart + crewDeckCap;
+  const subtotal = base + machinePart + crewDeckCap + moduleFlat;
   const withOverclock = subtotal + computePlantKasOverclockDailyFlat(slot, atMs);
   const mult = computePlantKrexYieldMultiplier(slot, atMs);
   const plantMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[slot.type] ?? MINECORE_PLANT_MAX_DIAMONDS_PER_24H.standard;
@@ -288,7 +290,9 @@ export type PlantRollingCapBreakdown = {
   plantBase: number;
   machineCap: number;
   crewCap: number;
-  /** Plant + rig + crew before boosts */
+  /** Flat module contribution toward rolling cap */
+  moduleFlat: number;
+  /** Plant + rig + crew + modules before boosts */
   subtotal: number;
   /** KAS Overclock bonus added to rolling cap (/24h) while active */
   kasOverclockFlat: number;
@@ -312,6 +316,7 @@ export function computePlantRollingDailyCapBreakdown(
       plantBase: 0,
       machineCap: 0,
       crewCap: 0,
+      moduleFlat: 0,
       subtotal: 0,
       kasOverclockFlat: 0,
       krexYieldMult: 1,
@@ -324,7 +329,8 @@ export function computePlantRollingDailyCapBreakdown(
   const machine = slot.setup.machineId ? MINECORE_MACHINES[slot.setup.machineId] : null;
   const machineCap = machine?.diamondsPer24h ?? 0;
   const crewCap = computeMinecoreDailyCapBonusForPlantCrew(state, slot, ctx);
-  const subtotal = Math.max(0, Math.floor(plantBase + machineCap + crewCap));
+  const moduleFlat = computePlantModuleDiamondCapContribution(slot);
+  const subtotal = Math.max(0, Math.floor(plantBase + machineCap + crewCap + moduleFlat));
   const kasOverclockFlat = computePlantKasOverclockDailyFlat(slot, atMs);
   const krexYieldMult = computePlantKrexYieldMultiplier(slot, atMs);
   const floorAfterYieldMult = Math.max(0, Math.floor((subtotal + kasOverclockFlat) * krexYieldMult));
@@ -333,6 +339,7 @@ export function computePlantRollingDailyCapBreakdown(
     plantBase,
     machineCap,
     crewCap,
+    moduleFlat,
     subtotal,
     kasOverclockFlat,
     krexYieldMult,
