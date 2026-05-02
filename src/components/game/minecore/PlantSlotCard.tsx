@@ -865,6 +865,7 @@ export function PlantSlotCard(props: {
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
   const [batteryInstallConfirmId, setBatteryInstallConfirmId] = useState<MinecoreBatteryId | null>(null);
+  const [batteryRemoveConfirmOpen, setBatteryRemoveConfirmOpen] = useState(false);
   const [batteryRefillModalOpen, setBatteryRefillModalOpen] = useState(false);
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
@@ -885,20 +886,24 @@ export function PlantSlotCard(props: {
   }, [activeModal]);
 
   useEffect(() => {
-    if (activeModal !== 'battery') setBatteryInstallConfirmId(null);
+    if (activeModal !== 'battery') {
+      setBatteryInstallConfirmId(null);
+      setBatteryRemoveConfirmOpen(false);
+    }
   }, [activeModal]);
 
   useEffect(() => {
-    if (batteryInstallConfirmId == null) return;
+    if (batteryInstallConfirmId == null && !batteryRemoveConfirmOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         setBatteryInstallConfirmId(null);
+        setBatteryRemoveConfirmOpen(false);
       }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [batteryInstallConfirmId]);
+  }, [batteryInstallConfirmId, batteryRemoveConfirmOpen]);
 
   const dispatchInstallPartPayload = useCallback(
     (part: InstallPartPayload) => {
@@ -2062,14 +2067,7 @@ export function PlantSlotCard(props: {
                   }
                   destructive
                   disabled={!pillarDrained}
-                  onClick={() => {
-                    dispatchInstallPartPayload({
-                      kind: 'battery',
-                      id: null,
-                      batterySlotIndex: batterySlotFocus,
-                    });
-                    setActiveModal(null);
-                  }}
+                  onClick={() => setBatteryRemoveConfirmOpen(true)}
                 />
               ) : null}
             </>
@@ -2118,6 +2116,57 @@ export function PlantSlotCard(props: {
                       setActiveModal(null);
                     }}
                     className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {batteryRemoveConfirmOpen && typeof window !== 'undefined'
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+              role="presentation"
+              onClick={() => setBatteryRemoveConfirmOpen(false)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="battery-remove-confirm-title"
+                className="max-w-sm rounded-xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 id="battery-remove-confirm-title" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Remove battery pack?
+                </h4>
+                <p className="mt-2 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+                  Removing it clears stored runtime on this pillar (the tank goes empty). You will need to refill before you can
+                  mine from this slot again.
+                </p>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBatteryRemoveConfirmOpen(false)}
+                    className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      dispatchInstallPartPayload({
+                        kind: 'battery',
+                        id: null,
+                        batterySlotIndex: batterySlotFocus,
+                      });
+                      setBatteryRemoveConfirmOpen(false);
+                      setActiveModal(null);
+                    }}
+                    className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600"
                   >
                     OK
                   </button>

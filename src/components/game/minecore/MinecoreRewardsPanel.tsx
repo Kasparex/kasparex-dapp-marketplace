@@ -12,6 +12,7 @@ export function MinecoreRewardsPanel({
   onRefine,
   onRedeem,
   minecoreExtras,
+  diamondRefinementHeaderTrailing,
   diamondRefinementFooter,
 }: {
   address: string | undefined;
@@ -21,6 +22,7 @@ export function MinecoreRewardsPanel({
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   minecoreExtras?: MinecoreRedeemExtras;
+  diamondRefinementHeaderTrailing?: ReactNode;
   diamondRefinementFooter?: ReactNode;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
@@ -53,6 +55,7 @@ export function MinecoreRewardsPanel({
         onRefine={onRefine}
         onRedeem={onRedeem}
         minecoreExtras={minecoreExtras}
+        diamondRefinementHeaderTrailing={diamondRefinementHeaderTrailing}
         diamondRefinementFooter={diamondRefinementFooter}
       >
 

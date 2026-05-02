@@ -126,15 +126,16 @@ export function MinecoreDashboard(_props: {
     return entries;
   }, [state.plantSlots, miningSearch, miningCategory, miningSort]);
 
-  const showRedeemBulkMining =
-    state.refinementPointsTotal > 0 || (state.gridLedger?.length ?? 0) > 0;
+  const [redeemShowStartAllMines, setRedeemShowStartAllMines] = useState(false);
 
   const bulkMiningControl = (
     <MinecoreBulkMiningButton
+      variant="mining-toolbar"
       plantSlots={state.plantSlots}
       miningAllowed={miningAllowed}
       onStartAll={actions.startMiningAllPlants}
-      onStopAll={actions.stopMiningAllPlants}
+      onPauseAll={actions.pauseMiningAllPlants}
+      onResumeAll={actions.resumeMiningAllPlants}
     />
   );
 
@@ -700,7 +701,10 @@ export function MinecoreDashboard(_props: {
                 diamondsBalance={diamondsDisplayTotal}
                 refinementPointsTotal={state.refinementPointsTotal}
                 localLedger={state.gridLedger ?? []}
-                onRefine={actions.refine}
+                onRefine={(amount) => {
+                  actions.refine(amount);
+                  if (miningAllowed) setRedeemShowStartAllMines(true);
+                }}
                 onRedeem={actions.redeemGrid}
                 minecoreExtras={{
                   redeemBudgetDayKey: state.redeemBudget?.dayKey,
@@ -709,14 +713,13 @@ export function MinecoreDashboard(_props: {
                   gridRedeemablePending: state.gridRedeemableTotal,
                   krexRedeemablePending: state.krexRedeemableTotal,
                 }}
-                diamondRefinementFooter={
-                  showRedeemBulkMining ? (
+                diamondRefinementHeaderTrailing={
+                  redeemShowStartAllMines ? (
                     <MinecoreBulkMiningButton
+                      variant="redeem-start-all"
                       plantSlots={state.plantSlots}
                       miningAllowed={miningAllowed}
                       onStartAll={actions.startMiningAllPlants}
-                      onStopAll={actions.stopMiningAllPlants}
-                      compact
                     />
                   ) : undefined
                 }

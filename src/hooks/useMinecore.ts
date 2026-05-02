@@ -541,12 +541,23 @@ export function useMinecore() {
     });
   }, [dispatch, miningAllowed]);
 
-  const stopMiningAllPlants = useCallback(() => {
+  /** Pause every plant currently in an active run (same event as per-card Stop mining). */
+  const pauseMiningAllPlants = useCallback(() => {
     const at = Date.now();
     const snapshot = deriveState(mcRef.current, at, minecoreComputeContextRef.current);
     snapshot.plantSlots.forEach((slot, slotIndex) => {
       if (slot.unlocked && slot.status === 'MiningActive') {
         dispatch({ type: 'StopMining', slotIndex, at });
+      }
+    });
+  }, [dispatch]);
+
+  const resumeMiningAllPlants = useCallback(() => {
+    const at = Date.now();
+    const snapshot = deriveState(mcRef.current, at, minecoreComputeContextRef.current);
+    snapshot.plantSlots.forEach((slot, slotIndex) => {
+      if (slot.unlocked && slot.status === 'MiningPaused') {
+        dispatch({ type: 'ResumeMining', slotIndex, at });
       }
     });
   }, [dispatch]);
@@ -956,7 +967,8 @@ export function useMinecore() {
       startMining,
       stopMining,
       startMiningAllPlants,
-      stopMiningAllPlants,
+      pauseMiningAllPlants,
+      resumeMiningAllPlants,
       resumeMining,
       extract,
       topUpPower,

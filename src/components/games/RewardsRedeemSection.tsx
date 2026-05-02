@@ -35,6 +35,7 @@ export function RewardsRedeemSection({
   onRefine,
   onRedeem,
   minecoreExtras,
+  diamondRefinementHeaderTrailing,
   diamondRefinementFooter,
   children,
 }: {
@@ -44,7 +45,9 @@ export function RewardsRedeemSection({
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   /** When set (e.g. Minecore tab), shows pool + daily caps from shared config. */
   minecoreExtras?: MinecoreRedeemExtras;
-  /** Shown inside the Diamond Refinement panel (e.g. bulk restart mining after refine stops plants). */
+  /** Right side of the Diamond Refinement header row (e.g. prominent bulk mining CTA). */
+  diamondRefinementHeaderTrailing?: ReactNode;
+  /** Below the refine grid inside the Diamond Refinement panel. */
   diamondRefinementFooter?: ReactNode;
   children?: ReactNode;
 }) {
@@ -111,21 +114,26 @@ export function RewardsRedeemSection({
     <div className="space-y-4">
       {/* ── Diamond Refinement ── */}
       <div className={PANEL}>
-        <div className="flex items-center justify-between mb-5">
-          <div>
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Diamond Refinement</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               {MINECORE_REFINE_POINTS_PER_DIAMOND} refinement point per diamond (before Worker / Refining module bonuses in
               Minecore).
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-[10px] font-semibold text-amber-500">Available</div>
-            <div className="text-xl font-bold tabular-nums text-amber-500">{diamondsBalance.toLocaleString()} D</div>
-            {minecoreExtras ? (
-              <p className="mt-0.5 max-w-xs text-right text-[10px] text-zinc-500 dark:text-zinc-400">
-                Total matches the game deck (wallet + in-mine). Mining credits here automatically; no extra extract step.
-              </p>
+          <div className="flex w-full flex-shrink-0 flex-col items-stretch gap-3 sm:w-auto sm:items-end sm:text-right">
+            <div>
+              <div className="text-[10px] font-semibold text-amber-500">Available</div>
+              <div className="text-xl font-bold tabular-nums text-amber-500">{diamondsBalance.toLocaleString()} D</div>
+              {minecoreExtras ? (
+                <p className="mt-0.5 max-w-xs text-right text-[10px] text-zinc-500 dark:text-zinc-400 sm:ml-auto">
+                  Total matches the game deck (wallet + in-mine). Mining credits here automatically; no extra extract step.
+                </p>
+              ) : null}
+            </div>
+            {diamondRefinementHeaderTrailing ? (
+              <div className="flex w-full justify-end">{diamondRefinementHeaderTrailing}</div>
             ) : null}
           </div>
         </div>
