@@ -13,6 +13,7 @@ import {
   computeFlowRatePerMin,
   minecorePlantHasForemanInCrew,
   minecoreAutoRestartInfrastructureActive,
+  isBatteryPillarDrained,
 } from '@/lib/game/minecore/compute';
 import {
   computeConsumptionKw,
@@ -242,7 +243,7 @@ function tooltipForStatus(status: PlantSlotState['status']): ReactNode {
     case 'DailyCapReached':
       return gameTooltipRich(
         '24h cap',
-        'This plant hit its rolling diamond ceiling for the current window. Wait for the countdown on the cap bar, or raise the ceiling (stronger rig, crew cap bonuses, Overclock, active KREX Boost). Refining does not reset this extraction budget.',
+        'Rolling extraction budget for this plant is full. Wait for the countdown, raise ceiling (rig / crew / Overclock / KREX Boost), or refine diamonds that are still sitting on this plant into points — that frees headroom. Diamonds already sent to your refineable wallet from Extract still count toward this window until it rolls.',
       );
     default:
       return gameTooltipRich('Plant status', 'Current state for this mining plant.');
@@ -452,13 +453,13 @@ function DailyCapBar(props: {
               Rolling extraction budget for this plant is full until the window resets (see countdown on the cap bar) or your ceiling rises from a better rig, crew bonuses, Overclock, or KREX Boost.
             </p>
             <p className="mt-1 opacity-95">
-              Refining diamonds does not free headroom toward this cap—you still wait for the rolling window or a higher ceiling.
+              Refining diamonds still banked on this plant (Redeem) frees extraction headroom. Diamonds you already Extracted to the refineable balance still count until the window resets.
             </p>
           </>,
         )}
       >
         <div className="cursor-help text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-          Rolling 24h cap reached. Wait for reset or raise ceiling (rig / crew / boosts); refining alone does not restart extraction against this cap.
+          Rolling 24h cap reached. Reset timer, stronger ceiling, or refine on-plant diamonds into points to mine again (wallet diamonds from Extract still count this window).
         </div>
       </Tooltip>
     ) : null;
@@ -1544,7 +1545,7 @@ export function PlantSlotCard(props: {
             {s.status === 'DailyCapReached' && (
               <WarningBanner
                 level="warn"
-                message={`Rolling 24h extraction cap reached (${formatCapResetCountdown(capRemainingMs)} until window rolls). Raise ceiling via rig, crew, Overclock, or KREX Boost—or wait. Refining does not reset this budget.`}
+                message={`Rolling 24h extraction cap (${formatCapResetCountdown(capRemainingMs)} left). Raise ceiling, wait for rollover, or refine diamonds still on this plant — Extract→wallet gems still count until the window resets.`}
               />
             )}
             {s.status === 'SetupIncomplete' && (
@@ -1968,66 +1969,91 @@ export function PlantSlotCard(props: {
             {modalFeedback}
           </p>
         ) : null}
-        <ul className="space-y-2">
-          {Object.values(MINECORE_BATTERIES).map((b) => {
-            const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
-            const isInstalled = s.setup.batteryIds[batterySlotFocus] === b.id;
-            const canPick = canAssignBatteryToPlantSlot(
-              props.minecoreState.plantSlots,
-              props.slotArrayIndex,
-              batterySlotFocus,
-              b.id,
-              owned,
-            );
-            const rowBlocked = !canPick && !isInstalled;
-            return (
-              <li key={b.id} className="list-none">
-                <ModalPartRow
-                  title={b.label}
-                  subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} stored (catalog) · max per slot uses rig charge budget + worker battery bonus.`}
-                  owned={owned}
-                  inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
-                  disabled={rowBlocked}
-                  disabledHint={
-                    rowBlocked
-                      ? owned <= 0
-                        ? 'Craft this pack in Fabrication - none owned.'
-                        : 'Every owned pack of this type is already assigned (inventory limits).'
-                      : undefined
+        {(() => {
+          const pillarDrained = isBatteryPillarDrained(s, batterySlotFocus, now);
+          const curAtPillar = normalizeBatteryIds(s.setup, s.type)[batterySlotFocus] ?? null;
+          return (
+            <>
+              {curAtPillar != null ? (
+                <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                  {pillarDrained
+                    ? 'Pillar drained — you can remove or swap packs. After mounting, recharge fills charge (no free implicit refill).'
+                    : 'Drain this pillar to 0% runtime before removing or swapping — avoids losing partial charge.'}
+                </p>
+              ) : null}
+              <ul className="space-y-2">
+                {Object.values(MINECORE_BATTERIES).map((b) => {
+                  const owned = props.minecoreState.owned.batteries[b.id] ?? 0;
+                  const isInstalled = s.setup.batteryIds[batterySlotFocus] === b.id;
+                  const canPick = canAssignBatteryToPlantSlot(
+                    props.minecoreState.plantSlots,
+                    props.slotArrayIndex,
+                    batterySlotFocus,
+                    b.id,
+                    owned,
+                  );
+                  const wouldSwap = curAtPillar != null && b.id !== curAtPillar;
+                  const chargeLocksSwap = wouldSwap && !pillarDrained;
+                  const invBlocked = !canPick && !isInstalled;
+                  const rowBlocked = invBlocked || chargeLocksSwap;
+                  return (
+                    <li key={b.id} className="list-none">
+                      <ModalPartRow
+                        title={b.label}
+                        subtitle={`Runtime ${formatDuration(b.chargeCapacityMs)} stored (catalog) · max per slot uses rig charge budget + worker battery bonus.`}
+                        owned={owned}
+                        inUse={displayAssignedCount(countBatteriesAssigned(props.minecoreState.plantSlots, b.id), owned)}
+                        disabled={rowBlocked}
+                        disabledHint={
+                          chargeLocksSwap
+                            ? 'Drain this pillar to 0% before swapping packs.'
+                            : invBlocked
+                              ? owned <= 0
+                                ? 'Craft this pack in Fabrication - none owned.'
+                                : 'Every owned pack of this type is already assigned (inventory limits).'
+                              : undefined
+                        }
+                        selected={isInstalled}
+                        onClick={() => {
+                          if (isInstalled) {
+                            setModalFeedback('This pack is already in this slot.');
+                            return;
+                          }
+                          dispatchInstallPartPayload({
+                            kind: 'battery',
+                            id: b.id,
+                            batterySlotIndex: batterySlotFocus,
+                          });
+                          setActiveModal(null);
+                        }}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+              {s.setup.batteryIds?.[batterySlotFocus] ? (
+                <ModalActionRow
+                  title="Remove battery from this slot"
+                  subtitle={
+                    pillarDrained
+                      ? 'Returns pack to inventory; mounting again starts empty until you recharge.'
+                      : 'Drain this pillar to 0% runtime before removing this pack.'
                   }
-                  selected={isInstalled}
+                  destructive
+                  disabled={!pillarDrained}
                   onClick={() => {
-                    if (isInstalled) {
-                      setModalFeedback('This pack is already in this slot.');
-                      return;
-                    }
                     dispatchInstallPartPayload({
                       kind: 'battery',
-                      id: b.id,
+                      id: null,
                       batterySlotIndex: batterySlotFocus,
                     });
                     setActiveModal(null);
                   }}
                 />
-              </li>
-            );
-          })}
-        </ul>
-        {s.setup.batteryIds?.[batterySlotFocus] ? (
-          <ModalActionRow
-            title="Remove battery from this slot"
-            subtitle="Returns pack to inventory; charge state resets for this slot."
-            destructive
-            onClick={() => {
-              dispatchInstallPartPayload({
-                kind: 'battery',
-                id: null,
-                batterySlotIndex: batterySlotFocus,
-              });
-              setActiveModal(null);
-            }}
-          />
-        ) : null}
+              ) : null}
+            </>
+          );
+        })()}
       </SelectionModal>
 
       <SelectionModal
@@ -2217,16 +2243,22 @@ export function PlantSlotCard(props: {
               !isSelected &&
               !inventoryAllowsPlantSetup(props.minecoreState, props.slotArrayIndex, { ...s.setup, moduleIds: nextIfAdd });
             const flatCap = m.diamondsPer24hFlat ?? 0;
+            const powerBits: string[] = [];
+            if (m.kind === 'cooling') {
+              if ((m.consumptionReduction ?? 0) > 0) powerBits.push('Less grid draw');
+              if ((m.failureReduction ?? 0) > 0) powerBits.push('Less wear strain');
+            } else if ((m.failureReduction ?? 0) > 0) {
+              powerBits.push('Less wear strain');
+            }
             const specParts = [
               flatCap > 0 ? `+${flatCap} D/24h cap` : '',
               m.kind === 'output' && flatCap <= 0 && (m.outputBonus ?? 0) > 0
                 ? `+${(m.outputBonus * 100).toFixed(0)}% extraction`
                 : '',
-              m.kind === 'cooling' ? `−${((m.consumptionReduction ?? 0) * 100).toFixed(0)}% kW` : '',
+              powerBits.length > 0 ? powerBits.join(' · ') : '',
               m.kind === 'automation' ? `+${((m.cycleDurationBonus ?? 0) * 100).toFixed(0)}% cycle` : '',
               m.kind === 'stability' ? `+${m.efficiencyFloorBonus ?? 0} eff. floor` : '',
               m.kind === 'refining' ? `+${((m.refineBonus ?? 0) * 100).toFixed(0)}% refine` : '',
-              `Fail −${(m.failureReduction * 100).toFixed(0)}%`,
             ].filter(Boolean);
             return (
               <li key={m.id} className="list-none">

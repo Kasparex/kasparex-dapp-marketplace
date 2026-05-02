@@ -202,19 +202,20 @@ export function FabricationPanel(props: {
                   });
                 }
                 if (cfg.kind === 'cooling') {
+                  const bits: string[] = [];
+                  if ((cfg.consumptionReduction ?? 0) > 0) bits.push('Less grid draw');
+                  if ((cfg.failureReduction ?? 0) > 0) bits.push('Less wear strain');
                   specifications.push({
                     label: 'Power consumption',
-                    value: `−${Math.round((cfg.consumptionReduction ?? 0) * 100)}% draw${
-                      cfg.failureReduction > 0 ? ` · −${Math.round(cfg.failureReduction * 100)}% strain` : ''
-                    }`,
+                    value: bits.length > 0 ? bits.join(' · ') : 'Grid / strain helper',
                     color: 'red',
                     specTooltip:
-                      'Lowers rig/module draw on this plant’s Mining tab kW balance, improving grid efficiency and maintenance strain.',
+                      'Lowers effective rig/module draw on this plant’s Mining tab kW tally and reduces maintenance strain from overload.',
                   });
                 } else if (cfg.failureReduction > 0) {
                   specifications.push({
                     label: 'Power consumption',
-                    value: `−${Math.round(cfg.failureReduction * 100)}% strain`,
+                    value: 'Less wear strain',
                     color: 'red',
                     specTooltip: 'Reduces wear strain from power stress on this plant (Mining tab efficiency interaction).',
                   });

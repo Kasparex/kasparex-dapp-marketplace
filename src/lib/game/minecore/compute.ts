@@ -2,15 +2,24 @@
  * Live mining progress is derived from persisted `PlantSlotState` timestamps (`cycle`, `batterySnapshotAt`)
  * and wall-clock `now`, so reconnecting applies the same deterministic math offline (tab may be closed).
  */
-import { MINECORE_DAY_MS, MINECORE_MODULES, MINECORE_PLANT_BASE_POWER_UNITS, miningWorkerNftSlotsRequired } from './config';
+import {
+  MINECORE_BATTERIES,
+  MINECORE_DAY_MS,
+  MINECORE_MODULES,
+  MINECORE_PLANT_BASE_POWER_UNITS,
+  miningWorkerNftSlotsRequired,
+} from './config';
 import type { MinecoreComputeContext } from './compute-context';
 import {
   drainWaterfallRemaining,
+  ensureBatterySlotChargeLength,
   getMaxChargePerSlotMs,
+  getPlantBatterySlotCount,
   hasInstalledBattery,
+  normalizeBatteryIds,
   sumChargeMs,
 } from './battery-utils';
-import type { MinecoreState, PlantSlotState } from './types';
+import type { MinecoreBatteryId, MinecoreState, PlantSlotState } from './types';
 import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import {
   normalizePlantSetup,
@@ -109,6 +118,44 @@ export function computeLiveBatterySlotChargeMs(slot: PlantSlotState, now: number
   const drainUntil = now;
   const elapsed = Math.max(0, drainUntil - slot.batterySnapshotAt);
   return drainWaterfallRemaining(raw, elapsed * BATTERY_CHARGE_DRAIN_RATE);
+}
+
+/** Remove/swap allowed only when pillar runtime is effectively gone (avoids wiping partial charge). */
+const BATTERY_PILLAR_DRAIN_EPS_MS = 2;
+
+export function isBatteryPillarDrained(slot: PlantSlotState, pillarIndex: number, now: number): boolean {
+  const n = getPlantBatterySlotCount(slot.type);
+  const idx = Math.max(0, Math.min(n - 1, Math.floor(pillarIndex)));
+  const ids = normalizeBatteryIds(slot.setup, slot.type);
+  const cur = ids[idx];
+  if (cur == null || !MINECORE_BATTERIES[cur]) return true;
+  const live = ensureBatterySlotChargeLength(computeLiveBatterySlotChargeMs(slot, now), n, 0);
+  return (live[idx] ?? 0) <= BATTERY_PILLAR_DRAIN_EPS_MS;
+}
+
+/** UI / InstallPart guard: block remove or swap until pillar drained. Install into empty pillar always OK. */
+export function explainBatteryInstallChangeBlocked(
+  slot: PlantSlotState,
+  pillarIndex: number,
+  targetBatteryId: MinecoreBatteryId | null,
+  now: number,
+): string | null {
+  const idx = Math.max(0, Math.min(getPlantBatterySlotCount(slot.type) - 1, Math.floor(pillarIndex)));
+  const ids = normalizeBatteryIds(slot.setup, slot.type);
+  const cur = ids[idx] ?? null;
+  const curValid = cur != null && MINECORE_BATTERIES[cur];
+  const targetValid = targetBatteryId != null && MINECORE_BATTERIES[targetBatteryId];
+
+  if (!curValid) return null;
+
+  const removing = !targetValid;
+  const swapping = targetValid && targetBatteryId !== cur;
+  if (!removing && !swapping) return null;
+
+  if (!isBatteryPillarDrained(slot, idx, now)) {
+    return 'Drain this battery pillar to empty before removing or swapping packs.';
+  }
+  return null;
 }
 
 /**

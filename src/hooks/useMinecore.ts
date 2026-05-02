@@ -10,9 +10,11 @@ import {
   computeLiveDiamonds,
   computePlantReady,
   computeLiveBatteryChargeMs,
+  explainBatteryInstallChangeBlocked,
   minecoreAutoRestartInfrastructureActive,
   minecorePlantHasForemanInCrew,
   hasInstalledBattery,
+  getPlantBatterySlotCount,
   type MinecoreState,
   type MinecoreBatteryId,
   type PlantSlotState,
@@ -160,6 +162,18 @@ export function useMinecore() {
       if (msg) {
         queueMicrotask(() => setLastSetupError(msg));
         return s;
+      }
+      if (ev.part.kind === 'battery') {
+        const nBat = getPlantBatterySlotCount(slot.type);
+        const bIdx =
+          ev.part.batterySlotIndex != null
+            ? Math.max(0, Math.min(nBat - 1, Math.floor(ev.part.batterySlotIndex)))
+            : 0;
+        const batMsg = explainBatteryInstallChangeBlocked(slot, bIdx, ev.part.id, ev.at);
+        if (batMsg) {
+          queueMicrotask(() => setLastSetupError(batMsg));
+          return s;
+        }
       }
       queueMicrotask(() => setLastSetupError(null));
       return applyMinecoreEvent(s, ev);

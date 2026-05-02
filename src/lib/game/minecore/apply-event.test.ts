@@ -5,8 +5,7 @@ import assert from 'node:assert/strict';
 import { createInitialMinecoreState } from './initial-state';
 import { applyMinecoreEvent } from './apply-event';
 import { normalizePlantSetup } from './asset-usage';
-import { sumChargeMs, getMaxChargePerSlotMs } from './battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
+import { sumChargeMs, hasInstalledBattery, normalizeBatteryIds } from './battery-utils';
 
 function minecoreWithWorkerDeployed() {
   const s = createInitialMinecoreState();
@@ -60,19 +59,9 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
   assert.ok(Math.abs(afterTotal - beforeTotal) <= 1, `same battery reinstall preserves charge (${beforeTotal} vs ${afterTotal})`);
 }
 
-// First battery install into empty pillar receives full slot capacity
+// First battery install into empty pillar starts empty until paid recharge (no free implicit fill)
 {
   let s = unlockedPlantStandard(0, null);
-  const bonus = computeMinecoreBatteryBonusMsPerSlot(s);
-  const setup = normalizePlantSetup('standard', {
-    machineId: 'pulse-drill',
-    batteryIds: ['energy-cell'],
-    workerNftDeckSlotIndices: [0],
-    moduleIds: [],
-    boostId: 'none',
-    powerNodeIds: [null],
-  });
-  const expectedCap = sumChargeMs(getMaxChargePerSlotMs(setup, 'standard', bonus));
   const at = Date.now();
   s = applyMinecoreEvent(s, {
     type: 'InstallPart',
@@ -80,8 +69,38 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
     at,
     part: { kind: 'battery', id: 'energy-cell', batterySlotIndex: 0 },
   });
-  const got = sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs);
-  assert.equal(got, expectedCap, 'first battery equip fills pillar to max capacity');
+  assert.equal(sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs), 0, 'equip into empty pillar starts at zero charge');
+}
+
+// Cannot remove or swap pack while pillar still holds runtime charge
+{
+  let s = unlockedPlantStandard(400_000);
+  const beforeBat = [...normalizeBatteryIds(s.plantSlots[0]!.setup, 'standard')];
+  const beforeCharge = [...s.plantSlots[0]!.batterySlotChargeMs];
+  const out = applyMinecoreEvent(s, {
+    type: 'InstallPart',
+    slotIndex: 0,
+    at: Date.now(),
+    part: { kind: 'battery', id: null, batterySlotIndex: 0 },
+  });
+  assert.deepEqual(normalizeBatteryIds(out.plantSlots[0]!.setup, 'standard'), beforeBat);
+  assert.deepEqual(out.plantSlots[0]!.batterySlotChargeMs, beforeCharge);
+}
+
+// Remove → reinstall: only after pillar is drained (0 ms)
+{
+  let s = unlockedPlantStandard(0);
+  const at = Date.now();
+  assert.ok(hasInstalledBattery(s.plantSlots[0]!.setup, 'standard'));
+  s = applyMinecoreEvent(s, { type: 'InstallPart', slotIndex: 0, at, part: { kind: 'battery', id: null, batterySlotIndex: 0 } });
+  assert.ok(!hasInstalledBattery(s.plantSlots[0]!.setup, 'standard'));
+  s = applyMinecoreEvent(s, {
+    type: 'InstallPart',
+    slotIndex: 0,
+    at: at + 1,
+    part: { kind: 'battery', id: 'energy-cell', batterySlotIndex: 0 },
+  });
+  assert.equal(sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs), 0, 'reinstall after remove stays empty until recharge');
 }
 
 // Identical machine InstallPart leaves battery charges unchanged (no-op path)
