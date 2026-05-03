@@ -414,7 +414,7 @@ function CheckRow(props: {
 
 /** Shows at most `max` badge nodes; trailing ellipsis when there are more (Setup capsule row). */
 function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
-  const arr = Children.toArray(children).filter((c) => c != null && c !== false && c !== true);
+  const arr = Children.toArray(children).filter((c) => c != null && typeof c !== 'boolean');
   if (arr.length === 0) return null;
   if (arr.length <= max) return <>{arr}</>;
   return (
