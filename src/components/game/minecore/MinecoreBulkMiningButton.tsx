@@ -4,8 +4,9 @@ import type { ReactNode } from 'react';
 import type { PlantSlotState } from '@/lib/game/minecore';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-const BTN_BASE =
-  'k-cta-games inline-flex shrink-0 items-center justify-center rounded-xl font-bold shadow-sm transition-opacity disabled:pointer-events-none disabled:opacity-40 disabled:grayscale';
+/** Matches {@link CardsFilterBar} category/sort triggers (h-10, text-sm, font-medium). */
+const MINING_TOOLBAR_BTN_CLASS =
+  'inline-flex h-10 min-w-[160px] shrink-0 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-emerald-500/30 disabled:pointer-events-none disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
 
 function WithTip(props: { tip: string; children: ReactNode }) {
   return (
@@ -24,7 +25,6 @@ export type MinecoreBulkMiningButtonProps =
       /** Pause active runs (`StopMining`, same as each card’s Stop mining). */
       onPauseAll: () => void;
       onResumeAll: () => void;
-      compact?: boolean;
     }
   | {
       variant: 'redeem-start-all';
@@ -42,19 +42,14 @@ export function MinecoreBulkMiningButton(props: MinecoreBulkMiningButtonProps) {
       : 'Connect your Kaspa L1 wallet to start mining.';
     return (
       <WithTip tip={tip}>
-        <button
-          type="button"
-          onClick={props.onStartAll}
-          disabled={disabled}
-          className={`${BTN_BASE} h-11 min-w-[12rem] px-5 text-xs uppercase tracking-wide`}
-        >
+        <button type="button" onClick={props.onStartAll} disabled={disabled} className={MINING_TOOLBAR_BTN_CLASS}>
           Start all mines
         </button>
       </WithTip>
     );
   }
 
-  const { plantSlots, miningAllowed, onStartAll, onPauseAll, onResumeAll, compact } = props;
+  const { plantSlots, miningAllowed, onStartAll, onPauseAll, onResumeAll } = props;
 
   const anyActive = plantSlots.some((p) => p.unlocked && p.status === 'MiningActive');
   const anyPaused = plantSlots.some((p) => p.unlocked && p.status === 'MiningPaused');
@@ -85,11 +80,9 @@ export function MinecoreBulkMiningButton(props: MinecoreBulkMiningButtonProps) {
       : 'Connect your Kaspa L1 wallet to start mining.';
   }
 
-  const h = compact ? 'h-9 px-3 text-xs' : 'h-10 px-4 text-sm';
-
   return (
     <WithTip tip={tip}>
-      <button type="button" onClick={onClick} disabled={disabled} className={`${BTN_BASE} ${h}`}>
+      <button type="button" onClick={onClick} disabled={disabled} className={MINING_TOOLBAR_BTN_CLASS}>
         {label}
       </button>
     </WithTip>

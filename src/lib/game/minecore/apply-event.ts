@@ -474,7 +474,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         if (ev.part.id && MINECORE_BATTERIES[ev.part.id]) {
           rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
         } else {
-          slot.batterySlotChargeMs = Array.from({ length: n }, () => 0);
+          // Remove pack from this pillar only — keep stored charge on other pillars.
+          const arr = ensureBatterySlotChargeLength(slot.batterySlotChargeMs, n, 0);
+          arr[idx] = 0;
+          slot.batterySlotChargeMs = arr;
           slot.batterySnapshotAt = now;
         }
         slot.powerRemaining = Math.min(slot.powerRemaining, getPowerUnitCap(slot));

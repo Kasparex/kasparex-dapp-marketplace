@@ -13,6 +13,7 @@ import {
 } from '@/lib/game/minecore';
 import {
   MINECORE_BATTERIES,
+  MINECORE_BATTERY_GRID_DRAW_BASE_KW,
   MINECORE_KW_SCALE,
   MINECORE_MACHINES,
   MINECORE_MODULES,
@@ -185,6 +186,14 @@ export function FabricationPanel(props: {
                   color: 'emerald',
                   specTooltip:
                     'Improves realized mining efficiency on the Mining tab when this cell is installed (maintenance / grid headroom interaction).',
+                });
+                const drawKw = (cfg.powerDrawMultiplier ?? 1) * MINECORE_BATTERY_GRID_DRAW_BASE_KW;
+                specifications.push({
+                  label: 'Power consumption',
+                  value: formatMinecorePowerDisplay(drawKw),
+                  color: 'red',
+                  specTooltip:
+                    'Grid draw added while this pack is mounted (`powerDrawMultiplier` × base battery draw). Same kW stack as Mining tab production vs consumption; it does not change how fast stored runtime drains.',
                 });
               }
             } else if (isModule) {

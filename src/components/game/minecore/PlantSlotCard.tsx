@@ -1651,18 +1651,14 @@ export function PlantSlotCard(props: {
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
             <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
-              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Power grid
-              </div>
+              <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Power grid</div>
               <PowerGridBalanceBar prodKw={prodKw} consKw={consKw} balKw={balKw} />
             </div>
           ) : null}
 
           {s.unlocked ? (
             <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
-              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Maintenance
-              </div>
+              <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Maintenance</div>
               <MaintenanceWearBar wearRatio={wearRatio} embedded onOpen={() => setMaintenanceModalOpen(true)} />
             </div>
           ) : null}
@@ -1690,7 +1686,7 @@ export function PlantSlotCard(props: {
             {batteryLow && !batteryEmpty && s.status !== 'MiningPaused' && (
               <WarningBanner
                 level="warn"
-                message={`Low battery - ~${formatDuration(batteryRuntimeMs)} runtime left. Recharge before it dies.`}
+                message={`Low battery (~${formatDuration(batteryRuntimeMs)}). Recharge soon.`}
               />
             )}
             {s.status === 'InsufficientPower' && (

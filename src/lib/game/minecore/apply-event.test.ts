@@ -117,4 +117,44 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
   assert.deepEqual(s.plantSlots[0]!.batterySlotChargeMs, before);
 }
 
+// Removing battery from one pillar must not clear sibling pillar charge (premium / multi-slot)
+{
+  let s = minecoreWithWorkerDeployed();
+  const slot = s.plantSlots[0]!;
+  slot.unlocked = true;
+  slot.type = 'premium';
+  slot.powerRemaining = 2;
+  slot.rollingCapWindowStartMs = Date.now();
+  slot.plantLastServicedAtMs = Date.now();
+  slot.setup = normalizePlantSetup('premium', {
+    machineId: 'pulse-drill',
+    batteryIds: ['energy-cell', 'energy-cell'],
+    workerNftDeckSlotIndices: [0, null],
+    moduleIds: [],
+    boostId: 'none',
+    powerNodeIds: [null, null],
+  });
+  slot.batterySlotChargeMs = [300_000, 0];
+  slot.batterySnapshotAt = Date.now();
+  slot.cycle = null;
+  s = {
+    ...s,
+    owned: {
+      ...s.owned,
+      machines: { ...s.owned.machines, 'pulse-drill': 6 },
+      batteries: { ...s.owned.batteries, 'energy-cell': 6 },
+    },
+  };
+  const at = Date.now();
+  const out = applyMinecoreEvent(s, {
+    type: 'InstallPart',
+    slotIndex: 0,
+    at,
+    part: { kind: 'battery', id: null, batterySlotIndex: 1 },
+  });
+  assert.equal(out.plantSlots[0]!.batterySlotChargeMs[0], 300_000, 'sibling pillar charge preserved when removing empty pillar pack');
+  assert.equal(out.plantSlots[0]!.batterySlotChargeMs[1], 0);
+  assert.equal(normalizeBatteryIds(out.plantSlots[0]!.setup, 'premium')[1], null);
+}
+
 console.log('apply-event tests OK');
