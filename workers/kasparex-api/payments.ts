@@ -276,7 +276,7 @@ export async function handleVerifyL1Payment(request: Request, env: Env): Promise
       });
     }
 
-    // Diamonds cashback (payment_bonus) — idempotent and capped.
+    // Diamonds cashback (payment_bonus)  -  idempotent and capped.
     // This is the sustainable “paid-action Diamonds bonus” from the plan.
     let diamondsMinted = 0;
     try {

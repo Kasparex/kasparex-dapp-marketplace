@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Example reward tuning for Krex Nodes (GRID). Production uses workers/config/node-reward-tiers.json — keep fields aligned when editing.",
+  "description": "Example reward tuning for Krex Nodes (GRID). Production uses workers/config/node-reward-tiers.json  -  keep fields aligned when editing.",
   "roleMultipliers": { "light": 4, "mirror": 5, "super": 6 },
   "underservedRegions": ["africa", "south-america", "southeast-asia"],
   "regionMultiplierUnderserved": 1.2,

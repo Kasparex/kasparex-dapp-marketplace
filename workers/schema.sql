@@ -1,4 +1,4 @@
--- Kasparex API D1 — Krex Nodes + GRID operator rewards (fresh install).
+-- Kasparex API D1  -  Krex Nodes + GRID operator rewards (fresh install).
 -- Migrations: workers/migrations/001_krex_nodes_v2.sql for upgrades from legacy grt/lrt.
 
 CREATE TABLE IF NOT EXISTS nodes (

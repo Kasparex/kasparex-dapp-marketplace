@@ -1,4 +1,4 @@
-# kpx/lnk v1 — Kaspa ↔ EVM Link Record
+# kpx/lnk v1  -  Kaspa ↔ EVM Link Record
 
 `kpx/lnk` expresses a link between a Kaspa owner address and an EVM address for hybrid authentication and UX.
 

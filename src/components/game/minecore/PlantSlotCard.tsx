@@ -179,7 +179,7 @@ const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
 /** Rolling-cap contributions (diamonds / 24h toward cap) */
 const CAP_CONTRIB_BADGE_CLS =
   'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
-/** Crew NFT runtime bonus — distinct from cap / sky runtime badges. */
+/** Crew NFT runtime bonus: distinct from cap / sky runtime badges. */
 const BATTERY_CREW_NFT_BADGE_CLS =
   'rounded-full border border-violet-500/40 bg-violet-500/12 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-violet-900 dark:text-violet-200';
 /** Slot max runtime capsule (battery pillar). */
@@ -304,7 +304,7 @@ function tooltipForStatus(status: PlantSlotState['status']): ReactNode {
     case 'DailyCapReached':
       return gameTooltipRich(
         '24h cap',
-        'Rolling extraction budget for this plant is full. Wait for the countdown, raise ceiling (rig / crew / Overclock / KREX Boost), or refine diamonds that are still sitting on this plant into points — that frees headroom. Diamonds already sent to your refineable wallet from Extract still count toward this window until it rolls.',
+        'Rolling extraction budget for this plant is full. Wait for the countdown, raise ceiling (rig / crew / Overclock / KREX Boost), or refine diamonds that are still sitting on this plant into points. That frees headroom. Diamonds already sent to your refineable wallet from Extract still count toward this window until it rolls.',
       );
     default:
       return gameTooltipRich('Plant status', 'Current state for this mining plant.');
@@ -664,7 +664,7 @@ function PowerGridBalanceBar(props: { prodKw: number; consKw: number; balKw: num
             <>
               <p>
                 Draw from your mining rig, every installed battery pack, and active modules on this plant (kW). More gear
-                raises load — add reactors or cooling to stay in a safe band.
+                raises load; add reactors or cooling to stay in a safe band.
               </p>
             </>,
           )}
@@ -744,7 +744,15 @@ function UnifiedBatterySegmentsBar(props: {
       <Tooltip
         content={gameTooltipRich(
           'Energy · mining runtime',
-          'Charge left in the active run versus the capacity of your installed pack. Slot pillars below drain in order (1 → 2 …).',
+          <>
+            <p>
+              Charge left in the active run versus the capacity of your installed pack. Slot pillars below drain in order (1 → 2
+              …).
+            </p>
+            <p className="mt-1">
+              To change or remove a battery type on a pillar, drain that pillar&apos;s stored runtime to empty first.
+            </p>
+          </>,
         )}
       >
         <span className="block cursor-help text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
@@ -795,11 +803,25 @@ function UnifiedBatterySegmentsBar(props: {
                   ? gameTooltipRich(
                       `Battery pillar ${i + 1}`,
                       <>
-                        {formatShortBatterySlotRuntime(live)} left of {formatShortBatterySlotRuntime(max)} stored runtime.
-                        Earlier pillars drain first during a run.
+                        <p>
+                          {formatShortBatterySlotRuntime(live)} left of {formatShortBatterySlotRuntime(max)} stored runtime.
+                          Earlier pillars drain first during a run.
+                        </p>
+                        <p className="mt-1">
+                          Drain this pillar to empty before you can change or remove the battery type mounted here.
+                        </p>
                       </>,
                     )
-                  : gameTooltipRich(`Empty pillar ${i + 1}`, 'Tap to assign a battery pack from inventory.')
+                  : gameTooltipRich(
+                      `Empty pillar ${i + 1}`,
+                      <>
+                        <p>Tap to assign a battery pack from inventory.</p>
+                        <p className="mt-1">
+                          Once a pack is mounted, you must drain stored runtime to empty before swapping or removing that battery
+                          type.
+                        </p>
+                      </>,
+                    )
               }
             >
               <button
@@ -837,7 +859,7 @@ function UnifiedBatterySegmentsBar(props: {
   );
 }
 
-/** Distinct from battery tier — maintenance health (inverse wear); fill shifts purple → navy → orange → red. */
+/** Distinct from battery tier: maintenance health (inverse wear); fill shifts purple → navy → orange → red. */
 function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void; embedded?: boolean }) {
   const health = clamp01(1 - props.wearRatio);
   const fill = maintenanceMeterFillCss(health);
@@ -1171,7 +1193,7 @@ export function PlantSlotCard(props: {
     const rk = refillListKasRange;
     const refillHint =
       rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
-    actionLabel = `Refill battery — ${refillHint}`;
+    actionLabel = `Refill battery: ${refillHint}`;
   } else if (
     s.status === 'ReadyToMine' &&
     liveChargeMs <= 0 &&
@@ -1181,7 +1203,7 @@ export function PlantSlotCard(props: {
     const rk = refillListKasRange;
     const refillHint =
       rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
-    actionLabel = `Refill battery — ${refillHint}`;
+    actionLabel = `Refill battery: ${refillHint}`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
   } else if (s.status === 'DailyCapReached') {
@@ -1211,8 +1233,10 @@ export function PlantSlotCard(props: {
   const plantFeaturedUrl = showFeaturedPlantArt ? preset.featuredImageUrl : undefined;
   const baseCapDisplay = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[s.type ?? 'standard'];
   const moduleSlots = MINECORE_MAX_MODULES_BY_PLANT[s.type ?? 'standard'];
-  const moduleBadgeCopy =
-    moduleSlots <= 0 ? 'No modules' : `${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'}`;
+  const crewTierCapacity = MINECORE_PLANT_WORKFORCE_CAPACITY[s.type ?? 'standard'];
+  const batteryPillarTierCount = getPlantBatterySlotCount(s.type);
+  const moduleOverlayBadge =
+    moduleSlots <= 0 ? 'No modules' : `${moduleSlots} Module${moduleSlots === 1 ? '' : 's'}`;
   const statCapsuleCls =
     'inline-flex max-w-full items-center rounded-full border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm backdrop-blur-sm';
 
@@ -1268,7 +1292,7 @@ export function PlantSlotCard(props: {
       }
       mediaOverlayBottom={
         showFeaturedPlantArt && plantFeaturedUrl ? (
-          <>
+          <div className="flex flex-wrap items-center justify-center gap-1">
             <Tooltip
               content={gameTooltipRich(
                 'Base tier budget',
@@ -1282,15 +1306,39 @@ export function PlantSlotCard(props: {
             </Tooltip>
             <Tooltip
               content={gameTooltipRich(
+                'Crew capacity',
+                <>
+                  {preset.label} supports {crewTierCapacity} crew position{crewTierCapacity === 1 ? '' : 's'}. Assign Crew-tab
+                  NFT rows in Setup.
+                </>,
+              )}
+            >
+              <span className={`${statCapsuleCls} normal-case tracking-normal`}>{crewTierCapacity} Crew</span>
+            </Tooltip>
+            <Tooltip
+              content={gameTooltipRich(
+                'Battery pillars',
+                <>
+                  This plant tier has {batteryPillarTierCount} battery pillar{batteryPillarTierCount === 1 ? '' : 's'}. Each holds
+                  one pack; pillars drain in order during a run.
+                </>,
+              )}
+            >
+              <span className={`${statCapsuleCls} normal-case tracking-normal`}>
+                {batteryPillarTierCount} {batteryPillarTierCount === 1 ? 'Battery' : 'Batteries'}
+              </span>
+            </Tooltip>
+            <Tooltip
+              content={gameTooltipRich(
                 'Module tier',
                 moduleSlots <= 0
                   ? 'This plant tier cannot mount fabrication modules.'
-                  : `Up to ${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'} — see Modules in setup.`,
+                  : `Up to ${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'}. See Modules in setup.`,
               )}
             >
-              <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
+              <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleOverlayBadge}</span>
             </Tooltip>
-          </>
+          </div>
         ) : undefined
       }
       title={`Mining Plant ${props.slotArrayIndex + 1}`}
@@ -1376,7 +1424,7 @@ export function PlantSlotCard(props: {
                   <>
                     <p>
                       One-time charge: buying adds inventory you equip here; when the timer ends (or you unequip while it is
-                      running) that charge is consumed — buy again for another run.
+                      running) that charge is consumed. Buy again for another run.
                     </p>
                     <p className="mt-1">
                       Active for {Math.round(MINECORE_KREX_BOOST_DURATION_MS / 3_600_000)} hour
@@ -1534,7 +1582,7 @@ export function PlantSlotCard(props: {
                 'Crew',
                 <>
                   <p>
-                    {preset.label} has {needWorkers} crew position{needWorkers === 1 ? '' : 's'} — link distinct Crew-tab NFT rows (Worker / Operator / Foreman roles).
+                    {preset.label} has {needWorkers} crew position{needWorkers === 1 ? '' : 's'}. Link distinct Crew-tab NFT rows (Worker / Operator / Foreman roles).
                     Each adds rolling-cap and battery bonuses per collection tier.
                   </p>
                   {machineConfig ? (
@@ -1661,11 +1709,24 @@ export function PlantSlotCard(props: {
                     bcfg
                       ? gameTooltipRich(
                           `${bcfg.label}`,
-                          'Stored energy for mining cycles. Tap to swap packs or refill from treasury.',
+                          <>
+                            <p>Stored energy for mining cycles. Tap to swap packs or refill from treasury.</p>
+                            <p className="mt-1">
+                              Drain this pillar to empty stored runtime before you can change or remove the battery type.
+                            </p>
+                          </>,
                         )
                       : gameTooltipRich(
                           powerUnitCount > 1 ? `Battery pillar ${bi + 1}` : 'Battery',
-                          'Pick a fabricated battery pack. Each pillar holds one unit; earlier pillars drain first during a run.',
+                          <>
+                            <p>
+                              Pick a fabricated battery pack. Each pillar holds one unit; earlier pillars drain first during a
+                              run.
+                            </p>
+                            <p className="mt-1">
+                              After you mount a pack, drain it empty before you can change or remove that battery type.
+                            </p>
+                          </>,
                         )
                   }
                   onClick={() => {
@@ -1699,7 +1760,7 @@ export function PlantSlotCard(props: {
             {s.status === 'DailyCapReached' && (
               <WarningBanner
                 level="warn"
-                message={`Rolling 24h extraction cap (${formatCapResetCountdown(capRemainingMs)} left). Raise ceiling, wait for rollover, or refine diamonds still on this plant — Extract→wallet gems still count until the window resets.`}
+                message={`Rolling 24h extraction cap (${formatCapResetCountdown(capRemainingMs)} left). Raise ceiling, wait for rollover, or refine diamonds still on this plant. Extract→wallet gems still count until the window resets.`}
               />
             )}
             {s.status === 'SetupIncomplete' && (
@@ -1919,7 +1980,7 @@ export function PlantSlotCard(props: {
         <p className="mb-3 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
           Tiers unlock <strong>one step at a time</strong>: while on your current plant type, reach{' '}
           {(MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC * 100).toFixed(0)}% of that tier&apos;s structural max rolling cap
-          (progress = mined + banked + live run toward the cap in this 24h window) <strong>once</strong> — then you can
+          (progress = mined + banked + live run toward the cap in this 24h window) <strong>once</strong>, then you can
           purchase the next tier. Downgrades go only to Standard and wipe setup (see confirmation).
         </p>
         <ul className="space-y-2">
@@ -1954,13 +2015,15 @@ export function PlantSlotCard(props: {
                 </>,
               );
             } else if (!isCurrent && !isStandardDowngradeRow && rowIdx > curIdx + 1) {
-              lockTip = gameTooltipRich('Unavailable', 'Purchase each higher tier in order — unlock the next step first.');
+              lockTip = gameTooltipRich('Unavailable', 'Purchase each higher tier in order. Unlock the next step first.');
             }
+
+            const rowLockedMuted = rowDisabled && !isCurrent;
 
             const borderCls = isCurrent
               ? 'border-emerald-500 bg-emerald-500/5 dark:border-emerald-500/60'
               : rowDisabled
-                ? 'border-zinc-100 bg-zinc-50/40 opacity-[0.72] dark:border-zinc-800 dark:bg-zinc-950/25'
+                ? 'border-zinc-200 bg-zinc-100/70 dark:border-zinc-700 dark:bg-zinc-900/45'
                 : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
 
             const baseD = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[p.type];
@@ -1992,18 +2055,32 @@ export function PlantSlotCard(props: {
                 className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed ${borderCls}`}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                  <div
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 ${rowLockedMuted ? 'opacity-55 grayscale' : ''}`}
+                  >
                     {p.featuredImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      <Icon
+                        className={`h-5 w-5 ${rowLockedMuted ? 'text-zinc-400 dark:text-zinc-500' : 'text-emerald-600 dark:text-emerald-400'}`}
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{p.label}</div>
-                    <div className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{p.description}</div>
-                    <div className="mt-1 text-[10px] font-semibold leading-snug text-emerald-700 dark:text-emerald-400/90">
+                    <div
+                      className={`font-bold text-sm ${rowLockedMuted ? 'text-zinc-500 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-100'}`}
+                    >
+                      {p.label}
+                    </div>
+                    <div
+                      className={`text-[11px] leading-snug ${rowLockedMuted ? 'text-zinc-500 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'}`}
+                    >
+                      {p.description}
+                    </div>
+                    <div
+                      className={`mt-1 text-[10px] font-semibold leading-snug ${rowLockedMuted ? 'text-zinc-500 dark:text-zinc-500' : 'text-emerald-700 dark:text-emerald-400/90'}`}
+                    >
                       {statsLine}
                     </div>
                   </div>
@@ -2011,13 +2088,19 @@ export function PlantSlotCard(props: {
                 <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                   <div className="flex min-w-[4rem] flex-col items-end">
                     <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
-                    <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
+                    <span
+                      className={`font-mono text-sm font-bold tabular-nums ${rowLockedMuted ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-800 dark:text-zinc-100'}`}
+                    >
                       {p.costKas <= 0 ? '-' : `${p.costKas.toLocaleString()} KAS`}
                     </span>
                   </div>
                   <div className="flex min-w-[3.5rem] flex-col items-end">
                     <span className="text-[10px] font-semibold text-zinc-400">Status</span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isCurrent ? 'Current' : '-'}</span>
+                    <span
+                      className={`text-xs font-bold ${isCurrent ? 'text-emerald-600 dark:text-emerald-400' : rowLockedMuted ? 'text-zinc-500 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'}`}
+                    >
+                      {isCurrent ? 'Current' : rowLockedMuted ? 'Locked' : '-'}
+                    </span>
                   </div>
                   {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" /> : null}
                 </div>
@@ -2057,7 +2140,7 @@ export function PlantSlotCard(props: {
                   Downgrade to Standard Plant?
                 </h4>
                 <p className="mt-2 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
-                  This resets all setups on this plant — rigs, batteries (charge clears), crew links, reactors, and modules
+                  This resets all setups on this plant: rigs, batteries (charge clears), crew links, reactors, and modules
                   return to inventory rules from here; plant tier milestones reset. To climb tiers again you pay upgrade KAS
                   costs from Standard upward. This does not refund past upgrades.
                 </p>
@@ -2251,8 +2334,8 @@ export function PlantSlotCard(props: {
               {curAtPillar != null ? (
                 <p className="mb-3 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
                   {pillarDrained
-                    ? 'Pillar drained — you can remove or swap packs. After mounting, recharge fills charge (no free implicit refill).'
-                    : 'Drain this pillar to 0% runtime before removing or swapping — avoids losing partial charge.'}
+                    ? 'Pillar drained. You can remove or swap packs. After mounting, recharge fills charge (no free implicit refill).'
+                    : 'Drain this pillar to 0% runtime before removing or swapping (avoids losing partial charge).'}
                 </p>
               ) : null}
               <ul className="space-y-2">

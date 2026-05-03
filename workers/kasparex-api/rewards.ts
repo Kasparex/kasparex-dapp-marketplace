@@ -1,5 +1,5 @@
 /**
- * Kasparex API — Krex Node operator rewards (GRID only, per epoch).
+ * Kasparex API  -  Krex Node operator rewards (GRID only, per epoch).
  */
 
 import type { Env } from '../index';
@@ -96,7 +96,7 @@ async function previewNodeRewardGrid(
 }
 
 /**
- * GET /kasparex/rewards/:nodeId — returns stored epoch row or computes preview (stores if missing and base > 0).
+ * GET /kasparex/rewards/:nodeId  -  returns stored epoch row or computes preview (stores if missing and base > 0).
  */
 export async function handleGetNodeRewards(
   nodeId: string,

@@ -35,7 +35,7 @@ Override config path: `KREX_NODE_CONFIG=/path/to/config.json`.
 
 From repo root (or copy these files into a standalone operator repo):
 
-- `install.sh` — checks `node` ≥ 20, runs `npm ci` + `npm run build`
-- `install.bat` — Windows equivalent
+- `install.sh`  -  checks `node` ≥ 20, runs `npm ci` + `npm run build`
+- `install.bat`  -  Windows equivalent
 
 See **COMPATIBILITY.md** for API base URLs and required headers.

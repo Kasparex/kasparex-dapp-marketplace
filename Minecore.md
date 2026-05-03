@@ -130,7 +130,7 @@ Combined with workers and modules, they create strong multiplier effects.
 
 ## Refining and Output
 
-Diamonds accumulate in your profile after mining. Use the **Redeem** tab to convert diamonds into refinement points, then redeem points toward **GRID** or **KREX** within published caps—linking Minecore to the broader Kasparex reward system.
+Diamonds accumulate in your profile after mining. Use the **Redeem** tab to convert diamonds into refinement points, then redeem points toward **GRID** or **KREX** within published caps - linking Minecore to the broader Kasparex reward system.
 
 ---
 
@@ -190,9 +190,9 @@ Minecore serves as the production layer powering the entire ecosystem.
 
 ## Rewards pipeline (at a glance)
 
-1. **Mining** — When a run completes, diamonds credit to your refineable balance (no extra tap in the main loop).  
-2. **Refine** — On Redeem, convert diamonds into refinement points.  
-3. **Redeem tokens** — Spend refinement points toward GRID or KREX within caps and pools shown on Redeem.
+1. **Mining**  -  When a run completes, diamonds credit to your refineable balance (no extra tap in the main loop).  
+2. **Refine**  -  On Redeem, convert diamonds into refinement points.  
+3. **Redeem tokens**  -  Spend refinement points toward GRID or KREX within caps and pools shown on Redeem.
 
 ---
 

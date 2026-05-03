@@ -85,30 +85,30 @@ npm run deploy:preview
 
 ### Node management (Krex Nodes)
 
-- `POST /kasparex/node/challenge` — start wallet-binding challenge
-- `POST /kasparex/node/verify-wallet` — verify Kaspa signature, returns short-lived enrollment token
-- `POST /kasparex/node/enroll` — create node + HMAC secret in KV, bind wallet
-- `POST /kasparex/node/rotate-secret` — rotate node HMAC (authenticated)
-- `GET /kasparex/node/runtime-config` — min version, heartbeat hints for operator runtime
-- `POST /kasparex/node/register` — register or refresh node row (HMAC when `node:hmac:{id}` exists in KV, or when `KREX_NODE_REQUIRE_HMAC=true`)
-- `POST /kasparex/node/ping` — heartbeat; updates hourly `node_uptime_slices` (no per-ping row)
-- `GET /kasparex/nodes` — list active nodes (compact)
-- `GET /kasparex/node/:id` — node details
-- `GET /kasparex/node/:id/status` — uptime, requests, version, flags
-- `GET /kasparex/node/:id/rewards?epoch=YYYY-MM-DD` — epoch GRID row / preview
-- `GET /kasparex/nodes/pinned/:cid` — find nodes pinning a CID
+- `POST /kasparex/node/challenge`  -  start wallet-binding challenge
+- `POST /kasparex/node/verify-wallet`  -  verify Kaspa signature, returns short-lived enrollment token
+- `POST /kasparex/node/enroll`  -  create node + HMAC secret in KV, bind wallet
+- `POST /kasparex/node/rotate-secret`  -  rotate node HMAC (authenticated)
+- `GET /kasparex/node/runtime-config`  -  min version, heartbeat hints for operator runtime
+- `POST /kasparex/node/register`  -  register or refresh node row (HMAC when `node:hmac:{id}` exists in KV, or when `KREX_NODE_REQUIRE_HMAC=true`)
+- `POST /kasparex/node/ping`  -  heartbeat; updates hourly `node_uptime_slices` (no per-ping row)
+- `GET /kasparex/nodes`  -  list active nodes (compact)
+- `GET /kasparex/node/:id`  -  node details
+- `GET /kasparex/node/:id/status`  -  uptime, requests, version, flags
+- `GET /kasparex/node/:id/rewards?epoch=YYYY-MM-DD`  -  epoch GRID row / preview
+- `GET /kasparex/nodes/pinned/:cid`  -  find nodes pinning a CID
 
 ### Wallet + rewards
 
-- `GET /kasparex/wallet/nodes?address=kaspa:...` — nodes owned by wallet
-- `GET /kasparex/rewards/:nodeId?epoch=YYYY-MM-DD` — operator GRID for epoch (stored or preview)
-- `GET /kasparex/rewards/epoch/:epochDate` — epoch summary
+- `GET /kasparex/wallet/nodes?address=kaspa:...`  -  nodes owned by wallet
+- `GET /kasparex/rewards/:nodeId?epoch=YYYY-MM-DD`  -  operator GRID for epoch (stored or preview)
+- `GET /kasparex/rewards/epoch/:epochDate`  -  epoch summary
 
 ### Public data
 
-- `GET /kasparex/stats` — network statistics
-- `GET /kasparex/network/stats` — alias including node aggregates where configured
-- `GET /kasparex/dapps/availability?cid=...` — dApp mirror availability
+- `GET /kasparex/stats`  -  network statistics
+- `GET /kasparex/network/stats`  -  alias including node aggregates where configured
+- `GET /kasparex/dapps/availability?cid=...`  -  dApp mirror availability
 
 ### Health Check
 
@@ -137,12 +137,12 @@ See `schema.sql` for the complete database schema. For existing deployments, app
 
 ## Environment variables
 
-- `REGISTRY_CID` — IPFS CID for registry (optional)
-- `PINATA_API_KEY` — Pinata API key (optional)
-- `STORACHA_API_KEY` — Storacha API key (optional)
-- `KASPAREX_API_URL` — API base URL (optional)
-- `NODE_ENROLLMENT_SECRET` — HS256 secret for enrollment / rotate-secret JWTs (required for enroll flows)
-- `KREX_NODE_REQUIRE_HMAC` — set to `true` to reject register/ping without a KV HMAC secret
+- `REGISTRY_CID`  -  IPFS CID for registry (optional)
+- `PINATA_API_KEY`  -  Pinata API key (optional)
+- `STORACHA_API_KEY`  -  Storacha API key (optional)
+- `KASPAREX_API_URL`  -  API base URL (optional)
+- `NODE_ENROLLMENT_SECRET`  -  HS256 secret for enrollment / rotate-secret JWTs (required for enroll flows)
+- `KREX_NODE_REQUIRE_HMAC`  -  set to `true` to reject register/ping without a KV HMAC secret
 
 ## Operator tooling
 

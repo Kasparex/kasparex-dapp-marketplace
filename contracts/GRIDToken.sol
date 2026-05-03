@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @dev GRID token - Global Reward and Incentive Distribution token (EVM ERC-20)
  * @notice Fixed max supply (10B GRID), deflationary (burns on conversion/spend). Intended as the
  *         **official bridged GRID** on a given L2 (e.g. Kasplex) alongside the same ticker on other
- *         rails—**canonical fixed supply** should be defined at Kaspa L1 (KRC-20) per
+ *         rails - **canonical fixed supply** should be defined at Kaspa L1 (KRC-20) per
  *         docs/GRID_CANONICAL_SUPPLY_MODEL.md; do not deploy unrelated second “GRID” economies.
  */
 contract GRIDToken is ERC20, Ownable, ReentrancyGuard {

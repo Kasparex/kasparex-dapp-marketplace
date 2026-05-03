@@ -207,7 +207,7 @@ function calculateRewardAmounts(
   actionValue: number,
   krexTier: KREXTier
 ): { gridReward: number; dAppTokenReward: number } {
-  // Base reward rate (per KAS) — canonical config.
+  // Base reward rate (per KAS)  -  canonical config.
   const GRID_PER_KAS = BASE_REWARDS.GRID_PER_KAS;
   // This project is GRID-first; keep dApp token rewards disabled for now.
   const DAPP_TOKEN_PER_KAS = 0;

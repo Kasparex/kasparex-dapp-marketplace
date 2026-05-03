@@ -165,7 +165,7 @@ export async function handlePublicRequest(
     return handleGetDAppAvailability(request, env);
   }
 
-  // GET /kasparex/network/stats — same payload as /kasparex/stats (alias for node clients)
+  // GET /kasparex/network/stats  -  same payload as /kasparex/stats (alias for node clients)
   if (pathname === '/kasparex/network/stats' && request.method === 'GET') {
     return handleGetStats(env);
   }

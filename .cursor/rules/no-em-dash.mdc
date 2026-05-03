@@ -1,0 +1,10 @@
+---
+description: Never use the Unicode em dash (U+2014) in this project.
+alwaysApply: true
+---
+
+# No em dash (Unicode U+2014)
+
+Do **not** use that character anywhere: UI copy, tooltips, comments, docs, or strings.
+
+Use plain alternatives instead: a period and new sentence, a colon, parentheses, an ASCII hyphen, or ` / ` as fits the sentence.

@@ -1,4 +1,4 @@
-# GRID — Kaspa L1 mainnet (KRC-20) deployment record
+# GRID  -  Kaspa L1 mainnet (KRC-20) deployment record
 
 **Canonical GRID** on Kaspa L1. Source of truth for max supply and premint. **L2 bridged ERC-20:** [GRID_L2_BRIDGED_KATBRIDGE_DEPLOYMENT.md](./GRID_L2_BRIDGED_KATBRIDGE_DEPLOYMENT.md) (Katbridge).
 
@@ -55,4 +55,4 @@
 
 ## Related docs
 
-- [GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md) — L1 canonical + bridged L2 story.
+- [GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md)  -  L1 canonical + bridged L2 story.

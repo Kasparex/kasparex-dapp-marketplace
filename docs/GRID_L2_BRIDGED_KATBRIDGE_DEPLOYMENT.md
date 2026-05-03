@@ -1,4 +1,4 @@
-# GRID — L2 bridged ERC-20 (Katbridge)
+# GRID  -  L2 bridged ERC-20 (Katbridge)
 
 Official bridged **GRID** on EVM L2s, onboarded from canonical L1 KRC-20 via **[Katbridge](https://onboard.katbridge.com/)**. Same ticker, decimals, and max supply as [L1 deployment](./GRID_L1_MAINNET_KRC20_DEPLOYMENT.md).
 

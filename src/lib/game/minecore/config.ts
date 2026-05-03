@@ -18,7 +18,7 @@ export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 /** 24h window for diamonds/day and cycle scaling. */
 export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Upgrade modal / calculator tier order (low → apex). Six tiers — no skipping purchases. */
+/** Upgrade modal / calculator tier order (low → apex). Six tiers; no skipping purchases. */
 export const MINECORE_PLANT_TYPE_ORDER: readonly PlantType[] = [
   'standard',
   'premium',
@@ -242,7 +242,7 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     label: 'Dominion Complex',
     costKas: 2_500,
     icon: 'Landmark',
-    description: 'Maximum facility scale — six pillars, six crew rows, six module slots.',
+    description: 'Maximum facility scale: six pillars, six crew rows, six module slots.',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_c8728dbcdd12453aa9add461ff121f8a~mv2.jpg',
   },

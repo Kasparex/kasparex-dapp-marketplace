@@ -1,5 +1,5 @@
 /**
- * Kasparex API — Krex Node registry, heartbeats, status, runtime config.
+ * Kasparex API  -  Krex Node registry, heartbeats, status, runtime config.
  */
 
 import type { Env } from '../index';
@@ -128,7 +128,7 @@ async function recomputeUptimeFromSlices(env: Env, nodeId: string): Promise<numb
 }
 
 /**
- * POST /kasparex/node/register — legacy path; HMAC required when node has enrolled secret.
+ * POST /kasparex/node/register  -  legacy path; HMAC required when node has enrolled secret.
  */
 export async function handleNodeRegister(request: Request, env: Env): Promise<Response> {
   const cors = getCorsHeaders();
@@ -199,7 +199,7 @@ export async function handleNodeRegister(request: Request, env: Env): Promise<Re
 }
 
 /**
- * POST /kasparex/node/ping — updates slices + last_ping; optional HMAC when enrolled.
+ * POST /kasparex/node/ping  -  updates slices + last_ping; optional HMAC when enrolled.
  */
 export async function handleNodePing(request: Request, env: Env): Promise<Response> {
   const cors = getCorsHeaders();

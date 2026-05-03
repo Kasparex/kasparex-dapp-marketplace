@@ -13,7 +13,7 @@ async function main() {
   console.log('Testing with account:', deployer.address);
   console.log('Account balance:', (await hre.ethers.provider.getBalance(deployer.address)).toString(), 'wei\n');
 
-  // Contract addresses from deployment (Kasplex L2 testnet era — update via env for new runs)
+  // Contract addresses from deployment (Kasplex L2 testnet era  -  update via env for new runs)
   const addresses = {
     GRIDToken: process.env.GRID_TOKEN_ADDRESS || '',
     RewardVault: "0x59e49E4f60397CC1C2F0eB3d7ebcF9C9c8AACCAD",
@@ -31,7 +31,7 @@ async function main() {
   console.log('ECOSYSTEM CONTRACTS TEST');
   console.log('='.repeat(60) + '\n');
 
-  // Test 1: GRIDToken (optional — skip if GRID_TOKEN_ADDRESS unset)
+  // Test 1: GRIDToken (optional  -  skip if GRID_TOKEN_ADDRESS unset)
   console.log('1. Testing GRIDToken...');
   if (!addresses.GRIDToken) {
     console.log('   ⏭️  Skipped (set GRID_TOKEN_ADDRESS to bridged canonical GRID on this network).\n');

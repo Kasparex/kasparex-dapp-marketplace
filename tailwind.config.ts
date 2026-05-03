@@ -6,7 +6,7 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    /** Accent utilities are authored as strings in lib (featuredAccent etc.) — must be scanned or they purge out. */
+    /** Accent utilities are authored as strings in lib (featuredAccent etc.): must be scanned or they purge out. */
     "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {

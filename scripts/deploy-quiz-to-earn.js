@@ -40,7 +40,7 @@ async function main() {
   const defaultDAppRegistry = '0x1c2c21fFe7AE1fCb031eCabE69BCdeb9a10c04Dd';
   const defaultProofOfUtility = '0x1aB97D324Ea68FF7c51A91689564377e433A77f6';
 
-  // Igra (Galleon testnet / mainnet) — override with env when deploying
+  // Igra (Galleon testnet / mainnet)  -  override with env when deploying
   const igraFeeCollector = process.env.FEE_COLLECTOR_ADDRESS_IGRA || '';
   const igraDAppRegistry = process.env.DAPP_REGISTRY_ADDRESS_IGRA || '';
   const igraProofOfUtility = process.env.PROOF_OF_UTILITY_ADDRESS_IGRA || '';

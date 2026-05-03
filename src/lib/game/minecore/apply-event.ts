@@ -92,7 +92,7 @@ function clampPlantAutoRestartMiningToForemanCrew(s: MinecoreState) {
   }
 }
 
-/** Preserve total charge energy when machine (charge budget) or per-slot battery changes. No implicit full charge when mounting from empty—players recharge paid paths or Extract/refine flows. */
+/** Preserve total charge energy when machine (charge budget) or per-slot battery changes. No implicit full charge when mounting from empty: players recharge paid paths or Extract/refine flows. */
 function rescaleBatteryToNewCapacity(
   state: MinecoreState,
   slot: PlantSlotState,
@@ -514,7 +514,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         if (ev.part.id && MINECORE_BATTERIES[ev.part.id]) {
           rescaleBatteryToNewCapacity(s, slot, oldMax, now, now);
         } else {
-          // Remove pack from this pillar only — keep stored charge on other pillars.
+          // Remove pack from this pillar only; keep stored charge on other pillars.
           const arr = ensureBatterySlotChargeLength(slot.batterySlotChargeMs, n, 0);
           arr[idx] = 0;
           slot.batterySlotChargeMs = arr;

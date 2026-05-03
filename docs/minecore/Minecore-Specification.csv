@@ -36,7 +36,7 @@ Machines,pulse-drill,Pulse Drill,600000,10 min,50,1
 Machines,crystal-extractor,Crystal Extractor,1800000,30 min,180,1.5
 Machines,deep-vein-rig,Deep Vein Rig,3600000,60 min,420,2.5
 Machines,quantum-fracturer,Quantum Fracturer,21600000,6 h,3200,6
-Machines,NOTE,CSV snapshot may drift — see MINECORE_MACHINES for miningSpeedMultiplier + live powerConsumptionFactor,,,,
+Machines,NOTE,CSV snapshot may drift  -  see MINECORE_MACHINES for miningSpeedMultiplier + live powerConsumptionFactor,,,,
 Machines,NOTE,Battery drain is 1:1 nominal stored-charge ms (rigs do not shorten runtime),,,,
 ,,,,,,
 Batteries,id,label,efficiency,powerCapacity,chargeCapacityMs,chargeHuman

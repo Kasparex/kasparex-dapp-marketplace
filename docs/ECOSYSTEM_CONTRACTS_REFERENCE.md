@@ -115,7 +115,7 @@ Complete reference guide for all available ecosystem contracts in the Kasparex d
 **Status**: Ecosystem Token (EVM / L2 representation)  
 **Purpose**: Unified reward currency across dApps **on the EVM L2 where this contract is deployed** (e.g. Kasplex L2 or Igra L2).
 
-**Canonical supply story:** Kasparex targets **one GRID brand** with fixed global supply anchored on **Kaspa L1 (KRC-20)** and **official bridged** ERC-20 GRID on each L2—not unrelated mints. See **[GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md)**.
+**Canonical supply story:** Kasparex targets **one GRID brand** with fixed global supply anchored on **Kaspa L1 (KRC-20)** and **official bridged** ERC-20 GRID on each L2 - not unrelated mints. See **[GRID_CANONICAL_SUPPLY_MODEL.md](./GRID_CANONICAL_SUPPLY_MODEL.md)**.
 
 **Key Features** (this repo’s Solidity `GRIDToken`):
 - Fixed 10B supply (18 decimals) on deploy

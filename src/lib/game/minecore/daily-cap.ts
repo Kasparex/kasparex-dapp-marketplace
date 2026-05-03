@@ -13,7 +13,7 @@ export function normalizePlantRollingDailyCap(slot: PlantSlotState, at: number):
   slot.dailyCapMinedDiamonds = 0;
 }
 
-/** Credit diamonds toward rolling-cap ledger after Extract (wallet gems still consume this plant’s window budget). Refining from accumulated/live does not call this — removing those diamonds lowers progress toward the cap directly. */
+/** Credit diamonds toward rolling-cap ledger after Extract (wallet gems still consume this plant’s window budget). Refining from accumulated/live does not call this; removing those diamonds lowers progress toward the cap directly. */
 export function creditPlantDailyCap(slot: PlantSlotState, amount: number, at: number): void {
   if (amount <= 0) return;
   normalizePlantRollingDailyCap(slot, at);

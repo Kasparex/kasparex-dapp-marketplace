@@ -1,4 +1,4 @@
-# kpx/pf v1 — Profile Record
+# kpx/pf v1  -  Profile Record
 
 Profile records provide a small, wallet-owned identity payload (no URLs/IPFS in v1).
 

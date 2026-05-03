@@ -511,7 +511,7 @@ export function ShopPanel(props: {
       title: 'KREX Boost',
       category: 'Boost',
       description:
-        'One-time module charge (buy with KREX only): equip on a premium or advanced plant — × diamond yield for 1 hour, then the charge is gone.',
+        'One-time module charge (buy with KREX only): equip on a premium or advanced plant  -  × diamond yield for 1 hour, then the charge is gone.',
       baseKasPrice: MINECORE_KREX_BOOST_SHOP_KAS,
       type: 'item' as const,
       render: () => (
@@ -520,7 +520,7 @@ export function ShopPanel(props: {
           title="KREX Boost"
           category="Boost"
           imageSrc="https://static.wixstatic.com/media/de4185_d97bfd713c7745b787956a13ed738af4~mv2.jpg"
-          description="Each purchase adds one consumable charge to module inventory. Slotted use lasts 1 hour at × yield — timer consumes the charge when it ends, or if you unequip early. KREX payment only."
+          description="Each purchase adds one consumable charge to module inventory. Slotted use lasts 1 hour at × yield; the timer consumes the charge when it ends, or if you unequip early. KREX payment only."
           effects={[
             { label: 'Yield', value: `${MINECORE_KREX_BOOST_YIELD_MULT}× ♦`, color: 'emerald' },
             { label: 'Duration', value: '1 hour active', color: 'zinc' },

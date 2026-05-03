@@ -142,7 +142,7 @@ IGRA_GALLEON_TESTNET_RPC=https://galleon-testnet.igralabs.com:8545
 
 One Next.js app on Vercel; each **subdomain** is a **custom domain** on the same project. Middleware rewrites **`/`** on that host to the section path below (same as opening `https://<project>.vercel.app<path>`).
 
-**Per domain:** Vercel → **Domains** → add `subdomain.kasparex.com` → Wix **CNAME** host = subdomain label, value = Vercel’s target (**omit the trailing dot** in Wix if the UI rejects it). Vercel issues **SSL per domain** when DNS validates; add domains whenever you like—certs generate independently.
+**Per domain:** Vercel → **Domains** → add `subdomain.kasparex.com` → Wix **CNAME** host = subdomain label, value = Vercel’s target (**omit the trailing dot** in Wix if the UI rejects it). Vercel issues **SSL per domain** when DNS validates; add domains whenever you like - certs generate independently.
 
 | Host (default) | Rewrites `/` to | Optional env override |
 |----------------|-----------------|----------------------|

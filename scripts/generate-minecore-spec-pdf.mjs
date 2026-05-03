@@ -77,7 +77,7 @@ y += 8;
 doc.setFont('helvetica', 'normal');
 doc.setFontSize(9);
 doc.setTextColor(80, 80, 80);
-doc.text('Kasparex codebase — derived from game config and hooks', margin, y);
+doc.text('Kasparex codebase  -  derived from game config and hooks', margin, y);
 y += 6;
 doc.setTextColor(0, 0, 0);
 
@@ -85,7 +85,7 @@ for (const { section, rows } of chunks) {
   if (section === 'META') {
     for (const row of rows) {
       const parts = trimTrailingEmpty(row.slice(1)).filter(Boolean);
-      const line = parts.join(' — ');
+      const line = parts.join('  -  ');
       if (y > 280) {
         doc.addPage();
         y = margin;

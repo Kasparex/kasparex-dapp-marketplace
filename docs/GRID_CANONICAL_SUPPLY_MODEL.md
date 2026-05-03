@@ -1,6 +1,6 @@
 # GRID: Canonical supply model (L1 + bridged L2)
 
-This document is the **single supply story** for GRID across Kaspa L1, Kasplex L2, and Igra L2. It aligns product, rewards, and deployments so users see **one GRID brand** with **representations** on each rail—not unrelated tokens.
+This document is the **single supply story** for GRID across Kaspa L1, Kasplex L2, and Igra L2. It aligns product, rewards, and deployments so users see **one GRID brand** with **representations** on each rail - not unrelated tokens.
 
 **Live canonical L1 deployment (mainnet):** [GRID_L1_MAINNET_KRC20_DEPLOYMENT.md](./GRID_L1_MAINNET_KRC20_DEPLOYMENT.md) · in-repo: `src/lib/tokens/grid-l1-canonical.ts`.
 
@@ -39,7 +39,7 @@ This document is the **single supply story** for GRID across Kaspa L1, Kasplex L
 ## Recommended rollout
 
 1. **Define the cap once** on L1 (KRC-20 premint or fixed max). Publish ticker, decimals, and explorer links.
-2. **Bridge allocations** (example only—not financial advice):
+2. **Bridge allocations** (example only - not financial advice):
    - Treasury / ops on L1 for covenants, vProgs, future logic.
    - Custody or mint allowance for **Kasplex** bridge → fund `RewardVault` / FeeRouter pool on Kasplex.
    - Custody or mint allowance for **Igra** bridge → same on Igra.
@@ -51,7 +51,7 @@ This document is the **single supply story** for GRID across Kaspa L1, Kasplex L
 ## Risks (acknowledged)
 
 - **Bridge risk** is the main systemic risk: exploit or pause affects all representations. Mitigate with monitoring, conservative limits, insurance/bounty programs, and clear incident comms.
-- **Liquidity fragmentation** persists (pools per chain); unified supply does not merge order books—plan treasury rebalancing and incentives.
+- **Liquidity fragmentation** persists (pools per chain); unified supply does not merge order books - plan treasury rebalancing and incentives.
 
 ## Environment variables (optional wiring)
 

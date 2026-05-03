@@ -1,4 +1,4 @@
-# kpx/cm v1 — Commit Record (Creator-Owned Resources)
+# kpx/cm v1  -  Commit Record (Creator-Owned Resources)
 
 `kpx/cm` is a small, standardized “commit pointer” used to finalize **public canonical updates** of creator-owned resources across the ecosystem.
 

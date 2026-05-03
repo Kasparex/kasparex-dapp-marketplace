@@ -1,4 +1,4 @@
-# kpx/ver v1 — Verified Badge (Boolean)
+# kpx/ver v1  -  Verified Badge (Boolean)
 
 `kpx/ver` is a minimal, deterministic “verified” badge record.
 

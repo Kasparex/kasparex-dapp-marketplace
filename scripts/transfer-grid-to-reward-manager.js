@@ -27,7 +27,7 @@ async function main() {
   const network = hre.network.name;
   console.log(`Network: ${network}\n`);
 
-  // Get contract addresses (canonical GRID via env — legacy testnet GRID not used)
+  // Get contract addresses (canonical GRID via env  -  legacy testnet GRID not used)
   const gridTokenAddress = process.env.GRID_TOKEN_ADDRESS || '';
   if (!gridTokenAddress) {
     console.error('Set GRID_TOKEN_ADDRESS to the bridged GRID token on this network.');
