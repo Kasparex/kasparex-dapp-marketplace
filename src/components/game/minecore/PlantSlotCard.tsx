@@ -526,7 +526,7 @@ function DailyCapBar(props: {
             <p>Share of this plant&apos;s 24h diamond budget already consumed in the current rolling window.</p>
             {milestoneDiamonds != null ? (
               <p className="mt-1">
-                Dark vertical tick: one-time progress target of{' '}
+                Emerald accent marker (same pill accent as game section headers): one-time target of{' '}
                 <strong>{milestoneDiamonds.toLocaleString()} D</strong> toward this window (mined + banked + live run) to unlock
                 the next plant tier.
               </p>
@@ -543,10 +543,12 @@ function DailyCapBar(props: {
           </div>
           {milestonePct != null ? (
             <div
-              className="pointer-events-none absolute top-1/2 z-[2] h-[calc(100%+6px)] w-px -translate-x-1/2 -translate-y-1/2 rounded-none bg-zinc-950 opacity-95 shadow-[0_0_0_1px_rgba(255,255,255,0.35)] dark:bg-zinc-100 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
+              className="pointer-events-none absolute top-1/2 z-[2] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
               style={{ left: `${milestonePct}%` }}
               aria-hidden
-            />
+            >
+              <div className="h-[calc(100%+10px)] min-h-[14px] w-1 shrink-0 rounded-full bg-emerald-500 shadow-sm ring-1 ring-emerald-600/25 dark:ring-emerald-300/30" />
+            </div>
           ) : null}
         </div>
       </Tooltip>
@@ -911,7 +913,7 @@ function MaintenanceWearBar(props: {
   wearRatio: number;
   onOpen?: () => void;
   embedded?: boolean;
-  /** Draw a straight marker where plant health falls to the KAS + patch repair threshold (wear crosses ~MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR). */
+  /** Emerald accent marker at ~42% wear on the track (KAS + patch unlock). */
   showKasRepairThresholdMarker?: boolean;
 }) {
   const health = clamp01(1 - props.wearRatio);
@@ -919,7 +921,8 @@ function MaintenanceWearBar(props: {
   const pct = Math.round(health * 100);
   const widthPct = Math.max(2, pct);
   const kasThresholdWear = MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR;
-  const kasMarkerHealthPct = Math.round(Math.max(0, Math.min(100, (1 - kasThresholdWear) * 100)) * 100) / 100;
+  /** Align marker with ~42% wear along the bar (left = low wear, right = heavy wear). */
+  const kasMarkerWearPct = Math.round(Math.min(100, Math.max(0, kasThresholdWear * 100)) * 100) / 100;
   const barTrack = (
     <div className="relative h-1.5 w-full overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full" style={{ width: `${widthPct}%` }}>
@@ -930,11 +933,12 @@ function MaintenanceWearBar(props: {
       </div>
       {props.showKasRepairThresholdMarker ? (
         <div
-          className="pointer-events-none absolute top-1/2 z-[2] h-[calc(100%+6px)] w-px -translate-x-1/2 -translate-y-1/2 bg-zinc-950 opacity-90 shadow-[0_0_0_1px_rgba(255,255,255,0.3)] dark:bg-zinc-100 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
-          style={{ left: `${kasMarkerHealthPct}%` }}
-          title={`KAS + Stability Patch unlock when wear reaches ~${Math.round(kasThresholdWear * 100)}%`}
+          className="pointer-events-none absolute top-1/2 z-[2] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+          style={{ left: `${kasMarkerWearPct}%` }}
           aria-hidden
-        />
+        >
+          <div className="flex h-[calc(100%+8px)] min-h-[14px] w-1 shrink-0 items-center justify-center rounded-full bg-emerald-500 shadow-sm ring-1 ring-emerald-600/25 dark:ring-emerald-300/30" />
+        </div>
       ) : null}
     </div>
   );
@@ -967,16 +971,24 @@ function MaintenanceWearBar(props: {
   ) : (
     inner
   );
-  return (
-    <Tooltip
-      content={gameTooltipRich(
+  const wearTip = props.showKasRepairThresholdMarker
+    ? gameTooltipRich(
+        'Maintenance wear',
+        <>
+          <p>Efficiency declines as uptime accumulates since last service. Tap for repair options; plant tier stretches the interval.</p>
+          <p className="mt-2">
+            Emerald tick at ~<strong>{Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}% wear</strong> along the bar:{' '}
+            <strong>KAS</strong> maintenance unlocks together with <strong>1 Stability Patch</strong> once wear crosses that point.{' '}
+            <strong>KREX</strong> bypasses the wear gate.
+          </p>
+        </>,
+      )
+    : gameTooltipRich(
         'Maintenance wear',
         'Efficiency declines as uptime accumulates since last service. Tap for repair options; plant tier stretches the interval.',
-      )}
-    >
-      {trigger}
-    </Tooltip>
-  );
+      );
+
+  return <Tooltip content={wearTip}>{trigger}</Tooltip>;
 }
 
 /** Inline warning banner */
@@ -1982,13 +1994,7 @@ export function PlantSlotCard(props: {
                 <span className="text-zinc-500 dark:text-zinc-400"> · Stability Patches: </span>
                 <span className="font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{patches}</span>
               </div>
-              <div className="mb-4">
-                <div className="mb-1 flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Wear vs KAS threshold</span>
-                  <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
-                    Tick ≈ {Math.round((1 - MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR) * 100)}% health left
-                  </span>
-                </div>
+              <div className="mb-3">
                 <MaintenanceWearBar wearRatio={wearRatio} showKasRepairThresholdMarker />
               </div>
               <p className="mb-3 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
