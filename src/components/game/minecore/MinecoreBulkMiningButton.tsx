@@ -11,6 +11,10 @@ import { Tooltip } from '@/components/ui/Tooltip';
 const MINING_TOOLBAR_BTN_CLASS =
   'inline-flex h-10 min-w-[160px] shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-500/45 bg-emerald-500/15 px-4 text-sm font-medium text-emerald-900 shadow-sm transition-colors hover:bg-emerald-500/22 focus-visible:outline focus-visible:ring-2 focus-visible:ring-emerald-500/35 disabled:pointer-events-none disabled:opacity-40 dark:border-emerald-400/40 dark:bg-emerald-500/22 dark:text-emerald-50 dark:hover:bg-emerald-500/30';
 
+/** Matches plant-card Resume mining / amber battery CTAs when bulk-resuming paused runs. */
+const MINING_RESUME_TOOLBAR_BTN_CLASS =
+  'inline-flex h-10 min-w-[160px] shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-amber-500/60 bg-amber-500/25 px-4 text-sm font-bold text-amber-950 shadow-sm transition-colors hover:bg-amber-500/35 focus-visible:outline focus-visible:ring-2 focus-visible:ring-amber-500/40 disabled:pointer-events-none disabled:opacity-40 dark:border-amber-400/50 dark:bg-amber-500/20 dark:text-amber-50 dark:hover:bg-amber-500/30';
+
 function WithTip(props: { tip: string; children: ReactNode }) {
   return (
     <Tooltip content={props.tip}>
@@ -86,7 +90,12 @@ export function MinecoreBulkMiningButton(props: MinecoreBulkMiningButtonProps) {
 
   return (
     <WithTip tip={tip}>
-      <button type="button" onClick={onClick} disabled={disabled} className={MINING_TOOLBAR_BTN_CLASS}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={label === 'Resume all mines' ? MINING_RESUME_TOOLBAR_BTN_CLASS : MINING_TOOLBAR_BTN_CLASS}
+      >
         {label}
       </button>
     </WithTip>

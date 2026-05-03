@@ -1,9 +1,17 @@
 'use client';
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Tooltip } from '@/components/ui/Tooltip';
 
-export type GameCurrencyMenuOption = { value: string; label: string; disabled?: boolean };
+export type GameCurrencyMenuOption = {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  /** Shown when hovering this row (e.g. explain why KAS is locked). */
+  rowTooltip?: ReactNode;
+};
 
 /**
  * Stylized currency picker; menu is portaled to `document.body` with fixed positioning so it is not clipped by
@@ -83,27 +91,36 @@ export function GameCurrencyMenu(props: {
               zIndex: 100000,
             }}
           >
-            {props.options.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                role="option"
-                aria-selected={o.value === props.value}
-                disabled={o.disabled}
-                onClick={() => {
-                  if (o.disabled) return;
-                  props.onChange(o.value);
-                  setOpen(false);
-                }}
-                className={`w-full px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                  o.value === props.value
-                    ? 'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-                    : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
+            {props.options.map((o) => {
+              const btn = (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={o.value === props.value}
+                  disabled={o.disabled}
+                  onClick={() => {
+                    if (o.disabled) return;
+                    props.onChange(o.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    o.value === props.value
+                      ? 'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                      : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
+                  }`}
+                >
+                  {o.label}
+                </button>
+              );
+              if (o.rowTooltip) {
+                return (
+                  <Tooltip key={o.value} content={o.rowTooltip}>
+                    <span className="block w-full">{btn}</span>
+                  </Tooltip>
+                );
+              }
+              return <Fragment key={o.value}>{btn}</Fragment>;
+            })}
           </div>,
           document.body,
         )

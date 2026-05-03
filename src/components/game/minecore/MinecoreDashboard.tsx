@@ -455,7 +455,6 @@ export function MinecoreDashboard(_props: {
 
                 <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
                   <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
-                  <div className="mt-1 text-lg font-bold leading-tight text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
                   <Tooltip
                     content={gameTooltipRich(
                       'Add Mining Plant',
@@ -472,9 +471,9 @@ export function MinecoreDashboard(_props: {
                       </>,
                     )}
                   >
-                    <p className="mt-2 cursor-help text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
-                      KREX-first pricing; KAS requires an elite Operator-linked KREXPRIME or PIXELKREX as above (tap for details).
-                    </p>
+                    <div className="mt-1 cursor-help">
+                      <div className="text-lg font-bold leading-tight text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
+                    </div>
                   </Tooltip>
                   <div className="mt-2 text-sm font-semibold tabular-nums">
                     {expandPayCurrency === 'KREX' ? (
@@ -514,6 +513,10 @@ export function MinecoreDashboard(_props: {
                           value: 'KAS',
                           label: `${getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS`,
                           disabled: !kasPlantExpandAllowed,
+                          rowTooltip: gameTooltipRich(
+                            'Pay with KAS',
+                            'Payment in KAS is available only when a Diamond or Rarest KREXPRIME or PIXELKREX is assigned to an Operator in the Crew tab and linked from an unlocked plant.',
+                          ),
                         },
                       ]}
                       className="w-full"

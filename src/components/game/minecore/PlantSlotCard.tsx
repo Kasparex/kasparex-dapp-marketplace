@@ -258,7 +258,7 @@ function statusBadge(status: PlantSlotState['status']) {
 }
 
 function efficiencyBadgeClassName() {
-  return 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-300';
+  return 'inline-flex items-center rounded-full border border-cyan-500/35 bg-cyan-500/12 px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-cyan-900 dark:text-cyan-200';
 }
 
 function labelForStatus(status: PlantSlotState['status']) {
@@ -446,6 +446,8 @@ function DailyCapBar(props: {
   ratio: number;
   /** When setup incomplete - show 0/0 and empty progress (counters still visible). */
   forceZeroDisplay: boolean;
+  /** When false, dim “of” and “/ 24h” like inactive flow (no active mining run). */
+  counterMuted: boolean;
   capReached: boolean;
   remainingMs: number;
   capStack?: PlantRollingCapBreakdown;
@@ -491,18 +493,22 @@ function DailyCapBar(props: {
     </Tooltip>
   ) : null;
 
+  const counterSepCls = props.counterMuted
+    ? 'text-zinc-500 dark:text-zinc-500'
+    : 'text-zinc-500 dark:text-zinc-400';
+
   const counterTip =
     props.forceZeroDisplay
-      ? gameTooltipRich('Rolling cap', 'Complete setup to see your rolling cap and mined total.')
+      ? gameTooltipRich('Mined / cap', 'Complete setup to see your rolling cap and mined total.')
       : capStackHint
-        ? gameTooltipRich('Mined versus cap', (
+        ? gameTooltipRich('Mined / cap', (
             <>
               <p>Diamonds mined so far this 24h window compared to your effective ceiling.</p>
               <p className="mt-1 whitespace-pre-wrap text-[11px] leading-snug opacity-95">{capStackHint}</p>
             </>
           ))
         : gameTooltipRich(
-            'Mined versus cap',
+            'Mined / cap',
             'Diamonds mined so far this 24h rolling window versus your budget for that window.',
           );
 
@@ -511,9 +517,9 @@ function DailyCapBar(props: {
       <span className="inline-flex cursor-help flex-wrap items-baseline justify-end gap-x-0 gap-y-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
         <DiamondIcon className="mr-0.5 inline-block h-4 w-4 shrink-0 translate-y-px text-sky-400" title="" />
         <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
-        <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+        <span className={`px-1 text-sm font-bold ${counterSepCls}`}>of</span>
         <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
-        <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
+        <span className={`pl-1.5 text-sm font-bold ${counterSepCls}`}>/ 24h</span>
       </span>
     </Tooltip>
   );
@@ -527,47 +533,60 @@ function DailyCapBar(props: {
       ? Math.min(100, Math.max(0, (milestoneDiamonds / props.cap) * 100))
       : null;
 
-  const progressBlock =
-    props.forceZeroDisplay ? null : (
-      <div className="relative h-2.5 w-full overflow-visible">
-        <Tooltip
-          content={gameTooltipRich(
-            'Cap progress',
-            'How much of this plant’s 24-hour diamond budget you’ve already used in the current rolling window.',
-          )}
+  const progressFillPct = props.forceZeroDisplay ? 0 : Math.max(2, Math.round(r * 100));
+
+  const progressBlock = (
+    <div className="relative h-2.5 w-full overflow-visible">
+      <Tooltip
+        content={gameTooltipRich(
+          'Cap progress',
+          props.forceZeroDisplay
+            ? 'Finish setup on this plant to track how much of its 24-hour diamond budget you’ve used in the rolling window.'
+            : 'How much of this plant’s 24-hour diamond budget you’ve already used in the current rolling window.',
+        )}
+      >
+        <div
+          className={`relative h-2.5 w-full cursor-help overflow-visible rounded-full ${
+            props.forceZeroDisplay ? 'bg-zinc-300/85 dark:bg-zinc-700/75' : 'bg-zinc-200 dark:bg-zinc-800'
+          }`}
         >
-          <div className="relative h-2.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full"
-              style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
-            >
-              <div className="h-full w-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400" />
-            </div>
-          </div>
-        </Tooltip>
-        {milestonePct != null && milestoneDiamonds != null ? (
-          <Tooltip
-            content={gameTooltipRich(
-              'Next tier milestone',
-              <>
-                <p>
-                  One-time goal this window: reach{' '}
-                  <strong>{milestoneDiamonds.toLocaleString()} diamonds</strong> toward your rolling cap (everything mined here,
-                  banked on the plant, plus diamonds still accruing in an active run). Nail it once and you can buy the next plant tier.
-                </p>
-              </>,
-            )}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full"
+            style={{ width: `${progressFillPct}%` }}
           >
             <div
-              className="absolute top-1/2 z-[4] flex min-h-[22px] -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center px-2 py-0.5"
-              style={{ left: `${milestonePct}%` }}
-            >
-              <SectionStyleProgressMarker />
-            </div>
-          </Tooltip>
-        ) : null}
-      </div>
-    );
+              className={`h-full w-full rounded-full transition-[width] duration-700 ${
+                props.forceZeroDisplay
+                  ? 'bg-zinc-400 dark:bg-zinc-600'
+                  : 'bg-amber-400 dark:bg-amber-400'
+              }`}
+            />
+          </div>
+        </div>
+      </Tooltip>
+      {milestonePct != null && milestoneDiamonds != null ? (
+        <Tooltip
+          content={gameTooltipRich(
+            'Next tier milestone',
+            <>
+              <p>
+                One-time goal this window: reach{' '}
+                <strong>{milestoneDiamonds.toLocaleString()} diamonds</strong> toward your rolling cap (everything mined here,
+                banked on the plant, plus diamonds still accruing in an active run). Nail it once and you can buy the next plant tier.
+              </p>
+            </>,
+          )}
+        >
+          <div
+            className="absolute top-1/2 z-[4] flex min-h-[22px] -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center px-2 py-0.5"
+            style={{ left: `${milestonePct}%` }}
+          >
+            <SectionStyleProgressMarker />
+          </div>
+        </Tooltip>
+      ) : null}
+    </div>
+  );
 
   const capReachedBlock =
     !props.forceZeroDisplay && props.capReached ? (
@@ -1236,6 +1255,13 @@ export function PlantSlotCard(props: {
     () => sumCrewRollingCapBonusFromAssignments(props.minecoreState, s, ctx),
     [props.minecoreState, s, ctx],
   );
+  const moduleFlatCapBonus = useMemo(() => {
+    let t = 0;
+    for (const mid of s.setup.moduleIds) {
+      t += MINECORE_MODULES[mid as MinecoreModuleId]?.diamondsPer24hFlat ?? 0;
+    }
+    return t;
+  }, [s.setup.moduleIds]);
   const workerSetupValue = useMemo(() => {
     const { summary } = workerSetupDisplay;
     if (workerFilled === 0) return `${workerFilled}/${needWorkers}`;
@@ -1427,10 +1453,25 @@ export function PlantSlotCard(props: {
                 'Module tier',
                 moduleSlots <= 0
                   ? 'This plant tier cannot mount fabrication modules.'
-                  : `Up to ${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'}. See Modules in setup.`,
+                  : s.setup.moduleIds.length > 0
+                    ? `Up to ${moduleSlots} slot${moduleSlots === 1 ? '' : 's'}. Equipped: ${s.setup.moduleIds.length}${
+                        moduleFlatCapBonus > 0 ? ` · +${moduleFlatCapBonus} D/24h toward cap from modules` : ''
+                      }. Tap Modules in setup to manage.`
+                    : `Up to ${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'}. See Modules in setup.`,
               )}
             >
-              <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleOverlayBadge}</span>
+              <span
+                className={`${statCapsuleCls} normal-case tracking-normal inline-flex flex-wrap items-center gap-1`}
+              >
+                <span>{moduleOverlayBadge}</span>
+                {moduleSlots > 0 && s.setup.moduleIds.length > 0 ? (
+                  <span className={CAP_CONTRIB_BADGE_CLS}>
+                    {moduleFlatCapBonus > 0
+                      ? `+${moduleFlatCapBonus} D`
+                      : `${s.setup.moduleIds.length} mod${s.setup.moduleIds.length === 1 ? '' : 's'}`}
+                  </span>
+                ) : null}
+              </span>
             </Tooltip>
           </div>
         ) : undefined
@@ -1487,6 +1528,7 @@ export function PlantSlotCard(props: {
               cap={dailyCap.cap24h}
               ratio={dailyCap.ratio}
               forceZeroDisplay={!setupReady}
+              counterMuted={!(setupReady && s.status === 'MiningActive')}
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
               capStack={capBreakdown}
@@ -2010,9 +2052,6 @@ export function PlantSlotCard(props: {
                 <span className="tabular-nums text-violet-600 dark:text-violet-400">{healthPct}%</span>
                 <span className="text-zinc-500 dark:text-zinc-400"> · Stability Patches: </span>
                 <span className="font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{patches}</span>
-              </div>
-              <div className="mb-3">
-                <MaintenanceWearBar wearRatio={wearRatio} showKasRepairThresholdMarker />
               </div>
               <p className="mb-3 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
                 <strong>KREX:</strong> Pay the listed service fee anytime to reset maintenance (no Stability Patch).
