@@ -237,15 +237,6 @@ export function FabricationPanel(props: {
                     specTooltip:
                       'Extends expected cycle yield window for this plant when figuring cycle diamonds (Mining / calculator).',
                   });
-                  if (cfg.autoRestartMining) {
-                    specifications.push({
-                      label: 'Auto-restart',
-                      value: 'Qualifies plant for AUTO',
-                      color: 'emerald',
-                      specTooltip:
-                        'Supplies automation infrastructure for chaining: AUTO must be on per plant, with a Foreman linked in that plant Crew row on Mining (crew roster Foreman alone is not enough).',
-                    });
-                  }
                 }
                 if (cfg.kind === 'stability') {
                   specifications.push({

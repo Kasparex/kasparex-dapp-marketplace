@@ -42,7 +42,7 @@ function minecoreDeckModalCopy(type: MiningSlotType): { title: string; descripti
       return {
         title: 'Foreman slot',
         description:
-          'Deploy as Foreman on the Crew tab, then bind that deck row to a plant crew slot on Mining. That unlocks AUTO on that plant (automation infra such as Regen Coil still applies).',
+          'Deploy as Foreman on the Crew tab, then bind that deck row to a plant crew slot on Mining. That unlocks AUTO on that plant when you toggle it on the Mining card.',
       };
     default:
       return { title: 'NFT slot', description: 'Choose an NFT allowed for this role.' };

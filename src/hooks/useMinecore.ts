@@ -12,6 +12,7 @@ import {
   computeLiveBatteryChargeMs,
   explainBatteryInstallChangeBlocked,
   minecoreAutoRestartInfrastructureActive,
+  minecoreEligiblePremiumOperatorLinkedForKasPlantExpand,
   minecorePlantHasForemanInCrew,
   hasInstalledBattery,
   getPlantBatterySlotCount,
@@ -454,13 +455,35 @@ export function useMinecore() {
   );
 
   const addSlot = useCallback(
-    async (amountKas: number) => {
-      const paid = await payKasBestEffort({ amountKas: getKasPriceAfterDiscount(amountKas), skuId: 'minecore:slot:expand', purchaseType: 'slot' });
+    async (currency: 'KAS' | 'KREX') => {
+      const listKas = mcRef.current.nextSlotCostKas;
+      const discounted = getKasPriceAfterDiscount(listKas);
+      if (currency === 'KREX') {
+        const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
+          skuId: 'minecore:slot:expand:krex',
+          recordActionType: 'expand-slot-krex',
+          transactionDetail: { listKas },
+        });
+        if (!paid.ok) return false;
+        dispatch({ type: 'AddSlot', at: Date.now() });
+        return true;
+      }
+      if (!minecoreEligiblePremiumOperatorLinkedForKasPlantExpand(mcRef.current, minecoreComputeContextRef.current)) {
+        setLastPaymentError(
+          'KAS expansion requires a Diamond or Rarest KREXPRIME or PIXELKREX assigned on your Operator crew deck link.',
+        );
+        return false;
+      }
+      const paid = await payKasBestEffort({
+        amountKas: discounted,
+        skuId: 'minecore:slot:expand',
+        purchaseType: 'slot',
+      });
       if (!paid.ok) return false;
       dispatch({ type: 'AddSlot', at: Date.now() });
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, payKrexTreasury, getKasPriceAfterDiscount],
   );
 
   const purchaseNftDeckSlot = useCallback(

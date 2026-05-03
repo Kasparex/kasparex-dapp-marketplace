@@ -530,7 +530,7 @@ export type ModuleConfig = {
   label: string;
   kind: MinecoreModuleKind;
   /**
-   * When true (and Crew “Auto-restart” is on), finished cycles can chain automatically for plants that have this module.
+   * @deprecated Minecore AUTO chaining uses only a Foreman linked on the plant Crew row; modules no longer substitute.
    */
   autoRestartMining?: boolean;
   /** Legacy field; mining bonus moved to {@link diamondsPer24hFlat}. Kept 0 for migrated modules. */
@@ -603,7 +603,6 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_adf72f1b62ae480eabd844d56fd2b485~mv2.jpg',
     kind: 'automation',
-    autoRestartMining: true,
     outputBonus: 0,
     diamondsPer24hFlat: 18,
     failureReduction: 0.03,

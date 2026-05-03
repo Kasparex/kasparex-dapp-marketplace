@@ -350,7 +350,10 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.needsRepair    = false;
       slot.plantTierCapMilestonesPassed = [];
       slot.cycle          = null;
-      slot.batterySlotChargeMs = slotMaxMs(s, slot);
+      {
+        const nBat = getPlantBatterySlotCount(slot.type);
+        slot.batterySlotChargeMs = ensureBatterySlotChargeLength([], nBat, 0);
+      }
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
       return rederive(s, now);

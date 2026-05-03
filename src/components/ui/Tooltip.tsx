@@ -73,8 +73,8 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
             className={`${KASPPAREX_TOOLTIP_SURFACE_CLASS} ${className}`.trim()}
             style={{
               position: 'fixed',
-              left: pos.x + 14,
-              top: pos.y + 14,
+              left: pos.x + 18,
+              top: pos.y + 18,
               pointerEvents: 'none',
             }}
           >

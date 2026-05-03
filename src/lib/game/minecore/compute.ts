@@ -5,9 +5,7 @@
 import {
   MINECORE_BATTERIES,
   MINECORE_DAY_MS,
-  MINECORE_MODULES,
   MINECORE_PLANT_BASE_POWER_UNITS,
-  MINECORE_MAX_MODULES_BY_PLANT,
   miningWorkerNftSlotsRequired,
 } from './config';
 import type { MinecoreComputeContext } from './compute-context';
@@ -26,6 +24,7 @@ import {
   normalizePlantSetup,
   plantNftSlotAssignmentValid,
 } from './asset-usage';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import {
   canStartMiningByEfficiency,
   computeExpectedDiamondsForCycle,
@@ -342,14 +341,34 @@ export function minecorePlantHasForemanInCrew(state: MinecoreState, slot: PlantS
   return false;
 }
 
-/** Foreman NFT or an installed auto-restart module (e.g. Regen Coil) unlocks automated cycle chaining. */
+/**
+ * True when at least one unlocked plant links a staffed Foreman crew row.
+ * Per-plant AUTO chaining uses Foreman only (no module substitute).
+ */
 export function minecoreAutoRestartInfrastructureActive(state: MinecoreState): boolean {
-  if (state.automation.foremanActive) return true;
+  return state.plantSlots.some((p) => p.unlocked && minecorePlantHasForemanInCrew(state, p));
+}
+
+const EXPAND_KAS_OPERATOR_COLLECTIONS = new Set(['KREXPRIME', 'PIXELKREX']);
+
+/** KAS “Add plant row” requires Diamond/Rarest KREXPRIME or PIXELKREX linked via an Operator crew deck on some unlocked plant. */
+export function minecoreEligiblePremiumOperatorLinkedForKasPlantExpand(
+  state: MinecoreState,
+  ctx?: MinecoreComputeContext,
+): boolean {
+  const metaMap = ctx?.nftMetadataByDeckIndex ?? {};
   for (const slot of state.plantSlots) {
     if (!slot.unlocked) continue;
-    if ((MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) continue;
-    for (const id of slot.setup.moduleIds) {
-      if (MINECORE_MODULES[id]?.autoRestartMining) return true;
+    const need = miningWorkerNftSlotsRequired(slot.type);
+    const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+    for (let i = 0; i < need; i++) {
+      const ix = idxs[i];
+      if (ix == null) continue;
+      const deck = state.nftSlots?.[ix];
+      if (!deck || deck.type !== 'operator' || deck.nftId == null || !deck.collection) continue;
+      if (!EXPAND_KAS_OPERATOR_COLLECTIONS.has(deck.collection)) continue;
+      const tier = getNFTTier(deck.collection, deck.nftId, metaMap[ix] ?? null);
+      if (tier === 'diamond' || tier === 'rarest') return true;
     }
   }
   return false;

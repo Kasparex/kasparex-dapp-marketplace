@@ -19,7 +19,6 @@ import {
   computeLiveBatterySlotChargeMs,
   computeFlowRatePerMin,
   minecorePlantHasForemanInCrew,
-  minecoreAutoRestartInfrastructureActive,
   isBatteryPillarDrained,
 } from '@/lib/game/minecore/compute';
 import {
@@ -527,7 +526,7 @@ function DailyCapBar(props: {
             <p>Share of this plant&apos;s 24h diamond budget already consumed in the current rolling window.</p>
             {milestoneDiamonds != null ? (
               <p className="mt-1">
-                Slanted violet tick: one-time progress target of{' '}
+                Dark vertical tick: one-time progress target of{' '}
                 <strong>{milestoneDiamonds.toLocaleString()} D</strong> toward this window (mined + banked + live run) to unlock
                 the next plant tier.
               </p>
@@ -537,27 +536,17 @@ function DailyCapBar(props: {
       >
         <div className="relative h-2.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
           <div
-            className="absolute inset-y-0 left-0 z-[1] rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full"
             style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
-          />
+          >
+            <div className="h-full w-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400" />
+          </div>
           {milestonePct != null ? (
-            <Tooltip
-              content={gameTooltipRich(
-                'Upgrade milestone',
-                <>
-                  Reach <strong>{milestoneDiamonds!.toLocaleString()} D</strong> toward this rolling window&apos;s cap once
-                  (same progress as upgrades: mined, banked, and active run) to buy the next plant tier.
-                </>,
-              )}
-            >
-              <div
-                className="pointer-events-auto absolute top-1/2 z-[3] h-[calc(100%+8px)] w-[3px] cursor-help rounded-[1px] bg-violet-600 shadow-[0_0_0_1px_rgba(255,255,255,0.45)] dark:bg-violet-400 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
-                style={{
-                  left: `${milestonePct}%`,
-                  transform: 'translate(-50%, -50%) skewX(-11deg)',
-                }}
-              />
-            </Tooltip>
+            <div
+              className="pointer-events-none absolute top-1/2 z-[2] h-[calc(100%+6px)] w-px -translate-x-1/2 -translate-y-1/2 rounded-none bg-zinc-950 opacity-95 shadow-[0_0_0_1px_rgba(255,255,255,0.35)] dark:bg-zinc-100 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
+              style={{ left: `${milestonePct}%` }}
+              aria-hidden
+            />
           ) : null}
         </div>
       </Tooltip>
@@ -918,20 +907,35 @@ function UnifiedBatterySegmentsBar(props: {
 }
 
 /** Distinct from battery tier: maintenance health (inverse wear); fill shifts purple → navy → orange → red. */
-function MaintenanceWearBar(props: { wearRatio: number; onOpen?: () => void; embedded?: boolean }) {
+function MaintenanceWearBar(props: {
+  wearRatio: number;
+  onOpen?: () => void;
+  embedded?: boolean;
+  /** Draw a straight marker where plant health falls to the KAS + patch repair threshold (wear crosses ~MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR). */
+  showKasRepairThresholdMarker?: boolean;
+}) {
   const health = clamp01(1 - props.wearRatio);
   const fill = maintenanceMeterFillCss(health);
   const pct = Math.round(health * 100);
   const widthPct = Math.max(2, pct);
+  const kasThresholdWear = MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR;
+  const kasMarkerHealthPct = Math.round(Math.max(0, Math.min(100, (1 - kasThresholdWear) * 100)) * 100) / 100;
   const barTrack = (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-      <div
-        className="h-full rounded-full transition-[width,background-color] duration-700"
-        style={{
-          width: `${widthPct}%`,
-          backgroundColor: fill,
-        }}
-      />
+    <div className="relative h-1.5 w-full overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full" style={{ width: `${widthPct}%` }}>
+        <div
+          className="h-full w-full rounded-full transition-[width,background-color] duration-700"
+          style={{ backgroundColor: fill }}
+        />
+      </div>
+      {props.showKasRepairThresholdMarker ? (
+        <div
+          className="pointer-events-none absolute top-1/2 z-[2] h-[calc(100%+6px)] w-px -translate-x-1/2 -translate-y-1/2 bg-zinc-950 opacity-90 shadow-[0_0_0_1px_rgba(255,255,255,0.3)] dark:bg-zinc-100 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+          style={{ left: `${kasMarkerHealthPct}%` }}
+          title={`KAS + Stability Patch unlock when wear reaches ~${Math.round(kasThresholdWear * 100)}%`}
+          aria-hidden
+        />
+      ) : null}
     </div>
   );
   const inner = props.embedded ? (
@@ -1020,7 +1024,6 @@ export function PlantSlotCard(props: {
   const now = props.now;
   const ctx = props.minecoreComputeContext;
   const foremanInPlantCrew = minecorePlantHasForemanInCrew(props.minecoreState, s);
-  const autoRestartInfra = minecoreAutoRestartInfrastructureActive(props.minecoreState);
 
   const [activeModal, setActiveModal] = useState<'machine' | 'battery' | 'worker' | 'modules' | 'powerNode' | 'preset' | null>(null);
   const [batterySlotFocus, setBatterySlotFocus] = useState(0);
@@ -1536,17 +1539,10 @@ export function PlantSlotCard(props: {
                 </Tooltip>
               ) : (
                 <Tooltip
-                  content={
-                    autoRestartInfra
-                      ? gameTooltipRich(
-                          'Per-plant AUTO',
-                          'When on, starts another run after a cycle if batteries still carry charge. Automation never buys refills - tap to toggle.',
-                        )
-                      : gameTooltipRich(
-                          'Per-plant AUTO',
-                          'Preference is saved here. Add automation infra (e.g. Regen Coil) so runs can chain once you turn AUTO on.',
-                        )
-                  }
+                  content={gameTooltipRich(
+                    'Per-plant AUTO',
+                    'When on, starts another run after a cycle ends if batteries still carry charge. Requires this Foreman link on the Crew row. Automation never buys refills — tap to toggle.',
+                  )}
                 >
                   <button
                     type="button"
@@ -1819,7 +1815,7 @@ export function PlantSlotCard(props: {
           {s.unlocked ? (
             <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
               <div className="mb-1 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Maintenance</div>
-              <MaintenanceWearBar wearRatio={wearRatio} embedded onOpen={() => setMaintenanceModalOpen(true)} />
+              <MaintenanceWearBar wearRatio={wearRatio} embedded showKasRepairThresholdMarker onOpen={() => setMaintenanceModalOpen(true)} />
             </div>
           ) : null}
 
@@ -1985,6 +1981,15 @@ export function PlantSlotCard(props: {
                 <span className="tabular-nums text-violet-600 dark:text-violet-400">{healthPct}%</span>
                 <span className="text-zinc-500 dark:text-zinc-400"> · Stability Patches: </span>
                 <span className="font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{patches}</span>
+              </div>
+              <div className="mb-4">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Wear vs KAS threshold</span>
+                  <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
+                    Tick ≈ {Math.round((1 - MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR) * 100)}% health left
+                  </span>
+                </div>
+                <MaintenanceWearBar wearRatio={wearRatio} showKasRepairThresholdMarker />
               </div>
               <p className="mb-3 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
                 <strong>KREX:</strong> Pay the listed service fee anytime to reset maintenance (no Stability Patch).

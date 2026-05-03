@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
@@ -13,6 +13,7 @@ import {
   computeMinecoreDeckLiveYieldRatePerMin,
   computeMinecoreDiamondsDisplayTotal,
   computeMinecoreRollingDailyCapDeckTotals,
+  minecoreEligiblePremiumOperatorLinkedForKasPlantExpand,
 } from '@/lib/game/minecore/compute';
 import { getPlantBatterySlotCount, normalizeBatteryIds } from '@/lib/game/minecore/battery-utils';
 import { PlantSlotCard } from '@/components/game/minecore/PlantSlotCard';
@@ -39,6 +40,7 @@ import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOw
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import * as Icons from 'lucide-react';
 
 const TABS = [
@@ -91,6 +93,16 @@ export function MinecoreDashboard(_props: {
   const [miningSearch, setMiningSearch] = useState('');
   const [miningCategory, setMiningCategory] = useState('all');
   const [miningSort, setMiningSort] = useState('recommended');
+  const [expandPayCurrency, setExpandPayCurrency] = useState<'KREX' | 'KAS'>('KREX');
+
+  const kasPlantExpandAllowed = useMemo(
+    () => minecoreEligiblePremiumOperatorLinkedForKasPlantExpand(state, minecoreComputeContext),
+    [state, minecoreComputeContext],
+  );
+
+  useEffect(() => {
+    if (expandPayCurrency === 'KAS' && !kasPlantExpandAllowed) setExpandPayCurrency('KREX');
+  }, [expandPayCurrency, kasPlantExpandAllowed]);
 
   /** Each row carries the real `plantSlots` array index so InstallPart targets the same slot as the UI (no findIndex/id drift). */
   const filteredMiningSlots = useMemo(() => {
@@ -441,56 +453,85 @@ export function MinecoreDashboard(_props: {
                   />
                 ))}
 
-                <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
-                      <div className="mt-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
-                      <Tooltip
-                        content={gameTooltipRich(
-                          'Add Mining Plant pricing',
-                          <>
-                            List {state.nextSlotCostKas.toLocaleString()} KAS.{' '}
-                            {krexDiscountPct > 0 ? (
-                              <>
-                                {krexTier}: {krexDiscountPct}% tier discount applies in-game; you pay{' '}
-                                {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS.
-                              </>
-                            ) : (
-                              <>{krexTier} - no tier discount on KAS; you pay the list price.</>
-                            )}
-                          </>,
-                        )}
-                      >
-                        <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-                          {krexDiscountPct > 0 ? (
-                            <span className="font-semibold tabular-nums">
-                              <span className="text-zinc-400 line-through decoration-zinc-400/80">
-                                {state.nextSlotCostKas.toLocaleString()} KAS
-                              </span>
-                              <span className="mx-1.5 text-zinc-500">→</span>
-                              <span className="text-emerald-600 dark:text-emerald-400">
-                                {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                              {state.nextSlotCostKas.toLocaleString()} KAS
-                            </span>
-                          )}
-                        </div>
-                      </Tooltip>
-                    </div>
+                <div className="flex aspect-square min-h-[260px] flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+                  <div className="min-h-0 space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
+                    <div className="text-lg font-bold leading-tight text-zinc-900 dark:text-zinc-100">Add Mining Plant</div>
                     <Tooltip
                       content={gameTooltipRich(
-                        'Add plant row',
-                        'V1 mock action; will wire into KAS payment later through the global payments SDK.',
+                        'Add Mining Plant',
+                        <>
+                          <p>
+                            Primary rail is KREX (treasury transfer pegged to the list KAS price). Optional KAS is allowed only when a Diamond or Rarest
+                            KREXPRIME or PIXELKREX is assigned on an Operator crew deck linked from any unlocked plant.
+                          </p>
+                          <p className="mt-2">
+                            List peg {state.nextSlotCostKas.toLocaleString()} KAS before tier discount ·{' '}
+                            {krexDiscountPct > 0 ? `${krexTier}: −${krexDiscountPct}% in-game on eligible rails.` : `${krexTier}: list rate.`}
+                          </p>
+                        </>,
                       )}
                     >
-                      <button type="button" onClick={() => void actions.addSlot(state.nextSlotCostKas)} className="k-cta-games h-11 px-6 text-sm">
-                        Add
-                      </button>
+                      <p className="cursor-help text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                        Pay with KREX first · KAS needs elite Operator link
+                      </p>
                     </Tooltip>
+                    <div className="text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-100">
+                      {expandPayCurrency === 'KREX' ? (
+                        <span className="text-violet-700 dark:text-violet-300">
+                          {minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(state.nextSlotCostKas)).toLocaleString(undefined, {
+                            maximumFractionDigits: 0,
+                          })}{' '}
+                          KREX
+                        </span>
+                      ) : krexDiscountPct > 0 ? (
+                        <span>
+                          <span className="text-zinc-400 line-through decoration-zinc-400/80">
+                            {state.nextSlotCostKas.toLocaleString()} KAS
+                          </span>
+                          <span className="mx-1.5 text-zinc-500">→</span>
+                          <span className="text-emerald-600 dark:text-emerald-400">
+                            {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400">
+                          {getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString()} KAS
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 flex min-h-0 flex-col gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                    <GameCurrencyMenu
+                      ariaLabel="Expansion payment currency"
+                      value={expandPayCurrency}
+                      onChange={(v) => setExpandPayCurrency(v as 'KREX' | 'KAS')}
+                      options={[
+                        {
+                          value: 'KREX',
+                          label: `${minecoreKrexFromDiscountedKas(getKasPriceAfterDiscount(state.nextSlotCostKas)).toLocaleString(undefined, { maximumFractionDigits: 0 })} KREX`,
+                        },
+                        {
+                          value: 'KAS',
+                          label: `${getKasPriceAfterDiscount(state.nextSlotCostKas).toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS`,
+                          disabled: !kasPlantExpandAllowed,
+                        },
+                      ]}
+                      className="w-full"
+                      buttonClassName="flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                    />
+                    {!kasPlantExpandAllowed ? (
+                      <p className="text-[10px] leading-snug text-amber-800 dark:text-amber-200">
+                        Link Diamond/Rarest KREXPRIME or PIXELKREX on an Operator crew slot to unlock KAS here.
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => void actions.addSlot(expandPayCurrency)}
+                      className="k-cta-games h-11 w-full shrink-0 px-4 text-sm font-bold uppercase tracking-wide"
+                    >
+                      Add plant
+                    </button>
                   </div>
                 </div>
               </div>
