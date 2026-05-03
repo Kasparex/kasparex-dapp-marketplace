@@ -27,6 +27,7 @@ import {
   computeMinecoreDiamondsDisplayTotal,
   getPowerUnitCap,
   deriveSlotStatus,
+  mergePlantTierCapMilestones,
   explainBatteryInstallChangeBlocked,
   plantDailyCapPreventsNewCycle,
   syncPlantPowerUnitsToCapacity,
@@ -61,6 +62,7 @@ import {
   normalizeWorkerDeckIndices,
   normalizedPlantSetupsEqual,
 } from './asset-usage';
+import { plantTierOrderIndex } from './plant-upgrade';
 
 function slotMaxMs(state: MinecoreState, slot: PlantSlotState): number[] {
   const bonus = computeMinecoreBatteryBonusMsPerSlot(state);
@@ -148,6 +150,7 @@ function cloneSlot(slot: PlantSlotState): PlantSlotState {
     },
     cycle: slot.cycle ? { ...slot.cycle } : null,
     batterySlotChargeMs: [...(slot.batterySlotChargeMs ?? [])],
+    plantTierCapMilestonesPassed: [...(slot.plantTierCapMilestonesPassed ?? [])],
   };
 }
 
@@ -156,8 +159,9 @@ function nextVersion(state: MinecoreState): number {
 }
 
 function rederive(state: MinecoreState, at: number): MinecoreState {
+  const base = mergePlantTierCapMilestones(state, at);
   let krexChargesConsumed = 0;
-  const slots = state.plantSlots.map((s) => {
+  const slots = base.plantSlots.map((s) => {
     let working: PlantSlotState = s;
     const kUntil = working.krexBoostUntilMs ?? 0;
     if (kUntil > 0 && at >= kUntil && working.setup.moduleIds.includes('krex-boost')) {
@@ -173,18 +177,18 @@ function rederive(state: MinecoreState, at: number): MinecoreState {
       krexChargesConsumed += 1;
     }
     const synced = syncPlantPowerUnitsToCapacity(working);
-    return { ...synced, status: deriveSlotStatus(state, synced, at) };
+    return { ...synced, status: deriveSlotStatus(base, synced, at) };
   });
   const modulesOwned =
     krexChargesConsumed > 0
       ? {
-          ...state.owned.modules,
-          'krex-boost': Math.max(0, (state.owned.modules['krex-boost'] ?? 0) - krexChargesConsumed),
+          ...base.owned.modules,
+          'krex-boost': Math.max(0, (base.owned.modules['krex-boost'] ?? 0) - krexChargesConsumed),
         }
-      : state.owned.modules;
+      : base.owned.modules;
   return {
-    ...state,
-    owned: { ...state.owned, modules: modulesOwned },
+    ...base,
+    owned: { ...base.owned, modules: modulesOwned },
     plantSlots: slots,
   };
 }
@@ -344,6 +348,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       slot.dailyCapMinedDiamonds = 0;
       slot.powerRemaining = Math.max(slot.powerRemaining, 1);
       slot.needsRepair    = false;
+      slot.plantTierCapMilestonesPassed = [];
       slot.cycle          = null;
       slot.batterySlotChargeMs = slotMaxMs(s, slot);
       slot.batterySnapshotAt = now;
@@ -381,6 +386,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         kasOverclockDailyBonusUntilMs: 0,
         kasOverclockNextCycleExtraDiamonds: 0,
         autoRestartMining: false,
+        plantTierCapMilestonesPassed: [],
       };
       s.plantSlots.push(newSlot);
       s.nextSlotCostKas = Math.max(MINECORE_DEFAULT_NEXT_SLOT_COST_KAS, s.nextSlotCostKas);
@@ -390,6 +396,39 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
     case 'ChangePlantType': {
       const slot = s.plantSlots[ev.slotIndex];
       if (!slot || !slot.unlocked) return rederive(s, now);
+      const prevType = slot.type;
+      const targetType = ev.plantType;
+      if (targetType === prevType) return rederive(s, now);
+
+      if (targetType === 'standard' && prevType !== 'standard') {
+        if (!ev.confirmStandardDowngrade) return rederive(s, now);
+        slot.type = 'standard';
+        slot.plantTierCapMilestonesPassed = [];
+        slot.setup = normalizePlantSetup('standard', {
+          machineId: null,
+          batteryIds: [null],
+          powerNodeIds: [null],
+          workerNftDeckSlotIndices: [null],
+          moduleIds: [],
+          boostId: 'none',
+        });
+        slot.cycle = null;
+        slot.krexBoostUntilMs = 0;
+        slot.kasOverclockNextCycleExtraDiamonds = 0;
+        slot.batterySlotChargeMs = [0];
+        slot.batterySnapshotAt = now;
+        slot.powerRemaining = getPowerUnitCap(slot);
+        slot.needsRepair = false;
+        slot.status = deriveSlotStatus(s, slot, now);
+        clampPlantAutoRestartMiningToForemanCrew(s);
+        return rederive(s, now);
+      }
+
+      const prevIdx = plantTierOrderIndex(prevType);
+      const tgtIdx = plantTierOrderIndex(targetType);
+      if (prevIdx < 0 || tgtIdx < 0 || tgtIdx !== prevIdx + 1) return rederive(s, now);
+      if (!slot.plantTierCapMilestonesPassed?.includes(prevType)) return rederive(s, now);
+
       const oldMax = slotMaxMs(s, slot);
       const live =
         slot.cycle && slot.cycle.pauseBeganAtMs == null
@@ -397,29 +436,25 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
           : ensureBatterySlotChargeLength(slot.batterySlotChargeMs, oldMax.length, 0);
       const liveTotal = sumChargeMs(live);
       const oldTotal = sumChargeMs(oldMax);
-      slot.type = ev.plantType;
-      slot.setup.workerNftDeckSlotIndices = normalizeWorkerDeckIndices(ev.plantType, slot.setup);
-      if (ev.plantType === 'standard') {
-        slot.setup.moduleIds = [];
-      } else {
-        const max = MINECORE_MAX_MODULES_BY_PLANT[ev.plantType];
-        slot.setup.moduleIds = slot.setup.moduleIds.slice(0, max);
-      }
+      slot.type = targetType;
+      slot.setup.workerNftDeckSlotIndices = normalizeWorkerDeckIndices(targetType, slot.setup);
+      const maxM = MINECORE_MAX_MODULES_BY_PLANT[targetType];
+      slot.setup.moduleIds = slot.setup.moduleIds.slice(0, maxM);
       slot.setup = {
         ...slot.setup,
-        batteryIds: normalizeBatteryIds({ ...slot.setup, batteryIds: slot.setup.batteryIds }, ev.plantType),
-        powerNodeIds: normalizePowerNodeIds(slot.setup, ev.plantType),
+        batteryIds: normalizeBatteryIds({ ...slot.setup, batteryIds: slot.setup.batteryIds }, targetType),
+        powerNodeIds: normalizePowerNodeIds(slot.setup, targetType),
       };
       const newMax = slotMaxMs(s, slot);
       const newTotal = sumChargeMs(newMax);
       if (newTotal <= 0) {
-        slot.batterySlotChargeMs = ensureBatterySlotChargeLength([], getPlantBatterySlotCount(ev.plantType), 0);
+        slot.batterySlotChargeMs = ensureBatterySlotChargeLength([], getPlantBatterySlotCount(targetType), 0);
       } else if (oldTotal <= 0) {
         slot.batterySlotChargeMs = distributeWaterfallToMax(0, newMax);
       } else {
         const ratio = Math.min(1, Math.max(0, liveTotal / oldTotal));
-        const target = Math.min(newTotal, Math.floor(ratio * newTotal));
-        slot.batterySlotChargeMs = distributeWaterfallToMax(target, newMax);
+        const chargeTarget = Math.min(newTotal, Math.floor(ratio * newTotal));
+        slot.batterySlotChargeMs = distributeWaterfallToMax(chargeTarget, newMax);
       }
       slot.batterySnapshotAt = now;
       slot.status = deriveSlotStatus(s, slot, now);
@@ -447,8 +482,13 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
           return rederive(s, now);
         }
       }
-      // Finalize cycle only after inventory allows the edit (paused/stopped swaps; mid-run diamonds merge into accumulation).
-      if (slot.cycle) {
+      const endsActiveCycleForEdit =
+        ev.part.kind === 'machine' ||
+        ev.part.kind === 'battery' ||
+        ev.part.kind === 'crewWorkerNftDeck' ||
+        ev.part.kind === 'crewWorkerNftDecks' ||
+        ev.part.kind === 'boost';
+      if (slot.cycle && endsActiveCycleForEdit) {
         slot.diamondsAccumulated += computeLiveDiamonds(s, slot, now);
         slot.batterySlotChargeMs = computeLiveBatterySlotChargeMs(slot, now);
         slot.batterySnapshotAt = now;
@@ -498,7 +538,7 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
         const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
         const prev = slot.setup.moduleIds;
         const hadKrex = prev.includes('krex-boost');
-        const ids = slot.type === 'standard' ? [] : [...ev.part.ids].slice(0, max);
+        const ids = [...ev.part.ids].slice(0, max);
         const hasKrex = ids.includes('krex-boost');
         slot.setup.moduleIds = ids;
         if (!hasKrex && hadKrex) {

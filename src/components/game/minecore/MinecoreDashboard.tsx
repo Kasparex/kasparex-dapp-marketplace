@@ -431,7 +431,7 @@ export function MinecoreDashboard(_props: {
                           break;
                       }
                     }}
-                    onChangePlantType={(type, cost) => actions.changePlantType(slotIndex, type, cost)}
+                    onChangePlantType={(type, cost, opts) => actions.changePlantType(slotIndex, type, cost, opts)}
                     onTogglePlantAutoRestartMining={(enabled) =>
                       actions.setPlantAutoRestartMining(slotIndex, enabled)
                     }

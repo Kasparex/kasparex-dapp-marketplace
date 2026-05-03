@@ -7,6 +7,7 @@ import {
   MINECORE_DAY_MS,
   MINECORE_MODULES,
   MINECORE_PLANT_BASE_POWER_UNITS,
+  MINECORE_MAX_MODULES_BY_PLANT,
   miningWorkerNftSlotsRequired,
 } from './config';
 import type { MinecoreComputeContext } from './compute-context';
@@ -35,6 +36,7 @@ import {
   computePlantRollingDailyCapCeiling,
 } from './plant-economy';
 import { rollPlantRollingDailyCapIfNeeded } from './daily-cap';
+import { plantTierUnlockDiamondThreshold } from './plant-upgrade';
 
 /** Nominal drain: elapsed wall time consumes stored charge 1:1 (rigs/modules do not shorten battery runtime). */
 const BATTERY_CHARGE_DRAIN_RATE = 1;
@@ -344,7 +346,8 @@ export function minecorePlantHasForemanInCrew(state: MinecoreState, slot: PlantS
 export function minecoreAutoRestartInfrastructureActive(state: MinecoreState): boolean {
   if (state.automation.foremanActive) return true;
   for (const slot of state.plantSlots) {
-    if (!slot.unlocked || slot.type === 'standard') continue;
+    if (!slot.unlocked) continue;
+    if ((MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) continue;
     for (const id of slot.setup.moduleIds) {
       if (MINECORE_MODULES[id]?.autoRestartMining) return true;
     }
@@ -377,13 +380,34 @@ export function deriveSlotStatus(
   return 'ReadyToMine';
 }
 
+/** Records once per tier when rolling-cap progress reaches the unlock threshold for that plant type. */
+export function mergePlantTierCapMilestones(
+  state: MinecoreState,
+  now: number,
+  ctx?: MinecoreComputeContext,
+): MinecoreState {
+  return {
+    ...state,
+    plantSlots: state.plantSlots.map((slot) => {
+      if (!slot.unlocked) return slot;
+      const th = plantTierUnlockDiamondThreshold(slot.type);
+      const { minedTowardCap } = computePlantDailyCapProgress(state, slot, now, ctx);
+      if (minedTowardCap < th) return slot;
+      const prev = slot.plantTierCapMilestonesPassed ?? [];
+      if (prev.includes(slot.type)) return slot;
+      return { ...slot, plantTierCapMilestonesPassed: [...prev, slot.type] };
+    }),
+  };
+}
+
 export function deriveState(state: MinecoreState, now: number, ctx?: MinecoreComputeContext): MinecoreState {
-  const nextSlots = state.plantSlots.map((s) => {
+  const withMilestones = mergePlantTierCapMilestones(state, now, ctx);
+  const nextSlots = withMilestones.plantSlots.map((s) => {
     const rolled = rollPlantRollingDailyCapIfNeeded(s, now);
     const synced = syncPlantPowerUnitsToCapacity(rolled);
-    return { ...synced, status: deriveSlotStatus(state, synced, now, ctx) };
+    return { ...synced, status: deriveSlotStatus(withMilestones, synced, now, ctx) };
   });
-  return { ...state, plantSlots: nextSlots };
+  return { ...withMilestones, plantSlots: nextSlots };
 }
 
 /** Wallet balance plus diamonds locked in active cycles. */

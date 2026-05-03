@@ -116,7 +116,8 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
   const setup = isRecord(input.setup) ? input.setup : {};
   const cycle = isRecord(input.cycle) ? input.cycle : null;
   const allowedPlant = new Set<string>(MINECORE_PLANT_TYPE_ORDER as readonly string[]);
-  const typeRaw = typeof input.type === 'string' ? input.type : base.type;
+  let typeRaw = typeof input.type === 'string' ? input.type : base.type;
+  if (typeRaw === 'plus') typeRaw = 'premium';
   const plantType = (allowedPlant.has(typeRaw) ? typeRaw : base.type) as PlantSlotState['type'];
   const nBat = getPlantBatterySlotCount(plantType);
   const legacyBattery = typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null;
@@ -251,6 +252,17 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
       const roll = typeof input.rollingCapWindowStartMs === 'number' ? input.rollingCapWindowStartMs : 0;
       if (unlocked && roll > 0) return roll;
       return base.plantLastServicedAtMs;
+    })(),
+    plantTierCapMilestonesPassed: (() => {
+      const rawMs = (input as Record<string, unknown>).plantTierCapMilestonesPassed;
+      if (!Array.isArray(rawMs)) return base.plantTierCapMilestonesPassed ?? [];
+      const out: PlantSlotState['plantTierCapMilestonesPassed'] = [];
+      for (const x of rawMs) {
+        if (typeof x !== 'string') continue;
+        const coerced = x === 'plus' ? 'premium' : x;
+        if (allowedPlant.has(coerced)) out.push(coerced as PlantSlotState['type']);
+      }
+      return out;
     })(),
   };
 }

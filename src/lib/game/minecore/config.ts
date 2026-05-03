@@ -18,10 +18,9 @@ export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 /** 24h window for diamonds/day and cycle scaling. */
 export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Upgrade modal / calculator tier order (low → apex). */
+/** Upgrade modal / calculator tier order (low → apex). Six tiers — no skipping purchases. */
 export const MINECORE_PLANT_TYPE_ORDER: readonly PlantType[] = [
   'standard',
-  'plus',
   'premium',
   'advanced',
   'industrial',
@@ -32,12 +31,11 @@ export const MINECORE_PLANT_TYPE_ORDER: readonly PlantType[] = [
 /** Base diamond output per 24h from plant infrastructure (rolling daily cap baseline). */
 export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
   standard: 100,
-  plus: 165,
   premium: 250,
   advanced: 500,
   industrial: 720,
-  elite: 980,
-  dominion: 1_400,
+  elite: 1_000,
+  dominion: 1_500,
 };
 
 /**
@@ -45,20 +43,18 @@ export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
  */
 export const MINECORE_PLANT_MAX_DIAMONDS_PER_24H: Record<PlantType, number> = {
   standard: 1_000,
-  plus: 1_350,
   premium: 2_500,
-  advanced: 10_000,
-  industrial: 16_000,
-  elite: 24_000,
-  dominion: 40_000,
+  advanced: 5_000,
+  industrial: 7_200,
+  elite: 10_000,
+  dominion: 15_000,
 };
 
-/** Base reserve power units for plant tier (facility capacity; shown on cards). */
+/** Base reserve power units for plant tier (battery / reactor pillar count; shown on cards). */
 export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   standard: 1,
-  plus: 1,
   premium: 2,
-  advanced: 4,
+  advanced: 3,
   industrial: 4,
   elite: 5,
   dominion: 6,
@@ -66,11 +62,10 @@ export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
 
 /**
  * Crew positions on each plant (distinct Workers-tab NFT links).
- * Higher tiers support more staffed Crew-tab rows.
+ * Matches battery pillar count per tier.
  */
 export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
   standard: 1,
-  plus: 2,
   premium: 2,
   advanced: 3,
   industrial: 4,
@@ -94,9 +89,8 @@ export const MINECORE_MODULE_DEFAULT_GRID_DRAW_KW = 0.055;
 
 export const MINECORE_PLANT_BASE_PRODUCTION_KW: Record<PlantType, number> = {
   standard: 6,
-  plus: 10,
   premium: 14,
-  advanced: 28,
+  advanced: 21,
   industrial: 36,
   elite: 44,
   dominion: 56,
@@ -180,12 +174,11 @@ export const MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR = 0.42;
 /** Extends maintenance interval (higher plant tier = longer efficient runtime). */
 export const MINECORE_PLANT_MAINTENANCE_MULT: Record<PlantType, number> = {
   standard: 1,
-  plus: 1.06,
   premium: 1.12,
-  advanced: 1.28,
-  industrial: 1.36,
-  elite: 1.44,
-  dominion: 1.55,
+  advanced: 1.22,
+  industrial: 1.32,
+  elite: 1.42,
+  dominion: 1.52,
 };
 
 export type PlantPreset = {
@@ -208,15 +201,6 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_20f6148d91ca410ba4e3ec8dae8784e7~mv2.png',
   },
-  plus: {
-    type: 'plus',
-    label: 'Plus Facility',
-    costKas: 28,
-    icon: 'Layers',
-    description: 'Expanded crew links and a module slot without multi-pillar batteries.',
-    featuredImageUrl:
-      'https://static.wixstatic.com/media/de4185_ae1d39ec88fa4a089aaa35d250576a60~mv2.jpg',
-  },
   premium: {
     type: 'premium',
     label: 'Premium Plant',
@@ -231,7 +215,7 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     label: 'Advanced Complex',
     costKas: 250,
     icon: 'Zap',
-    description: 'Industrial-scale mining. High rolling caps and four module slots.',
+    description: 'Industrial-scale mining. High rolling caps and three module slots.',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_da16975f19d8437195ef88d1915cde44~mv2.png',
   },
@@ -256,9 +240,9 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
   dominion: {
     type: 'dominion',
     label: 'Dominion Complex',
-    costKas: 3_500,
+    costKas: 2_500,
     icon: 'Landmark',
-    description: 'Maximum facility scale — six pillars, six crew rows, eight module slots.',
+    description: 'Maximum facility scale — six pillars, six crew rows, six module slots.',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_c8728dbcdd12453aa9add461ff121f8a~mv2.jpg',
   },
@@ -647,15 +631,14 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
   },
 };
 
-/** Max module slots per plant tier (standard = modules disabled in UI; enforced in reducer). */
+/** Max module slots per plant tier (matches pillar ladder where applicable). */
 export const MINECORE_MAX_MODULES_BY_PLANT: Record<PlantType, number> = {
-  standard: 0,
-  plus: 1,
+  standard: 1,
   premium: 2,
-  advanced: 4,
-  industrial: 5,
-  elite: 6,
-  dominion: 8,
+  advanced: 3,
+  industrial: 4,
+  elite: 5,
+  dominion: 6,
 };
 
 export type BoostConfig = { id: MinecoreBoostId; label: string; multiplier: number };

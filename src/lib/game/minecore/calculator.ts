@@ -133,6 +133,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, min
     kasOverclockDailyBonusUntilMs: 0,
     kasOverclockNextCycleExtraDiamonds: 0,
     autoRestartMining: false,
+    plantTierCapMilestonesPassed: [],
   };
 }
 

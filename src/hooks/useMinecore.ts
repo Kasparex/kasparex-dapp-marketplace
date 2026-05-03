@@ -18,6 +18,7 @@ import {
   type MinecoreState,
   type MinecoreBatteryId,
   type PlantSlotState,
+  type PlantType,
 } from '@/lib/game/minecore';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import {
@@ -824,7 +825,12 @@ export function useMinecore() {
   );
 
   const changePlantType = useCallback(
-    async (slotIndex: number, plantType: any, costKas: number) => {
+    async (
+      slotIndex: number,
+      plantType: PlantType,
+      costKas: number,
+      opts?: { confirmStandardDowngrade?: boolean },
+    ) => {
       if (costKas > 0) {
         const paid = await payKasBestEffort({
           amountKas: getKasPriceAfterDiscount(costKas),
@@ -833,9 +839,15 @@ export function useMinecore() {
         });
         if (!paid.ok) return;
       }
-      dispatch({ type: 'ChangePlantType', at: Date.now(), slotIndex, plantType });
+      dispatch({
+        type: 'ChangePlantType',
+        at: Date.now(),
+        slotIndex,
+        plantType,
+        ...(opts?.confirmStandardDowngrade ? { confirmStandardDowngrade: true as const } : {}),
+      });
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
   );
 
   const craftRecipe = useCallback((recipeId: string) => {

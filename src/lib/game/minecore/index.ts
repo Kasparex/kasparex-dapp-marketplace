@@ -10,4 +10,5 @@ export * from './plant-economy';
 export * from './nft-deck-benefits';
 export * from './compute-context';
 export * from './recharge-pricing';
+export * from './plant-upgrade';
 

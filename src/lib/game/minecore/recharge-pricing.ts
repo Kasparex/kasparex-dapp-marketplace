@@ -8,7 +8,7 @@ import type { MinecoreState, PlantSlotState } from './types';
 export const MINECORE_RECHARGE_INCLUDED_HOURS = 1;
 
 /** Added list KAS per started hour beyond `MINECORE_RECHARGE_INCLUDED_HOURS`, from effective max runtime for that pillar. */
-export const MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR = 0.2;
+export const MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR = 0.05;
 
 const MS_PER_HOUR = 3_600_000;
 

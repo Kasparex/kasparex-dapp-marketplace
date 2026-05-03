@@ -38,6 +38,7 @@ function createEmptySlot(index: number): PlantSlotState {
     kasOverclockDailyBonusUntilMs: 0,
     kasOverclockNextCycleExtraDiamonds: 0,
     autoRestartMining: false,
+    plantTierCapMilestonesPassed: [],
   };
 }
 

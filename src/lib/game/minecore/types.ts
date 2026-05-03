@@ -60,7 +60,6 @@ export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid
 
 export type PlantType =
   | 'standard'
-  | 'plus'
   | 'premium'
   | 'advanced'
   | 'industrial'
@@ -161,6 +160,11 @@ export type PlantSlotState = {
    * Toggle per plant on the Mining card only when that plant's Crew row links a staffed Foreman deck slot.
    */
   autoRestartMining: boolean;
+  /**
+   * While on tier T, reaching the unlock threshold for that tier’s structural max rolling cap records T here once.
+   * Unlocks purchasing exactly the next plant tier in ladder order (per slot).
+   */
+  plantTierCapMilestonesPassed: PlantType[];
 };
 
 export type MinecoreAutomationState = {
@@ -202,7 +206,14 @@ export type MinecoreState = {
 export type MinecoreEvent =
   | { type: 'ConnectWallet';    address: string; at: number }
   | { type: 'UnlockSlot';       slotIndex: number; at: number }
-  | { type: 'ChangePlantType';  slotIndex: number; at: number; plantType: PlantType }
+  | {
+      type: 'ChangePlantType';
+      slotIndex: number;
+      at: number;
+      plantType: PlantType;
+      /** Required when downgrading any tier → Standard (full setup wipe). */
+      confirmStandardDowngrade?: boolean;
+    }
   | { type: 'AddSlot';          at: number }
   | { type: 'CraftRecipe';      at: number; recipeId: string }
   | { type: 'AddIngredients';   at: number; ingredient: MinecoreIngredient; amount: number }

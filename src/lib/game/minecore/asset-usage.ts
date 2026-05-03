@@ -239,7 +239,7 @@ export function nextPlantSetupAfterInstallPart(slot: PlantSlotState, part: Insta
   }
   if (part.kind === 'modules') {
     const max = MINECORE_MAX_MODULES_BY_PLANT[slot.type];
-    setup.moduleIds = slot.type === 'standard' ? [] : [...part.ids].slice(0, max);
+    setup.moduleIds = [...part.ids].slice(0, max);
     return setup;
   }
   if (part.kind === 'boost') {

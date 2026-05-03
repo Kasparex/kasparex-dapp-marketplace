@@ -14,6 +14,7 @@ import {
   MINECORE_PLANT_MAINTENANCE_MULT,
   MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
   MINECORE_PLANT_BASE_PRODUCTION_KW,
+  MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_POWER_NODES,
   MINECORE_POWER_CRITICAL_LOAD,
 } from './config';
@@ -50,9 +51,9 @@ export function computePlantMiningSpeedMultiplier(slot: PlantSlotState): number 
   return m;
 }
 
-/** Sum of flat D/24h each mounted module adds to the rolling cap ceiling (premium/advanced). */
+/** Sum of flat D/24h each mounted module adds to the rolling cap ceiling (when the plant tier allows modules). */
 export function computePlantModuleDiamondCapContribution(slot: PlantSlotState): number {
-  if (slot.type === 'standard') return 0;
+  if ((MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) return 0;
   let n = 0;
   for (const id of slot.setup.moduleIds) {
     const flat = MINECORE_MODULES[id]?.diamondsPer24hFlat;
@@ -70,7 +71,7 @@ export function minecoreUtcDayKey(atMs: number): string {
 export function computeEffectiveCycleDurationMs(slot: PlantSlotState): number {
   const base = slot.setup.machineId ? (MINECORE_MACHINES[slot.setup.machineId]?.durationMs ?? 0) : 0;
   if (base <= 0) return 0;
-  if (slot.type === 'standard') return base;
+  if ((MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) return base;
   let stretch = 1;
   for (const id of slot.setup.moduleIds) {
     const mod = MINECORE_MODULES[id];
@@ -118,7 +119,8 @@ export function computeConsumptionKw(slot: PlantSlotState): number {
     cons += mult * MINECORE_BATTERY_GRID_DRAW_BASE_KW;
   }
 
-  if (slot.type !== 'standard') {
+  const modCap = MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0;
+  if (modCap > 0) {
     for (const id of setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
       if (!mod) continue;
@@ -126,7 +128,7 @@ export function computeConsumptionKw(slot: PlantSlotState): number {
     }
   }
 
-  if (slot.type !== 'standard') {
+  if (modCap > 0) {
     for (const id of setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
       if (mod?.kind === 'cooling' && mod.consumptionReduction != null) {
@@ -144,12 +146,11 @@ export function computePowerBalanceKw(slot: PlantSlotState): number {
 /** Stability modules add percentage points after the base kW curve. */
 export function computeEfficiencyBonusPoints(slot: PlantSlotState): number {
   let pts = 0;
-  if (slot.type !== 'standard') {
-    for (const id of slot.setup.moduleIds) {
-      const mod = MINECORE_MODULES[id];
-      if (mod?.kind === 'stability' && mod.efficiencyFloorBonus != null) {
-        pts += mod.efficiencyFloorBonus;
-      }
+  if ((MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) return pts;
+  for (const id of slot.setup.moduleIds) {
+    const mod = MINECORE_MODULES[id];
+    if (mod?.kind === 'stability' && mod.efficiencyFloorBonus != null) {
+      pts += mod.efficiencyFloorBonus;
     }
   }
   return pts;
@@ -386,7 +387,7 @@ export function computeExpectedDiamondsForCycle(
 export function computeGlobalRefineBonusFraction(state: MinecoreState): number {
   let frac = 0;
   for (const slot of state.plantSlots) {
-    if (!slot.unlocked || slot.type === 'standard') continue;
+    if (!slot.unlocked || (MINECORE_MAX_MODULES_BY_PLANT[slot.type] ?? 0) <= 0) continue;
     for (const id of slot.setup.moduleIds) {
       const mod = MINECORE_MODULES[id];
       if (mod?.kind === 'refining' && mod.refineBonus != null) {

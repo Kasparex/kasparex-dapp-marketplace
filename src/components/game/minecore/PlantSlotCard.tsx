@@ -1,6 +1,13 @@
 'use client';
 
-import type { MinecoreState, PlantSlotState, MinecoreModuleId, MinecorePowerNodeId, MinecoreBatteryId } from '@/lib/game/minecore';
+import type {
+  MinecoreState,
+  PlantSlotState,
+  MinecoreModuleId,
+  MinecorePowerNodeId,
+  MinecoreBatteryId,
+  PlantType,
+} from '@/lib/game/minecore';
 import {
   computeLiveBatteryChargeMs,
   computePlantDailyCapProgress,
@@ -52,6 +59,10 @@ import {
   type InstallPartPayload,
 } from '@/lib/game/minecore/asset-usage';
 import {
+  describePlantWorkerAssignments,
+  type PlantWorkerAssignmentBadge,
+} from '@/lib/game/minecore/plant-worker-display';
+import {
   MINECORE_BATTERIES,
   MINECORE_MACHINES,
   MINECORE_MODULES,
@@ -90,7 +101,12 @@ import {
   listKasForBatterySlotRecharge,
   sumListKasForBatterySlotRecharge,
 } from '@/lib/game/minecore/recharge-pricing';
-import { describePlantWorkerAssignments } from '@/lib/game/minecore/plant-worker-display';
+import {
+  MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC,
+  plantTierOrderIndex,
+  plantTierUnlockDiamondThreshold,
+  tierCapMilestoneRecorded,
+} from '@/lib/game/minecore/plant-upgrade';
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
@@ -770,7 +786,7 @@ function UnifiedBatterySegmentsBar(props: {
           const installed = max > 0;
           const r = installed ? live / max : 0;
           const fillCls = tierBatteryFillCls(r);
-          const slotRuntimeLabel = installed ? formatShortBatterySlotRuntime(live) : '-';
+          const slotRuntimeLabel = installed ? formatShortBatterySlotRuntime(max) : '-';
           return (
             <Tooltip
               key={i}
@@ -913,7 +929,7 @@ export function PlantSlotCard(props: {
   onInstallPart: (kind: any, id: any, batterySlotIndex?: number, workerSlotPosition?: number) => void;
   /** Single dispatch when assigning multiple crew deck links (avoids duplicate cycle resets). */
   onAssignPlantCrewDeckIndices: (indices: (number | null)[]) => void;
-  onChangePlantType: (type: any, cost: number) => void;
+  onChangePlantType: (type: PlantType, cost: number, opts?: { confirmStandardDowngrade?: boolean }) => void;
   /** For refill modal pricing (KAS after KREX tier discount). */
   getKasPriceAfterDiscount?: (listKas: number) => number;
   /** Foreman NFT unlocks AUTO on the card; per-plant chaining when infra allows. */
@@ -935,6 +951,7 @@ export function PlantSlotCard(props: {
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
   const [refillPayCurrency, setRefillPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
   const [repairPayCurrency, setRepairPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
+  const [standardDowngradeConfirmOpen, setStandardDowngradeConfirmOpen] = useState(false);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
   useEffect(() => {
@@ -1303,10 +1320,16 @@ export function PlantSlotCard(props: {
             <Tooltip
               content={gameTooltipRich(
                 'Live yield rate',
-                'Diamonds credited per minute at the current rig, batteries, crew, grid load, modules, and wear.',
+                'Diamonds credited per minute at the current rig, batteries, crew, grid load, modules, and wear. Shaded when no mining run is active.',
               )}
             >
-              <span className="inline-block font-mono text-sm font-bold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-base">
+              <span
+                className={`inline-block font-mono text-sm font-bold tabular-nums tracking-tight sm:text-base ${
+                  setupReady && s.status === 'MiningActive'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-zinc-500 dark:text-zinc-500'
+                }`}
+              >
                 {(!setupReady ? 0 : Math.max(0, flowPerMin)).toFixed(1)} D/min
               </span>
             </Tooltip>
@@ -1493,7 +1516,7 @@ export function PlantSlotCard(props: {
               value={workerSetupValue}
               badges={
                 workerSetupDisplay.badges.length > 0
-                  ? workerSetupDisplay.badges.map((b) => (
+                  ? workerSetupDisplay.badges.map((b: PlantWorkerAssignmentBadge) => (
                       <span
                         key={b.key}
                         className={
@@ -1893,14 +1916,53 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Upgrade Plant"
       >
+        <p className="mb-3 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
+          Tiers unlock <strong>one step at a time</strong>: while on your current plant type, reach{' '}
+          {(MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC * 100).toFixed(0)}% of that tier&apos;s structural max rolling cap
+          (progress = mined + banked + live run toward the cap in this 24h window) <strong>once</strong> — then you can
+          purchase the next tier. Downgrades go only to Standard and wipe setup (see confirmation).
+        </p>
         <ul className="space-y-2">
           {MINECORE_PLANT_TYPE_ORDER.map((typeKey) => {
             const p = MINECORE_PLANT_PRESETS[typeKey];
             const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
-            const isCurrent = s.type === p.type;
+            const rowIdx = plantTierOrderIndex(p.type);
+            const curIdx = plantTierOrderIndex(s.type);
+            const isCurrent = p.type === s.type;
+            const isStandardDowngradeRow = p.type === 'standard' && s.type !== 'standard';
+            const isNextTier = rowIdx === curIdx + 1;
+            const milestoneDone = tierCapMilestoneRecorded(s);
+            const illegalMidTierDowngrade = rowIdx < curIdx && p.type !== 'standard';
+            const rowDisabled =
+              illegalMidTierDowngrade ||
+              (!isCurrent && !isStandardDowngradeRow && !(isNextTier && milestoneDone));
+            const buttonDisabled = rowDisabled && !isStandardDowngradeRow;
+
+            let lockTip: ReactNode | undefined;
+            if (illegalMidTierDowngrade) {
+              lockTip = gameTooltipRich('Unavailable', 'You can only downgrade to Standard Plant (with confirmation).');
+            } else if (!isCurrent && !isStandardDowngradeRow && isNextTier && !milestoneDone) {
+              const need = plantTierUnlockDiamondThreshold(s.type);
+              const capMax = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[s.type];
+              lockTip = gameTooltipRich(
+                'Next tier locked',
+                <>
+                  Mine at least {need.toLocaleString()} diamonds toward this plant&apos;s rolling cap while on{' '}
+                  {MINECORE_PLANT_PRESETS[s.type].label} ({(MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC * 100).toFixed(0)}%
+                  of that tier&apos;s {capMax.toLocaleString()} max). Progress includes credited mined total plus banked and
+                  live run diamonds in the current window.
+                </>,
+              );
+            } else if (!isCurrent && !isStandardDowngradeRow && rowIdx > curIdx + 1) {
+              lockTip = gameTooltipRich('Unavailable', 'Purchase each higher tier in order — unlock the next step first.');
+            }
+
             const borderCls = isCurrent
               ? 'border-emerald-500 bg-emerald-500/5 dark:border-emerald-500/60'
-              : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
+              : rowDisabled
+                ? 'border-zinc-100 bg-zinc-50/40 opacity-[0.72] dark:border-zinc-800 dark:bg-zinc-950/25'
+                : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
+
             const baseD = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[p.type];
             const maxD = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[p.type];
             const crew = MINECORE_PLANT_WORKFORCE_CAPACITY[p.type];
@@ -1909,52 +1971,121 @@ export function PlantSlotCard(props: {
             const statsLine = `${baseD.toLocaleString()} → ${maxD.toLocaleString()} max D/24h · ${crew} crew · ${pillars} battery pillar${
               pillars === 1 ? '' : 's'
             } · ${modSlots} module slot${modSlots === 1 ? '' : 's'}`;
+
+            const rowBtn = (
+              <button
+                type="button"
+                disabled={buttonDisabled}
+                onClick={() => {
+                  if (isCurrent) {
+                    setActiveModal(null);
+                    return;
+                  }
+                  if (isStandardDowngradeRow) {
+                    setStandardDowngradeConfirmOpen(true);
+                    return;
+                  }
+                  if (rowDisabled) return;
+                  void props.onChangePlantType(p.type, p.costKas);
+                  setActiveModal(null);
+                }}
+                className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed ${borderCls}`}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                    {p.featuredImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{p.label}</div>
+                    <div className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{p.description}</div>
+                    <div className="mt-1 text-[10px] font-semibold leading-snug text-emerald-700 dark:text-emerald-400/90">
+                      {statsLine}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                  <div className="flex min-w-[4rem] flex-col items-end">
+                    <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
+                    <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
+                      {p.costKas <= 0 ? '-' : `${p.costKas.toLocaleString()} KAS`}
+                    </span>
+                  </div>
+                  <div className="flex min-w-[3.5rem] flex-col items-end">
+                    <span className="text-[10px] font-semibold text-zinc-400">Status</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isCurrent ? 'Current' : '-'}</span>
+                  </div>
+                  {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" /> : null}
+                </div>
+              </button>
+            );
+
             return (
               <li key={p.type} className="list-none">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isCurrent) props.onChangePlantType(p.type, p.costKas);
-                    setActiveModal(null);
-                  }}
-                  className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${borderCls}`}
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
-                      {p.featuredImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{p.label}</div>
-                      <div className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{p.description}</div>
-                      <div className="mt-1 text-[10px] font-semibold leading-snug text-emerald-700 dark:text-emerald-400/90">
-                        {statsLine}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                    <div className="flex min-w-[4rem] flex-col items-end">
-                      <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
-                      <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
-                        {p.costKas <= 0 ? '-' : `${p.costKas.toLocaleString()} KAS`}
-                      </span>
-                    </div>
-                    <div className="flex min-w-[3.5rem] flex-col items-end">
-                      <span className="text-[10px] font-semibold text-zinc-400">Status</span>
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isCurrent ? 'Current' : '-'}</span>
-                    </div>
-                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" /> : null}
-                  </div>
-                </button>
+                {lockTip ? (
+                  <Tooltip content={lockTip}>
+                    <span className="block w-full">{rowBtn}</span>
+                  </Tooltip>
+                ) : (
+                  rowBtn
+                )}
               </li>
             );
           })}
         </ul>
       </SelectionModal>
+
+      {standardDowngradeConfirmOpen && typeof window !== 'undefined'
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+              role="presentation"
+              onClick={() => setStandardDowngradeConfirmOpen(false)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="standard-downgrade-title"
+                className="max-w-md rounded-xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 id="standard-downgrade-title" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Downgrade to Standard Plant?
+                </h4>
+                <p className="mt-2 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+                  This resets all setups on this plant — rigs, batteries (charge clears), crew links, reactors, and modules
+                  return to inventory rules from here; plant tier milestones reset. To climb tiers again you pay upgrade KAS
+                  costs from Standard upward. This does not refund past upgrades.
+                </p>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStandardDowngradeConfirmOpen(false)}
+                    className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void props.onChangePlantType('standard', 0, { confirmStandardDowngrade: true });
+                      setStandardDowngradeConfirmOpen(false);
+                      setActiveModal(null);
+                    }}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                  >
+                    I understand
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <SelectionModal
         isOpen={activeModal === 'machine'}
