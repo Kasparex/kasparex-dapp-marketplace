@@ -429,6 +429,16 @@ function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
   );
 }
 
+/** Narrow rounded pill marker on progress tracks (dark bar). */
+function SectionStyleProgressMarker() {
+  return (
+    <div
+      className="h-[calc(100%+10px)] min-h-[14px] w-1 shrink-0 rounded-full bg-zinc-900 shadow-sm ring-1 ring-black/25 dark:bg-zinc-100 dark:ring-white/30"
+      aria-hidden
+    />
+  );
+}
+
 /** Daily cap: rolling 24h from plant activation; visible cap reset timer + progress bar. */
 function DailyCapBar(props: {
   mined: number;
@@ -439,7 +449,7 @@ function DailyCapBar(props: {
   capReached: boolean;
   remainingMs: number;
   capStack?: PlantRollingCapBreakdown;
-  /** Diamonds toward rolling cap (same accounting as upgrades); violet tick on bar when next tier exists. */
+  /** Diamonds toward rolling cap for next-tier unlock; marker on bar when a higher tier exists. */
   upgradeMilestoneDiamonds?: number | null;
 }) {
   const r = clamp01(props.ratio);
@@ -519,39 +529,44 @@ function DailyCapBar(props: {
 
   const progressBlock =
     props.forceZeroDisplay ? null : (
-      <Tooltip
-        content={gameTooltipRich(
-          'Cap progress',
-          <>
-            <p>Share of this plant&apos;s 24h diamond budget already consumed in the current rolling window.</p>
-            {milestoneDiamonds != null ? (
-              <p className="mt-1">
-                Emerald accent marker (same pill accent as game section headers): one-time target of{' '}
-                <strong>{milestoneDiamonds.toLocaleString()} D</strong> toward this window (mined + banked + live run) to unlock
-                the next plant tier.
-              </p>
-            ) : null}
-          </>,
-        )}
-      >
-        <div className="relative h-2.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full"
-            style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
-          >
-            <div className="h-full w-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400" />
-          </div>
-          {milestonePct != null ? (
+      <div className="relative h-2.5 w-full overflow-visible">
+        <Tooltip
+          content={gameTooltipRich(
+            'Cap progress',
+            'How much of this plant’s 24-hour diamond budget you’ve already used in the current rolling window.',
+          )}
+        >
+          <div className="relative h-2.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
             <div
-              className="pointer-events-none absolute top-1/2 z-[2] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-              style={{ left: `${milestonePct}%` }}
-              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full"
+              style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
             >
-              <div className="h-[calc(100%+10px)] min-h-[14px] w-1 shrink-0 rounded-full bg-emerald-500 shadow-sm ring-1 ring-emerald-600/25 dark:ring-emerald-300/30" />
+              <div className="h-full w-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400" />
             </div>
-          ) : null}
-        </div>
-      </Tooltip>
+          </div>
+        </Tooltip>
+        {milestonePct != null && milestoneDiamonds != null ? (
+          <Tooltip
+            content={gameTooltipRich(
+              'Next tier milestone',
+              <>
+                <p>
+                  One-time goal this window: reach{' '}
+                  <strong>{milestoneDiamonds.toLocaleString()} diamonds</strong> toward your rolling cap (everything mined here,
+                  banked on the plant, plus diamonds still accruing in an active run). Nail it once and you can buy the next plant tier.
+                </p>
+              </>,
+            )}
+          >
+            <div
+              className="absolute top-1/2 z-[4] flex min-h-[22px] -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center px-2 py-0.5"
+              style={{ left: `${milestonePct}%` }}
+            >
+              <SectionStyleProgressMarker />
+            </div>
+          </Tooltip>
+        ) : null}
+      </div>
     );
 
   const capReachedBlock =
@@ -913,7 +928,7 @@ function MaintenanceWearBar(props: {
   wearRatio: number;
   onOpen?: () => void;
   embedded?: boolean;
-  /** Emerald accent marker at ~42% wear on the track (KAS + patch unlock). */
+  /** Dark marker at ~42% wear: KAS + patch unlock threshold. */
   showKasRepairThresholdMarker?: boolean;
 }) {
   const health = clamp01(1 - props.wearRatio);
@@ -921,24 +936,42 @@ function MaintenanceWearBar(props: {
   const pct = Math.round(health * 100);
   const widthPct = Math.max(2, pct);
   const kasThresholdWear = MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR;
-  /** Align marker with ~42% wear along the bar (left = low wear, right = heavy wear). */
   const kasMarkerWearPct = Math.round(Math.min(100, Math.max(0, kasThresholdWear * 100)) * 100) / 100;
+
+  const maintenanceBarTooltip = gameTooltipRich(
+    'Maintenance wear',
+    'Wear builds the longer you run without service. Use maintenance when you want to pay for a reset; higher plant tiers give you more uptime between services.',
+  );
+
+  const kasMarkerTooltip = gameTooltipRich(
+    'KAS payments',
+    <>
+      Around <strong>{Math.round(kasThresholdWear * 100)}% wear</strong>, paying with <strong>KAS</strong> opens up as long as you also use{' '}
+      <strong>one Stability Patch</strong>. <strong>KREX</strong> payments stay available anytime with no wear gate.
+    </>,
+  );
+
   const barTrack = (
-    <div className="relative h-1.5 w-full overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full" style={{ width: `${widthPct}%` }}>
-        <div
-          className="h-full w-full rounded-full transition-[width,background-color] duration-700"
-          style={{ backgroundColor: fill }}
-        />
-      </div>
-      {props.showKasRepairThresholdMarker ? (
-        <div
-          className="pointer-events-none absolute top-1/2 z-[2] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-          style={{ left: `${kasMarkerWearPct}%` }}
-          aria-hidden
-        >
-          <div className="flex h-[calc(100%+8px)] min-h-[14px] w-1 shrink-0 items-center justify-center rounded-full bg-emerald-500 shadow-sm ring-1 ring-emerald-600/25 dark:ring-emerald-300/30" />
+    <div className="relative h-1.5 w-full overflow-visible">
+      <Tooltip content={maintenanceBarTooltip}>
+        <div className="relative h-1.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] overflow-hidden rounded-full" style={{ width: `${widthPct}%` }}>
+            <div
+              className="h-full w-full rounded-full transition-[width,background-color] duration-700"
+              style={{ backgroundColor: fill }}
+            />
+          </div>
         </div>
+      </Tooltip>
+      {props.showKasRepairThresholdMarker ? (
+        <Tooltip content={kasMarkerTooltip}>
+          <div
+            className="absolute top-1/2 z-[4] flex min-h-[22px] -translate-x-1/2 -translate-y-1/2 cursor-help items-center justify-center px-2 py-0.5"
+            style={{ left: `${kasMarkerWearPct}%` }}
+          >
+            <SectionStyleProgressMarker />
+          </div>
+        </Tooltip>
       ) : null}
     </div>
   );
@@ -971,24 +1004,8 @@ function MaintenanceWearBar(props: {
   ) : (
     inner
   );
-  const wearTip = props.showKasRepairThresholdMarker
-    ? gameTooltipRich(
-        'Maintenance wear',
-        <>
-          <p>Efficiency declines as uptime accumulates since last service. Tap for repair options; plant tier stretches the interval.</p>
-          <p className="mt-2">
-            Emerald tick at ~<strong>{Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}% wear</strong> along the bar:{' '}
-            <strong>KAS</strong> maintenance unlocks together with <strong>1 Stability Patch</strong> once wear crosses that point.{' '}
-            <strong>KREX</strong> bypasses the wear gate.
-          </p>
-        </>,
-      )
-    : gameTooltipRich(
-        'Maintenance wear',
-        'Efficiency declines as uptime accumulates since last service. Tap for repair options; plant tier stretches the interval.',
-      );
 
-  return <Tooltip content={wearTip}>{trigger}</Tooltip>;
+  return trigger;
 }
 
 /** Inline warning banner */
