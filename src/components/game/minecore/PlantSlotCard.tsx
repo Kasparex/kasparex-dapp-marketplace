@@ -58,8 +58,12 @@ import {
   MINECORE_POWER_NODES,
   MINECORE_MAX_MODULES_BY_PLANT,
   MINECORE_PLANT_BASE_DIAMONDS_PER_24H,
+  MINECORE_PLANT_MAX_DIAMONDS_PER_24H,
+  MINECORE_PLANT_BASE_POWER_UNITS,
+  MINECORE_PLANT_WORKFORCE_CAPACITY,
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
+  MINECORE_PLANT_TYPE_ORDER,
   MINECORE_KREX_PER_KAS,
   MINECORE_KW_SCALE,
   MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR,
@@ -98,11 +102,11 @@ function clamp01(n: number) {
   return n <= 0 ? 0 : n >= 1 ? 1 : n;
 }
 
-/** Maintenance bar fill: violet (badge hue) → navy → orange → red as health drops. */
+/** Maintenance bar fill: accent when healthy; purple mid-band; orange/red when worn. */
 function maintenanceMeterFillCss(health: number): string {
   const h = clamp01(health);
+  const accent = { hue: 158, sat: 64, lig: 52 };
   const purple = { hue: 262, sat: 83, lig: 58 };
-  const navy = { hue: 222, sat: 55, lig: 38 };
   const orange = { hue: 28, sat: 92, lig: 54 };
   const red = { hue: 0, sat: 72, lig: 50 };
 
@@ -116,14 +120,16 @@ function maintenanceMeterFillCss(health: number): string {
   }
 
   let c: C;
-  if (h >= 0.62) {
-    const u = (h - 0.62) / (1 - 0.62);
-    c = mix(navy, purple, u);
-  } else if (h >= 0.35) {
-    const u = (h - 0.35) / (0.62 - 0.35);
-    c = mix(orange, navy, u);
+  if (h >= 0.93) {
+    c = accent;
+  } else if (h >= 0.68) {
+    const u = (h - 0.68) / (0.93 - 0.68);
+    c = mix(purple, accent, u);
+  } else if (h >= 0.38) {
+    const u = (h - 0.38) / (0.68 - 0.38);
+    c = mix(orange, purple, u);
   } else {
-    const u = h <= 0 ? 0 : h / 0.35;
+    const u = h <= 0 ? 0 : h / 0.38;
     c = mix(red, orange, u);
   }
   return `hsl(${Math.round(c.hue)} ${Math.round(c.sat)}% ${Math.round(c.lig)}%)`;
@@ -157,7 +163,10 @@ const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
 /** Rolling-cap contributions (diamonds / 24h toward cap) */
 const CAP_CONTRIB_BADGE_CLS =
   'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
-/** Crew NFT runtime bonus + slot max runtime (same sky capsule family) */
+/** Crew NFT runtime bonus — distinct from cap / sky runtime badges. */
+const BATTERY_CREW_NFT_BADGE_CLS =
+  'rounded-full border border-violet-500/40 bg-violet-500/12 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-violet-900 dark:text-violet-200';
+/** Slot max runtime capsule (battery pillar). */
 const BATTERY_SKY_BADGE_CLS =
   'rounded-full border border-sky-500/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-sky-800 dark:text-sky-300';
 
@@ -556,7 +565,7 @@ function ModalPartRow(props: {
   trailing?: ReactNode;
 }) {
   const borderCls = props.selected
-    ? 'border-amber-500 bg-amber-500/5 dark:border-amber-500/60'
+    ? 'border-emerald-500 bg-emerald-500/5 dark:border-emerald-500/60'
     : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
   const btn = (
     <button
@@ -576,7 +585,7 @@ function ModalPartRow(props: {
         </div>
         <div className="flex min-w-[3.25rem] flex-col items-end">
           <span className="text-[10px] font-semibold text-zinc-400">In use</span>
-          <span className="font-mono text-sm font-bold tabular-nums text-amber-600 dark:text-amber-400">{props.inUse}</span>
+          <span className="font-mono text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{props.inUse}</span>
         </div>
         {props.trailing ?? <Icons.ChevronRight className="h-5 w-5 shrink-0 self-center text-zinc-300 dark:text-zinc-600" />}
       </div>
@@ -1184,8 +1193,9 @@ export function PlantSlotCard(props: {
   const showFeaturedPlantArt = s.unlocked;
   const plantFeaturedUrl = showFeaturedPlantArt ? preset.featuredImageUrl : undefined;
   const baseCapDisplay = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[s.type ?? 'standard'];
+  const moduleSlots = MINECORE_MAX_MODULES_BY_PLANT[s.type ?? 'standard'];
   const moduleBadgeCopy =
-    s.type === 'standard' ? 'No modules' : s.type === 'premium' ? 'Premium modules' : 'Advanced modules';
+    moduleSlots <= 0 ? 'No modules' : `${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'}`;
   const statCapsuleCls =
     'inline-flex max-w-full items-center rounded-full border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm backdrop-blur-sm';
 
@@ -1256,11 +1266,9 @@ export function PlantSlotCard(props: {
             <Tooltip
               content={gameTooltipRich(
                 'Module tier',
-                s.type === 'standard'
-                  ? 'Standard plants cannot mount premium or advanced-only modules.'
-                  : s.type === 'premium'
-                    ? 'Premium plants unlock fabrication module slots - see Modules in setup.'
-                    : 'Advanced plants support the widest module layouts.',
+                moduleSlots <= 0
+                  ? 'This plant tier cannot mount fabrication modules.'
+                  : `Up to ${moduleSlots} module slot${moduleSlots === 1 ? '' : 's'} — see Modules in setup.`,
               )}
             >
               <span className={`${statCapsuleCls} normal-case tracking-normal`}>{moduleBadgeCopy}</span>
@@ -1543,7 +1551,7 @@ export function PlantSlotCard(props: {
               onClick={() => setActiveModal('machine')}
               disabled={!canEditParts}
             />
-            {s.type !== 'standard' ? (
+            {moduleSlots > 0 ? (
               <CheckRow
                 installed={s.setup.moduleIds.length > 0}
                 label="Modules"
@@ -1554,7 +1562,7 @@ export function PlantSlotCard(props: {
                 }
                 tooltip={gameTooltipRich(
                   'Modules',
-                  s.type === 'premium' ? 'Premium plants can mount boost modules.' : 'Advanced plants support more module slots.',
+                  `Up to ${moduleSlots} fabrication module slot${moduleSlots === 1 ? '' : 's'} on this plant tier.`,
                 )}
                 onClick={() => setActiveModal('modules')}
                 disabled={!canEditParts}
@@ -1616,8 +1624,8 @@ export function PlantSlotCard(props: {
                     bid ? (
                       <>
                         {deckBonusMin > 0 ? (
-                          <span className={BATTERY_SKY_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
-                            +{deckBonusMin}m crew NFT
+                          <span className={BATTERY_CREW_NFT_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
+                            +{deckBonusMin}m Crew
                           </span>
                         ) : null}
                         {maxEff > 0 ? (
@@ -1651,14 +1659,14 @@ export function PlantSlotCard(props: {
           {/* ── Resource bars ── */}
           {s.unlocked && s.setup.machineId ? (
             <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
-              <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Power grid</div>
+              <div className="mb-1 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Power grid</div>
               <PowerGridBalanceBar prodKw={prodKw} consKw={consKw} balKw={balKw} />
             </div>
           ) : null}
 
           {s.unlocked ? (
             <div className="rounded-xl border border-zinc-100 bg-white/60 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-950/30">
-              <div className="mb-1 px-2 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Maintenance</div>
+              <div className="mb-1 pt-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">Maintenance</div>
               <MaintenanceWearBar wearRatio={wearRatio} embedded onOpen={() => setMaintenanceModalOpen(true)} />
             </div>
           ) : null}
@@ -1886,12 +1894,21 @@ export function PlantSlotCard(props: {
         title="Upgrade Plant"
       >
         <ul className="space-y-2">
-          {Object.values(MINECORE_PLANT_PRESETS).map((p) => {
+          {MINECORE_PLANT_TYPE_ORDER.map((typeKey) => {
+            const p = MINECORE_PLANT_PRESETS[typeKey];
             const Icon = (Icons as any)[p.icon] ?? Icons.CircleDot;
             const isCurrent = s.type === p.type;
             const borderCls = isCurrent
-              ? 'border-amber-500 bg-amber-500/5 dark:border-amber-500/60'
+              ? 'border-emerald-500 bg-emerald-500/5 dark:border-emerald-500/60'
               : 'border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-600';
+            const baseD = MINECORE_PLANT_BASE_DIAMONDS_PER_24H[p.type];
+            const maxD = MINECORE_PLANT_MAX_DIAMONDS_PER_24H[p.type];
+            const crew = MINECORE_PLANT_WORKFORCE_CAPACITY[p.type];
+            const pillars = MINECORE_PLANT_BASE_POWER_UNITS[p.type];
+            const modSlots = MINECORE_MAX_MODULES_BY_PLANT[p.type];
+            const statsLine = `${baseD.toLocaleString()} → ${maxD.toLocaleString()} max D/24h · ${crew} crew · ${pillars} battery pillar${
+              pillars === 1 ? '' : 's'
+            } · ${modSlots} module slot${modSlots === 1 ? '' : 's'}`;
             return (
               <li key={p.type} className="list-none">
                 <button
@@ -1908,26 +1925,29 @@ export function PlantSlotCard(props: {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={p.featuredImageUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <Icon className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+                        <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{p.label}</div>
                       <div className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">{p.description}</div>
+                      <div className="mt-1 text-[10px] font-semibold leading-snug text-emerald-700 dark:text-emerald-400/90">
+                        {statsLine}
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                     <div className="flex min-w-[4rem] flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Upgrade</span>
                       <span className="font-mono text-sm font-bold tabular-nums text-zinc-800 dark:text-zinc-100">
-                        {p.costKas <= 0 ? '-' : `${p.costKas} KAS`}
+                        {p.costKas <= 0 ? '-' : `${p.costKas.toLocaleString()} KAS`}
                       </span>
                     </div>
                     <div className="flex min-w-[3.5rem] flex-col items-end">
                       <span className="text-[10px] font-semibold text-zinc-400">Status</span>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{isCurrent ? 'Current' : '-'}</span>
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isCurrent ? 'Current' : '-'}</span>
                     </div>
-                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-400" /> : null}
+                    {isCurrent ? <Icons.Check className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" /> : null}
                   </div>
                 </button>
               </li>
@@ -1942,7 +1962,7 @@ export function PlantSlotCard(props: {
         title="Assign Machine"
       >
         {modalFeedback ? (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+          <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-900 dark:text-emerald-100">
             {modalFeedback}
           </p>
         ) : null}
@@ -2000,7 +2020,7 @@ export function PlantSlotCard(props: {
         title="Assign reactors"
       >
         {modalFeedback ? (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+          <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-900 dark:text-emerald-100">
             {modalFeedback}
           </p>
         ) : null}
@@ -2054,11 +2074,11 @@ export function PlantSlotCard(props: {
                   trailing={
                     isSelected ? (
                       cntHere > 1 ? (
-                        <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-amber-800 dark:text-amber-200">
+                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold tabular-nums text-emerald-800 dark:text-emerald-200">
                           ×{cntHere}
                         </span>
                       ) : (
-                        <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" />
+                        <Icons.Check className="h-5 w-5 shrink-0 self-center text-emerald-600 dark:text-emerald-400" />
                       )
                     ) : undefined
                   }
@@ -2088,7 +2108,7 @@ export function PlantSlotCard(props: {
         title={powerUnitCount > 1 ? `Assign battery - power unit ${batterySlotFocus + 1}` : 'Assign Battery'}
       >
         {modalFeedback ? (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+          <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-900 dark:text-emerald-100">
             {modalFeedback}
           </p>
         ) : null}
@@ -2284,7 +2304,7 @@ export function PlantSlotCard(props: {
         title="Assign crew"
       >
         {modalFeedback ? (
-          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-900 dark:text-amber-100">
+          <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-900 dark:text-emerald-100">
             {modalFeedback}
           </p>
         ) : null}
@@ -2425,7 +2445,7 @@ export function PlantSlotCard(props: {
                   }}
                   trailing={
                     assignedOnPlant ? (
-                      <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" />
+                      <Icons.Check className="h-5 w-5 shrink-0 self-center text-emerald-600 dark:text-emerald-400" />
                     ) : undefined
                   }
                 />
@@ -2507,13 +2527,13 @@ export function PlantSlotCard(props: {
                       : [...current, m.id as MinecoreModuleId].slice(0, maxM);
                     dispatchInstallPartPayload({ kind: 'modules', ids: next });
                   }}
-                  trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-amber-500 dark:text-amber-400" /> : undefined}
+                  trailing={isSelected ? <Icons.Check className="h-5 w-5 shrink-0 self-center text-emerald-600 dark:text-emerald-400" /> : undefined}
                 />
               </li>
             );
           })}
         </ul>
-        {s.type !== 'standard' && s.setup.moduleIds.length > 0 ? (
+        {MINECORE_MAX_MODULES_BY_PLANT[s.type] > 0 && s.setup.moduleIds.length > 0 ? (
           <ModalActionRow
             title="Clear all modules"
             subtitle="Unequips every module from this plant."

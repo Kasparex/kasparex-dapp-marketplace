@@ -18,11 +18,26 @@ export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 /** 24h window for diamonds/day and cycle scaling. */
 export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Upgrade modal / calculator tier order (low → apex). */
+export const MINECORE_PLANT_TYPE_ORDER: readonly PlantType[] = [
+  'standard',
+  'plus',
+  'premium',
+  'advanced',
+  'industrial',
+  'elite',
+  'dominion',
+];
+
 /** Base diamond output per 24h from plant infrastructure (rolling daily cap baseline). */
 export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
   standard: 100,
+  plus: 165,
   premium: 250,
   advanced: 500,
+  industrial: 720,
+  elite: 980,
+  dominion: 1_400,
 };
 
 /**
@@ -30,25 +45,37 @@ export const MINECORE_PLANT_BASE_DIAMONDS_PER_24H: Record<PlantType, number> = {
  */
 export const MINECORE_PLANT_MAX_DIAMONDS_PER_24H: Record<PlantType, number> = {
   standard: 1_000,
+  plus: 1_350,
   premium: 2_500,
   advanced: 10_000,
+  industrial: 16_000,
+  elite: 24_000,
+  dominion: 40_000,
 };
 
 /** Base reserve power units for plant tier (facility capacity; shown on cards). */
 export const MINECORE_PLANT_BASE_POWER_UNITS: Record<PlantType, number> = {
   standard: 1,
+  plus: 1,
   premium: 2,
   advanced: 4,
+  industrial: 4,
+  elite: 5,
+  dominion: 6,
 };
 
 /**
  * Crew positions on each plant (distinct Workers-tab NFT links).
- * Standard / Premium / Advanced support 1 / 2 / 3 crew rows respectively.
+ * Higher tiers support more staffed Crew-tab rows.
  */
 export const MINECORE_PLANT_WORKFORCE_CAPACITY: Record<PlantType, number> = {
   standard: 1,
+  plus: 2,
   premium: 2,
   advanced: 3,
+  industrial: 4,
+  elite: 5,
+  dominion: 6,
 };
 
 export function miningWorkerNftSlotsRequired(plantType: PlantType): number {
@@ -67,8 +94,12 @@ export const MINECORE_MODULE_DEFAULT_GRID_DRAW_KW = 0.055;
 
 export const MINECORE_PLANT_BASE_PRODUCTION_KW: Record<PlantType, number> = {
   standard: 6,
+  plus: 10,
   premium: 14,
   advanced: 28,
+  industrial: 36,
+  elite: 44,
+  dominion: 56,
 };
 
 /** Below this efficiency %, a new mining cycle cannot start (`InsufficientPower`). */
@@ -149,8 +180,12 @@ export const MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR = 0.42;
 /** Extends maintenance interval (higher plant tier = longer efficient runtime). */
 export const MINECORE_PLANT_MAINTENANCE_MULT: Record<PlantType, number> = {
   standard: 1,
+  plus: 1.06,
   premium: 1.12,
   advanced: 1.28,
+  industrial: 1.36,
+  elite: 1.44,
+  dominion: 1.55,
 };
 
 export type PlantPreset = {
@@ -173,12 +208,21 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_20f6148d91ca410ba4e3ec8dae8784e7~mv2.png',
   },
+  plus: {
+    type: 'plus',
+    label: 'Plus Facility',
+    costKas: 28,
+    icon: 'Layers',
+    description: 'Expanded crew links and a module slot without multi-pillar batteries.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_ae1d39ec88fa4a089aaa35d250576a60~mv2.jpg',
+  },
   premium: {
     type: 'premium',
     label: 'Premium Plant',
     costKas: 50,
     icon: 'ShieldCheck',
-    description: 'Upgraded infrastructure. Supports higher-tier machines.',
+    description: 'Upgraded infrastructure. Dual battery pillars and fabrication modules.',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_5ea48177c9034a89ba58e44c60c15c51~mv2.png',
   },
@@ -187,9 +231,36 @@ export const MINECORE_PLANT_PRESETS: Record<PlantType, PlantPreset> = {
     label: 'Advanced Complex',
     costKas: 250,
     icon: 'Zap',
-    description: 'Industrial-scale mining. Unlocks maximum output and specialized rigs.',
+    description: 'Industrial-scale mining. High rolling caps and four module slots.',
     featuredImageUrl:
       'https://static.wixstatic.com/media/de4185_da16975f19d8437195ef88d1915cde44~mv2.png',
+  },
+  industrial: {
+    type: 'industrial',
+    label: 'Industrial Site',
+    costKas: 650,
+    icon: 'Building2',
+    description: 'Heavy-duty grid headroom, four staffed crew links, and deeper daily ceilings.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_6df3ca1ce59c46c888649690e4244ddd~mv2.jpg',
+  },
+  elite: {
+    type: 'elite',
+    label: 'Elite Foundry',
+    costKas: 1_400,
+    icon: 'Crown',
+    description: 'Five reactor pillars and apex-tier rolling caps for dedicated operators.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_85049789ce0744feafe794224de71eef~mv2.jpg',
+  },
+  dominion: {
+    type: 'dominion',
+    label: 'Dominion Complex',
+    costKas: 3_500,
+    icon: 'Landmark',
+    description: 'Maximum facility scale — six pillars, six crew rows, eight module slots.',
+    featuredImageUrl:
+      'https://static.wixstatic.com/media/de4185_c8728dbcdd12453aa9add461ff121f8a~mv2.jpg',
   },
 };
 
@@ -480,7 +551,7 @@ export type ModuleConfig = {
   autoRestartMining?: boolean;
   /** Legacy field; mining bonus moved to {@link diamondsPer24hFlat}. Kept 0 for migrated modules. */
   outputBonus: number;
-  /** Flat diamonds / 24h added to this plant’s rolling cap ceiling (premium/advanced only). */
+  /** Flat diamonds / 24h added to this plant’s rolling cap ceiling (non-standard plants with module slots). */
   diamondsPer24hFlat?: number;
   failureReduction: number;
   /** Cooling: reduces consumption kW fraction (0–1). */
@@ -579,8 +650,12 @@ export const MINECORE_MODULES: Record<MinecoreModuleId, ModuleConfig> = {
 /** Max module slots per plant tier (standard = modules disabled in UI; enforced in reducer). */
 export const MINECORE_MAX_MODULES_BY_PLANT: Record<PlantType, number> = {
   standard: 0,
+  plus: 1,
   premium: 2,
   advanced: 4,
+  industrial: 5,
+  elite: 6,
+  dominion: 8,
 };
 
 export type BoostConfig = { id: MinecoreBoostId; label: string; multiplier: number };

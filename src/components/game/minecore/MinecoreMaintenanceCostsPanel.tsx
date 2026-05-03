@@ -9,6 +9,7 @@ import {
   MINECORE_PLANT_PRESETS,
   MINECORE_PLANT_RECHARGE_COST_KAS,
   MINECORE_PLANT_REPAIR_KAS,
+  MINECORE_PLANT_TYPE_ORDER,
 } from '@/lib/game/minecore/config';
 import {
   MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR,
@@ -76,8 +77,6 @@ export function MinecoreMaintenanceCostsPanel(props: {
   onOpenKrexWizard?: () => void;
 }) {
   const tierShort = props.krexTier || 'Tier0';
-  const premium = MINECORE_PLANT_PRESETS.premium;
-  const advanced = MINECORE_PLANT_PRESETS.advanced;
 
   const row = (label: string, baseKas: number, accent: boolean, free?: boolean) => {
     if (free) {
@@ -134,10 +133,11 @@ export function MinecoreMaintenanceCostsPanel(props: {
           />
         </CostCapsule>
         {row('Repair plant', MINECORE_PLANT_REPAIR_KAS, true)}
-        {premium.costKas <= 0
-          ? row(`Upgrade → ${premium.label}`, 0, false, true)
-          : row(`Upgrade → ${premium.label}`, premium.costKas, true)}
-        {row(`Upgrade → ${advanced.label}`, advanced.costKas, advanced.costKas > 0)}
+        {MINECORE_PLANT_TYPE_ORDER.map((t) => {
+          const p = MINECORE_PLANT_PRESETS[t];
+          if (p.costKas <= 0) return null;
+          return row(`Upgrade → ${p.label}`, p.costKas, true);
+        })}
         {row('Swap setup parts', 0, false, true)}
         {props.onOpenKrexWizard ? (
           <div className="col-span-2">

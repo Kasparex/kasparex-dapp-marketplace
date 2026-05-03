@@ -3,6 +3,7 @@ import {
   MINECORE_GRID_PER_REFINEMENT_POINT,
   MINECORE_KREX_PER_REFINEMENT_POINT,
   MINECORE_PLANT_PRESETS,
+  MINECORE_PLANT_TYPE_ORDER,
   MINECORE_REFINE_POINTS_PER_DIAMOND,
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
   MINECORE_DEFAULT_NEXT_SLOT_COST_KAS,
@@ -70,7 +71,7 @@ export const CALC_MODULE_ORDER = [
   'hash-buffer',
 ] as const satisfies readonly MinecoreModuleId[];
 
-export const CALC_PLANT_TYPE_ORDER: readonly PlantType[] = ['standard', 'premium', 'advanced'];
+export const CALC_PLANT_TYPE_ORDER: readonly PlantType[] = MINECORE_PLANT_TYPE_ORDER;
 
 /** Base KAS price per ingredient (Minecore shop - KAS column). */
 export const CALC_INGREDIENT_KAS: Record<MinecoreIngredient, number> = {

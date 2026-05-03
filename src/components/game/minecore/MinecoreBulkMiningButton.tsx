@@ -4,9 +4,9 @@ import type { ReactNode } from 'react';
 import type { PlantSlotState } from '@/lib/game/minecore';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-/** Matches {@link CardsFilterBar} category/sort triggers (h-10, text-sm, font-medium). */
+/** Matches {@link CardsFilterBar} triggers; emerald accent for bulk mining actions. */
 const MINING_TOOLBAR_BTN_CLASS =
-  'inline-flex h-10 min-w-[160px] shrink-0 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-emerald-500/30 disabled:pointer-events-none disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900';
+  'inline-flex h-10 min-w-[160px] shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-900 shadow-sm transition-colors hover:bg-emerald-500/15 focus-visible:outline focus-visible:ring-2 focus-visible:ring-emerald-500/35 disabled:pointer-events-none disabled:opacity-40 dark:border-emerald-500/35 dark:bg-emerald-500/15 dark:text-emerald-50 dark:hover:bg-emerald-500/25';
 
 function WithTip(props: { tip: string; children: ReactNode }) {
   return (

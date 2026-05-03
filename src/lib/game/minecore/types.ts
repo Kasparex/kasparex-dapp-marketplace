@@ -58,7 +58,14 @@ export const MINECORE_POWER_NODE_IDS: MinecorePowerNodeId[] = [
 
 export type MinecoreBoostId    = 'none' | 'krex-boost' | 'kas-overclock' | 'grid-efficiency';
 
-export type PlantType = 'standard' | 'premium' | 'advanced';
+export type PlantType =
+  | 'standard'
+  | 'plus'
+  | 'premium'
+  | 'advanced'
+  | 'industrial'
+  | 'elite'
+  | 'dominion';
 
 export type PlantCardStatus =
   | 'EmptySlot'

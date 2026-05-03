@@ -15,6 +15,7 @@ import { minecoreUtcDayKey } from './plant-economy';
 import { ensureBatterySlotChargeLength, getPlantBatterySlotCount, normalizePowerNodeIds } from './battery-utils';
 import { enforcePlantInventoryInvariants } from './inventory-invariants';
 import { normalizeWorkerDeckIndices } from './asset-usage';
+import { MINECORE_PLANT_TYPE_ORDER } from './config';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === 'object';
@@ -114,7 +115,9 @@ function hydrateSlot(input: unknown, index: number): PlantSlotState {
 
   const setup = isRecord(input.setup) ? input.setup : {};
   const cycle = isRecord(input.cycle) ? input.cycle : null;
-  const plantType = typeof input.type === 'string' ? (input.type as PlantSlotState['type']) : base.type;
+  const allowedPlant = new Set<string>(MINECORE_PLANT_TYPE_ORDER as readonly string[]);
+  const typeRaw = typeof input.type === 'string' ? input.type : base.type;
+  const plantType = (allowedPlant.has(typeRaw) ? typeRaw : base.type) as PlantSlotState['type'];
   const nBat = getPlantBatterySlotCount(plantType);
   const legacyBattery = typeof setup.batteryId === 'string' ? (setup.batteryId as any) : null;
   const rawIds = Array.isArray(setup.batteryIds) ? (setup.batteryIds as unknown[]).map((x) => (typeof x === 'string' ? x : null)) : null;
