@@ -42,3 +42,25 @@ export function describePlantWorkerAssignments(
 
   return { summary, badges };
 }
+
+/** Sum of Crew-tab NFT rolling-cap bonuses (D toward /24h ceiling); separate Foreman auto-run flag. */
+export function sumCrewRollingCapBonusFromAssignments(
+  state: MinecoreState,
+  slot: PlantSlotState,
+  ctx?: MinecoreComputeContext,
+): { totalCapBonus: number; hasForemanAuto: boolean } {
+  const need = miningWorkerNftSlotsRequired(slot.type);
+  const idxs = normalizePlantSetup(slot.type, slot.setup).workerNftDeckSlotIndices;
+  let totalCapBonus = 0;
+  let hasForemanAuto = false;
+  for (let i = 0; i < need; i++) {
+    const ix = idxs[i];
+    if (ix == null) continue;
+    const deck = state.nftSlots?.[ix];
+    if (!deck || deck.nftId == null || !deck.collection) continue;
+    const b = minecoreDeckBenefits(deck, ctx?.nftMetadataByDeckIndex?.[ix] ?? null);
+    totalCapBonus += b.capBonus;
+    if (deck.type === 'foreman') hasForemanAuto = true;
+  }
+  return { totalCapBonus, hasForemanAuto };
+}

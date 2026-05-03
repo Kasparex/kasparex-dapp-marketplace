@@ -614,7 +614,7 @@ export function useMinecore() {
         purchaseType: 'other',
       });
       if (!paid.ok) return false;
-      dispatch({ type: 'Repair', slotIndex, at: Date.now(), consumeStabilityPatch: false });
+      dispatch({ type: 'Repair', slotIndex, at: Date.now(), consumeStabilityPatch: true });
       return true;
     },
     [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
@@ -626,15 +626,15 @@ export function useMinecore() {
       const discounted = getKasPriceAfterDiscount(listKas);
       if (opts.currency === 'KREX') {
         const paid = await payKrexTreasury(minecoreKrexFromDiscountedKas(discounted), {
-          skuId: opts.consumeStabilityPatch ? 'minecore:maintenance:early:krex' : 'minecore:maintenance:krex',
+          skuId: 'minecore:maintenance:krex',
           recordActionType: 'maintenance-krex',
-          transactionDetail: { slotIndex, early: opts.consumeStabilityPatch },
+          transactionDetail: { slotIndex, anytime: true },
         });
         if (!paid.ok) return false;
       } else {
         const paid = await payKasBestEffort({
           amountKas: discounted,
-          skuId: opts.consumeStabilityPatch ? 'minecore:maintenance:early' : 'minecore:maintenance',
+          skuId: 'minecore:maintenance:kas-patch',
           purchaseType: 'other',
         });
         if (!paid.ok) return false;
@@ -643,7 +643,9 @@ export function useMinecore() {
         type: 'Repair',
         slotIndex,
         at: Date.now(),
-        consumeStabilityPatch: opts.consumeStabilityPatch,
+        ...(opts.currency === 'KREX'
+          ? { krexPremiumRepair: true as const }
+          : { consumeStabilityPatch: true as const }),
       });
       return true;
     },

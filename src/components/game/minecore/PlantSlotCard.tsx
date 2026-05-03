@@ -60,7 +60,7 @@ import {
 } from '@/lib/game/minecore/asset-usage';
 import {
   describePlantWorkerAssignments,
-  type PlantWorkerAssignmentBadge,
+  sumCrewRollingCapBonusFromAssignments,
 } from '@/lib/game/minecore/plant-worker-display';
 import {
   MINECORE_BATTERIES,
@@ -106,8 +106,9 @@ import {
   plantTierOrderIndex,
   plantTierUnlockDiamondThreshold,
   tierCapMilestoneRecorded,
+  nextPlantTier,
 } from '@/lib/game/minecore/plant-upgrade';
-import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useCallback, Children, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import * as Icons from 'lucide-react';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
@@ -411,6 +412,24 @@ function CheckRow(props: {
   );
 }
 
+/** Shows at most `max` badge nodes; trailing ellipsis when there are more (Setup capsule row). */
+function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
+  const arr = Children.toArray(children).filter((c) => c != null && c !== false && c !== true);
+  if (arr.length === 0) return null;
+  if (arr.length <= max) return <>{arr}</>;
+  return (
+    <>
+      {arr.slice(0, max)}
+      <span
+        className="rounded-full border border-zinc-400/35 bg-zinc-200/70 px-1 py-0.5 text-[8px] font-black uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+        title="Additional bonuses; see row tooltip"
+      >
+        …
+      </span>
+    </>
+  );
+}
+
 /** Daily cap: rolling 24h from plant activation; visible cap reset timer + progress bar. */
 function DailyCapBar(props: {
   mined: number;
@@ -421,6 +440,8 @@ function DailyCapBar(props: {
   capReached: boolean;
   remainingMs: number;
   capStack?: PlantRollingCapBreakdown;
+  /** Diamonds toward rolling cap (same accounting as upgrades); violet tick on bar when next tier exists. */
+  upgradeMilestoneDiamonds?: number | null;
 }) {
   const r = clamp01(props.ratio);
   const showCountdown = props.remainingMs > 0;
@@ -488,19 +509,56 @@ function DailyCapBar(props: {
     </Tooltip>
   );
 
+  const milestoneDiamonds =
+    props.upgradeMilestoneDiamonds != null && props.upgradeMilestoneDiamonds > 0
+      ? props.upgradeMilestoneDiamonds
+      : null;
+  const milestonePct =
+    milestoneDiamonds != null && props.cap > 0 && !props.forceZeroDisplay
+      ? Math.min(100, Math.max(0, (milestoneDiamonds / props.cap) * 100))
+      : null;
+
   const progressBlock =
     props.forceZeroDisplay ? null : (
       <Tooltip
         content={gameTooltipRich(
           'Cap progress',
-          'Share of this plant’s 24h diamond budget already consumed in the current rolling window.',
+          <>
+            <p>Share of this plant&apos;s 24h diamond budget already consumed in the current rolling window.</p>
+            {milestoneDiamonds != null ? (
+              <p className="mt-1">
+                Slanted violet tick: one-time progress target of{' '}
+                <strong>{milestoneDiamonds.toLocaleString()} D</strong> toward this window (mined + banked + live run) to unlock
+                the next plant tier.
+              </p>
+            ) : null}
+          </>,
         )}
       >
-        <div className="h-2.5 w-full cursor-help overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div className="relative h-2.5 w-full cursor-help overflow-visible rounded-full bg-zinc-200 dark:bg-zinc-800">
           <div
-            className="h-full rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
+            className="absolute inset-y-0 left-0 z-[1] rounded-full bg-amber-400 transition-[width] duration-700 dark:bg-amber-400"
             style={{ width: `${Math.max(2, Math.round(r * 100))}%` }}
           />
+          {milestonePct != null ? (
+            <Tooltip
+              content={gameTooltipRich(
+                'Upgrade milestone',
+                <>
+                  Reach <strong>{milestoneDiamonds!.toLocaleString()} D</strong> toward this rolling window&apos;s cap once
+                  (same progress as upgrades: mined, banked, and active run) to buy the next plant tier.
+                </>,
+              )}
+            >
+              <div
+                className="pointer-events-auto absolute top-1/2 z-[3] h-[calc(100%+8px)] w-[3px] cursor-help rounded-[1px] bg-violet-600 shadow-[0_0_0_1px_rgba(255,255,255,0.45)] dark:bg-violet-400 dark:shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+                style={{
+                  left: `${milestonePct}%`,
+                  transform: 'translate(-50%, -50%) skewX(-11deg)',
+                }}
+              />
+            </Tooltip>
+          ) : null}
         </div>
       </Tooltip>
     );
@@ -972,7 +1030,7 @@ export function PlantSlotCard(props: {
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
   const [refillSlotIndexes, setRefillSlotIndexes] = useState<number[]>([]);
   const [refillPayCurrency, setRefillPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
-  const [repairPayCurrency, setRepairPayCurrency] = useState<'KAS' | 'KREX'>('KAS');
+  const [repairPayCurrency, setRepairPayCurrency] = useState<'KAS' | 'KREX'>('KREX');
   const [standardDowngradeConfirmOpen, setStandardDowngradeConfirmOpen] = useState(false);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
@@ -981,7 +1039,7 @@ export function PlantSlotCard(props: {
   }, [batteryRefillModalOpen]);
 
   useEffect(() => {
-    if (maintenanceModalOpen) setRepairPayCurrency('KAS');
+    if (maintenanceModalOpen) setRepairPayCurrency('KREX');
   }, [maintenanceModalOpen]);
 
   useEffect(() => {
@@ -1140,6 +1198,10 @@ export function PlantSlotCard(props: {
 
   const workerSetupDisplay = useMemo(
     () => describePlantWorkerAssignments(props.minecoreState, s, ctx),
+    [props.minecoreState, s, ctx],
+  );
+  const crewCapRollup = useMemo(
+    () => sumCrewRollingCapBonusFromAssignments(props.minecoreState, s, ctx),
     [props.minecoreState, s, ctx],
   );
   const workerSetupValue = useMemo(() => {
@@ -1396,6 +1458,9 @@ export function PlantSlotCard(props: {
               capReached={dailyCap.cap24h > 0 && dailyCap.minedTowardCap >= dailyCap.cap24h}
               remainingMs={capRemainingMs}
               capStack={capBreakdown}
+              upgradeMilestoneDiamonds={
+                setupReady && nextPlantTier(s.type) != null ? plantTierUnlockDiamondThreshold(s.type) : null
+              }
             />
           ) : null}
 
@@ -1562,22 +1627,23 @@ export function PlantSlotCard(props: {
               installed={plantNftSlotAssignmentValid(props.minecoreState, s)}
               label="Crew"
               value={workerSetupValue}
-              badges={
-                workerSetupDisplay.badges.length > 0
-                  ? workerSetupDisplay.badges.map((b: PlantWorkerAssignmentBadge) => (
-                      <span
-                        key={b.key}
-                        className={
-                          b.key === 'foreman-auto'
-                            ? 'rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200'
-                            : CAP_CONTRIB_BADGE_CLS
-                        }
-                      >
-                        {b.text}
-                      </span>
-                    ))
-                  : undefined
-              }
+              badges={limitSetupBadges(
+                <>
+                  {crewCapRollup.totalCapBonus > 0 ? (
+                    <span key="crew-cap-total" className={CAP_CONTRIB_BADGE_CLS}>
+                      +{crewCapRollup.totalCapBonus} D
+                    </span>
+                  ) : null}
+                  {crewCapRollup.hasForemanAuto ? (
+                    <span
+                      key="foreman-auto"
+                      className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200"
+                    >
+                      Auto
+                    </span>
+                  ) : null}
+                </>,
+              )}
               tooltip={gameTooltipRich(
                 'Crew',
                 <>
@@ -1600,9 +1666,9 @@ export function PlantSlotCard(props: {
               label="Machines"
               value={machineConfig?.label}
               badges={
-                machineConfig ? (
-                  <span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>
-                ) : undefined
+                machineConfig
+                  ? limitSetupBadges(<span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>)
+                  : undefined
               }
               tooltip={
                 machineConfig
@@ -1692,18 +1758,20 @@ export function PlantSlotCard(props: {
                   label={powerUnitCount > 1 ? `Battery ${bi + 1}` : 'Battery'}
                   value={bcfg?.label}
                   badges={
-                    bid ? (
-                      <>
-                        {deckBonusMin > 0 ? (
-                          <span className={BATTERY_CREW_NFT_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
-                            +{deckBonusMin}m Crew
-                          </span>
-                        ) : null}
-                        {maxEff > 0 ? (
-                          <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
-                        ) : null}
-                      </>
-                    ) : undefined
+                    bid
+                      ? limitSetupBadges(
+                          <>
+                            {deckBonusMin > 0 ? (
+                              <span className={BATTERY_CREW_NFT_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
+                                +{deckBonusMin}m Crew
+                              </span>
+                            ) : null}
+                            {maxEff > 0 ? (
+                              <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
+                            ) : null}
+                          </>,
+                        )
+                      : undefined
                   }
                   tooltip={
                     bcfg
@@ -1905,15 +1973,11 @@ export function PlantSlotCard(props: {
         {(() => {
           const patches = Math.max(0, Math.floor(props.stabilityPatches ?? 0));
           const healthPct = Math.round(clamp01(1 - wearRatio) * 100);
-          const canNormal = s.needsRepair || wearRatio >= 1 - 1e-6;
-          const canEarly =
-            patches > 0 &&
-            wearRatio >= MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9 &&
-            wearRatio < 1 - 1e-6;
-          const canPay = canNormal || canEarly;
-          const consumePatch = !canNormal && canEarly;
+          const kasRepairAllowed =
+            patches >= 1 && wearRatio >= MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9;
           const payKas = (props.getKasPriceAfterDiscount ?? ((x: number) => x))(MINECORE_PLANT_REPAIR_KAS);
           const payKrex = payKas * MINECORE_KREX_PER_KAS;
+          const payDisabled = repairPayCurrency === 'KAS' ? !kasRepairAllowed : false;
           return (
             <>
               <div className="mb-4 rounded-xl border border-zinc-100 bg-white/60 px-3 py-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-950/30">
@@ -1922,51 +1986,52 @@ export function PlantSlotCard(props: {
                 <span className="text-zinc-500 dark:text-zinc-400"> · Stability Patches: </span>
                 <span className="font-bold tabular-nums text-zinc-800 dark:text-zinc-100">{patches}</span>
               </div>
-              {!canPay ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Systems are within tolerance. After ~{Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}% wear you can spend a Stability Patch from the Shop to request early service, or wait for a hard maintenance lock.
+              <p className="mb-3 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+                <strong>KREX:</strong> Pay the listed service fee anytime to reset maintenance (no Stability Patch).
+                <span className="mt-1 block">
+                  <strong>KAS:</strong> Requires 1 Stability Patch plus the fee once wear reaches about{' '}
+                  {Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}% or more.
+                </span>
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                <GameCurrencyMenu
+                  ariaLabel="Maintenance payment currency"
+                  value={repairPayCurrency}
+                  onChange={(v) => setRepairPayCurrency(v as 'KAS' | 'KREX')}
+                  options={[
+                    {
+                      value: 'KAS',
+                      label: `${payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS + 1 patch`,
+                    },
+                    {
+                      value: 'KREX',
+                      label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`,
+                    },
+                  ]}
+                  className="min-w-0 flex-1"
+                  buttonClassName="flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                />
+                <button
+                  type="button"
+                  disabled={payDisabled}
+                  className="k-cta-games h-11 min-w-[12rem] flex-[1.15] px-8 text-sm font-bold disabled:opacity-45 disabled:grayscale sm:min-w-[14rem]"
+                  onClick={async () => {
+                    const ok = await props.onRepairPlant({
+                      currency: repairPayCurrency,
+                      consumeStabilityPatch: repairPayCurrency === 'KAS',
+                    });
+                    if (ok) setMaintenanceModalOpen(false);
+                  }}
+                >
+                  Pay & service ({repairPayCurrency === 'KAS' ? `${payKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS` : `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`})
+                </button>
+              </div>
+              {repairPayCurrency === 'KAS' && !kasRepairAllowed ? (
+                <p className="mt-2 text-[11px] font-semibold text-amber-800 dark:text-amber-200">
+                  Need at least 1 Stability Patch and ~{Math.round(MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR * 100)}%+ wear for KAS.
+                  Use KREX to service immediately, add patches from the Shop, or wait for more wear.
                 </p>
-              ) : (
-                <>
-                  {consumePatch ? (
-                    <p className="mb-3 text-xs font-semibold text-amber-800 dark:text-amber-200">
-                      Uses 1 Stability Patch plus the standard service fee.
-                    </p>
-                  ) : null}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                    <GameCurrencyMenu
-                      ariaLabel="Maintenance payment currency"
-                      value={repairPayCurrency}
-                      onChange={(v) => setRepairPayCurrency(v as 'KAS' | 'KREX')}
-                      options={[
-                        {
-                          value: 'KAS',
-                          label: `${payKas.toLocaleString(undefined, { maximumFractionDigits: 6 })} KAS`,
-                        },
-                        {
-                          value: 'KREX',
-                          label: `${payKrex.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`,
-                        },
-                      ]}
-                      className="min-w-0 flex-1"
-                      buttonClassName="flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                    />
-                    <button
-                      type="button"
-                      className="k-cta-games h-11 min-w-[12rem] flex-[1.15] px-8 text-sm font-bold sm:min-w-[14rem]"
-                      onClick={async () => {
-                        const ok = await props.onRepairPlant({
-                          currency: repairPayCurrency,
-                          consumeStabilityPatch: consumePatch,
-                        });
-                        if (ok) setMaintenanceModalOpen(false);
-                      }}
-                    >
-                      Pay & service
-                    </button>
-                  </div>
-                </>
-              )}
+              ) : null}
             </>
           );
         })()}
@@ -1977,11 +2042,9 @@ export function PlantSlotCard(props: {
         onClose={() => setActiveModal(null)}
         title="Upgrade Plant"
       >
-        <p className="mb-3 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
-          Tiers unlock <strong>one step at a time</strong>: while on your current plant type, reach{' '}
-          {(MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC * 100).toFixed(0)}% of that tier&apos;s structural max rolling cap
-          (progress = mined + banked + live run toward the cap in this 24h window) <strong>once</strong>, then you can
-          purchase the next tier. Downgrades go only to Standard and wipe setup (see confirmation).
+        <p className="mb-3 text-sm leading-snug text-zinc-600 dark:text-zinc-400">
+          Unlock the next tier by reaching <strong>{(MINECORE_PLANT_UPGRADE_CAP_MILESTONE_FRAC * 100).toFixed(0)}%</strong> of this
+          plant&apos;s max rolling cap <strong>once</strong> (mined + banked + live run in the current 24h window). Downgrades only go to Standard and reset setup (confirm first).
         </p>
         <ul className="space-y-2">
           {MINECORE_PLANT_TYPE_ORDER.map((typeKey) => {

@@ -711,9 +711,11 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       if (!slot || !slot.unlocked) return rederive(s, now);
       const wear = computeMaintenanceWearRatio(slot, now);
       const patches = Math.max(0, Math.floor(s.stabilityPatches ?? 0));
-      if (ev.consumeStabilityPatch) {
+      if (ev.krexPremiumRepair) {
+        // Paid KREX: full service regardless of wear (payment validated client-side).
+      } else if (ev.consumeStabilityPatch) {
         if (patches < 1) return rederive(s, now);
-        if (wear < MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9 || wear >= 1 - 1e-9) return rederive(s, now);
+        if (wear < MINECORE_MAINTENANCE_EARLY_REPAIR_WEAR - 1e-9) return rederive(s, now);
         s.stabilityPatches = patches - 1;
       } else {
         const due = slot.needsRepair || wear >= 1 - 1e-6;

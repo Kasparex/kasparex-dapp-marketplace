@@ -254,7 +254,14 @@ export type MinecoreEvent =
   | { type: 'ResumeMining'; slotIndex: number; at: number }
   | { type: 'Extract';      slotIndex: number; at: number }
   | { type: 'TopUpPower';   slotIndex: number; at: number; added: number }
-  | { type: 'Repair'; slotIndex: number; at: number; consumeStabilityPatch?: boolean }
+  | {
+      type: 'Repair';
+      slotIndex: number;
+      at: number;
+      consumeStabilityPatch?: boolean;
+      /** Paid KREX path: service anytime without consuming a Stability Patch. */
+      krexPremiumRepair?: boolean;
+    }
   | { type: 'AddStabilityPatches'; count: number; at: number }
   /** Shop: add crafted-style module inventory (e.g. KREX Boost charges). */
   | { type: 'GrantModuleInventory'; moduleId: MinecoreModuleId; count: number; at: number }
