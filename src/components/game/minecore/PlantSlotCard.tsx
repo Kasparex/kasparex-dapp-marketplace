@@ -13,7 +13,6 @@ import {
   computePlantDailyCapProgress,
   computePlantReady,
   computeRollingDailyCapWindowRemainingMs,
-  getBatteryCapacityMs,
   getPowerUnitCap,
   computeBatteryRuntimeMs,
   computeLiveBatterySlotChargeMs,
@@ -94,8 +93,9 @@ import {
   getMaxChargePerSlotMs,
   normalizeBatteryIds,
   ensureBatterySlotChargeLength,
+  sumChargeMs,
 } from '@/lib/game/minecore/battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot, minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
+import { minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import {
   listKasForBatterySlotRecharge,
   sumListKasForBatterySlotRecharge,
@@ -179,9 +179,8 @@ const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
 /** Rolling-cap contributions (diamonds / 24h toward cap) */
 const CAP_CONTRIB_BADGE_CLS =
   'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
-/** Crew NFT runtime bonus: distinct from cap / sky runtime badges. */
-const BATTERY_CREW_NFT_BADGE_CLS =
-  'rounded-full border border-violet-500/40 bg-violet-500/12 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-violet-900 dark:text-violet-200';
+const MODULE_REFINE_BADGE_CLS =
+  'rounded-full border border-violet-500/35 bg-violet-500/12 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-violet-900 dark:text-violet-200';
 /** Slot max runtime capsule (battery pillar). */
 const BATTERY_SKY_BADGE_CLS =
   'rounded-full border border-sky-500/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-sky-800 dark:text-sky-300';
@@ -816,6 +815,8 @@ function UnifiedBatterySegmentsBar(props: {
   liveChargeMs: number;
   capacityMs: number;
   onSlotPress: (slotIndex: number, installed: boolean) => void;
+  /** Extra paragraphs under Energy · mining runtime (rig multiplier, pillar sum, etc.). */
+  energyDetail?: ReactNode;
 }) {
   const miningLeftMs = Math.max(0, props.miningLeftMs);
   const miningMaxMs = Math.max(0, props.miningMaxMs);
@@ -835,6 +836,7 @@ function UnifiedBatterySegmentsBar(props: {
             <p className="mt-1">
               To change or remove a battery type on a pillar, drain that pillar&apos;s stored runtime to empty first.
             </p>
+            {props.energyDetail ? <div className="mt-1 space-y-1 text-[11px] leading-snug">{props.energyDetail}</div> : null}
           </>,
         )}
       >
@@ -1153,12 +1155,16 @@ export function PlantSlotCard(props: {
 
   // ── Live computed values ─────────────────────────────────────────────────
   const cycle = s.cycle;
-
-  const liveChargeMs    = computeLiveBatteryChargeMs(s, now);
-  const capacityMs      = getBatteryCapacityMs(s, props.minecoreState, ctx);
-  const batteryRatio    = capacityMs > 0 ? liveChargeMs / capacityMs : 0;
-  const batteryLow      = batteryRatio < 0.2 && batteryRatio > 0;
-  const batteryEmpty    = liveChargeMs <= 0 && cycle != null;
+  const powerUnitCount = getPlantBatterySlotCount(s.type);
+  const liveChargeMs = computeLiveBatteryChargeMs(s, now);
+  const liveSlotChargesRaw = s.unlocked ? computeLiveBatterySlotChargeMs(s, now) : [];
+  const maxSlotChargesRaw = s.unlocked ? getMaxChargePerSlotMs(s.setup, s.type, 0) : [];
+  const liveSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(liveSlotChargesRaw, powerUnitCount, 0) : [];
+  const maxSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(maxSlotChargesRaw, powerUnitCount, 0) : [];
+  const capacityMs = s.unlocked ? sumChargeMs(maxSlotCharges) : 0;
+  const batteryRatio = capacityMs > 0 ? liveChargeMs / capacityMs : 0;
+  const batteryLow = batteryRatio < 0.2 && batteryRatio > 0;
+  const batteryEmpty = liveChargeMs <= 0 && cycle != null;
   /** Depleted mid-run (not paused): primary action should be Recharge, not duplicate with secondary button. */
   const batteryDeadInRun =
     s.status === 'BatteryEmpty' &&
@@ -1196,7 +1202,18 @@ export function PlantSlotCard(props: {
   const reactorLabels = powerNodeSlots
     .map((id) => (id ? MINECORE_POWER_NODES[id]?.label : null))
     .filter((x): x is string => x != null);
-  const powerUnitCount  = getPlantBatterySlotCount(s.type);
+  const rigPowerBudgetMult = machineConfig?.powerBudgetMultiplier ?? 1;
+  const energyBarDetail =
+    s.unlocked && s.setup.machineId ? (
+      <>
+        <p>
+          Bar max equals the summed pillar capacities ({formatDuration(capacityMs)}). Pillar stickers use shorter rounding only.
+        </p>
+        {rigPowerBudgetMult !== 1 ? (
+          <p>This rig applies ×{rigPowerBudgetMult.toFixed(2)} to each pack&apos;s listed runtime (power budget multiplier).</p>
+        ) : null}
+      </>
+    ) : null;
   const installedBatteryIndices = useMemo(() => {
     const ids = normalizeBatteryIds(s.setup, s.type);
     return ids.map((id, i) => (id ? i : null)).filter((x): x is number => x != null);
@@ -1262,18 +1279,19 @@ export function PlantSlotCard(props: {
     }
     return t;
   }, [s.setup.moduleIds]);
+  const moduleRefineBonusFrac = useMemo(() => {
+    let t = 0;
+    for (const mid of s.setup.moduleIds) {
+      t += MINECORE_MODULES[mid as MinecoreModuleId]?.refineBonus ?? 0;
+    }
+    return t;
+  }, [s.setup.moduleIds]);
   const workerSetupValue = useMemo(() => {
     const { summary } = workerSetupDisplay;
     if (workerFilled === 0) return `${workerFilled}/${needWorkers}`;
     if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '-'}`;
     return summary || `${workerFilled}/${needWorkers}`;
   }, [workerSetupDisplay, workerFilled, needWorkers]);
-  const liveSlotChargesRaw = s.unlocked ? computeLiveBatterySlotChargeMs(s, now) : [];
-  const nftBattBonusMs = computeMinecoreBatteryBonusMsPerSlot(props.minecoreState, ctx);
-  const maxSlotChargesRaw = s.unlocked ? getMaxChargePerSlotMs(s.setup, s.type, nftBattBonusMs) : [];
-  const liveSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(liveSlotChargesRaw, powerUnitCount, 0) : [];
-  const maxSlotCharges = s.unlocked ? ensureBatterySlotChargeLength(maxSlotChargesRaw, powerUnitCount, 0) : [];
-
   const refillListKasRange = useMemo(() => {
     if (!s.unlocked || installedBatteryIndices.length === 0) {
       return { min: MINECORE_PLANT_RECHARGE_COST_KAS, max: MINECORE_PLANT_RECHARGE_COST_KAS };
@@ -1669,6 +1687,7 @@ export function PlantSlotCard(props: {
               miningMaxMs={miningMaxNominalMs}
               liveChargeMs={liveChargeMs}
               capacityMs={capacityMs}
+              energyDetail={energyBarDetail}
               onSlotPress={(slotIdx, installed) => {
                 if (!installed) {
                   setBatterySlotFocus(slotIdx);
@@ -1678,6 +1697,12 @@ export function PlantSlotCard(props: {
                 }
               }}
             />
+            {s.status === 'CreditingReady' && liveChargeMs > 0 ? (
+              <p className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold text-amber-900 dark:text-amber-200">
+                Rolling 24h cap is full, so mining stopped even though runtime remains. Refine on-plant diamonds, wait for the cap
+                window, raise your ceiling, or use Extract flow as usual.
+              </p>
+            ) : null}
           ) : null}
 
           {/* ── Setup checklist ── */}
@@ -1764,9 +1789,19 @@ export function PlantSlotCard(props: {
                     ? `${s.setup.moduleIds.length} equipped · tap to manage`
                     : 'None equipped · tap to add'
                 }
+                badges={limitSetupBadges(
+                  <>
+                    {moduleFlatCapBonus > 0 ? (
+                      <span className={CAP_CONTRIB_BADGE_CLS}>+{moduleFlatCapBonus} cap</span>
+                    ) : null}
+                    {moduleRefineBonusFrac > 0 ? (
+                      <span className={MODULE_REFINE_BADGE_CLS}>+{Math.round(moduleRefineBonusFrac * 100)}% refine</span>
+                    ) : null}
+                  </>,
+                )}
                 tooltip={gameTooltipRich(
                   'Modules',
-                  `Up to ${moduleSlots} fabrication module slot${moduleSlots === 1 ? '' : 's'} on this plant tier.`,
+                  `Up to ${moduleSlots} fabrication module slot${moduleSlots === 1 ? '' : 's'} on this plant tier. Output modules add flat rolling cap; refining modules add refinement yield on Redeem.`,
                 )}
                 onClick={() => setActiveModal('modules')}
                 disabled={!canEditParts}
@@ -1817,7 +1852,6 @@ export function PlantSlotCard(props: {
               const bid = s.setup.batteryIds[bi] ?? null;
               const bcfg = bid ? MINECORE_BATTERIES[bid] : null;
               const maxEff = maxSlotCharges[bi] ?? 0;
-              const deckBonusMin = nftBattBonusMs > 0 ? Math.max(1, Math.round(nftBattBonusMs / 60_000)) : 0;
               return (
                 <CheckRow
                   key={bi}
@@ -1828,11 +1862,6 @@ export function PlantSlotCard(props: {
                     bid
                       ? limitSetupBadges(
                           <>
-                            {deckBonusMin > 0 ? (
-                              <span className={BATTERY_CREW_NFT_BADGE_CLS} title="Bonus minutes added to every filled slot from Crew-tab NFT perks.">
-                                +{deckBonusMin}m Crew
-                              </span>
-                            ) : null}
                             {maxEff > 0 ? (
                               <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
                             ) : null}
@@ -2728,7 +2757,7 @@ export function PlantSlotCard(props: {
                   ? ' · operator-grade roster slot'
                   : '';
             const subtitle = deployed
-              ? `${nftDeckRoleLabel(deckSlot.type)} · Crew row #${deckIdx + 1} · NFT #${deckSlot.nftId} · +${perk.capBonus.toLocaleString()} rolling cap · +${perk.batteryMinutes} min batteries${roleHint}`
+              ? `${nftDeckRoleLabel(deckSlot.type)} · Crew row #${deckIdx + 1} · NFT #${deckSlot.nftId} · +${perk.capBonus.toLocaleString()} rolling cap D/24h${roleHint}`
               : `Empty - deploy an NFT on the Crew tab for this row.`;
             return (
               <li key={deckIdx} className="list-none">

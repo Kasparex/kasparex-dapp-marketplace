@@ -54,7 +54,7 @@ export function hasInstalledBattery(setup: PlantSetup, plantType: PlantType): bo
 export function getMaxChargePerSlotMs(
   setup: PlantSetup,
   plantType: PlantType,
-  /** Extra ms max charge per slot from global Workers-tab NFT perks (same value applied to each populated slot). */
+  /** Reserved: was Workers-tab NFT bonus ms; kept for signature compatibility (always 0). */
   extraMsPerSlot = 0,
 ): number[] {
   const ids = normalizeBatteryIds(setup, plantType);

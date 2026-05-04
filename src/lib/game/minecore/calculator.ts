@@ -16,7 +16,6 @@ import {
 } from './compute';
 import { computePlantDiamondsPer24h, computePlantMiningSpeedMultiplier } from './plant-economy';
 import { getMaxChargePerSlotMs } from './battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import { listKasForBatterySlotRecharge } from './recharge-pricing';
 import { createInitialMinecoreState } from './initial-state';
 import { KREXPRIME_DIAMOND_IDS, RAREST_NFT_IDS } from '@/lib/game/diamond-veins-config';
@@ -111,7 +110,7 @@ function calculatorMinecoreStateForTier(tier: 'regular' | 'diamond' | 'rarest'):
 }
 
 export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, minecoreState?: MinecoreState): PlantSlotState {
-  const bonus = minecoreState ? computeMinecoreBatteryBonusMsPerSlot(minecoreState) : 0;
+  void minecoreState;
   return {
     id: 'calc',
     index: 0,
@@ -124,7 +123,7 @@ export function buildCalculatorSlot(setup: PlantSetup, plantType: PlantType, min
     powerRemaining: 99,
     needsRepair: false,
     plantLastServicedAtMs: Date.now(),
-    batterySlotChargeMs: getMaxChargePerSlotMs(setup, plantType, bonus),
+    batterySlotChargeMs: getMaxChargePerSlotMs(setup, plantType, 0),
     batterySnapshotAt: 0,
     diamondsAccumulated: 0,
     rollingCapWindowStartMs: 1,

@@ -19,7 +19,6 @@ import {
   sumChargeMs,
 } from './battery-utils';
 import type { MinecoreBatteryId, MinecoreState, PlantSlotState } from './types';
-import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import {
   normalizePlantSetup,
   plantNftSlotAssignmentValid,
@@ -67,14 +66,13 @@ export function productionClockMs(slot: PlantSlotState, now: number): number {
   return now;
 }
 
-/** Full combined charge (ms) for all installed battery slots (includes global Workers NFT bonus when `state` passed). */
+/** Full combined charge (ms) for all installed battery slots (pack stats + rig power budget multiplier only). */
 export function getBatteryCapacityMs(
   slot: PlantSlotState,
-  state?: MinecoreState,
-  ctx?: MinecoreComputeContext,
+  _state?: MinecoreState,
+  _ctx?: MinecoreComputeContext,
 ): number {
-  const extra = state ? computeMinecoreBatteryBonusMsPerSlot(state, ctx) : 0;
-  return sumChargeMs(getMaxChargePerSlotMs(slot.setup, slot.type, extra));
+  return sumChargeMs(getMaxChargePerSlotMs(slot.setup, slot.type, 0));
 }
 
 export function getTotalBatteryChargeAtSnapshot(slot: PlantSlotState): number {

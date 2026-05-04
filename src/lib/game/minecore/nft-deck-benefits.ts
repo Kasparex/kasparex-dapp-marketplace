@@ -1,6 +1,6 @@
 /**
- * Global Workers-tab NFT perks: flat rolling-cap bonus + extra stored runtime on every battery slot.
- * Classification: KREXPRIME / PIXELKREX use diamond/rarest tiers; Partner / Premium lists from config; else Standard baseline.
+ * Global Workers-tab NFT perks: flat rolling-cap bonus (D/24h toward ceiling).
+ * `batteryMinutes` is legacy catalog data for UI copy only; it no longer changes mounted pack capacity.
  */
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlot } from '@/lib/game/engine';
@@ -73,32 +73,18 @@ export function computeMinecoreDailyCapBonusForPlantCrew(
   return sum;
 }
 
-/** Extra ms added to each populated battery slot max capacity (summed crew perks). */
-export function computeMinecoreBatteryBonusMsPerSlot(state: MinecoreState, ctx?: MinecoreComputeContext): number {
-  const slots = state.nftSlots ?? [];
-  let min = 0;
-  for (let i = 0; i < slots.length; i++) {
-    const deck = slots[i];
-    if (!deck?.nftId || !deck.collection) continue;
-    min += minecoreDeckBenefits(deck, deckMetadata(i, ctx)).batteryMinutes;
-  }
-  return min * 60 * 1000;
-}
-
 /** UI line for Workers tab - empty string when nothing deployed. */
 export function formatMinecoreGlobalDeckBonusLine(
   slots: readonly MiningSlot[],
   ctx?: MinecoreComputeContext,
 ): string {
   let cap = 0;
-  let min = 0;
   for (let i = 0; i < slots.length; i++) {
     const d = slots[i];
     if (!d?.nftId || !d.collection) continue;
     const b = minecoreDeckBenefits(d, deckMetadata(i, ctx));
     cap += b.capBonus;
-    min += b.batteryMinutes;
   }
-  if (cap === 0 && min === 0) return '';
-  return `Deck +${cap} rolling cap · +${min} min per battery slot`;
+  if (cap === 0) return '';
+  return `Deck +${cap} rolling cap D/24h`;
 }

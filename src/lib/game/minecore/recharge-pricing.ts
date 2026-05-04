@@ -1,7 +1,6 @@
 import { MINECORE_PLANT_RECHARGE_COST_KAS } from './config';
 import type { MinecoreComputeContext } from './compute-context';
 import { getMaxChargePerSlotMs, normalizeBatteryIds } from './battery-utils';
-import { computeMinecoreBatteryBonusMsPerSlot } from './nft-deck-benefits';
 import type { MinecoreState, PlantSlotState } from './types';
 
 /** Hours of effective slot capacity covered by `MINECORE_PLANT_RECHARGE_COST_KAS` before hourly surcharges apply. */
@@ -13,13 +12,12 @@ export const MINECORE_RECHARGE_EXTRA_KAS_PER_HOUR = 0.05;
 const MS_PER_HOUR = 3_600_000;
 
 export function listKasForBatterySlotRecharge(
-  state: MinecoreState,
+  _state: MinecoreState,
   slot: PlantSlotState,
   batterySlotIndex: number,
-  ctx?: MinecoreComputeContext,
+  _ctx?: MinecoreComputeContext,
 ): number {
-  const bonusMs = computeMinecoreBatteryBonusMsPerSlot(state, ctx);
-  const caps = getMaxChargePerSlotMs(slot.setup, slot.type, bonusMs);
+  const caps = getMaxChargePerSlotMs(slot.setup, slot.type, 0);
   const ms = caps[batterySlotIndex] ?? 0;
   const hours = ms / MS_PER_HOUR;
   const extraWholeHours = Math.max(0, Math.ceil(hours - MINECORE_RECHARGE_INCLUDED_HOURS - 1e-9));

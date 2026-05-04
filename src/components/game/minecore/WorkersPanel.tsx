@@ -229,7 +229,7 @@ export function WorkersPanel(props: {
                       </span>
                     )}
                     <p className="mt-1.5 max-w-[14rem] text-[11px] font-semibold leading-snug text-sky-800 dark:text-sky-300">
-                      +{perk.capBonus.toLocaleString()} rolling cap · +{perk.batteryMinutes} min batteries
+                      +{perk.capBonus.toLocaleString()} rolling cap D/24h
                       {slot.type === 'foreman' ? ' · auto infra when equipped' : ''}
                     </p>
                     <p className="mt-2 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-500">Locked · active</p>

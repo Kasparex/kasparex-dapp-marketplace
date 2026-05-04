@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, useMemo, type ReactNode } from 'react';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { RewardsRedeemSection, type MinecoreRedeemExtras } from '@/components/games/RewardsRedeemSection';
 
@@ -26,6 +26,7 @@ export function MinecoreRewardsPanel({
   diamondRefinementFooter?: ReactNode;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
+  const [ledgerExpanded, setLedgerExpanded] = useState(false);
 
   useEffect(() => {
     if (!address) return;
@@ -41,8 +42,15 @@ export function MinecoreRewardsPanel({
     };
   }, [address]);
 
-  const entries = remote?.length ? remote : localLedger;
+  useEffect(() => {
+    setLedgerExpanded(false);
+  }, [address]);
 
+  const entries = remote?.length ? remote : localLedger;
+  const rowsNewestFirst = useMemo(() => [...entries].sort((a, b) => b.at - a.at), [entries]);
+  const ledgerPageSize = 10;
+  const visibleLedgerRows = ledgerExpanded ? rowsNewestFirst : rowsNewestFirst.slice(0, ledgerPageSize);
+  const ledgerExtraCount = Math.max(0, rowsNewestFirst.length - ledgerPageSize);
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -70,14 +78,14 @@ export function MinecoreRewardsPanel({
             </tr>
           </thead>
           <tbody>
-            {entries.length === 0 ? (
+            {rowsNewestFirst.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
                   No refine checkpoints yet. Refine diamonds above to add ledger rows.
                 </td>
               </tr>
             ) : (
-              [...entries].reverse().map((e) => (
+              visibleLedgerRows.map((e) => (
                 <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.at).toLocaleString()}</td>
                   <td className="p-3 tabular-nums text-zinc-800 dark:text-zinc-200">{e.diamondsRefined.toLocaleString()}</td>
@@ -90,6 +98,17 @@ export function MinecoreRewardsPanel({
             )}
           </tbody>
         </table>
+        {ledgerExtraCount > 0 ? (
+          <div className="flex justify-center border-t border-zinc-200 bg-zinc-50/80 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <button
+              type="button"
+              className="text-xs font-bold uppercase tracking-wide text-violet-600 hover:underline dark:text-violet-400"
+              onClick={() => setLedgerExpanded((v) => !v)}
+            >
+              {ledgerExpanded ? 'Show fewer rows' : `Load older rows (${ledgerExtraCount})`}
+            </button>
+          </div>
+        ) : null}
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-500">
         {remote?.length ? 'Showing server ledger when available.' : 'Showing device ledger until Minecore server sync is enabled.'}
