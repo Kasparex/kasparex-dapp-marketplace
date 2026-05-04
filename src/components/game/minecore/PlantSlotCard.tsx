@@ -1680,29 +1680,31 @@ export function PlantSlotCard(props: {
           </button>
 
           {s.unlocked ? (
-            <UnifiedBatterySegmentsBar
-              liveSlotMs={liveSlotCharges}
-              maxSlotMs={maxSlotCharges}
-              miningLeftMs={batteryRuntimeMs}
-              miningMaxMs={miningMaxNominalMs}
-              liveChargeMs={liveChargeMs}
-              capacityMs={capacityMs}
-              energyDetail={energyBarDetail}
-              onSlotPress={(slotIdx, installed) => {
-                if (!installed) {
-                  setBatterySlotFocus(slotIdx);
-                  setActiveModal('battery');
-                } else {
-                  openBatteryRefillModal(slotIdx);
-                }
-              }}
-            />
-            {s.status === 'CreditingReady' && liveChargeMs > 0 ? (
-              <p className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold text-amber-900 dark:text-amber-200">
-                Rolling 24h cap is full, so mining stopped even though runtime remains. Refine on-plant diamonds, wait for the cap
-                window, raise your ceiling, or use Extract flow as usual.
-              </p>
-            ) : null}
+            <>
+              <UnifiedBatterySegmentsBar
+                liveSlotMs={liveSlotCharges}
+                maxSlotMs={maxSlotCharges}
+                miningLeftMs={batteryRuntimeMs}
+                miningMaxMs={miningMaxNominalMs}
+                liveChargeMs={liveChargeMs}
+                capacityMs={capacityMs}
+                energyDetail={energyBarDetail}
+                onSlotPress={(slotIdx, installed) => {
+                  if (!installed) {
+                    setBatterySlotFocus(slotIdx);
+                    setActiveModal('battery');
+                  } else {
+                    openBatteryRefillModal(slotIdx);
+                  }
+                }}
+              />
+              {s.status === 'CreditingReady' && liveChargeMs > 0 ? (
+                <p className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold text-amber-900 dark:text-amber-200">
+                  Rolling 24h cap is full, so mining stopped even though runtime remains. Refine on-plant diamonds, wait for the cap
+                  window, raise your ceiling, or use Extract flow as usual.
+                </p>
+              ) : null}
+            </>
           ) : null}
 
           {/* ── Setup checklist ── */}
