@@ -6,6 +6,7 @@ import { createInitialMinecoreState } from './initial-state';
 import { applyMinecoreEvent } from './apply-event';
 import { normalizePlantSetup } from './asset-usage';
 import { sumChargeMs, hasInstalledBattery, normalizeBatteryIds } from './battery-utils';
+import { MINECORE_DAY_MS } from './config';
 
 function minecoreWithWorkerDeployed() {
   const s = createInitialMinecoreState();
@@ -155,6 +156,25 @@ function unlockedPlantStandard(chargeMs: number, batteryId: 'energy-cell' | null
   assert.equal(out.plantSlots[0]!.batterySlotChargeMs[0], 300_000, 'sibling pillar charge preserved when removing empty pillar pack');
   assert.equal(out.plantSlots[0]!.batterySlotChargeMs[1], 0);
   assert.equal(normalizeBatteryIds(out.plantSlots[0]!.setup, 'premium')[1], null);
+}
+
+// Extract after battery drained in an active run must persist empty pillars (no stale snapshot refill)
+{
+  const at0 = Date.now();
+  let s = unlockedPlantStandard(3_600_000);
+  const slot = s.plantSlots[0]!;
+  slot.batterySnapshotAt = at0;
+  slot.cycle = {
+    startAtMs: at0,
+    endAtMs: at0 + 100 * MINECORE_DAY_MS,
+    durationMs: 60_000,
+    expectedDiamonds: 10,
+    mintedOffset: 0,
+    pauseBeganAtMs: null,
+  };
+  const atExtract = at0 + 3_600_000 + 1_000;
+  s = applyMinecoreEvent(s, { type: 'Extract', slotIndex: 0, at: atExtract });
+  assert.equal(sumChargeMs(s.plantSlots[0]!.batterySlotChargeMs), 0, 'Extract keeps battery empty after drain (no full snapshot restore)');
 }
 
 console.log('apply-event tests OK');

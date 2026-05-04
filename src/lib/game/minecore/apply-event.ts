@@ -641,14 +641,16 @@ export function applyMinecoreEvent(state: MinecoreState, ev: MinecoreEvent): Min
       // Proportional extraction - sum accumulated + current live
       const currentCycleDiamonds = computeLiveDiamonds(s, slot, ev.at);
       const totalToExtract = slot.diamondsAccumulated + currentCycleDiamonds;
-      
+
+      /** Must capture drained pillars while `cycle` still exists; otherwise live helper returns stale snapshot ms. */
+      const liveBatteryMs = computeLiveBatterySlotChargeMs(slot, ev.at);
+
       s.diamondsBalance += totalToExtract;
       creditPlantDailyCap(slot, totalToExtract, now);
       slot.diamondsAccumulated = 0;
       slot.cycle = null;
 
-      // PERSISTENCE: Update battery charge to exactly what is left now
-      slot.batterySlotChargeMs   = computeLiveBatterySlotChargeMs(slot, ev.at);
+      slot.batterySlotChargeMs = liveBatteryMs;
       slot.batterySnapshotAt = ev.at;
 
       slot.status = deriveSlotStatus(s, slot, now);
