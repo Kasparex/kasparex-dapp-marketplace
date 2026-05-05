@@ -1,7 +1,7 @@
 'use client';
 
 import type { SeasonId } from '@/lib/leaderboard/seasons';
-import type { EarnSource, LedgerSeasonBucket } from './hub-ledger-types';
+import type { EarnSource, HubLedgerEntry, LedgerSeasonBucket } from './hub-ledger-types';
 
 export type {
   HubLedgerEntry,
@@ -13,7 +13,6 @@ import {
   migrateLegacyCatalogRedemptionsOnce,
   readHubLedgerEntries,
   writeHubLedgerEntries,
-  type HubLedgerEntry,
 } from './hub-ledger-storage';
 
 /** Client-only: dispatch after mutating persisted hub ledger */
