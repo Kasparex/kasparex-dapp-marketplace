@@ -1,29 +1,68 @@
 'use client';
 
+import Link from 'next/link';
+import { HubHaloHeader } from '@/components/hub/HubHaloHeader';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
+
 export function RewardsHeader() {
+  const breakdown = useRedeemablePointsBreakdown();
+  const hasAddr = breakdown.address.length > 0;
+
   return (
-    <div
+    <HubHaloHeader
       id="rewards-intro"
-      className="scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50"
-    >
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.16),transparent_70%)] rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.06),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.09),transparent_70%)] rounded-full blur-3xl" />
-      </div>
-      <div className="relative z-10 flex flex-col gap-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#017a84] dark:text-[#8ff1f8] text-[10px] font-black uppercase tracking-[0.2em] w-fit">
-          Rewards
-        </div>
-        <div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-            Rewards, perks &amp; badges
-          </h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Browse everything you can unlock across Kasparex: filter by type, search benefits, and see what is already active for your wallet.
-          </p>
-        </div>
-      </div>
-    </div>
+      badgeVariant="pulse"
+      badgeLabel="Rewards hub"
+      title={
+        <>
+          Unified <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300">redeemable points</span>
+        </>
+      }
+      subtitle={
+        <p className="m-0">
+          Spend Hub-wide points mined from Minecore refinement, Chronicles reads and NFT placements, plus future integrations. Larger token pool redemptions
+          stay behind the L2 gate until contract routes finalize.
+        </p>
+      }
+      actions={
+        <>
+          <a href="#rewards-catalog" className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all">
+            Browse catalog
+          </a>
+          <Link href="/leaderboard" className="k-control-btn">
+            Leaderboard
+          </Link>
+        </>
+      }
+      rightSlot={
+        <>
+          <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-5 py-5 space-y-2 shadow-lg shadow-cyan-500/5">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Connected L1</p>
+            {hasAddr ? (
+              <>
+                <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">{breakdown.address}</p>
+                <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 mt-3">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Total redeemable</p>
+                  <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()}</p>
+                  <p className="text-[11px] text-zinc-500 mt-1">Totals are local previews until indexer-backed balances ship.</p>
+                </div>
+                <div className="space-y-1.5 pt-2">
+                  {breakdown.lines.map((line) => (
+                    <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">
+                      <span>{line.label}</span>
+                      <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Connect your Kaspa wallet from the header to show Minecore refinement and Hub ledger balances tied to your address.
+              </p>
+            )}
+          </div>
+        </>
+      }
+    />
   );
 }
-

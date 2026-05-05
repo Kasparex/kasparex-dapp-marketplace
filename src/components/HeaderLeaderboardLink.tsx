@@ -8,6 +8,7 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import { getChroniclesLocalSeasonSnapshot } from '@/lib/chronicles/leaderboard/localState';
 import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
+import { sumLeaderboardUnitsForSeason } from '@/lib/rewards/hub-ledger';
 
 function normAddr(a: string): string {
   try {
@@ -26,10 +27,22 @@ export function HeaderLeaderboardLink() {
   const { state } = useKaspaWallet();
   const addr = state.address ? normAddr(state.address) : '';
   const [tick, setTick] = useState(0);
+  const [ledgerTick, setLedgerTick] = useState(0);
   /** Recompute season on tick so month boundaries match leaderboard / season card. */
   const season = useMemo(() => currentSeasonWindowUtc(Date.now()), [tick]);
 
+  useEffect(() => {
+    const bump = () => setLedgerTick((n) => n + 1);
+    window.addEventListener('kasparex-hub-ledger', bump);
+    return () => window.removeEventListener('kasparex-hub-ledger', bump);
+  }, []);
+
   const currentPoints = useMemo(() => {
+    if (!addr) return 0;
+    return sumLeaderboardUnitsForSeason(addr.toLowerCase(), season.id);
+  }, [addr, season.id, ledgerTick]);
+
+  const chroniclesPreview = useMemo(() => {
     if (!addr) return 0;
     const snap = getChroniclesLocalSeasonSnapshot(addr, season.id);
     return scoreChroniclesSeason(snap).totalPoints ?? 0;
@@ -82,7 +95,7 @@ export function HeaderLeaderboardLink() {
       {addr ? (
         <span
           className="tabular-nums text-lg sm:text-xl font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[6ch] text-right tracking-tight"
-          title="Season points (same local snapshot as Leaderboard → Your season progress)"
+          title={`Hub season score: ${currentPoints.toLocaleString()} · Chronicles preview: ${chroniclesPreview.toLocaleString()}`}
         >
           {displayPoints.toLocaleString()}
         </span>

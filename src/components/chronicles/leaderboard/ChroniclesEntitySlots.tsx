@@ -43,8 +43,16 @@ import {
   retryKasCandidates,
   writeHighMassMode,
 } from '@/lib/chronicles/leaderboard/massMode';
+import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
+import { appendHubLedgerEarn } from '@/lib/rewards/hub-ledger';
 
 type SlotIndex = 1 | 2 | 3;
+
+function nftRefLeaderboardUnits(ref: string): number {
+  const parsed = chroniclesNftRefToCollectionAndId(ref);
+  if (!parsed) return 0;
+  return pointsForNftInSlot({ collection: parsed.collection, tokenId: parsed.tokenId }).points;
+}
 
 function normAddr(a: string): string {
   try {
@@ -229,6 +237,7 @@ export function ChroniclesEntitySlots({
       setError(`Slot ${slotIndex} is locked. Activate it first.`);
       return;
     }
+    const prevRef = payerKaspa ? getLocalSlotPlacement(payerKaspa, entityType, entityId, slotIndex) : null;
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbSetSlotText({ entityType, entityId, slotIndex, nftRef, payerKaspa });
@@ -239,6 +248,20 @@ export function ChroniclesEntitySlots({
           ? pointsForNftInSlot({ collection: parsed.collection, tokenId: parsed.tokenId }).rarity
           : 'standard';
       recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, nftRef, { txHash: v.txHash, txTimeMs: v.txTimeMs, rarity });
+      const ptsNew = nftRefLeaderboardUnits(nftRef);
+      const ptsOld = prevRef ? nftRefLeaderboardUnits(prevRef) : 0;
+      const delta = ptsNew - ptsOld;
+      if (delta !== 0) {
+        appendHubLedgerEarn({
+          walletL1: payerKaspa,
+          seasonId: currentSeasonWindowUtc(v.txTimeMs).id,
+          source: 'chronicles_slot',
+          redeemableDelta: delta,
+          leaderboardWeight: delta,
+          idempotencyKey: `slotset:${entityType}:${entityId}:${slotIndex}:${v.txHash}`,
+          meta: { nftRef, prevRef },
+        });
+      }
       setNote(`Slot ${slotIndex} updated.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Set failed');
@@ -251,11 +274,24 @@ export function ChroniclesEntitySlots({
     setError(null);
     setNote(null);
     if (!activeSlots.has(slotIndex)) return;
+    const prevRef = payerKaspa ? getLocalSlotPlacement(payerKaspa, entityType, entityId, slotIndex) : null;
     setBusy(slotIndex);
     try {
       const text = buildChroniclesLbClearSlotText({ entityType, entityId, slotIndex, payerKaspa });
       const v = await payAndVerify(text, slotChangePriceKas, 'slot:clear');
       recordLocalSetSlot(payerKaspa, entityType, entityId, slotIndex, null, { txHash: v.txHash, txTimeMs: v.txTimeMs });
+      const pts = prevRef ? nftRefLeaderboardUnits(prevRef) : 0;
+      if (pts !== 0) {
+        appendHubLedgerEarn({
+          walletL1: payerKaspa,
+          seasonId: currentSeasonWindowUtc(v.txTimeMs).id,
+          source: 'chronicles_slot',
+          redeemableDelta: -pts,
+          leaderboardWeight: -pts,
+          idempotencyKey: `slotclear:${entityType}:${entityId}:${slotIndex}:${v.txHash}`,
+          meta: { prevRef },
+        });
+      }
       setNote(`Slot ${slotIndex} cleared.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Clear failed');

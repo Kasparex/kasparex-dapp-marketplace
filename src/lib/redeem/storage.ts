@@ -40,6 +40,15 @@ export function sumRedeemedPoints(wallet: string, seasonId: string): number {
   return listRedeemsForWalletSeason(wallet, seasonId).reduce((acc, e) => acc + (Number(e.costPoints) || 0), 0);
 }
 
+/** All-time catalog points spent for wallet (any season in legacy redeem ledger). */
+export function sumRedeemedPointsAllSeasons(wallet: string): number {
+  const w = (wallet ?? '').trim().toLowerCase();
+  if (!w) return 0;
+  return readAll()
+    .filter((e) => e.wallet.trim().toLowerCase() === w)
+    .reduce((acc, e) => acc + (Number(e.costPoints) || 0), 0);
+}
+
 export function recordRedeem(entry: Omit<RedeemLedgerEntry, 'id' | 'redeemedAtMs'>) {
   const now = Date.now();
   const id = `${entry.wallet}:${entry.seasonId}:${entry.itemId}:${now}`;

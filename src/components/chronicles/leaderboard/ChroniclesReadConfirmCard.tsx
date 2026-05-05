@@ -9,12 +9,17 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { getChroniclesVaultTreasuryL1Address } from '@/lib/chronicles/vault/config';
 import type { ChroniclesLbEntityType } from '@/lib/chronicles/leaderboard/constants';
-import { CHRONICLES_LB_READ_CONFIRM_KAS } from '@/lib/chronicles/leaderboard/constants';
+import {
+  CHRONICLES_LB_READ_CONFIRM_KAS,
+  CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
+} from '@/lib/chronicles/leaderboard/constants';
 import {
   buildChroniclesLbReadConfirmText,
   chroniclesLbPayloadHexFromText,
 } from '@/lib/chronicles/leaderboard/payload';
 import { getLocalReadConfirmed, recordLocalPendingTx, recordLocalRead } from '@/lib/chronicles/leaderboard/localState';
+import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
+import { appendHubLedgerEarn } from '@/lib/rewards/hub-ledger';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -137,6 +142,15 @@ export function ChroniclesReadConfirmCard({
       const vr = await verifyLoop(hash, payerKaspa);
       if (!vr.ok) throw new Error(vr.error);
       recordLocalRead(payerKaspa, entityType, entityId, { txHash: vr.txHash, txTimeMs: vr.txTimeMs });
+      appendHubLedgerEarn({
+        walletL1: payerKaspa,
+        seasonId: currentSeasonWindowUtc(vr.txTimeMs).id,
+        source: 'chronicles_read',
+        redeemableDelta: CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
+        leaderboardWeight: CHRONICLES_LB_POINTS_PER_READ_CONFIRM,
+        idempotencyKey: `read:${entityType}:${entityId}:${vr.txHash}`,
+        meta: { entityType, entityId },
+      });
       setNote('Read confirmed on-chain.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Confirmation failed');

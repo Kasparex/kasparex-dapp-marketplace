@@ -1,239 +1,308 @@
 'use client';
 
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useCallback, useMemo, useState } from 'react';
+import { useAccount, useChainId } from 'wagmi';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
-import { RedeemPanel } from '@/components/redeem/RedeemPanel';
+import { RewardsL2Gate, rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
+import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import {
-  filterRewards,
-  getUserRewardStatus,
-  type RewardItem,
-} from '@/lib/rewards/dashboard-data';
+  UNIFIED_REWARD_CATALOG,
+  type RewardCatalogKind,
+  type RewardFulfillment,
+  type UnifiedRewardItem,
+} from '@/lib/rewards/unified-catalog';
+import { appendHubLedgerRedeemSpend } from '@/lib/rewards/hub-ledger';
+import { describeL2RedemptionAvailability } from '@/lib/rewards/l2-redemption-route';
+import { CHAIN_IDS } from '@/lib/wagmi';
 
-type RewardType = 'krex-tier' | 'nft' | 'node' | 'premium';
-type RewardStatus = 'unlocked' | 'locked';
-type SortKey = 'name-asc' | 'name-desc' | 'unlocked-first' | 'locked-first';
-
-function typeLabel(t: RewardType): string {
-  if (t === 'krex-tier') return 'KREX tier';
-  if (t === 'nft') return 'NFT';
-  if (t === 'node') return 'Node';
-  return 'Premium';
+function normKaspa(a: string): string {
+  try {
+    return normalizeKaspaAddress(a);
+  } catch {
+    return a.startsWith('kaspa:') ? a : `kaspa:${a}`;
+  }
 }
 
-function badgeForType(t: RewardType): { className: string; label: string } {
-  if (t === 'krex-tier') return { className: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-700 dark:text-cyan-300', label: 'KREX' };
-  if (t === 'nft') return { className: 'bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300', label: 'NFT' };
-  if (t === 'node') return { className: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300', label: 'NODE' };
-  return { className: 'bg-violet-500/10 border-violet-500/20 text-violet-700 dark:text-violet-300', label: 'PREMIUM' };
+type KindFilter = RewardCatalogKind | 'all';
+type FulfillmentFilter = RewardFulfillment | 'all';
+
+type SortKey = 'cost-asc' | 'cost-desc' | 'name-asc' | 'name-desc';
+
+function fulfillmentLabel(f: RewardFulfillment): string {
+  if (f === 'local_mvp') return 'Local MVP';
+  if (f === 'l2_contract') return 'L2 routed';
+  return 'Coming soon';
 }
 
-function sortRewards(list: RewardItem[], sort: SortKey): RewardItem[] {
-  const next = list.slice();
-  next.sort((a, b) => {
-    if (sort === 'name-asc') return a.name.localeCompare(b.name);
-    if (sort === 'name-desc') return b.name.localeCompare(a.name);
-    if (sort === 'unlocked-first') return Number(b.isUnlocked) - Number(a.isUnlocked) || a.name.localeCompare(b.name);
-    return Number(a.isUnlocked) - Number(b.isUnlocked) || a.name.localeCompare(b.name);
-  });
-  return next;
+function fulfillmentBadgeClass(f: RewardFulfillment): string {
+  if (f === 'local_mvp') return 'border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100';
+  if (f === 'l2_contract') return 'border-sky-500/35 bg-sky-500/10 text-sky-900 dark:text-sky-100';
+  return 'border-zinc-400/35 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300';
+}
+
+function catalogMatches(kind: RewardCatalogKind, filter: KindFilter): boolean {
+  return filter === 'all' || kind === filter;
+}
+
+function fulfillmentMatches(f: RewardFulfillment, filter: FulfillmentFilter): boolean {
+  return filter === 'all' || f === filter;
 }
 
 export function RewardsPageContent() {
-  const { balance: krexBalance, tier: krexTier, isLoading: krexLoading } = useKREXBalance();
-  const { nftStatus, isLoading: nftLoading } = useNFTStatus();
-
-  // TODO: wire real node status when available
-  const hasNode = false;
-  const nodeType = undefined as 'light' | 'mirror' | undefined;
+  const { state: kaspaState } = useKaspaWallet();
+  const { isConnected: evmConnected, address: evmAddr } = useAccount();
+  const chainId = useChainId();
+  const breakdown = useRedeemablePointsBreakdown();
+  const kaspaAddr = kaspaState.address ? normKaspa(kaspaState.address) : '';
+  const season = useMemo(() => currentSeasonWindowUtc(), []);
 
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<RewardType | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<RewardStatus | 'all'>('all');
-  const [sort, setSort] = useState<SortKey>('unlocked-first');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('all');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentFilter>('all');
+  const [sort, setSort] = useState<SortKey>('cost-asc');
+  const [note, setNote] = useState<string | null>(null);
 
-  const isLoading = krexLoading || nftLoading;
-
-  const rewards = useMemo(() => {
-    if (isLoading) return [];
-    return getUserRewardStatus({
-      krexTier,
-      krexBalance,
-      nftStatus: nftStatus ?? {
-        hasKREXPRIME: false,
-        hasPIXELKREX: false,
-        hasDiamondKREXPRIME: false,
-        hasDiamondPIXELKREX: false,
-        hasRarestNFT: false,
-        partnerCollections: {},
-        partnerDiamonds: {},
-      },
-      hasNode,
-      nodeType,
-    });
-  }, [isLoading, krexTier, krexBalance, nftStatus, hasNode, nodeType]);
+  const igraReady = Boolean(evmConnected && chainId === CHAIN_IDS.IGRA_MAINNET);
 
   const filtered = useMemo(() => {
-    const types = typeFilter === 'all' ? undefined : [typeFilter];
-    const status = statusFilter === 'all' ? undefined : [statusFilter];
-    const base = filterRewards(rewards, { types, status, searchQuery: search });
-    return sortRewards(base, sort);
-  }, [rewards, typeFilter, statusFilter, search, sort]);
+    const q = search.trim().toLowerCase();
+    const base = UNIFIED_REWARD_CATALOG.filter(
+      (it) =>
+        catalogMatches(it.kind, kindFilter) &&
+        fulfillmentMatches(it.fulfillment, fulfillmentFilter) &&
+        (q.length === 0 ||
+          `${it.title} ${it.description} ${it.category}`.toLowerCase().includes(q)),
+    );
+    const next = [...base];
+    next.sort((a, b) => {
+      if (sort === 'name-asc') return a.title.localeCompare(b.title);
+      if (sort === 'name-desc') return b.title.localeCompare(a.title);
+      if (sort === 'cost-asc') return a.costPointsPerUnit - b.costPointsPerUnit || a.title.localeCompare(b.title);
+      return b.costPointsPerUnit - a.costPointsPerUnit || a.title.localeCompare(b.title);
+    });
+    return next;
+  }, [search, kindFilter, fulfillmentFilter, sort]);
+
+  const redeem = useCallback(
+    async (item: UnifiedRewardItem, qty: number) => {
+      setNote(null);
+      if (!kaspaAddr) {
+        setNote('Connect Kaspa L1 wallet to redeem with your unified balance.');
+        return;
+      }
+      if (item.fulfillment === 'coming_soon') {
+        setNote('This catalog item is staged for upcoming partner routes.');
+        return;
+      }
+
+      const unit = Math.max(1, Math.floor(item.costPointsPerUnit));
+      const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(qty)));
+      const cost = unit * q;
+      if (breakdown.totalRedeemable < cost) {
+        setNote(`Need ${cost.toLocaleString()} redeemable points. Earn more from Minecore or Chronicles activity.`);
+        return;
+      }
+
+      if (rewardsItemRequiresL2Gate(item.fulfillment)) {
+        if (!evmConnected || !evmAddr) {
+          setNote('Connect an EVM wallet and verify IGRA Mainnet inside the Rewards L2 gate first.');
+          return;
+        }
+        if (!igraReady) {
+          setNote('Switch your EVM wallet to IGRA Mainnet via the Rewards L2 gate.');
+          return;
+        }
+      }
+
+      appendHubLedgerRedeemSpend({
+        walletL1: kaspaAddr,
+        seasonId: season.id,
+        costPoints: cost,
+        catalogItemId: item.id,
+        quantity: q,
+      });
+
+      const l2Extras = rewardsItemRequiresL2Gate(item.fulfillment)
+        ? ` ${describeL2RedemptionAvailability()} Local ledger captures this intent.`
+        : '';
+
+      try {
+        window.dispatchEvent(
+          new CustomEvent('reward-catalog-redeem', {
+            detail: {
+              walletKaspa: kaspaAddr,
+              evm: evmAddr,
+              catalogItemId: item.id,
+              quantity: q,
+              points: cost,
+              fulfillment: item.fulfillment,
+            },
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
+
+      setNote(`${item.title} ×${q}: recorded locally (${cost.toLocaleString()} pts).${l2Extras}`);
+    },
+    [breakdown.totalRedeemable, igraReady, evmAddr, evmConnected, kaspaAddr, season.id],
+  );
+
+  const kindDropdownOptions = useMemo(
+    () =>
+      ([
+        { value: 'token_pool', label: 'Token pools' },
+        { value: 'badge', label: 'Badges' },
+        { value: 'perk', label: 'Perks' },
+        { value: 'coupon', label: 'Coupons' },
+        { value: 'partner_pool', label: 'Partner pools' },
+      ] satisfies { value: RewardCatalogKind; label: string }[]).map((o) => o),
+    [],
+  );
 
   return (
-    <div className="space-y-6">
-      <RedeemPanel />
+    <div className="space-y-8">
+      <RewardsL2Gate />
+
       <div id="rewards-filters" className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
         <FilterBar
-          search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, requirements, benefits…' }}
+          search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, perks, badges, pools…' }}
           onReset={() => {
             setSearch('');
-            setTypeFilter('all');
-            setStatusFilter('all');
-            setSort('unlocked-first');
+            setKindFilter('all');
+            setFulfillmentFilter('all');
+            setSort('cost-asc');
           }}
           flexWrap
         >
           <ChroniclesFilterDropdown
-            ariaLabel="Filter reward type"
-            value={typeFilter}
-            onChange={(v) => setTypeFilter(v as RewardType | 'all')}
-            allLabel="All types"
-            options={[
-              { value: 'krex-tier', label: typeLabel('krex-tier') },
-              { value: 'nft', label: typeLabel('nft') },
-              { value: 'node', label: typeLabel('node') },
-              { value: 'premium', label: typeLabel('premium') },
-            ]}
+            ariaLabel="Filter reward kinds"
+            value={kindFilter}
+            onChange={(v) => setKindFilter(v as KindFilter)}
+            allLabel="All kinds"
+            options={kindDropdownOptions}
             minWidthClassName="min-w-[170px]"
           />
           <ChroniclesFilterDropdown
-            ariaLabel="Filter by status"
-            value={statusFilter}
-            onChange={(v) => setStatusFilter(v as RewardStatus | 'all')}
-            allLabel="All statuses"
+            ariaLabel="Filter fulfillment"
+            value={fulfillmentFilter}
+            onChange={(v) => setFulfillmentFilter(v as FulfillmentFilter)}
+            allLabel="All fulfillment modes"
             options={[
-              { value: 'unlocked', label: 'Unlocked' },
-              { value: 'locked', label: 'Locked' },
+              { value: 'local_mvp', label: fulfillmentLabel('local_mvp') },
+              { value: 'l2_contract', label: fulfillmentLabel('l2_contract') },
+              { value: 'coming_soon', label: fulfillmentLabel('coming_soon') },
             ]}
-            minWidthClassName="min-w-[160px]"
+            minWidthClassName="min-w-[190px]"
           />
           <ChroniclesFilterDropdown
-            ariaLabel="Sort rewards"
+            ariaLabel="Sort catalog"
             value={sort}
             onChange={(v) => setSort(v as SortKey)}
-            allLabel="Unlocked first"
+            allLabel="Cost (asc)"
             options={[
-              { value: 'unlocked-first', label: 'Unlocked first' },
-              { value: 'locked-first', label: 'Locked first' },
-              { value: 'name-asc', label: 'Name (A–Z)' },
-              { value: 'name-desc', label: 'Name (Z–A)' },
+              { value: 'cost-asc', label: 'Cost (low→high)' },
+              { value: 'cost-desc', label: 'Cost (high→low)' },
+              { value: 'name-asc', label: 'Name (A-Z)' },
+              { value: 'name-desc', label: 'Name (Z-A)' },
             ]}
-            minWidthClassName="min-w-[170px]"
+            minWidthClassName="min-w-[180px]"
           />
         </FilterBar>
       </div>
 
-      {isLoading ? (
-        <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">Loading rewards…</div>
-      ) : filtered.length === 0 ? (
-        <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">No rewards match your filters.</div>
-      ) : (
-        <div id="rewards-grid" className="scroll-mt-24 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((r) => {
-            const typeBadge = badgeForType(r.type);
-            return (
-              <div
-                key={r.id}
-                className={`rounded-2xl border p-5 transition-colors ${
-                  r.isUnlocked
-                    ? 'border-emerald-500/25 bg-emerald-50/40 dark:bg-emerald-950/10'
-                    : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-base font-black text-zinc-900 dark:text-zinc-100 truncate">{r.name}</p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
-                      {r.description}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${typeBadge.className}`}>
-                      {typeBadge.label}
-                    </span>
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${
-                        r.isUnlocked
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-zinc-500/10 border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
-                      }`}
-                    >
-                      {r.isUnlocked ? 'Unlocked' : 'Locked'}
-                    </span>
-                  </div>
-                </div>
+      {note ? (
+        <p className="text-sm text-amber-700 dark:text-amber-300 px-1" role="status">
+          {note}
+        </p>
+      ) : null}
 
-                <div className="mt-4 rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-zinc-50/70 dark:bg-zinc-950/30 p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold uppercase tracking-wider text-zinc-500">Requirement</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-right">{r.requirement}</span>
-                  </div>
-                  {r.multiplier != null ? (
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold uppercase tracking-wider text-zinc-500">Multiplier</span>
-                      <span className="font-black text-[#02abb8]">{r.multiplier}x</span>
-                    </div>
-                  ) : null}
-                  {r.feeReduction != null ? (
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold uppercase tracking-wider text-zinc-500">Fee</span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{r.feeReduction}%</span>
-                    </div>
-                  ) : null}
-                </div>
-
-                {r.benefits?.length ? (
-                  <ul className="mt-4 text-xs text-zinc-600 dark:text-zinc-400 space-y-1 list-disc pl-5">
-                    {r.benefits.slice(0, 4).map((b, idx) => (
-                      <li key={idx}>{b}</li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {r.type === 'krex-tier' ? (
-                    <Link href="/tiers#krex-tier-rewards" className="k-control-btn">
-                      Buy KREX
-                    </Link>
-                  ) : null}
-                  {r.type === 'nft' ? (
-                    <Link href="/tiers#nft-rewards" className="k-control-btn">
-                      Buy NFTs
-                    </Link>
-                  ) : null}
-                  {!r.isUnlocked ? (
-                    <Link href={r.type === 'krex-tier' ? '/tiers#krex-tier-rewards' : r.type === 'nft' ? '/tiers#nft-rewards' : '/tiers'} className="k-control-btn">
-                      View requirements
-                    </Link>
-                  ) : (
-                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Active
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+      <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Catalog</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {filtered.length} item{filtered.length !== 1 ? 's' : ''} · cards mirror Minecore shop layout for consistent quantity selection.
+          </p>
         </div>
-      )}
+
+        {filtered.length === 0 ? (
+          <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">No rewards match your filters.</div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((item) => {
+              const unit = Math.max(1, Math.floor(item.costPointsPerUnit));
+              const maxAffordableQty = Math.min(
+                item.maxQty,
+                breakdown.totalRedeemable > 0 && unit > 0
+                  ? Math.max(item.minQty, Math.floor(breakdown.totalRedeemable / unit))
+                  : item.minQty,
+              );
+
+              const canInteractBase =
+                !!kaspaAddr &&
+                item.fulfillment !== 'coming_soon' &&
+                breakdown.totalRedeemable >= unit * item.minQty;
+
+              const l2Blocked =
+                rewardsItemRequiresL2Gate(item.fulfillment) && (!evmConnected || !igraReady);
+
+              const buyDisabled = !canInteractBase || l2Blocked || item.fulfillment === 'coming_soon';
+
+              return (
+                <div key={item.id} data-reward-kind={item.kind}>
+                  <GameItemCard
+                    title={item.title}
+                    category={item.category}
+                    description={
+                      <>
+                        <p>{item.description}</p>
+                        {item.fulfillmentNotes ? (
+                          <p className="text-xs mt-3 text-zinc-500">{item.fulfillmentNotes}</p>
+                        ) : null}
+                      </>
+                    }
+                    icon={item.icon}
+                    imageSrc={item.imageSrc}
+                    specifications={[
+                      {
+                        label: 'Fulfillment',
+                        value: fulfillmentLabel(item.fulfillment),
+                        color: item.fulfillment === 'l2_contract' ? 'sky' : item.fulfillment === 'coming_soon' ? 'zinc' : 'emerald',
+                      },
+                      ...(item.effects ?? []),
+                    ]}
+                    priceOptions={[
+                      {
+                        currency: 'PTS',
+                        unitPrice: unit,
+                        label: 'Redeemable points',
+                      },
+                    ]}
+                    defaultCurrency="PTS"
+                    quantitySelector={{ min: item.minQty, max: Math.max(item.minQty, maxAffordableQty) }}
+                    buyLabel={item.fulfillment === 'coming_soon' ? 'Locked' : 'Redeem'}
+                    buyDisabled={buyDisabled}
+                    hidePricing={false}
+                    titleAccessory={
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${fulfillmentBadgeClass(item.fulfillment)}`}>
+                        {item.kind.replace('_', ' ')}
+                      </span>
+                    }
+                    onBuy={({ quantity }) => {
+                      void redeem(item, quantity);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

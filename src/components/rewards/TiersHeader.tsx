@@ -19,7 +19,12 @@ export function TiersHeader() {
             Tiers &amp; multipliers
           </h1>
           <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Compare KREX tiers, NFT multipliers, node perks, and premium features that affect your rewards and scoring.
+            Informational breakdown of how KREX tiers, NFT multipliers, node perks, and premium flags influence Hub scoring and fee math. Spending redeemable catalog
+            items happens exclusively on{' '}
+            <a href="/rewards" className="font-semibold text-[#02abb8] underline">
+              Rewards
+            </a>
+            .
           </p>
         </div>
       </div>

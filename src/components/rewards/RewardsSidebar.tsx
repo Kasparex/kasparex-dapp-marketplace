@@ -76,9 +76,9 @@ export function RewardsSidebar() {
       <SidebarSection title="On this page">
         <nav className="space-y-0.5">
           <SidebarNavItem href="/rewards#rewards-intro" label="Overview" icon={sectionIcon} />
-          <SidebarNavItem href="/rewards#redeem" label="Redeem" icon={sectionIcon} />
+          <SidebarNavItem href="/rewards#rewards-l2-gate" label="L2 gate" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-filters" label="Filters & sort" icon={sectionIcon} />
-          <SidebarNavItem href="/rewards#rewards-grid" label="Perks & badges" icon={sectionIcon} />
+          <SidebarNavItem href="/rewards#rewards-catalog" label="Catalog" icon={sectionIcon} />
         </nav>
       </SidebarSection>
     </UnifiedSidebar>

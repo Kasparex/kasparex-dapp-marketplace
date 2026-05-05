@@ -53,7 +53,8 @@ export default function LeaderboardPage() {
             >
               <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">How this leaderboard works</p>
               <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1 list-disc pl-5">
-                <li><strong>Live season leaderboard</strong>: monthly UTC ranking from verified on-chain actions.</li>
+                <li><strong>Unified hub score</strong>: local rollup from the same ledger used on `/rewards` (new reads and NFT placements write into it).</li>
+                <li><strong>Live season leaderboard</strong>: legacy Chronicles table fed by verified on-chain actions.</li>
                 <li><strong>Global Top 100</strong>: immutable snapshot after season finalization.</li>
                 <li><strong>Your season progress</strong>: local browser wallet preview and pending tx tracker.</li>
               </ul>

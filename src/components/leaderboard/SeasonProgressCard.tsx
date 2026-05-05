@@ -11,6 +11,7 @@ import {
 } from '@/lib/chronicles/leaderboard/localState';
 import { scoreChroniclesSeason } from '@/lib/leaderboard/scoring';
 import { RewardTooltip } from '@/components/rewards/RewardTooltip';
+import { sumLeaderboardUnitsForSeason } from '@/lib/rewards/hub-ledger';
 
 function normAddr(a: string): string {
   try {
@@ -32,9 +33,16 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
   const { state } = useKaspaWallet();
   const addr = state.address ? normAddr(state.address) : '';
   const [now, setNow] = useState(() => Date.now());
+  const [ledgerTick, setLedgerTick] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const bump = () => setLedgerTick((n) => n + 1);
+    window.addEventListener('kasparex-hub-ledger', bump);
+    return () => window.removeEventListener('kasparex-hub-ledger', bump);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30_000);
@@ -48,6 +56,11 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
     const snap = getChroniclesLocalSeasonSnapshot(addr, season.id);
     return scoreChroniclesSeason(snap);
   }, [addr, season.id]);
+
+  const hubSeasonScore = useMemo(() => {
+    if (!addr) return 0;
+    return sumLeaderboardUnitsForSeason(addr.toLowerCase(), season.id);
+  }, [addr, season.id, ledgerTick]);
 
   const timeLeft = season.endUtcMs - now;
   const duration = Math.max(1, season.endUtcMs - season.startUtcMs);
@@ -95,7 +108,7 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
             <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">{title}</p>
             <RewardTooltip
               showTrailingIcon={false}
-              description="This card shows local wallet progress in your browser for the current UTC season (reads, slots, and points). The public table updates when your on-chain actions are indexed. Use Export and Import to back up or move this data between browsers."
+              description="Shows the unified hub ledger rollup for this UTC season alongside your Chronicles module snapshot (reads, NFT slots). Hub scores sync when you verify reads or NFT slot changes inside Chronicles. Legacy export/import still restores the Chronicles preview only."
             >
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 text-[10px] font-black text-zinc-500">
                 i
@@ -127,8 +140,11 @@ export function SeasonProgressCard({ title = 'Your season progress' }: { title?:
       ) : (
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
-            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Points</p>
-            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{score?.totalPoints ?? 0}</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Hub season score</p>
+            <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{hubSeasonScore}</p>
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
+              Chronicles module points: <span className="font-semibold">{score?.totalPoints ?? 0}</span>
+            </p>
           </div>
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/30 px-4 py-3">
             <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Reads</p>
