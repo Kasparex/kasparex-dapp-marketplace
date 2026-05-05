@@ -71,6 +71,7 @@ export function appendHubLedgerEarn(args: {
   return entry;
 }
 
+export { migrateLegacyCatalogRedemptionsOnce };
 /** Record catalog redemption as spend (negative redeemable; does not reduce leaderboard by default). */
 export function appendHubLedgerRedeemSpend(args: {
   walletL1: string;
