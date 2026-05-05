@@ -18,6 +18,7 @@ import {
 } from '@/lib/rewards/unified-catalog';
 import { appendHubLedgerRedeemSpend } from '@/lib/rewards/hub-ledger';
 import { describeL2RedemptionAvailability } from '@/lib/rewards/l2-redemption-route';
+import { readRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
 import { CHAIN_IDS } from '@/lib/wagmi';
 
 function normKaspa(a: string): string {
@@ -66,6 +67,7 @@ export function RewardsPageContent() {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentFilter>('all');
   const [sort, setSort] = useState<SortKey>('cost-asc');
   const [note, setNote] = useState<string | null>(null);
+  const [, setL2VerifyEpoch] = useState(0);
 
   const igraReady = Boolean(evmConnected && chainId === CHAIN_IDS.IGRA_MAINNET);
 
@@ -110,11 +112,15 @@ export function RewardsPageContent() {
 
       if (rewardsItemRequiresL2Gate(item.fulfillment)) {
         if (!evmConnected || !evmAddr) {
-          setNote('Connect an EVM wallet and verify IGRA Mainnet inside the Rewards L2 gate first.');
+          setNote('Connect your EVM wallet in the L2 gate, then switch to IGRA Mainnet.');
           return;
         }
         if (!igraReady) {
-          setNote('Switch your EVM wallet to IGRA Mainnet via the Rewards L2 gate.');
+          setNote('Switch your EVM wallet to IGRA Mainnet in the L2 gate.');
+          return;
+        }
+        if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
+          setNote('Tap Sign to verify in the L2 gate before token pool redemptions.');
           return;
         }
       }
@@ -167,7 +173,7 @@ export function RewardsPageContent() {
 
   return (
     <div className="space-y-8">
-      <RewardsL2Gate />
+      <RewardsL2Gate onSessionVerifiedChange={() => setL2VerifyEpoch((n) => n + 1)} />
 
       <div id="rewards-filters" className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
         <FilterBar
@@ -249,13 +255,18 @@ export function RewardsPageContent() {
                 breakdown.totalRedeemable >= unit * item.minQty;
 
               const l2Blocked =
-                rewardsItemRequiresL2Gate(item.fulfillment) && (!evmConnected || !igraReady);
+                rewardsItemRequiresL2Gate(item.fulfillment) &&
+                (!evmConnected ||
+                  !evmAddr ||
+                  !igraReady ||
+                  !readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr));
 
               const buyDisabled = !canInteractBase || l2Blocked || item.fulfillment === 'coming_soon';
 
               return (
                 <div key={item.id} data-reward-kind={item.kind}>
                   <GameItemCard
+                    kxListingAccent="hub"
                     title={item.title}
                     category={item.category}
                     description={

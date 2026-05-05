@@ -1,17 +1,46 @@
 'use client';
 
-import { useAccount, useChainId, useSwitchChain } from 'wagmi';
+import { useCallback, useState } from 'react';
+import { useAccount, useChainId, useSignMessage, useSwitchChain } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { CheckCircle2 } from 'lucide-react';
 import { CHAIN_IDS, igraMainnet } from '@/lib/wagmi';
-import Link from 'next/link';
+import { readRewardsL2SessionVerified, writeRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
 
 /** EVM readiness strip for Reward redemptions targeting IGRA Mainnet contracts. */
-export function RewardsL2Gate(props: { disabled?: boolean; className?: string }) {
+export function RewardsL2Gate(props: {
+  disabled?: boolean;
+  className?: string;
+  /** Bump when session verify flag updates so parents can recalc gated actions without reading storage indirectly. */
+  onSessionVerifiedChange?: () => void;
+}) {
   const { address: evm, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChainAsync, isPending: switching } = useSwitchChain();
+  const { signMessageAsync, isPending: signing } = useSignMessage();
   const target = CHAIN_IDS.IGRA_MAINNET;
   const onIgraMainnet = chainId === target && isConnected;
   const showSwitch = isConnected && !onIgraMainnet;
+
+  const [, setVerifyTick] = useState(0);
+  const sessionOk = readRewardsL2SessionVerified(chainId, evm);
+  const verifiedUi = sessionOk && onIgraMainnet;
+
+  const onSessionVerifiedChange = props.onSessionVerifiedChange;
+
+  const handleSignVerify = useCallback(async () => {
+    if (!evm || !onIgraMainnet || props.disabled) return;
+    const issuedAtIso = new Date().toISOString();
+    const message =
+      `Kasparex Rewards hub: wallet check\n` +
+      `address: ${evm}\n` +
+      `chainId: ${target}\n` +
+      `time (UTC): ${issuedAtIso}`;
+    await signMessageAsync({ message });
+    writeRewardsL2SessionVerified(target, evm);
+    setVerifyTick((n) => n + 1);
+    onSessionVerifiedChange?.();
+  }, [evm, onIgraMainnet, props.disabled, onSessionVerifiedChange, signMessageAsync, target]);
 
   return (
     <div
@@ -20,8 +49,7 @@ export function RewardsL2Gate(props: { disabled?: boolean; className?: string })
     >
       <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Verify L2 wallet</p>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Redemptions that touch smart contracts should use an EVM wallet on IGRA Mainnet. Connect your L2 wallet and switch network before
-        confirming token pool redemptions. Local-only perks still work with Kaspa L1 connected.
+        Token pool catalog items expect an EVM wallet on IGRA Mainnet. Connect, switch chain, then sign once to prove control. Local perks only need Kaspa L1.
       </p>
       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
         <span>
@@ -36,11 +64,20 @@ export function RewardsL2Gate(props: { disabled?: boolean; className?: string })
           {onIgraMainnet ? <span className="ml-2 text-emerald-600 dark:text-emerald-400">IGRA OK</span> : null}
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {!isConnected ? (
-          <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 inline-flex items-center gap-2">
-            Use your browser wallet modal (Rainbow Kit) from the header to connect EVM before L2-catalog items send real txs.
-          </span>
+          <ConnectButton.Custom>
+            {({ openConnectModal, mounted }) => (
+              <button
+                type="button"
+                disabled={props.disabled || !mounted}
+                onClick={() => openConnectModal?.()}
+                className="k-control-btn bg-[#0097b2] text-white border-transparent hover:opacity-90 disabled:opacity-50"
+              >
+                Connect EVM wallet
+              </button>
+            )}
+          </ConnectButton.Custom>
         ) : showSwitch ? (
           <button
             type="button"
@@ -48,18 +85,30 @@ export function RewardsL2Gate(props: { disabled?: boolean; className?: string })
             className="k-control-btn disabled:opacity-50"
             onClick={() =>
               switchChainAsync?.({ chainId: igraMainnet.id }).catch(() => {
-                /* ignore wallet reject noise */
+                /* wallet reject */
               })
             }
           >
             {switching ? 'Switching…' : 'Switch to IGRA Mainnet'}
           </button>
+        ) : verifiedUi ? (
+          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase">
+            <CheckCircle2 className="w-4 h-4 shrink-0" /> Wallet verified this session
+          </span>
         ) : (
-          <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">L2 prerequisite satisfied for guarded sends.</span>
+          <button
+            type="button"
+            disabled={props.disabled || signing}
+            className="k-control-btn bg-[#0097b2] text-white border-transparent hover:opacity-90 disabled:opacity-50"
+            onClick={() =>
+              void handleSignVerify().catch(() => {
+                /* sign rejected */
+              })
+            }
+          >
+            {signing ? 'Waiting for signature…' : 'Sign to verify'}
+          </button>
         )}
-        <Link href="/dapps" className="k-control-btn">
-          Explore dApps
-        </Link>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useMemo, useState, useId } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import type { KxListingAccent } from '@/lib/ui/kxListingAccent';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
@@ -78,6 +79,11 @@ export function GameItemCard(props: {
   buyButtonClassName?: string;
   /** When `hidePricing` is true, omit the footer primary button (e.g. action rendered inside `description`). */
   hideBuyButton?: boolean;
+  /**
+   * Listing chrome accent (`data-kx-accent`). Rewards hub uses `hub` (turquoise hover) instead of games emerald.
+   * @default 'games'
+   */
+  kxListingAccent?: KxListingAccent;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
   /** When set (e.g. ingredient shop cards), shows count on the right of the title row. Gray when 0. */
   ownedCount?: number;
@@ -109,10 +115,15 @@ export function GameItemCard(props: {
   const originalTotal = originalUnit != null ? originalUnit * quantity : undefined;
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
 
+  const listingAccent = props.kxListingAccent ?? 'games';
+  const hubChrome = listingAccent === 'hub';
+
   const ownedInactive = props.ownedCount != null && props.ownedCount <= 0;
   const ownedBadgeClass = ownedInactive
     ? 'border-zinc-200 bg-zinc-100/90 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400'
-    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
+    : hubChrome
+      ? 'border-[#02abb8]/35 bg-[#02abb8]/12 text-teal-900 dark:text-cyan-200'
+      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
 
   const priceText = `${formatGameItemPriceAmount(selected?.currency ?? currency, total)} ${selected?.currency ?? currency}`;
 
@@ -203,8 +214,14 @@ export function GameItemCard(props: {
     );
   }
 
+  const categoryPillClass = hubChrome
+    ? 'border-[#02abb8]/30 bg-[#02abb8]/12 text-teal-900 dark:text-cyan-200'
+    : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200';
+
+  const primaryCtaClass = hubChrome ? 'k-cta-primary h-10 w-full px-4 disabled:opacity-50 disabled:grayscale' : 'k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale';
+
   return (
-    <KxListingCard accent="games" className="relative flex min-h-0 flex-col">
+    <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col">
       <KxListingCardMedia aspectClass="aspect-[3/2]">
         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -212,7 +229,9 @@ export function GameItemCard(props: {
         </div>
 
         <div className="pointer-events-none absolute right-4 top-4 z-20 flex justify-end">
-          <span className="inline-flex items-center rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-200">
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${categoryPillClass}`}
+          >
             {props.category}
           </span>
         </div>
@@ -276,10 +295,7 @@ export function GameItemCard(props: {
               type="button"
               onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
               disabled={props.buyDisabled || Boolean(selected?.disabled)}
-              className={
-                props.buyButtonClassName ??
-                'k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale'
-              }
+              className={props.buyButtonClassName ?? (hubChrome ? 'k-cta-primary h-10 w-full px-4 disabled:opacity-50 disabled:grayscale' : 'k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale')}
             >
               {props.buyLabel ?? 'Buy'}
             </button>
@@ -359,12 +375,20 @@ export function GameItemCard(props: {
                 type="button"
                 onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
                 disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                className="k-cta-games h-10 w-full px-4 disabled:opacity-50 disabled:grayscale sm:w-auto sm:shrink-0"
+                className={`${primaryCtaClass} sm:w-auto sm:shrink-0`}
               >
                 {props.buyLabel ?? 'Buy'}
               </button>
             </div>
-            {hasDiscount ? <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Discount applied</div> : null}
+            {hasDiscount ? (
+              <div
+                className={
+                  hubChrome ? 'text-[11px] font-semibold text-[#0097b2] dark:text-cyan-300' : 'text-[11px] font-semibold text-emerald-700 dark:text-emerald-300'
+                }
+              >
+                Discount applied
+              </div>
+            ) : null}
           </div>
         </div>
         )}

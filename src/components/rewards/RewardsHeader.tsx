@@ -15,7 +15,10 @@ export function RewardsHeader() {
       badgeLabel="Rewards hub"
       title={
         <>
-          Unified <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300">redeemable points</span>
+          Unified{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300">
+            redeemable points
+          </span>
         </>
       }
       subtitle={
@@ -26,7 +29,10 @@ export function RewardsHeader() {
       }
       actions={
         <>
-          <a href="#rewards-catalog" className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all">
+          <a
+            href="#rewards-catalog"
+            className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+          >
             Browse catalog
           </a>
           <Link href="/leaderboard" className="k-control-btn">
@@ -37,15 +43,15 @@ export function RewardsHeader() {
       rightSlot={
         <>
           <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-5 py-5 space-y-2 shadow-lg shadow-cyan-500/5">
-            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Connected L1</p>
-            {hasAddr ? (
+            {!hasAddr ? (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Connect your Kaspa wallet from the header to show Minecore refinement and Hub ledger balances tied to your address.
+              </p>
+            ) : (
               <>
-                <p className="text-xs font-mono text-zinc-600 dark:text-zinc-300 break-all">{breakdown.address}</p>
-                <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 mt-3">
-                  <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Total redeemable</p>
-                  <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()}</p>
-                  <p className="text-[11px] text-zinc-500 mt-1">Totals are local previews until indexer-backed balances ship.</p>
-                </div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Total redeemable</p>
+                <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()}</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Totals are local previews until indexer-backed balances ship.</p>
                 <div className="space-y-1.5 pt-2">
                   {breakdown.lines.map((line) => (
                     <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">
@@ -55,10 +61,6 @@ export function RewardsHeader() {
                   ))}
                 </div>
               </>
-            ) : (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Connect your Kaspa wallet from the header to show Minecore refinement and Hub ledger balances tied to your address.
-              </p>
             )}
           </div>
         </>
