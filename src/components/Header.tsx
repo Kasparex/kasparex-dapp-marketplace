@@ -26,7 +26,7 @@ const EVMWalletButton = dynamic(
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
 import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
-import { HeaderLeaderboardLink } from '@/components/HeaderLeaderboardLink';
+import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
@@ -502,7 +502,7 @@ export function Header() {
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <AdminLink />
-          <HeaderLeaderboardLink />
+          <HeaderRewardsPointsLink />
           <Link
             href="/updates"
             onClick={() => {

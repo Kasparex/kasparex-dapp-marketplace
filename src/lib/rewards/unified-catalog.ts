@@ -3,10 +3,21 @@
  */
 
 import type { RedeemItemId } from '@/lib/redeem/catalog';
+import {
+  MINECORE_GRID_PER_REFINEMENT_POINT,
+  MINECORE_KREX_PER_REFINEMENT_POINT,
+} from '@/lib/game/minecore/config';
 
 export type RewardCatalogKind = 'token_pool' | 'perk' | 'badge' | 'coupon' | 'partner_pool';
 
 export type RewardFulfillment = 'l2_contract' | 'local_mvp' | 'coming_soon';
+
+/** Token pool: points spent × rate = payout preview (Minecore-aligned rates). */
+export type TokenPoolRate = {
+  payoutSymbol: 'GRID' | 'KREX';
+  /** Whole tokens credited per 1 redeemable point spent. */
+  tokensPerPoint: number;
+};
 
 export type UnifiedRewardItem = {
   id: string;
@@ -18,6 +29,10 @@ export type UnifiedRewardItem = {
   imageSrc?: string;
   /** Emoji fallback when no image. */
   icon?: string;
+  /**
+   * For non-token-pool rows: redeemable points per catalog unit × quantity selector.
+   * For token pools: use 1 (points selector is literal points to spend).
+   */
   costPointsPerUnit: number;
   minQty: number;
   maxQty: number;
@@ -29,7 +44,13 @@ export type UnifiedRewardItem = {
   fulfillmentNotes?: string;
   /** Minecore-style blueprint rows under description. */
   effects?: Array<{ label: string; value: string }>;
+  /** Set for `kind: 'token_pool'`: payout rate shown on cards and Claim CTA math. */
+  tokenPoolRate?: TokenPoolRate;
 };
+
+export function isTokenPoolClaimItem(it: UnifiedRewardItem): boolean {
+  return it.kind === 'token_pool' && it.tokenPoolRate != null && it.fulfillment !== 'coming_soon';
+}
 
 export const UNIFIED_REWARD_CATALOG: UnifiedRewardItem[] = [
   {
@@ -73,14 +94,19 @@ export const UNIFIED_REWARD_CATALOG: UnifiedRewardItem[] = [
     kind: 'token_pool',
     title: 'GRID pool distribution',
     category: 'Token pool',
-    description: 'Redeem points toward GRID pool payouts. On-chain sends stay behind hub flags.',
+    description: 'Spend redeemable points toward GRID pool intent. On-chain sends stay behind hub flags.',
     icon: '⬡',
-    costPointsPerUnit: 1000,
+    costPointsPerUnit: 1,
     minQty: 1,
-    maxQty: 5,
+    maxQty: 1,
     fulfillment: 'l2_contract',
     fulfillmentNotes: 'RewardManager payouts are signer-gated for now; intent is logged locally.',
+    tokenPoolRate: {
+      payoutSymbol: 'GRID',
+      tokensPerPoint: MINECORE_GRID_PER_REFINEMENT_POINT,
+    },
     effects: [
+      { label: 'Rate', value: `1 pt = ${MINECORE_GRID_PER_REFINEMENT_POINT} GRID` },
       { label: 'Network', value: 'IGRA Mainnet' },
       { label: 'Status', value: 'Flagged route' },
     ],
@@ -90,14 +116,19 @@ export const UNIFIED_REWARD_CATALOG: UnifiedRewardItem[] = [
     kind: 'token_pool',
     title: 'KREX pool distribution',
     category: 'Token pool',
-    description: 'KREX pool allocation. Same model as Minecore payouts.',
+    description: 'Spend redeemable points toward KREX pool intent. Same rate model as Minecore.',
     icon: '◎',
-    costPointsPerUnit: 1000,
+    costPointsPerUnit: 1,
     minQty: 1,
-    maxQty: 5,
+    maxQty: 1,
     fulfillment: 'l2_contract',
     fulfillmentNotes: 'Local accounting first; guarded L2 send later.',
+    tokenPoolRate: {
+      payoutSymbol: 'KREX',
+      tokensPerPoint: MINECORE_KREX_PER_REFINEMENT_POINT,
+    },
     effects: [
+      { label: 'Rate', value: `1 pt = ${MINECORE_KREX_PER_REFINEMENT_POINT} KREX` },
       { label: 'Network', value: 'IGRA Mainnet' },
       { label: 'Status', value: 'Vault wiring pending' },
     ],

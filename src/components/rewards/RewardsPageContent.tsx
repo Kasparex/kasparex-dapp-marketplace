@@ -12,6 +12,7 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import {
   UNIFIED_REWARD_CATALOG,
+  isTokenPoolClaimItem,
   type RewardCatalogKind,
   type RewardFulfillment,
   type UnifiedRewardItem,
@@ -78,7 +79,7 @@ export function RewardsPageContent() {
         catalogMatches(it.kind, kindFilter) &&
         fulfillmentMatches(it.fulfillment, fulfillmentFilter) &&
         (q.length === 0 ||
-          `${it.title} ${it.description} ${it.category}`.toLowerCase().includes(q)),
+          `${it.title} ${it.description} ${it.category} ${it.effects?.map((e) => e.value).join(' ') ?? ''}`.toLowerCase().includes(q)),
     );
     const next = [...base];
     next.sort((a, b) => {
@@ -91,7 +92,7 @@ export function RewardsPageContent() {
   }, [search, kindFilter, fulfillmentFilter, sort]);
 
   const redeem = useCallback(
-    async (item: UnifiedRewardItem, qty: number) => {
+    async (item: UnifiedRewardItem, quantityFromCard: number) => {
       setNote(null);
       if (!kaspaAddr) {
         setNote('Connect Kaspa L1 wallet to redeem with your unified balance.');
@@ -102,8 +103,69 @@ export function RewardsPageContent() {
         return;
       }
 
+      if (isTokenPoolClaimItem(item) && item.tokenPoolRate) {
+        const pointsSpend = Math.max(0, Math.floor(quantityFromCard));
+        if (pointsSpend < 1) {
+          setNote('Enter at least 1 point to claim.');
+          return;
+        }
+        if (breakdown.totalRedeemable < pointsSpend) {
+          setNote(`Need ${pointsSpend.toLocaleString()} redeemable points. Earn more from Minecore or Chronicles activity.`);
+          return;
+        }
+        if (rewardsItemRequiresL2Gate(item.fulfillment)) {
+          if (!evmConnected || !evmAddr) {
+            setNote('Connect your EVM wallet in the L2 gate, then switch to IGRA Mainnet.');
+            return;
+          }
+          if (!igraReady) {
+            setNote('Switch your EVM wallet to IGRA Mainnet in the L2 gate.');
+            return;
+          }
+          if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
+            setNote('Tap Sign to verify in the L2 gate before token pool redemptions.');
+            return;
+          }
+        }
+        const tokenOut = Math.floor(pointsSpend * item.tokenPoolRate.tokensPerPoint);
+        appendHubLedgerRedeemSpend({
+          walletL1: kaspaAddr,
+          seasonId: season.id,
+          costPoints: pointsSpend,
+          catalogItemId: item.id,
+          quantity: Math.max(0, tokenOut),
+        });
+
+        const l2Extras = rewardsItemRequiresL2Gate(item.fulfillment)
+          ? ` ${describeL2RedemptionAvailability()} Local ledger captures this intent.`
+          : '';
+
+        try {
+          window.dispatchEvent(
+            new CustomEvent('reward-catalog-redeem', {
+              detail: {
+                walletKaspa: kaspaAddr,
+                evm: evmAddr,
+                catalogItemId: item.id,
+                quantity: tokenOut,
+                points: pointsSpend,
+                fulfillment: item.fulfillment,
+                payoutSymbol: item.tokenPoolRate.payoutSymbol,
+              },
+            }),
+          );
+        } catch {
+          /* ignore */
+        }
+
+        setNote(
+          `${item.title}: ${pointsSpend.toLocaleString()} pts → ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} (logged locally).${l2Extras}`,
+        );
+        return;
+      }
+
       const unit = Math.max(1, Math.floor(item.costPointsPerUnit));
-      const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(qty)));
+      const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(quantityFromCard)));
       const cost = unit * q;
       if (breakdown.totalRedeemable < cost) {
         setNote(`Need ${cost.toLocaleString()} redeemable points. Earn more from Minecore or Chronicles activity.`);
@@ -232,7 +294,7 @@ export function RewardsPageContent() {
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Catalog</h2>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {filtered.length} item{filtered.length !== 1 ? 's' : ''} · cards mirror Minecore shop layout for consistent quantity selection.
+            {filtered.length} item{filtered.length !== 1 ? 's' : ''} · token pools spend points at the published rate; other rows use fixed point prices per unit.
           </p>
         </div>
 
@@ -241,18 +303,22 @@ export function RewardsPageContent() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((item) => {
-              const unit = Math.max(1, Math.floor(item.costPointsPerUnit));
-              const maxAffordableQty = Math.min(
-                item.maxQty,
-                breakdown.totalRedeemable > 0 && unit > 0
-                  ? Math.max(item.minQty, Math.floor(breakdown.totalRedeemable / unit))
-                  : item.minQty,
-              );
+              const poolClaim = isTokenPoolClaimItem(item);
+              const unit = poolClaim ? 1 : Math.max(1, Math.floor(item.costPointsPerUnit));
+
+              const maxAffordableQty = poolClaim
+                ? Math.max(1, Math.floor(breakdown.totalRedeemable))
+                : Math.min(
+                    item.maxQty,
+                    breakdown.totalRedeemable > 0 && unit > 0
+                      ? Math.max(item.minQty, Math.floor(breakdown.totalRedeemable / unit))
+                      : item.minQty,
+                  );
 
               const canInteractBase =
                 !!kaspaAddr &&
                 item.fulfillment !== 'coming_soon' &&
-                breakdown.totalRedeemable >= unit * item.minQty;
+                (poolClaim ? breakdown.totalRedeemable >= 1 : breakdown.totalRedeemable >= unit * item.minQty);
 
               const l2Blocked =
                 rewardsItemRequiresL2Gate(item.fulfillment) &&
@@ -262,6 +328,8 @@ export function RewardsPageContent() {
                   !readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr));
 
               const buyDisabled = !canInteractBase || l2Blocked || item.fulfillment === 'coming_soon';
+
+              const buyLabel = item.fulfillment === 'coming_soon' ? 'Locked' : poolClaim ? 'Claim' : 'Redeem';
 
               return (
                 <div key={item.id} data-reward-kind={item.kind}>
@@ -283,7 +351,8 @@ export function RewardsPageContent() {
                       {
                         label: 'Fulfillment',
                         value: fulfillmentLabel(item.fulfillment),
-                        color: item.fulfillment === 'l2_contract' ? 'sky' : item.fulfillment === 'coming_soon' ? 'zinc' : 'emerald',
+                        color:
+                          item.fulfillment === 'l2_contract' ? 'sky' : item.fulfillment === 'coming_soon' ? 'zinc' : 'emerald',
                       },
                       ...(item.effects ?? []),
                     ]}
@@ -291,16 +360,33 @@ export function RewardsPageContent() {
                       {
                         currency: 'PTS',
                         unitPrice: unit,
-                        label: 'Redeemable points',
+                        label: poolClaim ? 'Points' : 'Redeemable points',
                       },
                     ]}
                     defaultCurrency="PTS"
-                    quantitySelector={{ min: item.minQty, max: Math.max(item.minQty, maxAffordableQty) }}
-                    buyLabel={item.fulfillment === 'coming_soon' ? 'Locked' : 'Redeem'}
+                    quantitySelector={{ min: poolClaim ? 1 : item.minQty, max: Math.max(poolClaim ? 1 : item.minQty, maxAffordableQty) }}
+                    quantityLabel={poolClaim ? 'Points' : 'Quantity'}
+                    showQuantityMaxButton
+                    primaryActionLabelBuilder={
+                      item.fulfillment === 'coming_soon'
+                        ? undefined
+                        : poolClaim && item.tokenPoolRate
+                          ? ({ pointsSpend }) => {
+                              const tok = Math.floor(pointsSpend * item.tokenPoolRate!.tokensPerPoint);
+                              return `Claim · ${pointsSpend.toLocaleString()} pts → ${tok.toLocaleString()} ${item.tokenPoolRate!.payoutSymbol}`;
+                            }
+                          : ({ pointsSpend, quantity }) =>
+                              quantity > 1
+                                ? `Redeem · ${pointsSpend.toLocaleString()} pts · ${quantity} units`
+                                : `Redeem · ${pointsSpend.toLocaleString()} pts`
+                    }
+                    buyLabel={buyLabel}
                     buyDisabled={buyDisabled}
                     hidePricing={false}
                     titleAccessory={
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${fulfillmentBadgeClass(item.fulfillment)}`}>
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${fulfillmentBadgeClass(item.fulfillment)}`}
+                      >
                         {item.kind.replace('_', ' ')}
                       </span>
                     }
