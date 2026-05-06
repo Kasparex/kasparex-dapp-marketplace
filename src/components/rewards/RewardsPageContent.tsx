@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { Info } from 'lucide-react';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
@@ -9,6 +10,8 @@ import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import {
   UNIFIED_REWARD_CATALOG,
@@ -283,9 +286,27 @@ export function RewardsPageContent() {
 
       <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Catalog</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Catalog</h2>
+            <Tooltip
+              content={gameTooltipRich(
+                'Catalog',
+                <>
+                  Filter and sort redeemable offers. Token pools convert pts using the rate shown on each card; fixed-price rows multiply pts per unit by quantity.
+                </>,
+              )}
+            >
+              <button
+                type="button"
+                className="rounded-md p-1 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                aria-label="About catalog"
+              >
+                <Info className="h-5 w-5" aria-hidden />
+              </button>
+            </Tooltip>
+          </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {filtered.length} item{filtered.length !== 1 ? 's' : ''} · token pools spend points at the published rate; other rows use fixed point prices per unit.
+            {filtered.length} item{filtered.length !== 1 ? 's' : ''} · token pools spend pts at the published rate; other rows use fixed pts prices per unit.
           </p>
         </div>
 
@@ -338,50 +359,38 @@ export function RewardsPageContent() {
                         value: fulfillmentLabel(item.fulfillment),
                         color:
                           item.fulfillment === 'l2_contract' ? 'sky' : item.fulfillment === 'coming_soon' ? 'zinc' : 'emerald',
+                        specTooltip:
+                          item.fulfillment === 'local_mvp'
+                            ? 'Redemption is recorded locally on this device first (MVP). No EVM signature required unless the offer says otherwise.'
+                            : item.fulfillment === 'l2_contract'
+                              ? 'This path targets your verified EVM wallet on IGRA Mainnet when the on-chain route is active.'
+                              : 'This row is preview-only until partner plumbing ships.',
                       },
                       ...(item.effects ?? []),
                     ]}
                     priceOptions={[
                       {
-                        currency: 'PTS',
+                        currency: 'pts',
                         unitPrice: unit,
-                        label: poolClaim ? 'Points' : 'Redeemable points',
+                        label: 'pts',
                       },
                     ]}
-                    defaultCurrency="PTS"
+                    defaultCurrency="pts"
                     quantitySelector={{ min: poolClaim ? 1 : item.minQty, max: Math.max(poolClaim ? 1 : item.minQty, maxAffordableQty) }}
-                    quantityLabel={poolClaim ? 'Points' : 'Quantity'}
-                    quantityLabelLayout="stacked"
+                    hideQuantityLabel
                     pricingActionsLayout="stacked"
                     showQuantityMaxButton
-                    pricingFooterExtra={
+                    pricingCalculationSummary={
                       item.fulfillment === 'coming_soon'
                         ? undefined
                         : poolClaim && item.tokenPoolRate
                           ? ({ pointsSpend }) => {
                               const rate = item.tokenPoolRate!;
                               const tok = Math.floor(pointsSpend * rate.tokensPerPoint);
-                              return (
-                                <>
-                                  <p className="mt-0.5 text-center text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-                                    Rate: 1 pt = {rate.tokensPerPoint.toLocaleString()} {rate.payoutSymbol}
-                                  </p>
-                                  <p className="text-center text-[11px] font-bold tabular-nums text-zinc-700 dark:text-zinc-200">
-                                    {pointsSpend.toLocaleString()} pts → {tok.toLocaleString()} {rate.payoutSymbol}
-                                  </p>
-                                </>
-                              );
+                              return `${pointsSpend.toLocaleString()} pts → ${tok.toLocaleString()} ${rate.payoutSymbol}`;
                             }
-                          : ({ quantity: q, pointsSpend }) => (
-                              <>
-                                <p className="mt-0.5 text-center text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-                                  Rate: {unit.toLocaleString()} pts per unit
-                                </p>
-                                <p className="text-center text-[11px] font-bold tabular-nums text-zinc-700 dark:text-zinc-200">
-                                  {q.toLocaleString()} × {unit.toLocaleString()} = {pointsSpend.toLocaleString()} pts
-                                </p>
-                              </>
-                            )
+                          : ({ quantity: q, pointsSpend }) =>
+                              `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} pts`
                     }
                     buyLabel={buyLabel}
                     buyDisabled={buyDisabled}

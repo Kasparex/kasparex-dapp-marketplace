@@ -7,8 +7,9 @@ import { CheckCircle2, Info } from 'lucide-react';
 import { CHAIN_IDS, igraMainnet } from '@/lib/wagmi';
 import { readRewardsL2SessionVerified, writeRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
-const L2_GATE_HELP =
+const L2_GATE_HELP_BODY =
   'Token pool catalog items expect an EVM wallet on IGRA Mainnet. Connect, switch chain, then sign once to prove control. Local perks only need Kaspa L1.';
 
 /** EVM readiness strip for Reward redemptions targeting IGRA Mainnet contracts. */
@@ -52,7 +53,7 @@ export function RewardsL2Gate(props: {
     <>
       <div className="flex items-center gap-2">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify L2 wallet</p>
-        <Tooltip content={L2_GATE_HELP}>
+        <Tooltip content={gameTooltipRich('L2 verification', L2_GATE_HELP_BODY)}>
           <button
             type="button"
             className="rounded-md p-1 text-zinc-500 hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
