@@ -5,6 +5,26 @@ import { readHubLedgerEntries } from '@/lib/rewards/hub-ledger-storage';
 import type { HubLedgerEntry, HubLedgerEntryKind } from '@/lib/rewards/hub-ledger-types';
 import { UNIFIED_REWARD_CATALOG } from '@/lib/rewards/unified-catalog';
 
+/** Ledger stores redeem ledger-only deltas; gameplay-funded spends need meta totals for an honest Points column. */
+function ledgerPointsDeltaDisplay(e: HubLedgerEntry): number {
+  if (e.kind === 'redeem_spend') {
+    const full =
+      typeof e.meta?.fullCostPoints === 'number' ? Math.max(0, Math.floor(Number(e.meta.fullCostPoints))) : 0;
+    if (full > 0) return -full;
+    const mc =
+      typeof e.meta?.minecoreRefinementDeducted === 'number'
+        ? Math.max(0, Math.floor(Number(e.meta.minecoreRefinementDeducted)))
+        : 0;
+    const lg =
+      typeof e.meta?.ledgerRedeemableDeducted === 'number'
+        ? Math.max(0, Math.floor(Number(e.meta.ledgerRedeemableDeducted)))
+        : 0;
+    const sum = mc + lg;
+    if (sum > 0) return -sum;
+  }
+  return e.redeemableDelta;
+}
+
 function activityLabel(kind: HubLedgerEntryKind): string {
   if (kind === 'earn') return 'Earned';
   if (kind === 'redeem_spend') return 'Redemption';
@@ -43,10 +63,10 @@ function entrySummary(e: HubLedgerEntry): string {
     typeof e.meta?.quantity === 'number' ? `amount ${e.meta.quantity}` : '',
   ].filter(Boolean);
   let tail = bits.join(' · ');
-  if (mc != null && lg != null) {
+  if (mc != null || lg != null) {
     const parts: string[] = [];
-    if (mc > 0) parts.push(`${mc.toLocaleString()} points from gameplay`);
-    if (lg > 0) parts.push(`${lg.toLocaleString()} points from Rewards wallet`);
+    if (mc != null && mc > 0) parts.push(`${mc.toLocaleString()} points from gameplay`);
+    if (lg != null && lg > 0) parts.push(`${lg.toLocaleString()} points from Rewards wallet`);
     if (parts.length) tail += ` (${parts.join(', ')})`;
   }
   return `${tail}${full > 0 ? ` · total ${full.toLocaleString()} points` : ''}`;
@@ -91,7 +111,9 @@ export function RewardsHistoryTable(props: { walletNorm: string }) {
               </td>
             </tr>
           ) : (
-            rows.map((e) => (
+            rows.map((e) => {
+              const pts = ledgerPointsDeltaDisplay(e);
+              return (
               <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                 <td className="p-3 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
                   {new Date(e.atMs).toLocaleString()}
@@ -99,15 +121,16 @@ export function RewardsHistoryTable(props: { walletNorm: string }) {
                 <td className="p-3 text-zinc-800 dark:text-zinc-200">{activityLabel(e.kind)}</td>
                 <td
                   className={`p-3 text-right font-mono font-semibold tabular-nums ${
-                    e.redeemableDelta >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'
+                    pts >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'
                   }`}
                 >
-                  {e.redeemableDelta >= 0 ? '+' : ''}
-                  {e.redeemableDelta.toLocaleString()}
+                  {pts >= 0 ? '+' : ''}
+                  {pts.toLocaleString()}
                 </td>
                 <td className="p-3 text-xs text-zinc-600 dark:text-zinc-400">{entrySummary(e)}</td>
               </tr>
-            ))
+              );
+            })
           )}
         </tbody>
       </table>

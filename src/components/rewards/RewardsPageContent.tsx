@@ -301,40 +301,42 @@ export function RewardsPageContent() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-3 dark:border-zinc-800">
-        {(
-          [
-            { id: 'catalog' as const, label: 'Catalog' },
-            { id: 'history' as const, label: 'History' },
-            { id: 'balances' as const, label: 'Balances' },
-          ] as const
-        ).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => {
-              setHubTab(t.id);
-              const anchor =
-                t.id === 'catalog'
-                  ? 'rewards-catalog'
-                  : t.id === 'history'
-                    ? 'rewards-history'
-                    : 'rewards-balances';
-              try {
-                window.history.replaceState(null, '', `#${anchor}`);
-              } catch {
-                /* ignore */
-              }
-            }}
-            className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors ${
-              hubTab === t.id
-                ? 'bg-[#0097b2] text-white shadow-md shadow-cyan-500/15'
-                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="mb-6">
+        <div className="k-control-group w-full overflow-x-auto">
+          {(
+            [
+              { id: 'catalog' as const, label: 'Catalog' },
+              { id: 'history' as const, label: 'History' },
+              { id: 'balances' as const, label: 'Balances' },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => {
+                setHubTab(t.id);
+                const anchor =
+                  t.id === 'catalog'
+                    ? 'rewards-catalog'
+                    : t.id === 'history'
+                      ? 'rewards-history'
+                      : 'rewards-balances';
+                try {
+                  window.history.replaceState(null, '', `#${anchor}`);
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+                hubTab === t.id
+                  ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                  : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {note ? (
@@ -466,6 +468,7 @@ export function RewardsPageContent() {
                         icon={item.icon}
                         imageSrc={item.imageSrc}
                         hideSpecificationsHeading
+                        specificationsBelowPricing
                         specifications={specifications}
                         priceOptions={[
                           {

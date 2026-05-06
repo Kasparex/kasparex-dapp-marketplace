@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -25,6 +25,8 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconComments, IconOverview, IconPower, IconRewards, IconShop, IconWorkers } from '@/components/games/icons/TabIcons';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -84,6 +86,17 @@ interface MiningDashboardProps {
 
 export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescription = '', game, gameName }: MiningDashboardProps) {
   const { state: walletState } = useKaspaWallet();
+  const redeemBreakdown = useRedeemablePointsBreakdown();
+  const redeemUnifiedMatches = useMemo(() => {
+    const w = walletState.address?.trim();
+    if (!w || !redeemBreakdown.address) return false;
+    try {
+      return normalizeKaspaAddress(w) === redeemBreakdown.address;
+    } catch {
+      const nw = w.startsWith('kaspa:') ? w : `kaspa:${w}`;
+      return nw.toLowerCase() === redeemBreakdown.address.toLowerCase();
+    }
+  }, [walletState.address, redeemBreakdown.address]);
   const {
     tycon,
     diamonds,
@@ -348,7 +361,9 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             <RewardsPanel 
               address={walletState.address ?? undefined} 
               diamondsBalance={diamonds}
-              refinementPointsTotal={refinementPointsTotal} 
+              refinementPointsTotal={refinementPointsTotal}
+              unifiedRedeemablePoints={redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : undefined}
+              hubLedgerNetPoints={redeemUnifiedMatches ? redeemBreakdown.ledgerNetRedeemable : undefined}
               localLedger={gridLedger} 
               onRefine={refineDiamonds}
               onRedeem={redeemGrid}

@@ -11,6 +11,8 @@ export function RewardsPanel({
   address,
   diamondsBalance,
   refinementPointsTotal,
+  unifiedRedeemablePoints,
+  hubLedgerNetPoints,
   localLedger,
   onRefine,
   onRedeem,
@@ -18,6 +20,8 @@ export function RewardsPanel({
   address: string | undefined;
   diamondsBalance: number;
   refinementPointsTotal: number;
+  unifiedRedeemablePoints?: number;
+  hubLedgerNetPoints?: number;
   localLedger: GridLedgerEntry[];
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number) => void;
@@ -48,6 +52,9 @@ export function RewardsPanel({
       <RewardsRedeemSection 
         diamondsBalance={diamondsBalance} 
         refinementPointsBalance={refinementPointsTotal}
+        unifiedRedeemablePoints={unifiedRedeemablePoints}
+        hubLedgerNetPoints={hubLedgerNetPoints}
+        balanceSplitFootnote={unifiedRedeemablePoints != null}
         onRefine={onRefine}
         onRedeem={onRedeem}
       >

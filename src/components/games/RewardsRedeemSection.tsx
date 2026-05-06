@@ -34,6 +34,7 @@ export function RewardsRedeemSection({
   refinementPointsBalance,
   unifiedRedeemablePoints,
   hubLedgerNetPoints,
+  balanceSplitFootnote,
   onRefine,
   onRedeem,
   minecoreExtras,
@@ -48,6 +49,8 @@ export function RewardsRedeemSection({
   unifiedRedeemablePoints?: number;
   /** Optional Rewards-wallet credits shown beside game-only swaps. */
   hubLedgerNetPoints?: number;
+  /** With `unifiedRedeemablePoints`, shows hub vs game split without loading minecore economics block (e.g. Diamond Veins). */
+  balanceSplitFootnote?: boolean;
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   /** When set (game redeem panel), shows exchange rates and pool estimates from hub policy. */
@@ -215,7 +218,7 @@ export function RewardsRedeemSection({
             <div className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">
               {(unifiedRedeemablePoints ?? refinementPointsBalance).toLocaleString()} points
             </div>
-            {minecoreExtras && unifiedRedeemablePoints != null ? (
+            {unifiedRedeemablePoints != null && (minecoreExtras || balanceSplitFootnote) ? (
               <p className="mt-1 max-w-[240px] text-right text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 sm:ml-auto">
                 Hub total · swap uses game balance up to{' '}
                 <span className="font-semibold tabular-nums text-zinc-600 dark:text-zinc-300">

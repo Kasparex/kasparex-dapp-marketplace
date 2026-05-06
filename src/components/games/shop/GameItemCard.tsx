@@ -63,6 +63,8 @@ export function GameItemCard(props: {
   description: React.ReactNode;
   /** Blueprint-style split (e.g. Fabrication). When set, prefer over a flat `effects` list. */
   specifications?: GameItemEffectLine[];
+  /** When true, renders `specifications` below the pricing footer (Rewards catalog cards). */
+  specificationsBelowPricing?: boolean;
   /** When true, suppresses the “Specifications” heading (rows still render). */
   hideSpecificationsHeading?: boolean;
   ingredients?: GameItemEffectLine[];
@@ -161,6 +163,7 @@ export function GameItemCard(props: {
   const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
   const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
   const hideQuantityLabel = props.hideQuantityLabel ?? false;
+  const specificationsBelowPricing = props.specificationsBelowPricing ?? false;
 
   const ownedInactive = props.ownedCount != null && props.ownedCount <= 0;
   const ownedBadgeClass = ownedInactive
@@ -436,7 +439,7 @@ export function GameItemCard(props: {
         <div className="mb-4 min-h-0 flex-grow">
           <div className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description}</div>
 
-          {props.specifications && props.specifications.length > 0 ? (
+          {props.specifications && props.specifications.length > 0 && !specificationsBelowPricing ? (
             <div className="mt-3">
               {!props.hideSpecificationsHeading ? (
                 <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -584,6 +587,16 @@ export function GameItemCard(props: {
           </div>
         </div>
         )}
+        {specificationsBelowPricing && props.specifications && props.specifications.length > 0 ? (
+          <div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            {!props.hideSpecificationsHeading ? (
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Specifications
+              </div>
+            ) : null}
+            <div className="grid gap-2">{props.specifications.map(effectLineRow)}</div>
+          </div>
+        ) : null}
       </KxListingCardBody>
     </KxListingCard>
   );
