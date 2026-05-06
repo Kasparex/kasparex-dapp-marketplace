@@ -15,6 +15,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
   return (
     <HubHaloHeader
       id="rewards-intro"
+      hideAccentFrames
       badgeVariant="pulse"
       badgeLabel="Rewards hub"
       title="Rewards"
@@ -38,44 +39,51 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
         </>
       }
       rightSlot={
-        <div className="w-full max-w-[300px] mx-auto lg:mx-0 lg:ml-auto">
-          <div className="rounded-xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-6 py-6 space-y-3 shadow-lg shadow-cyan-500/5 aspect-square flex flex-col min-h-[280px]">
-            {!hasAddr ? (
-              <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
-                Connect your Kaspa wallet from the header to see redeemable points tied to your hub profile.
-              </p>
-            ) : (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 m-0">Total redeemable</p>
-                  <Tooltip
-                    content={gameTooltipRich(
-                      'Redeemable balance',
-                      'One hub-wide number for your Kaspa address: gameplay-linked points plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
-                    )}
-                  >
-                    <button
-                      type="button"
-                      className="rounded-md p-0.5 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
-                      aria-label="About redeemable balance"
+        <div className="w-full min-w-0 mx-auto lg:mx-0 lg:ml-auto max-w-xl">
+          <div className="rounded-xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 shadow-lg shadow-cyan-500/5 overflow-hidden min-w-0 flex flex-col">
+            <div className="px-5 py-5 sm:px-6 sm:py-6 space-y-3 min-w-0">
+              {!hasAddr ? (
+                <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
+                  Connect your Kaspa wallet from the header to see redeemable points tied to your hub profile.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-2 gap-y-1 min-w-0">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 m-0">Total redeemable</p>
+                    <Tooltip
+                      content={gameTooltipRich(
+                        'Redeemable balance',
+                        'One hub-wide number for your Kaspa address: gameplay-linked points plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
+                      )}
                     >
-                      <Info className="h-4 w-4" aria-hidden />
-                    </button>
-                  </Tooltip>
-                </div>
-                <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()} points</p>
-                <p className="text-[11px] text-zinc-500 mt-1">Balance reflects this device for now; synced totals will follow.</p>
-                <div className="space-y-1.5 pt-2">
-                  {breakdown.lines.map((line) => (
-                    <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">
-                      <span>{line.label}</span>
-                      <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            <div className="border-t border-cyan-500/15 pt-3 shrink-0 mt-auto">
+                      <button
+                        type="button"
+                        className="rounded-md p-0.5 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors shrink-0"
+                        aria-label="About redeemable balance"
+                      >
+                        <Info className="h-4 w-4" aria-hidden />
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-black tabular-nums text-zinc-900 dark:text-white leading-tight break-words">
+                    {breakdown.totalRedeemable.toLocaleString()} points
+                  </p>
+                  <p className="text-[11px] text-zinc-500">Balance reflects this device for now; synced totals will follow.</p>
+                  <div className="space-y-1.5 pt-1 min-w-0">
+                    {breakdown.lines.map((line) => (
+                      <div
+                        key={line.id}
+                        className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400 min-w-0"
+                      >
+                        <span className="break-words pr-2">{line.label}</span>
+                        <span className="font-mono font-semibold tabular-nums shrink-0">{line.points.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="border-t border-cyan-500/15 bg-zinc-50/70 dark:bg-zinc-950/40 px-5 py-4 sm:px-6 sm:pb-5 min-w-0 shrink-0">
               <RewardsL2Gate embedded onSessionVerifiedChange={props.onSessionVerifiedChange} />
             </div>
           </div>

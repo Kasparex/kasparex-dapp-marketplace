@@ -15,8 +15,11 @@ export function HubHaloHeader(props: {
   actions?: ReactNode;
   /** Optional right column (stats, promo, ads slot). Hidden below `lg` unless `mobileRightSlot` set. */
   rightSlot?: ReactNode;
+  /** Omit floating corner outline decorations (helps keep focus on a dense right-slot panel). */
+  hideAccentFrames?: boolean;
 }) {
   const badgeVariant = props.badgeVariant ?? 'pulse';
+  const showAccentFrames = !props.hideAccentFrames;
   return (
     <section
       id={props.id}
@@ -26,11 +29,15 @@ export function HubHaloHeader(props: {
         <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.12),transparent_70%)] rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-8 right-12 w-32 h-32 border border-cyan-500/20 rounded-2xl rotate-12 hidden sm:block" />
-        <div className="absolute bottom-12 right-1/4 w-24 h-24 border border-cyan-400/15 rounded-xl -rotate-6 hidden sm:block" />
+        {showAccentFrames ? (
+          <>
+            <div className="absolute top-8 right-12 w-32 h-32 border border-cyan-500/20 rounded-2xl rotate-12 hidden sm:block" />
+            <div className="absolute bottom-12 right-1/4 w-24 h-24 border border-cyan-400/15 rounded-xl -rotate-6 hidden sm:block" />
+          </>
+        ) : null}
       </div>
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 lg:gap-10">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-800 dark:text-cyan-200 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
             {badgeVariant === 'pulse' ? (
@@ -50,7 +57,7 @@ export function HubHaloHeader(props: {
           {props.actions ? <div className="flex flex-wrap gap-3">{props.actions}</div> : null}
         </div>
         {props.rightSlot ? (
-          <div className="w-full lg:w-auto lg:min-w-[260px] flex flex-col gap-4 flex-shrink-0">{props.rightSlot}</div>
+          <div className="w-full lg:w-auto lg:max-w-xl lg:flex-shrink-0 lg:min-w-0">{props.rightSlot}</div>
         ) : null}
       </div>
     </section>

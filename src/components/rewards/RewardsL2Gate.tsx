@@ -63,20 +63,20 @@ export function RewardsL2Gate(props: {
           </button>
         </Tooltip>
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
-        <span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="min-w-0">
           EVM:{' '}
-          <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
+          <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 break-all">
             {evm ? `${evm.slice(0, 8)}…${evm.slice(-6)}` : 'not connected'}
           </span>
         </span>
-        <span>
+        <span className="shrink-0">
           Chain:{' '}
           <span className="font-semibold text-zinc-800 dark:text-zinc-200">{isConnected ? chainId : '-'}</span>
           {onIgraMainnet ? <span className="ml-2 text-emerald-600 dark:text-emerald-400">IGRA OK</span> : null}
         </span>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch sm:items-center min-w-0">
         {!isConnected ? (
           <ConnectButton.Custom>
             {({ openConnectModal, mounted }) => (
@@ -84,7 +84,7 @@ export function RewardsL2Gate(props: {
                 type="button"
                 disabled={props.disabled || !mounted}
                 onClick={() => openConnectModal?.()}
-                className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
+                className="w-full sm:w-auto rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
               >
                 Connect EVM wallet
               </button>
@@ -94,7 +94,7 @@ export function RewardsL2Gate(props: {
           <button
             type="button"
             disabled={props.disabled || switching}
-            className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="w-full sm:w-auto rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
             onClick={() =>
               switchChainAsync?.({ chainId: igraMainnet.id }).catch(() => {
                 /* wallet reject */
@@ -111,7 +111,7 @@ export function RewardsL2Gate(props: {
           <button
             type="button"
             disabled={props.disabled || signing}
-            className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="w-full sm:w-auto rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
             onClick={() =>
               void handleSignVerify().catch(() => {
                 /* sign rejected */
@@ -127,7 +127,7 @@ export function RewardsL2Gate(props: {
 
   if (props.embedded) {
     return (
-      <div id="rewards-l2-gate" className={`space-y-2 scroll-mt-24 ${props.className ?? ''}`}>
+      <div id="rewards-l2-gate" className={`space-y-3 scroll-mt-24 ${props.className ?? ''}`}>
         {inner}
       </div>
     );
