@@ -26,6 +26,7 @@ import { readRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-v
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
+import { PointsTables } from '@/components/rewards/PointsTables';
 
 function normKaspa(a: string): string {
   try {
@@ -40,12 +41,13 @@ type FulfillmentFilter = RewardFulfillment | 'all';
 
 type SortKey = 'cost-asc' | 'cost-desc' | 'name-asc' | 'name-desc';
 
-type RewardsHubTab = 'catalog' | 'history' | 'balances';
+type RewardsHubTab = 'catalog' | 'history' | 'balances' | 'points';
 
 function rewardsHubTabFromHash(hash: string): RewardsHubTab | null {
   const h = hash.replace(/^#/, '');
   if (h === 'rewards-history') return 'history';
   if (h === 'rewards-balances') return 'balances';
+  if (h === 'rewards-points' || h === 'module-scoring-rules' || h === 'nft-slot-points') return 'points';
   if (
     h === 'rewards-catalog' ||
     h === 'rewards-filters' ||
@@ -55,6 +57,19 @@ function rewardsHubTabFromHash(hash: string): RewardsHubTab | null {
     return 'catalog';
   }
   return null;
+}
+
+function rewardsHubAnchor(tab: RewardsHubTab): string {
+  switch (tab) {
+    case 'catalog':
+      return 'rewards-catalog';
+    case 'history':
+      return 'rewards-history';
+    case 'balances':
+      return 'rewards-balances';
+    case 'points':
+      return 'rewards-points';
+  }
 }
 
 function fulfillmentLabel(f: RewardFulfillment): string {
@@ -306,6 +321,7 @@ export function RewardsPageContent() {
           {(
             [
               { id: 'catalog' as const, label: 'Catalog' },
+              { id: 'points' as const, label: 'Points' },
               { id: 'history' as const, label: 'History' },
               { id: 'balances' as const, label: 'Balances' },
             ] as const
@@ -315,14 +331,8 @@ export function RewardsPageContent() {
               type="button"
               onClick={() => {
                 setHubTab(t.id);
-                const anchor =
-                  t.id === 'catalog'
-                    ? 'rewards-catalog'
-                    : t.id === 'history'
-                      ? 'rewards-history'
-                      : 'rewards-balances';
                 try {
-                  window.history.replaceState(null, '', `#${anchor}`);
+                  window.history.replaceState(null, '', `#${rewardsHubAnchor(t.id)}`);
                 } catch {
                   /* ignore */
                 }
@@ -347,53 +357,6 @@ export function RewardsPageContent() {
 
       {hubTab === 'catalog' ? (
         <>
-          <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">
-            <FilterBar
-              search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, perks, badges, pools…' }}
-              onReset={() => {
-                setSearch('');
-                setKindFilter('all');
-                setFulfillmentFilter('all');
-                setSort('cost-asc');
-              }}
-              flexWrap
-            >
-              <ChroniclesFilterDropdown
-                ariaLabel="Filter reward kinds"
-                value={kindFilter}
-                onChange={(v) => setKindFilter(v as KindFilter)}
-                allLabel="All kinds"
-                options={kindDropdownOptions}
-                minWidthClassName="min-w-[170px]"
-              />
-              <ChroniclesFilterDropdown
-                ariaLabel="Filter delivery type"
-                value={fulfillmentFilter}
-                onChange={(v) => setFulfillmentFilter(v as FulfillmentFilter)}
-                allLabel="All delivery types"
-                options={[
-                  { value: 'local_mvp', label: fulfillmentLabel('local_mvp') },
-                  { value: 'l2_contract', label: fulfillmentLabel('l2_contract') },
-                  { value: 'coming_soon', label: fulfillmentLabel('coming_soon') },
-                ]}
-                minWidthClassName="min-w-[190px]"
-              />
-              <ChroniclesFilterDropdown
-                ariaLabel="Sort offers"
-                value={sort}
-                onChange={(v) => setSort(v as SortKey)}
-                allLabel="Cost (asc)"
-                options={[
-                  { value: 'cost-asc', label: 'Cost (low→high)' },
-                  { value: 'cost-desc', label: 'Cost (high→low)' },
-                  { value: 'name-asc', label: 'Name (A-Z)' },
-                  { value: 'name-desc', label: 'Name (Z-A)' },
-                ]}
-                minWidthClassName="min-w-[180px]"
-              />
-            </FilterBar>
-          </div>
-
           <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -418,6 +381,53 @@ export function RewardsPageContent() {
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 {filtered.length} offer{filtered.length !== 1 ? 's' : ''} · one wallet-wide balance covers everything (matches the total above); spends draw from gameplay-linked points first, then your Rewards wallet.
               </p>
+            </div>
+
+            <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">
+              <FilterBar
+                search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, perks, badges, pools…' }}
+                onReset={() => {
+                  setSearch('');
+                  setKindFilter('all');
+                  setFulfillmentFilter('all');
+                  setSort('cost-asc');
+                }}
+                flexWrap
+              >
+                <ChroniclesFilterDropdown
+                  ariaLabel="Filter reward kinds"
+                  value={kindFilter}
+                  onChange={(v) => setKindFilter(v as KindFilter)}
+                  allLabel="All kinds"
+                  options={kindDropdownOptions}
+                  minWidthClassName="min-w-[170px]"
+                />
+                <ChroniclesFilterDropdown
+                  ariaLabel="Filter delivery type"
+                  value={fulfillmentFilter}
+                  onChange={(v) => setFulfillmentFilter(v as FulfillmentFilter)}
+                  allLabel="All delivery types"
+                  options={[
+                    { value: 'local_mvp', label: fulfillmentLabel('local_mvp') },
+                    { value: 'l2_contract', label: fulfillmentLabel('l2_contract') },
+                    { value: 'coming_soon', label: fulfillmentLabel('coming_soon') },
+                  ]}
+                  minWidthClassName="min-w-[190px]"
+                />
+                <ChroniclesFilterDropdown
+                  ariaLabel="Sort offers"
+                  value={sort}
+                  onChange={(v) => setSort(v as SortKey)}
+                  allLabel="Cost (asc)"
+                  options={[
+                    { value: 'cost-asc', label: 'Cost (low→high)' },
+                    { value: 'cost-desc', label: 'Cost (high→low)' },
+                    { value: 'name-asc', label: 'Name (A-Z)' },
+                    { value: 'name-desc', label: 'Name (Z-A)' },
+                  ]}
+                  minWidthClassName="min-w-[180px]"
+                />
+              </FilterBar>
             </div>
 
             {filtered.length === 0 ? (
@@ -516,6 +526,18 @@ export function RewardsPageContent() {
             )}
           </div>
         </>
+      ) : null}
+
+      {hubTab === 'points' ? (
+        <div id="rewards-points" className="scroll-mt-24 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Points</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Leaderboard scoring rules — module reads and NFT slot tables used for seasonal scores.
+            </p>
+          </div>
+          <PointsTables />
+        </div>
       ) : null}
 
       {hubTab === 'history' ? (

@@ -38,12 +38,13 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
         </>
       }
       rightSlot={
-        <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-5 py-5 space-y-3 shadow-lg shadow-cyan-500/5">
-          {!hasAddr ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Connect your Kaspa wallet from the header to see all redeemable points tied to your hub profile.
-            </p>
-          ) : (
+        <div className="w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto">
+          <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-4 py-4 space-y-3 shadow-lg shadow-cyan-500/5">
+            {!hasAddr ? (
+              <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
+                Connect your Kaspa wallet from the header to see redeemable points tied to your hub profile.
+              </p>
+            ) : (
               <>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 m-0">Total redeemable</p>
@@ -64,18 +65,19 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                 </div>
                 <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()} points</p>
                 <p className="text-[11px] text-zinc-500 mt-1">Balance reflects this device for now; synced totals will follow.</p>
-              <div className="space-y-1.5 pt-2">
-                {breakdown.lines.map((line) => (
-                  <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">
-                    <span>{line.label}</span>
-                    <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-          <div className="border-t border-cyan-500/15 pt-4 mt-1">
-            <RewardsL2Gate embedded onSessionVerifiedChange={props.onSessionVerifiedChange} />
+                <div className="space-y-1.5 pt-2">
+                  {breakdown.lines.map((line) => (
+                    <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">
+                      <span>{line.label}</span>
+                      <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className={`border-t border-cyan-500/15 pt-3 ${hasAddr ? 'mt-1' : ''}`}>
+              <RewardsL2Gate embedded onSessionVerifiedChange={props.onSessionVerifiedChange} />
+            </div>
           </div>
         </div>
       }

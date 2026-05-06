@@ -6,6 +6,10 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [{ source: '/points', destination: '/rewards', permanent: true }];
+  },
+
   serverExternalPackages: ["pino-pretty"],
   
   // Enable image optimization for Vercel

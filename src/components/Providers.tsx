@@ -5,7 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
-import { config } from '@/lib/wagmi';
+import { config, igraMainnet } from '@/lib/wagmi';
 import { EvmSubdomainReconnectHint } from '@/lib/evm/EvmSubdomainReconnectHint';
 import { KaspaWalletProvider } from '@/lib/kaspa/context';
 import { AdsRegistryProvider } from '@/components/ads/AdsRegistryProvider';
@@ -619,7 +619,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
   return (
     <RainbowKitProvider
       theme={theme === 'dark' ? customDarkTheme : customLightTheme}
-      initialChain={config.chains[0]}
+      initialChain={igraMainnet}
     >
       {children}
     </RainbowKitProvider>

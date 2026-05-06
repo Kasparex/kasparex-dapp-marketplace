@@ -91,7 +91,7 @@ export function PointsSidebar({ filters, onFilterChange }: PointsSidebarProps) {
           <span className="text-xs font-black uppercase tracking-widest">Rewards</span>
         </Link>
         <Link
-          href="/points"
+          href="/rewards#rewards-points"
           className="k-control-btn w-full justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -59,7 +59,7 @@ export default function LeaderboardPage() {
                 <li><strong>Your season progress</strong>: local browser wallet preview and pending tx tracker.</li>
               </ul>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Points rules live in <Link href="/points" className="underline font-semibold">Points</Link>.
+                Points rules live in <Link href="/rewards#rewards-points" className="underline font-semibold">Points</Link>.
               </p>
             </div>
           </div>

@@ -16,7 +16,7 @@ const QUICK_LINKS = [
   { href: '/hub', label: 'Hub' },
   { href: '/', label: 'dApps' },
   { href: '/nodes', label: 'KREX Nodes' },
-  { href: '/points', label: 'Rewards' },
+  { href: '/rewards', label: 'Rewards' },
 ] as const;
 
 const chartIcon = (

@@ -84,7 +84,7 @@ export function RewardsL2Gate(props: {
                 type="button"
                 disabled={props.disabled || !mounted}
                 onClick={() => openConnectModal?.()}
-                className="k-control-btn bg-[#0097b2] text-white border-transparent hover:opacity-90 disabled:opacity-50"
+                className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
               >
                 Connect EVM wallet
               </button>
@@ -94,7 +94,7 @@ export function RewardsL2Gate(props: {
           <button
             type="button"
             disabled={props.disabled || switching}
-            className="k-control-btn disabled:opacity-50"
+            className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
             onClick={() =>
               switchChainAsync?.({ chainId: igraMainnet.id }).catch(() => {
                 /* wallet reject */
@@ -111,7 +111,7 @@ export function RewardsL2Gate(props: {
           <button
             type="button"
             disabled={props.disabled || signing}
-            className="k-control-btn bg-[#0097b2] text-white border-transparent hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#02abb8] text-white border border-transparent hover:opacity-90 disabled:opacity-50 transition-opacity"
             onClick={() =>
               void handleSignVerify().catch(() => {
                 /* sign rejected */
