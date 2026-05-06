@@ -32,6 +32,7 @@ import {
   MINECORE_KREX_BOOST_SHOP_KAS,
   MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
+import { MINECORE_EXTERNAL_PERSIST_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -111,6 +112,16 @@ export function useMinecore() {
       return () => window.clearTimeout(t);
     }
     return undefined;
+  }, [walletAddr]);
+
+  useEffect(() => {
+    if (!walletAddr) return;
+    function reloadFromDisk() {
+      const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
+      if (loaded) setMc(loaded);
+    }
+    window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, reloadFromDisk);
+    return () => window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, reloadFromDisk);
   }, [walletAddr]);
 
   /** Clamp rigs/workers/batteries/modules vs owned inventory (fixes corrupt saves + unlocks stuck InstallPart guards). */

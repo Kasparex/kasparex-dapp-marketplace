@@ -83,6 +83,8 @@ export function GameItemCard(props: {
   quantityLabelLayout?: 'inline' | 'stacked';
   /** Omits the Points/Quantity label row (full-width stepper + Max). */
   hideQuantityLabel?: boolean;
+  /** When set, hides the quantity stepper and uses this quantity for pricing / onBuy. */
+  quantityLockedAt?: number;
   /** Max button fills quantity to max (Minecore-style). */
   showQuantityMaxButton?: boolean;
   /** Primary CTA text; overrides `buyLabel` when set (eg token pool totals). */
@@ -133,12 +135,16 @@ export function GameItemCard(props: {
 
   const selected = useMemo(() => options.find((o) => o.currency === currency) ?? options[0], [options, currency]);
 
-  const qtyCfg = props.quantitySelector;
+  const lockedQtyProp = props.quantityLockedAt;
+  const qtyCfg = lockedQtyProp != null ? undefined : props.quantitySelector;
   const qtyMin = qtyCfg?.min ?? 1;
   const qtyMax = qtyCfg?.max ?? 999;
   const controlledQty = qtyCfg?.value;
   const [uncontrolledQty, setUncontrolledQty] = useState(1);
-  const qtyCommitted = Math.max(qtyMin, Math.min(qtyMax, controlledQty ?? uncontrolledQty));
+  const qtyCommitted =
+    lockedQtyProp != null
+      ? Math.max(1, Math.floor(lockedQtyProp))
+      : Math.max(qtyMin, Math.min(qtyMax, controlledQty ?? uncontrolledQty));
   /** While focused, allow typed digits including empty-before-commit */
   const [qtyEditDraft, setQtyEditDraft] = useState<string | null>(null);
 
@@ -173,6 +179,7 @@ export function GameItemCard(props: {
   const calculationBoxBody = props.pricingCalculationSummary?.(summaryCtx) ?? priceText;
 
   function setQty(next: number) {
+    if (lockedQtyProp != null) return;
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
     setQtyEditDraft(null);
     if (qtyCfg?.onChange) qtyCfg.onChange(clamped);
@@ -476,21 +483,23 @@ export function GameItemCard(props: {
           )
         ) : (
         <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
-          {hideQuantityLabel ? (
-            <div className={`w-full ${qtyCfg ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>
-          ) : quantityLabelLayout === 'stacked' ? (
-            <div className={`space-y-2 ${qtyCfg ? '' : 'opacity-60'}`}>
-              <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-500">
-                {props.quantityLabel ?? 'Quantity'}
-              </span>
-              {qtyStepperCompact()}
-            </div>
-          ) : (
-            <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
-              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
-              {qtyStepperCompact()}
-            </div>
-          )}
+          {lockedQtyProp == null ? (
+            hideQuantityLabel ? (
+              <div className={`w-full ${qtyCfg ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>
+            ) : quantityLabelLayout === 'stacked' ? (
+              <div className={`space-y-2 ${qtyCfg ? '' : 'opacity-60'}`}>
+                <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-500">
+                  {props.quantityLabel ?? 'Quantity'}
+                </span>
+                {qtyStepperCompact()}
+              </div>
+            ) : (
+              <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
+                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
+                {qtyStepperCompact()}
+              </div>
+            )
+          ) : null}
 
           <div className="flex flex-col gap-2">
             {pricingActionsLayout === 'stacked' ? (

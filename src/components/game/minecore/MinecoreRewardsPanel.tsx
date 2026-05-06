@@ -8,6 +8,8 @@ export function MinecoreRewardsPanel({
   address,
   diamondsBalance,
   refinementPointsTotal,
+  unifiedRedeemablePoints,
+  hubLedgerNetPoints,
   localLedger,
   onRefine,
   onRedeem,
@@ -18,6 +20,8 @@ export function MinecoreRewardsPanel({
   address: string | undefined;
   diamondsBalance: number;
   refinementPointsTotal: number;
+  unifiedRedeemablePoints?: number;
+  hubLedgerNetPoints?: number;
   localLedger: GridLedgerEntry[];
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
@@ -60,6 +64,8 @@ export function MinecoreRewardsPanel({
       <RewardsRedeemSection
         diamondsBalance={diamondsBalance}
         refinementPointsBalance={refinementPointsTotal}
+        unifiedRedeemablePoints={unifiedRedeemablePoints}
+        hubLedgerNetPoints={hubLedgerNetPoints}
         onRefine={onRefine}
         onRedeem={onRedeem}
         minecoreExtras={minecoreExtras}

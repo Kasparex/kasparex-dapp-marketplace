@@ -7,6 +7,8 @@ import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { useMinecore } from '@/hooks/useMinecore';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import {
@@ -80,6 +82,18 @@ export function MinecoreDashboard(_props: {
     profileNotice,
     dismissProfileNotice,
   } = useMinecore();
+  const redeemBreakdown = useRedeemablePointsBreakdown();
+  const redeemUnifiedMatches = useMemo(() => {
+    const w = wallet.address?.trim();
+    if (!w || !redeemBreakdown.address) return false;
+    try {
+      return normalizeKaspaAddress(w) === redeemBreakdown.address;
+    } catch {
+      const nw = w.startsWith('kaspa:') ? w : `kaspa:${w}`;
+      return nw.toLowerCase() === redeemBreakdown.address.toLowerCase();
+    }
+  }, [wallet.address, redeemBreakdown.address]);
+  const redeemPtsUi = redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : Math.floor(state.refinementPointsTotal);
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
   const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as keyof typeof KREX_TIER_SHOP_DISCOUNT_PCT] ?? 0;
@@ -209,14 +223,15 @@ export function MinecoreDashboard(_props: {
       {
         id: 'redeem_points',
         label: 'Redeem points',
-        value: Math.floor(state.refinementPointsTotal).toLocaleString(),
+        value: redeemPtsUi.toLocaleString(),
         subValue: (
           <>
-            ~ <span className="font-semibold tabular-nums">{Math.floor(state.refinementPointsTotal * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}</span> GRID total
+            ~ <span className="font-semibold tabular-nums">{Math.floor(redeemPtsUi * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}</span> GRID at rate
           </>
         ),
-        description: 'Redeemable points',
-        tooltip: 'Points from refining. Trade for GRID on Redeem (daily cap).',
+        description: 'Unified redeemable',
+        tooltip:
+          'Hub-wide total (Minecore refinement + hub ledger). Updates when you spend on /rewards. GRID/KREX on this game\'s Redeem tab uses Minecore refinement only; extra hub ledger pts are spent in the Rewards catalog.',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },
@@ -252,7 +267,7 @@ export function MinecoreDashboard(_props: {
       diamondsDisplayTotal,
       deckLiveYieldPerMin,
       deckRollingCaps.capSum,
-      state.refinementPointsTotal,
+      redeemPtsUi,
       krexL1Balance,
       krexTier,
       canPayWithL1,
@@ -743,6 +758,8 @@ export function MinecoreDashboard(_props: {
                 address={wallet.address ?? undefined}
                 diamondsBalance={diamondsDisplayTotal}
                 refinementPointsTotal={state.refinementPointsTotal}
+                unifiedRedeemablePoints={redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : undefined}
+                hubLedgerNetPoints={redeemUnifiedMatches ? redeemBreakdown.ledgerNetRedeemable : undefined}
                 localLedger={state.gridLedger ?? []}
                 onRefine={(amount) => {
                   actions.refine(amount);

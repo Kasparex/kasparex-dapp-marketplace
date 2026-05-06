@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
 import { migrateLegacyCatalogRedemptionsOnce, sumLedgerRedeemableNet } from '@/lib/rewards/hub-ledger';
+import { MINECORE_EXTERNAL_PERSIST_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
 
 function normAddr(a: string): string {
   try {
@@ -45,10 +46,12 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
     }
     if (typeof window === 'undefined') return;
     window.addEventListener('kasparex-hub-ledger', bump);
+    window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bump);
     window.addEventListener('focus', bump);
     const id = window.setInterval(bump, 5000);
     return () => {
       window.removeEventListener('kasparex-hub-ledger', bump);
+      window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bump);
       window.removeEventListener('focus', bump);
       window.clearInterval(id);
     };

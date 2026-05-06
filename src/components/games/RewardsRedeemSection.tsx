@@ -32,6 +32,8 @@ export type MinecoreRedeemExtras = {
 export function RewardsRedeemSection({
   diamondsBalance,
   refinementPointsBalance,
+  unifiedRedeemablePoints,
+  hubLedgerNetPoints,
   onRefine,
   onRedeem,
   minecoreExtras,
@@ -40,7 +42,12 @@ export function RewardsRedeemSection({
   children,
 }: {
   diamondsBalance: number;
+  /** Minecore refinement pts — caps GRID/KREX redemption inputs below. */
   refinementPointsBalance: number;
+  /** When set with `minecoreExtras`, Balance shows unified hub total while inputs stay refinement-only. */
+  unifiedRedeemablePoints?: number;
+  /** Optional breakdown line for Minecore tab (hub ledger net redeemable). */
+  hubLedgerNetPoints?: number;
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
   /** When set (e.g. Minecore tab), shows pool + daily caps from shared config. */
@@ -200,11 +207,31 @@ export function RewardsRedeemSection({
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Redeem Points</h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Uses refinement points from the step above. Distribution follows published caps and pools.</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              GRID/KREX uses Minecore refinement points only (matches input cap). Spend hub-wide pts on{' '}
+              <span className="font-semibold text-zinc-600 dark:text-zinc-300">/rewards</span>.
+            </p>
           </div>
           <div className="text-right">
             <div className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">Balance</div>
-            <div className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">{refinementPointsBalance.toLocaleString()} P</div>
+            <div className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">
+              {(unifiedRedeemablePoints ?? refinementPointsBalance).toLocaleString()} P
+            </div>
+            {minecoreExtras && unifiedRedeemablePoints != null ? (
+              <p className="mt-1 max-w-[240px] text-right text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 sm:ml-auto">
+                Unified total · GRID/KREX max{' '}
+                <span className="font-semibold tabular-nums text-zinc-600 dark:text-zinc-300">
+                  {refinementPointsBalance.toLocaleString()}
+                </span>
+                {hubLedgerNetPoints != null && hubLedgerNetPoints !== 0 ? (
+                  <>
+                    {' '}
+                    · Hub ledger{' '}
+                    <span className="font-semibold tabular-nums">{hubLedgerNetPoints.toLocaleString()}</span>
+                  </>
+                ) : null}
+              </p>
+            ) : null}
           </div>
         </div>
 

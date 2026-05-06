@@ -79,6 +79,8 @@ export function RewardsSidebar() {
           <SidebarNavItem href="/rewards#rewards-l2-gate" label="Verify L2 wallet" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-filters" label="Filters & sort" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-catalog" label="Catalog" icon={sectionIcon} />
+          <SidebarNavItem href="/rewards#rewards-history" label="History" icon={sectionIcon} />
+          <SidebarNavItem href="/rewards#rewards-balances" label="Balances" icon={sectionIcon} />
         </nav>
       </SidebarSection>
     </UnifiedSidebar>

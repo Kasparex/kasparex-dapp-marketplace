@@ -14,6 +14,8 @@ import {
   readHubLedgerEntries,
   writeHubLedgerEntries,
 } from './hub-ledger-storage';
+import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
+import { deductMinecoreRefinementPointsPersisted } from '@/lib/game/minecore/deduct-refinement-hub';
 
 /** Client-only: dispatch after mutating persisted hub ledger */
 export function broadcastHubLedgerChanged() {
@@ -71,7 +73,53 @@ export function appendHubLedgerEarn(args: {
 }
 
 export { migrateLegacyCatalogRedemptionsOnce };
-/** Record catalog redemption as spend (negative redeemable; does not reduce leaderboard by default). */
+
+/**
+ * Unified catalog redemption: consumes Minecore refinement points first (persisted save), then the remainder
+ * as negative hub-ledger redeemable so `minecoreRefinement + ledgerNet` drops by `costPoints` exactly once.
+ */
+export function recordUnifiedCatalogRedeem(args: {
+  walletKaspaL1: string;
+  seasonId: SeasonId;
+  costPoints: number;
+  catalogItemId: string;
+  quantity: number;
+}): HubLedgerEntry {
+  const walletLedger = (args.walletKaspaL1 ?? '').trim().toLowerCase();
+  const walletMinecore = (args.walletKaspaL1 ?? '').trim();
+  const cost = Math.max(0, Math.floor(args.costPoints));
+  const minecoreBefore = readMinecoreRefinementPointsTotal(walletMinecore);
+  const minecorePlan = Math.min(cost, minecoreBefore);
+  const minecoreApplied = deductMinecoreRefinementPointsPersisted(walletMinecore, minecorePlan);
+  const ledgerPortion = cost - minecoreApplied;
+
+  const id = `redeem:${walletLedger}:${args.catalogItemId}:${args.quantity}:${Date.now()}`;
+  const entry: HubLedgerEntry = {
+    id,
+    atMs: Date.now(),
+    walletL1: walletLedger,
+    seasonId: args.seasonId,
+    kind: 'redeem_spend',
+    source: 'rewards_catalog',
+    redeemableDelta: -ledgerPortion,
+    leaderboardWeight: 0,
+    meta: {
+      catalogItemId: args.catalogItemId,
+      quantity: args.quantity,
+      fullCostPoints: cost,
+      minecoreRefinementDeducted: minecoreApplied,
+      ledgerRedeemableDeducted: ledgerPortion,
+    },
+  };
+  const all = readHubLedgerEntries(walletLedger);
+  const next = [entry, ...all].slice(0, 2000);
+  writeHubLedgerEntries(walletLedger, next);
+  migrateLegacyCatalogRedemptionsOnce(walletLedger);
+  broadcastHubLedgerChanged();
+  return entry;
+}
+
+/** @deprecated Prefer {@link recordUnifiedCatalogRedeem} so Minecore refinement stays in sync. */
 export function appendHubLedgerRedeemSpend(args: {
   walletL1: string;
   seasonId: SeasonId;
