@@ -55,7 +55,7 @@ export function HeaderRewardsPointsLink() {
   const tip =
     addr && lines.length > 0
       ? `Redeemable ${totalRedeemable.toLocaleString()} · ${lines.map((l) => `${l.label}: ${l.points.toLocaleString()}`).join(' · ')}`
-      : 'Connect L1 to track redeemable Hub points (Minecore refinement + hub activity).';
+      : 'Connect Kaspa to track redeemable points across Kasparex Hub.';
 
   return (
     <div className="flex items-center gap-2 flex-shrink-0 sm:gap-3">
@@ -72,7 +72,11 @@ export function HeaderRewardsPointsLink() {
         onClick={acknowledge}
         className="relative p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
         aria-label="Rewards"
-        title={addr ? `${totalRedeemable.toLocaleString()} redeemable pts · Minecore ${minecoreRefinement.toLocaleString()} · Hub activity ${ledgerNetRedeemable.toLocaleString()}` : 'Rewards'}
+        title={
+          addr
+            ? `${totalRedeemable.toLocaleString()} redeemable points · Gameplay ${minecoreRefinement.toLocaleString()} · Rewards wallet ${ledgerNetRedeemable.toLocaleString()}`
+            : 'Rewards'
+        }
       >
         <svg
           className="h-5 w-5 text-zinc-600 dark:text-zinc-400"

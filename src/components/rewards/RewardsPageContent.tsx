@@ -58,8 +58,8 @@ function rewardsHubTabFromHash(hash: string): RewardsHubTab | null {
 }
 
 function fulfillmentLabel(f: RewardFulfillment): string {
-  if (f === 'local_mvp') return 'Local MVP';
-  if (f === 'l2_contract') return 'L2 routed';
+  if (f === 'local_mvp') return 'Hub delivery';
+  if (f === 'l2_contract') return 'Verified wallet delivery';
   return 'Coming soon';
 }
 
@@ -76,29 +76,21 @@ function poolCapSpecifications(sym: 'GRID' | 'KREX', kaspaAddr: string): GameIte
   if (!h) {
     return [
       {
-        label: 'Pool & caps',
+        label: 'Pool',
         value: 'Connect wallet',
         color: 'zinc',
-        specTooltip: 'Wallet-scoped Minecore file supplies daily headroom and shared pool display constants.',
+        specTooltip: 'Connect the same Kaspa wallet you use across Kasparex Hub to see pool info for this offer.',
       },
     ];
   }
   const poolRem = sym === 'GRID' ? h.poolGridRemaining : h.poolKrexRemaining;
-  const dailyRem = sym === 'GRID' ? h.gridDailyRemainingPts : h.krexDailyRemainingPts;
-  const dailyCap = sym === 'GRID' ? h.gridDailyCap : h.krexDailyCap;
   return [
     {
-      label: 'Pool (display)',
-      value: `${poolRem.toLocaleString()} ${sym}`,
+      label: 'Pool',
+      value: `About ${poolRem.toLocaleString()} ${sym} left`,
       color: 'sky',
       specTooltip:
-        'Same display-only pool remaining model as Minecore redeem; authoritative balances arrive with server-backed pools.',
-    },
-    {
-      label: 'Daily redeem budget',
-      value: `${dailyRem.toLocaleString()} / ${dailyCap.toLocaleString()} pts`,
-      color: 'amber',
-      specTooltip: `Refinement pts you can still route toward ${sym} today before hitting the Minecore daily cap (UTC day).`,
+        'Rough estimate of how much is left in the shared reward pool for this token on Kasparex Hub. Live totals will tighten up as partner rails go fully online.',
     },
   ];
 }
@@ -106,15 +98,15 @@ function poolCapSpecifications(sym: 'GRID' | 'KREX', kaspaAddr: string): GameIte
 function nonPoolSpecifications(item: UnifiedRewardItem): GameItemEffectLine[] {
   return [
     {
-      label: 'Fulfillment',
+      label: 'Delivery',
       value: fulfillmentLabel(item.fulfillment),
       color: item.fulfillment === 'l2_contract' ? 'sky' : item.fulfillment === 'coming_soon' ? 'zinc' : 'emerald',
       specTooltip:
         item.fulfillment === 'local_mvp'
-          ? 'Redemption is recorded locally on this device first (MVP). No EVM signature required unless the offer says otherwise.'
+          ? 'We confirm your redemption here first and guide any extra steps on the offer itself.'
           : item.fulfillment === 'l2_contract'
-            ? 'This path targets your verified EVM wallet on IGRA Mainnet when the on-chain route is active.'
-            : 'This row is preview-only until partner plumbing ships.',
+            ? 'Uses your verified Layer 2 wallet when partner delivery is turned on for this offer.'
+            : 'Not available yet — check back as partners open this reward.',
     },
     ...(item.effects ?? []),
   ];
@@ -169,35 +161,35 @@ export function RewardsPageContent() {
     async (item: UnifiedRewardItem, quantityFromCard: number) => {
       setNote(null);
       if (!kaspaAddr) {
-        setNote('Connect Kaspa L1 wallet to redeem with your unified balance.');
+        setNote('Connect your Kaspa wallet in the header to redeem with your hub-wide balance.');
         return;
       }
       if (item.fulfillment === 'coming_soon') {
-        setNote('This catalog item is staged for upcoming partner routes.');
+        setNote('This offer opens soon — partners are still wiring delivery.');
         return;
       }
 
       if (isTokenPoolClaimItem(item) && item.tokenPoolRate) {
         const pointsSpend = Math.max(0, Math.floor(quantityFromCard));
         if (pointsSpend < 1) {
-          setNote('Enter at least 1 pt to claim.');
+          setNote('Use at least 1 point to claim from this pool.');
           return;
         }
         if (breakdown.totalRedeemable < pointsSpend) {
-          setNote(`Need ${pointsSpend.toLocaleString()} redeemable pts. Earn more from Minecore or Hub activity.`);
+          setNote(`You need ${pointsSpend.toLocaleString()} redeemable points. Earn more by playing hub experiences and joining hub programs.`);
           return;
         }
         if (rewardsItemRequiresL2Gate(item.fulfillment)) {
           if (!evmConnected || !evmAddr) {
-            setNote('Connect your EVM wallet in the L2 gate, then switch to IGRA Mainnet.');
+            setNote('Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.');
             return;
           }
           if (!igraReady) {
-            setNote('Switch your EVM wallet to IGRA Mainnet in the L2 gate.');
+            setNote('Switch your EVM wallet to IGRA Mainnet using the controls below.');
             return;
           }
           if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
-            setNote('Tap Sign to verify in the L2 gate before token pool redemptions.');
+            setNote('Sign once in the verification strip below before claiming token pools.');
             return;
           }
         }
@@ -211,7 +203,7 @@ export function RewardsPageContent() {
         });
 
         const l2Extras = rewardsItemRequiresL2Gate(item.fulfillment)
-          ? ` ${describeL2RedemptionAvailability()} Local ledger captures this intent.`
+          ? ` ${describeL2RedemptionAvailability()} Saved to your Rewards activity on this device.`
           : '';
 
         try {
@@ -233,7 +225,7 @@ export function RewardsPageContent() {
         }
 
         setNote(
-          `${item.title}: ${pointsSpend.toLocaleString()} pts → ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} (logged locally).${l2Extras}`,
+          `${item.title}: ${pointsSpend.toLocaleString()} points → about ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol}. Confirmation saved on this device.${l2Extras}`,
         );
         return;
       }
@@ -242,21 +234,21 @@ export function RewardsPageContent() {
       const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(quantityFromCard)));
       const cost = unit * q;
       if (breakdown.totalRedeemable < cost) {
-        setNote(`Need ${cost.toLocaleString()} redeemable pts. Earn more from Minecore or Hub activity.`);
+        setNote(`You need ${cost.toLocaleString()} redeemable points. Earn more by playing hub experiences and joining hub programs.`);
         return;
       }
 
       if (rewardsItemRequiresL2Gate(item.fulfillment)) {
         if (!evmConnected || !evmAddr) {
-          setNote('Connect your EVM wallet in the L2 gate, then switch to IGRA Mainnet.');
+          setNote('Connect your EVM wallet using the verification strip below, then choose IGRA Mainnet.');
           return;
         }
         if (!igraReady) {
-          setNote('Switch your EVM wallet to IGRA Mainnet in the L2 gate.');
+          setNote('Switch your EVM wallet to IGRA Mainnet using the controls below.');
           return;
         }
         if (!readRewardsL2SessionVerified(CHAIN_IDS.IGRA_MAINNET, evmAddr)) {
-          setNote('Tap Sign to verify in the L2 gate before token pool redemptions.');
+          setNote('Sign once in the verification strip below before claiming token pools.');
           return;
         }
       }
@@ -270,7 +262,7 @@ export function RewardsPageContent() {
       });
 
       const l2Extras = rewardsItemRequiresL2Gate(item.fulfillment)
-        ? ` ${describeL2RedemptionAvailability()} Local ledger captures this intent.`
+        ? ` ${describeL2RedemptionAvailability()} Saved to your Rewards activity on this device.`
         : '';
 
       try {
@@ -290,7 +282,7 @@ export function RewardsPageContent() {
         /* ignore */
       }
 
-      setNote(`${item.title} ×${q}: recorded locally (${cost.toLocaleString()} pts).${l2Extras}`);
+      setNote(`${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} points).${l2Extras}`);
     },
     [breakdown.totalRedeemable, igraReady, evmAddr, evmConnected, kaspaAddr, season.id],
   );
@@ -373,10 +365,10 @@ export function RewardsPageContent() {
                 minWidthClassName="min-w-[170px]"
               />
               <ChroniclesFilterDropdown
-                ariaLabel="Filter fulfillment"
+                ariaLabel="Filter delivery type"
                 value={fulfillmentFilter}
                 onChange={(v) => setFulfillmentFilter(v as FulfillmentFilter)}
-                allLabel="All fulfillment modes"
+                allLabel="All delivery types"
                 options={[
                   { value: 'local_mvp', label: fulfillmentLabel('local_mvp') },
                   { value: 'l2_contract', label: fulfillmentLabel('l2_contract') },
@@ -385,7 +377,7 @@ export function RewardsPageContent() {
                 minWidthClassName="min-w-[190px]"
               />
               <ChroniclesFilterDropdown
-                ariaLabel="Sort catalog"
+                ariaLabel="Sort offers"
                 value={sort}
                 onChange={(v) => setSort(v as SortKey)}
                 allLabel="Cost (asc)"
@@ -406,28 +398,28 @@ export function RewardsPageContent() {
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Offers</h2>
                 <Tooltip
                   content={gameTooltipRich(
-                    'Catalog',
+                    'Offers',
                     <>
-                      Filter and sort redeemable offers. Token pools convert pts using the rate shown on each card; fixed-price rows multiply pts per unit by quantity when quantity applies.
+                      Browse everything you can unlock with redeemable points. Pools turn points into tokens at the rate on each card; other offers use a fixed price per item when quantity applies.
                     </>,
                   )}
                 >
                   <button
                     type="button"
                     className="rounded-md p-1 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
-                    aria-label="About catalog"
+                    aria-label="About offers"
                   >
                     <Info className="h-5 w-5" aria-hidden />
                   </button>
                 </Tooltip>
               </div>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {filtered.length} item{filtered.length !== 1 ? 's' : ''} · spends consume Minecore refinement first, then hub ledger pts (same total as the halo counter).
+                {filtered.length} offer{filtered.length !== 1 ? 's' : ''} · one wallet-wide balance covers everything (matches the total above); spends draw from gameplay-linked points first, then your Rewards wallet.
               </p>
             </div>
 
             {filtered.length === 0 ? (
-              <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">No rewards match your filters.</div>
+              <div className="p-10 text-center text-zinc-500 dark:text-zinc-400">No offers match your filters.</div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((item) => {
@@ -497,15 +489,15 @@ export function RewardsPageContent() {
                               ? ({ pointsSpend }) => {
                                   const rate = item.tokenPoolRate!;
                                   const tok = Math.floor(pointsSpend * rate.tokensPerPoint);
-                                  return `${pointsSpend.toLocaleString()} pts → ${tok.toLocaleString()} ${rate.payoutSymbol}`;
+                                  return `${pointsSpend.toLocaleString()} points → about ${tok.toLocaleString()} ${rate.payoutSymbol}`;
                                 }
                               : fixedQty
                                 ? ({ pointsSpend, quantity: q }) =>
                                     q <= 1 || pointsSpend === unit * q
-                                      ? `${pointsSpend.toLocaleString()} pts`
-                                      : `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} pts`
+                                      ? `${pointsSpend.toLocaleString()} points`
+                                      : `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} points`
                                 : ({ quantity: q, pointsSpend }) =>
-                                    `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} pts`
+                                    `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} points`
                         }
                         buyLabel={buyLabel}
                         buyDisabled={buyDisabled}
@@ -528,7 +520,7 @@ export function RewardsPageContent() {
           <div>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">History</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Chronological hub ledger (earns and catalog spends). Matches the unified balance math shown in the halo header.
+              Newest activity first — points you earned and rewards you claimed across Kasparex Hub.
             </p>
           </div>
           <RewardsHistoryTable walletNorm={kaspaAddr.toLowerCase()} />
@@ -540,30 +532,29 @@ export function RewardsPageContent() {
           <div>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Balances</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Unified redeemable = Minecore refinement pts + hub ledger net (Chronicles and other earns, minus catalog spends). Catalog spends drain Minecore refinement first, then ledger remainder, so you cannot double-spend across Minecore and /rewards.
+              Your redeemable total adds two buckets: points tied to gameplay on your wallet, plus credits tracked in your Rewards wallet (earned minus spent). When you redeem here, gameplay-linked points are used first so your balance stays honest everywhere on the hub.
             </p>
           </div>
           {!kaspaAddr ? (
-            <p className="text-sm text-zinc-500">Connect Kaspa to preview split lines.</p>
+            <p className="text-sm text-zinc-500">Connect your Kaspa wallet to see the split.</p>
           ) : (
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-5 space-y-3">
               <div className="flex justify-between gap-4">
                 <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Total redeemable</span>
-                <span className="font-mono font-bold tabular-nums text-lg">{breakdown.totalRedeemable.toLocaleString()} pts</span>
+                <span className="font-mono font-bold tabular-nums text-lg">{breakdown.totalRedeemable.toLocaleString()} points</span>
               </div>
               <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 space-y-2">
                 {breakdown.lines.map((line) => (
                   <div key={line.id} className="flex justify-between gap-4 text-sm text-zinc-600 dark:text-zinc-400">
                     <span>{line.label}</span>
-                    <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()} pts</span>
+                    <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()} points</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
           <p className="text-xs text-zinc-500 dark:text-zinc-500 leading-relaxed">
-            Keeping Catalog / History / Balances as three tabs stays lightweight: everything reads the same local stores without extra network calls.
-            A fourth tab could host partner integrations or seasonal boosts later; avoid merging heavy dashboards here so the hub stays fast on mobile.
+            More ways to earn and redeem will appear here over time — seasonal boosts, partners, and new hub drops — without cluttering the main catalog.
           </p>
         </div>
       ) : null}

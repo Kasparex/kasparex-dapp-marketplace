@@ -2,15 +2,14 @@ import { isRewardsL2RedemptionEnabled } from '@/lib/rewards/feature-flags';
 import { getIgraRewardManagerAddress } from '@/lib/rewards/l2-contracts';
 
 /**
- * Explains RewardManager-linked fulfillment state. Keeps UX honest while user-facing redemption ABIs finalize.
+ * Short, user-facing note about delivery status for verified-wallet offers.
  */
 export function describeL2RedemptionAvailability(): string {
-  const addr = getIgraRewardManagerAddress();
   if (!isRewardsL2RedemptionEnabled()) {
-    return 'L2 payouts stay off until NEXT_PUBLIC_ENABLE_REWARDS_L2_REDEMPTION is enabled.';
+    return 'Automatic on-chain payout for this path is not enabled on this site yet.';
   }
-  if (!addr) {
-    return 'RewardManager address is not configured for this deployment. Kasparex logs your intent locally.';
+  if (!getIgraRewardManagerAddress()) {
+    return 'Partner delivery is still being configured; your redemption is recorded safely here.';
   }
-  return `Dry-run routing is active against ${addr.slice(0, 6)}...${addr.slice(-4)}. Ledger entries reserve your intent until an authorized caller can broadcast RewardManager actions.`;
+  return 'Your redemption is queued for partner delivery through the hub rewards route.';
 }

@@ -76,7 +76,7 @@ export function RewardsSidebar() {
       <SidebarSection title="On this page">
         <nav className="space-y-0.5">
           <SidebarNavItem href="/rewards#rewards-intro" label="Overview" icon={sectionIcon} />
-          <SidebarNavItem href="/rewards#rewards-l2-gate" label="Verify L2 wallet" icon={sectionIcon} />
+          <SidebarNavItem href="/rewards#rewards-l2-gate" label="Verify Layer 2 wallet" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-filters" label="Filters & sort" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-catalog" label="Catalog" icon={sectionIcon} />
           <SidebarNavItem href="/rewards#rewards-history" label="History" icon={sectionIcon} />

@@ -21,7 +21,7 @@ const INPUT =
   'h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors';
 
 export type MinecoreRedeemExtras = {
-  /** From `MinecoreState.redeemBudget` + pending totals for transparency. */
+  /** Budget window + pending totals for transparency (game redeem flows). */
   redeemBudgetDayKey?: string;
   refinementPointsSpentOnGrid?: number;
   refinementPointsSpentOnKrex?: number;
@@ -42,15 +42,15 @@ export function RewardsRedeemSection({
   children,
 }: {
   diamondsBalance: number;
-  /** Minecore refinement pts — caps GRID/KREX redemption inputs below. */
+  /** Points earned in this game — caps GRID/KREX swaps below. */
   refinementPointsBalance: number;
-  /** When set with `minecoreExtras`, Balance shows unified hub total while inputs stay refinement-only. */
+  /** When set with `minecoreExtras`, Balance shows full hub total while inputs stay game-only. */
   unifiedRedeemablePoints?: number;
-  /** Optional breakdown line for Minecore tab (hub ledger net redeemable). */
+  /** Optional Rewards-wallet credits shown beside game-only swaps. */
   hubLedgerNetPoints?: number;
   onRefine?: (amount: number) => void;
   onRedeem?: (points: number, token?: 'GRID' | 'KREX') => void;
-  /** When set (e.g. Minecore tab), shows pool + daily caps from shared config. */
+  /** When set (game redeem panel), shows exchange rates and pool estimates from hub policy. */
   minecoreExtras?: MinecoreRedeemExtras;
   /** Right side of the Diamond Refinement header row (e.g. prominent bulk mining CTA). */
   diamondRefinementHeaderTrailing?: ReactNode;
@@ -125,8 +125,7 @@ export function RewardsRedeemSection({
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Diamond Refinement</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {MINECORE_REFINE_POINTS_PER_DIAMOND} refinement point per diamond (before Worker / Refining module bonuses in
-              Minecore).
+              Each diamond adds {MINECORE_REFINE_POINTS_PER_DIAMOND} redeem point before crew bonuses apply.
             </p>
           </div>
           <div className="flex w-full flex-shrink-0 flex-col items-stretch gap-3 sm:w-auto sm:items-end sm:text-right">
@@ -173,7 +172,7 @@ export function RewardsRedeemSection({
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">You receive</span>
               <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                +{refineOutput.toLocaleString()} Points
+                +{refineOutput.toLocaleString()} points
               </span>
             </div>
             <button
@@ -189,7 +188,7 @@ export function RewardsRedeemSection({
             </button>
             {!walletConnected ? (
               <p className="mt-2 text-center text-[11px] text-amber-600 dark:text-amber-400">
-                Connect your Kaspa L1 wallet to refine (profile-bound).
+                Connect your Kaspa wallet to refine — same profile you use across the hub.
               </p>
             ) : null}
           </div>
@@ -208,25 +207,24 @@ export function RewardsRedeemSection({
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Redeem Points</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              GRID/KREX uses Minecore refinement points only (matches input cap). Spend hub-wide pts on{' '}
-              <span className="font-semibold text-zinc-600 dark:text-zinc-300">/rewards</span>.
+              Swap points earned in this experience for GRID or KREX. Spend any remaining hub balance on the main Rewards page.
             </p>
           </div>
           <div className="text-right">
             <div className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">Balance</div>
             <div className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">
-              {(unifiedRedeemablePoints ?? refinementPointsBalance).toLocaleString()} P
+              {(unifiedRedeemablePoints ?? refinementPointsBalance).toLocaleString()} points
             </div>
             {minecoreExtras && unifiedRedeemablePoints != null ? (
               <p className="mt-1 max-w-[240px] text-right text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 sm:ml-auto">
-                Unified total · GRID/KREX max{' '}
+                Hub total · swap uses game balance up to{' '}
                 <span className="font-semibold tabular-nums text-zinc-600 dark:text-zinc-300">
                   {refinementPointsBalance.toLocaleString()}
                 </span>
                 {hubLedgerNetPoints != null && hubLedgerNetPoints !== 0 ? (
                   <>
                     {' '}
-                    · Hub ledger{' '}
+                    · Rewards wallet credits{' '}
                     <span className="font-semibold tabular-nums">{hubLedgerNetPoints.toLocaleString()}</span>
                   </>
                 ) : null}
@@ -237,27 +235,27 @@ export function RewardsRedeemSection({
 
         {minecoreExtras ? (
           <div className="mb-4 grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs dark:border-zinc-700 dark:bg-zinc-800/50">
-            <div className="font-semibold text-zinc-700 dark:text-zinc-300">Minecore economics (visible rates)</div>
+            <div className="font-semibold text-zinc-700 dark:text-zinc-300">Exchange rates & pools</div>
             <div className="grid gap-1 font-mono tabular-nums text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
-              <span>1 Point → {MINECORE_GRID_PER_REFINEMENT_POINT} GRID</span>
-              <span>1 Point → {MINECORE_KREX_PER_REFINEMENT_POINT} KREX</span>
-              <span>Pool (display) GRID: {MINECORE_DISPLAY_POOL_GRID_REMAINING.toLocaleString()}</span>
-              <span>Pool (display) KREX: {MINECORE_DISPLAY_POOL_KREX_REMAINING.toLocaleString()}</span>
+              <span>1 point → {MINECORE_GRID_PER_REFINEMENT_POINT} GRID</span>
+              <span>1 point → {MINECORE_KREX_PER_REFINEMENT_POINT} KREX</span>
+              <span>GRID pool (estimate): {MINECORE_DISPLAY_POOL_GRID_REMAINING.toLocaleString()}</span>
+              <span>KREX pool (estimate): {MINECORE_DISPLAY_POOL_KREX_REMAINING.toLocaleString()}</span>
               {dailyRemaining ? (
                 <>
-                  <span>Daily cap GRID: {MINECORE_DAILY_GRID_POINTS_CAP.toLocaleString()} P · left {dailyRemaining.grid.toLocaleString()} P</span>
-                  <span>Daily cap KREX: {MINECORE_DAILY_KREX_POINTS_CAP.toLocaleString()} P · left {dailyRemaining.krex.toLocaleString()} P</span>
+                  <span>You can redeem up to {dailyRemaining.grid.toLocaleString()} more points toward GRID today.</span>
+                  <span>You can redeem up to {dailyRemaining.krex.toLocaleString()} more points toward KREX today.</span>
                 </>
               ) : null}
               {(minecoreExtras.gridRedeemablePending != null || minecoreExtras.krexRedeemablePending != null) && (
                 <>
-                  <span>Pending GRID claim: {(minecoreExtras.gridRedeemablePending ?? 0).toLocaleString()}</span>
-                  <span>Pending KREX claim: {(minecoreExtras.krexRedeemablePending ?? 0).toLocaleString()}</span>
+                  <span>GRID queued: {(minecoreExtras.gridRedeemablePending ?? 0).toLocaleString()}</span>
+                  <span>KREX queued: {(minecoreExtras.krexRedeemablePending ?? 0).toLocaleString()}</span>
                 </>
               )}
             </div>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-500">
-              Daily caps are enforced client-side in V1; on-chain distribution can replace this later.
+              Fair-use limits keep payouts balanced for everyone as live pools roll out.
             </p>
           </div>
         ) : null}
@@ -366,11 +364,11 @@ export function RewardsRedeemSection({
               {redeemPoints ? `Receive ${redeemOutput.toLocaleString()} ${targetToken}` : 'Redeem Points'}
             </button>
             <p className="mt-2 text-center text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              Rate: 1 Point = {targetToken === 'GRID' ? `${MINECORE_GRID_PER_REFINEMENT_POINT} GRID` : `${MINECORE_KREX_PER_REFINEMENT_POINT} KREX`}
+              Rate: 1 point = {targetToken === 'GRID' ? `${MINECORE_GRID_PER_REFINEMENT_POINT} GRID` : `${MINECORE_KREX_PER_REFINEMENT_POINT} KREX`}
             </p>
             {!walletConnected ? (
               <p className="mt-1 text-center text-[11px] text-amber-600 dark:text-amber-400">
-                Connect L1 wallet to redeem (same profile as mining).
+                Connect your Kaspa wallet to redeem (same hub profile as this game).
               </p>
             ) : null}
           </div>

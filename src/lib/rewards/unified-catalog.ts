@@ -12,7 +12,7 @@ export type RewardCatalogKind = 'token_pool' | 'perk' | 'badge' | 'coupon' | 'pa
 
 export type RewardFulfillment = 'l2_contract' | 'local_mvp' | 'coming_soon';
 
-/** Token pool: points spent × rate = payout preview (Minecore-aligned rates). */
+/** Token pool: points × published rate = payout preview (hub policy). */
 export type TokenPoolRate = {
   payoutSymbol: 'GRID' | 'KREX';
   /** Whole tokens credited per 1 redeemable point spent. */
@@ -42,7 +42,7 @@ export type UnifiedRewardItem = {
    * UI records locally regardless until real user-facing ABI exists.
    */
   fulfillmentNotes?: string;
-  /** Minecore-style blueprint rows under description. */
+  /** Optional extra detail rows beneath the description (effects chips). */
   effects?: Array<{ label: string; value: string }>;
   /** Set for `kind: 'token_pool'`: payout rate shown on cards and Claim CTA math. */
   tokenPoolRate?: TokenPoolRate;

@@ -30,7 +30,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
             href="#rewards-catalog"
             className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
           >
-            Browse catalog
+            Browse offers
           </a>
           <Link href="/leaderboard" className="k-control-btn">
             Leaderboard
@@ -41,7 +41,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
         <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-5 py-5 space-y-3 shadow-lg shadow-cyan-500/5">
           {!hasAddr ? (
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Connect your Kaspa wallet from the header to show Minecore refinement and Hub ledger balances tied to your address.
+              Connect your Kaspa wallet from the header to see all redeemable points tied to your hub profile.
             </p>
           ) : (
               <>
@@ -50,7 +50,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                   <Tooltip
                     content={gameTooltipRich(
                       'Redeemable balance',
-                      'Unified pts preview tied to your connected Kaspa address (Minecore + Hub ledger). Indexer-backed totals replace local previews when wiring lands.',
+                      'One hub-wide number for your Kaspa address: gameplay-linked points plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
                     )}
                   >
                     <button
@@ -62,8 +62,8 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                     </button>
                   </Tooltip>
                 </div>
-                <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()} pts</p>
-                <p className="text-[11px] text-zinc-500 mt-1">Totals are local previews until indexer-backed balances ship.</p>
+                <p className="text-4xl font-black tabular-nums text-zinc-900 dark:text-white">{breakdown.totalRedeemable.toLocaleString()} points</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Balance reflects this device for now; synced totals will follow.</p>
               <div className="space-y-1.5 pt-2">
                 {breakdown.lines.map((line) => (
                   <div key={line.id} className="flex justify-between gap-4 text-xs text-zinc-600 dark:text-zinc-400">

@@ -10,7 +10,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const L2_GATE_HELP_BODY =
-  'Token pool catalog items expect an EVM wallet on IGRA Mainnet. Connect, switch chain, then sign once to prove control. Local perks only need Kaspa L1.';
+  'Token pool offers need an Ethereum-style wallet on IGRA Mainnet. Connect it, switch networks, then sign once so we know it is yours. Other rewards only need your Kaspa wallet.';
 
 /** EVM readiness strip for Reward redemptions targeting IGRA Mainnet contracts. */
 export function RewardsL2Gate(props: {
@@ -52,12 +52,12 @@ export function RewardsL2Gate(props: {
   const inner = (
     <>
       <div className="flex items-center gap-2">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify L2 wallet</p>
-        <Tooltip content={gameTooltipRich('L2 verification', L2_GATE_HELP_BODY)}>
+        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify Layer 2 wallet</p>
+        <Tooltip content={gameTooltipRich('Wallet verification', L2_GATE_HELP_BODY)}>
           <button
             type="button"
             className="rounded-md p-1 text-zinc-500 hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
-            aria-label="About L2 verification"
+            aria-label="About wallet verification"
           >
             <Info className="w-4 h-4" aria-hidden />
           </button>

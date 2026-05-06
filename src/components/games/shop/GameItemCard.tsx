@@ -38,10 +38,10 @@ function formatGameItemPriceAmount(currency: GameItemCurrency, amount: number): 
   });
 }
 
-/** Display ticker: lowercase pts for redeemable points; other currencies unchanged. */
+/** Display ticker: readable label for redeemable points. */
 function formatCurrencyTicker(currency: GameItemCurrency): string {
   const s = String(currency);
-  return s === 'PTS' || s.toLowerCase() === 'pts' ? 'pts' : s;
+  return s === 'PTS' || s.toLowerCase() === 'pts' ? 'points' : s;
 }
 
 export function GameItemCard(props: {
@@ -85,7 +85,7 @@ export function GameItemCard(props: {
   hideQuantityLabel?: boolean;
   /** When set, hides the quantity stepper and uses this quantity for pricing / onBuy. */
   quantityLockedAt?: number;
-  /** Max button fills quantity to max (Minecore-style). */
+  /** Max button fills quantity to the affordable maximum (games hub pattern). */
   showQuantityMaxButton?: boolean;
   /** Primary CTA text; overrides `buyLabel` when set (eg token pool totals). */
   primaryActionLabelBuilder?: (ctx: {

@@ -58,8 +58,8 @@ export function MinecoreRewardsPanel({
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        <span className="font-semibold text-zinc-800 dark:text-zinc-200">1.</span> Refine diamonds → refinement points.&nbsp;
-        <span className="font-semibold text-zinc-800 dark:text-zinc-200">2.</span> Redeem points → GRID or KREX (within daily caps). Ledger below.
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">1.</span> Turn diamonds into redeem points.&nbsp;
+        <span className="font-semibold text-zinc-800 dark:text-zinc-200">2.</span> Swap points for GRID or KREX. Activity table below.
       </p>
       <RewardsRedeemSection
         diamondsBalance={diamondsBalance}
@@ -117,7 +117,7 @@ export function MinecoreRewardsPanel({
         ) : null}
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-500">
-        {remote?.length ? 'Showing server ledger when available.' : 'Showing device ledger until Minecore server sync is enabled.'}
+        {remote?.length ? 'Synced history when available.' : 'On-device history until cloud backup is enabled.'}
       </p>
       </RewardsRedeemSection>
     </div>

@@ -231,7 +231,7 @@ export function MinecoreDashboard(_props: {
         ),
         description: 'Unified redeemable',
         tooltip:
-          'Hub-wide total (Minecore refinement + hub ledger). Updates when you spend on /rewards. GRID/KREX on this game\'s Redeem tab uses Minecore refinement only; extra hub ledger pts are spent in the Rewards catalog.',
+          'Your full redeemable balance across Kasparex Hub (gameplay-linked points plus your Rewards wallet). It updates when you redeem on Rewards. GRID and KREX swaps on this page only use points earned in this game — use Rewards for the rest.',
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },

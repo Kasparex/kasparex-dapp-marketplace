@@ -24,16 +24,16 @@ export type RedeemableSourceLine = {
 
 export interface UseRedeemablePointsBreakdownResult {
   address: string;
-  /** Combined total for halo: Minecore refinement + hub ledger earns minus catalog spends (+ legacy migrated). */
+  /** Combined total shown in the halo: gameplay-linked points + Rewards wallet net (+ legacy migration once). */
   totalRedeemable: number;
   lines: RedeemableSourceLine[];
-  /** Total net redeemable from hub ledger (Chronicles earns, redeem rows, imports). */
+  /** Net redeemable tracked only in the Rewards wallet ledger. */
   ledgerNetRedeemable: number;
   minecoreRefinement: number;
 }
 
 /**
- * Local-first redeemable totals for Kaspa L1 identity. Mirrors unified hub ledger; Minecore refinement is read from persisted game state.
+ * Local-first redeemable totals for the connected Kaspa address. Matches Rewards wallet math; gameplay-linked points come from saved hub experiences on this device.
  */
 export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResult {
   const { state } = useKaspaWallet();
@@ -74,12 +74,12 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
     const lines: RedeemableSourceLine[] = [
       {
         id: 'minecore',
-        label: 'Minecore refinement',
+        label: 'Gameplay & experiences',
         points: minecoreRefinement,
       },
       {
         id: 'hub_ledger',
-        label: 'Hub activity (reads, NFT slots, other)',
+        label: 'Rewards wallet',
         points: ledgerNet,
       },
     ];
