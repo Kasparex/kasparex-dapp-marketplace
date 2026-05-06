@@ -1,7 +1,12 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { ContributorRole, ContributorShare, Magazine } from '@/lib/magazines/types';
+import {
+  ContributorRole,
+  ContributorShare,
+  Magazine,
+  MagazineIssue,
+} from '@/lib/magazines/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
