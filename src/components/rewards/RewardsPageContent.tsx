@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Info } from 'lucide-react';
 import { useAccount, useChainId } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
@@ -10,8 +9,6 @@ import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
 import { GameItemCard, type GameItemEffectLine } from '@/components/games/shop/GameItemCard';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import {
   UNIFIED_REWARD_CATALOG,
@@ -121,7 +118,7 @@ function nonPoolSpecifications(item: UnifiedRewardItem): GameItemEffectLine[] {
           ? 'We confirm your redemption here first and guide any extra steps on the offer itself.'
           : item.fulfillment === 'l2_contract'
             ? 'Uses your verified Layer 2 wallet when partner delivery is turned on for this offer.'
-            : 'Not available yet — check back as partners open this reward.',
+            : 'Not available yet. Check back as partners open this reward.',
     },
     ...(item.effects ?? []),
   ];
@@ -180,7 +177,7 @@ export function RewardsPageContent() {
         return;
       }
       if (item.fulfillment === 'coming_soon') {
-        setNote('This offer opens soon — partners are still wiring delivery.');
+        setNote('This offer opens soon: partners are still wiring delivery.');
         return;
       }
 
@@ -358,31 +355,6 @@ export function RewardsPageContent() {
       {hubTab === 'catalog' ? (
         <>
           <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Offers</h2>
-                <Tooltip
-                  content={gameTooltipRich(
-                    'Offers',
-                    <>
-                      Browse everything you can unlock with redeemable points. Pools turn points into tokens at the rate on each card; other offers use a fixed price per item when quantity applies.
-                    </>,
-                  )}
-                >
-                  <button
-                    type="button"
-                    className="rounded-md p-1 text-zinc-400 hover:bg-zinc-200/80 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
-                    aria-label="About offers"
-                  >
-                    <Info className="h-5 w-5" aria-hidden />
-                  </button>
-                </Tooltip>
-              </div>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {filtered.length} offer{filtered.length !== 1 ? 's' : ''} · one wallet-wide balance covers everything (matches the total above); spends draw from gameplay-linked points first, then your Rewards wallet.
-              </p>
-            </div>
-
             <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">
               <FilterBar
                 search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, perks, badges, pools…' }}
@@ -468,6 +440,9 @@ export function RewardsPageContent() {
                     ? poolCapSpecifications(item.tokenPoolRate!.payoutSymbol, kaspaAddr)
                     : nonPoolSpecifications(item);
 
+                  const qtyCtl =
+                    !buyDisabled && (poolClaim || !fixedQty);
+
                   return (
                     <div key={item.id} data-reward-kind={item.kind}>
                       <GameItemCard
@@ -489,12 +464,14 @@ export function RewardsPageContent() {
                         ]}
                         defaultCurrency="pts"
                         quantitySelector={
-                          fixedQty ? undefined : { min: poolClaim ? 1 : item.minQty, max: Math.max(poolClaim ? 1 : item.minQty, maxAffordableQty) }
+                          poolClaim
+                            ? { min: 1, max: Math.max(1, maxAffordableQty) }
+                            : { min: item.minQty, max: Math.max(item.minQty, maxAffordableQty) }
                         }
-                        quantityLockedAt={fixedQty ? item.minQty : undefined}
+                        quantityControlsInteractive={qtyCtl}
                         hideQuantityLabel
                         pricingActionsLayout="stacked"
-                        showQuantityMaxButton={!fixedQty}
+                        showQuantityMaxButton
                         pricingCalculationSummary={
                           item.fulfillment === 'coming_soon'
                             ? undefined
@@ -530,36 +507,18 @@ export function RewardsPageContent() {
 
       {hubTab === 'points' ? (
         <div id="rewards-points" className="scroll-mt-24 space-y-4">
-          <div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Points</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Leaderboard scoring rules — module reads and NFT slot tables used for seasonal scores.
-            </p>
-          </div>
           <PointsTables />
         </div>
       ) : null}
 
       {hubTab === 'history' ? (
         <div id="rewards-history" className="scroll-mt-24 space-y-3">
-          <div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">History</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Newest activity first — points you earned and rewards you claimed across Kasparex Hub.
-            </p>
-          </div>
           <RewardsHistoryTable walletNorm={kaspaAddr.toLowerCase()} />
         </div>
       ) : null}
 
       {hubTab === 'balances' ? (
         <div id="rewards-balances" className="scroll-mt-24 space-y-4 max-w-2xl">
-          <div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Balances</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Your redeemable total adds two buckets: points tied to gameplay on your wallet, plus credits tracked in your Rewards wallet (earned minus spent). When you redeem here, gameplay-linked points are used first so your balance stays honest everywhere on the hub.
-            </p>
-          </div>
           {!kaspaAddr ? (
             <p className="text-sm text-zinc-500">Connect your Kaspa wallet to see the split.</p>
           ) : (
@@ -579,7 +538,7 @@ export function RewardsPageContent() {
             </div>
           )}
           <p className="text-xs text-zinc-500 dark:text-zinc-500 leading-relaxed">
-            More ways to earn and redeem will appear here over time — seasonal boosts, partners, and new hub drops — without cluttering the main catalog.
+            More ways to earn and redeem will appear here over time (seasonal boosts, partners, and new hub drops) without cluttering the main catalog.
           </p>
         </div>
       ) : null}

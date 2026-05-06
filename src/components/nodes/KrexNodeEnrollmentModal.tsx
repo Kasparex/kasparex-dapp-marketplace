@@ -7,6 +7,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 type ChallengeResponse = { message: string; challengeToken: string; error?: string };
 type VerifyResponse = { ok: boolean; enrollmentToken?: string; wallet?: string; verifyPayload?: string; error?: string };
@@ -454,6 +456,13 @@ export function KrexNodeEnrollmentModal(props: {
       });
       if (!r?.ok || !r.node_id || !r.node_secret) throw new Error(r?.error || 'Enrollment failed');
       setEnrollResult(r);
+      appendHubActivityEarn({
+        walletRaw: kaspa.address,
+        source: 'krex_node_operator',
+        redeemableDelta: HUB_EARN_POINTS.krexNodeEnrollmentOnce,
+        idempotencyKey: `krex_node:enroll:${r.node_id}`,
+        meta: { node_id: r.node_id },
+      });
       setStep('done');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');

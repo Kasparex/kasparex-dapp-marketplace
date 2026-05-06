@@ -35,6 +35,8 @@ import {
 } from '@/lib/vblog/payloadHex';
 import { getRestTransactionById } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 /**
  * Hook for managing vBlog data
@@ -206,6 +208,14 @@ export function useVBlog() {
     });
     if (!bundle.verified) {
       console.warn('Article created with pending verification:', bundle.lastError);
+    } else if (bundle.commitTxHash && articleData.author) {
+      appendHubActivityEarn({
+        walletRaw: articleData.author,
+        source: 'vblog_article_create',
+        redeemableDelta: HUB_EARN_POINTS.vblogArticleCreate,
+        idempotencyKey: `vba:create:${bundle.commitTxHash}`,
+        meta: { articleId, contentHash },
+      });
     }
     loadArticles(); // Reload articles
     return newArticle;
@@ -301,9 +311,18 @@ export function useVBlog() {
         totalKas: quote.totalKas,
       },
     });
+    if (bundle.verified && bundle.commitTxHash) {
+      appendHubActivityEarn({
+        walletRaw: canonicalAuthor,
+        source: 'vblog_article_update',
+        redeemableDelta: HUB_EARN_POINTS.vblogArticleUpdate,
+        idempotencyKey: `vba:update:${bundle.commitTxHash}`,
+        meta: { articleId: chainArticleId, contentHash },
+      });
+    }
     loadArticles(); // Reload articles
     return updated;
-  }, [loadArticles, pricing, sendVBlogTxBundle]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address]);
 
   /**
    * Get comments for an article

@@ -16,6 +16,8 @@ export interface MagazineIssue {
     coverImage: string;
     previewImages: string[];
     cid: string; // CID of the full content (PDF or modular content)
+    /** Optional Kaspa L1 tx that bound this issue CID on-chain after IPFS publish. */
+    bindingTxHash?: string;
     contributors: ContributorShare[];
     status: 'draft' | 'published';
     tags: string[];

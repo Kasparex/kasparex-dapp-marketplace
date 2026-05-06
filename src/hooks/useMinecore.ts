@@ -42,6 +42,9 @@ import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import {
   sumListKasForBatterySlotRecharge,
   sumListKasForPlantBatteryRefill,
@@ -366,6 +369,15 @@ export function useMinecore() {
         sessionId: pay.sessionId,
       }).catch(() => {});
 
+      const txNorm = extractKaspaTransactionId(pay.txHash) ?? pay.txHash;
+      appendHubActivityEarn({
+        walletRaw: walletState.address,
+        source: 'dapp_l1_interaction',
+        redeemableDelta: HUB_EARN_POINTS.dappL1Interaction,
+        idempotencyKey: `l1:minecore:${params.skuId}:${params.purchaseType}:${txNorm}`,
+        meta: { skuId: params.skuId, purchaseType: params.purchaseType },
+      });
+
       return { ok: true as const, txHash: pay.txHash };
     },
     [walletState.isConnected, walletState.provider, walletState.address]
@@ -428,6 +440,15 @@ export function useMinecore() {
           txHash,
           network: 'L1',
         }).catch(() => {});
+
+        const txNorm = extractKaspaTransactionId(txHash) ?? txHash;
+        appendHubActivityEarn({
+          walletRaw: walletState.address,
+          source: 'dapp_l1_interaction',
+          redeemableDelta: HUB_EARN_POINTS.dappL1Interaction,
+          idempotencyKey: `l1:minecore:krex:${meta.skuId}:${txNorm}`,
+          meta: { skuId: meta.skuId, purchaseType: meta.recordActionType },
+        });
 
         try {
           window.dispatchEvent(

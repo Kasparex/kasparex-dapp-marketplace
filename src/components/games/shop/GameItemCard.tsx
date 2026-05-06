@@ -87,6 +87,11 @@ export function GameItemCard(props: {
   hideQuantityLabel?: boolean;
   /** When set, hides the quantity stepper and uses this quantity for pricing / onBuy. */
   quantityLockedAt?: number;
+  /**
+   * When false, +/- / typed amount / Max stay visible when `quantitySelector` is set but are inactive (e.g. fixed-qty Rewards offers).
+   * @default true
+   */
+  quantityControlsInteractive?: boolean;
   /** Max button fills quantity to the affordable maximum (games hub pattern). */
   showQuantityMaxButton?: boolean;
   /** Primary CTA text; overrides `buyLabel` when set (eg token pool totals). */
@@ -138,6 +143,7 @@ export function GameItemCard(props: {
   const selected = useMemo(() => options.find((o) => o.currency === currency) ?? options[0], [options, currency]);
 
   const lockedQtyProp = props.quantityLockedAt;
+  const qtyCtlInteractive = props.quantityControlsInteractive !== false;
   const qtyCfg = lockedQtyProp != null ? undefined : props.quantitySelector;
   const qtyMin = qtyCfg?.min ?? 1;
   const qtyMax = qtyCfg?.max ?? 999;
@@ -182,7 +188,7 @@ export function GameItemCard(props: {
   const calculationBoxBody = props.pricingCalculationSummary?.(summaryCtx) ?? priceText;
 
   function setQty(next: number) {
-    if (lockedQtyProp != null) return;
+    if (lockedQtyProp != null || !qtyCtlInteractive) return;
     const clamped = Math.max(qtyMin, Math.min(qtyMax, next));
     setQtyEditDraft(null);
     if (qtyCfg?.onChange) qtyCfg.onChange(clamped);
@@ -190,6 +196,10 @@ export function GameItemCard(props: {
   }
 
   function commitDraftAndBlur() {
+    if (!qtyCtlInteractive) {
+      setQtyEditDraft(null);
+      return;
+    }
     const raw = qtyEditDraft;
     setQtyEditDraft(null);
     if (raw === null) return;
@@ -283,13 +293,14 @@ export function GameItemCard(props: {
     'k-control-btn flex min-h-[2.5rem] w-full flex-col items-center justify-center gap-0.5 px-4 py-2 text-center text-sm font-bold tabular-nums text-zinc-900 dark:text-zinc-100';
 
   function qtyStepperCompact() {
+    const stepDisabled = !qtyCfg || !qtyCtlInteractive;
     return (
       <div className="flex items-center gap-2">
         <button
           type="button"
           className="k-control-icon-btn h-9 w-9"
           onClick={() => setQty(qtyCommitted - 1)}
-          disabled={!qtyCfg || qtyCommitted <= qtyMin}
+          disabled={stepDisabled || qtyCommitted <= qtyMin}
         >
           −
         </button>
@@ -300,7 +311,7 @@ export function GameItemCard(props: {
           autoComplete="off"
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
-          disabled={!qtyCfg}
+          disabled={stepDisabled}
           className="min-w-[3.5rem] max-w-[6rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
@@ -321,7 +332,7 @@ export function GameItemCard(props: {
           type="button"
           className="k-control-icon-btn h-9 w-9"
           onClick={() => setQty(qtyCommitted + 1)}
-          disabled={!qtyCfg || qtyCommitted >= qtyMax}
+          disabled={stepDisabled || qtyCommitted >= qtyMax}
         >
           +
         </button>
@@ -329,7 +340,7 @@ export function GameItemCard(props: {
           <button
             type="button"
             className="h-9 shrink-0 rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
-            disabled={!qtyCfg || qtyMax <= qtyMin}
+            disabled={stepDisabled || qtyMax <= qtyMin}
             onClick={() => setQty(qtyMax)}
           >
             Max
@@ -340,13 +351,14 @@ export function GameItemCard(props: {
   }
 
   function qtyStepperFullWidth() {
+    const stepDisabled = !qtyCfg || !qtyCtlInteractive;
     return (
       <div className="flex w-full items-stretch gap-2">
         <button
           type="button"
           className="k-control-icon-btn h-10 w-10 shrink-0"
           onClick={() => setQty(qtyCommitted - 1)}
-          disabled={!qtyCfg || qtyCommitted <= qtyMin}
+          disabled={stepDisabled || qtyCommitted <= qtyMin}
         >
           −
         </button>
@@ -357,7 +369,7 @@ export function GameItemCard(props: {
           autoComplete="off"
           aria-label={`${qtyAriaLabel} (type custom amount)`}
           title="Type amount or use +/−"
-          disabled={!qtyCfg}
+          disabled={stepDisabled}
           className="h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
           value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
           onFocus={() => {
@@ -378,7 +390,7 @@ export function GameItemCard(props: {
           type="button"
           className="k-control-icon-btn h-10 w-10 shrink-0"
           onClick={() => setQty(qtyCommitted + 1)}
-          disabled={!qtyCfg || qtyCommitted >= qtyMax}
+          disabled={stepDisabled || qtyCommitted >= qtyMax}
         >
           +
         </button>
@@ -386,7 +398,7 @@ export function GameItemCard(props: {
           <button
             type="button"
             className="h-10 min-w-0 flex-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
-            disabled={!qtyCfg || qtyMax <= qtyMin}
+            disabled={stepDisabled || qtyMax <= qtyMin}
             onClick={() => setQty(qtyMax)}
           >
             Max
@@ -488,16 +500,16 @@ export function GameItemCard(props: {
         <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
           {lockedQtyProp == null ? (
             hideQuantityLabel ? (
-              <div className={`w-full ${qtyCfg ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>
+              <div className={`w-full ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>
             ) : quantityLabelLayout === 'stacked' ? (
-              <div className={`space-y-2 ${qtyCfg ? '' : 'opacity-60'}`}>
+              <div className={`space-y-2 ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>
                 <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-500">
                   {props.quantityLabel ?? 'Quantity'}
                 </span>
                 {qtyStepperCompact()}
               </div>
             ) : (
-              <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
+              <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>
                 <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
                 {qtyStepperCompact()}
               </div>

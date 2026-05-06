@@ -19,6 +19,9 @@ import { NODES_DASH_CARD, NODES_TAB_STACK } from './nodesTabLayout';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { fetchNodeEpochReward } from '@/lib/nodes/operatorApi';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
 import nodeRewardTiers from '@/config/node-reward-tiers.json';
@@ -153,6 +156,35 @@ export function NodesDashboardContent() {
     }),
     [nodeInfo, operator?.gridEarnedToday]
   );
+
+  useEffect(() => {
+    const addr = kaspa.address?.trim();
+    if (!addr || !operator?.myNodes?.length) return;
+    const epoch = new Date().toISOString().slice(0, 10);
+    let cancelled = false;
+    void (async () => {
+      for (const n of operator.myNodes) {
+        if (cancelled) break;
+        try {
+          const r = await fetchNodeEpochReward(n.node_id, epoch);
+          const fg = Number(r.final_grid ?? 0) || 0;
+          if (fg <= 0) continue;
+          appendHubActivityEarn({
+            walletRaw: addr,
+            source: 'krex_node_operator',
+            redeemableDelta: HUB_EARN_POINTS.krexNodeOperatorDaily,
+            idempotencyKey: `krex_node:epoch:${n.node_id}:${epoch}`,
+            meta: { final_grid: fg, node_id: n.node_id },
+          });
+        } catch {
+          /* ignore single node */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [kaspa.address, operator?.myNodes, operator?.gridEarnedToday]);
 
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';

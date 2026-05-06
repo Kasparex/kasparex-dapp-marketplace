@@ -23,6 +23,10 @@ import { ImageUpload } from '@/components/ui/ImageUpload';
 import { DONATION_CATEGORIES, isDonationCategory, normalizeTags } from '@/lib/donations/categories';
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
+import { waitForTransactionReceipt } from 'wagmi/actions';
+import { config as wagmiChainConfig } from '@/lib/wagmi';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -155,7 +159,7 @@ export default function DonationsStudioPage() {
   const campaign = parseCampaignTuple(campaignOnChain);
   const hasCampaign = campaign !== null;
 
-  const { writeContract, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
+  const { writeContract, writeContractAsync, data: txHash, isPending: isTxPending, error: txError } = useWriteContract();
   const { isLoading: isTxConfirming, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({ hash: txHash });
   const isVerifyPending = isTxPending || isTxConfirming;
   const isCreatePending = isTxPending || isTxConfirming;
@@ -331,12 +335,22 @@ export default function DonationsStudioPage() {
       const method = 0 as const;
       const l1Address = '';
 
-      writeContract({
+      const hash = await writeContractAsync({
         address: writeEscrowV2Address as Address,
         abi: DONATION_ESCROW_V2_ABI,
         functionName: 'createCampaign',
         args: [method, ipfsHash, targetWei, deadline, l1Address],
       });
+      const receipt = await waitForTransactionReceipt(wagmiChainConfig, { hash });
+      if (receipt.status === 'success' && kaspaState.address?.trim()) {
+        appendHubActivityEarn({
+          walletRaw: kaspaState.address,
+          source: 'crowdkas_campaign_create',
+          redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+          idempotencyKey: `crowdkas:create:v2:${hash}`,
+          meta: { escrow: 'v2' },
+        });
+      }
     } catch (e) {
       setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
     } finally {
@@ -383,12 +397,22 @@ export default function DonationsStudioPage() {
       const targetWei = parseEther(createForm.targetKAS);
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
       const l1Address = createForm.l1KaspaAddress.trim();
-      writeContract({
+      const hash = await writeContractAsync({
         address: writeEscrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
         functionName: 'createCampaign',
         args: [ipfsHash, targetWei, deadline, l1Address],
       });
+      const receipt = await waitForTransactionReceipt(wagmiChainConfig, { hash });
+      if (receipt.status === 'success') {
+        appendHubActivityEarn({
+          walletRaw: l1Address,
+          source: 'crowdkas_campaign_create',
+          redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+          idempotencyKey: `crowdkas:create:v1:${hash}`,
+          meta: { escrow: 'v1' },
+        });
+      }
     } catch (e) {
       setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
     } finally {

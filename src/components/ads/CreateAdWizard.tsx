@@ -25,6 +25,8 @@ import { getIPFSClient } from '@/lib/ipfs/client';
 import { useAdsRegistryContext } from '@/components/ads/AdsRegistryProvider';
 import { countActiveForSlot, filterActiveAdsForSlot } from '@/lib/ads/registryUtils';
 import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 function ModalSectionTitle({
   children,
@@ -355,6 +357,14 @@ export function CreateAdWizard({
       const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
+
+      appendHubActivityEarn({
+        walletRaw: payerL1,
+        source: 'hub_ad_placement',
+        redeemableDelta: HUB_EARN_POINTS.hubAdPlacement,
+        idempotencyKey: `ads:bind:${hash}`,
+        meta: { slotId, slotIndex },
+      });
 
       // Wallet work is done - show success immediately. Verification hits public REST (often lags after broadcast).
       setPhase('success');

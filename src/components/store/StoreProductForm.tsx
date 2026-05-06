@@ -8,6 +8,9 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct } from '@/lib/store/products';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
 import { useRouter } from 'next/navigation';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 const LISTING_FEE_KAS = 50;
 const LISTING_FEE_TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
@@ -75,6 +78,14 @@ export function StoreProductForm() {
                 assetCids,
                 status: 'active',
             }, result.txHash);
+
+            const txNorm = extractKaspaTransactionId(result.txHash) ?? result.txHash;
+            appendHubActivityEarn({
+                walletRaw: state.address,
+                source: 'store_product_list',
+                redeemableDelta: HUB_EARN_POINTS.storeProductList,
+                idempotencyKey: `store:product:${txNorm}`,
+            });
 
             setStep('complete');
             setTimeout(() => router.push('/u?tab=workspace&view=store'), 2000);

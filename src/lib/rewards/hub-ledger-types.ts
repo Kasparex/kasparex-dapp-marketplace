@@ -9,7 +9,15 @@ export type EarnSource =
   | 'chronicles_slot'
   | 'minecore_note'
   | 'rewards_catalog'
-  | 'legacy_import';
+  | 'legacy_import'
+  | 'vblog_article_create'
+  | 'vblog_article_update'
+  | 'crowdkas_campaign_create'
+  | 'store_product_list'
+  | 'magazine_issue_publish'
+  | 'hub_ad_placement'
+  | 'dapp_l1_interaction'
+  | 'krex_node_operator';
 
 export type HubLedgerEntry = {
   id: string;

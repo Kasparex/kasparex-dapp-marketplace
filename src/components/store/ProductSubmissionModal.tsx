@@ -7,6 +7,9 @@ import { kasToSompis } from '@/lib/kaspa/api';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct } from '@/lib/store/products';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 interface ProductSubmissionModalProps {
   isOpen: boolean;
@@ -158,6 +161,15 @@ export function ProductSubmissionModal({
       if (!productResult) {
         throw new Error('Failed to create product');
       }
+
+      const txNorm = extractKaspaTransactionId(result.txHash) ?? result.txHash;
+      appendHubActivityEarn({
+        walletRaw: state.address,
+        source: 'store_product_list',
+        redeemableDelta: HUB_EARN_POINTS.storeProductList,
+        idempotencyKey: `store:product:${txNorm}`,
+        meta: { productId: productResult.product.id },
+      });
 
       // Store the new registry CID for immediate access
       if (typeof window !== 'undefined') {

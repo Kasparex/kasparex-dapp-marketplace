@@ -38,6 +38,14 @@ function friendlyEarnSource(source: string): string {
     minecore_note: 'Gameplay rewards',
     rewards_catalog: 'Rewards program',
     legacy_import: 'Imported balance',
+    vblog_article_create: 'vBlog publish',
+    vblog_article_update: 'vBlog update',
+    crowdkas_campaign_create: 'CrowdKAS campaign',
+    store_product_list: 'Store listing',
+    magazine_issue_publish: 'Magazine publish',
+    hub_ad_placement: 'Ads placement',
+    dapp_l1_interaction: 'dApp (L1)',
+    krex_node_operator: 'Krex node',
   };
   return labels[source] ?? source.replace(/_/g, ' ');
 }
@@ -135,8 +143,8 @@ export function RewardsHistoryTable(props: { walletNorm: string }) {
         </tbody>
       </table>
       <p className="border-t border-zinc-200 bg-zinc-50/80 px-3 py-2 text-[11px] text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60">
-        Shown from your device for now — same record that powers the balance above. Redemptions use gameplay-linked points first,
-        then your Rewards wallet, so your total stays in sync everywhere on the hub.
+        Shown from your device for now. Same record powers the balance above. Redemptions use gameplay-linked points first, then
+        your Rewards wallet, so your total stays in sync everywhere on the hub.
       </p>
     </div>
   );

@@ -72,7 +72,7 @@ export function RewardsL2Gate(props: {
         </span>
         <span>
           Chain:{' '}
-          <span className="font-semibold text-zinc-800 dark:text-zinc-200">{isConnected ? chainId : '—'}</span>
+          <span className="font-semibold text-zinc-800 dark:text-zinc-200">{isConnected ? chainId : '-'}</span>
           {onIgraMainnet ? <span className="ml-2 text-emerald-600 dark:text-emerald-400">IGRA OK</span> : null}
         </span>
       </div>

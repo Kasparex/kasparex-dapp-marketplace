@@ -38,8 +38,8 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
         </>
       }
       rightSlot={
-        <div className="w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto">
-          <div className="rounded-2xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-4 py-4 space-y-3 shadow-lg shadow-cyan-500/5">
+        <div className="w-full max-w-[300px] mx-auto lg:mx-0 lg:ml-auto">
+          <div className="rounded-xl border border-cyan-500/25 bg-white/85 dark:bg-zinc-950/55 px-6 py-6 space-y-3 shadow-lg shadow-cyan-500/5 aspect-square flex flex-col min-h-[280px]">
             {!hasAddr ? (
               <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
                 Connect your Kaspa wallet from the header to see redeemable points tied to your hub profile.
@@ -75,7 +75,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                 </div>
               </>
             )}
-            <div className={`border-t border-cyan-500/15 pt-3 ${hasAddr ? 'mt-1' : ''}`}>
+            <div className="border-t border-cyan-500/15 pt-3 shrink-0 mt-auto">
               <RewardsL2Gate embedded onSessionVerifiedChange={props.onSessionVerifiedChange} />
             </div>
           </div>

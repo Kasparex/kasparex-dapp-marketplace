@@ -1,6 +1,7 @@
 'use client';
 
 import { Magazine, MagazineIssue } from './types';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
 const STORAGE_KEYS = {
     magazines: 'kasparex_magazines',
@@ -37,7 +38,19 @@ export function getMagazineBySlug(slug: string): Magazine | null {
  */
 export function getMagazinesByOwner(address: string): Magazine[] {
     const magazines = getAllMagazines();
-    return magazines.filter(m => m.ownerAddress === address);
+    let needle: string;
+    try {
+        needle = normalizeKaspaAddress(address).toLowerCase();
+    } catch {
+        needle = address.trim().toLowerCase();
+    }
+    return magazines.filter((m) => {
+        try {
+            return normalizeKaspaAddress(m.ownerAddress).toLowerCase() === needle;
+        } catch {
+            return false;
+        }
+    });
 }
 
 /**
@@ -89,6 +102,73 @@ export function markIssueAsPurchased(issueId: string): void {
         purchased.push(issueId);
         localStorage.setItem(STORAGE_KEYS.purchased, JSON.stringify(purchased));
     }
+}
+
+function slugifyMagazineSlug(input: string): string {
+    return input
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48);
+}
+
+/**
+ * Highest issueNumber for magazineId (0 if none yet).
+ */
+export function nextIssueNumberForMagazine(magazineId: string): number {
+    const issues = getIssuesForMagazine(magazineId);
+    const max = issues.reduce((a, x) => Math.max(a, x.issueNumber), 0);
+    return max + 1;
+}
+
+/**
+ * Persist a magazine publication (creator flow). Merges into localStorage catalogs.
+ */
+export function savePublishedMagazineIssue(magazine: Magazine, issue: MagazineIssue): void {
+    if (typeof window === 'undefined') return;
+
+    const magazinesRaw = [...getAllMagazines()];
+    const ix = magazinesRaw.findIndex((m) => m.id === magazine.id || m.slug === magazine.slug);
+    const nextTotals = Math.max(ix >= 0 ? magazinesRaw[ix]!.totalIssues : 0, issue.issueNumber);
+    const mergedMag: Magazine =
+        ix >= 0 ? { ...magazinesRaw[ix]!, ...magazine, totalIssues: Math.max(nextTotals, magazine.totalIssues) } : { ...magazine };
+    if (ix >= 0) magazinesRaw[ix] = mergedMag;
+    else magazinesRaw.push({ ...mergedMag });
+
+    localStorage.setItem(STORAGE_KEYS.magazines, JSON.stringify(magazinesRaw));
+
+    const storedIssues = localStorage.getItem(STORAGE_KEYS.issues);
+    const fallback = storedIssues ? (JSON.parse(storedIssues) as MagazineIssue[]) : getDefaultIssues();
+    const list: MagazineIssue[] = Array.isArray(fallback) ? [...fallback] : getDefaultIssues();
+    const ji = list.findIndex((i) => i.id === issue.id);
+    const entry: MagazineIssue = { ...issue, status: 'published' };
+    if (ji >= 0) list[ji] = entry;
+    else list.push(entry);
+    localStorage.setItem(STORAGE_KEYS.issues, JSON.stringify(list));
+}
+
+/** Create or reuse a slugged magazine heading for dashboard ownership. */
+export function buildMagazineStubForSlug(args: {
+    slug: string;
+    displayName: string;
+    ownerNorm: string;
+}): Magazine {
+    const slugCandidate = slugifyMagazineSlug(args.slug || args.displayName || 'magazine');
+    const slug = slugCandidate || `zine-${Math.random().toString(36).slice(2, 9)}`;
+    const ownerKey = args.ownerNorm.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(-8) || Math.random().toString(36).slice(2, 8);
+    const id = `mag-${slug.replace(/-/g, '')}-${ownerKey}`;
+    return {
+        id,
+        slug,
+        name: args.displayName.trim() || args.slug.trim() || 'My magazine',
+        description: '',
+        author: args.ownerNorm,
+        ownerAddress: args.ownerNorm,
+        coverImage: '/img/magazines/kaspa-insider-cover.jpg',
+        category: 'Creator',
+        totalIssues: 0,
+    };
 }
 
 /**
