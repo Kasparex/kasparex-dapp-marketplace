@@ -224,7 +224,7 @@ export function CipherVaultsDashboard({
                   <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
                     Entry: <strong>{t.entryKAS}</strong> KAS
                   </p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Preview: {t.gridPreview} GRID · {10 * (t.gridPreview ?? 1)} L2 pts</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Preview: {t.gridPreview} GRID · {10 * (t.gridPreview ?? 1)} pts</p>
                 </button>
               ))}
             </div>

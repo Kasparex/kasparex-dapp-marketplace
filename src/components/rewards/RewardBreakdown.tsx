@@ -38,7 +38,7 @@ export function RewardBreakdown({ result, className = '' }: RewardBreakdownProps
 
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">L2 est. pts</span>
+            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pts (simulator)</span>
             <span className="text-xs text-zinc-500 dark:text-zinc-500">Calculator model only</span>
           </div>
           <div className="space-y-1">

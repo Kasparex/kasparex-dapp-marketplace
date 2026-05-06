@@ -199,7 +199,7 @@ export function GamePayment({ game }: GamePaymentProps) {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-500 dark:text-zinc-400">Plus:</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {game.rewardConfig.xpReward} L2 pts
+                    {game.rewardConfig.xpReward} pts
                   </span>
                 </div>
               )}

@@ -14,10 +14,10 @@ export function PointsDisplay({ result, className = '' }: PointsDisplayProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-            L2 est. pts (simulator)
+            Pts (simulator)
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Separate from Kaspa Hub redeemable pts on /rewards
+            Redeemable balance and history are on /rewards
           </p>
         </div>
         <div className="text-3xl font-bold text-[#02abb8]">

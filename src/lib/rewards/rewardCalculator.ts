@@ -1,6 +1,6 @@
 /**
  * Reward Calculation System
- * Calculates GRID and L2 pts rewards based on action type, base action value, and user tier.
+ * Calculates GRID and pts rewards based on action type, base action value, and user tier.
  * This is separate from cost calculation - rewards are calculated independently.
  */
 
@@ -58,12 +58,12 @@ export function calculateRewardAmount(
 }
 
 /**
- * Format reward breakdown for display (GRID + L2 pts only)
+ * Format reward breakdown for display (GRID + pts only)
  */
 export function formatRewardBreakdown(result: RewardCalculationResult): string {
   const parts: string[] = [];
   if (result.gridReward > 0) parts.push(`${result.gridReward.toFixed(2)} GRID`);
-  if (result.xpReward > 0) parts.push(`${result.xpReward.toFixed(0)} L2 pts`);
+  if (result.xpReward > 0) parts.push(`${result.xpReward.toFixed(0)} pts`);
   if (result.breakdown.krexMultiplier > 1) {
     parts.push(`(${result.breakdown.krexMultiplier}x multiplier)`);
   }

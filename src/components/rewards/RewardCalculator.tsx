@@ -170,7 +170,7 @@ export function RewardCalculator() {
                 </div>
                 {!customBaseRewards.useCustom && (
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Default: 1 KAS = 10,000 GRID + 100 L2 est. pts (adjust below)
+                    Default: 1 KAS = 10,000 GRID + 100 pts (model, adjust below)
                   </p>
                 )}
               </div>
@@ -204,7 +204,7 @@ export function RewardCalculator() {
                     </div>
                     <div>
                       <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-1">
-                        L2 pts per KAS (model)
+                        pts per KAS (model)
                       </label>
                       <input
                         type="number"

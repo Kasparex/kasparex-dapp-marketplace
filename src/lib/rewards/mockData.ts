@@ -13,7 +13,7 @@ export interface RewardsBreakdown {
 const IGRA_L2_CHAIN_IDS = new Set([38836, 38833]);
 
 /**
- * Get default rewards breakdown for display (GRID + L2 pts).
+ * Get default rewards breakdown for display (GRID + pts model).
  * Pass `true` / `false` for legacy callers, or a wagmi **chainId** (e.g. 38836) for L2-aware defaults.
  */
 export function getDefaultRewardsBreakdown(chainIdOrIsIgra?: number | boolean): RewardsBreakdown {

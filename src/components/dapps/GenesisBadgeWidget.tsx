@@ -163,7 +163,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     toast({
       variant: 'success',
       title: hasBadge ? 'Badge boosted' : 'Badge unlocked',
-      description: 'tGRID and L2 pts will be applied shortly. Check your wallet and dashboard.',
+      description: 'tGRID and pts will be applied shortly. Check your wallet and dashboard.',
     });
     setSuccessTxHash(hash);
     setShowSuccessModal(true);
@@ -215,7 +215,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
       <div className="text-center">
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Genesis Badge</h2>
         <p className="text-lg text-zinc-600 dark:text-zinc-400">
-          {hasBadge ? 'Boost your badge and earn more tGRID and L2 pts.' : 'Unlock a unique random badge. Earn tGRID and L2 pts.'}
+          {hasBadge ? 'Boost your badge and earn more tGRID and pts.' : 'Unlock a unique random badge. Earn tGRID and pts.'}
         </p>
         {hasBadge && (
           <div
@@ -271,7 +271,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
               <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
             </div>
             <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
-              <span>L2 pts</span>
+              <span>pts</span>
               <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
             </div>
             {multiplier > 1 && (
@@ -281,7 +281,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             )}
             {onChainIsBaseOnly && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} L2 pts). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
+                On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
                 <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
               </p>
             )}

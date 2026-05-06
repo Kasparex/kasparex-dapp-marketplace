@@ -449,7 +449,7 @@ export function SimplePaymentWidget() {
       });
       setSuccessTxHash(hash);
       setShowSuccessModal(true);
-      // Force refetch of all contract reads (tGRID balance, L2 pts balance, etc.) so dashboard updates
+      // Force refetch of all contract reads (tGRID balance, pts balance, etc.) so dashboard updates
       queryClient.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'readContract' });
       window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
       setTimeout(() => {
@@ -628,7 +628,7 @@ export function SimplePaymentWidget() {
                             <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
                           </div>
                           <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>L2 pts</span>
+                            <span>pts</span>
                             <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
                           </div>
                           {mult > 1 && (
@@ -638,7 +638,7 @@ export function SimplePaymentWidget() {
                           )}
                           {onChainIsBaseOnly && (
                             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} L2 pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
+                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
                               <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
                             </p>
                           )}
@@ -689,7 +689,7 @@ export function SimplePaymentWidget() {
                             <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
                           </div>
                           <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>L2 pts</span>
+                            <span>pts</span>
                             <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
                           </div>
                           {mult > 1 && (
@@ -699,7 +699,7 @@ export function SimplePaymentWidget() {
                           )}
                           {onChainIsBaseOnly && (
                             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} L2 pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
+                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
                               <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
                             </p>
                           )}

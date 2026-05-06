@@ -148,7 +148,7 @@ function buildLevels(): Level[] {
       theme: 'Cross-game links',
       questions: [
         { id: 'L8Q1', prompt: 'Diamond Veins produces…', options: ['Refinement points', 'Gas fees', 'Fiat', 'Passwords'], answerIndex: 0 },
-        { id: 'L8Q2', prompt: 'Cipher Vaults can redeem…', options: ['Refinement points into tickets', 'NFTs into KAS', 'GRID into diamonds', 'KREX into L2 pts'], answerIndex: 0 },
+        { id: 'L8Q2', prompt: 'Cipher Vaults can redeem…', options: ['Refinement points into tickets', 'NFTs into KAS', 'GRID into diamonds', 'KREX into pts'], answerIndex: 0 },
         { id: 'L8Q3', prompt: 'A good cross-game currency is…', options: ['Convertible 1:1 to cash', 'Utility-only with caps', 'Unbounded', 'Invisible'], answerIndex: 1 },
         { id: 'L8Q4', prompt: 'A “unified leaderboard” should use…', options: ['One schema', 'Many incompatible schemas', 'Only screenshots', 'Manual review'], answerIndex: 0 },
         { id: 'L8Q5', prompt: 'A run should have…', options: ['No ids', 'A session id', 'Only emojis', 'Only local time'], answerIndex: 1 },

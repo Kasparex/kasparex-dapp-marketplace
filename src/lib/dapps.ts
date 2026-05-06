@@ -110,9 +110,9 @@ export const placeholderDApps: DApp[] = [
     slug: 'genesis-badge',
     featuredImage: 'https://static.wixstatic.com/media/de4185_bcaf9cfa3eff4f8a8c8941153361a8df~mv2.jpg',
     category: 'general',
-    utility: 'Unlock a unique genesis badge (random theme and title) or boost your existing badge. Each action supports the Revenue Tree and earns tGRID and L2 pts.',
-    process: 'Pay 10 iKAS to unlock a random badge (first time) or boost your badge (subsequent). Revenue splits through the tree; you receive tGRID and L2 pts with your multiplier.',
-    benefits: 'Unique on-chain badge, boost progress, tGRID and L2 pts rewards, Revenue Tree integration. Same user can use unlimited times.',
+    utility: 'Unlock a unique genesis badge (random theme and title) or boost your existing badge. Each action supports the Revenue Tree and earns tGRID and pts.',
+    process: 'Pay 10 iKAS to unlock a random badge (first time) or boost your badge (subsequent). Revenue splits through the tree; you receive tGRID and pts with your multiplier.',
+    benefits: 'Unique on-chain badge, boost progress, tGRID and pts rewards, Revenue Tree integration. Same user can use unlimited times.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -124,7 +124,7 @@ export const placeholderDApps: DApp[] = [
     networkType: 'L2',
     provider: 'Kasparex',
     version: '1.0.0',
-    description: 'Genesis Badge lets you unlock a unique random badge (theme and title) for 10 iKAS, then boost it with more payments. All payments flow through the Revenue Tree and reward you with GRID and L2 pts on Igra Mainnet.',
+    description: 'Genesis Badge lets you unlock a unique random badge (theme and title) for 10 iKAS, then boost it with more payments. All payments flow through the Revenue Tree and reward you with GRID and pts on Igra Mainnet.',
     supportedChainIds: [38833],
   },
   {
