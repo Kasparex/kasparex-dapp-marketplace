@@ -100,9 +100,9 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
             )}
             {game.rewardConfig.xpReward && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">XP:</span>
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">L2 pts:</span>
                 <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {game.rewardConfig.xpReward} XP
+                  {game.rewardConfig.xpReward} L2 pts
                 </span>
               </div>
             )}

@@ -312,7 +312,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
               </h3>
             </div>
 
-            {/* Per-dApp rewards: GRID/tGRID + XP for first action */}
+            {/* Per-dApp rewards: GRID/tGRID + L2 pts for first action */}
             <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
               <div className="flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -324,7 +324,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span className="font-medium">{formatLargeNumber(dAppRewards.xpReward)} XP</span>
+                <span className="font-medium">{formatLargeNumber(dAppRewards.xpReward)} L2 pts</span>
               </div>
             </div>
           </div>

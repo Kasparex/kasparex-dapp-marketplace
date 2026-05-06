@@ -102,6 +102,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         <div className="mb-3 flex-grow min-h-0">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">{project.description}</p>
+          {project.earnPtsHint ? (
+            <p className="text-[11px] leading-snug text-zinc-600 dark:text-zinc-400 mt-2">
+              <span className="font-semibold text-[#017a84] dark:text-[#8ff1f8]">Hub pts </span>
+              {project.earnPtsHint}
+              <span className="text-zinc-500 dark:text-zinc-500">. Policy: Rewards → Points tab.</span>
+            </p>
+          ) : null}
         </div>
 
         <div className="mt-auto pt-3 border-t border-zinc-100 dark:border-zinc-800">

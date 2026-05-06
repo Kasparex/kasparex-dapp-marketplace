@@ -47,8 +47,8 @@ export default function LoyaltyProgramPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">XP Points</h3>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Earn Experience Points for every interaction with our verified dApps.</p>
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Hub pts</h3>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Earn redeemable pts on your Kaspa wallet from Hub programs that post to the Rewards ledger (see /rewards).</p>
                         </div>
                         <div className="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4 text-purple-600 dark:text-purple-400">
@@ -57,7 +57,7 @@ export default function LoyaltyProgramPage() {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">Rewards</h3>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Redeem your XP for KREX tokens, exclusive NFTs, and other ecosystem perks.</p>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Redeem pts in the Rewards catalog or token pools once your balances and verification steps match each offer.</p>
                         </div>
                         <div className="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">

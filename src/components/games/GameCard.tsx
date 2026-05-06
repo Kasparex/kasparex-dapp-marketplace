@@ -84,7 +84,7 @@ export function GameCard({ game }: GameCardProps) {
               ) : null}
               {game.rewardConfig?.xpReward ? (
                 <span className="text-zinc-600 dark:text-zinc-400">
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">{game.rewardConfig.xpReward}</span> XP
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">{game.rewardConfig.xpReward}</span> L2 pts
                 </span>
               ) : null}
             </span>

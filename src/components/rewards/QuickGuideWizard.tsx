@@ -147,7 +147,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-[#02abb8] mt-0.5">•</span>
-                      <span>Using dApps rewards you with Local Tokens, GRID, and XP Points</span>
+                      <span>Using dApps can mint GRID on L2 and Hub redeemable pts when Kaspa-linked flows confirm (see /rewards).</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-[#02abb8] mt-0.5">•</span>
@@ -200,7 +200,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
               </div>
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  💡 <strong>Default Rewards:</strong> 1 KAS spent ≈ 10,000 GRID + 100 XP Points (before multipliers)
+                  💡 <strong>Default Rewards:</strong> 1 KAS spent ≈ 10,000 GRID + 100 L2 modeled pts in the calculator (Hub pts use the Rewards policy table)
                 </p>
               </div>
             </div>
@@ -232,7 +232,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="font-semibold text-[#02abb8]">4.</span>
-                      <span>User also receives GRID, XP Points, and multipliers if holding KREX/NFTs</span>
+                      <span>User also receives GRID, L2 modeled pts, Hub pts when applicable, and multipliers if holding KREX/NFTs</span>
                     </li>
                   </ol>
                 </div>

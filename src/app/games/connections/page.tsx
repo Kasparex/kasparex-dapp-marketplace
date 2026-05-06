@@ -36,7 +36,7 @@ function ConnectionsContent() {
       const entry = g.entryCostKAS ? `${g.entryCostKAS} KAS` : 'Free';
       const rewards =
         g.rewardConfig?.gridReward || g.rewardConfig?.xpReward
-          ? `${g.rewardConfig?.gridReward ? `${g.rewardConfig.gridReward} GRID` : ''}${g.rewardConfig?.gridReward && g.rewardConfig?.xpReward ? ' · ' : ''}${g.rewardConfig?.xpReward ? `${g.rewardConfig.xpReward} XP` : ''}`
+          ? `${g.rewardConfig?.gridReward ? `${g.rewardConfig.gridReward} GRID` : ''}${g.rewardConfig?.gridReward && g.rewardConfig?.xpReward ? ' · ' : ''}${g.rewardConfig?.xpReward ? `${g.rewardConfig.xpReward} L2 pts` : ''}`
           : 'Unified deck';
 
       for (const c of g.connections ?? []) {

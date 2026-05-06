@@ -1069,7 +1069,7 @@ export default function StyleGuidePage() {
       projectName: 'Kasparex Rewards',
       accentId: 'rewards',
       token: 'teal-500',
-      description: 'Rewards, XP, points',
+      description: 'Rewards, Hub pts, L2 simulator',
     },
     {
       projectId: 'kasparex-stats',

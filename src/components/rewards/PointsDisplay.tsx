@@ -14,10 +14,10 @@ export function PointsDisplay({ result, className = '' }: PointsDisplayProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-            XP Points Earned
+            L2 est. pts (simulator)
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Collectible reward points for extra perks
+            Separate from Kaspa Hub redeemable pts on /rewards
           </p>
         </div>
         <div className="text-3xl font-bold text-[#02abb8]">
@@ -27,7 +27,7 @@ export function PointsDisplay({ result, className = '' }: PointsDisplayProps) {
 
       <div className="space-y-2 pt-4 border-t border-zinc-200 dark:border-zinc-700">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-600 dark:text-zinc-400">Base Points:</span>
+          <span className="text-zinc-600 dark:text-zinc-400">Base pts:</span>
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
             {formatNumber(result.baseXP, 0)}
           </span>

@@ -38,8 +38,8 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
           </div>
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
-              XP earned
-              <FieldHint text="Operator XP incentives are not enabled yet. This will become real when node rewards are turned on." />
+              L2 pts earned
+              <FieldHint text="Operator L2 pts incentives are not enabled yet. This will become real when node rewards are turned on." />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.xpEarned}

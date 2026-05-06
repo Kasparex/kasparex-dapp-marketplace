@@ -6,6 +6,7 @@ import { useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
@@ -28,10 +29,10 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
       return {
         action: a.actionName,
         cost: `${costKAS} ${nativeSymbol}`,
-        rewards: `${formatLargeNumber(costKAS * rewards.gridPerKas)} GRID → ${formatLargeNumber(costKAS * rewards.xpPerKas)} XP`,
+        rewards: `${formatLargeNumber(costKAS * rewards.gridPerKas)} GRID · hub from ${HUB_EARN_POINTS.dappL1Interaction}+ pts when Kaspa actions qualify`,
       };
     });
-  }, [dapp, networkType, paymentConfig?.actions, nativeSymbol, rewards.gridPerKas, rewards.xpPerKas]);
+  }, [dapp, networkType, paymentConfig?.actions, nativeSymbol, rewards.gridPerKas]);
 
   if (!clickable) {
     return (
@@ -129,14 +130,14 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
                   Understanding Rewards
                 </h3>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
-                  When you use dApps in the Kasparex ecosystem, you earn GRID (Global Reward Token) and XP Points.
+                  L2 activity typically mints GRID. Kaspa-linked Hub redeemable pts are tracked separately on the Rewards ledger when flows confirm on L1 (see Rewards → Points).
                 </p>
                 <ul className="text-xs text-zinc-600 dark:text-zinc-400 space-y-2 mb-3 list-disc list-inside">
                   <li>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">GRID (Global Reward Token):</span> Earned across the entire Kasparex ecosystem. Fixed supply: 10B on Kaspa L1. L2 deployments are operational layers used for rewards and utility.
                   </li>
                   <li>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">XP Points:</span> Earned with every action. Unlock perks and badges as you level up.
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">Hub pts:</span> Redeemable on /rewards. Policy-based earns from dApps, games, creators, and catalog spends on your Kaspa wallet (device-local ledger until server sync lands).
                   </li>
                 </ul>
               </div>

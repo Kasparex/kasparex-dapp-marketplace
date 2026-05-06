@@ -66,7 +66,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
         <div className="space-y-6 lg:col-span-3 order-1">
           <DAppWidget dapp={dapp} />
 
-          {/* GRID and XP Status Boxes - Side by Side */}
+          {/* GRID and hub pts status boxes - side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <GRIDHoldingsBox />
             <XPPointsBox />

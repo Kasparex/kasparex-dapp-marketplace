@@ -51,7 +51,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'ecosystem',
         title: 'The Ecosystem',
-        content: 'Kasparex is more than just a marketplace. It includes KREX Nodes for decentralized hosting, the Kasparex API for coordination, and a comprehensive reward system with GRID (Global Reward Token) and XP Points.',
+        content: 'Kasparex is more than just a marketplace. It includes KREX Nodes for decentralized hosting, the Kasparex API for coordination, GRID (Global Reward Token) across L2 activity, and Hub redeemable pts on Kaspa tracked from /rewards.',
       },
     ],
   },
@@ -98,7 +98,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'reward-types',
         title: 'Types of Rewards',
-        content: 'KREX Node operators earn GRID for network participation. Rewards are multiplied by your KREX holdings tier and node role. XP Points are earned separately for marketplace activity.',
+        content: 'KREX Node operators earn GRID for network participation. Rewards are multiplied by your KREX holdings tier and node role. Hub redeemable pts may also credit from verified enrollment and epoch checks (Rewards ledger on your device).',
       },
       {
         id: 'reward-calculation',
@@ -182,9 +182,9 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         content: 'Use dApps, run a KREX Node, complete actions, and participate in community activities. All actions reward GRID. Holding KREX and NFTs multiplies your GRID earnings.',
       },
       {
-        id: 'xp-points',
-        title: 'XP Points',
-        content: 'In addition to GRID, you earn XP Points for activity. XP unlocks perks and badges. Both GRID and XP are multiplied by your KREX tier.',
+        id: 'hub-pts',
+        title: 'Hub redeemable pts',
+        content: 'Alongside GRID, Kaspa-connected flows record redeemable pts on /rewards for publishes, listings, campaigns, qualified dApps, catalog spends, and more. Ledger stays device-local until server mirror launches.',
       },
     ],
   },

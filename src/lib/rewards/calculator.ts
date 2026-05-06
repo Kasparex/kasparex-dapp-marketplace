@@ -1,6 +1,6 @@
 /**
  * Reward Calculator Logic
- * Calculates GRID, XP Points, fees, and distributions based on user inputs.
+ * Calculates GRID, L2 modeled pts, fees, and distributions based on user inputs.
  */
 
 import type {
@@ -207,7 +207,7 @@ export function validateInputs(inputs: Partial<CalculatorInputs>): {
       errors.push('GRID per KAS must be positive');
     }
     if (inputs.customBaseRewards.xpPerKas < 0) {
-      errors.push('XP per KAS must be positive');
+      errors.push('L2 modeled pts per KAS must be positive');
     }
   }
 

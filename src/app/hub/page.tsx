@@ -41,7 +41,7 @@ export default function HubPage() {
                 <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   Explore dApps
                 </Link>
-                <Link href="/rewards-and-points" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
+                <Link href="/rewards" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
                   View Rewards
                 </Link>
               </div>
@@ -57,7 +57,8 @@ export default function HubPage() {
                 Explore Our Projects
               </h2>
               <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                Discover all current and upcoming projects in the Kasparex ecosystem
+                Discover projects across the Kasparex ecosystem. Cards summarize typical redeemable Hub pts tied to Rewards policy;
+                authoritative numbers stay on Rewards → Points and History per wallet.
               </p>
             </div>
 

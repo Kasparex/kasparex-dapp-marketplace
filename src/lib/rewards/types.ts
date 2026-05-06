@@ -1,5 +1,5 @@
 /**
- * Types for the Reward Calculator (GRID ecosystem rewards + KAS fees + XP).
+ * Types for the Reward Calculator (GRID ecosystem rewards + KAS fees + modeled L2 pts).
  */
 
 export type KREXTier = 'Tier0' | 'Tier1' | 'Tier2' | 'Tier3' | 'Tier4';

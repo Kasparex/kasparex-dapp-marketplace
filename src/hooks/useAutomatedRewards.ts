@@ -126,8 +126,8 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
 
       // Route to appropriate handler based on network type
       if (networkType === 'L2') {
-        // L2: Rewards are distributed by FeeRouter for KAS, but tGRID/XP points are NOT minted by the router.
-        // We must still hit the backend API to award tGRID and XP to the user's profile.
+        // L2: Rewards are distributed by FeeRouter for KAS, but tGRID / L2 pts are NOT minted by the router.
+        // We must still hit the backend API to award tGRID and L2 pts to the user's profile.
         const result = await recordUsageAndRewardL1(
           userAddress as string,
           dapp.id,

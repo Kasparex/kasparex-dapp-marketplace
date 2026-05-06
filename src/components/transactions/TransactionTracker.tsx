@@ -217,9 +217,9 @@ export function TransactionTracker({ txHash, showAll = false, compact = false }:
 
               {selectedTx.xpReward !== undefined && selectedTx.xpReward > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">XP Reward</span>
+                  <span className="text-sm text-zinc-400">L2 pts reward</span>
                   <span className="text-sm text-blue-400 font-medium">
-                    +{selectedTx.xpReward.toFixed(0)} XP
+                    +{selectedTx.xpReward.toFixed(0)} L2 pts
                   </span>
                 </div>
               )}
