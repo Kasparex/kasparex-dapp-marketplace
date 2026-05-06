@@ -3,14 +3,20 @@
 import { useCallback, useState } from 'react';
 import { useAccount, useChainId, useSignMessage, useSwitchChain } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Info } from 'lucide-react';
 import { CHAIN_IDS, igraMainnet } from '@/lib/wagmi';
 import { readRewardsL2SessionVerified, writeRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
+import { Tooltip } from '@/components/ui/Tooltip';
+
+const L2_GATE_HELP =
+  'Token pool catalog items expect an EVM wallet on IGRA Mainnet. Connect, switch chain, then sign once to prove control. Local perks only need Kaspa L1.';
 
 /** EVM readiness strip for Reward redemptions targeting IGRA Mainnet contracts. */
 export function RewardsL2Gate(props: {
   disabled?: boolean;
   className?: string;
+  /** When true, omit outer card chrome (e.g. inside halo stats panel). */
+  embedded?: boolean;
   /** Bump when session verify flag updates so parents can recalc gated actions without reading storage indirectly. */
   onSessionVerifiedChange?: () => void;
 }) {
@@ -42,15 +48,20 @@ export function RewardsL2Gate(props: {
     onSessionVerifiedChange?.();
   }, [evm, onIgraMainnet, props.disabled, onSessionVerifiedChange, signMessageAsync, target]);
 
-  return (
-    <div
-      className={`rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/40 p-4 sm:p-5 space-y-2 ${props.className ?? ''}`}
-      id="rewards-l2-gate"
-    >
-      <p className="text-sm font-black uppercase tracking-widest text-[#02abb8]">Verify L2 wallet</p>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Token pool catalog items expect an EVM wallet on IGRA Mainnet. Connect, switch chain, then sign once to prove control. Local perks only need Kaspa L1.
-      </p>
+  const inner = (
+    <>
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify L2 wallet</p>
+        <Tooltip content={L2_GATE_HELP}>
+          <button
+            type="button"
+            className="rounded-md p-1 text-zinc-500 hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+            aria-label="About L2 verification"
+          >
+            <Info className="w-4 h-4" aria-hidden />
+          </button>
+        </Tooltip>
+      </div>
       <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
         <span>
           EVM:{' '}
@@ -110,6 +121,23 @@ export function RewardsL2Gate(props: {
           </button>
         )}
       </div>
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <div id="rewards-l2-gate" className={`space-y-2 scroll-mt-24 ${props.className ?? ''}`}>
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/40 p-4 sm:p-5 space-y-2 ${props.className ?? ''}`}
+      id="rewards-l2-gate"
+    >
+      {inner}
     </div>
   );
 }

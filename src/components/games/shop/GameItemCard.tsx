@@ -57,6 +57,8 @@ export function GameItemCard(props: {
   description: React.ReactNode;
   /** Blueprint-style split (e.g. Fabrication). When set, prefer over a flat `effects` list. */
   specifications?: GameItemEffectLine[];
+  /** When true, suppresses the “Specifications” heading (rows still render). */
+  hideSpecificationsHeading?: boolean;
   ingredients?: GameItemEffectLine[];
   effects?: GameItemEffectLine[];
   priceOptions: GameItemPriceOption[];
@@ -71,6 +73,8 @@ export function GameItemCard(props: {
   };
   /** Overrides the left label above the +/- row (default: Quantity). */
   quantityLabel?: string;
+  /** When `stacked`, the label sits on its own line above the stepper row. */
+  quantityLabelLayout?: 'inline' | 'stacked';
   /** Max button fills quantity to max (Minecore-style). */
   showQuantityMaxButton?: boolean;
   /** Primary CTA text; overrides `buyLabel` when set (eg token pool totals). */
@@ -79,6 +83,13 @@ export function GameItemCard(props: {
     pointsSpend: number;
     currency: GameItemCurrency;
   }) => string;
+  /** Full-width column: total row, then CTA, then this (e.g. rate breakdown). */
+  pricingActionsLayout?: 'split' | 'stacked';
+  pricingFooterExtra?: (ctx: {
+    quantity: number;
+    pointsSpend: number;
+    currency: GameItemCurrency;
+  }) => ReactNode;
   /** Disable buy button (eg payment unavailable). */
   buyDisabled?: boolean;
   buyLabel?: string;
@@ -127,6 +138,8 @@ export function GameItemCard(props: {
 
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub';
+  const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
+  const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
 
   const ownedInactive = props.ownedCount != null && props.ownedCount <= 0;
   const ownedBadgeClass = ownedInactive
@@ -275,9 +288,11 @@ export function GameItemCard(props: {
 
           {props.specifications && props.specifications.length > 0 ? (
             <div className="mt-3">
-              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Specifications
-              </div>
+              {!props.hideSpecificationsHeading ? (
+                <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  Specifications
+                </div>
+              ) : null}
               <div className="grid gap-2">{props.specifications.map(effectLineRow)}</div>
             </div>
           ) : null}
@@ -313,99 +328,209 @@ export function GameItemCard(props: {
           )
         ) : (
         <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
-          <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="k-control-icon-btn h-9 w-9"
-                onClick={() => setQty(qtyCommitted - 1)}
-                disabled={!qtyCfg || qtyCommitted <= qtyMin}
-              >
-                −
-              </button>
-              <input
-                id={qtyInputId}
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                aria-label={`${props.quantityLabel ?? 'Quantity'} (type custom amount)`}
-                title="Type amount or use +/−"
-                disabled={!qtyCfg}
-                className="min-w-[3.5rem] max-w-[6rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
-                value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
-                onFocus={() => {
-                  if (!qtyCfg) return;
-                  setQtyEditDraft(String(qtyCommitted));
-                }}
-                onChange={(e) => {
-                  if (!qtyCfg) return;
-                  const t = e.target.value.replace(/\D/g, '').slice(0, 9);
-                  setQtyEditDraft(t);
-                }}
-                onBlur={() => commitDraftAndBlur()}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitDraftAndBlur();
-                }}
-              />
-              <button
-                type="button"
-                className="k-control-icon-btn h-9 w-9"
-                onClick={() => setQty(qtyCommitted + 1)}
-                disabled={!qtyCfg || qtyCommitted >= qtyMax}
-              >
-                +
-              </button>
-              {props.showQuantityMaxButton && qtyCfg ? (
+          {quantityLabelLayout === 'stacked' ? (
+            <div className={`space-y-2 ${qtyCfg ? '' : 'opacity-60'}`}>
+              <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-500">
+                {props.quantityLabel ?? 'Quantity'}
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className="h-9 shrink-0 rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
-                  disabled={!qtyCfg || qtyMax <= qtyMin}
-                  onClick={() => setQty(qtyMax)}
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(qtyCommitted - 1)}
+                  disabled={!qtyCfg || qtyCommitted <= qtyMin}
                 >
-                  Max
+                  −
                 </button>
-              ) : null}
+                <input
+                  id={qtyInputId}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-label={`${props.quantityLabel ?? 'Quantity'} (type custom amount)`}
+                  title="Type amount or use +/−"
+                  disabled={!qtyCfg}
+                  className="min-w-[3.5rem] max-w-[6rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
+                  value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
+                  onFocus={() => {
+                    if (!qtyCfg) return;
+                    setQtyEditDraft(String(qtyCommitted));
+                  }}
+                  onChange={(e) => {
+                    if (!qtyCfg) return;
+                    const t = e.target.value.replace(/\D/g, '').slice(0, 9);
+                    setQtyEditDraft(t);
+                  }}
+                  onBlur={() => commitDraftAndBlur()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitDraftAndBlur();
+                  }}
+                />
+                <button
+                  type="button"
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(qtyCommitted + 1)}
+                  disabled={!qtyCfg || qtyCommitted >= qtyMax}
+                >
+                  +
+                </button>
+                {props.showQuantityMaxButton && qtyCfg ? (
+                  <button
+                    type="button"
+                    className="h-9 shrink-0 rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
+                    disabled={!qtyCfg || qtyMax <= qtyMin}
+                    onClick={() => setQty(qtyMax)}
+                  >
+                    Max
+                  </button>
+                ) : null}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className={`flex flex-wrap items-center justify-between gap-3 ${qtyCfg ? '' : 'opacity-60'}`}>
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">{props.quantityLabel ?? 'Quantity'}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(qtyCommitted - 1)}
+                  disabled={!qtyCfg || qtyCommitted <= qtyMin}
+                >
+                  −
+                </button>
+                <input
+                  id={qtyInputId}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  aria-label={`${props.quantityLabel ?? 'Quantity'} (type custom amount)`}
+                  title="Type amount or use +/−"
+                  disabled={!qtyCfg}
+                  className="min-w-[3.5rem] max-w-[6rem] rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-center text-sm font-black tabular-nums text-zinc-900 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-zinc-100"
+                  value={qtyEditDraft !== null ? qtyEditDraft : String(qtyCommitted)}
+                  onFocus={() => {
+                    if (!qtyCfg) return;
+                    setQtyEditDraft(String(qtyCommitted));
+                  }}
+                  onChange={(e) => {
+                    if (!qtyCfg) return;
+                    const t = e.target.value.replace(/\D/g, '').slice(0, 9);
+                    setQtyEditDraft(t);
+                  }}
+                  onBlur={() => commitDraftAndBlur()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitDraftAndBlur();
+                  }}
+                />
+                <button
+                  type="button"
+                  className="k-control-icon-btn h-9 w-9"
+                  onClick={() => setQty(qtyCommitted + 1)}
+                  disabled={!qtyCfg || qtyCommitted >= qtyMax}
+                >
+                  +
+                </button>
+                {props.showQuantityMaxButton && qtyCfg ? (
+                  <button
+                    type="button"
+                    className="h-9 shrink-0 rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-wide bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100 transition-colors disabled:pointer-events-none"
+                    disabled={!qtyCfg || qtyMax <= qtyMin}
+                    onClick={() => setQty(qtyMax)}
+                  >
+                    Max
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              {options.length > 1 ? (
-                <GameCurrencyMenu
-                  ariaLabel="Payment currency"
-                  value={String(currency)}
-                  onChange={(v) => setCurrency(v as GameItemCurrency)}
-                  options={options.map((o) => {
-                    const t = (o.unitPrice ?? 0) * quantity;
-                    const txt = `${formatGameItemPriceAmount(o.currency, t)} ${o.currency}`;
-                    return { value: o.currency, label: txt, disabled: o.disabled };
-                  })}
-                  className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
-                />
-              ) : (
-                <div className="k-control-btn h-10 w-full px-4 font-black tabular-nums sm:w-auto sm:flex-1">
-                  {priceText}
-                </div>
-              )}
+            {pricingActionsLayout === 'stacked' ? (
+              <div className="flex w-full flex-col gap-3">
+                {options.length > 1 ? (
+                  <GameCurrencyMenu
+                    ariaLabel="Payment currency"
+                    value={String(currency)}
+                    onChange={(v) => setCurrency(v as GameItemCurrency)}
+                    options={options.map((o) => {
+                      const t = (o.unitPrice ?? 0) * quantity;
+                      const txt = `${formatGameItemPriceAmount(o.currency, t)} ${o.currency}`;
+                      return { value: o.currency, label: txt, disabled: o.disabled };
+                    })}
+                    className="w-full min-w-0 sm:flex-initial"
+                  />
+                ) : (
+                  <div className="k-control-btn h-10 w-full px-4 font-black tabular-nums">{priceText}</div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
+                  disabled={props.buyDisabled || Boolean(selected?.disabled)}
+                  className={`${primaryCtaClass} min-h-[2.75rem] w-full px-3 whitespace-normal text-center leading-tight text-xs sm:text-[13px]`}
+                >
+                  {props.buyLabel === 'Locked'
+                    ? 'Locked'
+                    : props.primaryActionLabelBuilder
+                      ? props.primaryActionLabelBuilder({
+                          quantity,
+                          pointsSpend: unit * quantity,
+                          currency: selected?.currency ?? currency,
+                        })
+                      : props.buyLabel ?? 'Buy'}
+                </button>
+                {props.pricingFooterExtra ? (
+                  <div className="text-center">{props.pricingFooterExtra({
+                      quantity,
+                      pointsSpend: unit * quantity,
+                      currency: selected?.currency ?? currency,
+                    })}</div>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  {options.length > 1 ? (
+                    <GameCurrencyMenu
+                      ariaLabel="Payment currency"
+                      value={String(currency)}
+                      onChange={(v) => setCurrency(v as GameItemCurrency)}
+                      options={options.map((o) => {
+                        const t = (o.unitPrice ?? 0) * quantity;
+                        const txt = `${formatGameItemPriceAmount(o.currency, t)} ${o.currency}`;
+                        return { value: o.currency, label: txt, disabled: o.disabled };
+                      })}
+                      className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
+                    />
+                  ) : (
+                    <div className="k-control-btn h-10 w-full px-4 font-black tabular-nums sm:w-auto sm:flex-1">{priceText}</div>
+                  )}
 
-              <button
-                type="button"
-                onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
-                disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                className={`${primaryCtaClass} sm:w-auto sm:shrink-0 min-h-[2.75rem] px-3 whitespace-normal text-center leading-tight text-xs sm:text-[13px]`}
-              >
-                {props.buyLabel === 'Locked'
-                  ? 'Locked'
-                  : props.primaryActionLabelBuilder
-                    ? props.primaryActionLabelBuilder({
-                        quantity,
-                        pointsSpend: unit * quantity,
-                        currency: selected?.currency ?? currency,
-                      })
-                    : props.buyLabel ?? 'Buy'}
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => void props.onBuy({ currency: selected?.currency ?? currency, quantity })}
+                    disabled={props.buyDisabled || Boolean(selected?.disabled)}
+                    className={`${primaryCtaClass} sm:w-auto sm:shrink-0 min-h-[2.75rem] px-3 whitespace-normal text-center leading-tight text-xs sm:text-[13px]`}
+                  >
+                    {props.buyLabel === 'Locked'
+                      ? 'Locked'
+                      : props.primaryActionLabelBuilder
+                        ? props.primaryActionLabelBuilder({
+                            quantity,
+                            pointsSpend: unit * quantity,
+                            currency: selected?.currency ?? currency,
+                          })
+                        : props.buyLabel ?? 'Buy'}
+                  </button>
+                </div>
+                {props.pricingFooterExtra ? (
+                  <div className="text-center">{props.pricingFooterExtra({
+                      quantity,
+                      pointsSpend: unit * quantity,
+                      currency: selected?.currency ?? currency,
+                    })}</div>
+                ) : null}
+              </>
+            )}
             {hasDiscount ? (
               <div
                 className={

@@ -7,7 +7,7 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
-import { RewardsL2Gate, rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
+import { rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import {
@@ -41,12 +41,6 @@ function fulfillmentLabel(f: RewardFulfillment): string {
   return 'Coming soon';
 }
 
-function fulfillmentBadgeClass(f: RewardFulfillment): string {
-  if (f === 'local_mvp') return 'border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100';
-  if (f === 'l2_contract') return 'border-sky-500/35 bg-sky-500/10 text-sky-900 dark:text-sky-100';
-  return 'border-zinc-400/35 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300';
-}
-
 function catalogMatches(kind: RewardCatalogKind, filter: KindFilter): boolean {
   return filter === 'all' || kind === filter;
 }
@@ -68,7 +62,6 @@ export function RewardsPageContent() {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentFilter>('all');
   const [sort, setSort] = useState<SortKey>('cost-asc');
   const [note, setNote] = useState<string | null>(null);
-  const [, setL2VerifyEpoch] = useState(0);
 
   const igraReady = Boolean(evmConnected && chainId === CHAIN_IDS.IGRA_MAINNET);
 
@@ -235,9 +228,7 @@ export function RewardsPageContent() {
 
   return (
     <div className="space-y-8">
-      <RewardsL2Gate onSessionVerifiedChange={() => setL2VerifyEpoch((n) => n + 1)} />
-
-      <div id="rewards-filters" className="scroll-mt-24 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-4 sm:p-5">
+      <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">
         <FilterBar
           search={{ value: search, onChange: setSearch, placeholder: 'Search rewards, perks, badges, pools…' }}
           onReset={() => {
@@ -337,16 +328,10 @@ export function RewardsPageContent() {
                     kxListingAccent="hub"
                     title={item.title}
                     category={item.category}
-                    description={
-                      <>
-                        <p>{item.description}</p>
-                        {item.fulfillmentNotes ? (
-                          <p className="text-xs mt-3 text-zinc-500">{item.fulfillmentNotes}</p>
-                        ) : null}
-                      </>
-                    }
+                    description={<p>{item.description}</p>}
                     icon={item.icon}
                     imageSrc={item.imageSrc}
+                    hideSpecificationsHeading
                     specifications={[
                       {
                         label: 'Fulfillment',
@@ -366,30 +351,41 @@ export function RewardsPageContent() {
                     defaultCurrency="PTS"
                     quantitySelector={{ min: poolClaim ? 1 : item.minQty, max: Math.max(poolClaim ? 1 : item.minQty, maxAffordableQty) }}
                     quantityLabel={poolClaim ? 'Points' : 'Quantity'}
+                    quantityLabelLayout="stacked"
+                    pricingActionsLayout="stacked"
                     showQuantityMaxButton
-                    primaryActionLabelBuilder={
+                    pricingFooterExtra={
                       item.fulfillment === 'coming_soon'
                         ? undefined
                         : poolClaim && item.tokenPoolRate
                           ? ({ pointsSpend }) => {
-                              const tok = Math.floor(pointsSpend * item.tokenPoolRate!.tokensPerPoint);
-                              return `Claim · ${pointsSpend.toLocaleString()} pts → ${tok.toLocaleString()} ${item.tokenPoolRate!.payoutSymbol}`;
+                              const rate = item.tokenPoolRate!;
+                              const tok = Math.floor(pointsSpend * rate.tokensPerPoint);
+                              return (
+                                <>
+                                  <p className="mt-0.5 text-center text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                                    Rate: 1 pt = {rate.tokensPerPoint.toLocaleString()} {rate.payoutSymbol}
+                                  </p>
+                                  <p className="text-center text-[11px] font-bold tabular-nums text-zinc-700 dark:text-zinc-200">
+                                    {pointsSpend.toLocaleString()} pts → {tok.toLocaleString()} {rate.payoutSymbol}
+                                  </p>
+                                </>
+                              );
                             }
-                          : ({ pointsSpend, quantity }) =>
-                              quantity > 1
-                                ? `Redeem · ${pointsSpend.toLocaleString()} pts · ${quantity} units`
-                                : `Redeem · ${pointsSpend.toLocaleString()} pts`
+                          : ({ quantity: q, pointsSpend }) => (
+                              <>
+                                <p className="mt-0.5 text-center text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                                  Rate: {unit.toLocaleString()} pts per unit
+                                </p>
+                                <p className="text-center text-[11px] font-bold tabular-nums text-zinc-700 dark:text-zinc-200">
+                                  {q.toLocaleString()} × {unit.toLocaleString()} = {pointsSpend.toLocaleString()} pts
+                                </p>
+                              </>
+                            )
                     }
                     buyLabel={buyLabel}
                     buyDisabled={buyDisabled}
                     hidePricing={false}
-                    titleAccessory={
-                      <span
-                        className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${fulfillmentBadgeClass(item.fulfillment)}`}
-                      >
-                        {item.kind.replace('_', ' ')}
-                      </span>
-                    }
                     onBuy={({ quantity }) => {
                       void redeem(item, quantity);
                     }}
