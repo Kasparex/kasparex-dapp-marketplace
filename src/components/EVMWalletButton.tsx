@@ -18,7 +18,7 @@ import { getChainById } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { BridgeInfoModal } from '@/components/modals/BridgeInfoModal';
 import { ReceiveAddressModal } from '@/components/modals/ReceiveAddressModal';
 import { SendL2TransactionModal } from '@/components/modals/SendL2TransactionModal';
@@ -60,7 +60,7 @@ export function EVMWalletButton() {
 
   // Rewards/holdings hooks (must be top-level)
   const { tier: krexTier, tierForChain, l2Balance: krexL2Balance, isLoading: isKrexLoading, refetch: refetchKrex } = useKREXBalance();
-  const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts, address: kaspaForHub } = useRedeemablePointsBreakdown();
 
   const gridTokenAddress = (() => {
     if (!chainId) return null;
@@ -371,8 +371,10 @@ export function EVMWalletButton() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{KREX_TIERS[krexTier].feeReduction}%</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Hub pts</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      {kaspaForHub ? hubPts.toLocaleString() : 'Connect Kaspa L1'}
+                    </span>
                   </div>
                   <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center justify-between text-xs">

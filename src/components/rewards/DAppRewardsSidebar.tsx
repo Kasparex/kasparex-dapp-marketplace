@@ -72,10 +72,10 @@ export function DAppRewardsSidebar({ dappName }: DAppRewardsSidebarProps) {
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-600 dark:text-zinc-400">XP Points:</span>
-                <span className="font-medium text-[#02abb8]">
-                  {formatLargeNumber(rewards.xpPerKas)}
-                </span>
+                <span className="text-zinc-600 dark:text-zinc-400">Hub pts (Kaspa Rewards)</span>
+                <Link href="/rewards#rewards-points" className="font-medium text-[#02abb8] hover:underline">
+                  View earn table
+                </Link>
               </div>
             </div>
           </div>

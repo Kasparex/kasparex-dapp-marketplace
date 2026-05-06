@@ -23,7 +23,7 @@ import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { useKpxPublicIdentity } from '@/hooks/useKpxPublicIdentity';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
@@ -531,7 +531,7 @@ function PortfolioOverview() {
     getContractAddress(portfolioChainId, 'tGRID') || getContractAddress(portfolioChainId, 'GRIDToken') || undefined;
   const gridToken = useGRIDToken(gridTokenAddress);
   const { nftStatus, nftPoints } = useNFTStatus();
-  const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
 
   const krexMultiplier = KREX_TIERS[krexTier].multiplier;
   const nftMultiplierAdd =
@@ -586,7 +586,7 @@ function PortfolioOverview() {
         </div>
         <div className="space-y-4">
           <RewardItem label="KREX Tier" value={KREX_TIERS[krexTier].label} icon={<TierBadge tier={krexTier} isUnlocked={true} />} />
-          <RewardItem label="XP Points" value={formatLargeNumber(xpPoints)} icon="✨" />
+          <RewardItem label="Hub pts" value={formatLargeNumber(hubPts)} icon="✨" />
           <RewardItem label="NFT Points" value={String(nftPoints)} icon="🖼️" />
           <RewardItem label="Active boosts" value={`${nftMultiplierAdd}x active`} icon="🚀" />
         </div>

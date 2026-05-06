@@ -7,7 +7,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getPartnerCollections } from '@/lib/nft/collections';
 import { NFT_POINTS } from '@/lib/nft/points';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
@@ -36,7 +37,7 @@ export function UnifiedStatusBox() {
   const { address, isConnected } = useAccount();
   const { balance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nfts, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
-  const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
 
   // Use real NFT status if available, otherwise use empty status
   const status = nftStatus || {
@@ -246,10 +247,10 @@ export function UnifiedStatusBox() {
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Total Multiplier</div>
                   <div className="text-lg font-bold text-[#02abb8]">{totalMultiplier}x</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">XP Points</div>
+                  <div className="text-right">
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Hub pts</div>
                   <div className="text-lg font-bold text-[#02abb8]">
-                    {formatLargeNumber(xpPoints)}
+                    {formatLargeNumber(hubPts)}
                   </div>
                 </div>
               </div>
@@ -510,9 +511,9 @@ export function UnifiedStatusBox() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">XP Points</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">Hub pts (Kaspa ledger)</span>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {formatLargeNumber(xpPoints)}
+                      {formatLargeNumber(hubPts)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -546,7 +547,7 @@ export function UnifiedStatusBox() {
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requirement</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Reward Multiplier</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Fee</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Multiplier</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Pts multiplier (L2)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -832,33 +833,41 @@ export function UnifiedStatusBox() {
                 </div>
               </div>
 
-              {/* XP Points Table */}
+              {/* Hub redeemable pts (Rewards wallet + Minecore refinement) */}
               <div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">XP Points</h3>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Hub redeemable pts</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-zinc-200 dark:border-zinc-700">
                         <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Points Earned</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Description</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Typical pts</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Where</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">Qualified dApp usage</td>
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          dApp Usage
+                          {HUB_EARN_POINTS.dappL1Interaction} pts
                         </td>
-                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
-                          100 XP
-                        </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
-                          Per 1 KAS spent on dApp transactions
-                        </td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">Kaspa-classified interactions</td>
+                      </tr>
+                      <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">Minecore refine</td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">Varies</td>
+                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">Gameplay bucket on this device</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3">
+                  Full table:{' '}
+                  <Link href="/rewards#rewards-points" className="text-[#02abb8] hover:underline font-medium">
+                    Rewards → Points
+                  </Link>
+                  .
+                </p>
               </div>
 
               {/* View More Button */}

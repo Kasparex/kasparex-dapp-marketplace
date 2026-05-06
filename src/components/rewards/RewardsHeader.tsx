@@ -21,7 +21,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
       title="Rewards"
       subtitle={
         <p className="m-0">
-          Earn redeemable points across Kasparex Hub, then spend them here on perks, badges, coupons, and token pools. Some offers use your Kaspa wallet only;
+          Earn redeemable pts across Kasparex Hub, then spend them here on perks, badges, coupons, and token pools. Some offers use your Kaspa wallet only;
           others ask you to verify an EVM wallet when an on-chain route is involved.
         </p>
       }
@@ -44,7 +44,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
             <div className="px-5 py-5 sm:px-6 sm:py-6 space-y-3 min-w-0">
               {!hasAddr ? (
                 <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
-                  Connect your Kaspa wallet from the header to see redeemable points tied to your hub profile.
+                  Connect your Kaspa wallet from the header to see redeemable pts tied to your hub profile.
                 </p>
               ) : (
                 <>
@@ -53,7 +53,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                     <Tooltip
                       content={gameTooltipRich(
                         'Redeemable balance',
-                        'One hub-wide number for your Kaspa address: gameplay-linked points plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
+        'One hub-wide number for your Kaspa address: gameplay-linked pts plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
                       )}
                     >
                       <button
@@ -66,7 +66,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                     </Tooltip>
                   </div>
                   <p className="text-3xl sm:text-4xl font-black tabular-nums text-zinc-900 dark:text-white leading-tight break-words">
-                    {breakdown.totalRedeemable.toLocaleString()} points
+                    {breakdown.totalRedeemable.toLocaleString()} pts
                   </p>
                   <p className="text-[11px] text-zinc-500">Balance reflects this device for now; synced totals will follow.</p>
                   <div className="space-y-1.5 pt-1 min-w-0">

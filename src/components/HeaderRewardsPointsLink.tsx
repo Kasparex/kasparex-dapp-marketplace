@@ -54,8 +54,8 @@ export function HeaderRewardsPointsLink() {
 
   const tip =
     addr && lines.length > 0
-      ? `Redeemable ${totalRedeemable.toLocaleString()} · ${lines.map((l) => `${l.label}: ${l.points.toLocaleString()}`).join(' · ')}`
-      : 'Connect Kaspa to track redeemable points across Kasparex Hub.';
+      ? `Redeemable ${totalRedeemable.toLocaleString()} pts · ${lines.map((l) => `${l.label}: ${l.points.toLocaleString()}`).join(' · ')}`
+      : 'Connect Kaspa to track redeemable pts across Kasparex Hub.';
 
   return (
     <div className="flex items-center gap-2 flex-shrink-0 sm:gap-3">
@@ -74,7 +74,7 @@ export function HeaderRewardsPointsLink() {
         aria-label="Rewards"
         title={
           addr
-            ? `${totalRedeemable.toLocaleString()} redeemable points · Gameplay ${minecoreRefinement.toLocaleString()} · Rewards wallet ${ledgerNetRedeemable.toLocaleString()}`
+            ? `${totalRedeemable.toLocaleString()} redeemable pts · Gameplay ${minecoreRefinement.toLocaleString()} · Rewards wallet ${ledgerNetRedeemable.toLocaleString()}`
             : 'Rewards'
         }
       >

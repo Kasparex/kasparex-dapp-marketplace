@@ -15,7 +15,7 @@ import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
@@ -131,7 +131,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const krexLabel = isTestnet ? 'tKREX' : 'KREX';
   const nativeLabel = chainId === 38833 || chainId === 38836 ? 'iKAS' : (nativeBalance?.symbol || nativeSymbol);
   const { balance: gridBalanceWei, formattedBalance: gridFormattedBalance, isLoading: gridLoading, totalSupply: gridTotalSupply, maxSupply: gridMaxSupply } = useGRIDToken(gridTokenAddress);
-  const { totalPoints: xpPoints, isLoading: xpLoading } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts, address: hubAddr } = useRedeemablePointsBreakdown();
   const gridBalanceNum = gridBalanceWei != null ? Number(gridBalanceWei) / 1e18 : 0;
 
   const gridProgress = useMemo(() => {
@@ -143,9 +143,9 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
   const balanceRows = useMemo(() => {
     const rows: { token: string; balance: string; loading?: boolean }[] = [];
     rows.push({
-      token: 'XP Points',
-      balance: !isConnected ? '-' : xpLoading ? '...' : formatLargeNumber(xpPoints),
-      loading: xpLoading,
+      token: 'Hub pts',
+      balance: !hubAddr ? 'Connect Kaspa L1' : hubPts.toLocaleString(),
+      loading: false,
     });
     rows.push({
       token: nativeLabel,
@@ -163,7 +163,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
       loading: gridLoading,
     });
     return rows;
-  }, [isConnected, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading, xpPoints, xpLoading]);
+  }, [isConnected, hubAddr, hubPts, nativeLabel, nativeFormatted, krexLabel, krexBalance, krexLoading, gridLabel, gridBalanceNum, gridLoading]);
 
   return (
     <div className="space-y-6">
@@ -209,7 +209,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         {/* Base reward calculation info (L2 testnet) */}
         {(chainId === 38836 || chainId === 38833) && (
           <p className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
-            Base: 1 {nativeLabel} = 500 {gridLabel}, 1 {nativeLabel} = 100 XP. Hold {krexLabel} on this network for tier multiplier.{' '}
+            Base: 1 {nativeLabel} = 500 {gridLabel}; Kaspa redeemable pts accrue via Hub Rewards (same wallet). Hold {krexLabel} on this network for tier multiplier.{' '}
             <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="text-[#02abb8] hover:underline">KAT Bridge ↗</a>
           </p>
         )}

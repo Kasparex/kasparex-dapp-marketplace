@@ -41,7 +41,7 @@ import { useRouter } from 'next/navigation';
 import { NodeStatusModal } from '@/components/modals/NodeStatusModal';
 import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
 
@@ -59,7 +59,7 @@ export function KaspaL1WalletButton() {
 
   // Rewards/holdings hooks (must be top-level)
   const { l1Balance: krexL1Balance, tier: krexTier, isLoading: isKrexLoading, refetch: refetchKrex } = useKREXBalance();
-  const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
 
   const [open, setOpen] = useState(false);
   const [connecting, setConnecting] = useState<'kasware' | 'kastle' | null>(null);
@@ -305,8 +305,8 @@ export function KaspaL1WalletButton() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500 dark:text-zinc-400">XP Points</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{xpPoints.toLocaleString()}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Hub pts</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{hubPts.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Multiplier</span>

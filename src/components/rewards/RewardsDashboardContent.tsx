@@ -5,7 +5,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
-import { useLoyaltyPoints } from '@/hooks/useLoyaltyPoints';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useWalletSettings } from '@/hooks/useWalletSettings';
@@ -42,7 +42,7 @@ export function RewardsDashboardContent({
   const chainId = useChainId();
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
-  const { totalPoints: xpPoints } = useLoyaltyPoints();
+  const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
   const { data: deck, isLoading: isDeckLoading } = useWalletDeck();
   const { data: walletSettings } = useWalletSettings();
   const queryClient = useQueryClient();
@@ -270,9 +270,9 @@ export function RewardsDashboardContent({
                     </div>
                     <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-600 dark:text-zinc-400">Total XP</span>
+                        <span className="text-zinc-600 dark:text-zinc-400">Hub pts</span>
                         <span className="font-bold text-[#02abb8] text-lg">
-                          {formatLargeNumber(xpPoints)}
+                          {formatLargeNumber(hubPts)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-1">

@@ -22,6 +22,7 @@ import { describeL2RedemptionAvailability } from '@/lib/rewards/l2-redemption-ro
 import { readRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
+import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSourcesTable';
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
 import { PointsTables } from '@/components/rewards/PointsTables';
 
@@ -184,11 +185,11 @@ export function RewardsPageContent() {
       if (isTokenPoolClaimItem(item) && item.tokenPoolRate) {
         const pointsSpend = Math.max(0, Math.floor(quantityFromCard));
         if (pointsSpend < 1) {
-          setNote('Use at least 1 point to claim from this pool.');
+          setNote('Use at least 1 pt to claim from this pool.');
           return;
         }
         if (breakdown.totalRedeemable < pointsSpend) {
-          setNote(`You need ${pointsSpend.toLocaleString()} redeemable points. Earn more by playing hub experiences and joining hub programs.`);
+          setNote(`You need ${pointsSpend.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`);
           return;
         }
         if (rewardsItemRequiresL2Gate(item.fulfillment)) {
@@ -237,7 +238,7 @@ export function RewardsPageContent() {
         }
 
         setNote(
-          `${item.title}: ${pointsSpend.toLocaleString()} points → about ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol}. Confirmation saved on this device.${l2Extras}`,
+          `${item.title}: ${pointsSpend.toLocaleString()} pts → about ${tokenOut.toLocaleString()} ${item.tokenPoolRate.payoutSymbol}. Confirmation saved on this device.${l2Extras}`,
         );
         return;
       }
@@ -246,7 +247,7 @@ export function RewardsPageContent() {
       const q = Math.max(item.minQty, Math.min(item.maxQty, Math.floor(quantityFromCard)));
       const cost = unit * q;
       if (breakdown.totalRedeemable < cost) {
-        setNote(`You need ${cost.toLocaleString()} redeemable points. Earn more by playing hub experiences and joining hub programs.`);
+        setNote(`You need ${cost.toLocaleString()} redeemable pts. Earn more with hub activities listed under the Points tab.`);
         return;
       }
 
@@ -294,7 +295,7 @@ export function RewardsPageContent() {
         /* ignore */
       }
 
-      setNote(`${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} points).${l2Extras}`);
+      setNote(`${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} pts).${l2Extras}`);
     },
     [breakdown.totalRedeemable, igraReady, evmAddr, evmConnected, kaspaAddr, season.id],
   );
@@ -484,10 +485,10 @@ export function RewardsPageContent() {
                               : fixedQty
                                 ? ({ pointsSpend, quantity: q }) =>
                                     q <= 1 || pointsSpend === unit * q
-                                      ? `${pointsSpend.toLocaleString()} points`
-                                      : `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} points`
+                                      ? `${pointsSpend.toLocaleString()} pts`
+                                      : `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} pts`
                                 : ({ quantity: q, pointsSpend }) =>
-                                    `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} points`
+                                    `${q.toLocaleString()} × ${unit.toLocaleString()} = ${pointsSpend.toLocaleString()} pts`
                         }
                         buyLabel={buyLabel}
                         buyDisabled={buyDisabled}
@@ -506,7 +507,12 @@ export function RewardsPageContent() {
       ) : null}
 
       {hubTab === 'points' ? (
-        <div id="rewards-points" className="scroll-mt-24 space-y-4">
+        <div id="rewards-points" className="scroll-mt-24 space-y-6">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
+            One wallet-wide redeemable balance feeds the catalog. Use this list to see typical Hub pts from each program, then
+            open History to audit every earn and redeem on this device.
+          </p>
+          <RewardsEarnSourcesTable />
           <PointsTables />
         </div>
       ) : null}
@@ -525,13 +531,13 @@ export function RewardsPageContent() {
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/40 p-5 space-y-3">
               <div className="flex justify-between gap-4">
                 <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Total redeemable</span>
-                <span className="font-mono font-bold tabular-nums text-lg">{breakdown.totalRedeemable.toLocaleString()} points</span>
+                <span className="font-mono font-bold tabular-nums text-lg">{breakdown.totalRedeemable.toLocaleString()} pts</span>
               </div>
               <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 space-y-2">
                 {breakdown.lines.map((line) => (
                   <div key={line.id} className="flex justify-between gap-4 text-sm text-zinc-600 dark:text-zinc-400">
                     <span>{line.label}</span>
-                    <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()} points</span>
+                    <span className="font-mono font-semibold tabular-nums">{line.points.toLocaleString()} pts</span>
                   </div>
                 ))}
               </div>

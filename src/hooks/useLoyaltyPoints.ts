@@ -23,11 +23,8 @@ export interface UseLoyaltyPointsResult {
 }
 
 /**
- * Read LoyaltyPoints contract for the connected user on the current chain.
- * Returns 0 values when not connected or when contract is not deployed.
- *
- * Refetch: Listen for 'dapp-transaction-success' event and call refetch() to refresh
- * after dApp transactions. GRIDHoldingsBox and XPPointsBox use this pattern.
+ * Read LoyaltyPoints EVM contract (legacy on-chain loyalty counter). For Kasparex Hub UI, prefer
+ * `useRedeemablePointsBreakdown` so users see one wallet-wide redeemable pts total.
  */
 export function useLoyaltyPoints(loyaltyPointsAddress?: string | null): UseLoyaltyPointsResult {
   const { address, isConnected } = useAccount();
