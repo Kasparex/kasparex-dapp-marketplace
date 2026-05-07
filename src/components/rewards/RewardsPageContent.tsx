@@ -24,6 +24,7 @@ import { readRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-v
 import { buildPoolRedeemKaspaMessage } from '@/lib/rewards/pool-redeem-message';
 import { REWARDS_CLAIM_VAULT_CLAIM_ABI } from '@/lib/rewards/rewards-claim-vault-abi';
 import { CHAIN_IDS } from '@/lib/wagmi';
+import { useRewardsClaimVaultPoolBalances } from '@/hooks/useRewardsClaimVaultPoolBalances';
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
 import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSourcesTable';
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
@@ -87,30 +88,6 @@ function fulfillmentMatches(f: RewardFulfillment, filter: FulfillmentFilter): bo
   return filter === 'all' || f === filter;
 }
 
-function poolCapSpecifications(sym: 'GRID' | 'KREX', kaspaAddr: string): GameItemEffectLine[] {
-  const h = readMinecorePoolAndDailyHeadroom(kaspaAddr);
-  if (!h) {
-    return [
-      {
-        label: 'Pool',
-        value: 'Connect wallet',
-        color: 'zinc',
-        specTooltip: 'Connect the same Kaspa wallet you use across Kasparex Hub to see pool info for this offer.',
-      },
-    ];
-  }
-  const poolRem = sym === 'GRID' ? h.poolGridRemaining : h.poolKrexRemaining;
-  return [
-    {
-      label: 'Pool',
-      value: `About ${poolRem.toLocaleString()} ${sym} left`,
-      color: 'sky',
-      specTooltip:
-        'Rough estimate of how much is left in the shared reward pool for this token on Kasparex Hub. Live totals will tighten up as partner rails go fully online.',
-    },
-  ];
-}
-
 function nonPoolSpecifications(item: UnifiedRewardItem): GameItemEffectLine[] {
   return [
     {
@@ -132,10 +109,80 @@ export function RewardsPageContent() {
   const { state: kaspaState } = useKaspaWallet();
   const { isConnected: evmConnected, address: evmAddr } = useAccount();
   const chainId = useChainId();
+  const igraReady = Boolean(evmConnected && chainId === CHAIN_IDS.IGRA_MAINNET);
   const { writeContractAsync } = useWriteContract();
   const breakdown = useRedeemablePointsBreakdown();
   const kaspaAddr = kaspaState.address ? normKaspa(kaspaState.address) : '';
   const season = useMemo(() => currentSeasonWindowUtc(), []);
+  const vaultPools = useRewardsClaimVaultPoolBalances();
+  const {
+    gridDisplay: vaultGridDisplay,
+    krexDisplay: vaultKrexDisplay,
+    isLoading: vaultPoolsLoading,
+    refetch: refetchVaultPools,
+  } = vaultPools;
+
+  const poolCapSpecifications = useCallback(
+    (sym: 'GRID' | 'KREX'): GameItemEffectLine[] => {
+      if (igraReady) {
+        const display = sym === 'GRID' ? vaultGridDisplay : vaultKrexDisplay;
+        if (vaultPoolsLoading && display == null) {
+          return [
+            {
+              label: 'Pool',
+              value: `Loading ${sym} in vault…`,
+              color: 'zinc',
+              specTooltip: 'Reading ERC-20 balance held by RewardsClaimVault on Igra Mainnet.',
+            },
+          ];
+        }
+        if (display != null) {
+          return [
+            {
+              label: 'Pool',
+              value: `~${display} ${sym} in vault`,
+              color: 'sky',
+              specTooltip:
+                'On-chain balance for this token inside RewardsClaimVault. Claims draw from this liquidity after the hub signs your voucher.',
+            },
+          ];
+        }
+        return [
+          {
+            label: 'Pool',
+            value: 'Could not read vault balance',
+            color: 'zinc',
+            specTooltip:
+              'RPC or token read failed from this browser. Switch network or retry. The catalog rate still uses the configured GRID and KREX addresses.',
+          },
+        ];
+      }
+
+      const h = readMinecorePoolAndDailyHeadroom(kaspaAddr);
+      if (!h) {
+        return [
+          {
+            label: 'Pool',
+            value: 'Connect wallet',
+            color: 'zinc',
+            specTooltip:
+              'Connect Kaspa in the header. Connect EVM on Igra Mainnet to see live vault balances for pool cards.',
+          },
+        ];
+      }
+      const poolRem = sym === 'GRID' ? h.poolGridRemaining : h.poolKrexRemaining;
+      return [
+        {
+          label: 'Pool',
+          value: `About ${poolRem.toLocaleString()} ${sym} left (estimate)`,
+          color: 'sky',
+          specTooltip:
+            'Shown when your EVM wallet is not on Igra Mainnet. Switch to Igra to load the live RewardsClaimVault ERC-20 balance.',
+        },
+      ];
+    },
+    [kaspaAddr, igraReady, vaultGridDisplay, vaultKrexDisplay, vaultPoolsLoading],
+  );
 
   const [hubTab, setHubTab] = useState<RewardsHubTab>('catalog');
   useEffect(() => {
@@ -152,8 +199,6 @@ export function RewardsPageContent() {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentFilter>('all');
   const [sort, setSort] = useState<SortKey>('cost-asc');
   const [note, setNote] = useState<string | null>(null);
-
-  const igraReady = Boolean(evmConnected && chainId === CHAIN_IDS.IGRA_MAINNET);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -308,6 +353,7 @@ export function RewardsPageContent() {
             setNote(
               `${item.title}: claim tx sent (${hash.slice(0, 12)}…). Expect ${tokenOutL2.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} on Igra when the transaction confirms.`,
             );
+            void refetchVaultPools();
           } catch (e) {
             const extra = jobId ? ` Reference job id: ${jobId}.` : '';
             setNote(
@@ -441,6 +487,7 @@ export function RewardsPageContent() {
       kaspaState.provider,
       season.id,
       writeContractAsync,
+      refetchVaultPools,
     ],
   );
 
@@ -582,7 +629,7 @@ export function RewardsPageContent() {
                   const buyLabel = item.fulfillment === 'coming_soon' ? 'Locked' : poolClaim ? 'Claim' : 'Redeem';
 
                   const specifications: GameItemEffectLine[] = poolClaim
-                    ? poolCapSpecifications(item.tokenPoolRate!.payoutSymbol, kaspaAddr)
+                    ? poolCapSpecifications(item.tokenPoolRate!.payoutSymbol)
                     : nonPoolSpecifications(item);
 
                   const qtyCtl =
