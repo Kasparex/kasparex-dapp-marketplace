@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount, useChainId, useWriteContract } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
 import { FilterBar } from '@/components/FilterBar';
@@ -20,6 +21,8 @@ import {
 import { recordUnifiedCatalogRedeem } from '@/lib/rewards/hub-ledger';
 import { describeL2RedemptionAvailability } from '@/lib/rewards/l2-redemption-route';
 import { readRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
+import { buildPoolRedeemKaspaMessage } from '@/lib/rewards/pool-redeem-message';
+import { REWARDS_CLAIM_VAULT_CLAIM_ABI } from '@/lib/rewards/rewards-claim-vault-abi';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
 import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSourcesTable';
@@ -129,6 +132,7 @@ export function RewardsPageContent() {
   const { state: kaspaState } = useKaspaWallet();
   const { isConnected: evmConnected, address: evmAddr } = useAccount();
   const chainId = useChainId();
+  const { writeContractAsync } = useWriteContract();
   const breakdown = useRedeemablePointsBreakdown();
   const kaspaAddr = kaspaState.address ? normKaspa(kaspaState.address) : '';
   const season = useMemo(() => currentSeasonWindowUtc(), []);
@@ -205,7 +209,134 @@ export function RewardsPageContent() {
             setNote('Sign once in the verification strip below before claiming token pools.');
             return;
           }
+          if (breakdown.serverHubBalance == null) {
+            setNote(
+              'This pool debits your synced Rewards hub balance. Wait until your hub balance loads, or earn pts that credit the hub (for example Chronicles), then try again.',
+            );
+            return;
+          }
+          if (pointsSpend > breakdown.serverHubBalance) {
+            setNote(
+              `This pool uses synced hub pts only (you have ${breakdown.serverHubBalance.toLocaleString()}). Lower the amount, or earn more hub pts. Gameplay-only pts on this device are not spent here yet.`,
+            );
+            return;
+          }
+          const kaspaProvider = kaspaState.provider;
+          if (!kaspaProvider) {
+            setNote('Use a supported Kaspa wallet extension so you can sign the redeem request.');
+            return;
+          }
+
+          const tokenOutL2 = Math.floor(pointsSpend * item.tokenPoolRate.tokensPerPoint);
+          const exp = Math.floor(Date.now() / 1000) + 10 * 60;
+          const nonce =
+            typeof crypto !== 'undefined' && 'randomUUID' in crypto
+              ? crypto.randomUUID()
+              : `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+          const message = buildPoolRedeemKaspaMessage({
+            walletKaspa: kaspaAddr,
+            evmBeneficiary: evmAddr,
+            catalogItemId: item.id,
+            ptsSpent: pointsSpend,
+            expiresUnix: exp,
+            nonce,
+          });
+
+          let sig: string;
+          try {
+            sig = await signKaspaMessage(kaspaProvider, message);
+          } catch (e) {
+            setNote(e instanceof Error ? e.message : 'Kaspa signing failed.');
+            return;
+          }
+
+          let poolRes: Response;
+          try {
+            poolRes = await fetch('/api/kasparex/pts/pool-redeem', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message,
+                signature: sig,
+                kaspa_address: kaspaAddr,
+              }),
+            });
+          } catch {
+            setNote('Network error talking to redeem service.');
+            return;
+          }
+
+          const poolJson = (await poolRes.json().catch(() => ({}))) as Record<string, unknown>;
+          if (!poolRes.ok) {
+            const err = typeof poolJson.error === 'string' ? poolJson.error : 'redeem_failed';
+            const detail =
+              typeof poolJson.detail === 'string'
+                ? ` ${poolJson.detail}`
+                : typeof poolJson.detail === 'object' && poolJson.detail != null && 'message' in poolJson.detail
+                  ? ` ${String((poolJson.detail as { message?: unknown }).message)}`
+                  : '';
+            setNote(`Redeem error: ${err}.${detail}`.trim());
+            return;
+          }
+          const voucher = poolJson.voucher as Record<string, unknown> | undefined;
+          const jobId = typeof poolJson.job_id === 'string' ? poolJson.job_id : '';
+          if (!voucher || typeof voucher.vault !== 'string') {
+            setNote('Invalid voucher from server.');
+            return;
+          }
+
+          try {
+            const hash = await writeContractAsync({
+              address: voucher.vault as `0x${string}`,
+              abi: REWARDS_CLAIM_VAULT_CLAIM_ABI,
+              functionName: 'claim',
+              chainId: CHAIN_IDS.IGRA_MAINNET,
+              args: [
+                voucher.beneficiary as `0x${string}`,
+                voucher.token as `0x${string}`,
+                BigInt(String(voucher.amount)),
+                BigInt(String(voucher.ptsConsumed)),
+                voucher.requestId as `0x${string}`,
+                BigInt(String(voucher.deadline)),
+                voucher.signature as `0x${string}`,
+              ],
+            });
+            setNote(
+              `${item.title}: claim tx sent (${hash.slice(0, 12)}…). Expect ${tokenOutL2.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} on Igra when the transaction confirms.`,
+            );
+          } catch (e) {
+            const extra = jobId ? ` Reference job id: ${jobId}.` : '';
+            setNote(
+              `Voucher was issued but the on-chain claim did not complete: ${e instanceof Error ? e.message : String(e)}.${extra} If pts were debited already, contact support before signing again.`,
+            );
+            return;
+          }
+
+          try {
+            window.dispatchEvent(
+              new CustomEvent('reward-catalog-redeem', {
+                detail: {
+                  walletKaspa: kaspaAddr,
+                  evm: evmAddr,
+                  catalogItemId: item.id,
+                  quantity: tokenOutL2,
+                  points: pointsSpend,
+                  fulfillment: item.fulfillment,
+                  payoutSymbol: item.tokenPoolRate.payoutSymbol,
+                },
+              }),
+            );
+          } catch {
+            /* ignore */
+          }
+          try {
+            window.dispatchEvent(new Event('kasparex-hub-ledger'));
+          } catch {
+            /* ignore */
+          }
+          return;
         }
+
         const tokenOut = Math.floor(pointsSpend * item.tokenPoolRate.tokensPerPoint);
         recordUnifiedCatalogRedeem({
           walletKaspaL1: kaspaAddr,
@@ -297,7 +428,17 @@ export function RewardsPageContent() {
 
       setNote(`${item.title} ×${q}: confirmation saved (${cost.toLocaleString()} pts).${l2Extras}`);
     },
-    [breakdown.totalRedeemable, igraReady, evmAddr, evmConnected, kaspaAddr, season.id],
+    [
+      breakdown.totalRedeemable,
+      breakdown.serverHubBalance,
+      igraReady,
+      evmAddr,
+      evmConnected,
+      kaspaAddr,
+      kaspaState.provider,
+      season.id,
+      writeContractAsync,
+    ],
   );
 
   const kindDropdownOptions = useMemo(
