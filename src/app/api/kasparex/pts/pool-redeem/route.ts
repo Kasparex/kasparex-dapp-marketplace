@@ -24,7 +24,7 @@ const POOL_PREFUND_MAX_PTS = Math.max(
 
 /** When Worker returns 401 on ingest or redeem shared secrets. */
 const PTS_SECRET_MISMATCH_DETAIL =
-  'Vercel needs PTS_INGEST_SECRET and PTS_REDEEM_SECRET set to the same values as on the Cloudflare Worker, then a redeploy. Until then pool redeem cannot prefund or debit server points.';
+  'The rewards API rejected the shared secrets. On Vercel, set PTS_INGEST_SECRET to match Cloudflare PTS_INGEST_SECRET and PTS_REDEEM_SECRET to match Cloudflare PTS_REDEEM_SECRET (they are two different values on the Worker). Redeploy after saving. Optional: set only PTS_INGEST_SECRET on the Worker and leave PTS_REDEEM_SECRET unset so redeem uses the ingest secret, then use that one value in both Vercel vars.';
 
 function isWorkerPtsSecretUnauthorized(status: number, err: string): boolean {
   if (status !== 401) return false;
