@@ -59,8 +59,9 @@ export async function handlePtsRequest(request: Request, env: Env): Promise<Resp
   }
 
   if (path === '/kasparex/pts/ingest' && request.method === 'POST') {
-    const secret = env.PTS_INGEST_SECRET;
-    if (!secret || request.headers.get('X-Pts-Ingest-Secret') !== secret) {
+    const secret = (env.PTS_INGEST_SECRET ?? '').trim();
+    const hdr = request.headers.get('X-Pts-Ingest-Secret')?.trim() ?? '';
+    if (!secret || hdr !== secret) {
       return json({ error: 'unauthorized_ingest' }, 401);
     }
     let body: unknown;
@@ -98,8 +99,9 @@ export async function handlePtsRequest(request: Request, env: Env): Promise<Resp
   }
 
   if (path === '/kasparex/pts/redeem' && request.method === 'POST') {
-    const secret = env.PTS_REDEEM_SECRET ?? env.PTS_INGEST_SECRET;
-    if (!secret || request.headers.get('X-Pts-Redeem-Secret') !== secret) {
+    const secret = ((env.PTS_REDEEM_SECRET ?? env.PTS_INGEST_SECRET) ?? '').trim();
+    const hdr = request.headers.get('X-Pts-Redeem-Secret')?.trim() ?? '';
+    if (!secret || hdr !== secret) {
       return json({ error: 'unauthorized_redeem' }, 401);
     }
     const pk = env.VOUCHER_SIGNER_PRIVATE_KEY as Hex | undefined;

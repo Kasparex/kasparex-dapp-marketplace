@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (!internal || req.headers.get('authorization') !== `Bearer ${internal}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const secret = process.env.PTS_INGEST_SECRET;
+  const secret = process.env.PTS_INGEST_SECRET?.trim();
   if (!secret) {
     return NextResponse.json({ error: 'ingest_not_configured' }, { status: 503 });
   }

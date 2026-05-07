@@ -141,9 +141,20 @@ export function useVBlog() {
             requiredTotalKas: args.totalKas,
           }),
         });
-        const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string };
+        const verifyJson = (await verifyRes.json()) as {
+          ok?: boolean;
+          error?: string;
+          ptsIngest?: string;
+          ptsIngestError?: string;
+        };
         if (verifyJson.ok) {
           verified = true;
+          if (verifyJson.ptsIngest === 'failed') {
+            console.warn(
+              '[vBlog] On-chain verify ok but server pts did not credit. Check Vercel PTS_INGEST_SECRET matches Cloudflare and REDEPLOY. Reason:',
+              verifyJson.ptsIngestError ?? 'unknown',
+            );
+          }
           break;
         }
         lastError = verifyJson.error ?? lastError;
@@ -297,6 +308,7 @@ export function useVBlog() {
       contentHash,
     });
     const updated = updateArticle(articleId, updates, {
+      articleId: chainArticleId,
       txHash: bundle.commitTxHash,
       status: bundle.verified ? 'verified' : 'verification_pending',
       chunkTxHashes: bundle.chunkTxHashes,

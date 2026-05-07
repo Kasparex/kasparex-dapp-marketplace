@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     }
 
-    const ingestSecret = process.env.PTS_INGEST_SECRET;
+    const ingestSecret = process.env.PTS_INGEST_SECRET?.trim();
+    let ptsIngest: 'ok' | 'skipped' | 'failed' = 'skipped';
+    let ptsIngestError: string | undefined;
     if (ingestSecret) {
       try {
         const delta =
@@ -62,14 +64,24 @@ export async function POST(request: NextRequest) {
           meta: { articleId, commitTxHash, op },
         });
         if (!ptsRes.ok) {
+          ptsIngest = 'failed';
+          ptsIngestError = ptsRes.error;
           console.error('[vblog/verify] worker pts ingest failed', ptsRes.status, ptsRes.error);
+        } else {
+          ptsIngest = 'ok';
         }
       } catch (e) {
+        ptsIngest = 'failed';
+        ptsIngestError = e instanceof Error ? e.message : String(e);
         console.error('[vblog/verify] pts ingest exception', e);
       }
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      ptsIngest,
+      ...(ptsIngestError ? { ptsIngestError } : {}),
+    });
   } catch (error) {
     console.error('[vblog/verify]', error);
     return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 400 });

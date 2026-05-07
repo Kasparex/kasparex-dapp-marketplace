@@ -24,7 +24,7 @@ const POOL_PREFUND_MAX_PTS = Math.max(
 
 /** When Worker returns 401 on ingest or redeem shared secrets. */
 const PTS_SECRET_MISMATCH_DETAIL =
-  'The rewards API rejected the shared secrets. On Vercel, set PTS_INGEST_SECRET to match Cloudflare PTS_INGEST_SECRET and PTS_REDEEM_SECRET to match Cloudflare PTS_REDEEM_SECRET (they are two different values on the Worker). Redeploy after saving. Optional: set only PTS_INGEST_SECRET on the Worker and leave PTS_REDEEM_SECRET unset so redeem uses the ingest secret, then use that one value in both Vercel vars.';
+    'The rewards API rejected the shared secrets. In Cloudflare Worker secrets, `PTS_INGEST_SECRET` secures ingest; `PTS_REDEEM_SECRET` secures redeem (if unset there, redeem falls back to the ingest secret). In Vercel Production env, set `PTS_INGEST_SECRET` to the Worker value. Set `PTS_REDEEM_SECRET` to the same value as on the Worker, or omit it on Vercel if this app may use only `PTS_INGEST_SECRET` (Next falls back the same way as the Worker). Values are compared after trimming leading or trailing whitespace. Redeploy the Worker and Next after saving.';
 
 function isWorkerPtsSecretUnauthorized(status: number, err: string): boolean {
   if (status !== 401) return false;
@@ -49,7 +49,7 @@ async function workerPrefundIngest(args: {
   idempotency_key: string;
   nonce: string;
 }): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const ingestSecret = process.env.PTS_INGEST_SECRET;
+  const ingestSecret = process.env.PTS_INGEST_SECRET?.trim();
   if (!ingestSecret) {
     return { ok: false, error: 'ingest_not_configured', status: 503 };
   }
@@ -88,9 +88,16 @@ async function workerPrefundIngest(args: {
  * Public user route: Kaspa-signed pool redeem → Worker pts debit + voucher → client submits vault.claim on Igra.
  */
 export async function POST(req: NextRequest) {
-  const secret = process.env.PTS_REDEEM_SECRET;
-  if (!secret) {
-    return NextResponse.json({ error: 'redeem_not_configured' }, { status: 503 });
+  const redeemSecret =
+    process.env.PTS_REDEEM_SECRET?.trim() || process.env.PTS_INGEST_SECRET?.trim();
+  if (!redeemSecret) {
+    return NextResponse.json(
+      {
+        error: 'redeem_not_configured',
+        detail: 'Set PTS_REDEEM_SECRET and/or PTS_INGEST_SECRET on Vercel to match the Worker.',
+      },
+      { status: 503 },
+    );
   }
 
   let body: unknown;
@@ -206,7 +213,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Pts-Redeem-Secret': secret,
+        'X-Pts-Redeem-Secret': redeemSecret,
       },
       body: JSON.stringify({
         wallet_kaspa: walletNorm,

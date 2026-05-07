@@ -14,9 +14,15 @@ export async function POST(req: NextRequest) {
   if (!internal || req.headers.get('authorization') !== `Bearer ${internal}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const secret = process.env.PTS_REDEEM_SECRET;
+  const secret = process.env.PTS_REDEEM_SECRET?.trim() || process.env.PTS_INGEST_SECRET?.trim();
   if (!secret) {
-    return NextResponse.json({ error: 'redeem_not_configured' }, { status: 503 });
+    return NextResponse.json(
+      {
+        error: 'redeem_not_configured',
+        detail: 'Set PTS_REDEEM_SECRET and/or PTS_INGEST_SECRET to match the Worker.',
+      },
+      { status: 503 },
+    );
   }
   let body: unknown;
   try {

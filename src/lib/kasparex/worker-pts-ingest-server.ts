@@ -16,7 +16,7 @@ export async function postWorkerPtsIngest(args: {
   idempotency_key: string;
   meta?: Record<string, unknown>;
 }): Promise<{ ok: boolean; status: number; error?: string }> {
-  const secret = process.env.PTS_INGEST_SECRET;
+  const secret = process.env.PTS_INGEST_SECRET?.trim();
   if (!secret) {
     return { ok: false, status: 503, error: 'ingest_not_configured' };
   }

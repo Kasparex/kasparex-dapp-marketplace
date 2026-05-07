@@ -106,7 +106,18 @@ export function createArticle(
 export function updateArticle(
   articleId: string,
   updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>,
-  metadata?: Partial<Pick<VBlogArticle, 'txHash' | 'status' | 'chunkTxHashes' | 'commitTxHash' | 'contentHash' | 'pricingSnapshot'>>
+  metadata?: Partial<
+    Pick<
+      VBlogArticle,
+      | 'txHash'
+      | 'status'
+      | 'chunkTxHashes'
+      | 'commitTxHash'
+      | 'contentHash'
+      | 'pricingSnapshot'
+      | 'articleId'
+    >
+  >
 ): VBlogArticle | null {
   const articles = getAllArticles();
   const index = articles.findIndex(a => a.id === articleId);
@@ -117,6 +128,7 @@ export function updateArticle(
     ...articles[index],
     ...updates,
     updatedAt: new Date().toISOString(),
+    articleId: metadata?.articleId ?? updates.articleId ?? articles[index].articleId,
     txHash: metadata?.txHash ?? generateMockTxHash(), // New transaction for update
     slug: updates.title ? generateArticleSlug(updates.title) : articles[index].slug,
     status: metadata?.status ?? updates.status ?? articles[index].status,
