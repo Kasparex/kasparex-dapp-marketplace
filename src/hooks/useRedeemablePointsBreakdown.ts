@@ -6,6 +6,11 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
 import { migrateLegacyCatalogRedemptionsOnce, sumLedgerRedeemableNet } from '@/lib/rewards/hub-ledger';
 import { MINECORE_EXTERNAL_PERSIST_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
+import {
+  getServerHubBalanceForAddr,
+  refreshServerHubBalance,
+  subscribeServerHubBalance,
+} from '@/lib/rewards/serverHubBalanceCoordinator';
 
 function normAddr(a: string): string {
   try {
@@ -44,46 +49,31 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
   const addr = state.address ? normAddr(state.address) : '';
 
   useEffect(() => {
-    function bump() {
+    function bumpLocal() {
       setTick((n) => n + 1);
     }
+    function bumpWithServerSync() {
+      bumpLocal();
+      refreshServerHubBalance();
+    }
     if (typeof window === 'undefined') return;
-    window.addEventListener('kasparex-hub-ledger', bump);
-    window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bump);
-    window.addEventListener('focus', bump);
-    const id = window.setInterval(bump, 5000);
+    window.addEventListener('kasparex-hub-ledger', bumpWithServerSync);
+    window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+    window.addEventListener('focus', bumpWithServerSync);
+    const id = window.setInterval(bumpLocal, 5000);
     return () => {
-      window.removeEventListener('kasparex-hub-ledger', bump);
-      window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bump);
-      window.removeEventListener('focus', bump);
+      window.removeEventListener('kasparex-hub-ledger', bumpWithServerSync);
+      window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+      window.removeEventListener('focus', bumpWithServerSync);
       window.clearInterval(id);
     };
   }, []);
 
   useEffect(() => {
-    if (!addr) {
-      setServerHubBalance(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch(`/api/kasparex/pts/balance?wallet=${encodeURIComponent(addr)}`);
-        const j = (await r.json()) as { balance_pts?: number; error?: string };
-        if (cancelled) return;
-        if (r.ok && typeof j.balance_pts === 'number' && Number.isFinite(j.balance_pts)) {
-          setServerHubBalance(Math.max(0, Math.floor(j.balance_pts)));
-        } else {
-          setServerHubBalance(null);
-        }
-      } catch {
-        if (!cancelled) setServerHubBalance(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [addr, tick]);
+    return subscribeServerHubBalance(addr, () => {
+      setServerHubBalance(getServerHubBalanceForAddr(addr));
+    });
+  }, [addr]);
 
   return useMemo(() => {
     if (!addr || typeof window === 'undefined') {
