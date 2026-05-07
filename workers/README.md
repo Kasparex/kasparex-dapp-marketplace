@@ -159,6 +159,14 @@ Endpoints:
 
 Cron `15 3 * * *` runs archival of `pts_events` older than 180 days and writes a `pts_checkpoints` row.
 
+**Next.js (Vercel) for `/rewards` GRID/KREX pool**
+
+- `PTS_REDEEM_SECRET`  -  must match Worker (used by `POST /api/kasparex/pts/pool-redeem` to call the Worker; **not** the internal bearer).
+- `KASPAREX_INTERNAL_API_URL` or `NEXT_PUBLIC_KASPAREX_API_URL`  -  Worker base URL users and server routes call.
+- Optional: `NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_MAINNET` if the app’s address table should override the bundled Igra GRID default for voucher token resolution.
+
+Pool flow: user signs a Kaspa message, Next calls Worker `POST /kasparex/pts/redeem`, browser submits `RewardsClaimVault.claim` on Igra using returned voucher args. **Synced hub balance** on D1 must cover `pts_spent` (the catalog currently requires server hub pts for pool rows, not device-only ledger).
+
 Vercel (`NEXT_PUBLIC_KASPAREX_API_URL` or `KASPAREX_INTERNAL_API_URL`):
 
 - `PTS_INGEST_SECRET` / `PTS_REDEEM_SECRET` must match Worker (for server-side proxies).
