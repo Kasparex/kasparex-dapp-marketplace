@@ -24,7 +24,15 @@ const POOL_PREFUND_MAX_PTS = Math.max(
 
 /** When Worker returns 401 on ingest or redeem shared secrets. */
 const PTS_SECRET_MISMATCH_DETAIL =
-    'The rewards API rejected the shared secrets. In Cloudflare Worker secrets, `PTS_INGEST_SECRET` secures ingest; `PTS_REDEEM_SECRET` secures redeem (if unset there, redeem falls back to the ingest secret). In Vercel Production env, set `PTS_INGEST_SECRET` to the Worker value. Set `PTS_REDEEM_SECRET` to the same value as on the Worker, or omit it on Vercel if this app may use only `PTS_INGEST_SECRET` (Next falls back the same way as the Worker). Values are compared after trimming leading or trailing whitespace. Redeploy the Worker and Next after saving.';
+  'The rewards API rejected the shared secrets. If `phase` is `prefund_ingest`, only `PTS_INGEST_SECRET` must match between Vercel and the Worker (pool redeem prefunds the server ledger from gameplay totals). If `phase` is `redeem`, fix `PTS_REDEEM_SECRET` on both sides or leave it unset everywhere so redeem uses `PTS_INGEST_SECRET`. Confirm `upstreamHost` is the Worker deployment you edited in Cloudflare. Redeploy the Worker and Vercel Production after saving.';
+
+function upstreamHostFromApiBase(): string {
+  try {
+    return new URL(API_BASE.replace(/\/$/, '') || 'https://invalid').host;
+  } catch {
+    return 'unknown';
+  }
+}
 
 function isWorkerPtsSecretUnauthorized(status: number, err: string): boolean {
   if (status !== 401) return false;
@@ -199,7 +207,13 @@ export async function POST(req: NextRequest) {
     if (!pf.ok) {
       if (isWorkerPtsSecretUnauthorized(pf.status, pf.error)) {
         return NextResponse.json(
-          { error: 'redeem_unauthorized', detail: PTS_SECRET_MISMATCH_DETAIL },
+          {
+            error: 'redeem_unauthorized',
+            detail: PTS_SECRET_MISMATCH_DETAIL,
+            phase: 'prefund_ingest',
+            workerError: pf.error,
+            upstreamHost: upstreamHostFromApiBase(),
+          },
           { status: 401 },
         );
       }
@@ -228,7 +242,13 @@ export async function POST(req: NextRequest) {
     const errStr = typeof data.error === 'string' ? data.error : '';
     if (isWorkerPtsSecretUnauthorized(res.status, errStr)) {
       return NextResponse.json(
-        { error: 'redeem_unauthorized', detail: PTS_SECRET_MISMATCH_DETAIL },
+        {
+          error: 'redeem_unauthorized',
+          detail: PTS_SECRET_MISMATCH_DETAIL,
+          phase: 'redeem',
+          workerError: errStr,
+          upstreamHost: upstreamHostFromApiBase(),
+        },
         { status: 401 },
       );
     }

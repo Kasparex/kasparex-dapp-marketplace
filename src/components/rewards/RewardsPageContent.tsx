@@ -263,7 +263,16 @@ export function RewardsPageContent() {
                 : typeof poolJson.detail === 'object' && poolJson.detail != null && 'message' in poolJson.detail
                   ? ` ${String((poolJson.detail as { message?: unknown }).message)}`
                   : '';
-            setNote(`Redeem error: ${err}.${detail}`.trim());
+            const phase = typeof poolJson.phase === 'string' ? poolJson.phase : '';
+            const workerError = typeof poolJson.workerError === 'string' ? poolJson.workerError : '';
+            const upstreamHost = typeof poolJson.upstreamHost === 'string' ? poolJson.upstreamHost : '';
+            const debug =
+              phase || workerError || upstreamHost
+                ? ` Debug: ${[phase && `phase=${phase}`, workerError && `worker=${workerError}`, upstreamHost && `api=${upstreamHost}`]
+                    .filter(Boolean)
+                    .join(', ')}.`
+                : '';
+            setNote(`Redeem error: ${err}.${detail}${debug}`.trim());
             return;
           }
           const voucher = poolJson.voucher as Record<string, unknown> | undefined;
