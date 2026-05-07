@@ -131,12 +131,22 @@ Secrets / vars (Dashboard or `wrangler secret put` from `workers/`):
 - `VOUCHER_CHAIN_ID`  -  must match that chain (e.g. `38833` for Igra Mainnet)
 - `IGRA_RPC_URL`  -  HTTPS JSON-RPC on that same chain (see table)
 
+After deploy, fund the vault on Igra (deployer must hold GRID + iKAS for gas):
+
+```bash
+# From repo root (uses .env PRIVATE_KEY and optional REWARDS_CLAIM_VAULT_ADDRESS)
+REWARDS_VAULT_DEPOSIT_GRID=1000 npm run hardhat:fund:rewards-vault:igra
+```
+
+Or raw wei: `REWARDS_VAULT_DEPOSIT_WEI=…`. Default token is Igra mainnet GRID (`0x05E0…4902`); override with `REWARDS_VAULT_TOKEN`.
+
 **One-time setup checklist**
 
 1. Generate or choose an EOA to be `claimSigner`. Its **private key** will be `VOUCHER_SIGNER_PRIVATE_KEY` (Worker secret only).
 2. Deploy: `CLAIM_SIGNER=0xYourSigner npx hardhat run scripts/deploy-rewards-claim-vault.js --network igraMainnet` (use `igraMainnet` for Igra). Note printed `address` and `chainId`.
 3. Cloudflare: Workers and Pages  -  open **kasparex-api** production  -  **Settings**  -  **Variables**  -  encrypt **Secrets** and add plain **Vars** as needed. Set `REWARDS_CLAIM_VAULT_ADDRESS`, `VOUCHER_CHAIN_ID`, `IGRA_RPC_URL`, `VOUCHER_SIGNER_PRIVATE_KEY`, `PTS_INGEST_SECRET`, `PTS_REDEEM_SECRET` to match step 2 and the table.
 4. Vercel: Project  -  **Settings**  -  **Environment Variables** (Production). Set `NEXT_PUBLIC_KASPAREX_API_URL` or `KASPAREX_INTERNAL_API_URL` to your Worker base URL. Set `PTS_INGEST_SECRET` and `PTS_REDEEM_SECRET` to the **same** values as Cloudflare. Set `KASPAREX_PTS_INTERNAL_BEARER` to a new random string (only Next uses it for `Authorization: Bearer` on ingest/redeem API routes). Redeploy the Next app after saving.
+5. Fund the vault on-chain (see command block above): the `PRIVATE_KEY` wallet must hold **GRID** (or your `REWARDS_VAULT_TOKEN`) plus **iKAS** for gas on Igra mainnet.
 
 If an older vault was deployed on Kasplex (`202555`) but you want Igra, deploy a **new** vault on `igraMainnet` and point Worker secrets at the new address and `38833` RPC. `claimSigner` cannot be changed on an existing contract.
 
