@@ -22,6 +22,19 @@ const POOL_PREFUND_MAX_PTS = Math.max(
   ),
 );
 
+/** When Worker returns 401 on ingest or redeem shared secrets. */
+const PTS_SECRET_MISMATCH_DETAIL =
+  'Vercel needs PTS_INGEST_SECRET and PTS_REDEEM_SECRET set to the same values as on the Cloudflare Worker, then a redeploy. Until then pool redeem cannot prefund or debit server points.';
+
+function isWorkerPtsSecretUnauthorized(status: number, err: string): boolean {
+  if (status !== 401) return false;
+  return (
+    err === 'unauthorized' ||
+    err === 'unauthorized_ingest' ||
+    err === 'unauthorized_redeem'
+  );
+}
+
 async function workerGetBalance(walletForQuery: string): Promise<number> {
   const u = `${API_BASE.replace(/\/$/, '')}/kasparex/pts/balance?wallet=${encodeURIComponent(walletForQuery)}`;
   const r = await fetch(u);
@@ -177,6 +190,12 @@ export async function POST(req: NextRequest) {
       nonce: parsed.nonce,
     });
     if (!pf.ok) {
+      if (isWorkerPtsSecretUnauthorized(pf.status, pf.error)) {
+        return NextResponse.json(
+          { error: 'redeem_unauthorized', detail: PTS_SECRET_MISMATCH_DETAIL },
+          { status: 401 },
+        );
+      }
       return NextResponse.json({ error: pf.error }, { status: pf.status });
     }
   }
@@ -199,6 +218,13 @@ export async function POST(req: NextRequest) {
       }),
     });
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    const errStr = typeof data.error === 'string' ? data.error : '';
+    if (isWorkerPtsSecretUnauthorized(res.status, errStr)) {
+      return NextResponse.json(
+        { error: 'redeem_unauthorized', detail: PTS_SECRET_MISMATCH_DETAIL },
+        { status: 401 },
+      );
+    }
     return NextResponse.json(data, { status: res.status });
   } catch (e) {
     return NextResponse.json(

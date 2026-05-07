@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { verifyVBlogArticleTxBundle } from '@/lib/vblog/verifyArticleTx';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { postWorkerPtsIngest } from '@/lib/kasparex/worker-pts-ingest-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +45,30 @@ export async function POST(request: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     }
+
+    const ingestSecret = process.env.PTS_INGEST_SECRET;
+    if (ingestSecret) {
+      try {
+        const delta =
+          op === 'edit' ? HUB_EARN_POINTS.vblogArticleUpdate : HUB_EARN_POINTS.vblogArticleCreate;
+        const idempotency_key =
+          op === 'edit' ? `vba:update:${commitTxHash}` : `vba:create:${commitTxHash}`;
+        const source = op === 'edit' ? 'vblog_article_update' : 'vblog_article_create';
+        const ptsRes = await postWorkerPtsIngest({
+          wallet: payerAddress,
+          delta_pts: delta,
+          source,
+          idempotency_key,
+          meta: { articleId, commitTxHash, op },
+        });
+        if (!ptsRes.ok) {
+          console.error('[vblog/verify] worker pts ingest failed', ptsRes.status, ptsRes.error);
+        }
+      } catch (e) {
+        console.error('[vblog/verify] pts ingest exception', e);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('[vblog/verify]', error);

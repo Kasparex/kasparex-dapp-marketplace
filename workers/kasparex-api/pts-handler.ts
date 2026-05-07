@@ -61,7 +61,7 @@ export async function handlePtsRequest(request: Request, env: Env): Promise<Resp
   if (path === '/kasparex/pts/ingest' && request.method === 'POST') {
     const secret = env.PTS_INGEST_SECRET;
     if (!secret || request.headers.get('X-Pts-Ingest-Secret') !== secret) {
-      return json({ error: 'unauthorized' }, 401);
+      return json({ error: 'unauthorized_ingest' }, 401);
     }
     let body: unknown;
     try {
@@ -100,7 +100,7 @@ export async function handlePtsRequest(request: Request, env: Env): Promise<Resp
   if (path === '/kasparex/pts/redeem' && request.method === 'POST') {
     const secret = env.PTS_REDEEM_SECRET ?? env.PTS_INGEST_SECRET;
     if (!secret || request.headers.get('X-Pts-Redeem-Secret') !== secret) {
-      return json({ error: 'unauthorized' }, 401);
+      return json({ error: 'unauthorized_redeem' }, 401);
     }
     const pk = env.VOUCHER_SIGNER_PRIVATE_KEY as Hex | undefined;
     const vault = env.REWARDS_CLAIM_VAULT_ADDRESS as Address | undefined;
