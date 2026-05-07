@@ -23,7 +23,7 @@ const IERC20_ABI = [
 
 const VAULT_ABI = ['function deposit(address token, uint256 amount) external'];
 
-const DEFAULT_VAULT = '0xc76515904e948698F67fCBc64f7d3b4C57602470';
+const DEFAULT_VAULT = '0xdC151b27ECE53F1c5FEaF0f18d333d4C94dAC703';
 const DEFAULT_IGRA_GRID = '0x05E02a8b14CD7974c6102CDB855F2dCd8E1f4902';
 
 function feeOverrides(chainId) {
