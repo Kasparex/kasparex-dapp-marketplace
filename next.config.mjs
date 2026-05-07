@@ -7,7 +7,11 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async redirects() {
-    return [{ source: '/points', destination: '/rewards', permanent: true }];
+    return [
+      { source: '/points', destination: '/rewards', permanent: true },
+      { source: '/rewards-and-points', destination: '/rewards', permanent: true },
+      { source: '/rewards-and-points/tiers', destination: '/tiers', permanent: true },
+    ];
   },
 
   serverExternalPackages: ["pino-pretty"],

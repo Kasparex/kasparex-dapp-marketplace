@@ -153,7 +153,7 @@ export function UpgradesPanel({
       </div>
 
       <p className="text-center text-xs text-zinc-500 dark:text-zinc-500">
-        GRID claims use <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards &amp; Points</Link> ·{' '}
+        GRID claims use <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards &amp; Points</Link> ·{' '}
         <Link href="/rewards" className="underline">
           Rewards
         </Link>

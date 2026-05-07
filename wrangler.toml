@@ -91,8 +91,9 @@ database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 # Cron triggers
 # - Process rewards every 15 minutes
 # - Archive old rewards daily at 2 AM UTC
+# - Pts archive + checkpoint daily at 03:15 UTC
 [triggers]
-crons = ["*/15 * * * *", "0 2 * * *"]
+crons = ["*/15 * * * *", "0 2 * * *", "15 3 * * *"]
 
 # Observability configuration for Workers Logs
 [observability]

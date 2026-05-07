@@ -142,7 +142,7 @@ export function CipherVaultsDashboard({
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Pay entry on L1 · later claim GRID on L2 via{' '}
-            <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+            <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
               Rewards &amp; Points
             </Link>
           </p>

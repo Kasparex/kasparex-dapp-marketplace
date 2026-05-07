@@ -18,7 +18,7 @@ export function OverviewPanel({
         <strong className="text-emerald-700 dark:text-emerald-400">Next steps:</strong>{' '}
         {miningAllowed ? (
           <>
-            Keep mining, assign Workers in the Workers tab, then <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">claim GRID checkpoints</Link> after refine.
+            Keep mining, assign Workers in the Workers tab, then <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">claim GRID checkpoints</Link> after refine.
           </>
         ) : (
           <>Reconnect your wallet to resume passive accrual.</>

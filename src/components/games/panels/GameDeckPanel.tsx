@@ -80,7 +80,7 @@ function DeckInfoModal({ onClose }: { onClose: () => void }) {
         <div className="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-zinc-600 dark:text-zinc-400">
           <strong className="text-emerald-700 dark:text-emerald-300">Loop:</strong>{' '}
           Play → Earn Reward Weight → Snapshot → Claim GRID on L2 via{' '}
-          <a href="/rewards-and-points" className="underline text-emerald-700 dark:text-emerald-300">Rewards &amp; Points</a>.
+          <a href="/rewards" className="underline text-emerald-700 dark:text-emerald-300">Rewards &amp; Points</a>.
         </div>
       </div>
     </div>

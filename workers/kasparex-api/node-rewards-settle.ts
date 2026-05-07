@@ -4,8 +4,14 @@
 
 import type { Env } from '../index';
 import tiers from '../config/node-reward-tiers.json';
+import { recordNodeEpochPtsCredit } from './pts-ledger';
 
 type TierConfig = typeof tiers;
+
+function settlementPtsPolicy(cfg: TierConfig): number {
+  const s = cfg.settlement as typeof cfg.settlement & { ptsPerQualifiedEpoch?: number };
+  return Math.max(0, Math.floor(Number(s.ptsPerQualifiedEpoch ?? 0)));
+}
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
@@ -114,6 +120,22 @@ export async function processNodeRewardSettlement(env: Env, epochDate: string, l
         JSON.stringify(mults)
       )
       .run();
+
+    const ptsPolicy = settlementPtsPolicy(cfg);
+    try {
+      const ptsRes = await recordNodeEpochPtsCredit(env, {
+        owner_wallet: n.owner_wallet,
+        node_id: n.node_id,
+        epoch_date: epochDate,
+        final_grid: finalGrid,
+        ptsPerQualifiedEpoch: ptsPolicy,
+      });
+      if (!ptsRes.ok) {
+        console.warn('[node-rewards-settle] pts credit failed', { node_id: n.node_id, err: ptsRes });
+      }
+    } catch (pe) {
+      console.warn('[node-rewards-settle] pts credit exception', n.node_id, pe);
+    }
 
     written++;
   }

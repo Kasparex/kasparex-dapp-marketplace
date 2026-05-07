@@ -197,7 +197,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             </span>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Earn on L1 · claim GRID on L2 via <Link href="/rewards-and-points" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">Rewards &amp; Points</Link>
+            Earn on L1 · claim GRID on L2 via <Link href="/rewards" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">Rewards &amp; Points</Link>
           </p>
         </div>
 
@@ -405,7 +405,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 <div>
                   <p className="font-semibold text-zinc-800 dark:text-zinc-300">GRID on Kasplex L2</p>
                   <p className="mt-1">
-                    Refines append ledger rows used with <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards & Points</Link>. On-chain distribution follows your ecosystem <code>RewardManager</code> / FeeRouter configuration.
+                    Refines append ledger rows used with <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards & Points</Link>. On-chain distribution follows your ecosystem <code>RewardManager</code> / FeeRouter configuration.
                   </p>
                 </div>
               </div>
@@ -424,7 +424,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
                 {lastRefineClaim.amount.toLocaleString()} in-game diamonds.
               </p>
               <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-500">
-                Claim GRID on L2 on the <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards & Points</Link> page.
+                Claim GRID on L2 on the <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">Rewards & Points</Link> page.
               </p>
               <button
                 type="button"

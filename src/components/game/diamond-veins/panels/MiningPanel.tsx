@@ -221,7 +221,7 @@ export function MiningPanel({
           </div>
         )}
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Options from config: <Link href="/rewards-and-points" className="text-emerald-600 underline dark:text-emerald-400">GRID rewards</Link> accrue on refine checkpoints, not every second.
+          Options from config: <Link href="/rewards" className="text-emerald-600 underline dark:text-emerald-400">GRID rewards</Link> accrue on refine checkpoints, not every second.
         </p>
       </div>
     </div>

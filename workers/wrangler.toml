@@ -76,7 +76,7 @@ database_name = "kasparex-rewards"
 database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 
 [triggers]
-crons = ["*/15 * * * *", "0 2 * * *"]
+crons = ["*/15 * * * *", "0 2 * * *", "15 3 * * *"]
 
 [observability]
 [observability.logs]

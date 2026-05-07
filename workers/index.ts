@@ -19,6 +19,8 @@ import { handleProcessRewards, processPendingRewards } from './kasparex-api/rewa
 import { handleArchiveRewards, handleManualArchive } from './kasparex-api/archive';
 import { handleUsageRequest } from './kasparex-api/usage';
 import { processNodeRewardSettlement } from './kasparex-api/node-rewards-settle';
+import { handlePtsRequest } from './kasparex-api/pts-handler';
+import { runPtsMaintenance } from './kasparex-api/pts-maintenance';
 
 export interface Env {
   // KV Namespace for caching
@@ -55,9 +57,27 @@ export interface Env {
   NODE_VERIFY_TO_ADDRESS?: string;
   /** On-chain verification: minimum KAS amount (default "1"). */
   NODE_VERIFY_MIN_KAS?: string;
+  /** Shared secret for POST /kasparex/pts/ingest (credits/debits from trusted workers). */
+  PTS_INGEST_SECRET?: string;
+  /** Secret for POST /kasparex/pts/redeem (server-side only). */
+  PTS_REDEEM_SECRET?: string;
+  /** Hex private key for EIP-712 claim vouchers (must match RewardsClaimVault claimSigner at deploy). */
+  VOUCHER_SIGNER_PRIVATE_KEY?: string;
+  /** L2 vault contract address (0x…). */
+  REWARDS_CLAIM_VAULT_ADDRESS?: string;
+  /** Chain id for voucher domain (e.g. 167012 testnet). */
+  VOUCHER_CHAIN_ID?: string;
+  /** JSON-RPC URL for reading vault nonces (Kasplex L2 / Igra). */
+  IGRA_RPC_URL?: string;
 }
 
 async function runCron(cron: string, env: Env, event?: ScheduledEvent): Promise<void> {
+  if (cron === '15 3 * * *') {
+    console.log('[Cron] Pts maintenance (archive + checkpoint)...');
+    await runPtsMaintenance(env);
+    return;
+  }
+
   // Process rewards every 15 minutes
   if (cron === '*/15 * * * *' || cron === '0,15,30,45 * * * *') {
     console.log('[Cron] Processing pending rewards...');
@@ -92,6 +112,10 @@ export default {
       }
 
       // Route Kasparex API endpoints
+      if (pathname.startsWith('/kasparex/pts')) {
+        return handlePtsRequest(request, env);
+      }
+
       if (pathname.startsWith('/kasparex/node/') || pathname.startsWith('/kasparex/nodes')) {
         return handleNodeRequest(request, env);
       }

@@ -88,7 +88,6 @@ function getCurrentSectionTitle(pathname: string): string {
     return 'Chronicles';
   }
   if (
-    pathname.startsWith('/rewards-and-points') ||
     pathname.startsWith('/rewards') ||
     pathname.startsWith('/tiers')
   ) {

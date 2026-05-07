@@ -356,7 +356,7 @@ export function MinecoreDashboard(_props: {
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Earn on L1 · claim GRID on L2 via{' '}
-            <Link href="/rewards-and-points" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
+            <Link href="/rewards" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
               Rewards &amp; Points
             </Link>
           </p>

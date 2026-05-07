@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@kluster/kaspa-address": "^0.1.5",
-    "@kluster/kaspa-signature": "^0.1.5"
+    "@kluster/kaspa-signature": "^0.1.5",
+    "viem": "^2.21.54"
   }
 }

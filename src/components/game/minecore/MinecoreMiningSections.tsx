@@ -96,7 +96,7 @@ export function MinecoreMiningTabFooter() {
   return (
     <p className="text-xs text-zinc-500 dark:text-zinc-400">
       Mining runs on plant timers and saved timestamps - progress continues while you are away. Refine checkpoints accrue GRID score; see{' '}
-      <Link href="/rewards-and-points" className="text-emerald-600 underline dark:text-emerald-400">
+      <Link href="/rewards" className="text-emerald-600 underline dark:text-emerald-400">
         GRID rewards
       </Link>
       .

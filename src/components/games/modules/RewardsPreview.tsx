@@ -42,7 +42,7 @@ export function RewardsPreview(props: { showLink?: boolean; className?: string }
           <div className="text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-500">GRID claims</div>
           <p className="mt-1 text-sm leading-snug text-zinc-600 dark:text-zinc-400">
             Pending totals and claims live on{' '}
-            <Link href="/rewards-and-points" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+            <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
               Rewards &amp; Points
             </Link>
             .

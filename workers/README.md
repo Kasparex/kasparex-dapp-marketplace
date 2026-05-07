@@ -104,6 +104,37 @@ npm run deploy:preview
 - `GET /kasparex/rewards/:nodeId?epoch=YYYY-MM-DD`  -  operator GRID for epoch (stored or preview)
 - `GET /kasparex/rewards/epoch/:epochDate`  -  epoch summary
 
+### Pts hub (redeemable points, `REWARDS_DB`)
+
+Apply migration on `kasparex-rewards`:
+
+```bash
+wrangler d1 execute kasparex-rewards --file=./migrations/002_pts_hub.sql
+```
+
+Secrets / vars (Dashboard or `wrangler secret put`):
+
+- `PTS_INGEST_SECRET`  -  header `X-Pts-Ingest-Secret` on `POST /kasparex/pts/ingest`
+- `PTS_REDEEM_SECRET`  -  header `X-Pts-Redeem-Secret` on `POST /kasparex/pts/redeem` (`PTS_INGEST_SECRET` is used if unset)
+- `VOUCHER_SIGNER_PRIVATE_KEY`  -  hex key matching `RewardsClaimVault` deploy `claimSigner`
+- `REWARDS_CLAIM_VAULT_ADDRESS`  -  vault `0x…` on L2
+- `VOUCHER_CHAIN_ID`  -  e.g. `167012` (testnet) or mainnet id
+- `IGRA_RPC_URL`  -  JSON-RPC URL for `nonces` reads and signing consistency
+
+Endpoints:
+
+- `GET /kasparex/pts/balance?wallet=kaspa:…`
+- `GET /kasparex/pts/history?wallet=…&limit=40`
+- `POST /kasparex/pts/ingest`  -  JSON `{ wallet, delta_pts, source, idempotency_key, meta? }`
+- `POST /kasparex/pts/redeem`  -  JSON `{ wallet_kaspa, evm_beneficiary, token_address, amount_wei, pts_spent, request_id? }`
+
+Cron `15 3 * * *` runs archival of `pts_events` older than 180 days and writes a `pts_checkpoints` row.
+
+Vercel (`NEXT_PUBLIC_KASPAREX_API_URL` or `KASPAREX_INTERNAL_API_URL`):
+
+- `PTS_INGEST_SECRET` / `PTS_REDEEM_SECRET` must match Worker (for server-side proxies).
+- `KASPAREX_PTS_INTERNAL_BEARER`  -  required `Authorization: Bearer …` on Next.js routes `/api/kasparex/pts/ingest` and `/api/kasparex/pts/redeem` (never expose to the browser).
+
 ### Public data
 
 - `GET /kasparex/stats`  -  network statistics
