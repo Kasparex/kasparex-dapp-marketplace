@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "hardhat:compile": "hardhat compile",
+    "hardhat:gen:vault-signer": "node scripts/generate-vault-signer.js",
     "hardhat:test": "hardhat test",
     "hardhat:deploy": "hardhat run scripts/deploy.js",
     "hardhat:deploy:testnet": "hardhat run scripts/deploy.js --network kasplexL2Testnet",

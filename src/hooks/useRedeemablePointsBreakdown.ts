@@ -99,7 +99,12 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
     migrateLegacyCatalogRedemptionsOnce(addr.toLowerCase());
     const minecoreRefinement = readMinecoreRefinementPointsTotal(addr);
     const ledgerNet = sumLedgerRedeemableNet(addr.toLowerCase());
-    const hubPts = serverHubBalance !== null ? serverHubBalance : ledgerNet;
+    /**
+     * One hub bucket: use the higher of server balance and local Rewards wallet net so gameplay-only
+     * ledger progress still counts when the API returns 0. When the balance API failed, use local only.
+     */
+    const hubPts =
+      serverHubBalance !== null ? Math.max(ledgerNet, serverHubBalance) : ledgerNet;
     const total = Math.max(0, minecoreRefinement + hubPts);
     const lines: RedeemableSourceLine[] = [
       {
@@ -109,7 +114,7 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       },
       {
         id: 'hub_ledger',
-        label: serverHubBalance !== null ? 'Rewards hub (synced)' : 'Rewards wallet',
+        label: 'Rewards hub (one balance)',
         points: hubPts,
       },
     ];

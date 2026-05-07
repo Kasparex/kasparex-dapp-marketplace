@@ -150,6 +150,16 @@ Or raw wei: `REWARDS_VAULT_DEPOSIT_WEI=…`. Default token is Igra mainnet GRID 
 
 If an older vault was deployed on Kasplex (`202555`) but you want Igra, deploy a **new** vault on `igraMainnet` and point Worker secrets at the new address and `38833` RPC. `claimSigner` cannot be changed on an existing contract.
 
+**Rotating the vault (new `CLAIM_SIGNER`, e.g. lost key)**
+
+Do these in order. Skip a step and you can strand tokens or sign with the wrong key.
+
+1. **Backup before anything else:** run `npm run hardhat:gen:vault-signer`. Store `CLAIM_SIGNER` and `VOUCHER_SIGNER_PRIVATE_KEY` in a password manager. Never paste the private key into chat, tickets, or git.
+2. **Deploy** a new `RewardsClaimVault` with that **exact** `CLAIM_SIGNER` (see `CLAIM_SIGNER=0x… npx hardhat run scripts/deploy-rewards-claim-vault.js --network igraMainnet`). Save the printed contract address.
+3. **Cloudflare Worker** production: set encrypted secret `VOUCHER_SIGNER_PRIVATE_KEY` to the **new** key. Set **plain** var `REWARDS_CLAIM_VAULT_ADDRESS` to the **new** vault address. Confirm `VOUCHER_CHAIN_ID=38833` and `IGRA_RPC_URL` still match Igra mainnet. Redeploy the Worker if your workflow requires it.
+4. **Fund the new vault only** (GRID / KREX as needed). The app reads the vault address from vouchers returned by the Worker, so users automatically target the new contract after step 3.
+5. **Old vault:** liquidity left in the previous vault stays there until someone with the **old** `claimSigner` key signs vouchers. There is no admin withdraw on the contract. Plan liquidity migration explicitly if you still have the old key; if the old key is gone, treat that balance as unrecoverable.
+
 Endpoints:
 
 - `GET /kasparex/pts/balance?wallet=kaspa:…`
@@ -165,7 +175,7 @@ Cron `15 3 * * *` runs archival of `pts_events` older than 180 days and writes a
 - `KASPAREX_INTERNAL_API_URL` or `NEXT_PUBLIC_KASPAREX_API_URL`  -  Worker base URL users and server routes call.
 - Optional: `NEXT_PUBLIC_GRID_TOKEN_ADDRESS_IGRA_MAINNET` if the app’s address table should override the bundled Igra GRID default for voucher token resolution.
 
-Pool flow: user signs a Kaspa message, Next calls Worker `POST /kasparex/pts/redeem`, browser submits `RewardsClaimVault.claim` on Igra using returned voucher args. **Synced hub balance** on D1 must cover `pts_spent` (the catalog currently requires server hub pts for pool rows, not device-only ledger).
+Pool flow: user signs a Kaspa message. Next may **prefund** the Worker ledger via ingest when the D1 balance is short of the spend (so one **total** redeemable in the UI can include gameplay plus hub). **Vercel** needs **`PTS_INGEST_SECRET`** (same as Worker). Optional **`POOL_PREFUND_MAX_PTS`** (default `2000000`) caps one-shot prefund. Then Next calls Worker **`POST /kasparex/pts/redeem`**; the browser submits **`RewardsClaimVault.claim`** on Igra. After the **on-chain** claim transaction is sent successfully, the app records the spend in the local Rewards ledger so device state matches.
 
 Vercel (`NEXT_PUBLIC_KASPAREX_API_URL` or `KASPAREX_INTERNAL_API_URL`):
 

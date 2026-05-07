@@ -209,18 +209,6 @@ export function RewardsPageContent() {
             setNote('Sign once in the verification strip below before claiming token pools.');
             return;
           }
-          if (breakdown.serverHubBalance == null) {
-            setNote(
-              'This pool debits your synced Rewards hub balance. Wait until your hub balance loads, or earn pts that credit the hub (for example Chronicles), then try again.',
-            );
-            return;
-          }
-          if (pointsSpend > breakdown.serverHubBalance) {
-            setNote(
-              `This pool uses synced hub pts only (you have ${breakdown.serverHubBalance.toLocaleString()}). Lower the amount, or earn more hub pts. Gameplay-only pts on this device are not spent here yet.`,
-            );
-            return;
-          }
           const kaspaProvider = kaspaState.provider;
           if (!kaspaProvider) {
             setNote('Use a supported Kaspa wallet extension so you can sign the redeem request.');
@@ -300,6 +288,13 @@ export function RewardsPageContent() {
                 BigInt(String(voucher.deadline)),
                 voucher.signature as `0x${string}`,
               ],
+            });
+            recordUnifiedCatalogRedeem({
+              walletKaspaL1: kaspaAddr,
+              seasonId: season.id,
+              costPoints: pointsSpend,
+              catalogItemId: item.id,
+              quantity: Math.max(0, tokenOutL2),
             });
             setNote(
               `${item.title}: claim tx sent (${hash.slice(0, 12)}…). Expect ${tokenOutL2.toLocaleString()} ${item.tokenPoolRate.payoutSymbol} on Igra when the transaction confirms.`,
@@ -430,7 +425,6 @@ export function RewardsPageContent() {
     },
     [
       breakdown.totalRedeemable,
-      breakdown.serverHubBalance,
       igraReady,
       evmAddr,
       evmConnected,

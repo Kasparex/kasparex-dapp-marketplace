@@ -1,6 +1,11 @@
 /**
  * Deploy RewardsClaimVault (immutable claimSigner).
  *
+ * Before first deploy, generate and save a signer you control:
+ *   npm run hardhat:gen:vault-signer
+ * Put VOUCHER_SIGNER_PRIVATE_KEY and CLAIM_SIGNER in a password manager. Never deploy with a
+ * CLAIM_SIGNER address unless you have that private key backed up.
+ *
  * Kasparex product L2 is **Igra Mainnet** (chain id 38833) per hardhat `igraMainnet`.
  * `kasplexL2Mainnet` (202555) is a different chain: only deploy there if you intend Kasplex, not Igra.
  *

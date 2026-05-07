@@ -14,6 +14,63 @@ const API_BASE =
 
 const POOL_MESSAGE_MAX_AGE_SEC = 15 * 60;
 
+const POOL_PREFUND_MAX_PTS = Math.max(
+  1,
+  Math.min(
+    50_000_000,
+    Math.floor(Number(process.env.POOL_PREFUND_MAX_PTS || '2000000') || 2_000_000),
+  ),
+);
+
+async function workerGetBalance(walletForQuery: string): Promise<number> {
+  const u = `${API_BASE.replace(/\/$/, '')}/kasparex/pts/balance?wallet=${encodeURIComponent(walletForQuery)}`;
+  const r = await fetch(u);
+  const j = (await r.json().catch(() => ({}))) as { balance_pts?: number };
+  if (!r.ok || typeof j.balance_pts !== 'number' || !Number.isFinite(j.balance_pts)) return 0;
+  return Math.max(0, Math.floor(j.balance_pts));
+}
+
+async function workerPrefundIngest(args: {
+  wallet_norm: string;
+  delta_pts: number;
+  idempotency_key: string;
+  nonce: string;
+}): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const ingestSecret = process.env.PTS_INGEST_SECRET;
+  if (!ingestSecret) {
+    return { ok: false, error: 'ingest_not_configured', status: 503 };
+  }
+  const url = `${API_BASE.replace(/\/$/, '')}/kasparex/pts/ingest`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Pts-Ingest-Secret': ingestSecret,
+      },
+      body: JSON.stringify({
+        wallet: args.wallet_norm,
+        delta_pts: args.delta_pts,
+        source: 'pool_unified_prefund',
+        idempotency_key: args.idempotency_key,
+        meta: { pool_nonce: args.nonce },
+      }),
+    });
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) {
+      const err = typeof data.error === 'string' ? data.error : 'prefund_failed';
+      return { ok: false, error: err, status: res.status };
+    }
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'prefund_fetch_failed',
+      status: 502,
+    };
+  }
+}
+
 /**
  * Public user route: Kaspa-signed pool redeem → Worker pts debit + voucher → client submits vault.claim on Igra.
  */
@@ -99,6 +156,30 @@ export async function POST(req: NextRequest) {
 
   const wholeTokens = BigInt(parsed.ptsSpent) * BigInt(catalogItem.tokenPoolRate.tokensPerPoint);
   const amountWei = wholeTokens * 10n ** 18n;
+
+  const balanceBefore = await workerGetBalance(parsed.walletKaspa);
+  let shortfall = Math.max(0, parsed.ptsSpent - balanceBefore);
+  if (shortfall > POOL_PREFUND_MAX_PTS) {
+    return NextResponse.json(
+      {
+        error: 'prefund_cap_exceeded',
+        detail: `Need ${shortfall} server pts alignment; cap is ${POOL_PREFUND_MAX_PTS}. Smaller claim or raise POOL_PREFUND_MAX_PTS.`,
+      },
+      { status: 400 },
+    );
+  }
+  if (shortfall > 0) {
+    const prefKey = `pool_prefund:${walletNorm}:${parsed.nonce}`;
+    const pf = await workerPrefundIngest({
+      wallet_norm: walletNorm,
+      delta_pts: shortfall,
+      idempotency_key: prefKey,
+      nonce: parsed.nonce,
+    });
+    if (!pf.ok) {
+      return NextResponse.json({ error: pf.error }, { status: pf.status });
+    }
+  }
 
   const url = `${API_BASE.replace(/\/$/, '')}/kasparex/pts/redeem`;
   try {
