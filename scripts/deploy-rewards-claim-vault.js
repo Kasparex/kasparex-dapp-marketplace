@@ -1,9 +1,15 @@
 /**
  * Deploy RewardsClaimVault (immutable claimSigner).
  *
- * Usage:
- *   CLAIM_SIGNER=0x... npx hardhat run scripts/deploy-rewards-claim-vault.js --network kasplexL2Mainnet
- *   CLAIM_SIGNER=0x... npx hardhat run scripts/deploy-rewards-claim-vault.js --network kasplexL2Testnet
+ * Kasparex product L2 is **Igra Mainnet** (chain id 38833) per hardhat `igraMainnet`.
+ * `kasplexL2Mainnet` (202555) is a different chain: only deploy there if you intend Kasplex, not Igra.
+ *
+ * Usage (production on Igra):
+ *   CLAIM_SIGNER=0x... npx hardhat run scripts/deploy-rewards-claim-vault.js --network igraMainnet
+ *
+ * Other networks:
+ *   ... --network kasplexL2Mainnet
+ *   ... --network kasplexL2Testnet
  */
 
 const hre = require('hardhat');

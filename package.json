@@ -28,6 +28,8 @@
     "hardhat:verify": "hardhat run scripts/verify-contracts.js",
     "hardhat:verify:testnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Testnet",
     "hardhat:verify:mainnet": "hardhat run scripts/verify-contracts.js --network kasplexL2Mainnet",
+    "hardhat:deploy:rewards-vault:igra": "hardhat run scripts/deploy-rewards-claim-vault.js --network igraMainnet",
+    "hardhat:deploy:rewards-vault:kasplex": "hardhat run scripts/deploy-rewards-claim-vault.js --network kasplexL2Mainnet",
     "hardhat:deploy:tgrid": "hardhat run scripts/deploy-tgrid.js --network igraGalleonTestnet",
     "hardhat:deploy:genesis-badge": "hardhat run scripts/deploy-genesis-badge.js --network igraGalleonTestnet",
     "upload:assets": "tsx scripts/upload-assets-to-ipfs.ts",

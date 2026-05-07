@@ -47,7 +47,6 @@ export interface Env {
   /** Max Diamonds from payment bonus per wallet per day. */
   DIAMONDS_PAYMENT_BONUS_DAILY_CAP?: string;
   ARCHIVE_AUTH_TOKEN?: string; // For manual archive endpoint
-  IGRA_RPC_URL?: string; // Igra testnet RPC URL for event indexing
   USAGE_WORKER_SECRET?: string; // Shared secret for internal usage/lock endpoints
   /** HMAC secret for Krex Node challenge / enrollment JWTs (bind wallet + enroll). */
   NODE_ENROLLMENT_SECRET?: string;
@@ -65,9 +64,13 @@ export interface Env {
   VOUCHER_SIGNER_PRIVATE_KEY?: string;
   /** L2 vault contract address (0x…). */
   REWARDS_CLAIM_VAULT_ADDRESS?: string;
-  /** Chain id for voucher domain (e.g. 167012 testnet). */
+  /** Chain id for voucher EIP-712 domain. Must match the chain where RewardsClaimVault is deployed. */
   VOUCHER_CHAIN_ID?: string;
-  /** JSON-RPC URL for reading vault nonces (Kasplex L2 / Igra). */
+  /**
+   * JSON-RPC URL for vault `nonces` reads (pts redeem) and related L2 indexing.
+   * Must point at the **same** chain as `REWARDS_CLAIM_VAULT_ADDRESS` and `VOUCHER_CHAIN_ID`.
+   * Igra Mainnet (38833): `https://rpc.igralabs.com:8545`. Kasplex L2 mainnet (202555): `https://evmrpc.kasplex.org`.
+   */
   IGRA_RPC_URL?: string;
 }
 

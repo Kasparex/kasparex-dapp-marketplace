@@ -112,14 +112,33 @@ Apply migration on `kasparex-rewards`:
 wrangler d1 execute kasparex-rewards --file=./migrations/002_pts_hub.sql
 ```
 
-Secrets / vars (Dashboard or `wrangler secret put`):
+**Networks (do not mix):** Kasplex L2 and Igra are different L2s in this repo.
+
+| Chain | `VOUCHER_CHAIN_ID` | Example RPC for `IGRA_RPC_URL` |
+|-------|--------------------|--------------------------------|
+| **Igra Mainnet** (recommended for Kasparex rewards) | `38833` | `https://rpc.igralabs.com:8545` |
+| Kasplex L2 mainnet | `202555` | `https://evmrpc.kasplex.org` |
+| Kasplex L2 testnet | `167012` | `https://rpc.kasplextest.xyz` |
+
+`IGRA_RPC_URL` is the JSON-RPC endpoint for the **same** chain as the vault (name is historical). If the vault is on Igra, the RPC must be Igra, not Kasplex.
+
+Secrets / vars (Dashboard or `wrangler secret put` from `workers/`):
 
 - `PTS_INGEST_SECRET`  -  header `X-Pts-Ingest-Secret` on `POST /kasparex/pts/ingest`
 - `PTS_REDEEM_SECRET`  -  header `X-Pts-Redeem-Secret` on `POST /kasparex/pts/redeem` (`PTS_INGEST_SECRET` is used if unset)
 - `VOUCHER_SIGNER_PRIVATE_KEY`  -  hex key matching `RewardsClaimVault` deploy `claimSigner`
-- `REWARDS_CLAIM_VAULT_ADDRESS`  -  vault `0x…` on L2
-- `VOUCHER_CHAIN_ID`  -  e.g. `167012` (testnet) or mainnet id
-- `IGRA_RPC_URL`  -  JSON-RPC URL for `nonces` reads and signing consistency
+- `REWARDS_CLAIM_VAULT_ADDRESS`  -  vault `0x…` on the L2 you chose
+- `VOUCHER_CHAIN_ID`  -  must match that chain (e.g. `38833` for Igra Mainnet)
+- `IGRA_RPC_URL`  -  HTTPS JSON-RPC on that same chain (see table)
+
+**One-time setup checklist**
+
+1. Generate or choose an EOA to be `claimSigner`. Its **private key** will be `VOUCHER_SIGNER_PRIVATE_KEY` (Worker secret only).
+2. Deploy: `CLAIM_SIGNER=0xYourSigner npx hardhat run scripts/deploy-rewards-claim-vault.js --network igraMainnet` (use `igraMainnet` for Igra). Note printed `address` and `chainId`.
+3. Cloudflare: Workers and Pages  -  open **kasparex-api** production  -  **Settings**  -  **Variables**  -  encrypt **Secrets** and add plain **Vars** as needed. Set `REWARDS_CLAIM_VAULT_ADDRESS`, `VOUCHER_CHAIN_ID`, `IGRA_RPC_URL`, `VOUCHER_SIGNER_PRIVATE_KEY`, `PTS_INGEST_SECRET`, `PTS_REDEEM_SECRET` to match step 2 and the table.
+4. Vercel: Project  -  **Settings**  -  **Environment Variables** (Production). Set `NEXT_PUBLIC_KASPAREX_API_URL` or `KASPAREX_INTERNAL_API_URL` to your Worker base URL. Set `PTS_INGEST_SECRET` and `PTS_REDEEM_SECRET` to the **same** values as Cloudflare. Set `KASPAREX_PTS_INTERNAL_BEARER` to a new random string (only Next uses it for `Authorization: Bearer` on ingest/redeem API routes). Redeploy the Next app after saving.
+
+If an older vault was deployed on Kasplex (`202555`) but you want Igra, deploy a **new** vault on `igraMainnet` and point Worker secrets at the new address and `38833` RPC. `claimSigner` cannot be changed on an existing contract.
 
 Endpoints:
 
