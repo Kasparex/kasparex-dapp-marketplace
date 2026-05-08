@@ -328,6 +328,7 @@ export function RewardsPageContent() {
           }
 
           try {
+            // On-chain target is always voucher.vault from the Worker (see igra-pool-vault.ts).
             const hash = await writeContractAsync({
               address: voucher.vault as `0x${string}`,
               abi: REWARDS_CLAIM_VAULT_CLAIM_ABI,
