@@ -28,7 +28,6 @@ import { useRewardsClaimVaultPoolBalances } from '@/hooks/useRewardsClaimVaultPo
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
 import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSourcesTable';
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
-import { PointsTables } from '@/components/rewards/PointsTables';
 
 function normKaspa(a: string): string {
   try {
@@ -705,7 +704,6 @@ export function RewardsPageContent() {
             open History to audit every earn and redeem on this device.
           </p>
           <RewardsEarnSourcesTable />
-          <PointsTables />
         </div>
       ) : null}
 

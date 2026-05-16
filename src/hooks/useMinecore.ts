@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import {
   createInitialMinecoreState,
@@ -32,7 +32,10 @@ import {
   MINECORE_KREX_BOOST_SHOP_KAS,
   MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
-import { MINECORE_EXTERNAL_PERSIST_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
+import {
+  MINECORE_EXTERNAL_PERSIST_EVENT,
+  REDEEMABLE_BREAKDOWN_REFRESH_EVENT,
+} from '@/lib/game/minecore/deduct-refinement-hub';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
@@ -91,30 +94,28 @@ export function useMinecore() {
 
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const prevWalletRef = useRef<string>('');
-  /** Avoid reloading the same wallet from localStorage on Strict Mode remounts / redundant effect runs. */
-  const hydratedWalletAddrRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  /** Load persisted profile before passive effects run so autosave cannot overwrite storage with blank default state first. */
+  useLayoutEffect(() => {
     if (!walletAddr) {
       setProfileNotice(null);
       prevWalletRef.current = '';
-      hydratedWalletAddrRef.current = null;
-      return;
+      hydrationPersistReadyRef.current = false;
+      return undefined;
     }
-    if (hydratedWalletAddrRef.current === walletAddr) {
-      return;
-    }
-    hydratedWalletAddrRef.current = walletAddr;
+    hydrationPersistReadyRef.current = true;
     const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
     setMc(loaded ?? createInitialMinecoreState());
+    let clearTimer: number | undefined;
     if (prevWalletRef.current !== walletAddr) {
       const short = `${walletAddr.slice(0, 12)}…${walletAddr.slice(-10)}`;
       setProfileNotice(`Loaded Minecore profile for ${short}`);
       prevWalletRef.current = walletAddr;
-      const t = window.setTimeout(() => setProfileNotice(null), 6_000);
-      return () => window.clearTimeout(t);
+      clearTimer = window.setTimeout(() => setProfileNotice(null), 6_000);
     }
-    return undefined;
+    return () => {
+      if (clearTimer !== undefined) window.clearTimeout(clearTimer);
+    };
   }, [walletAddr]);
 
   useEffect(() => {
@@ -136,6 +137,7 @@ export function useMinecore() {
   useEffect(() => {
     if (!walletAddr) return;
     savePersistedMinecore(walletStorageKey(walletAddr), mc);
+    window.dispatchEvent(new Event(REDEEMABLE_BREAKDOWN_REFRESH_EVENT));
   }, [walletAddr, mc]);
 
   useEffect(() => {

@@ -4,6 +4,9 @@ import { hydrateMinecoreState } from '@/lib/game/minecore/hydrate';
 /** Same-tab reload hook for `useMinecore` after external persisted edits (e.g. /rewards catalog spend). */
 export const MINECORE_EXTERNAL_PERSIST_EVENT = 'kasparex-minecore-persisted';
 
+/** Lightweight same-tab poke so hubs re-read refinement points from Minecore autosave without re-parsing the full save elsewhere. */
+export const REDEEMABLE_BREAKDOWN_REFRESH_EVENT = 'kasparex-redeemable-breakdown-refresh';
+
 export function broadcastMinecoreExternalPersist(): void {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new Event(MINECORE_EXTERNAL_PERSIST_EVENT));

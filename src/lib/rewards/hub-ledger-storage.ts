@@ -3,10 +3,11 @@
 import { sumRedeemedPointsAllSeasons } from '@/lib/redeem/storage';
 import type { HubLedgerEntry } from '@/lib/rewards/hub-ledger-types';
 
-const STORAGE_PREFIX = 'kasparex_hub_ledger_v1';
+/** Hub ledger blobs in localStorage: `kasparex_hub_ledger_v1:<normalized_wallet>`. */
+export const KASAPEX_HUB_LEDGER_LS_PREFIX = 'kasparex_hub_ledger_v1';
 
 function keyForWallet(walletNorm: string): string {
-  return `${STORAGE_PREFIX}:${walletNorm.toLowerCase()}`;
+  return `${KASAPEX_HUB_LEDGER_LS_PREFIX}:${walletNorm.toLowerCase()}`;
 }
 
 export function readHubLedgerEntries(walletNorm: string): HubLedgerEntry[] {

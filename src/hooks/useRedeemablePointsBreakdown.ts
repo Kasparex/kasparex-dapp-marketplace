@@ -5,7 +5,12 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
 import { migrateLegacyCatalogRedemptionsOnce, sumLedgerRedeemableNet } from '@/lib/rewards/hub-ledger';
-import { MINECORE_EXTERNAL_PERSIST_EVENT } from '@/lib/game/minecore/deduct-refinement-hub';
+import { KASAPEX_HUB_LEDGER_LS_PREFIX } from '@/lib/rewards/hub-ledger-storage';
+import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
+import {
+  MINECORE_EXTERNAL_PERSIST_EVENT,
+  REDEEMABLE_BREAKDOWN_REFRESH_EVENT,
+} from '@/lib/game/minecore/deduct-refinement-hub';
 import {
   getServerHubBalanceForAddr,
   refreshServerHubBalance,
@@ -57,15 +62,26 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       refreshServerHubBalance();
     }
     if (typeof window === 'undefined') return;
+    function onStorage(ev: StorageEvent) {
+      if (!ev.key) return;
+      if (
+        ev.key.startsWith(`${KASAPEX_HUB_LEDGER_LS_PREFIX}:`) ||
+        ev.key.startsWith(`${MINECORE_STORAGE_PREFIX}:`)
+      ) {
+        bumpWithServerSync();
+      }
+    }
     window.addEventListener('kasparex-hub-ledger', bumpWithServerSync);
     window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+    window.addEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
     window.addEventListener('focus', bumpWithServerSync);
-    const id = window.setInterval(bumpLocal, 5000);
+    window.addEventListener('storage', onStorage);
     return () => {
       window.removeEventListener('kasparex-hub-ledger', bumpWithServerSync);
       window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+      window.removeEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
       window.removeEventListener('focus', bumpWithServerSync);
-      window.clearInterval(id);
+      window.removeEventListener('storage', onStorage);
     };
   }, []);
 
@@ -73,6 +89,11 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
     return subscribeServerHubBalance(addr, () => {
       setServerHubBalance(getServerHubBalanceForAddr(addr));
     });
+  }, [addr]);
+
+  useEffect(() => {
+    if (!addr || typeof window === 'undefined') return;
+    migrateLegacyCatalogRedemptionsOnce(addr.toLowerCase());
   }, [addr]);
 
   return useMemo(() => {
@@ -86,7 +107,6 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
         serverHubBalance: null,
       };
     }
-    migrateLegacyCatalogRedemptionsOnce(addr.toLowerCase());
     const minecoreRefinement = readMinecoreRefinementPointsTotal(addr);
     const ledgerNet = sumLedgerRedeemableNet(addr.toLowerCase());
     /**
