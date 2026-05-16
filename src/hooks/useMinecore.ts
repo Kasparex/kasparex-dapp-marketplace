@@ -100,10 +100,8 @@ export function useMinecore() {
     if (!walletAddr) {
       setProfileNotice(null);
       prevWalletRef.current = '';
-      hydrationPersistReadyRef.current = false;
       return undefined;
     }
-    hydrationPersistReadyRef.current = true;
     const loaded = loadPersistedMinecore(walletStorageKey(walletAddr));
     setMc(loaded ?? createInitialMinecoreState());
     let clearTimer: number | undefined;
