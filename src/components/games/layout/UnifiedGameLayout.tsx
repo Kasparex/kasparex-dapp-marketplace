@@ -48,14 +48,15 @@ export function UnifiedGameLayout({
   tabAlerts,
 }: UnifiedGameLayoutProps) {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-      <div className="flex min-w-0 flex-col space-y-6 lg:col-span-8">
+    <div className="flex w-full min-w-0 flex-col gap-6">
+      <div className="w-full min-w-0">
         <GameTabs tabs={tabs} value={currentTab} onChange={onTabChange} />
-        {tabAlerts}
-        {children}
       </div>
+      {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="flex min-w-0 flex-col space-y-6 lg:col-span-8">{children}</div>
 
-      <div className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4">
+        <div className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4">
         <GameDeckPanel
           resources={resources}
           footer={deckFooter}
@@ -70,6 +71,7 @@ export function UnifiedGameLayout({
         <GameInteractionsPanel interactions={game.connections || []} />
         <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
         <GamesPlayAdRail />
+        </div>
       </div>
     </div>
   );

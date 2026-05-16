@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
@@ -330,38 +329,6 @@ export function MinecoreDashboard(_props: {
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="flex flex-col space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
-          <div className="flex flex-wrap items-center gap-6">
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX (L1)</span>
-            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-              {krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} KREX
-            </span>
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KAS</span>
-            <span className="min-w-[5rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
-              {canPayWithL1 && kasBalanceLoading ? '0' : kasBalanceNum.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}{' '}
-              KAS
-            </span>
-            <span className="inline-flex items-center gap-1 font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">
-              <Icons.Gem className="h-4 w-4 text-sky-400" />
-              Deck (mined / cap)
-            </span>
-            <span className="inline-flex items-baseline gap-1 font-bold tabular-nums text-amber-500 dark:text-amber-400">
-              <span>{Math.floor(deckRollingCaps.minedSum).toLocaleString()}</span>
-              <span className="text-zinc-500 dark:text-zinc-400">/</span>
-              <span>{Math.floor(deckRollingCaps.capSum).toLocaleString()}</span>
-            </span>
-            <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-              {krexTier}
-            </span>
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Earn on L1 · claim GRID on L2 via{' '}
-            <Link href="/rewards" className="font-semibold text-emerald-600 dark:text-emerald-400 underline">
-              Rewards &amp; Points
-            </Link>
-          </p>
-        </div>
-
         <UnifiedGameLayout
           tabs={TABS as any}
           currentTab={tab}
