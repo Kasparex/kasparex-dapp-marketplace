@@ -20,6 +20,7 @@ export function RewardsCalculatorSidebar() {
       header={(onHide) => (
         <SidebarHeader backHref="/leaderboard" backLabel="Back to Leaderboard" onHide={onHide} className="bg-white dark:bg-zinc-950" />
       )}
+      defaultWidth={292}
     >
       <RewardsHubQuickLinks />
 
