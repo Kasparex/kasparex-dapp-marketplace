@@ -5,8 +5,6 @@ import { usePathname } from 'next/navigation';
 
 const navBtnText = 'text-sm font-semibold tracking-tight';
 
-const quickInactive =
-  '!border-amber-500/30 !bg-amber-500/10 !text-amber-800 dark:!text-amber-300 hover:!bg-amber-500/15';
 const quickActive =
   '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300';
 
@@ -23,7 +21,7 @@ export function RewardsHubQuickLinks() {
     <div className="mb-4 space-y-2 border-b border-zinc-200/70 px-3 pb-4 pt-3 dark:border-zinc-800/70">
       <Link
         href="/leaderboard"
-        className={`k-control-btn w-full justify-center gap-2 ${lb ? quickActive : quickInactive}`}
+        className={`k-control-btn w-full justify-center gap-2${lb ? ` ${quickActive}` : ''}`}
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
@@ -38,7 +36,7 @@ export function RewardsHubQuickLinks() {
 
       <Link
         href="/rewards"
-        className={`k-control-btn w-full justify-center gap-2 ${rw ? quickActive : quickInactive}`}
+        className={`k-control-btn w-full justify-center gap-2${rw ? ` ${quickActive}` : ''}`}
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
@@ -51,7 +49,10 @@ export function RewardsHubQuickLinks() {
         <span className={navBtnText}>Rewards</span>
       </Link>
 
-      <Link href="/tiers" className={`k-control-btn w-full justify-center gap-2 ${tr ? quickActive : quickInactive}`}>
+      <Link
+        href="/tiers"
+        className={`k-control-btn w-full justify-center gap-2${tr ? ` ${quickActive}` : ''}`}
+      >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
@@ -65,7 +66,7 @@ export function RewardsHubQuickLinks() {
 
       <Link
         href="/rewards-calculator"
-        className={`k-control-btn w-full justify-center gap-2 ${calc ? quickActive : quickInactive}`}
+        className={`k-control-btn w-full justify-center gap-2${calc ? ` ${quickActive}` : ''}`}
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path

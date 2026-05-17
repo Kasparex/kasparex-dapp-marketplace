@@ -20,7 +20,7 @@ import { GameOverviewSections } from '@/components/games/panels/GameOverviewSect
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
-import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -69,7 +69,6 @@ export function CipherVaultsDashboard({
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
-  const tierPickerGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-3' });
 
   useEffect(() => {
     if (!walletState.isConnected) return;
@@ -181,7 +180,7 @@ export function CipherVaultsDashboard({
 
         {tab === 'vaults' && (
           <div className="space-y-6">
-            <div className={tierPickerGridClass}>
+            <GamesAdaptiveGrid gapClass="gap-3">
               {CIPHER_VAULT_TIERS.map((t) => (
                 <button
                   key={t.id}
@@ -201,7 +200,7 @@ export function CipherVaultsDashboard({
                   <p className="text-xs text-emerald-600 dark:text-emerald-400">Preview: {t.gridPreview} GRID · {10 * (t.gridPreview ?? 1)} pts</p>
                 </button>
               ))}
-            </div>
+            </GamesAdaptiveGrid>
 
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">

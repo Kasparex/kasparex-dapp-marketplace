@@ -41,7 +41,7 @@ import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOw
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
-import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import * as Icons from 'lucide-react';
 
@@ -326,8 +326,6 @@ export function MinecoreDashboard(_props: {
       </div>
     ) : null;
 
-  const miningSlotGridClass = useGamesMainAdaptiveGrid();
-
   return (
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
@@ -386,7 +384,7 @@ export function MinecoreDashboard(_props: {
                 trailing={bulkMiningControl}
               />
 
-              <div className={`${miningSlotGridClass} min-w-0`}>
+              <GamesAdaptiveGrid>
                 {filteredMiningSlots.map(({ slot, slotIndex }) => (
                   <div key={`plant-slot-${slotIndex}`} className="min-w-0">
                     <PlantSlotCard
@@ -517,7 +515,7 @@ export function MinecoreDashboard(_props: {
                     </button>
                   </div>
                 </div>
-              </div>
+              </GamesAdaptiveGrid>
 
               <MinecoreMiningTabFooter />
             </div>
