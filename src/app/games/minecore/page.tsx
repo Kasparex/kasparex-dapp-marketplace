@@ -43,7 +43,7 @@ function MinecoreContent() {
 
       <main className="relative z-10 flex-1 p-4 lg:p-8">
         <div className="mx-auto flex h-full w-full min-w-0 max-w-7xl flex-col">
-          <div className="mb-6 flex flex-wrap items-center gap-4">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <Link
               href="/games"
               className="group inline-flex items-center gap-2 text-base font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
@@ -53,12 +53,20 @@ function MinecoreContent() {
               </svg>
               Back to Games
             </Link>
-            <Link
-              href="/games/minecore/calculator"
-              className="text-base font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-            >
-              Calculator
-            </Link>
+            <div className="ml-auto flex flex-wrap items-center gap-4">
+              <Link
+                href="/games/minecore/calculator"
+                className="text-base font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+              >
+                Calculator
+              </Link>
+              <Link
+                href="/rewards"
+                className="text-base font-medium text-emerald-600 transition-colors hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+              >
+                Rewards
+              </Link>
+            </div>
           </div>
 
           {!state.isConnected ? (

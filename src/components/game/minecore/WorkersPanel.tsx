@@ -172,6 +172,25 @@ export function WorkersPanel(props: {
       />
 
       <div className={slotGridClass}>
+        {props.onPurchaseExtraSlot != null && props.slotPurchaseKas != null ? (
+          <div className="flex aspect-square items-stretch">
+            <button
+              type="button"
+              disabled={!props.miningAllowed}
+              onClick={() => props.miningAllowed && setBuyOpen(true)}
+              className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 p-4 text-center transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
+            >
+              <EmptyVeinSlotPlusIcon />
+              <div>
+                <h3 className="text-base font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">Buy / Add slot</h3>
+                <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
+                  {props.slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose worker role · wallet checkout</p>
+              </div>
+            </button>
+          </div>
+        ) : null}
         {filteredSlots.map((slot) => {
           const idx = slot.originalIndex;
           const crewSlot: MiningSlot = {
@@ -243,25 +262,6 @@ export function WorkersPanel(props: {
             </EmptyVeinSlotFrame>
           );
         })}
-        {props.onPurchaseExtraSlot != null && props.slotPurchaseKas != null ? (
-          <div className="flex aspect-square items-stretch">
-            <button
-              type="button"
-              disabled={!props.miningAllowed}
-              onClick={() => props.miningAllowed && setBuyOpen(true)}
-              className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 p-4 text-center transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
-            >
-              <EmptyVeinSlotPlusIcon />
-              <div>
-                <h3 className="text-base font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">Buy / Add slot</h3>
-                <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
-                  {props.slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose worker role · wallet checkout</p>
-              </div>
-            </button>
-          </div>
-        ) : null}
       </div>
 
       {buyOpen && props.onPurchaseExtraSlot ? (

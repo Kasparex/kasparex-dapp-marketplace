@@ -143,7 +143,7 @@ export const MINECORE_DISPLAY_POOL_KREX_REMAINING = (() => {
 })();
 
 /** KAS cost for the combined plant recharge: +1 reserve unit and full battery (KREX discount at call site). */
-export const MINECORE_BATTERY_REFILL_COST_KAS = 2.5;
+export const MINECORE_BATTERY_REFILL_COST_KAS = 1.5;
 export const MINECORE_PLANT_RECHARGE_COST_KAS = MINECORE_BATTERY_REFILL_COST_KAS;
 
 /**
