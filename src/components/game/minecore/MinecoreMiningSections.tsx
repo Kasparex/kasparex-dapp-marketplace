@@ -10,6 +10,7 @@ import { computePlantDiamondsPer24h } from '@/lib/game/minecore/plant-economy';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import type { MinecoreMachineId } from '@/lib/game/minecore/types';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const MACHINE_IDS = Object.keys(MINECORE_MACHINES) as MinecoreMachineId[];
 
@@ -44,6 +45,8 @@ export function MinecoreVeinBreakdownByMachine(props: {
     return map;
   }, [state, computeCtx]);
 
+  const veinMachineGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
+
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
       <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
@@ -60,7 +63,7 @@ export function MinecoreVeinBreakdownByMachine(props: {
           </button>
         </GameTooltip>
       </h3>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className={veinMachineGridClass}>
         {MACHINE_IDS.map((k) => {
           const row = byMachine.get(k) ?? { count: 0, d24Sum: 0, cycleSum: 0 };
           const cfg = MINECORE_MACHINES[k];

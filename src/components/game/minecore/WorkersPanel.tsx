@@ -19,6 +19,7 @@ import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import { formatMinecoreGlobalDeckBonusLine } from '@/lib/game/minecore/nft-deck-benefits';
+import { useGamesMainAdaptiveWideGrid } from '@/components/games/layout/GamesLayoutContext';
 
 function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
   return getMinecoreDeckCollectionAllowlist();
@@ -142,6 +143,8 @@ export function WorkersPanel(props: {
     return list;
   }, [props.slots, searchQuery, statusFilter, sortBy, props.slottedMetadata]);
 
+  const slotGridClass = useGamesMainAdaptiveWideGrid('gap-6');
+
   const modalSlot = selected !== null ? (props.slots[selected] ?? null) : null;
   const modalCopy = modalSlot ? minecoreDeckModalCopy(modalSlot.type) : null;
   const currentRef =
@@ -168,7 +171,7 @@ export function WorkersPanel(props: {
         categoryTrailing={categoryTrailing}
       />
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className={slotGridClass}>
         {filteredSlots.map((slot) => {
           const idx = slot.originalIndex;
           const crewSlot: MiningSlot = {

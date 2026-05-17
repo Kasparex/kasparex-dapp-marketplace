@@ -24,6 +24,7 @@ import { MINECORE_FABRICATION_LORE } from '@/lib/game/minecore/fabrication-lore'
 import { formatMinecorePowerDisplay } from '@/lib/game/minecore/plant-economy';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MinecoreOwnedAssetsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -104,6 +105,8 @@ export function FabricationPanel(props: {
     return list;
   }, [category, searchQuery, sortBy]);
 
+  const blueprintGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-4', className: 'mt-4' });
+
   return (
     <div className="space-y-6">
       <MinecoreOwnedAssetsPanel state={s} />
@@ -121,7 +124,7 @@ export function FabricationPanel(props: {
           sortBy={sortBy}
           onSortChange={setSortBy}
         />
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className={blueprintGridClass}>
           {filteredRecipes.map((r) => {
             const isMachine = r.kind === 'machine';
             const isBattery = r.kind === 'battery';

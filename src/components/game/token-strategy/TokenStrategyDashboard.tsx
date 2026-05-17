@@ -21,6 +21,7 @@ import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -101,6 +102,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   const score = Math.floor((stats.security * 120 + stats.power * 90 + stats.stealth * 110) * booster);
 
   const mission = missions[missionIndex]!;
+  const playStatsGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-3' });
 
   const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (props.game?.categories ?? []) as string[];
@@ -244,7 +246,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
               ))}
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className={`mt-5 ${playStatsGridClass}`}>
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Security</p>
                 <p className="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">{stats.security}</p>

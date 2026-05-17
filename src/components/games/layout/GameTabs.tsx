@@ -135,7 +135,7 @@ export function GameTabs<T extends string>(props: {
   }, [onWindowMouseMove, onWindowMouseUp]);
 
   return (
-    <div className="relative mb-6">
+    <div className="relative">
       <div
         ref={stripRef}
         className="k-control-group flex w-full min-w-0 flex-nowrap items-stretch overflow-x-auto select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"

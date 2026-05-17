@@ -9,6 +9,7 @@ import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/Emp
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
+import { useGamesMainAdaptiveWideGrid } from '@/components/games/layout/GamesLayoutContext';
 
 export function WorkersPanel({
   slots,
@@ -26,6 +27,8 @@ export function WorkersPanel({
   onClearSlot: (slotIndex: number) => void;
 }) {
   const foremanReady = slots.some((s) => s.type === 'foreman' && s.nftId != null);
+  const slotGridClass = useGamesMainAdaptiveWideGrid('gap-6');
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
@@ -61,7 +64,7 @@ export function WorkersPanel({
         <p className="text-xs text-amber-700 dark:text-amber-400">Assign a Foreman NFT below to unlock auto-restart policy (or keep it off).</p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className={slotGridClass}>
         {slots.map((slot, idx) => {
           const meta = slot.nftId !== null ? slottedMetadata[slot.nftId] : null;
           const tier = slot.nftId !== null && slot.collection ? getNFTTier(slot.collection, slot.nftId, meta) : null;

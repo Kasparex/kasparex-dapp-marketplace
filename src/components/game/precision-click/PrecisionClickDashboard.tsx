@@ -19,6 +19,7 @@ import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
@@ -77,6 +78,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
     []
   );
   const [lore, setLore] = useState(loreLines[0]!);
+  const playStatsGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-3' });
 
   const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (props.game?.categories ?? []) as string[];
@@ -257,7 +259,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
               </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className={`mt-5 ${playStatsGridClass}`}>
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
                 <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Time</p>
                 <p className="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">{(timeLeftMs / 1000).toFixed(1)}s</p>

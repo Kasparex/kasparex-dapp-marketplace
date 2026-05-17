@@ -41,6 +41,7 @@ import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOw
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import * as Icons from 'lucide-react';
 
@@ -325,6 +326,8 @@ export function MinecoreDashboard(_props: {
       </div>
     ) : null;
 
+  const miningSlotGridClass = useGamesMainAdaptiveGrid();
+
   return (
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
@@ -383,7 +386,7 @@ export function MinecoreDashboard(_props: {
                 trailing={bulkMiningControl}
               />
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={miningSlotGridClass}>
                 {filteredMiningSlots.map(({ slot, slotIndex }) => (
                   <PlantSlotCard
                     key={`plant-slot-${slotIndex}`}

@@ -20,6 +20,7 @@ import {
 } from '@/lib/game/minecore/recharge-pricing';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { MinecoreOwnedIngredientsPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
 
 const ENERGY_CELLS_SHOP_IMAGE =
@@ -636,6 +637,8 @@ export function ShopPanel(props: {
       return 0; // recommended
     });
 
+  const shopItemGridClass = useGamesMainAdaptiveGrid();
+
   return (
     <div className="space-y-6">
       <MinecoreOwnedIngredientsPanel ingredients={props.ingredients} />
@@ -649,7 +652,7 @@ export function ShopPanel(props: {
           sortBy={sortBy}
           onSortChange={setSortBy}
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={shopItemGridClass}>
           {filteredItems.map((item) => item.render())}
         </div>
       </GamePanelCard>

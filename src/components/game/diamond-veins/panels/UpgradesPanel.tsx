@@ -6,6 +6,7 @@ import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { IconBoosters, IconBot, IconSignal } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useGamesMainAdaptiveWideGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const GARAGE_ITEMS = [
   { id: 'nitrogen-overclock', name: "Vector's Overclock", price: 100, priceKAS: 0.5, desc: '+25% Yield (1h)', icon: <IconBoosters />, type: 'yield' as const, mult: 0.25 },
@@ -41,6 +42,7 @@ export function UpgradesPanel({
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
+  const shopGridClass = useGamesMainAdaptiveWideGrid('gap-6');
 
   const categories = Array.from(new Set(GARAGE_ITEMS.map((i) => i.type)));
 
@@ -93,7 +95,7 @@ export function UpgradesPanel({
         onSortChange={setSortBy}
       />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className={shopGridClass}>
         {filteredItems.map((item) => {
           const kasPriceAfterDiscount = getKasPriceAfterDiscount(item.priceKAS);
           const canAffordKREX = canPayWithL1 && krexL1Balance >= item.price;

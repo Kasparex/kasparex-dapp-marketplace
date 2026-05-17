@@ -15,6 +15,7 @@ import {
   MINECORE_NFT_CREW_ROLES_ORDER,
 } from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_POWER_NODES, MINECORE_PLANT_PRESETS } from '@/lib/game/minecore/config';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -96,6 +97,7 @@ function SectionTitle(props: { children: string }) {
 export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   const { state } = props;
   const slots = state.plantSlots;
+  const ownedDenseGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
 
   return (
     <GamePanelCard
@@ -105,7 +107,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
       <div className="space-y-4">
         <div>
           <SectionTitle>Plants</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={ownedDenseGridClass}>
             {state.plantSlots.map((slot) => {
               const tier = MINECORE_PLANT_PRESETS[slot.type];
               const accent = slot.unlocked;
@@ -123,7 +125,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
 
         <div>
           <SectionTitle>Machines</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={ownedDenseGridClass}>
             {Object.values(MINECORE_MACHINES).map((m) => {
               const total = Number(state.owned.machines[m.id] ?? 0);
               const inUse = countMachinesAssigned(slots, m.id);
@@ -134,7 +136,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
 
         <div>
           <SectionTitle>Modules</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={ownedDenseGridClass}>
             {Object.values(MINECORE_MODULES).map((mod) => {
               const total = Number(state.owned.modules[mod.id] ?? 0);
               const inUse = countModuleAssignments(slots, mod.id);
@@ -145,7 +147,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
 
         <div>
           <SectionTitle>Reactors</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={ownedDenseGridClass}>
             {Object.values(MINECORE_POWER_NODES).map((node) => {
               const total = Number(state.owned.nodes?.[node.id] ?? 0);
               const inUse = countPowerNodesAssigned(slots, node.id);
@@ -164,7 +166,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
 
         <div>
           <SectionTitle>Batteries</SectionTitle>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={ownedDenseGridClass}>
             {Object.values(MINECORE_BATTERIES).map((b) => {
               const total = Number(state.owned.batteries[b.id] ?? 0);
               const inUse = countBatteriesAssigned(slots, b.id);
@@ -212,10 +214,11 @@ export function MinecoreOwnedWorkersPanel(props: {
   nftSlots: MinecoreState['nftSlots'];
 }) {
   const nft = props.nftSlots ?? [];
+  const crewGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
 
   return (
     <GamePanelCard title="Crew deck" hint="Filled vs capacity for Worker, Operator, and Foreman rows on your Crew tab.">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className={crewGridClass}>
         {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
           const { filled, capacity } = nftTabSlotDeployments(nft, role);
           return <NftDeckCapsule key={role} label={nftDeckRoleLabel(role)} filled={filled} capacity={capacity} />;
@@ -227,9 +230,11 @@ export function MinecoreOwnedWorkersPanel(props: {
 
 /** Shop tab: same capsule layout as former Raw Ingredients; gray when quantity is 0. */
 export function MinecoreOwnedIngredientsPanel(props: { ingredients: MinecoreState['ingredients'] }) {
+  const ingredientGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
+
   return (
     <GamePanelCard title="Owned Ingredients" hint="Start at zero - purchase stacks in Shop to fabricate rigs and batteries.">
-      <div className="grid grid-cols-2 gap-2">
+      <div className={ingredientGridClass}>
         {MINECORE_INGREDIENT_KEYS.map((k) => {
           const n = Math.floor(props.ingredients[k] ?? 0);
           const owned = n > 0;

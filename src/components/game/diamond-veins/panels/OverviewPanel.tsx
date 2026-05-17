@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { TyconGameState, YieldStats } from '@/lib/game/engine';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 export function OverviewPanel({
   tycon,
@@ -12,6 +13,8 @@ export function OverviewPanel({
   stats: YieldStats;
   miningAllowed: boolean;
 }) {
+  const rewardFlowGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-4' });
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-zinc-700 dark:text-zinc-300">
@@ -30,7 +33,7 @@ export function OverviewPanel({
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Diamond Veins uses a structured reward flow designed for zero-gas accrual and bulk claiming:
         </p>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className={rewardFlowGridClass}>
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
             <div className="text-xs font-bold text-zinc-400 uppercase mb-2">Step 1</div>
             <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">Mine & Refine</div>

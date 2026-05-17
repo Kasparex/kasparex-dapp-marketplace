@@ -7,6 +7,7 @@ import { DIAMOND_COMMODITY_KEYS, type DiamondCommodity } from '@/lib/game/engine
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { useState } from 'react';
 
 const DIAMOND_LABELS: Record<DiamondCommodity, string> = {
@@ -53,6 +54,8 @@ export function MiningPanel({
   };
 
   const foreman = tycon.slots.find((s) => s.type === 'foreman');
+  const cardGridClass = useGamesMainAdaptiveGrid();
+  const veinGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
 
   return (
     <div className="space-y-8">
@@ -165,7 +168,7 @@ export function MiningPanel({
             </button>
           </GameTooltip>
         </h3>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className={veinGridClass}>
           {DIAMOND_COMMODITY_KEYS.map((k) => (
             <div key={k} className="flex justify-between rounded-lg border border-zinc-100 px-3 py-2 text-sm dark:border-zinc-800">
               <span className="inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400">

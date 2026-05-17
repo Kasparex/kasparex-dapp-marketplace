@@ -20,6 +20,7 @@ import { GameOverviewSections } from '@/components/games/panels/GameOverviewSect
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -68,6 +69,7 @@ export function CipherVaultsDashboard({
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
+  const tierPickerGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-3' });
 
   useEffect(() => {
     if (!walletState.isConnected) return;
@@ -179,7 +181,7 @@ export function CipherVaultsDashboard({
 
         {tab === 'vaults' && (
           <div className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className={tierPickerGridClass}>
               {CIPHER_VAULT_TIERS.map((t) => (
                 <button
                   key={t.id}
