@@ -68,18 +68,6 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                   <p className="text-3xl sm:text-4xl font-black tabular-nums text-zinc-900 dark:text-white leading-tight break-words">
                     {breakdown.totalRedeemable.toLocaleString()} pts
                   </p>
-                  <p className="text-[11px] text-zinc-500">Balance reflects this device for now; synced totals will follow.</p>
-                  <div className="space-y-1.5 pt-1 min-w-0">
-                    {breakdown.lines.map((line) => (
-                      <div
-                        key={line.id}
-                        className="flex justify-between gap-3 text-xs text-zinc-600 dark:text-zinc-400 min-w-0"
-                      >
-                        <span className="break-words pr-2">{line.label}</span>
-                        <span className="font-mono font-semibold tabular-nums shrink-0">{line.points.toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
                 </>
               )}
             </div>

@@ -52,7 +52,7 @@ export function RewardsL2Gate(props: {
   const inner = (
     <>
       <div className="flex items-center gap-2">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify Layer 2 wallet</p>
+        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] m-0">Verify L2 wallet</p>
         <Tooltip content={gameTooltipRich('Wallet verification', L2_GATE_HELP_BODY)}>
           <button
             type="button"

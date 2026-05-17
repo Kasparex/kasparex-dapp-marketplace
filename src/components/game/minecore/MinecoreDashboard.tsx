@@ -386,11 +386,11 @@ export function MinecoreDashboard(_props: {
                 trailing={bulkMiningControl}
               />
 
-              <div className={miningSlotGridClass}>
+              <div className={`${miningSlotGridClass} min-w-0`}>
                 {filteredMiningSlots.map(({ slot, slotIndex }) => (
-                  <PlantSlotCard
-                    key={`plant-slot-${slotIndex}`}
-                    minecoreState={state}
+                  <div key={`plant-slot-${slotIndex}`} className="min-w-0">
+                    <PlantSlotCard
+                      minecoreState={state}
                     minecoreComputeContext={minecoreComputeContext}
                     slot={slot}
                     slotArrayIndex={slotIndex}
@@ -436,9 +436,10 @@ export function MinecoreDashboard(_props: {
                       actions.assignPlantCrewDeckIndices(slotIndex, indices)
                     }
                   />
+                  </div>
                 ))}
 
-                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+                <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
                   <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Expansion</div>
                   <Tooltip
                     content={gameTooltipRich(
