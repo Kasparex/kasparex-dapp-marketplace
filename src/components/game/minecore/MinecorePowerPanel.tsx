@@ -74,7 +74,7 @@ export function MinecorePowerPanel(props: {
           return (
             <li
               key={p.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/50"
+              className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-100 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/30"
             >
               <div className="min-w-0 flex flex-1 flex-col gap-0.5">
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">Plant {p.index + 1}</span>
