@@ -1,6 +1,7 @@
 'use client';
 
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import type { MinecoreState } from '@/lib/game/minecore';
 import { MINECORE_INGREDIENT_KEYS } from '@/lib/game/minecore';
 
@@ -23,10 +24,13 @@ const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], strin
 
 export function InventoryPanel(props: { state: MinecoreState }) {
   const s = props.state;
+  const invGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-3' });
+  const ingredientRowsClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
+
   return (
     <div className="space-y-6">
       <GamePanelCard title="Inventory" hint="Parts and ingredients you own.">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={invGridClass}>
           <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/30">
             <div className="text-xs font-black uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Machines</div>
             <div className="mt-3 space-y-1 text-sm">
@@ -78,7 +82,7 @@ export function InventoryPanel(props: { state: MinecoreState }) {
       </GamePanelCard>
 
       <GamePanelCard title="Ingredients" hint="Used for fabrication recipes.">
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className={ingredientRowsClass}>
           {MINECORE_INGREDIENT_KEYS.map((k) => (
             <div
               key={k}

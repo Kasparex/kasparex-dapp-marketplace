@@ -21,6 +21,7 @@ import {
 import { hasInstalledBattery } from '@/lib/game/minecore/battery-utils';
 import { computeFlowRatePerMin, computeLiveBatteryChargeMs, getBatteryCapacityMs, getPowerUnitCap } from '@/lib/game/minecore/compute';
 import { MinecoreVeinBreakdownByMachine } from '@/components/game/minecore/MinecoreMiningSections';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 /** KAS paths use wallet sends; KREX paths use the same SKU pricing via treasury KRC-20 transfer (`payKrexTreasury`). */
 const KAS_RESERVE_PACK = 6;
@@ -52,6 +53,7 @@ export function MinecorePowerPanel(props: {
   const batterySyncPriceKrex = batterySyncPrice * MINECORE_KREX_PER_KAS;
   const reservePackPriceKrex = reservePackPrice * MINECORE_KREX_PER_KAS;
   const runtimeBundlePriceKrex = runtimeBundlePrice * MINECORE_KREX_PER_KAS;
+  const upgradeGridClass = useGamesMainAdaptiveGrid();
 
   const plantsCard = (
     <GamePanelCard
@@ -149,7 +151,7 @@ export function MinecorePowerPanel(props: {
           </select>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={upgradeGridClass}>
           <GameItemCard
             icon={<Icons.BatteryCharging className="h-8 w-8 text-sky-500/90" strokeWidth={1.75} />}
             title="Battery sync"

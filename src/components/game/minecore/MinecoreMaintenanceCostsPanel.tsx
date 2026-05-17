@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import {
@@ -77,6 +78,7 @@ export function MinecoreMaintenanceCostsPanel(props: {
   onOpenKrexWizard?: () => void;
 }) {
   const tierShort = props.krexTier || 'Tier0';
+  const capsuleGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-2' });
 
   const row = (label: string, baseKas: number, accent: boolean, free?: boolean) => {
     if (free) {
@@ -109,7 +111,7 @@ export function MinecoreMaintenanceCostsPanel(props: {
       title="Maintenance & setup costs"
       hint="List KAS with your tier’s paid amount when a discount applies. Hover any row for the breakdown."
     >
-      <div className="grid grid-cols-2 gap-2">
+      <div className={capsuleGridClass}>
         {row('Activate plant slot', MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, true)}
         {row('Add plant row', props.nextSlotCostKas, true)}
         <CostCapsule

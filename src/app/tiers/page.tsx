@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { RewardsDashboardSidebar } from '@/components/rewards/RewardsDashboardSidebar';
+import { TiersSidebar } from '@/components/rewards/TiersSidebar';
 import { RewardsDashboardContent } from '@/components/rewards/RewardsDashboardContent';
 import { TiersHeader } from '@/components/rewards/TiersHeader';
 
@@ -15,17 +15,18 @@ export default function TiersPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 flex flex-col lg:flex-row">
-        <RewardsDashboardSidebar
-          filters={filters}
-          searchQuery={searchQuery}
-          onFilterChange={setFilters}
-          onSearchChange={setSearchQuery}
-        />
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-          <div className="max-w-6xl mx-auto">
+      <main className="flex flex-1 flex-col lg:flex-row">
+        <div className="hidden shrink-0 lg:block">
+          <TiersSidebar />
+        </div>
+        <div className="lg:hidden">
+          <TiersSidebar />
+        </div>
+
+        <div className="min-w-0 flex-1 overflow-y-auto bg-white p-4 sm:p-6 lg:bg-white lg:p-8 lg:pl-6 dark:bg-zinc-950">
+          <div className="mx-auto max-w-6xl">
             <TiersHeader />
           </div>
           <RewardsDashboardContent filters={filters} searchQuery={searchQuery} />
@@ -35,4 +36,3 @@ export default function TiersPage() {
     </div>
   );
 }
-
