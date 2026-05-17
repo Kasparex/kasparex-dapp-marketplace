@@ -1,11 +1,11 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { GameTabs } from './GameTabs';
+import type { ReactNode } from 'react';
 import { GameDeckPanel } from '../panels/GameDeckPanel';
 import { GameInteractionsPanel } from '../panels/GameInteractionsPanel';
 import { GameMetadataPanel } from '../panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '../GamesPlayAdRail';
+import { GamesWithSidebarLayout } from './GamesWithSidebarLayout';
 
 interface UnifiedGameLayoutProps {
   tabs: any[];
@@ -17,19 +17,15 @@ interface UnifiedGameLayoutProps {
     featuredImage?: string;
     image?: string;
     connections?: any[];
-    categories?: string[];
-    tags?: string[];
+    categories?: any[];
+    tags?: any[];
   };
   children: ReactNode;
   onOpenOverview?: () => void;
   deckFooter?: ReactNode;
-  /** Tooltip on the Game Deck featured image. */
   deckFeaturedTooltip?: string;
-  /** Whether to show the Deck “i” helper (default true). */
   showDeckInfoButton?: boolean;
-  /** Renders below the Game Deck card (e.g. Minecore owned assets). */
   belowDeck?: ReactNode;
-  /** Renders under tab bar (dismissible alerts, etc.). */
   tabAlerts?: ReactNode;
 }
 
@@ -47,32 +43,33 @@ export function UnifiedGameLayout({
   belowDeck,
   tabAlerts,
 }: UnifiedGameLayoutProps) {
-  return (
-    <div className="flex w-full min-w-0 flex-col gap-6">
-      <div className="w-full min-w-0">
-        <GameTabs tabs={tabs} value={currentTab} onChange={onTabChange} />
-      </div>
-      {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="flex min-w-0 flex-col space-y-6 lg:col-span-8">{children}</div>
+  const sidebar = (
+    <>
+      <GameDeckPanel
+        resources={resources}
+        footer={deckFooter}
+        featured={{
+          image: game.featuredImage || game.image || '',
+          onOpenOverview: onOpenOverview || (() => onTabChange('overview')),
+          tooltip: deckFeaturedTooltip ?? 'Game details',
+        }}
+        showDeckHelpButton={showDeckInfoButton !== false}
+      />
+      {belowDeck}
+      <GameInteractionsPanel interactions={game.connections || []} />
+      <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
+      <GamesPlayAdRail />
+    </>
+  );
 
-        <div className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4">
-        <GameDeckPanel
-          resources={resources}
-          footer={deckFooter}
-          featured={{
-            image: game.featuredImage || game.image || '',
-            onOpenOverview: onOpenOverview || (() => onTabChange('overview')),
-            tooltip: deckFeaturedTooltip ?? 'Game details',
-          }}
-          showDeckHelpButton={showDeckInfoButton !== false}
-        />
-        {belowDeck}
-        <GameInteractionsPanel interactions={game.connections || []} />
-        <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
-        <GamesPlayAdRail />
-        </div>
-      </div>
-    </div>
+  return (
+    <GamesWithSidebarLayout
+      tabs={tabs}
+      currentTab={currentTab}
+      onTabChange={onTabChange}
+      tabAlerts={tabAlerts}
+      main={children}
+      sidebar={sidebar}
+    />
   );
 }

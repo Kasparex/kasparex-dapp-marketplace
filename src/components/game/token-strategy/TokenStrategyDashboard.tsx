@@ -13,7 +13,7 @@ import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
-import { GameTabs } from '@/components/games/layout/GameTabs';
+import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -133,27 +133,12 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
   return (
     <TooltipProvider>
-    <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
-      <div className="flex flex-col space-y-6 lg:col-span-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
-          <div className="flex flex-wrap items-center gap-6">
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">KREX Tier</span>
-            <span className="rounded-full border border-zinc-300 bg-zinc-200 px-2 py-0.5 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-              {tier}
-            </span>
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Hub boost</span>
-            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">×{booster.toFixed(2)}</span>
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Pay entry on L1 · later claim GRID on L2 via{' '}
-            <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
-              Rewards &amp; Points
-            </Link>
-          </p>
-        </div>
-
-        <GameTabs tabs={tabs} value={tab} onChange={setTab} />
-
+    <GamesWithSidebarLayout
+      tabs={tabs}
+      currentTab={tab}
+      onTabChange={setTab}
+      main={
+        <>
         {tab === 'overview' && (
           <div className="space-y-6">
             <GamePanelCard title="Briefing" hint="Decide what moves first.">
@@ -275,9 +260,10 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
             </div>
           </div>
         )}
-      </div>
-
-      <div className="flex flex-col space-y-6 lg:col-span-4">
+        </>
+      }
+      sidebar={
+        <>
         <GameDeckPanel
           resources={[
             {
@@ -336,8 +322,9 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
         </div>
 
         <GamesPlayAdRail />
-      </div>
-    </div>
+        </>
+      }
+    />
     </TooltipProvider>
   );
 }

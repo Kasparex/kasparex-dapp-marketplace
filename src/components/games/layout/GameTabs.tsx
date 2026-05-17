@@ -10,6 +10,15 @@ export type GameTab<T extends string = string> = {
   rightAdornment?: ReactNode;
 };
 
+const TAB_ACTIVE =
+  'bg-emerald-500/10 text-emerald-900 dark:text-emerald-300';
+const TAB_INACTIVE =
+  'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800';
+
+/**
+ * Kasparex Games tab strip: same segmented control shell as Profile Hub (`k-control-group`),
+ * with emerald active state for gameplay accents.
+ */
 export function GameTabs<T extends string>(props: {
   tabs: readonly GameTab<T>[];
   value: T;
@@ -19,16 +28,14 @@ export function GameTabs<T extends string>(props: {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // All drag state in refs - zero re-renders during the drag
   const dragging = useRef(false);
   const startX = useRef(0);
   const startScroll = useRef(0);
   const lastX = useRef(0);
   const velocity = useRef(0);
   const rafId = useRef<number | null>(null);
-  const totalMoved = useRef(0); // total px moved - suppresses click if > threshold
+  const totalMoved = useRef(0);
 
-  // ── Scroll-state tracker ─────────────────────────────────────────────────
   const updateScrollState = useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
@@ -49,7 +56,6 @@ export function GameTabs<T extends string>(props: {
     };
   }, [updateScrollState]);
 
-  // ── Momentum ─────────────────────────────────────────────────────────────
   const runMomentum = useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
@@ -62,7 +68,6 @@ export function GameTabs<T extends string>(props: {
     rafId.current = requestAnimationFrame(runMomentum);
   }, []);
 
-  // ── Global move / up handlers attached on mousedown, removed on mouseup ──
   const stopDrag = useCallback(() => {
     if (!dragging.current) return;
     dragging.current = false;
@@ -76,8 +81,6 @@ export function GameTabs<T extends string>(props: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runMomentum]);
 
-  // These need to be stable references so we can remove them
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onWindowMouseMove = useCallback((e: MouseEvent) => {
     if (!dragging.current) return;
     const el = stripRef.current;
@@ -89,33 +92,32 @@ export function GameTabs<T extends string>(props: {
     el.scrollLeft = startScroll.current - dx;
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onWindowMouseUp = useCallback(() => {
     stopDrag();
   }, [stopDrag]);
 
-  const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // Only primary button
-    if (e.button !== 0) return;
-    const el = stripRef.current;
-    if (!el) return;
-    if (rafId.current !== null) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
-    dragging.current = true;
-    totalMoved.current = 0;
-    startX.current = e.clientX;
-    lastX.current = e.clientX;
-    startScroll.current = el.scrollLeft;
-    velocity.current = 0;
-    el.style.cursor = 'grabbing';
-    // Attach window listeners so drag works even outside the element
-    window.addEventListener('mousemove', onWindowMouseMove);
-    window.addEventListener('mouseup', onWindowMouseUp);
-  }, [onWindowMouseMove, onWindowMouseUp]);
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      const el = stripRef.current;
+      if (!el) return;
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+      dragging.current = true;
+      totalMoved.current = 0;
+      startX.current = e.clientX;
+      lastX.current = e.clientX;
+      startScroll.current = el.scrollLeft;
+      velocity.current = 0;
+      el.style.cursor = 'grabbing';
+      window.addEventListener('mousemove', onWindowMouseMove);
+      window.addEventListener('mouseup', onWindowMouseUp);
+    },
+    [onWindowMouseMove, onWindowMouseUp],
+  );
 
-  // Suppress tab button onClick if the user genuinely dragged
   const onClickCapture = useCallback((e: React.MouseEvent) => {
     if (totalMoved.current > 6) {
       e.stopPropagation();
@@ -124,7 +126,6 @@ export function GameTabs<T extends string>(props: {
     }
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (rafId.current !== null) cancelAnimationFrame(rafId.current);
@@ -134,17 +135,16 @@ export function GameTabs<T extends string>(props: {
   }, [onWindowMouseMove, onWindowMouseUp]);
 
   return (
-    <div className="relative border-b border-zinc-200 pb-2 dark:border-zinc-800">
-      {/* Drag-scrollable tab strip */}
+    <div className="relative mb-6">
       <div
         ref={stripRef}
-        className="flex gap-2 overflow-x-auto select-none"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          cursor: 'grab',
-          touchAction: 'pan-x',
-        } as React.CSSProperties}
+        className="k-control-group flex w-full min-w-0 flex-nowrap items-stretch overflow-x-auto select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        style={
+          {
+            cursor: 'grab',
+            touchAction: 'pan-x',
+          } as React.CSSProperties
+        }
         onMouseDown={onMouseDown}
         onClickCapture={onClickCapture}
       >
@@ -153,37 +153,25 @@ export function GameTabs<T extends string>(props: {
             key={t.id}
             type="button"
             onClick={() => props.onChange(t.id)}
-            className={`flex-shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-              props.value === t.id
-                ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300'
-                : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/60'
+            className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+              props.value === t.id ? TAB_ACTIVE : TAB_INACTIVE
             }`}
           >
-            <span className="inline-flex items-center gap-2 pointer-events-none">
-              {t.icon ? (
-                <span className="inline-flex h-4 w-4 items-center justify-center">{t.icon}</span>
-              ) : null}
-              <span className="whitespace-nowrap">{t.label}</span>
-              {t.rightAdornment ? (
-                <span className="inline-flex items-center">{t.rightAdornment}</span>
-              ) : null}
+            <span className="pointer-events-none inline-flex items-center gap-2">
+              {t.icon ? <span className="inline-flex h-4 w-4 items-center justify-center shrink-0">{t.icon}</span> : null}
+              <span>{t.label}</span>
+              {t.rightAdornment ? <span className="inline-flex items-center">{t.rightAdornment}</span> : null}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Edge fade hints */}
       {canScrollLeft && (
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white dark:from-zinc-950" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-8 bg-gradient-to-r from-white dark:from-zinc-950" />
       )}
       {canScrollRight && (
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white dark:from-zinc-950" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-8 bg-gradient-to-l from-white dark:from-zinc-950" />
       )}
-
-      {/* Hide webkit scrollbar */}
-      <style>{`
-        div[style*="scrollbarWidth"]::-webkit-scrollbar { display: none; }
-      `}</style>
     </div>
   );
 }

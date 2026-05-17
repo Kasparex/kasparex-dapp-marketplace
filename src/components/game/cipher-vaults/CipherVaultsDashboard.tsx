@@ -11,7 +11,7 @@ import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
-import { GameTabs } from '@/components/games/layout/GameTabs';
+import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -120,51 +120,23 @@ export function CipherVaultsDashboard({
 
   return (
     <TooltipProvider>
-    <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-12">
-      <div className="flex flex-col space-y-6 lg:col-span-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-100 p-4 text-base dark:border-zinc-800 dark:bg-zinc-900/60">
-          <div className="flex flex-wrap items-center gap-6">
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Cipher Tickets</span>
-            <Tooltip
-              content={gameTooltipRich(
-                'Cipher Tickets',
-                'Spend tickets to start a vault run instead of paying KAS. Earn them by redeeming Diamond Veins refinement points.',
-              )}
-            >
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400 cursor-help">
-                {tickets.available.toLocaleString()} <span className="text-zinc-500 dark:text-zinc-400 font-semibold">avail</span>
-              </span>
-            </Tooltip>
-            <span className="font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">Treasury</span>
-            <Tooltip content={gameTooltipRich('Treasury address', 'Entry fees are sent to this address on Kaspa L1.')}>
-              <span className="font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-help">{CIPHER_VAULTS_TREASURY_ADDRESS}</span>
-            </Tooltip>
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Pay entry on L1 · later claim GRID on L2 via{' '}
-            <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
-              Rewards &amp; Points
-            </Link>
-          </p>
-        </div>
-
+    <GamesWithSidebarLayout
+      tabs={[
+        { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+        { id: 'vaults', label: 'Vaults', icon: <IconVaults /> },
+        { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
+        { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+        { id: 'comments', label: 'Comments', icon: <IconComments /> },
+      ]}
+      currentTab={tab}
+      onTabChange={setTab}
+      main={
+        <>
         {toast && (
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
             {toast}
           </div>
         )}
-
-        <GameTabs
-          tabs={[
-            { id: 'overview', label: 'Overview', icon: <IconOverview /> },
-            { id: 'vaults', label: 'Vaults', icon: <IconVaults /> },
-            { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
-            { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
-            { id: 'comments', label: 'Comments', icon: <IconComments /> },
-          ]}
-          value={tab}
-          onChange={setTab}
-        />
 
         {tab === 'overview' && (
           <div className="space-y-6">
@@ -562,9 +534,10 @@ export function CipherVaultsDashboard({
             <CommentsSection articleId="game:cipher-vaults" />
           </div>
         )}
-      </div>
-
-      <div className="flex flex-col space-y-6 lg:col-span-4">
+        </>
+      }
+      sidebar={
+        <>
         <GameDeckPanel
           rewardWeight={{
             value: tickets.available.toLocaleString(),
@@ -640,8 +613,9 @@ export function CipherVaultsDashboard({
         </div>
 
         <GamesPlayAdRail />
-      </div>
-    </div>
+        </>
+      }
+    />
     </TooltipProvider>
   );
 }
