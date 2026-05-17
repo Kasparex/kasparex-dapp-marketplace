@@ -150,7 +150,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
         </svg>
       ),
-      tooltip: 'Number of NFTs you currently own in this category. Higher counts unlock additional benefits and rewards.',
+      tooltip: 'How many NFTs we see in this tier.',
     },
     { 
       id: 'requirements', 
@@ -160,7 +160,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      tooltip: 'Minimum NFT ownership requirements needed to unlock this reward tier and its associated benefits.',
+      tooltip: 'Rule to qualify for this row.',
     },
     { 
       id: 'multiplier', 
@@ -170,7 +170,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       ),
-      tooltip: 'Reward multiplier that increases your GRID and dApp token earnings. Rarer NFTs provide higher multipliers.',
+      tooltip: 'Extra reward boost for higher NFT tiers.',
     },
     { 
       id: 'feeReduction', 
@@ -180,7 +180,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      tooltip: 'Percentage reduction applied to transaction fees. Rarer NFTs provide greater fee savings on all dApp interactions.',
+      tooltip: 'Extra fee savings versus the base rate.',
     },
     { 
       id: 'points', 
@@ -190,7 +190,7 @@ export function NFTRewardsTable({ nftStatus, nftPoints = 0 }: NFTRewardsTablePro
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
         </svg>
       ),
-      tooltip: 'NFT points in this calculator preview. Redeemable pts follow /rewards policy.',
+      tooltip: 'Points shown for this preview; spends follow hub rules.',
     },
   ];
 

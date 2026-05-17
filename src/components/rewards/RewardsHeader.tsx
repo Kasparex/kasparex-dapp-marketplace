@@ -21,8 +21,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
       title="Rewards"
       subtitle={
         <p className="m-0">
-          Earn redeemable pts across Kasparex Hub, then spend them here on perks, badges, coupons, and token pools. Some offers use your Kaspa wallet only;
-          others ask you to verify an EVM wallet when an on-chain route is involved.
+          Earn and spend redeemable points on hub perks and pools. Some routes may ask you to verify a second wallet.
         </p>
       }
       actions={
@@ -44,7 +43,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
             <div className="px-5 py-5 sm:px-6 sm:py-6 space-y-3 min-w-0">
               {!hasAddr ? (
                 <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400 m-0">
-                  Connect your Kaspa wallet from the header to see redeemable pts tied to your hub profile.
+                  Connect your wallet to see redeemable points.
                 </p>
               ) : (
                 <>
@@ -53,7 +52,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
                     <Tooltip
                       content={gameTooltipRich(
                         'Redeemable balance',
-        'One hub-wide number for your Kaspa address: gameplay-linked pts plus anything tracked in your Rewards wallet. Live cross-device totals will arrive as backend sync rolls out.',
+                        'Estimated points you can spend here. Totals can update as you use the hub.',
                       )}
                     >
                       <button

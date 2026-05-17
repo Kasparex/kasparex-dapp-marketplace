@@ -178,7 +178,7 @@ export function NFTStatusBox({
         tooltip ??
         gameTooltipRich(
           label,
-          ok ? 'Detected in your connected wallet.' : 'Not detected for your connected wallet.',
+          ok ? 'We see holdings for your connected wallet.' : 'Not detected for your connected wallet.',
         );
       return (
         <Tooltip content={tip}>
@@ -224,7 +224,7 @@ export function NFTStatusBox({
               <Tooltip
                 content={gameTooltipRich(
                   'NFT rewards',
-                  'Opens a breakdown of multiplier, fee discounts, and points by NFT tier.',
+                  'Tier multipliers, fee tweaks, and points at a glance.',
                 )}
               >
                 <button
@@ -250,7 +250,7 @@ export function NFTStatusBox({
                   'KREXPRIME',
                   status.hasKREXPRIME,
                   undefined,
-                  gameTooltipRich('KREXPRIME', 'Opens the KREXPRIME collection on KaspaCom to browse or buy NFTs.'),
+                  gameTooltipRich('KREXPRIME', 'Open the KREXPRIME collection on KaspaCom.'),
                   () => {
                     window.open('https://www.kaspa.com/nft/collections/KREXPRIME', '_blank', 'noopener,noreferrer');
                   },
@@ -259,7 +259,7 @@ export function NFTStatusBox({
                   'PIXELKREX',
                   status.hasPIXELKREX,
                   undefined,
-                  gameTooltipRich('PIXELKREX', 'Opens the PIXELKREX collection on KaspaCom to browse or buy NFTs.'),
+                  gameTooltipRich('PIXELKREX', 'Open the PIXELKREX collection on KaspaCom.'),
                   () => {
                     window.open('https://www.kaspa.com/nft/collections/PIXELKREX', '_blank', 'noopener,noreferrer');
                   },
@@ -291,7 +291,7 @@ export function NFTStatusBox({
                   undefined,
                   gameTooltipRich(
                     'Standard NFTs',
-                    'Tap to open your NFT dashboard when any qualifying standard-tier NFT is detected.',
+                    'Opens your NFT area when standard-tier NFTs are detected.',
                   ),
                   onOpenNftPage,
                   'text-blue-600 dark:text-blue-400',
@@ -302,7 +302,7 @@ export function NFTStatusBox({
                   undefined,
                   gameTooltipRich(
                     'Diamond NFTs',
-                    'Tap to open your NFT dashboard when a diamond-tier NFT is detected.',
+                    'Opens your NFT area when a diamond-tier NFT is detected.',
                   ),
                   onOpenNftPage,
                   'text-purple-600 dark:text-purple-400',
@@ -313,7 +313,7 @@ export function NFTStatusBox({
                   undefined,
                   gameTooltipRich(
                     'Rarest NFTs',
-                    'Tap to open your NFT dashboard when a rarest-tier NFT (#515 PIXELKREX or #345 KREXPRIME) is detected.',
+                    'Opens your NFT area when rarest-tier IDs are detected.',
                   ),
                   onOpenNftPage,
                   'text-yellow-600 dark:text-yellow-400',
@@ -369,7 +369,7 @@ export function NFTStatusBox({
             <Tooltip
               content={gameTooltipRich(
                 'NFT rewards',
-                'Opens a breakdown of multiplier, fee discounts, and points by NFT tier.',
+                'Tier multipliers, fee tweaks, and points at a glance.',
               )}
             >
               <button

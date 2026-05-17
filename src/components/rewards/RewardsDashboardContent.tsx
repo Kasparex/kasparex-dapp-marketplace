@@ -1,19 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useState } from 'react';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { useGRIDToken } from '@/hooks/useGRIDToken';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { useWalletDeck } from '@/hooks/useWalletDeck';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useWalletSettings } from '@/hooks/useWalletSettings';
 import { useQueryClient } from '@tanstack/react-query';
-import { getContractAddress } from '@/lib/contracts/addresses';
-import { getChainById } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { type UserRewardStatus } from '@/lib/rewards/dashboard-data';
 import { KREX_TIERS, NFT_MULTIPLIER, DIAMOND_NFT_MULTIPLIER, RAREST_NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION, LIGHT_NODE_COST_REDUCTION, MIRROR_NODE_COST_REDUCTION } from '@/lib/rewards/types';
 import { TierRewardsTable } from './TierRewardsTable';
 import { NFTRewardsTable } from './NFTRewardsTable';
@@ -22,8 +17,6 @@ import { PremiumRewardsTable } from './PremiumRewardsTable';
 import { TierBadge } from './TierBadge';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { NFTBuyWizard } from './NFTBuyWizard';
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
 
 interface RewardsDashboardContentProps {
   filters: {
@@ -37,9 +30,7 @@ export function RewardsDashboardContent({
   filters,
   searchQuery,
 }: RewardsDashboardContentProps) {
-  const { address, isConnected } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
-  const chainId = useChainId();
   const { balance: krexBalance, l1Balance, l2Balance, tier: krexTier, isLoading: isKREXLoading } = useKREXBalance();
   const { nftStatus, nftPoints, isLoading: isNFTLoading } = useNFTStatus();
   const { totalRedeemable: hubPts } = useRedeemablePointsBreakdown();
@@ -52,19 +43,6 @@ export function RewardsDashboardContent({
   const [showKREXBuyWizard, setShowKREXBuyWizard] = useState(false);
   const [showNFTBuyWizard, setShowNFTBuyWizard] = useState(false);
 
-  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = Boolean(chain?.testnet);
-  const gridTokenAddress = useMemo(() => {
-    if (isTestnet) {
-      const tgrid = getContractAddress(chainId, 'tGRID');
-      if (tgrid) return tgrid;
-    }
-    return getContractAddress(chainId, 'GRIDToken') || null;
-  }, [chainId, isTestnet]);
-  const { formattedBalance: gridFormattedBalance, isLoading: isGRIDLoading } = useGRIDToken(gridTokenAddress);
-
-
-  const isLoading = isKREXLoading || isNFTLoading || isGRIDLoading || isDeckLoading;
   
   const defaultNFTStatus = {
     hasKREXPRIME: false,
@@ -454,16 +432,10 @@ export function RewardsDashboardContent({
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               KREX Tier Rewards
             </h2>
-            {isLoading ? (
-              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                Loading rewards...
-              </div>
-            ) : (
-              <TierRewardsTable
-                currentTier={krexTier}
-                krexBalance={krexBalance || 0}
-              />
-            )}
+            <TierRewardsTable
+              currentTier={krexTier}
+              krexBalance={krexBalance || 0}
+            />
           </div>
         )}
 
@@ -473,16 +445,10 @@ export function RewardsDashboardContent({
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               NFT Rewards (PIXELKREX and KREXPRIME)
             </h2>
-            {isLoading ? (
-              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                Loading rewards...
-              </div>
-            ) : (
-              <NFTRewardsTable
-                nftStatus={nftStatus || defaultNFTStatus}
-                nftPoints={nftPoints || 0}
-              />
-            )}
+            <NFTRewardsTable
+              nftStatus={nftStatus || defaultNFTStatus}
+              nftPoints={nftPoints || 0}
+            />
           </div>
         )}
 
@@ -492,16 +458,10 @@ export function RewardsDashboardContent({
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Node Rewards
             </h2>
-            {isLoading ? (
-              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                Loading rewards...
-              </div>
-            ) : (
-              <NodeRewardsTable
-                hasNode={false} // TODO: Implement node status detection
-                nodeType={undefined}
-              />
-            )}
+            <NodeRewardsTable
+              hasNode={false} // TODO: Implement node status detection
+              nodeType={undefined}
+            />
           </div>
         )}
 
@@ -511,16 +471,10 @@ export function RewardsDashboardContent({
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Premium Features
             </h2>
-            {isLoading ? (
-              <div className="p-8 text-center text-zinc-500 dark:text-zinc-400">
-                Loading rewards...
-              </div>
-            ) : (
-              <PremiumRewardsTable
-                krexTier={krexTier}
-                nftStatus={nftStatus || defaultNFTStatus}
-              />
-            )}
+            <PremiumRewardsTable
+              krexTier={krexTier}
+              nftStatus={nftStatus || defaultNFTStatus}
+            />
           </div>
         )}
       </div>

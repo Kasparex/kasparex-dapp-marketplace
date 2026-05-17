@@ -10,7 +10,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 const L2_GATE_HELP_BODY =
-  'Token pool offers need an Ethereum-style wallet on IGRA Mainnet. Connect it, switch networks, then sign once so we know it is yours. Other rewards only need your Kaspa wallet.';
+  'For some offers, connect an EVM wallet on the right network and sign once to verify. Other rewards only need your main wallet.';
 
 /** EVM readiness strip for Reward redemptions targeting IGRA Mainnet contracts. */
 export function RewardsL2Gate(props: {

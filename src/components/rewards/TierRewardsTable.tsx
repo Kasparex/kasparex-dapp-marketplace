@@ -47,7 +47,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      tooltip: 'Minimum KREX token balance required to unlock this tier and its associated benefits.',
+      tooltip: 'KREX balance needed to reach this tier.',
     },
     { 
       id: 'multiplier', 
@@ -57,7 +57,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       ),
-      tooltip: 'Reward multiplier that increases your GRID and dApp token earnings based on your KREX tier level.',
+      tooltip: 'Boost applied to eligible rewards for this tier.',
     },
     { 
       id: 'feeReduction', 
@@ -67,7 +67,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      tooltip: 'Percentage reduction applied to transaction fees. Higher tiers provide greater fee savings on all dApp interactions.',
+      tooltip: 'Extra fee discount versus the base rate.',
     },
     { 
       id: 'pointsMultiplier', 
@@ -77,7 +77,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
         </svg>
       ),
-      tooltip: 'Multiplier for pts in this calculator preview. Redeemable pts follow policy on /rewards.',
+      tooltip: 'Multiplier shown for points in previews; live totals follow hub rules.',
     },
     { 
       id: 'tierBadge', 
@@ -87,7 +87,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
         </svg>
       ),
-      tooltip: 'Visual badge displayed on your profile and across supported dApps, showcasing your KREX tier status and achievements.',
+      tooltip: 'Shows your tier where the app supports it.',
     },
     { 
       id: 'benefit1', 
@@ -97,7 +97,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       ),
-      tooltip: 'Unlock premium articles and author tools on vBlog. Access exclusive content and advanced publishing features for Tier 3+ holders.',
+      tooltip: 'Extra vBlog features from Tier 3 and up when enabled.',
     },
     { 
       id: 'benefit2', 
@@ -107,7 +107,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
       ),
-      tooltip: 'Unlimited comments across the entire Kasparex Hub without needing to top up credits. Tier 4 holders can comment freely on all platforms.',
+      tooltip: 'Tier 4 perk: open commenting without credit top-ups where supported.',
     },
   ];
 
