@@ -9,7 +9,7 @@ import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/Emp
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import * as Icons from 'lucide-react';
-import { useGamesMainAdaptiveWideGrid } from '@/components/games/layout/GamesLayoutContext';
+import { useGamesNftSlotsAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 export function WorkersPanel({
   slots,
@@ -27,7 +27,7 @@ export function WorkersPanel({
   onClearSlot: (slotIndex: number) => void;
 }) {
   const foremanReady = slots.some((s) => s.type === 'foreman' && s.nftId != null);
-  const slotGridClass = useGamesMainAdaptiveWideGrid('gap-6');
+  const slotGridClass = useGamesNftSlotsAdaptiveGrid('gap-6');
 
   return (
     <div className="space-y-6">

@@ -19,7 +19,7 @@ import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import { formatMinecoreGlobalDeckBonusLine } from '@/lib/game/minecore/nft-deck-benefits';
-import { useGamesMainAdaptiveWideGrid } from '@/components/games/layout/GamesLayoutContext';
+import { useGamesNftSlotsAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
 
 function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
   return getMinecoreDeckCollectionAllowlist();
@@ -143,7 +143,7 @@ export function WorkersPanel(props: {
     return list;
   }, [props.slots, searchQuery, statusFilter, sortBy, props.slottedMetadata]);
 
-  const slotGridClass = useGamesMainAdaptiveWideGrid('gap-6');
+  const slotGridClass = useGamesNftSlotsAdaptiveGrid('gap-6');
 
   const modalSlot = selected !== null ? (props.slots[selected] ?? null) : null;
   const modalCopy = modalSlot ? minecoreDeckModalCopy(modalSlot.type) : null;

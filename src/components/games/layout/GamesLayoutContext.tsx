@@ -44,3 +44,13 @@ export function useGamesMainAdaptiveWideGrid(gapClass: string | undefined = 'gap
   if (rightPanelOpen) return `grid grid-cols-1 ${gapClass} md:grid-cols-2 lg:grid-cols-2`;
   return `grid grid-cols-1 ${gapClass} md:grid-cols-2 lg:grid-cols-3`;
 }
+
+/** Crew / Workers NFT slot tiles: 3 columns with deck panel open, 4 when main is full width. */
+export function useGamesNftSlotsAdaptiveGrid(gapClass: string | undefined = 'gap-6') {
+  const { rightPanelOpen } = useGamesLayoutDensity();
+  const gap = gapClass ?? 'gap-6';
+  if (rightPanelOpen) {
+    return `grid grid-cols-1 ${gap} sm:grid-cols-2 lg:grid-cols-3`;
+  }
+  return `grid grid-cols-1 ${gap} sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`;
+}
