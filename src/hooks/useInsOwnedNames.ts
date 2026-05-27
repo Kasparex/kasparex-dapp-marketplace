@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createInsClient, type InsOwnedName } from '@/lib/ins/client';
+import { createInsClient, extractPrimaryFromReverse, type InsOwnedName } from '@/lib/ins/client';
 import { isInsEnabled } from '@/lib/ins/config';
 import { isInsNameExpiringSoon, normalizeEvmAddress } from '@/lib/ins/utils';
 
@@ -36,7 +36,11 @@ export function useInsOwnedNames(
         ]);
         if (cancelled) return;
         setNames(owned);
-        setPrimaryName(reverse?.primary ? String(reverse.primary).toLowerCase() : null);
+        const primary =
+          (reverse?.primary ? String(reverse.primary).toLowerCase() : null) ||
+          extractPrimaryFromReverse(reverse)?.toLowerCase() ||
+          (owned[0]?.name ? String(owned[0].name).toLowerCase() : null);
+        setPrimaryName(primary);
       } catch {
         if (!cancelled) {
           setNames([]);

@@ -14,8 +14,7 @@ import { Avatar } from '@/components/Avatar';
 import { formatKaspaAddress, isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
-import { useInsPrimaryName } from '@/hooks/useInsPrimaryName';
-import { useInsOwnedNames } from '@/hooks/useInsOwnedNames';
+import { useInsDisplayName } from '@/hooks/useInsDisplayName';
 import { INS_REGISTER_URL } from '@/lib/ins/config';
 import { getInsNftImageUrl, isInsNameExpiringSoon } from '@/lib/ins/utils';
 import type { InsOwnedName } from '@/lib/ins/client';
@@ -114,26 +113,43 @@ export function ProfileHubContent({
   const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
   const kpxIdentity = useKpxPublicIdentity(kaspaAddress);
 
-  const linkedEvmAddress = useMemo(() => {
-    const addr = profile?.linkedEvmWallets?.[0]?.address;
-    return addr ? String(addr).toLowerCase() as `0x${string}` : null;
-  }, [profile?.linkedEvmWallets]);
-
-  const { primaryName: insPrimaryName } = useInsPrimaryName(linkedEvmAddress, { enabled: Boolean(linkedEvmAddress) });
-  const { names: insOwnedNames, isLoading: isInsLoading, expiringSoon: insExpiringSoon } = useInsOwnedNames(
-    linkedEvmAddress,
-    { enabled: Boolean(linkedEvmAddress) },
-  );
-
-  const insDomains = useMemo(() => {
-    return insOwnedNames.map((n) => String(n.name).toLowerCase()).filter(Boolean).sort();
-  }, [insOwnedNames]);
-
   const isOwnProfile = useMemo(() => {
     if (!kaspaAddress) return false;
     const connected = (kaspaState.address || '').toLowerCase();
     return Boolean(kaspaState.isConnected && connected && connected === kaspaAddress.toLowerCase());
   }, [kaspaAddress, kaspaState.address, kaspaState.isConnected]);
+
+  const linkedEvmAddress = useMemo(() => {
+    const addr = profile?.linkedEvmWallets?.[0]?.address;
+    return addr ? String(addr).toLowerCase() as `0x${string}` : null;
+  }, [profile?.linkedEvmWallets]);
+
+  const connectedEvm = useMemo(() => {
+    if (!isEvmConnected || !connectedEvmAddress) return null;
+    return String(connectedEvmAddress).toLowerCase() as `0x${string}`;
+  }, [isEvmConnected, connectedEvmAddress]);
+
+  const insWalletAddress = useMemo(() => {
+    if (linkedEvmAddress) return linkedEvmAddress;
+    if (isOwnProfile && connectedEvm) return connectedEvm;
+    return null;
+  }, [linkedEvmAddress, isOwnProfile, connectedEvm]);
+
+  const {
+    displayName: insDisplayName,
+    primaryName: insPrimaryName,
+    names: insOwnedNames,
+    hasIns,
+    isLoading: isInsLoading,
+  } = useInsDisplayName(insWalletAddress, { enabled: Boolean(insWalletAddress) });
+
+  const insExpiringSoon = useMemo(() => {
+    return insOwnedNames.filter((n) => isInsNameExpiringSoon(n.expires_at, n.tenure));
+  }, [insOwnedNames]);
+
+  const insDomains = useMemo(() => {
+    return insOwnedNames.map((n) => String(n.name).toLowerCase()).filter(Boolean).sort();
+  }, [insOwnedNames]);
 
   const displayName = useMemo(() => {
     return (
@@ -326,7 +342,7 @@ export function ProfileHubContent({
                   onClick={() => goTab('kns')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
-                {linkedEvmAddress ? (
+                {hasIns ? (
                   <SidebarNavItem
                     label="INS"
                     active={activeTab === 'ins'}
@@ -362,9 +378,9 @@ export function ProfileHubContent({
                   kaspaAddress={kaspaAddress}
                   knsPrimaryName={knsPrimaryName}
                   knsDomains={knsDomains}
-                  insPrimaryName={insPrimaryName}
-                  insDomains={linkedEvmAddress ? insDomains : null}
-                  linkedEvmAddress={linkedEvmAddress}
+                  insPrimaryName={insDisplayName}
+                  insDomains={hasIns ? insDomains : null}
+                  linkedEvmAddress={insWalletAddress}
                   bio={profile?.bio?.trim() || knsProfile?.bio || ''}
                   source={source}
                   bannerUrl={bannerUrl}
@@ -381,7 +397,7 @@ export function ProfileHubContent({
                 <ProfileTabStrip
                   activeTab={activeTab}
                   isOwnProfile={isOwnProfile}
-                  hasLinkedEvm={Boolean(linkedEvmAddress)}
+                  hasIns={hasIns}
                   onTab={(t) => goTab(t)}
                 />
 
@@ -433,10 +449,10 @@ export function ProfileHubContent({
                   />
                 )}
 
-                {activeTab === 'ins' && linkedEvmAddress && (
+                {activeTab === 'ins' && insWalletAddress && hasIns && (
                   <InsTab
-                    linkedEvmAddress={linkedEvmAddress}
-                    primaryName={insPrimaryName}
+                    linkedEvmAddress={insWalletAddress}
+                    primaryName={insDisplayName}
                     names={insOwnedNames}
                     expiringSoon={insExpiringSoon}
                     isLoading={isInsLoading}
@@ -452,7 +468,7 @@ export function ProfileHubContent({
                     kaspaAddress={kaspaAddress}
                     connectedEvmAddress={isEvmConnected ? (connectedEvmAddress as `0x${string}`) : null}
                     linkedEvmAddress={linkedEvmAddress}
-                    insPrimaryName={insPrimaryName}
+                    insPrimaryName={insDisplayName}
                     isLinking={isSigningEvm}
                     onLinkEvm={async (evmAddress) => {
                       if (!kaspaAddress) return;
@@ -1744,32 +1760,32 @@ function ProfileHaloHeader({
 function ProfileTabStrip({
   activeTab,
   isOwnProfile,
-  hasLinkedEvm,
+  hasIns,
   onTab,
 }: {
   activeTab: TabId;
   isOwnProfile: boolean;
-  hasLinkedEvm: boolean;
+  hasIns: boolean;
   onTab: (t: TabId) => void;
 }) {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean; requiresLinkedEvm?: boolean }> = [
+  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean; requiresIns?: boolean }> = [
     { id: 'overview', label: 'Overview' },
     { id: 'transactions', label: 'Transactions' },
     { id: 'creator-content', label: 'Content' },
     { id: 'creator-create', label: 'Create' },
     { id: 'assets', label: 'Assets' },
     { id: 'kns', label: 'KNS' },
-    { id: 'ins', label: 'INS', requiresLinkedEvm: true },
+    { id: 'ins', label: 'INS', requiresIns: true },
     { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
 
   const allowedTabs = tabs.filter((t) => {
     if (t.ownerOnly && !isOwnProfile) return false;
-    if (t.requiresLinkedEvm && !hasLinkedEvm) return false;
+    if (t.requiresIns && !hasIns) return false;
     return true;
   });
 
