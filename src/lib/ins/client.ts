@@ -1,4 +1,4 @@
-import { getInsApiBase, isInsEnabled } from './config';
+import { getInsApiBase, getInsProxyUrl, getInsUpstreamUrl, isInsEnabled, type InsEndpoint } from './config';
 import { normalizeEvmAddress, normalizeInsName } from './utils';
 
 export type InsTenure = 'forever' | 'annual';
@@ -56,36 +56,16 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-function buildInsUrls(
-  isBrowser: boolean,
-  directBaseUrl: string,
-  endpoint: 'resolve' | 'reverse' | 'names/by-owner',
-  params: Record<string, string>,
-): { primary: string; fallback: string } {
-  const upstream = new URL(`/${endpoint}`, directBaseUrl.endsWith('/') ? directBaseUrl : `${directBaseUrl}/`);
-  const proxy = new URL(`/api/ins/${endpoint}`, isBrowser ? window.location.origin : 'http://localhost');
-  for (const [key, value] of Object.entries(params)) {
-    upstream.searchParams.set(key, value);
-    proxy.searchParams.set(key, value);
-  }
-  return { primary: proxy.toString(), fallback: upstream.toString() };
-}
-
 async function fetchIns<T>(
   isBrowser: boolean,
-  directBaseUrl: string,
-  endpoint: 'resolve' | 'reverse' | 'names/by-owner',
+  endpoint: InsEndpoint,
   params: Record<string, string>,
 ): Promise<T> {
-  const { primary, fallback } = buildInsUrls(isBrowser, directBaseUrl, endpoint, params);
   if (isBrowser) {
-    try {
-      return await fetchJson<T>(primary);
-    } catch {
-      return await fetchJson<T>(fallback);
-    }
+    const proxyUrl = getInsProxyUrl(endpoint, window.location.origin, params);
+    return await fetchJson<T>(proxyUrl);
   }
-  return await fetchJson<T>(fallback);
+  return await fetchJson<T>(getInsUpstreamUrl(endpoint, params));
 }
 
 export function extractPrimaryFromReverse(data: InsReverseResponse | null | undefined): string | null {
@@ -176,7 +156,7 @@ export function createInsClient(opts?: InsClientOptions) {
       if (!isInsEnabled()) return null;
       const normalized = normalizeInsName(name);
       try {
-        return await fetchIns<InsResolveResponse>(isBrowser, directBaseUrl, 'resolve', { name: normalized });
+        return await fetchIns<InsResolveResponse>(isBrowser, 'resolve', { name: normalized });
       } catch {
         return null;
       }
@@ -187,7 +167,7 @@ export function createInsClient(opts?: InsClientOptions) {
       const address = normalizeEvmAddress(ownerAddress);
       if (!address.startsWith('0x')) return [];
       try {
-        const data = await fetchIns<unknown>(isBrowser, directBaseUrl, 'names/by-owner', { address });
+        const data = await fetchIns<unknown>(isBrowser, 'names/by-owner', { address });
         return parseOwnedNames(data);
       } catch {
         return [];
@@ -199,7 +179,7 @@ export function createInsClient(opts?: InsClientOptions) {
       const address = normalizeEvmAddress(ownerAddress);
       if (!address.startsWith('0x')) return null;
       try {
-        const data = await fetchIns<InsReverseResponse>(isBrowser, directBaseUrl, 'reverse', { address });
+        const data = await fetchIns<InsReverseResponse>(isBrowser, 'reverse', { address });
         let primary = extractPrimaryFromReverse(data);
         if (!primary) {
           const owned = await this.getNamesByOwner(address);

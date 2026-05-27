@@ -32,3 +32,30 @@ export function getInsApiBase(): string {
   const override = String(process.env.NEXT_PUBLIC_INS_API_BASE || '').trim();
   return override || INS_API_BASE;
 }
+
+export type InsEndpoint = 'resolve' | 'reverse' | 'names/by-owner';
+
+/** Build upstream INS API URL (must not use `new URL('/path', base)` — that drops `/api`). */
+export function getInsUpstreamUrl(
+  endpoint: InsEndpoint,
+  params: Record<string, string> = {},
+): string {
+  const base = getInsApiBase().replace(/\/$/, '');
+  const url = new URL(`${base}/${endpoint}`);
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
+export function getInsProxyUrl(
+  endpoint: InsEndpoint,
+  origin: string,
+  params: Record<string, string> = {},
+): string {
+  const url = new URL(`/api/ins/${endpoint}`, origin);
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
+}

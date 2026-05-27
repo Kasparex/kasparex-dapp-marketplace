@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getInsApiBase } from '@/lib/ins/config';
+import { getInsUpstreamUrl } from '@/lib/ins/config';
 
 export async function GET(request: NextRequest) {
   const address = request.nextUrl.searchParams.get('address');
@@ -7,10 +7,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'address is required' }, { status: 400 });
   }
 
-  const upstream = new URL('/names/by-owner', getInsApiBase());
-  upstream.searchParams.set('address', address);
+  const upstream = getInsUpstreamUrl('names/by-owner', { address });
 
-  const res = await fetch(upstream.toString(), {
+  const res = await fetch(upstream, {
     method: 'GET',
     headers: { Accept: 'application/json' },
     next: { revalidate: 60 },
