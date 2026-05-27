@@ -156,3 +156,10 @@ export function maskKnsDomain(domain: string | null | undefined, isVisible: bool
   if (isVisible) return String(domain).toLowerCase();
   return '***';
 }
+
+/** When privacy mode is on, hide INS (.igra) domain labels on connect buttons and similar surfaces. */
+export function maskInsDomain(domain: string | null | undefined, isVisible: boolean): string | null {
+  if (!domain) return null;
+  if (isVisible) return String(domain).toLowerCase();
+  return '***';
+}

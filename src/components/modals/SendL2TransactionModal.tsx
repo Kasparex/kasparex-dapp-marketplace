@@ -2,20 +2,36 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { erc20Abi, parseUnits } from 'viem';
+import { erc20Abi, isAddress, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId, useReadContract, useSendTransaction, useWriteContract } from 'wagmi';
+import { createInsClient } from '@/lib/ins/client';
+import { isIgraMainnet } from '@/lib/ins/config';
+import {
+  isInsNameExpired,
+  isZeroAddress,
+  looksLikeInsRecipient,
+  normalizeInsName,
+} from '@/lib/ins/utils';
+import { shortenAddress } from '@/lib/walletUi';
 
 const KASPLEX_KREX_TOKEN_CA = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B' as const;
 const IGRA_KREX_TOKEN_CA = '0x9C31bB7A012A99dA04AAD94a1CB9176DAF28270D' as const;
 
 function getL2KrexTokenAddress(chainId: number | null | undefined): `0x${string}` | null {
   if (!chainId) return null;
-  // Kasplex (main + test)
   if (chainId === 202555 || chainId === 167012) return KASPLEX_KREX_TOKEN_CA;
-  // IGRA (main + test)
   if (chainId === 38836 || chainId === 38833) return IGRA_KREX_TOKEN_CA;
   return null;
 }
+
+type RecipientResolution = {
+  resolvedAddress: `0x${string}` | null;
+  displayName: string | null;
+  tenure: string | null;
+  expiresAt: string | null;
+  isResolving: boolean;
+  resolveError: string | null;
+};
 
 export function SendL2TransactionModal({
   isOpen,
@@ -33,8 +49,17 @@ export function SendL2TransactionModal({
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [resolution, setResolution] = useState<RecipientResolution>({
+    resolvedAddress: null,
+    displayName: null,
+    tenure: null,
+    expiresAt: null,
+    isResolving: false,
+    resolveError: null,
+  });
 
   const krexToken = getL2KrexTokenAddress(chainId);
+  const onIgraMainnet = isIgraMainnet(chainId);
 
   const { data: nativeBal } = useBalance({ address });
   const { data: krexBalRaw, refetch: refetchKrex } = useReadContract({
@@ -74,23 +99,145 @@ export function SendL2TransactionModal({
       setAmount('');
       setError(null);
       setTxHash(null);
+      setResolution({
+        resolvedAddress: null,
+        displayName: null,
+        tenure: null,
+        expiresAt: null,
+        isResolving: false,
+        resolveError: null,
+      });
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const raw = toAddress.trim();
+    if (!raw) {
+      setResolution({
+        resolvedAddress: null,
+        displayName: null,
+        tenure: null,
+        expiresAt: null,
+        isResolving: false,
+        resolveError: null,
+      });
+      return;
+    }
+
+    if (isAddress(raw)) {
+      setResolution({
+        resolvedAddress: raw as `0x${string}`,
+        displayName: null,
+        tenure: null,
+        expiresAt: null,
+        isResolving: false,
+        resolveError: null,
+      });
+      return;
+    }
+
+    if (!looksLikeInsRecipient(raw)) {
+      setResolution({
+        resolvedAddress: null,
+        displayName: null,
+        tenure: null,
+        expiresAt: null,
+        isResolving: false,
+        resolveError: 'Enter a valid EVM address (0x…) or .igra name.',
+      });
+      return;
+    }
+
+    if (!onIgraMainnet) {
+      setResolution({
+        resolvedAddress: null,
+        displayName: normalizeInsName(raw),
+        tenure: null,
+        expiresAt: null,
+        isResolving: false,
+        resolveError: 'INS names resolve on Igra Mainnet only. Switch network to send.',
+      });
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setResolution((prev) => ({ ...prev, isResolving: true, resolveError: null }));
+      try {
+        const ins = createInsClient();
+        const name = normalizeInsName(raw);
+        const res = await ins.resolveName(name);
+        if (cancelled) return;
+        if (!res?.exists || !res.address || isZeroAddress(res.address)) {
+          setResolution({
+            resolvedAddress: null,
+            displayName: name,
+            tenure: (res?.tenure as string | undefined) ?? null,
+            expiresAt: (res?.expires_at as string | null | undefined) ?? null,
+            isResolving: false,
+            resolveError: `Name not found: ${name}`,
+          });
+          return;
+        }
+        if (isInsNameExpired(res.expires_at, res.tenure)) {
+          setResolution({
+            resolvedAddress: null,
+            displayName: name,
+            tenure: (res.tenure as string | undefined) ?? null,
+            expiresAt: (res.expires_at as string | null | undefined) ?? null,
+            isResolving: false,
+            resolveError: `${name} has expired.`,
+          });
+          return;
+        }
+        setResolution({
+          resolvedAddress: res.address as `0x${string}`,
+          displayName: name,
+          tenure: (res.tenure as string | undefined) ?? null,
+          expiresAt: (res.expires_at as string | null | undefined) ?? null,
+          isResolving: false,
+          resolveError: null,
+        });
+      } catch {
+        if (!cancelled) {
+          setResolution({
+            resolvedAddress: null,
+            displayName: normalizeInsName(raw),
+            tenure: null,
+            expiresAt: null,
+            isResolving: false,
+            resolveError: 'Failed to resolve INS name.',
+          });
+        }
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [toAddress, onIgraMainnet]);
+
   if (!isOpen || !mounted) return null;
 
-  const canSend = Boolean(toAddress.trim() && amount && Number(amount) > 0);
+  const canSend = Boolean(
+    amount &&
+      Number(amount) > 0 &&
+      resolution.resolvedAddress &&
+      !resolution.isResolving &&
+      !resolution.resolveError,
+  );
 
   const handleSend = async () => {
     setError(null);
     try {
       if (!address) throw new Error('Connect your L2 wallet first.');
-      const to = toAddress.trim();
-      if (!to.startsWith('0x') || to.length !== 42) throw new Error('Enter a valid EVM address (0x…).');
+      const to = resolution.resolvedAddress;
+      if (!to) throw new Error(resolution.resolveError || 'Enter a valid recipient.');
 
       if (tab === 'kas') {
         const value = parseUnits(amount, nativeBal?.decimals ?? 18);
-        const res = await sendTransactionAsync({ to: to as `0x${string}`, value });
+        const res = await sendTransactionAsync({ to, value });
         setTxHash(res);
       } else {
         if (!krexToken) throw new Error('KREX is not available on this network.');
@@ -100,7 +247,7 @@ export function SendL2TransactionModal({
           abi: erc20Abi,
           address: krexToken,
           functionName: 'transfer',
-          args: [to as `0x${string}`, value],
+          args: [to, value],
         });
         setTxHash(res);
         void refetchKrex();
@@ -109,6 +256,10 @@ export function SendL2TransactionModal({
       setError(e?.shortMessage || e?.message || 'Failed to send.');
     }
   };
+
+  const recipientPreview = resolution.displayName && resolution.resolvedAddress
+    ? `${resolution.displayName} → ${shortenAddress(resolution.resolvedAddress, { head: 6, tail: 4 })}`
+    : null;
 
   return createPortal(
     <>
@@ -134,6 +285,11 @@ export function SendL2TransactionModal({
             <div className="space-y-3">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div className="text-green-700 dark:text-green-400 font-semibold">Transaction submitted</div>
+                {resolution.displayName ? (
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                    To: {resolution.displayName}
+                  </div>
+                ) : null}
                 <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 break-all">{txHash}</div>
               </div>
               <button
@@ -173,14 +329,29 @@ export function SendL2TransactionModal({
               </div>
 
               <div>
-                <label className="k-label">Recipient Address</label>
+                <label className="k-label">Recipient (0x… or name.igra)</label>
                 <input
                   type="text"
                   value={toAddress}
                   onChange={(e) => setToAddress(e.target.value)}
-                  placeholder="0x…"
+                  placeholder={onIgraMainnet ? '0x… or alice.igra' : '0x…'}
                   className="k-input"
                 />
+                {resolution.isResolving ? (
+                  <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Resolving INS name…</div>
+                ) : null}
+                {recipientPreview ? (
+                  <div className="mt-2 text-xs font-mono text-[#02abb8]">{recipientPreview}</div>
+                ) : null}
+                {resolution.tenure ? (
+                  <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Tenure: {resolution.tenure}
+                    {resolution.expiresAt ? ` · expires ${new Date(resolution.expiresAt).toLocaleDateString()}` : ''}
+                  </div>
+                ) : null}
+                {resolution.resolveError ? (
+                  <div className="mt-2 text-xs text-amber-700 dark:text-amber-400">{resolution.resolveError}</div>
+                ) : null}
               </div>
 
               <div>
@@ -237,4 +408,3 @@ export function SendL2TransactionModal({
     document.body
   );
 }
-

@@ -14,6 +14,11 @@ import { Avatar } from '@/components/Avatar';
 import { formatKaspaAddress, isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { createKnsClient, type KnsDomainProfileResponse, type KnsAsset } from '@/lib/kns/client';
+import { useInsPrimaryName } from '@/hooks/useInsPrimaryName';
+import { useInsOwnedNames } from '@/hooks/useInsOwnedNames';
+import { INS_REGISTER_URL } from '@/lib/ins/config';
+import { getInsNftImageUrl, isInsNameExpiringSoon } from '@/lib/ins/utils';
+import type { InsOwnedName } from '@/lib/ins/client';
 import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 import { buildLinkEvmMessage, verifyLinkEvmSignature } from '@/lib/profile/linking';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
@@ -40,6 +45,7 @@ type TabId =
   | 'creator-create'
   | 'assets'
   | 'kns'
+  | 'ins'
   | 'settings';
 
 export function ProfileHubContent({
@@ -107,6 +113,21 @@ export function ProfileHubContent({
 
   const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
   const kpxIdentity = useKpxPublicIdentity(kaspaAddress);
+
+  const linkedEvmAddress = useMemo(() => {
+    const addr = profile?.linkedEvmWallets?.[0]?.address;
+    return addr ? String(addr).toLowerCase() as `0x${string}` : null;
+  }, [profile?.linkedEvmWallets]);
+
+  const { primaryName: insPrimaryName } = useInsPrimaryName(linkedEvmAddress, { enabled: Boolean(linkedEvmAddress) });
+  const { names: insOwnedNames, isLoading: isInsLoading, expiringSoon: insExpiringSoon } = useInsOwnedNames(
+    linkedEvmAddress,
+    { enabled: Boolean(linkedEvmAddress) },
+  );
+
+  const insDomains = useMemo(() => {
+    return insOwnedNames.map((n) => String(n.name).toLowerCase()).filter(Boolean).sort();
+  }, [insOwnedNames]);
 
   const isOwnProfile = useMemo(() => {
     if (!kaspaAddress) return false;
@@ -221,6 +242,7 @@ export function ProfileHubContent({
       'creator-create',
       'assets',
       'kns',
+      'ins',
       'settings',
     ];
     if (allowed.includes(tab as TabId)) {
@@ -304,6 +326,14 @@ export function ProfileHubContent({
                   onClick={() => goTab('kns')}
                   icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
                 />
+                {linkedEvmAddress ? (
+                  <SidebarNavItem
+                    label="INS"
+                    active={activeTab === 'ins'}
+                    onClick={() => goTab('ins')}
+                    icon={<svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>}
+                  />
+                ) : null}
               </nav>
             </SidebarSection>
 
@@ -332,6 +362,9 @@ export function ProfileHubContent({
                   kaspaAddress={kaspaAddress}
                   knsPrimaryName={knsPrimaryName}
                   knsDomains={knsDomains}
+                  insPrimaryName={insPrimaryName}
+                  insDomains={linkedEvmAddress ? insDomains : null}
+                  linkedEvmAddress={linkedEvmAddress}
                   bio={profile?.bio?.trim() || knsProfile?.bio || ''}
                   source={source}
                   bannerUrl={bannerUrl}
@@ -342,11 +375,13 @@ export function ProfileHubContent({
                   kpxIdentityLoading={kpxIdentity.loading}
                   onEdit={() => goTab('settings')}
                   onOpenKns={() => goTab('kns')}
+                  onOpenIns={() => goTab('ins')}
                 />
 
                 <ProfileTabStrip
                   activeTab={activeTab}
                   isOwnProfile={isOwnProfile}
+                  hasLinkedEvm={Boolean(linkedEvmAddress)}
                   onTab={(t) => goTab(t)}
                 />
 
@@ -398,6 +433,16 @@ export function ProfileHubContent({
                   />
                 )}
 
+                {activeTab === 'ins' && linkedEvmAddress && (
+                  <InsTab
+                    linkedEvmAddress={linkedEvmAddress}
+                    primaryName={insPrimaryName}
+                    names={insOwnedNames}
+                    expiringSoon={insExpiringSoon}
+                    isLoading={isInsLoading}
+                  />
+                )}
+
                 {activeTab === 'settings' && isOwnProfile && (
                   <SettingsTab
                     displayName={profile?.displayName || ''}
@@ -406,6 +451,8 @@ export function ProfileHubContent({
                     bannerUrl={profile?.bannerUrl || ''}
                     kaspaAddress={kaspaAddress}
                     connectedEvmAddress={isEvmConnected ? (connectedEvmAddress as `0x${string}`) : null}
+                    linkedEvmAddress={linkedEvmAddress}
+                    insPrimaryName={insPrimaryName}
                     isLinking={isSigningEvm}
                     onLinkEvm={async (evmAddress) => {
                       if (!kaspaAddress) return;
@@ -1185,6 +1232,127 @@ function KnsTab({
   );
 }
 
+function InsTab({
+  linkedEvmAddress,
+  primaryName,
+  names,
+  expiringSoon,
+  isLoading,
+}: {
+  linkedEvmAddress: string;
+  primaryName: string | null;
+  names: InsOwnedName[];
+  expiringSoon: InsOwnedName[];
+  isLoading: boolean;
+}) {
+  return (
+    <div className="space-y-6">
+      {expiringSoon.length > 0 ? (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
+          <div className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+            {expiringSoon.length} annual name{expiringSoon.length === 1 ? '' : 's'} expiring within 60 days
+          </div>
+          <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            Renew on{' '}
+            <a href={INS_REGISTER_URL} target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+              insdomains.org
+            </a>{' '}
+            to keep your .igra names active.
+          </div>
+        </div>
+      ) : null}
+
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <SectionTitle title="INS" />
+            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Linked EVM:{' '}
+              <span className="font-semibold font-mono text-zinc-900 dark:text-zinc-100">{linkedEvmAddress}</span>
+            </div>
+            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Primary:{' '}
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {primaryName ? primaryName.toLowerCase() : ' - '}
+              </span>
+              {primaryName ? (
+                <span className="ml-2">
+                  <CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" />
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <a
+            href={INS_REGISTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="k-control-btn !bg-[#02abb8] hover:!bg-[#028a94] !text-white !border-[#02abb8]/30 text-center"
+          >
+            Manage on insdomains.org
+          </a>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+        <SectionTitle title="Owned .igra names" />
+        {isLoading ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
+        ) : names.length === 0 ? (
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            No INS names found for the linked EVM wallet.{' '}
+            <a href={INS_REGISTER_URL} target="_blank" rel="noopener noreferrer" className="text-[#02abb8] font-semibold underline">
+              Register a name
+            </a>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {names.slice(0, 24).map((n) => {
+              const name = String(n.name).toLowerCase();
+              const imgUrl = n.tokenId ? getInsNftImageUrl(n.tokenId, n.registry_version) : null;
+              const tenure = n.tenure === 'annual' ? 'Annual' : n.tenure === 'forever' ? 'Forever' : null;
+              const expiring = isInsNameExpiringSoon(n.expires_at, n.tenure);
+              return (
+                <KxListingCard key={name} accent="dapps" className="overflow-hidden">
+                  <KxListingCardMedia aspectClass="aspect-[3/2]">
+                    {imgUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imgUrl} alt={name} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
+                        <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+                          <div className="text-[18px] font-black tracking-tight text-zinc-900 dark:text-zinc-100 truncate w-full">
+                            {name}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </KxListingCardMedia>
+                  <KxListingCardBody>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 truncate">{name}</div>
+                        <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                          {tenure || 'INS domain'}
+                          {n.expires_at && n.tenure === 'annual'
+                            ? ` · expires ${new Date(n.expires_at).toLocaleDateString()}`
+                            : ''}
+                          {expiring ? ' · renew soon' : ''}
+                        </div>
+                      </div>
+                      <CopyIconButton value={name} label="Copy domain" />
+                    </div>
+                  </KxListingCardBody>
+                </KxListingCard>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SettingsTab({
   displayName,
   bio,
@@ -1192,6 +1360,8 @@ function SettingsTab({
   bannerUrl,
   kaspaAddress,
   connectedEvmAddress,
+  linkedEvmAddress,
+  insPrimaryName,
   isLinking,
   onLinkEvm,
   onSave,
@@ -1202,6 +1372,8 @@ function SettingsTab({
   bannerUrl: string;
   kaspaAddress: string | null;
   connectedEvmAddress: `0x${string}` | null;
+  linkedEvmAddress: `0x${string}` | null;
+  insPrimaryName: string | null;
   isLinking: boolean;
   onLinkEvm: (evmAddress: `0x${string}`) => Promise<void>;
   onSave: (updates: { displayName?: string; bio?: string; avatarUrl?: string; bannerUrl?: string }) => void;
@@ -1274,6 +1446,23 @@ function SettingsTab({
                 {linkSuccess}
               </div>
             )}
+            {linkedEvmAddress && insPrimaryName ? (
+              <div className="mt-3 rounded-lg border border-[#02abb8]/20 bg-[#02abb8]/5 px-3 py-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">INS unlocked</div>
+                <div className="text-sm font-semibold text-[#02abb8] mt-0.5">{insPrimaryName}</div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                  View your .igra names in the INS tab.
+                </div>
+              </div>
+            ) : linkedEvmAddress ? (
+              <div className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-400">
+                EVM wallet linked. Register a name at{' '}
+                <a href={INS_REGISTER_URL} target="_blank" rel="noopener noreferrer" className="text-[#02abb8] font-semibold underline">
+                  insdomains.org
+                </a>{' '}
+                to enable INS on your profile.
+              </div>
+            ) : null}
           </div>
 
           <div>
@@ -1347,6 +1536,9 @@ function ProfileHaloHeader({
   kaspaAddress,
   knsPrimaryName,
   knsDomains,
+  insPrimaryName,
+  insDomains,
+  linkedEvmAddress,
   bio,
   source,
   bannerUrl,
@@ -1357,11 +1549,15 @@ function ProfileHaloHeader({
   kpxIdentityLoading,
   onEdit,
   onOpenKns,
+  onOpenIns,
 }: {
   displayName: string;
   kaspaAddress: string | null;
   knsPrimaryName: string | null;
   knsDomains: string[] | null;
+  insPrimaryName: string | null;
+  insDomains: string[] | null;
+  linkedEvmAddress: string | null;
   bio: string;
   source: string;
   bannerUrl: string | null;
@@ -1372,8 +1568,24 @@ function ProfileHaloHeader({
   kpxIdentityLoading: boolean;
   onEdit: () => void;
   onOpenKns: () => void;
+  onOpenIns: () => void;
 }) {
   const subtitle = bio?.trim() || 'Unified Kasparex Hub profile for your L1 identity and linked wallets.';
+  const visibleInsDomains = useMemo(() => {
+    const primary = (insPrimaryName || '').toLowerCase();
+    const domains = (insDomains || []).map((d) => String(d).toLowerCase());
+    const uniq = Array.from(new Set(domains)).filter(Boolean);
+    const withoutPrimary = primary ? uniq.filter((d) => d !== primary) : uniq;
+    const displayed: string[] = [];
+    if (primary) displayed.push(primary);
+    for (const d of withoutPrimary) {
+      if (displayed.length >= 3) break;
+      displayed.push(d);
+    }
+    const remaining = Math.max(0, uniq.length - displayed.length);
+    return { displayed, remaining };
+  }, [insDomains, insPrimaryName]);
+
   const visibleDomains = useMemo(() => {
     const primary = (knsPrimaryName || '').toLowerCase();
     const domains = (knsDomains || []).map((d) => String(d).toLowerCase());
@@ -1468,6 +1680,24 @@ function ProfileHaloHeader({
                         +{visibleDomains.remaining}
                       </button>
                     ) : null}
+                    {linkedEvmAddress && visibleInsDomains.displayed.map((d) => (
+                      <span
+                        key={`ins-${d}`}
+                        className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold normal-case border border-indigo-500/20"
+                      >
+                        <span className="truncate max-w-[180px]">{d}</span>
+                        <CopyIconButton value={d} label="Copy INS domain" />
+                      </span>
+                    ))}
+                    {linkedEvmAddress && visibleInsDomains.remaining > 0 ? (
+                      <button
+                        type="button"
+                        onClick={onOpenIns}
+                        className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold normal-case border border-indigo-500/20 hover:bg-indigo-500/20 transition-colors"
+                      >
+                        +{visibleInsDomains.remaining} INS
+                      </button>
+                    ) : null}
                     {kaspaAddress && (
                       <span className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
                         <span className="normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
@@ -1514,27 +1744,34 @@ function ProfileHaloHeader({
 function ProfileTabStrip({
   activeTab,
   isOwnProfile,
+  hasLinkedEvm,
   onTab,
 }: {
   activeTab: TabId;
   isOwnProfile: boolean;
+  hasLinkedEvm: boolean;
   onTab: (t: TabId) => void;
 }) {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean }> = [
+  const tabs: Array<{ id: TabId; label: string; ownerOnly?: boolean; requiresLinkedEvm?: boolean }> = [
     { id: 'overview', label: 'Overview' },
     { id: 'transactions', label: 'Transactions' },
     { id: 'creator-content', label: 'Content' },
     { id: 'creator-create', label: 'Create' },
     { id: 'assets', label: 'Assets' },
     { id: 'kns', label: 'KNS' },
+    { id: 'ins', label: 'INS', requiresLinkedEvm: true },
     { id: 'settings', label: 'Settings', ownerOnly: true },
   ];
 
-  const allowedTabs = tabs.filter((t) => !t.ownerOnly || isOwnProfile);
+  const allowedTabs = tabs.filter((t) => {
+    if (t.ownerOnly && !isOwnProfile) return false;
+    if (t.requiresLinkedEvm && !hasLinkedEvm) return false;
+    return true;
+  });
 
   useEffect(() => {
     const el = containerRef.current;

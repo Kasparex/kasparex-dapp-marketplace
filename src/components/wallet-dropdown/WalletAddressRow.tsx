@@ -8,6 +8,7 @@ import { useState } from 'react';
 export function WalletAddressRow({
   address,
   displayAddress,
+  displaySubAddress,
   onCopy,
   onOpenExplorer,
   onProfile,
@@ -19,6 +20,7 @@ export function WalletAddressRow({
 }: {
   address: string;
   displayAddress: string;
+  displaySubAddress?: string;
   onCopy: () => void | Promise<void>;
   onOpenExplorer?: () => void;
   onProfile?: () => void;
@@ -34,6 +36,9 @@ export function WalletAddressRow({
       <Avatar address={address} size={24} />
       <div className="min-w-0 flex-1">
         <div className="text-sm font-mono text-zinc-900 dark:text-zinc-100 truncate">{displayAddress}</div>
+        {displaySubAddress ? (
+          <div className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{displaySubAddress}</div>
+        ) : null}
       </div>
       <div className="flex items-center gap-1">
         {onProfile ? (

@@ -9,6 +9,7 @@ export function ReceiveAddressModal({
   title = 'Receive',
   address,
   displayAddress,
+  insName,
   onCopy,
 }: {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export function ReceiveAddressModal({
   title?: string;
   address: string;
   displayAddress: string;
+  insName?: string | null;
   onCopy: () => void | Promise<void>;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -83,6 +85,13 @@ export function ReceiveAddressModal({
             )}
           </div>
           {qrError ? <div className="text-xs text-red-600 dark:text-red-400 text-center">{qrError}</div> : null}
+          {insName ? (
+            <div className="rounded-lg border border-[#02abb8]/20 bg-[#02abb8]/5 px-3 py-2 text-center">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">INS name</div>
+              <div className="text-sm font-semibold text-[#02abb8] mt-0.5">{insName}</div>
+              <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Send to this .igra name on Igra Mainnet</div>
+            </div>
+          ) : null}
           <div className="text-xs text-zinc-500 dark:text-zinc-400">Address</div>
           <div className="font-mono text-sm text-zinc-900 dark:text-zinc-100 break-all">
             {displayAddress}

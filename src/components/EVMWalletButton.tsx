@@ -13,7 +13,10 @@ import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
-import { useBalanceVisibility, formatBalanceForDisplay, formatBalanceValueForDisplay, maskAddress } from '@/hooks/useBalanceVisibility';
+import { useBalanceVisibility, formatBalanceForDisplay, formatBalanceValueForDisplay, maskAddress, maskInsDomain } from '@/hooks/useBalanceVisibility';
+import { useInsPrimaryName } from '@/hooks/useInsPrimaryName';
+import { useInsOwnedNames } from '@/hooks/useInsOwnedNames';
+import { INS_REGISTER_URL, isIgraMainnet } from '@/lib/ins/config';
 import { getChainById } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
@@ -91,6 +94,11 @@ export function EVMWalletButton() {
     },
   });
 
+  const { primaryName: insPrimaryName } = useInsPrimaryName(address, { chainId, enabled: isConnected && !!address });
+  const { names: insOwnedNames, primaryName: insOwnedPrimary, expiringSoon: insExpiringSoon } = useInsOwnedNames(address, {
+    enabled: isConnected && !!address,
+  });
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -117,8 +125,13 @@ export function EVMWalletButton() {
     const uiNative = getUiNativeSymbol(chainId, chainNative);
     const displayBalanceValue = formatBalanceValueForDisplay(balanceValue, false, isBalanceVisible, { decimals: 4 });
 
-    const displayAddress = maskAddress(shortenAddress(address, { head: 4, tail: 4 }), isBalanceVisible);
-    const displayAddressLong = maskAddress(shortenAddress(address, { head: 6, tail: 4 }), isBalanceVisible);
+    const displayPrimary = maskInsDomain(insPrimaryName, isBalanceVisible);
+    const displayAddressShort = maskAddress(shortenAddress(address, { head: 4, tail: 4 }), isBalanceVisible);
+    const displayAddress = displayPrimary ?? displayAddressShort;
+    const displayAddressLong = displayPrimary ?? maskAddress(shortenAddress(address, { head: 6, tail: 4 }), isBalanceVisible);
+    const displaySubAddress = displayPrimary
+      ? maskAddress(shortenAddress(address, { head: 6, tail: 4 }), isBalanceVisible)
+      : undefined;
 
     const explorerUrl = getAddressExplorerUrl({
       kind: 'evm',
@@ -127,8 +140,11 @@ export function EVMWalletButton() {
     });
 
     const handleViewProfile = () => {
-      // Unified profile route (will resolve `.kas` or address; EVM-only links may show a hint).
-      router.push(`/u/${encodeURIComponent(address)}`);
+      if (kaspaForHub) {
+        router.push(`/u/${encodeURIComponent(kaspaForHub)}?tab=ins`);
+      } else {
+        router.push(`/u/${encodeURIComponent(address)}`);
+      }
       setIsDropdownOpen(false);
     };
 
@@ -205,6 +221,7 @@ export function EVMWalletButton() {
               <WalletAddressRow
                 address={address}
                 displayAddress={displayAddressLong}
+                displaySubAddress={displaySubAddress}
                 onProfile={() => {
                   handleViewProfile();
                 }}
@@ -329,6 +346,29 @@ export function EVMWalletButton() {
                       router.push('/tokens/grid');
                     }}
                   />
+                  {isIgraMainnet(chainId) && insOwnedNames.length > 0 ? (
+                    <WalletMiniCard
+                      title="INS"
+                      value={
+                        isBalanceVisible
+                          ? (insOwnedPrimary || `${insOwnedNames.length} name${insOwnedNames.length === 1 ? '' : 's'}`)
+                          : '***'
+                      }
+                      sub={
+                        insExpiringSoon.length > 0
+                          ? `${insExpiringSoon.length} expiring soon`
+                          : `${insOwnedNames.length} name${insOwnedNames.length === 1 ? '' : 's'}`
+                      }
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        if (kaspaForHub) {
+                          router.push(`/u/${encodeURIComponent(kaspaForHub)}?tab=ins`);
+                        } else {
+                          window.open(INS_REGISTER_URL, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                    />
+                  ) : null}
                 </div>
               </div>
 
@@ -483,6 +523,7 @@ export function EVMWalletButton() {
           title="Receive (L2)"
           address={address}
           displayAddress={displayAddressLong}
+          insName={isIgraMainnet(chainId) ? maskInsDomain(insPrimaryName, isBalanceVisible) : null}
           onCopy={async () => {
             await handleCopyAddress();
             setIsReceiveOpen(false);
