@@ -5,11 +5,23 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantMilestone } from '@/hooks/useCovenantMilestone';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
+import {
+  CovenantWidgetShell,
+  CovenantHeader,
+  CovenantTabs,
+  CovenantFieldLabel,
+  CovenantError,
+  CovenantHowItWorks,
+  covenantInputClass,
+  covenantPanelClass,
+  covenantCardClass,
+  covenantSmallInputClass,
+  covenantPrimaryBtnClass,
+  covenantSecondaryBtnClass,
+  shortKaspaAddr,
+} from '@/components/dapps/covenant/CovenantWidgetUi';
 
-function shortAddr(a: string) {
-  const x = a.replace(/^kaspa:/i, '');
-  return x.length > 14 ? `${x.slice(0, 8)}...${x.slice(-4)}` : x;
-}
+type TabId = 'create' | 'deals' | 'about';
 
 function defaultUnlock(days: number) {
   const d = new Date();
@@ -20,7 +32,7 @@ function defaultUnlock(days: number) {
 export function CovenantMilestoneWidget() {
   const { state } = useKaspaWallet();
   const { deals, loading, error, createDeal, claimStep, refresh } = useCovenantMilestone();
-  const [tab, setTab] = useState<'create' | 'deals'>('create');
+  const [tab, setTab] = useState<TabId>('create');
   const [beneficiary, setBeneficiary] = useState('');
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
@@ -32,8 +44,8 @@ export function CovenantMilestoneWidget() {
 
   if (!state.isConnected) {
     return (
-      <p className="px-6 py-8 text-center text-zinc-500">
-        Connect wallet to create or claim milestone escrows.
+      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+        Connect your wallet to create or claim milestone payments.
       </p>
     );
   }
@@ -60,100 +72,154 @@ export function CovenantMilestoneWidget() {
   };
 
   return (
-    <div className="px-6 py-4 max-w-2xl mx-auto space-y-4">
-      <header className="text-center">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Covenant Milestone</h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          Staged L1 payouts: funds unlock per milestone on schedule (Silverscript 1:1 transitions).
-        </p>
-      </header>
-      <div className="flex gap-2">
-        {(['create', 'deals'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`px-3 py-1.5 text-sm rounded-lg ${tab === t ? 'bg-[#02abb8] text-white' : 'text-zinc-500'}`}
-          >
-            {t === 'create' ? 'New deal' : `Deals (${deals.length})`}
-          </button>
-        ))}
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <CovenantWidgetShell>
+      <CovenantHeader
+        title="Covenant Milestone"
+        subtitle="Pay someone in steps. Lock the full amount up front, then release each part on the dates you set."
+      />
+
+      <CovenantTabs
+        tabs={[
+          { id: 'create' as const, label: 'New deal' },
+          { id: 'deals' as const, label: `Deals (${deals.length})` },
+          { id: 'about' as const, label: 'How it works' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+
+      {error && <CovenantError message={error} />}
+
       {tab === 'create' && (
-        <div className="space-y-3 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4">
-          <input
-            className="w-full px-3 py-2 rounded-lg border text-sm dark:bg-zinc-900"
-            placeholder="Beneficiary kaspa:..."
-            value={beneficiary}
-            onChange={(e) => setBeneficiary(e.target.value)}
-          />
-          <input
-            type="number"
-            min={minKas}
-            className="w-full px-3 py-2 rounded-lg border text-sm dark:bg-zinc-900"
-            value={totalKas}
-            onChange={(e) => setTotalKas(e.target.value)}
-          />
-          {[m1, m2, m3].map((m, i) => (
-            <div key={i} className="grid grid-cols-3 gap-2 text-sm">
-              <input
-                className="px-2 py-1 border rounded dark:bg-zinc-900"
-                value={i === 0 ? m1.label : i === 1 ? m2.label : m3.label}
-                onChange={(e) =>
-                  (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, label: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                className="px-2 py-1 border rounded dark:bg-zinc-900"
-                value={i === 0 ? m1.pct : i === 1 ? m2.pct : m3.pct}
-                onChange={(e) =>
-                  (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, pct: e.target.value })
-                }
-              />
-              <input
-                type="datetime-local"
-                className="px-2 py-1 border rounded dark:bg-zinc-900 text-xs"
-                value={i === 0 ? m1.unlock : i === 1 ? m2.unlock : m3.unlock}
-                onChange={(e) =>
-                  (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, unlock: e.target.value })
-                }
-              />
-            </div>
-          ))}
-          <input
-            className="w-full px-3 py-2 rounded-lg border text-sm dark:bg-zinc-900"
-            placeholder="Memo"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-          />
+        <div className={covenantPanelClass}>
+          <div>
+            <CovenantFieldLabel
+              label="Who gets paid"
+              htmlFor="milestone-beneficiary"
+              tooltip="The Kaspa address that can claim each milestone when its unlock date arrives."
+            />
+            <input
+              id="milestone-beneficiary"
+              className={covenantInputClass}
+              placeholder="kaspa:..."
+              value={beneficiary}
+              onChange={(e) => setBeneficiary(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <CovenantFieldLabel
+              label={`Total amount (KAS, min ${minKas})`}
+              htmlFor="milestone-total"
+              tooltip="The full deal size. It is split across milestones below."
+            />
+            <input
+              id="milestone-total"
+              type="number"
+              min={minKas}
+              step="0.01"
+              className={covenantInputClass}
+              value={totalKas}
+              onChange={(e) => setTotalKas(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <CovenantFieldLabel
+              label="Milestones"
+              tooltip="Each row is one payment slice. Percentages should add up to 100. The beneficiary can claim after each unlock date."
+            />
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1 mb-2">
+              Label · share % · unlock date
+            </p>
+            {[m1, m2, m3].map((m, i) => (
+              <div key={i} className="grid grid-cols-3 gap-2">
+                <input
+                  className={covenantSmallInputClass}
+                  placeholder="Label"
+                  value={i === 0 ? m1.label : i === 1 ? m2.label : m3.label}
+                  onChange={(e) =>
+                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, label: e.target.value })
+                  }
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  className={covenantSmallInputClass}
+                  placeholder="%"
+                  value={i === 0 ? m1.pct : i === 1 ? m2.pct : m3.pct}
+                  onChange={(e) =>
+                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, pct: e.target.value })
+                  }
+                />
+                <input
+                  type="datetime-local"
+                  className={covenantSmallInputClass}
+                  value={i === 0 ? m1.unlock : i === 1 ? m2.unlock : m3.unlock}
+                  onChange={(e) =>
+                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, unlock: e.target.value })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <CovenantFieldLabel
+              label="Memo (optional)"
+              htmlFor="milestone-memo"
+              tooltip="A short note stored with the deal, visible to both sides."
+            />
+            <input
+              id="milestone-memo"
+              className={covenantInputClass}
+              placeholder="e.g. Website redesign, Phase 1"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+            />
+          </div>
+
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || !beneficiary.trim()}
             onClick={() => void handleCreate()}
-            className="w-full py-2 bg-[#02abb8] text-white rounded-lg disabled:opacity-50"
+            className={covenantPrimaryBtnClass}
           >
-            Fund milestone deal
+            {busy ? 'Creating...' : 'Fund milestone deal'}
           </button>
         </div>
       )}
+
       {tab === 'deals' && (
-        <div className="space-y-3">
-          <button type="button" className="text-xs text-[#02abb8]" onClick={() => void refresh()}>
-            Refresh
-          </button>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              {deals.length} deal{deals.length === 1 ? '' : 's'}
+            </span>
+            <button
+              type="button"
+              className="text-xs text-[#02abb8] hover:underline"
+              onClick={() => void refresh()}
+            >
+              Refresh
+            </button>
+          </div>
           {loading && !deals.length ? (
-            <p className="text-zinc-500 text-center py-6">Loading...</p>
+            <p className="text-zinc-500 text-center py-8">Loading...</p>
+          ) : deals.length === 0 ? (
+            <p className="text-zinc-500 text-center py-8">No deals yet. Create your first milestone payment.</p>
           ) : (
             deals.map((d) => (
-              <div key={d.id} className="border rounded-xl p-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>{d.status}</span>
-                  <span className="font-semibold">{sompiToKasNumber(d.totalSompi)} KAS</span>
+              <div key={d.id} className={covenantCardClass}>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-xs uppercase tracking-wide text-zinc-500">{d.status}</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {sompiToKasNumber(d.totalSompi)} KAS
+                  </span>
                 </div>
-                <p className="text-zinc-500">
-                  {shortAddr(d.depositor)} → {shortAddr(d.beneficiary)}
+                <p className="text-xs text-zinc-500">
+                  {shortKaspaAddr(d.depositor)} → {shortKaspaAddr(d.beneficiary)}
                 </p>
                 {d.milestones.map((s) => {
                   const canClaim =
@@ -162,7 +228,10 @@ export function CovenantMilestoneWidget() {
                     !s.claimed &&
                     Date.now() >= s.unlockAt;
                   return (
-                    <div key={s.id} className="flex justify-between items-center border-t pt-2">
+                    <div
+                      key={s.id}
+                      className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-700 pt-3 mt-1"
+                    >
                       <span>
                         {s.label}: {sompiToKasNumber(s.amountSompi)} KAS
                         {s.claimed ? ' (claimed)' : ''}
@@ -170,7 +239,7 @@ export function CovenantMilestoneWidget() {
                       {canClaim && (
                         <button
                           type="button"
-                          className="text-xs text-[#02abb8] border px-2 py-1 rounded"
+                          className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto`}
                           onClick={() => void claimStep(d.id, s.id)}
                         >
                           Claim
@@ -184,6 +253,30 @@ export function CovenantMilestoneWidget() {
           )}
         </div>
       )}
-    </div>
+
+      {tab === 'about' && (
+        <CovenantHowItWorks>
+          <p>
+            Covenant Milestone helps you pay for work in stages without handing over the full amount on day one.
+          </p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <strong>Fund once</strong>: you lock the total KAS for the whole deal.
+            </li>
+            <li>
+              <strong>Release on schedule</strong>: each milestone unlocks on its date. Only the beneficiary can
+              claim that slice.
+            </li>
+            <li>
+              <strong>No middleman</strong>: rules are enforced by covenant logic on Kaspa L1 (simulated here until
+              wallets ship covenant support).
+            </li>
+          </ul>
+          <p className="text-xs text-zinc-500">
+            Good for freelancers, builders, game quests, or any project with clear delivery steps.
+          </p>
+        </CovenantHowItWorks>
+      )}
+    </CovenantWidgetShell>
   );
 }

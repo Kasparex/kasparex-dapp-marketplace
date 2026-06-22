@@ -4,16 +4,27 @@ import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantVoucher } from '@/hooks/useCovenantVoucher';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
+import {
+  CovenantWidgetShell,
+  CovenantHeader,
+  CovenantTabs,
+  CovenantFieldLabel,
+  CovenantError,
+  CovenantHowItWorks,
+  covenantInputClass,
+  covenantPanelClass,
+  covenantCardClass,
+  covenantPrimaryBtnClass,
+  covenantSecondaryBtnClass,
+  shortKaspaAddr,
+} from '@/components/dapps/covenant/CovenantWidgetUi';
 
-function shortAddr(a: string) {
-  const x = a.replace(/^kaspa:/i, '');
-  return x.length > 14 ? `${x.slice(0, 8)}...${x.slice(-4)}` : x;
-}
+type TabId = 'create' | 'claim' | 'about';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
   const { openVouchers, loading, error, createVoucher, claimVoucher, refresh } = useCovenantVoucher();
-  const [tab, setTab] = useState<'create' | 'claim'>('create');
+  const [tab, setTab] = useState<TabId>('create');
   const [amountKas, setAmountKas] = useState('0.1');
   const [memo, setMemo] = useState('');
   const [expires, setExpires] = useState('');
@@ -26,8 +37,8 @@ export function CovenantVoucherWidget() {
 
   if (!state.isConnected) {
     return (
-      <p className="px-6 py-8 text-center text-zinc-500">
-        Connect wallet to mint or redeem hashlock vouchers.
+      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+        Connect your wallet to create or redeem KAS gift vouchers.
       </p>
     );
   }
@@ -61,105 +72,191 @@ export function CovenantVoucherWidget() {
   };
 
   return (
-    <div className="px-6 py-4 max-w-2xl mx-auto space-y-4">
-      <header className="text-center">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Covenant Voucher</h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          Hashlock gift cards: lock KAS, share a secret, anyone with the preimage claims before expiry.
-        </p>
-      </header>
-      <div className="flex gap-2">
-        {(['create', 'claim'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`px-3 py-1.5 text-sm rounded-lg ${tab === t ? 'bg-[#02abb8] text-white' : 'text-zinc-500'}`}
-          >
-            {t === 'create' ? 'Mint voucher' : 'Redeem'}
-          </button>
-        ))}
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+    <CovenantWidgetShell>
+      <CovenantHeader
+        title="Covenant Voucher"
+        subtitle="Send KAS as a digital gift card. Lock the amount, share a secret code with the recipient, and they can redeem it before it expires."
+      />
+
+      <CovenantTabs
+        tabs={[
+          { id: 'create' as const, label: 'Mint voucher' },
+          { id: 'claim' as const, label: 'Redeem' },
+          { id: 'about' as const, label: 'How it works' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+
+      {error && <CovenantError message={error} />}
+
       {issuedSecret && issuedId && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-lg text-sm">
-          <p className="font-medium text-amber-800 dark:text-amber-200">Save this secret (shown once):</p>
-          <p className="font-mono break-all mt-1">{issuedSecret}</p>
-          <p className="text-xs mt-2 text-zinc-500">Voucher ID: {issuedId}</p>
+        <div className="p-4 bg-amber-500/10 border border-amber-500/40 rounded-xl text-sm space-y-2">
+          <p className="font-medium text-amber-800 dark:text-amber-200">
+            Save this secret code (shown once):
+          </p>
+          <p className="font-mono break-all text-zinc-900 dark:text-zinc-100">{issuedSecret}</p>
+          <p className="text-xs text-zinc-500">Voucher ID: {issuedId}</p>
         </div>
       )}
+
       {tab === 'create' && (
-        <div className="space-y-3 border rounded-xl p-4">
-          <input
-            type="number"
-            min={minKas}
-            className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-zinc-900"
-            value={amountKas}
-            onChange={(e) => setAmountKas(e.target.value)}
-          />
-          <input
-            type="datetime-local"
-            className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-zinc-900"
-            value={expires}
-            onChange={(e) => setExpires(e.target.value)}
-          />
-          <input
-            className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-zinc-900"
-            placeholder="Memo"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-          />
+        <div className={covenantPanelClass}>
+          <div>
+            <CovenantFieldLabel
+              label={`Amount (KAS, min ${minKas})`}
+              htmlFor="voucher-amount"
+              tooltip="How much KAS the voucher is worth. This amount is locked when you mint."
+            />
+            <input
+              id="voucher-amount"
+              type="number"
+              min={minKas}
+              step="0.01"
+              className={covenantInputClass}
+              value={amountKas}
+              onChange={(e) => setAmountKas(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <CovenantFieldLabel
+              label="Expires"
+              htmlFor="voucher-expires"
+              tooltip="After this date the voucher can no longer be redeemed."
+            />
+            <input
+              id="voucher-expires"
+              type="datetime-local"
+              className={covenantInputClass}
+              value={expires}
+              onChange={(e) => setExpires(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <CovenantFieldLabel
+              label="Memo (optional)"
+              htmlFor="voucher-memo"
+              tooltip="A note for yourself or the recipient, e.g. Happy birthday."
+            />
+            <input
+              id="voucher-memo"
+              className={covenantInputClass}
+              placeholder="e.g. Thanks for the help!"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+            />
+          </div>
+
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || !expires}
             onClick={() => void handleCreate()}
-            className="w-full py-2 bg-[#02abb8] text-white rounded-lg disabled:opacity-50"
+            className={covenantPrimaryBtnClass}
           >
-            Lock and mint voucher
+            {busy ? 'Minting...' : 'Lock and mint voucher'}
           </button>
         </div>
       )}
+
       {tab === 'claim' && (
-        <div className="space-y-3">
-          <div className="border rounded-xl p-4 space-y-2">
-            <input
-              className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-zinc-900"
-              placeholder="Voucher ID"
-              value={claimId}
-              onChange={(e) => setClaimId(e.target.value)}
-            />
-            <input
-              className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-zinc-900"
-              placeholder="Claim secret"
-              value={claimSecret}
-              onChange={(e) => setClaimSecret(e.target.value)}
-            />
+        <div className="space-y-4">
+          <div className={covenantPanelClass}>
+            <div>
+              <CovenantFieldLabel
+                label="Voucher ID"
+                htmlFor="voucher-claim-id"
+                tooltip="The ID shown when the voucher was created, or pick one from the list below."
+              />
+              <input
+                id="voucher-claim-id"
+                className={covenantInputClass}
+                placeholder="Paste voucher ID"
+                value={claimId}
+                onChange={(e) => setClaimId(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <CovenantFieldLabel
+                label="Secret code"
+                htmlFor="voucher-claim-secret"
+                tooltip="The one-time code the sender shared with you. Only someone with this code can redeem."
+              />
+              <input
+                id="voucher-claim-secret"
+                className={covenantInputClass}
+                placeholder="Paste secret code"
+                value={claimSecret}
+                onChange={(e) => setClaimSecret(e.target.value)}
+              />
+            </div>
+
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || !claimId.trim() || !claimSecret}
               onClick={() => void handleClaim()}
-              className="w-full py-2 border border-[#02abb8] text-[#02abb8] rounded-lg"
+              className={covenantSecondaryBtnClass}
             >
-              Redeem voucher
+              {busy ? 'Redeeming...' : 'Redeem voucher'}
             </button>
           </div>
-          <p className="text-xs text-zinc-500">Open vouchers ({openVouchers.length})</p>
-          {loading ? (
-            <p className="text-zinc-500 text-sm">Loading...</p>
-          ) : (
-            openVouchers.map((v) => (
-              <div
-                key={v.id}
-                className="text-sm border rounded-lg p-3 flex justify-between cursor-pointer hover:border-[#02abb8]"
-                onClick={() => setClaimId(v.id)}
-              >
-                <span>{sompiToKasNumber(v.amountSompi)} KAS</span>
-                <span className="text-zinc-500 text-xs">{shortAddr(v.creator)}</span>
-              </div>
-            ))
-          )}
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Open vouchers ({openVouchers.length})
+            </p>
+            {loading ? (
+              <p className="text-zinc-500 text-sm">Loading...</p>
+            ) : openVouchers.length === 0 ? (
+              <p className="text-zinc-500 text-sm">No open vouchers right now.</p>
+            ) : (
+              openVouchers.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  className={`${covenantCardClass} w-full text-left flex justify-between items-center hover:border-[#02abb8]/60 transition-colors cursor-pointer`}
+                  onClick={() => setClaimId(v.id)}
+                >
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {sompiToKasNumber(v.amountSompi)} KAS
+                  </span>
+                  <span className="text-zinc-500 text-xs">{shortKaspaAddr(v.creator)}</span>
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
-    </div>
+
+      {tab === 'about' && (
+        <CovenantHowItWorks>
+          <p>
+            Covenant Voucher works like a gift card for KAS. You lock coins on-chain, then give someone a secret
+            code so only they can claim it.
+          </p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <strong>Mint</strong>: choose an amount and expiry date. You get a voucher ID and a secret code.
+            </li>
+            <li>
+              <strong>Share off-chain</strong>: send the code to the recipient by message or email. Do not post it
+              publicly.
+            </li>
+            <li>
+              <strong>Redeem once</strong>: whoever enters the correct code first claims the KAS. Each voucher works
+              only one time.
+            </li>
+            <li>
+              <strong>Expires</strong>: unredeemed vouchers stop working after the expiry date you set.
+            </li>
+          </ul>
+          <p className="text-xs text-zinc-500">
+            Great for tips, gifts, promo credits, or paying someone without needing their wallet address up front.
+          </p>
+        </CovenantHowItWorks>
+      )}
+    </CovenantWidgetShell>
   );
 }
