@@ -223,6 +223,60 @@ export const placeholderDApps: DApp[] = [
     createdAt: new Date().toISOString(),
   },
   {
+    id: 'covenant-lab',
+    name: 'Covenant Lab',
+    slug: 'covenant-lab',
+    category: 'general',
+    utility: 'Prototype programmable L1 money: lock KAS in escrow or timelock vaults enforced by covenant rules.',
+    process: 'Connect wallet, choose escrow or timelock, set beneficiary and amount, create lock. Beneficiary claims when rules pass.',
+    benefits: 'Learn Kaspa covenants before Toccata mainnet. Architecture ready for Silverscript and real on-chain vaults.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Silverscript', url: 'https://github.com/kaspanet/silverscript' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kaspa L1 Covenants (Simulator)',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '0.1.0',
+    description:
+      'Covenant Lab is the first Kasparex Hub prototype for covenant-based L1 dApps. Lock KAS under escrow or timelock rules. Simulator today; Silverscript contracts after Toccata activation.',
+    security:
+      'Prototype only. Vault state is simulated locally until covenant txs are supported in wallets. Optional L1 payment sends KAS to a configured treasury with a binding note.',
+    roadmap:
+      'Phase 1: Simulator + treasury binding (now)\nPhase 2: TN12 Silverscript lockbox.sil\nPhase 3: Mainnet covenant txs post-Toccata',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'covenant-split',
+    name: 'Covenant Split',
+    slug: 'covenant-split',
+    category: 'general',
+    utility: 'Split one KAS payment across multiple recipients with covenant-enforced share rules (1:N fan-out).',
+    process: 'Set total amount, add recipients with percentages (must total 100%), fund the split. Each recipient claims their share.',
+    benefits: 'Prototype revenue sharing, team payouts, and prize pools on L1 without trusting a central splitter.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'Website', url: 'https://www.kasparex.com' },
+      { label: 'Covenant Lab', url: 'https://www.kasparex.com/dapps/covenant-lab' },
+      { label: 'Telegram', url: 'https://t.me/kasparex' },
+    ],
+    status: 'Testnet',
+    network: 'Kaspa L1 Covenants (Simulator)',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '0.1.0',
+    description:
+      'Covenant Split is the second Kasparex covenant prototype: programmable 1:N payments. Lock once, distribute by fixed percentages, with per-recipient claims.',
+    security:
+      'Prototype only. Share enforcement is simulated until Silverscript fan-out covenants deploy post-Toccata.',
+    roadmap:
+      'Phase 1: Simulator + split commit notes (now)\nPhase 2: split-payment.sil on TN12\nPhase 3: Wallet covenant fan-out txs',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'revenue-tree',
     name: 'Revenue Tree',
     slug: 'revenue-tree',

@@ -9,6 +9,8 @@ import { DAOVotingWidget } from './dapps/DAOVotingWidget';
 import { SendKASWidget } from './dapps/SendKASWidget';
 import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { GenesisDappWidget } from './dapps/GenesisDappWidget';
+import { CovenantLockboxWidget } from './dapps/CovenantLockboxWidget';
+import { CovenantSplitWidget } from './dapps/CovenantSplitWidget';
 import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
@@ -303,6 +305,14 @@ export function DAppWidget({
   // Render Genesis Dapp widget if it's the Genesis Dapp
   if (dapp.slug === 'genesis-dapp') {
     return renderShell(<GenesisDappWidget />, undefined);
+  }
+
+  if (dapp.slug === 'covenant-lab') {
+    return renderShell(<CovenantLockboxWidget />, undefined);
+  }
+
+  if (dapp.slug === 'covenant-split') {
+    return renderShell(<CovenantSplitWidget />, undefined);
   }
 
   // Render SendKREX widget if it's the Send KREX dApp
