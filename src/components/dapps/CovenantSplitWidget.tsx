@@ -5,6 +5,21 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantSplit } from '@/hooks/useCovenantSplit';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { SplitPayment, SplitRecipient } from '@/lib/covenant';
+import {
+  CovenantWidgetShell,
+  CovenantHeader,
+  CovenantTabs,
+  CovenantFieldLabel,
+  CovenantError,
+  CovenantHowItWorks,
+  covenantInputClass,
+  covenantSmallInputClass,
+  covenantPanelClass,
+  covenantCardClass,
+  covenantPrimaryBtnClass,
+  covenantSecondaryBtnClass,
+  shortKaspaAddr,
+} from '@/components/dapps/covenant/CovenantWidgetUi';
 
 type TabId = 'create' | 'splits' | 'about';
 
@@ -16,12 +31,6 @@ interface RecipientRow {
 
 function sompiToKas(sompi: string): string {
   return (Number(BigInt(sompi)) / 1e8).toLocaleString(undefined, { maximumFractionDigits: 8 });
-}
-
-function shortAddr(addr: string): string {
-  const a = addr.replace(/^kaspa:/i, '');
-  if (a.length <= 12) return a;
-  return `${a.slice(0, 8)}...${a.slice(-6)}`;
 }
 
 function norm(addr: string): string {
@@ -119,82 +128,67 @@ export function CovenantSplitWidget() {
 
   if (!kaspaState.isConnected) {
     return (
-      <div className="px-6 py-8 text-center">
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Connect your Kaspa wallet to create or claim covenant split payments.
-        </p>
-      </div>
+      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+        Connect your wallet to split one payment across multiple people.
+      </p>
     );
   }
 
   return (
-    <div className="px-6 py-4 space-y-6 max-w-2xl mx-auto">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-          Covenant Split
-        </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          1:N programmable payment: one lock, many recipients with enforced share rules (Silverscript fan-out).
-        </p>
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-          Prototype: per-recipient claims update covenant state locally until Toccata wallet support ships.
-        </p>
-      </div>
+    <CovenantWidgetShell>
+      <CovenantHeader
+        title="Covenant Split"
+        subtitle="Send one KAS payment to several people at once. Set the total, choose each share, and everyone claims their part independently."
+      />
 
-      <div className="flex gap-2 border-b border-zinc-200 dark:border-zinc-700 pb-2">
-        {(
-          [
-            ['create', 'Create split'],
-            ['splits', `Splits (${splits.length})`],
-            ['about', 'How it works'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              tab === id
-                ? 'bg-[#02abb8] text-white'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <CovenantTabs
+        tabs={[
+          { id: 'create' as const, label: 'Create split' },
+          { id: 'splits' as const, label: `Splits (${splits.length})` },
+          { id: 'about' as const, label: 'How it works' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
 
-      {error && (
-        <div className="p-3 text-sm bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 rounded-lg">
-          {error}
-        </div>
-      )}
+      {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-4 border border-zinc-200 dark:border-zinc-800">
+        <div className={covenantPanelClass}>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Total amount (KAS, min {minKas})
-            </label>
+            <CovenantFieldLabel
+              label={`Total amount (KAS, min ${minKas})`}
+              htmlFor="split-total"
+              tooltip="The full amount you lock. It is divided among recipients by the percentages below."
+            />
             <input
+              id="split-total"
               type="number"
               min={minKas}
               step="0.01"
               value={totalKas}
               onChange={(e) => setTotalKas(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+              className={covenantInputClass}
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Recipients</span>
+              <CovenantFieldLabel
+                label="Recipients"
+                tooltip="Add Kaspa addresses and a share for each. All percentages must add up to exactly 100%."
+              />
               <span
-                className={`text-xs ${Math.abs(percentSum - 100) < 0.01 ? 'text-green-600' : 'text-amber-600'}`}
+                className={`text-xs font-medium ${
+                  Math.abs(percentSum - 100) < 0.01
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-amber-600 dark:text-amber-400'
+                }`}
               >
-                Total: {percentSum.toFixed(1)}% (must be 100%)
+                Total: {percentSum.toFixed(1)}%
               </span>
             </div>
+
             {preview.map((row) => (
               <div key={row.key} className="flex gap-2 items-start">
                 <div className="flex-1 space-y-1">
@@ -203,13 +197,11 @@ export function CovenantSplitWidget() {
                     placeholder="kaspa:..."
                     value={row.address}
                     onChange={(e) => updateRow(row.key, { address: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+                    className={covenantInputClass}
                   />
-                  <p className="text-xs text-zinc-500 pl-1">
-                    ~{row.kas.toFixed(4)} KAS
-                  </p>
+                  <p className="text-xs text-zinc-500 pl-1">~{row.kas.toFixed(4)} KAS</p>
                 </div>
-                <div className="w-20">
+                <div className="w-24 shrink-0">
                   <input
                     type="number"
                     min={0.01}
@@ -217,21 +209,23 @@ export function CovenantSplitWidget() {
                     step={0.1}
                     value={row.percent}
                     onChange={(e) => updateRow(row.key, { percent: e.target.value })}
-                    className="w-full px-2 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-center"
+                    className={`${covenantSmallInputClass} text-center`}
+                    aria-label="Share percent"
                   />
-                  <p className="text-[10px] text-center text-zinc-500 mt-0.5">%</p>
+                  <p className="text-[10px] text-center text-zinc-500 mt-1">%</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeRow(row.key)}
                   disabled={rows.length <= 2}
-                  className="mt-2 p-2 text-zinc-400 hover:text-red-500 disabled:opacity-30"
+                  className="mt-2.5 p-2 text-zinc-400 hover:text-red-500 disabled:opacity-30 rounded-lg border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
                   aria-label="Remove recipient"
                 >
                   ×
                 </button>
               </div>
             ))}
+
             <button
               type="button"
               onClick={addRow}
@@ -243,16 +237,19 @@ export function CovenantSplitWidget() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Memo (optional)
-            </label>
+            <CovenantFieldLabel
+              label="Memo (optional)"
+              htmlFor="split-memo"
+              tooltip="A note for everyone in the split, e.g. team payout or revenue share."
+            />
             <input
+              id="split-memo"
               type="text"
               maxLength={COVENANT_LAB_CONFIG.maxMemoLength}
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              placeholder="Team payout, revenue share..."
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+              placeholder="e.g. March team payout"
+              className={covenantInputClass}
             />
           </div>
 
@@ -265,7 +262,7 @@ export function CovenantSplitWidget() {
               Math.abs(percentSum - 100) > 0.01
             }
             onClick={() => void handleCreate()}
-            className="w-full py-2.5 rounded-lg bg-[#02abb8] text-white font-medium hover:bg-[#028a94] disabled:opacity-50"
+            className={covenantPrimaryBtnClass}
           >
             {busy ? 'Creating...' : 'Create split payment'}
           </button>
@@ -273,27 +270,30 @@ export function CovenantSplitWidget() {
       )}
 
       {tab === 'splits' && (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm text-zinc-600 dark:text-zinc-400">
-            <span>{openCount} open, {splits.length} total</span>
-            <button type="button" onClick={() => void refreshSplits()} className="text-[#02abb8] text-xs hover:underline">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              {openCount} open, {splits.length} total
+            </span>
+            <button
+              type="button"
+              onClick={() => void refreshSplits()}
+              className="text-xs text-[#02abb8] hover:underline"
+            >
               Refresh
             </button>
           </div>
           {isLoading && splits.length === 0 ? (
             <p className="text-center text-zinc-500 py-8">Loading...</p>
           ) : splits.length === 0 ? (
-            <p className="text-center text-zinc-500 py-8">No splits yet.</p>
+            <p className="text-center text-zinc-500 py-8">No splits yet. Create your first one.</p>
           ) : (
             splits.map((split) => (
-              <div
-                key={split.id}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-900/40 space-y-3"
-              >
-                <div className="flex justify-between items-start">
+              <div key={split.id} className={covenantCardClass}>
+                <div className="flex justify-between items-start gap-2">
                   <div>
                     <span
-                      className={`text-xs px-1.5 py-0.5 rounded ${
+                      className={`text-xs px-1.5 py-0.5 rounded uppercase tracking-wide ${
                         split.status === 'open'
                           ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
                           : 'bg-green-500/20 text-green-700 dark:text-green-300'
@@ -301,36 +301,40 @@ export function CovenantSplitWidget() {
                     >
                       {split.status}
                     </span>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                      From {shortAddr(split.depositor)}
-                    </p>
+                    <p className="text-xs text-zinc-500 mt-2">From {shortKaspaAddr(split.depositor)}</p>
                   </div>
-                  <span className="font-semibold">{sompiToKas(split.totalSompi)} KAS</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {sompiToKas(split.totalSompi)} KAS
+                  </span>
                 </div>
-                {split.memo && (
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">{split.memo}</p>
-                )}
-                <ul className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-2">
+                {split.memo ? (
+                  <p className="text-zinc-600 dark:text-zinc-400">{split.memo}</p>
+                ) : null}
+                <ul className="space-y-3 border-t border-zinc-200 dark:border-zinc-700 pt-3">
                   {split.recipients.map((r) => (
                     <li
                       key={r.id}
-                      className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                      className="flex flex-wrap items-center justify-between gap-2"
                     >
                       <div>
-                        <span className="font-mono text-xs">{shortAddr(r.address)}</span>
+                        <span className="font-mono text-xs text-zinc-800 dark:text-zinc-200">
+                          {shortKaspaAddr(r.address)}
+                        </span>
                         <span className="text-zinc-500 ml-2">
                           {(r.shareBps / 100).toFixed(1)}% ({sompiToKas(r.amountSompi)} KAS)
                         </span>
-                        {r.claimed && (
-                          <span className="ml-2 text-xs text-green-600">claimed</span>
-                        )}
+                        {r.claimed ? (
+                          <span className="ml-2 text-xs text-green-600 dark:text-green-400">
+                            claimed
+                          </span>
+                        ) : null}
                       </div>
                       {canClaimShare(split, r, kaspaState.address) && (
                         <button
                           type="button"
                           disabled={busy}
                           onClick={() => void handleClaim(split.id, r.id)}
-                          className="text-xs px-2 py-1 rounded border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10"
+                          className="text-xs px-3 py-1.5 rounded-lg border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10 shrink-0"
                         >
                           Claim share
                         </button>
@@ -338,9 +342,6 @@ export function CovenantSplitWidget() {
                     </li>
                   ))}
                 </ul>
-                <p className="text-[10px] font-mono text-zinc-500 truncate" title={split.covenantId}>
-                  Covenant: {split.covenantId}
-                </p>
               </div>
             ))
           )}
@@ -348,23 +349,30 @@ export function CovenantSplitWidget() {
       )}
 
       {tab === 'about' && (
-        <div className="text-sm text-zinc-700 dark:text-zinc-300 space-y-3">
+        <CovenantHowItWorks>
           <p>
-            <strong>Covenant Split</strong> models a 1:N fan-out: one payer locks KAS and covenant
-            rules require outputs to match fixed percentage shares. Each recipient claims their slice
-            independently (N parallel continuation paths in a full Silverscript deployment).
+            Covenant Split is for paying several people from one pot of KAS. You lock the total once;
+            each person claims only their share.
           </p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Shares must total exactly 100% (enforced in simulator and future script).</li>
-            <li>Amounts are allocated in sompi; the last recipient gets any rounding remainder.</li>
-            <li>Maps to Silverscript <code>#[covenant.fanout]</code> / 1:N verification patterns.</li>
-            <li>Use cases: team payouts, creator splits, treasury revenue share, game prize pools.</li>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <strong>Set shares</strong>: assign a percentage to each recipient. They must add up to
+              100%.
+            </li>
+            <li>
+              <strong>Independent claims</strong>: recipients do not need to wait on each other. Each
+              claims their slice when ready.
+            </li>
+            <li>
+              <strong>Fixed rules</strong>: amounts are calculated from your split and enforced by
+              covenant logic (simulated here until wallets ship covenant support).
+            </li>
           </ul>
           <p className="text-xs text-zinc-500">
-            Reference: <code>covenant-lockbox/split-payment.sil</code>
+            Great for team payouts, creator revenue splits, prize pools, or treasury distributions.
           </p>
-        </div>
+        </CovenantHowItWorks>
       )}
-    </div>
+    </CovenantWidgetShell>
   );
 }

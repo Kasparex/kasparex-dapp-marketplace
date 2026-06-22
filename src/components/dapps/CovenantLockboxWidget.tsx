@@ -5,6 +5,20 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantLockbox } from '@/hooks/useCovenantLockbox';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
+import {
+  CovenantWidgetShell,
+  CovenantHeader,
+  CovenantTabs,
+  CovenantFieldLabel,
+  CovenantError,
+  CovenantHowItWorks,
+  covenantInputClass,
+  covenantPanelClass,
+  covenantCardClass,
+  covenantPrimaryBtnClass,
+  covenantSecondaryBtnClass,
+  shortKaspaAddr,
+} from '@/components/dapps/covenant/CovenantWidgetUi';
 
 type TabId = 'create' | 'vaults' | 'about';
 
@@ -13,14 +27,8 @@ function sompiToKas(sompi: string): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 8 });
 }
 
-function shortAddr(addr: string): string {
-  const a = addr.replace(/^kaspa:/i, '');
-  if (a.length <= 12) return a;
-  return `${a.slice(0, 8)}...${a.slice(-6)}`;
-}
-
 function formatUnlock(unlockAt: number | null): string {
-  if (!unlockAt) return 'Immediate (escrow)';
+  if (!unlockAt) return 'Anytime (escrow)';
   return new Date(unlockAt).toLocaleString();
 }
 
@@ -34,8 +42,7 @@ function canClaim(vault: CovenantVault, address: string | null): boolean {
 
 export function CovenantLockboxWidget() {
   const { state: kaspaState } = useKaspaWallet();
-  const { vaults, isLoading, error, runtimeMode, createVault, claimVault, refreshVaults } =
-    useCovenantLockbox();
+  const { vaults, isLoading, error, createVault, claimVault, refreshVaults } = useCovenantLockbox();
 
   const [tab, setTab] = useState<TabId>('create');
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
@@ -47,16 +54,12 @@ export function CovenantLockboxWidget() {
 
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
-  const myLocked = useMemo(
-    () => vaults.filter((v) => v.status === 'locked'),
-    [vaults]
-  );
+  const myLocked = useMemo(() => vaults.filter((v) => v.status === 'locked'), [vaults]);
 
   const handleCreate = async () => {
     setBusy(true);
     try {
-      const unlockAt =
-        kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
+      const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
       await createVault({
         kind,
         beneficiary: beneficiary.trim(),
@@ -86,138 +89,130 @@ export function CovenantLockboxWidget() {
 
   if (!kaspaState.isConnected) {
     return (
-      <div className="px-6 py-8 text-center">
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Connect your Kaspa wallet to use Covenant Lab (programmable L1 money prototype).
-        </p>
-      </div>
+      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+        Connect your wallet to lock KAS with escrow or timelock rules.
+      </p>
     );
   }
 
   return (
-    <div className="px-6 py-4 space-y-6 max-w-2xl mx-auto">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-          Covenant Lab
-        </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Lock KAS under rules enforced by covenant state (simulator today, Silverscript after Toccata).
-        </p>
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-          Prototype mode: {runtimeMode}. Claims update covenant state locally; on-chain covenant txs ship with Toccata.
-        </p>
-      </div>
+    <CovenantWidgetShell>
+      <CovenantHeader
+        title="Covenant Lab"
+        subtitle="Lock KAS for someone else with simple rules. Use escrow so they can claim anytime, or timelock so they can only claim after a date you choose."
+      />
 
-      <div className="flex gap-2 border-b border-zinc-200 dark:border-zinc-700 pb-2">
-        {(
-          [
-            ['create', 'Create lock'],
-            ['vaults', `Vaults (${vaults.length})`],
-            ['about', 'How it works'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              tab === id
-                ? 'bg-[#02abb8] text-white'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <CovenantTabs
+        tabs={[
+          { id: 'create' as const, label: 'Create lock' },
+          { id: 'vaults' as const, label: `Vaults (${vaults.length})` },
+          { id: 'about' as const, label: 'How it works' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
 
-      {error && (
-        <div className="p-3 text-sm bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 rounded-lg">
-          {error}
-        </div>
-      )}
+      {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-4 border border-zinc-200 dark:border-zinc-800">
+        <div className={covenantPanelClass}>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Lock type
-            </label>
+            <CovenantFieldLabel
+              label="Lock type"
+              tooltip="Escrow lets the beneficiary claim whenever they are ready. Timelock waits until the date you set before they can claim."
+            />
             <div className="flex gap-2">
               {(
                 [
-                  ['escrow', 'Escrow (beneficiary claims anytime)'],
-                  ['timelock', 'Timelock (claim after date)'],
+                  ['escrow', 'Escrow'],
+                  ['timelock', 'Timelock'],
                 ] as const
               ).map(([k, label]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setKind(k)}
-                  className={`flex-1 text-xs sm:text-sm px-3 py-2 rounded-lg border ${
+                  className={`flex-1 text-sm px-3 py-2.5 rounded-lg border transition-colors ${
                     kind === k
                       ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                      : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400'
+                      : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-600'
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+              {kind === 'escrow'
+                ? 'Beneficiary can claim as soon as the lock is created.'
+                : 'Beneficiary can claim only after the unlock date.'}
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Beneficiary (kaspa address)
-            </label>
+            <CovenantFieldLabel
+              label="Who receives the KAS"
+              htmlFor="lockbox-beneficiary"
+              tooltip="The Kaspa address that is allowed to claim the locked amount."
+            />
             <input
+              id="lockbox-beneficiary"
               type="text"
               value={beneficiary}
               onChange={(e) => setBeneficiary(e.target.value)}
               placeholder="kaspa:..."
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+              className={covenantInputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Amount (KAS, min {minKas})
-            </label>
+            <CovenantFieldLabel
+              label={`Amount (KAS, min ${minKas})`}
+              htmlFor="lockbox-amount"
+              tooltip="How much KAS to lock under these rules."
+            />
             <input
+              id="lockbox-amount"
               type="number"
               min={minKas}
               step="0.01"
               value={amountKas}
               onChange={(e) => setAmountKas(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+              className={covenantInputClass}
             />
           </div>
 
           {kind === 'timelock' && (
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                Unlock after (local time)
-              </label>
+              <CovenantFieldLabel
+                label="Unlock after"
+                htmlFor="lockbox-unlock"
+                tooltip="The beneficiary cannot claim before this date and time (your local timezone)."
+              />
               <input
+                id="lockbox-unlock"
                 type="datetime-local"
                 value={unlockLocal}
                 onChange={(e) => setUnlockLocal(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+                className={covenantInputClass}
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              Memo (optional)
-            </label>
+            <CovenantFieldLabel
+              label="Memo (optional)"
+              htmlFor="lockbox-memo"
+              tooltip="A short note stored with the lock, visible to both sides."
+            />
             <input
+              id="lockbox-memo"
               type="text"
               maxLength={COVENANT_LAB_CONFIG.maxMemoLength}
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              placeholder="Payment for..."
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm"
+              placeholder="e.g. Payment for design work"
+              className={covenantInputClass}
             />
           </div>
 
@@ -225,20 +220,21 @@ export function CovenantLockboxWidget() {
             type="button"
             disabled={busy || isLoading || !beneficiary.trim()}
             onClick={() => void handleCreate()}
-            className="w-full py-2.5 rounded-lg bg-[#02abb8] text-white font-medium hover:bg-[#028a94] disabled:opacity-50"
+            className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Creating...' : 'Create covenant lock'}
+            {busy ? 'Creating...' : 'Create lock'}
           </button>
+
           {!COVENANT_LAB_CONFIG.treasuryAddress && (
             <p className="text-xs text-zinc-500">
-              No treasury configured: lock is simulator-only (set NEXT_PUBLIC_COVENANT_LAB_TREASURY for L1 payment).
+              Simulator only until treasury is configured for real L1 payments.
             </p>
           )}
         </div>
       )}
 
       {tab === 'vaults' && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
               {myLocked.length} active, {vaults.length} total
@@ -254,18 +250,17 @@ export function CovenantLockboxWidget() {
           {isLoading && vaults.length === 0 ? (
             <p className="text-center text-zinc-500 py-8">Loading...</p>
           ) : vaults.length === 0 ? (
-            <p className="text-center text-zinc-500 py-8">No vaults yet. Create your first lock.</p>
+            <p className="text-center text-zinc-500 py-8">No locks yet. Create your first one.</p>
           ) : (
             vaults.map((v) => (
-              <div
-                key={v.id}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-900/40 space-y-2"
-              >
+              <div key={v.id} className={covenantCardClass}>
                 <div className="flex justify-between items-start gap-2">
-                  <div>
-                    <span className="text-xs font-mono text-[#02abb8]">{v.kind}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium uppercase tracking-wide text-[#02abb8]">
+                      {v.kind}
+                    </span>
                     <span
-                      className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
+                      className={`text-xs px-1.5 py-0.5 rounded ${
                         v.status === 'locked'
                           ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
                           : 'bg-green-500/20 text-green-700 dark:text-green-300'
@@ -278,28 +273,20 @@ export function CovenantLockboxWidget() {
                     {sompiToKas(v.amountSompi)} KAS
                   </span>
                 </div>
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">{v.memo || '(no memo)'}</p>
-                <div className="text-xs text-zinc-500 space-y-0.5">
-                  <p>From: {shortAddr(v.depositor)}</p>
-                  <p>To: {shortAddr(v.beneficiary)}</p>
+                <p className="text-zinc-600 dark:text-zinc-400">{v.memo || '(no memo)'}</p>
+                <div className="text-xs text-zinc-500 space-y-1">
+                  <p>From: {shortKaspaAddr(v.depositor)}</p>
+                  <p>To: {shortKaspaAddr(v.beneficiary)}</p>
                   <p>Unlock: {formatUnlock(v.unlockAt)}</p>
-                  <p className="font-mono truncate" title={v.covenantId}>
-                    Covenant ID: {v.covenantId}
-                  </p>
-                  {v.lockTxHash && (
-                    <p className="truncate" title={v.lockTxHash}>
-                      Lock tx: {v.lockTxHash}
-                    </p>
-                  )}
                 </div>
                 {canClaim(v, kaspaState.address) && (
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => void handleClaim(v.id)}
-                    className="mt-2 w-full py-2 text-sm rounded-lg border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10"
+                    className={covenantSecondaryBtnClass}
                   >
-                    Claim (covenant transition)
+                    Claim funds
                   </button>
                 )}
               </div>
@@ -309,32 +296,31 @@ export function CovenantLockboxWidget() {
       )}
 
       {tab === 'about' && (
-        <div className="prose prose-sm dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 space-y-3">
+        <CovenantHowItWorks>
           <p>
-            Covenant Lab demonstrates <strong>programmable money on Kaspa L1</strong>: KAS locked under
-            rules that a future Silverscript contract will enforce at consensus (not via an indexer).
+            Covenant Lab lets you hold KAS for someone until rules you set are met. Think of it as a
+            simple safe deposit box on Kaspa.
           </p>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
+          <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong>Escrow</strong>: only the beneficiary can release funds (simulated claim).
+              <strong>Escrow</strong>: lock coins for a buyer, seller, or collaborator. Only the
+              beneficiary address can release them.
             </li>
             <li>
-              <strong>Timelock</strong>: beneficiary claims only after the unlock time.
+              <strong>Timelock</strong>: same idea, but the beneficiary must wait until a date you
+              pick before claiming.
             </li>
             <li>
-              Each vault gets a <strong>covenant ID</strong> (KIP-20 lineage) in the simulator.
-            </li>
-            <li>
-              Create sends a real L1 KAS tx when treasury is configured; claim is simulator until wallets
-              support covenant outputs.
+              <strong>No middleman</strong>: rules are enforced by covenant logic on Kaspa L1
+              (simulated here until wallets ship covenant support).
             </li>
           </ul>
           <p className="text-xs text-zinc-500">
-            Reference contract: <code>covenant-lockbox/lockbox.sil</code>. Runtime adapter:{' '}
-            <code>src/lib/covenant/runtime.ts</code>.
+            Useful for trades, freelance payments, savings goals, or any transfer where you want
+            clear release conditions.
           </p>
-        </div>
+        </CovenantHowItWorks>
       )}
-    </div>
+    </CovenantWidgetShell>
   );
 }

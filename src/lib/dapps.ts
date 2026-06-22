@@ -227,9 +227,9 @@ export const placeholderDApps: DApp[] = [
     name: 'Covenant Lab',
     slug: 'covenant-lab',
     category: 'general',
-    utility: 'Prototype programmable L1 money: lock KAS in escrow or timelock vaults enforced by covenant rules.',
-    process: 'Connect wallet, choose escrow or timelock, set beneficiary and amount, create lock. Beneficiary claims when rules pass.',
-    benefits: 'Learn Kaspa covenants before Toccata mainnet. Architecture ready for Silverscript and real on-chain vaults.',
+    utility: 'Lock KAS for someone with simple rules: release anytime (escrow) or only after a date (timelock).',
+    process: 'Choose escrow or timelock, set who receives the KAS and how much, then create the lock. They claim when the rules allow.',
+    benefits: 'Safe handoffs for trades, freelance work, and savings without a third party holding funds.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -242,7 +242,7 @@ export const placeholderDApps: DApp[] = [
     provider: 'Kasparex',
     version: '0.1.0',
     description:
-      'Covenant Lab is the first Kasparex Hub prototype for covenant-based L1 dApps. Lock KAS under escrow or timelock rules. Simulator today; Silverscript contracts after Toccata activation.',
+      'Lock KAS with escrow or timelock rules. Hold coins for someone until they can claim on your terms.',
     security:
       'Prototype only. Vault state is simulated locally until covenant txs are supported in wallets. Optional L1 payment sends KAS to a configured treasury with a binding note.',
     roadmap:
@@ -254,9 +254,9 @@ export const placeholderDApps: DApp[] = [
     name: 'Covenant Split',
     slug: 'covenant-split',
     category: 'general',
-    utility: 'Split one KAS payment across multiple recipients with covenant-enforced share rules (1:N fan-out).',
-    process: 'Set total amount, add recipients with percentages (must total 100%), fund the split. Each recipient claims their share.',
-    benefits: 'Prototype revenue sharing, team payouts, and prize pools on L1 without trusting a central splitter.',
+    utility: 'Split one KAS payment across multiple people with fixed percentage shares.',
+    process: 'Set the total amount, add recipients with shares (must total 100%), fund once. Each person claims their part.',
+    benefits: 'Team payouts, revenue sharing, and prize pools without trusting someone to divide the money manually.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
@@ -269,7 +269,7 @@ export const placeholderDApps: DApp[] = [
     provider: 'Kasparex',
     version: '0.1.0',
     description:
-      'Covenant Split is the second Kasparex covenant prototype: programmable 1:N payments. Lock once, distribute by fixed percentages, with per-recipient claims.',
+      'Divide one KAS payment among several addresses. Lock once, set each share, and let everyone claim independently.',
     security:
       'Prototype only. Share enforcement is simulated until Silverscript fan-out covenants deploy post-Toccata.',
     roadmap:
