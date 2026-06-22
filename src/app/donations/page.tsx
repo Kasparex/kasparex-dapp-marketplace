@@ -300,11 +300,15 @@ export default function DonationsListingPage() {
                           ? `/donations/${c.creatorAddress}?campaignId=${c.campaignId.toString()}`
                           : undefined
                       }
-                    badges={[
-                      {
-                        label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
-                        variant: 'neutral',
-                      },
+                      badges={[
+                        {
+                          label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
+                          variant: 'neutral',
+                        },
+                        ...(c.featuredModuleUnlocked
+                          ? [{ label: 'Featured', variant: 'amber' as const }]
+                          : []),
+                      ]}
                     />
                   ))}
               </div>
