@@ -11,6 +11,9 @@ import { SendKREXWidget } from './dapps/SendKREXWidget';
 import { GenesisDappWidget } from './dapps/GenesisDappWidget';
 import { CovenantLockboxWidget } from './dapps/CovenantLockboxWidget';
 import { CovenantSplitWidget } from './dapps/CovenantSplitWidget';
+import { CovenantMilestoneWidget } from './dapps/CovenantMilestoneWidget';
+import { CovenantCrowdfundWidget } from './dapps/CovenantCrowdfundWidget';
+import { CovenantVoucherWidget } from './dapps/CovenantVoucherWidget';
 import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
@@ -313,6 +316,18 @@ export function DAppWidget({
 
   if (dapp.slug === 'covenant-split') {
     return renderShell(<CovenantSplitWidget />, undefined);
+  }
+
+  if (dapp.slug === 'covenant-milestone') {
+    return renderShell(<CovenantMilestoneWidget />, undefined);
+  }
+
+  if (dapp.slug === 'covenant-crowdfund') {
+    return renderShell(<CovenantCrowdfundWidget />, undefined);
+  }
+
+  if (dapp.slug === 'covenant-voucher') {
+    return renderShell(<CovenantVoucherWidget />, undefined);
   }
 
   // Render SendKREX widget if it's the Send KREX dApp

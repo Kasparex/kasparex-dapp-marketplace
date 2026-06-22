@@ -1,0 +1,15 @@
+// Staged release covenant (milestone escrow reference).
+
+pragma silverscript ^0.1.0;
+
+contract KasparexMilestone(byte[32] beneficiary_pk, int step_count) {
+    int released_step;
+
+    #[covenant(binding = auth, from = 1, to = 1, mode = transition)]
+    function release_next(State prev, int step_index, int unlock_time, sig s) : (State) {
+        require(step_index == prev.released_step + 1);
+        require(tx.time >= unlock_time);
+        require(checkSig(s, beneficiary_pk));
+        return { released_step: step_index };
+    }
+}

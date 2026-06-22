@@ -1,0 +1,17 @@
+// Assurance crowdfund: aggregate pledges, creator claims if goal met after deadline.
+
+pragma silverscript ^0.1.0;
+
+contract KasparexCrowdfund(int goal_sompi, int deadline, pubkey creator_pk) {
+    int raised;
+
+    #[covenant(binding = cov, from = max_ins, to = max_outs, mode = verification)]
+    function verify_goal(State[] prev_states, State[] new_states) {
+        int sum = 0;
+        for (i, 0, prev_states.length, max_ins) {
+            sum = sum + prev_states[i].amount;
+        }
+        require(sum >= goal_sompi);
+        require(tx.time >= deadline);
+    }
+}

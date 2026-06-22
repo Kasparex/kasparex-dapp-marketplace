@@ -1,0 +1,12 @@
+// Hashlock voucher: claim requires SHA256 preimage (KIP-16 / script hash pattern).
+
+pragma silverscript ^0.1.0;
+
+contract KasparexVoucher(byte[32] secret_hash, int expires_at) {
+    #[covenant(binding = auth, from = 1, to = 0, mode = transition, termination = allowed)]
+    function redeem(byte[] preimage, sig claimer_sig) : (State[]) {
+        require(tx.time <= expires_at);
+        require(sha256(preimage) == secret_hash);
+        return [];
+    }
+}

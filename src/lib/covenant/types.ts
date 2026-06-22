@@ -55,6 +55,9 @@ export interface CovenantLabConfig {
   maxMemoLength: number;
   storageKey: string;
   splitStorageKey: string;
+  milestoneStorageKey: string;
+  crowdfundStorageKey: string;
+  voucherStorageKey: string;
   treasuryAddress: string;
   runtimeMode: CovenantRuntimeMode;
 }

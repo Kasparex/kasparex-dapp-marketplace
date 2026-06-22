@@ -30,3 +30,11 @@ See [KCC20 book](https://kaspanet.github.io/silverscript/kcc20-book/) for fungib
 ## Split payments
 
 See `split-payment.sil` and dApp **Covenant Split** (`/dapps/covenant-split`) for the 1:N fan-out prototype.
+
+## Additional prototypes
+
+| dApp | Reference | Pattern |
+|------|-----------|---------|
+| Covenant Milestone | `milestone.sil` | Timed staged releases |
+| Covenant Crowdfund | `crowdfund.sil` | Goal + deadline assurance |
+| Covenant Voucher | `voucher.sil` | Hashlock preimage claim |

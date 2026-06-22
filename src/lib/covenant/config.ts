@@ -7,6 +7,9 @@ export const COVENANT_LAB_CONFIG: CovenantLabConfig = {
   maxMemoLength: 120,
   storageKey: 'covenant_lockbox_v1',
   splitStorageKey: 'covenant_split_v1',
+  milestoneStorageKey: 'covenant_milestone_v1',
+  crowdfundStorageKey: 'covenant_crowdfund_v1',
+  voucherStorageKey: 'covenant_voucher_v1',
   treasuryAddress:
     process.env.NEXT_PUBLIC_COVENANT_LAB_TREASURY?.trim() ||
     process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS?.trim() ||

@@ -23,3 +23,26 @@ export function buildSplitCommitNote(args: {
     .join(',');
   return `kpx-cov-split:${args.splitId}:${args.totalSompi}:${parts}`;
 }
+
+export function buildMilestoneCommitNote(args: {
+  dealId: string;
+  totalSompi: string;
+  beneficiary: string;
+}): string {
+  return `kpx-cov-milestone:${args.dealId}:${args.totalSompi}:${args.beneficiary.replace(/^kaspa:/i, '')}`;
+}
+
+export function buildCrowdfundPledgeNote(args: {
+  campaignId: string;
+  amountSompi: string;
+}): string {
+  return `kpx-cov-crowdfund:${args.campaignId}:${args.amountSompi}`;
+}
+
+export function buildVoucherCommitNote(args: {
+  voucherId: string;
+  amountSompi: string;
+  secretHash: string;
+}): string {
+  return `kpx-cov-voucher:${args.voucherId}:${args.amountSompi}:${args.secretHash.slice(0, 16)}`;
+}
