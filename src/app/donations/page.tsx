@@ -6,17 +6,20 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useDonationCampaigns, type DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
 import { useDonationCampaignsV2, type DonationCampaignV2ListItem } from '@/hooks/useDonationCampaignsV2';
+import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { DonationsSidebar, type DonationFilterStatus } from '@/components/donations/DonationsSidebar';
 import { DonationsHeader } from '@/components/donations/DonationsHeader';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
 import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
+import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCrowdfundCampaignCard';
 import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { totalRaisedWei } from '@/lib/donations/totals';
+import { filterCovenantCampaigns, covenantStatusCounts } from '@/lib/donations/covenantCrowdfund';
 
 function campaignGoalReached(c: DonationCampaignListItem): boolean {
   const v2 = c.campaignId != null;
@@ -51,6 +54,7 @@ export default function DonationsListingPage() {
   const v2Configured = Boolean(getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2'));
   const v1 = useDonationCampaigns();
   const v2 = useDonationCampaignsV2();
+  const covenantCrowdfund = useCovenantCrowdfund();
   const v2Rows = useMemo(() => v2.campaigns.map(mapV2Row), [v2.campaigns]);
   /** When V2 is deployed, show legacy V1 escrow rows and all V2 campaigns unless NEXT_PUBLIC_CROWDKAS_HIDE_V1=1. */
   const campaigns = useMemo(() => {
@@ -58,8 +62,11 @@ export default function DonationsListingPage() {
     if (hideV1Listing) return v2Rows;
     return [...v1.campaigns, ...v2Rows];
   }, [v2Configured, hideV1Listing, v1.campaigns, v2Rows]);
-  const isLoading = v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading;
-  const error = !v2Configured ? v1.error : hideV1Listing ? v2.error : (v1.error ?? v2.error);
+  const isLoading =
+    (v2Configured && !hideV1Listing ? v1.isLoading || v2.isLoading : v2Configured ? v2.isLoading : v1.isLoading) ||
+    covenantCrowdfund.loading;
+  const error =
+    (!v2Configured ? v1.error : hideV1Listing ? v2.error : v1.error ?? v2.error) ?? covenantCrowdfund.error;
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
@@ -84,8 +91,24 @@ export default function DonationsListingPage() {
       else ended++;
       if (campaignGoalReached(c)) goal_reached++;
     });
-    return { all: campaigns.length, active, ended, goal_reached };
-  }, [campaigns]);
+    const cov = covenantStatusCounts(covenantCrowdfund.allCampaigns);
+    return {
+      all: campaigns.length + cov.all,
+      active: active + cov.active,
+      ended: ended + cov.ended,
+      goal_reached: goal_reached + cov.goal_reached,
+    };
+  }, [campaigns, covenantCrowdfund.allCampaigns]);
+
+  const filteredCovenantCampaigns = useMemo(
+    () =>
+      filterCovenantCampaigns(covenantCrowdfund.allCampaigns, {
+        status: selectedStatus,
+        search: searchQuery,
+        network: selectedNetwork,
+      }),
+    [covenantCrowdfund.allCampaigns, selectedStatus, searchQuery, selectedNetwork]
+  );
 
   const filteredCampaigns = useMemo(() => {
     let list = campaigns;
@@ -125,6 +148,10 @@ export default function DonationsListingPage() {
     }
     return sortCampaigns(list, sortBy);
   }, [campaigns, selectedStatus, searchQuery, sortBy, selectedCategory, selectedTags, selectedNetwork, metaByCreator]);
+
+  const showL2Grid = selectedNetwork !== 'l1';
+  const showCovenantGrid = selectedNetwork !== 'l2';
+  const totalVisible = (showL2Grid ? filteredCampaigns.length : 0) + (showCovenantGrid ? filteredCovenantCampaigns.length : 0);
 
   const handleResetFilters = () => {
     setSelectedStatus('all');
@@ -187,7 +214,12 @@ export default function DonationsListingPage() {
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Campaigns</h2>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {isLoading ? 'Loading...' : `${filteredCampaigns.length} campaign${filteredCampaigns.length !== 1 ? 's' : ''} found`}
+                {isLoading
+                  ? 'Loading...'
+                  : `${totalVisible} campaign${totalVisible !== 1 ? 's' : ''} found`}
+                {!isLoading && filteredCovenantCampaigns.length > 0 ? (
+                  <span className="text-zinc-500"> · includes L1 covenant simulator campaigns on this device</span>
+                ) : null}
               </p>
             </div>
             <div className="flex flex-col gap-4 mb-6">
@@ -211,7 +243,7 @@ export default function DonationsListingPage() {
 
             {error && (
               <div className="rounded-lg bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-4 mb-6">
-                {error.message}
+                {typeof error === 'string' ? error : error.message}
               </div>
             )}
 
@@ -230,42 +262,55 @@ export default function DonationsListingPage() {
               </div>
             )}
 
-            {!isLoading && !error && filteredCampaigns.length === 0 && (
+            {!isLoading && !error && totalVisible === 0 && (
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-zinc-500 dark:text-zinc-400">
                 <p className="font-medium">No campaigns match your filters</p>
                 <p className="text-sm mt-1">Try changing filters or create a campaign from the studio.</p>
-                <Link
-                  href="/donations/studio"
-                  className="inline-block mt-4 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  Create campaign
-                </Link>
+                <div className="flex flex-wrap justify-center gap-3 mt-4">
+                  <Link
+                    href="/donations/studio#create"
+                    className="inline-block px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    L2 campaign (Studio)
+                  </Link>
+                  <Link
+                    href="/donations/studio#covenant-create"
+                    className="inline-block px-4 py-2 rounded-lg border border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  >
+                    L1 covenant campaign
+                  </Link>
+                </div>
               </div>
             )}
 
-            {!isLoading && filteredCampaigns.length > 0 && (
+            {!isLoading && totalVisible > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCampaigns.map((c) => (
-                  <DonationCampaignCard
-                    key={donationListMetaKey(c)}
-                    campaign={c}
-                    metadata={metaByCreator[donationListMetaKey(c)] ?? null}
-                    href={
-                      c.campaignId != null
-                        ? `/donations/${c.creatorAddress}?campaignId=${c.campaignId.toString()}`
-                        : undefined
-                    }
-                    badges={[
-                      {
-                        label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
-                        variant: 'neutral',
-                      },
-                      ...(c.featuredModuleUnlocked
-                        ? [{ label: 'Featured', variant: 'amber' as const }]
-                        : []),
-                    ]}
-                  />
-                ))}
+                {showCovenantGrid &&
+                  filteredCovenantCampaigns.map((c) => (
+                    <CovenantCrowdfundCampaignCard key={`covenant-${c.id}`} campaign={c} />
+                  ))}
+                {showL2Grid &&
+                  filteredCampaigns.map((c) => (
+                    <DonationCampaignCard
+                      key={donationListMetaKey(c)}
+                      campaign={c}
+                      metadata={metaByCreator[donationListMetaKey(c)] ?? null}
+                      href={
+                        c.campaignId != null
+                          ? `/donations/${c.creatorAddress}?campaignId=${c.campaignId.toString()}`
+                          : undefined
+                      }
+                      badges={[
+                        {
+                          label: c.donationMethod === 'L1_DIRECT' ? 'L1 • Direct' : 'L2 • Igra',
+                          variant: 'neutral',
+                        },
+                        ...(c.featuredModuleUnlocked
+                          ? [{ label: 'Featured', variant: 'amber' as const }]
+                          : []),
+                      ]}
+                    />
+                  ))}
               </div>
             )}
           </div>

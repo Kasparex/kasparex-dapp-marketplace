@@ -9,8 +9,12 @@ import { DonationsSidebar, type DonationFilterStatus } from '@/components/donati
 import { FilterBar } from '@/components/FilterBar';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
 import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
+import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCrowdfundCampaignCard';
 import { DonationCategoryFilter, DonationTagMultiFilter } from '@/components/donations/DonationTaxonomyFilters';
 import { useDonationCampaign } from '@/hooks/useDonationCampaign';
+import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { normalizeAddr } from '@/lib/covenant/utils';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { totalRaisedWei } from '@/lib/donations/totals';
@@ -24,7 +28,15 @@ function dashboardGoalReached(c: DonationCampaign): boolean {
 
 export default function DonationsDashboardPage() {
   const { address, isConnected } = useAccount();
+  const { state: kaspaState } = useKaspaWallet();
   const { campaign, isLoading, error, refetch } = useDonationCampaign(address ?? null);
+  const { campaigns: covenantLinked, loading: covenantLoading } = useCovenantCrowdfund();
+
+  const myCovenantCampaigns = useMemo(() => {
+    if (!kaspaState.address) return [];
+    const norm = normalizeAddr(kaspaState.address);
+    return covenantLinked.filter((c) => normalizeAddr(c.creator) === norm);
+  }, [covenantLinked, kaspaState.address]);
 
   // Keep the same filter primitives as the main listing (future-proof for multi-campaign V2).
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
@@ -145,6 +157,38 @@ export default function DonationsDashboardPage() {
                 </div>
               </div>
             </div>
+
+            {(kaspaState.isConnected || myCovenantCampaigns.length > 0) && (
+              <section className="mb-10">
+                <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L1 covenant campaigns</h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Goal-based raises on Kaspa L1 (simulator, stored on this device).
+                    </p>
+                  </div>
+                  <Link
+                    href="/donations/studio#covenant-create"
+                    className="k-control-btn !border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300"
+                  >
+                    New L1 campaign
+                  </Link>
+                </div>
+                {!kaspaState.isConnected ? (
+                  <p className="text-sm text-zinc-500">Connect Kaspa wallet to manage L1 covenant campaigns.</p>
+                ) : covenantLoading && myCovenantCampaigns.length === 0 ? (
+                  <p className="text-sm text-zinc-500">Loading...</p>
+                ) : myCovenantCampaigns.length === 0 ? (
+                  <p className="text-sm text-zinc-500">No L1 covenant campaigns yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {myCovenantCampaigns.map((c) => (
+                      <CovenantCrowdfundCampaignCard key={c.id} campaign={c} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
 
             {!isConnected && (
               <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-10 text-center">

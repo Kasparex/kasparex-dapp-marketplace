@@ -104,6 +104,20 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
 
         {/* Secondary nav: neutral when inactive so it does not steal the primary CTA look. */}
         <Link
+          href="/donations/studio#covenant-create"
+          className={`k-control-btn w-full justify-center gap-2 ${
+            pathname.startsWith('/donations/covenant')
+              ? '!border-teal-500/40 !bg-teal-500/15 !text-teal-800 dark:!text-teal-300'
+              : '!border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300 hover:!bg-teal-500/15'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span className="text-xs font-black uppercase tracking-widest">L1 covenant</span>
+        </Link>
+
+        <Link
           href="/donations/dashboard"
           className={`k-control-btn w-full justify-center gap-2 ${
             pathname.startsWith('/donations/dashboard')

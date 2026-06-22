@@ -27,11 +27,14 @@ export function DonationsHeader() {
             </span>
           </h1>
           <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
-            Crowdfund creators and projects with verifiable on-chain campaigns. Contribute directly via L1, or use L2 escrow for goal-based crowdfunding with refunds.
+            Crowdfund creators and projects in one place: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises (simulator).
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/donations/studio#create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
-              Create campaign
+              Create L2 campaign
+            </Link>
+            <Link href="/donations/studio#covenant-create" className="k-control-btn !border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300">
+              Create L1 covenant
             </Link>
             <Link href="/donations/dashboard" className="k-control-btn">
               My campaigns

@@ -147,6 +147,12 @@ class CrowdfundSimulator {
         c.pledges.some((p) => normalizeAddr(p.backer) === norm)
     );
   }
+
+  async getById(id: string): Promise<CrowdfundCampaign | null> {
+    const c = this.campaigns.get(id);
+    if (!c) return null;
+    return { ...c, status: resolveStatus(c) };
+  }
 }
 
 let instance: CrowdfundSimulator | null = null;

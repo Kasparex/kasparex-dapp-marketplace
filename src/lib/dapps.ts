@@ -307,6 +307,7 @@ export const placeholderDApps: DApp[] = [
     benefits: 'Trustworthy community raises for launches, drops, and shared projects on Kaspa.',
     developer: 'Kasparex',
     developerLinks: [
+      { label: 'CrowdKAS', url: 'https://www.kasparex.com/donations' },
       { label: 'Covenant Split', url: 'https://www.kasparex.com/dapps/covenant-split' },
       { label: 'Website', url: 'https://www.kasparex.com' },
     ],

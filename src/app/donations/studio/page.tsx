@@ -27,6 +27,7 @@ import { waitForTransactionReceipt } from 'wagmi/actions';
 import { config as wagmiChainConfig } from '@/lib/wagmi';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { CrowdKasCovenantPanel } from '@/components/donations/CrowdKasCovenantPanel';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -739,6 +740,24 @@ export default function DonationsStudioPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-start">
               <div className="lg:col-span-3 space-y-6">
+                <section
+                  id="covenant-create"
+                  className="scroll-mt-24 rounded-3xl border border-teal-500/25 dark:border-teal-500/20 bg-gradient-to-br from-teal-500/5 to-zinc-50 dark:from-teal-950/30 dark:to-zinc-900 p-6 md:p-8"
+                >
+                  <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
+                </section>
+
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center" aria-hidden>
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-zinc-50 dark:bg-zinc-950 px-3 text-xs font-bold uppercase tracking-widest text-zinc-500">
+                      Or use L2 escrow on Igra
+                    </span>
+                  </div>
+                </div>
+
                 <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8">
                   <div className="mb-6">
                     <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">

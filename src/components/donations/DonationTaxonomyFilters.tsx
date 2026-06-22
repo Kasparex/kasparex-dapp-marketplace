@@ -36,10 +36,10 @@ export function DonationNetworkFilter({
   onChange: (value: DonationNetworkFilterValue) => void;
 }) {
   return (
-    <select className="k-control-btn min-w-[140px] h-10" value={value} onChange={(e) => onChange(e.target.value as DonationNetworkFilterValue)}>
+    <select className="k-control-btn min-w-[160px] h-10" value={value} onChange={(e) => onChange(e.target.value as DonationNetworkFilterValue)}>
       <option value="all">All networks</option>
-      <option value="l1">Kaspa L1</option>
-      <option value="l2">L2 escrow</option>
+      <option value="l1">Kaspa L1 (covenant + tips)</option>
+      <option value="l2">L2 escrow (Igra)</option>
     </select>
   );
 }
