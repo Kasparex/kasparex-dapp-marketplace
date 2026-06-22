@@ -742,7 +742,7 @@ export default function DonationsStudioPage() {
               <div className="lg:col-span-3 space-y-6">
                 <section
                   id="covenant-create"
-                  className="scroll-mt-24 rounded-3xl border border-teal-500/25 dark:border-teal-500/20 bg-gradient-to-br from-teal-500/5 to-zinc-50 dark:from-teal-950/30 dark:to-zinc-900 p-6 md:p-8"
+                  className="scroll-mt-24 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8"
                 >
                   <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
                 </section>

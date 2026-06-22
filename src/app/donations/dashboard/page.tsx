@@ -159,17 +159,20 @@ export default function DonationsDashboardPage() {
             </div>
 
             {(kaspaState.isConnected || myCovenantCampaigns.length > 0) && (
-              <section className="mb-10">
+              <section className="mb-10 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
                 <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L1 covenant campaigns</h2>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Goal-based raises on Kaspa L1 (simulator, stored on this device).
+                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-1">
+                      L1 covenant
+                    </p>
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">My L1 campaigns</h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                      Same CrowdKAS layout as L2; simulator data on this device.
                     </p>
                   </div>
                   <Link
                     href="/donations/studio#covenant-create"
-                    className="k-control-btn !border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300"
+                    className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
                   >
                     New L1 campaign
                   </Link>

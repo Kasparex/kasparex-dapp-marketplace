@@ -166,7 +166,7 @@ export const hubProjects: HubProject[] = [
     id: 'kasparex-donations',
     name: 'Kasparex CrowdKAS',
     category: 'Creator Tools',
-    description: 'Crowdfund creators on Igra L2 escrow, Kaspa L1 tips, and L1 covenant goal raises (simulator) in one hub.',
+    description: 'One hub for crowdfunding: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises with the same campaign layout.',
     route: '/donations',
     status: 'beta',
     earnPtsHint: `~${P.crowdkasCampaignCreate} pts when a campaign create tx qualifies`,

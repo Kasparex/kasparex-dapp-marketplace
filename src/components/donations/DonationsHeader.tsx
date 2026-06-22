@@ -33,7 +33,7 @@ export function DonationsHeader() {
             <Link href="/donations/studio#create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
               Create L2 campaign
             </Link>
-            <Link href="/donations/studio#covenant-create" className="k-control-btn !border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300">
+            <Link href="/donations/studio#covenant-create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
               Create L1 covenant
             </Link>
             <Link href="/donations/dashboard" className="k-control-btn">

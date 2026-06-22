@@ -107,8 +107,8 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
           href="/donations/studio#covenant-create"
           className={`k-control-btn w-full justify-center gap-2 ${
             pathname.startsWith('/donations/covenant')
-              ? '!border-teal-500/40 !bg-teal-500/15 !text-teal-800 dark:!text-teal-300'
-              : '!border-teal-500/30 !bg-teal-500/10 !text-teal-800 dark:!text-teal-300 hover:!bg-teal-500/15'
+              ? '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300'
+              : '!border-zinc-200 dark:!border-zinc-700 !bg-white dark:!bg-zinc-900 !text-zinc-700 dark:!text-zinc-200 hover:!bg-zinc-100 dark:hover:!bg-zinc-800'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
