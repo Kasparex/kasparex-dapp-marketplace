@@ -8,6 +8,7 @@ import { useHubWalletGate } from '@/hooks/useHubWalletGate';
 import { HubWalletGateModal } from './HubWalletGateModal';
 import { HubNetworkBadge } from './HubNetworkBadge';
 import { HubWalletGateOverlay } from './HubWalletGateOverlay';
+import { HUB_GATE_FRAME_CLASS } from '@/lib/hub/gateFrame';
 
 export interface HubWalletGateConfig {
   title?: string;
@@ -84,7 +85,7 @@ export function HubWalletGateShell({
 
   if (mode === 'replace') {
     return (
-      <div className={`relative overflow-hidden rounded-xl min-h-[min(24rem,70vh)] w-full ${className}`}>
+      <div className={`${HUB_GATE_FRAME_CLASS} w-full ${className}`}>
         {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
         {overlay}
       </div>
@@ -92,9 +93,9 @@ export function HubWalletGateShell({
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-xl ${className}`}>
+    <div className={`${HUB_GATE_FRAME_CLASS} ${className}`}>
       {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
-      <div className="pointer-events-none select-none" aria-hidden>
+      <div className="pointer-events-none select-none overflow-hidden max-h-[70vh] min-h-[inherit]" aria-hidden>
         {children}
       </div>
       {overlay}

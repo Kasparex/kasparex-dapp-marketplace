@@ -22,6 +22,7 @@ import { getDAppAvailableChainNames } from '@/lib/dapps/contractResolver';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { DAppNetworkBadge } from './dapps/DAppNetworkBadge';
 import { HubWalletGateOverlay } from '@/components/hub/HubWalletGateOverlay';
+import { HUB_GATE_FRAME_CLASS } from '@/lib/hub/gateFrame';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 
@@ -139,7 +140,7 @@ export function DAppWidget({
     const cardClass = 'w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden';
 
     return (
-      <div className="relative overflow-hidden rounded-xl">
+      <div className={isBlocked ? HUB_GATE_FRAME_CLASS : 'relative overflow-hidden rounded-xl'}>
         {l1Modal ? (
           <DAppWalletGateModal
             dapp={l1Modal.dapp}
