@@ -1,6 +1,8 @@
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { HubWalletGateConfig } from '@/components/hub/HubWalletGateShell';
 import type { Game } from '@/lib/games/games';
+import type { HubNetworkLayer } from '@/lib/hub/access';
+import { hubModuleNetworkBadge } from '@/lib/hub/moduleGate';
 
 export function gameL1PlayGateConfig(game: Pick<Game, 'name'>): HubWalletGateConfig {
   return {
@@ -66,3 +68,69 @@ export const MAGAZINE_L1_PURCHASE_GATE: HubWalletGateConfig = {
   networkBadge: { layer: 'L1', label: 'Kaspa' },
   autoPrompt: false,
 };
+
+export const VBLOG_DASHBOARD_GATE: HubWalletGateConfig = {
+  title: 'Wallet required',
+  name: 'vBlog dashboard',
+  message: 'Connect a Kaspa L1 or EVM wallet to access your author dashboard.',
+  requirement: { layer: 'either' },
+  networkBadge: { layer: 'either', label: 'Kaspa or EVM' },
+  autoPrompt: true,
+};
+
+export const MAGAZINES_DASHBOARD_GATE: HubWalletGateConfig = {
+  title: 'Wallet required',
+  name: 'Magazines dashboard',
+  message: 'Connect your Kaspa wallet to view purchases, manage publications, and track revenue.',
+  requirement: { layer: 'L1' },
+  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  autoPrompt: true,
+};
+
+export const STORE_DASHBOARD_GATE: HubWalletGateConfig = {
+  title: 'Wallet required',
+  name: 'Store dashboard',
+  message: 'Connect your Kaspa wallet to access the seller dashboard.',
+  requirement: { layer: 'L1' },
+  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  autoPrompt: true,
+};
+
+export function storeProductGateConfig(product: Pick<{ title: string }, 'title'>): HubWalletGateConfig {
+  return {
+    title: 'Wallet required',
+    name: product.title,
+    message: 'Connect your Kaspa wallet to view and purchase this product.',
+    requirement: { layer: 'L1' },
+    networkBadge: { layer: 'L1', label: 'Kaspa' },
+    autoPrompt: false,
+  };
+}
+
+export function magazineIssueGateConfig(issue: Pick<{ title: string }, 'title'>): HubWalletGateConfig {
+  return {
+    title: 'Wallet required',
+    name: issue.title,
+    message: 'Connect your Kaspa wallet to purchase this issue.',
+    requirement: { layer: 'L1' },
+    networkBadge: { layer: 'L1', label: 'Kaspa' },
+    autoPrompt: false,
+  };
+}
+
+export function hubModuleGateConfig(
+  title: string,
+  requiredNetwork: HubNetworkLayer
+): HubWalletGateConfig {
+  return {
+    title: 'Wallet required',
+    name: title,
+    message: `Connect your ${requiredNetwork === 'L2' ? 'EVM' : 'Kaspa'} wallet to unlock this module.`,
+    requirement: {
+      layer: requiredNetwork,
+      chainIds: requiredNetwork === 'L2' ? [] : undefined,
+    },
+    networkBadge: hubModuleNetworkBadge(requiredNetwork),
+    autoPrompt: false,
+  };
+}

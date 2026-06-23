@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
-import { useHubAccess } from '@/hooks/useHubAccess';
-import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubNetworkBadge } from '@/components/hub/HubNetworkBadge';
 import { STORE_L1_PURCHASE_GATE } from '@/lib/hub/gateConfigs';
@@ -22,11 +20,10 @@ interface PurchaseModalProps {
 
 export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseModalProps) {
   const [mounted, setMounted] = useState(false);
-  const { state } = useKaspaWallet();
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  const access = useHubAccess(STORE_L1_PURCHASE_GATE.requirement);
-  const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
+  const gateConfig = { ...STORE_L1_PURCHASE_GATE, name: product.title };
+  const { isOpenable, promptGate, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
 
   useEffect(() => {
     setMounted(true);
@@ -38,13 +35,8 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
   const hasDiscount = fee.feePercent < 5;
 
   const handleProceed = () => {
-    if (!access.isOpenable) {
-      promptHubGate(access, {
-        title: STORE_L1_PURCHASE_GATE.title ?? 'Wallet required',
-        name: STORE_L1_PURCHASE_GATE.name,
-        message: STORE_L1_PURCHASE_GATE.message ?? access.message,
-        networkBadge: STORE_L1_PURCHASE_GATE.networkBadge,
-      });
+    if (!isOpenable) {
+      promptGate();
       return;
     }
     onProceed();
@@ -52,9 +44,7 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
 
   return createPortal(
     <>
-      {l1Modal ? (
-        <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
-      ) : null}
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
       <div
         className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
         onClick={onClose}
@@ -136,18 +126,12 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
               </div>
             </div>
 
-            {!access.isOpenable && (
+            {!isOpenable && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 flex flex-col items-center gap-2 text-center">
                 <HubNetworkBadge badge={STORE_L1_PURCHASE_GATE.networkBadge} size="sm" />
                 <p className="text-sm text-yellow-800 dark:text-yellow-300">
                   {STORE_L1_PURCHASE_GATE.message}
                 </p>
-              </div>
-            )}
-
-            {state.address && (
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Paying from: {state.address.slice(0, 8)}...{state.address.slice(-6)}
               </div>
             )}
 
@@ -162,7 +146,7 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
                 onClick={handleProceed}
                 className="flex-1 px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
               >
-                {access.isOpenable ? 'Proceed to Payment' : 'Connect Wallet'}
+                {isOpenable ? 'Proceed to Payment' : 'Connect Wallet'}
               </button>
             </div>
           </div>

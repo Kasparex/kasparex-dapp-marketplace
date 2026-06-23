@@ -8,6 +8,7 @@ import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
 export default function VBlogDashboardPage() {
   const { articles } = useVBlog();
@@ -50,16 +51,7 @@ export default function VBlogDashboardPage() {
                 </p>
               </div>
 
-              <HubWalletGateShell
-                mode="replace"
-                config={{
-                  name: 'vBlog dashboard',
-                  message: 'Connect a Kaspa L1 or EVM wallet to access your author dashboard.',
-                  requirement: { layer: 'either' },
-                  networkBadge: { layer: 'either', label: 'Kaspa or EVM' },
-                  autoPrompt: true,
-                }}
-              >
+              <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
                 <AuthorDashboard createIntentKey={createIntentKey} editArticleId={editArticleId} />
               </HubWalletGateShell>
             </div>

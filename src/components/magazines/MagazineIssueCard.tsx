@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { MagazineIssue } from '@/lib/magazines/types';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { magazineIssueGateConfig } from '@/lib/hub/gateConfigs';
+import { HubGatedListingCard } from '@/components/hub/HubGatedListingCard';
+import { KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
 interface MagazineIssueCardProps {
     issue: MagazineIssue;
@@ -11,9 +13,11 @@ interface MagazineIssueCardProps {
 
 export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProps) {
     return (
-        <KxListingCard
+        <HubGatedListingCard
             href={`/magazines/${magazineSlug}/${issue.issueNumber}`}
             accent="magazines"
+            config={magazineIssueGateConfig(issue)}
+            gateWhen={!issue.isPurchased}
             className="flex flex-col h-full"
         >
             <KxListingCardMedia aspectClass="aspect-[3/4]" className="relative">
@@ -57,6 +61,6 @@ export function MagazineIssueCard({ issue, magazineSlug }: MagazineIssueCardProp
                     </span>
                 </div>
             </KxListingCardBody>
-        </KxListingCard>
+        </HubGatedListingCard>
     );
 }

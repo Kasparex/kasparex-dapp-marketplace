@@ -14,6 +14,7 @@ import type { Product, Purchase } from '@/lib/store/types';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
 function DashboardContent() {
   const { state } = useKaspaWallet();
@@ -100,16 +101,7 @@ function DashboardContent() {
         <Header />
         <main className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-6">
           <div className="max-w-lg w-full">
-            <HubWalletGateShell
-              mode="replace"
-              config={{
-                name: 'Store dashboard',
-                message: 'Connect your Kaspa wallet to access the seller dashboard.',
-                requirement: { layer: 'L1' },
-                networkBadge: { layer: 'L1', label: 'Kaspa' },
-                autoPrompt: true,
-              }}
-            >
+            <HubWalletGateShell mode="replace" config={STORE_DASHBOARD_GATE}>
               <div />
             </HubWalletGateShell>
           </div>

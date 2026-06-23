@@ -15,6 +15,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { MAGAZINES_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
 export default function MagazinesDashboardPage() {
     const { state: walletState } = useKaspaWallet();
@@ -87,16 +88,7 @@ export default function MagazinesDashboardPage() {
                 <Header />
                 <main className="flex-1 flex items-center justify-center p-6">
                     <div className="max-w-lg w-full">
-                        <HubWalletGateShell
-                            mode="replace"
-                            config={{
-                                name: 'Magazines dashboard',
-                                message: 'Connect your Kaspa wallet to view purchases, manage publications, and track revenue.',
-                                requirement: { layer: 'L1' },
-                                networkBadge: { layer: 'L1', label: 'Kaspa' },
-                                autoPrompt: true,
-                            }}
-                        >
+                        <HubWalletGateShell mode="replace" config={MAGAZINES_DASHBOARD_GATE}>
                             <div />
                         </HubWalletGateShell>
                     </div>

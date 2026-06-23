@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
+import { useHubListingGate } from '@/hooks/useHubListingGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { ProductPreviewModal } from './ProductPreviewModal';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
@@ -14,20 +17,30 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const [showPreview, setShowPreview] = useState(false);
   const router = useRouter();
+  const gateConfig = storeProductGateConfig(product);
+  const { cardProps, promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
 
   const thumbnailUrl = product.thumbnailCid
     ? getBestGatewayUrl(product.thumbnailCid)
     : null;
 
-  const handleBuy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const goToProduct = () => {
+    if (!isOpenable) {
+      promptGate();
+      return;
+    }
     router.push(`/store/${product.slug}`);
   };
 
+  const handleBuy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goToProduct();
+  };
+
   return (
-    <KxListingCard href={`/store/${product.slug}`} accent="store" className="h-full flex flex-col">
-        {/* Product Image */}
+    <>
+      <KxListingCard accent="store" className="h-full flex flex-col" {...cardProps(`/store/${product.slug}`)}>
         <KxListingCardMedia aspectClass="aspect-[4/3]" className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
           {thumbnailUrl ? (
             <img
@@ -44,14 +57,12 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Category Badge */}
           <div className="absolute top-2 left-2 z-10">
             <span className="px-2 py-1 bg-yellow-500/20 backdrop-blur-sm text-yellow-700 dark:text-yellow-300 text-[10px] font-bold uppercase tracking-wider rounded-md border border-yellow-500/20">
               {product.category}
             </span>
           </div>
 
-          {/* Network Badge */}
           <div className="absolute top-2 right-2 z-10">
             <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${product.network === 'L1'
               ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
@@ -62,7 +73,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </KxListingCardMedia>
 
-        {/* Product Info */}
         <KxListingCardBody className="flex-1 flex flex-col">
           <div className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-widest mb-1">
             by {product.sellerAddress.slice(-5)}
@@ -74,7 +84,6 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.description}
           </p>
 
-          {/* Footer with Price and Buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
             <div className="text-lg font-black text-zinc-900 dark:text-zinc-100">
               {product.priceKAS} <span className="text-sm text-zinc-500 font-bold">KAS</span>
@@ -104,15 +113,18 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </KxListingCardBody>
 
-      <ProductPreviewModal
-        product={product}
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        onBuy={() => {
-          setShowPreview(false);
-          router.push(`/store/${product.slug}`);
-        }}
-      />
-    </KxListingCard>
+        <ProductPreviewModal
+          product={product}
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onBuy={() => {
+            setShowPreview(false);
+            goToProduct();
+          }}
+        />
+      </KxListingCard>
+
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
+    </>
   );
 }

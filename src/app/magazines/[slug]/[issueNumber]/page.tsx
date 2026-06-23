@@ -14,16 +14,14 @@ import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_
 import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
 import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { magazineIssueGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubAccess } from '@/hooks/useHubAccess';
-import { useHubWalletGate } from '@/hooks/useHubWalletGate';
-import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
-import { MAGAZINE_L1_PURCHASE_GATE } from '@/lib/hub/gateConfigs';
 
 export default function IssueDetailPage() {
     const { slug, issueNumber } = useParams();
     const router = useRouter();
-    const access = useHubAccess(MAGAZINE_L1_PURCHASE_GATE.requirement);
-    const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
+    const access = useHubAccess({ layer: 'L1' });
     const [magazine, setMagazine] = useState<Magazine | null>(null);
     const [issue, setIssue] = useState<MagazineIssue | null>(null);
     const [issues, setIssues] = useState<MagazineIssue[]>([]);
@@ -83,17 +81,7 @@ export default function IssueDetailPage() {
     }, [slug, issueNumber, router]);
 
     const handlePurchase = async () => {
-        if (!issue) return;
-
-        if (!access.isOpenable) {
-            promptHubGate(access, {
-                title: MAGAZINE_L1_PURCHASE_GATE.title ?? 'Wallet required',
-                name: MAGAZINE_L1_PURCHASE_GATE.name,
-                message: MAGAZINE_L1_PURCHASE_GATE.message ?? access.message,
-                networkBadge: MAGAZINE_L1_PURCHASE_GATE.networkBadge,
-            });
-            return;
-        }
+        if (!issue || !access.isOpenable) return;
 
         setIsProcessing(true);
         // Mock payment delay
@@ -117,12 +105,11 @@ export default function IssueDetailPage() {
         );
     }
 
+    const purchaseGate = { ...magazineIssueGateConfig(issue), autoPrompt: true };
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            {l1Modal ? (
-                <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
-            ) : null}
             <ReferralTracker contentType="magazine" contentSlug={slug as string} issueNumber={parseInt(issueNumber as string)} />
 
             <div className="flex flex-1">
@@ -197,6 +184,7 @@ export default function IssueDetailPage() {
                                     </p>
                                 </div>
 
+                                <HubWalletGateShell config={purchaseGate} enabled={!issue.isPurchased} mode="overlay">
                                 <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 mb-8">
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
@@ -256,6 +244,7 @@ export default function IssueDetailPage() {
                                         </button>
                                     )}
                                 </div>
+                                </HubWalletGateShell>
 
                                 {/* Contributors Section */}
                                 <div>

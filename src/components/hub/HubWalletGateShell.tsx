@@ -21,16 +21,20 @@ export function HubWalletGateShell({
   children,
   mode = 'overlay',
   className = '',
+  enabled: enabledProp = true,
 }: {
   config: HubWalletGateConfig;
   children: ReactNode;
   mode?: 'overlay' | 'replace';
   className?: string;
+  /** When false, children render without gating (e.g. already-owned content). */
+  enabled?: boolean;
 }) {
   const access = useHubAccess(config.requirement);
   const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
   const [autoPrompted, setAutoPrompted] = useState(false);
-  const isBlocked = !access.isOpenable;
+  const enabled = enabledProp ?? true;
+  const isBlocked = enabled && !access.isOpenable;
   const title = config.title ?? 'Wallet required';
   const message = config.message ?? access.message;
 
@@ -48,6 +52,12 @@ export function HubWalletGateShell({
     setAutoPrompted(true);
     openGate();
   }, [config.autoPrompt, isBlocked, autoPrompted]);
+
+  useEffect(() => {
+    if (l1Modal && !isBlocked) {
+      closeL1Modal();
+    }
+  }, [l1Modal, isBlocked, closeL1Modal]);
 
   if (!isBlocked) {
     return <>{children}</>;

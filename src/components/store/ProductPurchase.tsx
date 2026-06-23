@@ -8,9 +8,9 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
 import { recordPurchase } from '@/lib/store/purchases';
-import { useHubAccess } from '@/hooks/useHubAccess';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
-import { STORE_L1_PURCHASE_GATE } from '@/lib/hub/gateConfigs';
+import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
+import { useHubAccess } from '@/hooks/useHubAccess';
 import type { Product } from '@/lib/store/types';
 
 interface ProductPurchaseProps {
@@ -24,7 +24,8 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const { state } = useKaspaWallet();
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  const access = useHubAccess(STORE_L1_PURCHASE_GATE.requirement);
+  const gateConfig = { ...storeProductGateConfig(product), autoPrompt: true };
+  const access = useHubAccess(gateConfig.requirement);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -153,17 +154,10 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     }
   };
 
-  if (!access.isOpenable) {
-    return (
-      <HubWalletGateShell config={STORE_L1_PURCHASE_GATE} mode="replace">
-        <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 min-h-[12rem]" />
-      </HubWalletGateShell>
-    );
-  }
-
   const fee = feeCalculation || calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
 
   return (
+    <HubWalletGateShell config={gateConfig} mode="overlay">
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
       <div className="space-y-4">
         <div>
@@ -251,5 +245,6 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         </button>
       </div>
     </div>
+    </HubWalletGateShell>
   );
 }
