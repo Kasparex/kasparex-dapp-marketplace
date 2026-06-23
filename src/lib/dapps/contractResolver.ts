@@ -5,6 +5,7 @@
 
 import type { DApp } from '@/lib/dapps';
 import { getDAppChainIds, getDAppNetworkType } from '@/lib/dapps';
+import { getChainById } from '@/lib/wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 type DAppContractName =
@@ -74,4 +75,45 @@ export function getDAppDeployedChainIds(dapp: DApp): number[] {
     return chainIds;
   }
   return [];
+}
+
+/** Preferred chain for gating, badges, and switch-network prompts (deployed chain first). */
+export function getDAppPrimaryChainId(dapp: DApp): number | undefined {
+  const deployed = getDAppDeployedChainIds(dapp);
+  const candidates = deployed.length > 0 ? deployed : getDAppChainIds(dapp);
+  if (candidates.length === 0) return undefined;
+  if (candidates.length === 1) return candidates[0];
+
+  const networkLower = (dapp.network || '').toLowerCase();
+  const preferTestnet = networkLower.includes('testnet') && !networkLower.includes('mainnet');
+
+  const familyMatch = (id: number) => {
+    const name = (getChainById(id)?.name ?? '').toLowerCase();
+    if (networkLower.includes('kasplex')) return name.includes('kasplex');
+    if (networkLower.includes('igra') || networkLower.includes('galleon')) return name.includes('igra');
+    return true;
+  };
+
+  const family = candidates.filter(familyMatch);
+  const pool = family.length > 0 ? family : candidates;
+
+  const scored = [...pool].sort((a, b) => {
+    const na = (getChainById(a)?.name ?? '').toLowerCase();
+    const nb = (getChainById(b)?.name ?? '').toLowerCase();
+    const score = (n: string) => {
+      const isTestnet = n.includes('testnet');
+      const isMainnet = n.includes('mainnet');
+      if (preferTestnet) return isTestnet ? 0 : isMainnet ? 2 : 1;
+      return isMainnet && !isTestnet ? 0 : isTestnet ? 2 : 1;
+    };
+    return score(na) - score(nb) || na.localeCompare(nb);
+  });
+
+  return scored[0];
+}
+
+export function getDAppPrimaryChainName(dapp: DApp): string {
+  const id = getDAppPrimaryChainId(dapp);
+  if (id === undefined) return dapp.network || 'L2';
+  return getChainById(id)?.name ?? `Chain ${id}`;
 }

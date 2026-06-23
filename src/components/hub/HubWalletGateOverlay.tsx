@@ -1,0 +1,32 @@
+'use client';
+
+import type { ReactNode } from 'react';
+
+export function HubWalletGateOverlay({
+  badge,
+  title,
+  subtitle = 'Click to continue',
+  onClick,
+  className = '',
+}: {
+  badge: ReactNode;
+  title: string;
+  subtitle?: string;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-4 rounded-2xl bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-8 py-12 min-h-[16rem] w-full max-w-md mx-auto text-center cursor-pointer shadow-lg ${className}`}
+      aria-label={title}
+    >
+      {badge}
+      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-xs">
+        {title}
+      </p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{subtitle}</p>
+    </button>
+  );
+}

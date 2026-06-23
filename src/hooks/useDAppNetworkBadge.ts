@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import type { DApp } from '@/lib/dapps';
 import { getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import { getDAppPrimaryChainName } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 import { isTestnetDApp } from '@/lib/dapps/access';
 
@@ -66,10 +67,6 @@ export function useDAppNetworkBadge(
   }, [dapp.network, dapp.status, networkType, testnetDApp]);
 
   const requiredChainIds = useMemo(() => getDAppChainIds(dapp), [dapp]);
-  const requiredChainNames = useMemo(
-    () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
-    [requiredChainIds]
-  );
 
   const isL2ChainCompatible = useMemo(() => {
     if (networkType !== 'L2') return true;
@@ -77,17 +74,7 @@ export function useDAppNetworkBadge(
     return isDAppCompatibleWithChain(dapp, chainId);
   }, [chainId, dapp, isEvmConnected, networkType]);
 
-  const primaryRequiredChainName = useMemo(() => {
-    const unique = Array.from(new Set(requiredChainNames));
-    if (unique.length === 0) return '';
-    const score = (name: string) => {
-      const n = name.toLowerCase();
-      if (n.includes('mainnet')) return 0;
-      if (n.includes('testnet')) return 2;
-      return 1;
-    };
-    return [...unique].sort((a, b) => score(a) - score(b) || a.localeCompare(b))[0] || unique[0];
-  }, [requiredChainNames]);
+  const primaryRequiredChainName = useMemo(() => getDAppPrimaryChainName(dapp), [dapp]);
 
   const activeChain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
 

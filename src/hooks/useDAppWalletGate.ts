@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { useConnectModal, useChainModal } from '@rainbow-me/rainbowkit';
 import type { DApp } from '@/lib/dapps';
+import { getDAppNetworkType } from '@/lib/dapps';
 import type { DAppGateReason } from '@/lib/dapps/access';
 import type { UseDAppAccessResult } from '@/hooks/useDAppAccess';
 
@@ -12,7 +13,10 @@ export interface DAppWalletGateModalState {
   isContractMissingOnNetwork?: boolean;
 }
 
-function usesL1GateModal(reason: DAppGateReason): boolean {
+function usesL1GateModal(reason: DAppGateReason, networkType: 'L1' | 'L2'): boolean {
+  if (networkType === 'L2' && (reason === 'l2_chain_mismatch' || reason === 'contract_missing')) {
+    return false;
+  }
   return (
     reason === 'l1_wallet_required' ||
     reason === 'filter_mismatch' ||
@@ -36,15 +40,16 @@ export function useDAppWalletGate() {
       if (access.isOpenable) return;
 
       const reason = access.gateReason;
+      const networkType = getDAppNetworkType(dapp);
       if (reason === 'l2_wallet_required') {
         openConnectModal?.();
         return;
       }
-      if (reason === 'l2_chain_mismatch') {
+      if (reason === 'l2_chain_mismatch' || (reason === 'contract_missing' && networkType === 'L2')) {
         openChainModal?.();
         return;
       }
-      if (usesL1GateModal(reason)) {
+      if (usesL1GateModal(reason, networkType)) {
         setL1Modal({ dapp, ...options });
       }
     },

@@ -17,8 +17,10 @@ import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
+import { getDAppBlockedOverlayMessage } from '@/lib/dapps/access';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { DAppNetworkBadge } from './dapps/DAppNetworkBadge';
+import { HubWalletGateOverlay } from '@/components/hub/HubWalletGateOverlay';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 
@@ -76,7 +78,7 @@ export function DAppWidget({
     isL2ChainCompatible &&
     (!contractAddress || !contractAddress.startsWith('0x'));
 
-  const { isOpenable, gateReason } = useDAppAccess({
+  const { isOpenable, gateReason, requiredChainNames } = useDAppAccess({
     dapp,
     isContractMissingOnNetwork: isContractMissingOnThisNetwork,
   });
@@ -155,18 +157,20 @@ export function DAppWidget({
         </div>
 
         {autoPromptWhenBlocked && isBlocked ? (
-          <button
-            type="button"
-            onClick={handleBlockedInteraction}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-xl bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm px-6 text-center cursor-pointer border-0"
-            aria-label="Connect wallet to use this dApp"
-          >
-            <DAppNetworkBadge dapp={dapp} preferRequired size="md" />
-            <p className="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-              Connect your wallet to use this dApp
-            </p>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Click to connect</p>
-          </button>
+          <div className="absolute inset-0 z-20 flex items-center justify-center p-6 sm:p-8">
+            <HubWalletGateOverlay
+              badge={<DAppNetworkBadge dapp={dapp} preferRequired size="md" />}
+              title={getDAppBlockedOverlayMessage(gateReason, dapp, requiredChainNames)}
+              subtitle={
+                gateReason === 'l2_chain_mismatch' || gateReason === 'contract_missing'
+                  ? 'Click to change network'
+                  : gateReason === 'l2_wallet_required'
+                    ? 'Click to connect'
+                    : 'Click to connect'
+              }
+              onClick={handleBlockedInteraction}
+            />
+          </div>
         ) : isBlocked ? (
           <button
             type="button"

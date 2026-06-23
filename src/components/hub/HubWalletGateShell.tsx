@@ -2,10 +2,12 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import type { HubAccessRequirement, HubNetworkBadgeConfig } from '@/lib/hub/access';
+import { getHubGateMessage } from '@/lib/hub/access';
 import { useHubAccess } from '@/hooks/useHubAccess';
 import { useHubWalletGate } from '@/hooks/useHubWalletGate';
 import { HubWalletGateModal } from './HubWalletGateModal';
 import { HubNetworkBadge } from './HubNetworkBadge';
+import { HubWalletGateOverlay } from './HubWalletGateOverlay';
 
 export interface HubWalletGateConfig {
   title?: string;
@@ -36,13 +38,17 @@ export function HubWalletGateShell({
   const enabled = enabledProp ?? true;
   const isBlocked = enabled && !access.isOpenable;
   const title = config.title ?? 'Wallet required';
-  const message = config.message ?? access.message;
+  const defaultMessage = config.message ?? access.message;
+  const blockedMessage =
+    access.gateReason === 'l2_chain_mismatch'
+      ? getHubGateMessage(access.gateReason, access.requiredChainNames)
+      : defaultMessage;
 
   const openGate = () => {
     promptHubGate(access, {
       title,
       name: config.name,
-      message,
+      message: blockedMessage,
       networkBadge: config.networkBadge,
     });
   };
@@ -64,16 +70,14 @@ export function HubWalletGateShell({
   }
 
   const overlay = (
-  <button
-      type="button"
+    <HubWalletGateOverlay
+      badge={<HubNetworkBadge badge={config.networkBadge} size="md" />}
+      title={blockedMessage}
+      subtitle={
+        access.gateReason === 'l2_chain_mismatch' ? 'Click to change network' : 'Click to connect'
+      }
       onClick={openGate}
-      className="flex flex-col items-center justify-center gap-3 rounded-xl bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm px-6 py-10 text-center cursor-pointer border border-zinc-200 dark:border-zinc-800 w-full"
-      aria-label="Connect wallet to continue"
-    >
-      <HubNetworkBadge badge={config.networkBadge} size="md" />
-      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{message}</p>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">Click to connect</p>
-    </button>
+    />
   );
 
   return (
@@ -83,11 +87,15 @@ export function HubWalletGateShell({
       ) : null}
 
       {mode === 'replace' ? (
-        overlay
+        <div className="flex items-center justify-center min-h-[min(24rem,70vh)] w-full p-6 sm:p-8">
+          {overlay}
+        </div>
       ) : (
         <>
-          <div className="pointer-events-none opacity-60">{children}</div>
-          <div className="absolute inset-0 z-20 flex items-center justify-center p-4">{overlay}</div>
+          <div className="pointer-events-none opacity-50">{children}</div>
+          <div className="absolute inset-0 z-20 flex items-center justify-center p-6 sm:p-8">
+            {overlay}
+          </div>
         </>
       )}
     </div>

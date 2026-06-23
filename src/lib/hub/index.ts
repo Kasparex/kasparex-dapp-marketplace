@@ -16,6 +16,7 @@ export { useHubListingGate } from '@/hooks/useHubListingGate';
 export { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 export { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 export { HubGatedListingCard } from '@/components/hub/HubGatedListingCard';
+export { HubWalletGateOverlay } from '@/components/hub/HubWalletGateOverlay';
 export { HubNetworkBadge } from '@/components/hub/HubNetworkBadge';
 export { HubModuleListingCard } from '@/components/hub/HubModuleListingCard';
 export type { HubWalletGateConfig } from '@/components/hub/HubWalletGateShell';

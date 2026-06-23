@@ -744,7 +744,7 @@ export default function DonationsStudioPage() {
                   id="covenant-create"
                   className="scroll-mt-24 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8"
                 >
-                  <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay">
+                  <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay" className="min-h-[18rem]">
                     <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
                   </HubWalletGateShell>
                 </section>
@@ -773,7 +773,7 @@ export default function DonationsStudioPage() {
                     </p>
                   </div>
 
-                  <HubWalletGateShell config={CROWDKAS_L2_STUDIO_GATE} mode="overlay">
+                  <HubWalletGateShell config={CROWDKAS_L2_STUDIO_GATE} mode="overlay" className="min-h-[22rem]">
                     {showMissingConfigNudge && (
                     <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
                       <p className="font-semibold">CrowdKAS contracts are not configured for Igra Mainnet yet.</p>
