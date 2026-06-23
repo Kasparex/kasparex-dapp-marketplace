@@ -9,6 +9,7 @@ export function HubWalletGateOverlay({
   availableNetworks,
   onClick,
   className = '',
+  variant = 'fill',
 }: {
   badge: ReactNode;
   title: string;
@@ -17,16 +18,18 @@ export function HubWalletGateOverlay({
   availableNetworks?: string[];
   onClick: () => void;
   className?: string;
+  /** fill: covers parent (blurred gate). standalone: centered card when nothing is behind. */
+  variant?: 'fill' | 'standalone';
 }) {
   const networks = availableNetworks?.filter(Boolean) ?? [];
 
+  const base =
+    variant === 'fill'
+      ? 'absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 p-6 sm:p-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center cursor-pointer rounded-xl'
+      : 'flex flex-col items-center justify-center gap-4 px-8 py-12 min-h-[16rem] w-full max-w-md mx-auto text-center cursor-pointer rounded-2xl bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm';
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-4 rounded-2xl bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 px-8 py-12 min-h-[16rem] w-full max-w-md mx-auto text-center cursor-pointer shadow-lg ${className}`}
-      aria-label={title}
-    >
+    <button type="button" onClick={onClick} className={`${base} ${className}`} aria-label={title}>
       {badge}
       <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-xs">
         {title}
@@ -40,7 +43,7 @@ export function HubWalletGateOverlay({
             {networks.map((name) => (
               <span
                 key={name}
-                className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                className="inline-flex items-center rounded-full bg-zinc-100/90 dark:bg-zinc-800/90 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300"
               >
                 {name}
               </span>

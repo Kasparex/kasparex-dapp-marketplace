@@ -72,6 +72,7 @@ export function HubWalletGateShell({
 
   const overlay = (
     <HubWalletGateOverlay
+      variant={mode === 'replace' ? 'standalone' : 'fill'}
       badge={<HubNetworkBadge badge={config.networkBadge} size="md" />}
       title={blockedMessage}
       availableNetworks={
@@ -94,10 +95,10 @@ export function HubWalletGateShell({
         </div>
       ) : (
         <>
-          <div className="pointer-events-none opacity-50">{children}</div>
-          <div className="absolute inset-0 z-20 flex items-center justify-center p-6 sm:p-8">
-            {overlay}
+          <div className="pointer-events-none select-none" aria-hidden>
+            {children}
           </div>
+          {overlay}
         </>
       )}
     </div>

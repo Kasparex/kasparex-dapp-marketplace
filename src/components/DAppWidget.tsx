@@ -182,15 +182,14 @@ export function DAppWidget({
         </div>
 
         {isBlocked ? (
-          <div className="absolute inset-0 z-20 flex items-center justify-center p-6 sm:p-8">
-            <HubWalletGateOverlay
-              badge={<DAppNetworkBadge dapp={dapp} preferRequired size="md" />}
-              title={getDAppBlockedOverlayMessage(effectiveGateReason, dapp, requiredChainNames)}
-              availableNetworks={availableChainNames}
-              subtitle={getDAppGateOverlaySubtitle(effectiveGateReason)}
-              onClick={handleBlockedInteraction}
-            />
-          </div>
+          <HubWalletGateOverlay
+            variant="fill"
+            badge={<DAppNetworkBadge dapp={dapp} preferRequired size="md" />}
+            title={getDAppBlockedOverlayMessage(effectiveGateReason, dapp, requiredChainNames)}
+            availableNetworks={availableChainNames}
+            subtitle={getDAppGateOverlaySubtitle(effectiveGateReason)}
+            onClick={handleBlockedInteraction}
+          />
         ) : null}
       </div>
     );
