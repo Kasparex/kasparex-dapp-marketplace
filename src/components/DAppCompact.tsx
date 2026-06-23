@@ -9,6 +9,7 @@ import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
+import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { isTestnetDApp } from '@/lib/dapps/access';
 
@@ -21,15 +22,15 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
     const mergedDApp = mergeDAppData(null, dapp);
     const category = getCategoryById(mergedDApp.category);
     const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
-    const [showGateModal, setShowGateModal] = useState(false);
+    const access = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
+    const { isOpenable } = access;
+    const { l1Modal, closeL1Modal, promptGate } = useDAppWalletGate();
 
     const networkType = getDAppNetworkType(mergedDApp);
     const isTestnet = isTestnetDApp(mergedDApp);
     const networkBadgeColor = isTestnet
         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
         : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
-
-    const { isOpenable } = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
 
     const rowContent = (
         <>
@@ -84,19 +85,20 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
             ) : (
                 <button
                     type="button"
-                    onClick={() => setShowGateModal(true)}
+                    onClick={() => promptGate(mergedDApp, access, { selectedNetwork })}
                     className="flex w-full items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all text-left"
                 >
                     {rowContent}
                 </button>
             )}
 
-            {showGateModal ? (
+            {l1Modal ? (
                 <DAppWalletGateModal
-                    dapp={mergedDApp}
-                    isOpen={showGateModal}
-                    onClose={() => setShowGateModal(false)}
-                    selectedNetwork={selectedNetwork}
+                    dapp={l1Modal.dapp}
+                    isOpen
+                    onClose={closeL1Modal}
+                    selectedNetwork={l1Modal.selectedNetwork}
+                    isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
                 />
             ) : null}
         </div>

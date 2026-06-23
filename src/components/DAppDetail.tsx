@@ -50,7 +50,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
         {/* Column 1 (left, wider): dApp Widget and related boxes - 3/5 width */}
         <div className="space-y-6 lg:col-span-3 order-1">
-          <DAppWidget dapp={dapp} />
+          <DAppWidget dapp={dapp} autoPromptWhenBlocked />
 
           {/* GRID and hub pts status boxes - side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

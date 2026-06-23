@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
 import type { DApp } from '@/lib/dapps';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { detectKaspaWallets } from '@/lib/kaspa/wallet';
@@ -11,6 +9,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import type { DAppGateReason } from '@/lib/dapps/access';
 import { DAppIcon } from './DAppIcon';
+import { DAppNetworkBadge } from './DAppNetworkBadge';
 
 interface DAppWalletGateModalProps {
   dapp: DApp;
@@ -23,10 +22,7 @@ interface DAppWalletGateModalProps {
 function gateTitle(reason: DAppGateReason): string {
   switch (reason) {
     case 'l1_wallet_required':
-    case 'l2_wallet_required':
       return 'Wallet required';
-    case 'l2_chain_mismatch':
-      return 'Switch network';
     case 'filter_mismatch':
       return 'Network filter';
     case 'contract_missing':
@@ -94,23 +90,7 @@ function L1WalletOptions({ onConnected }: { onConnected?: () => void }) {
   );
 }
 
-function L2ConnectButton() {
-  return (
-    <ConnectButton.Custom>
-      {({ openConnectModal, mounted }) => (
-        <button
-          type="button"
-          disabled={!mounted}
-          onClick={() => openConnectModal?.()}
-          className="w-full rounded-xl px-4 py-3 text-sm font-semibold bg-[#02abb8] text-white hover:bg-[#028a94] transition-colors disabled:opacity-50"
-        >
-          Connect EVM wallet
-        </button>
-      )}
-    </ConnectButton.Custom>
-  );
-}
-
+/** L1-only wallet gate modal. L2 connect/switch uses RainbowKit directly via useDAppWalletGate. */
 export function DAppWalletGateModal({
   dapp,
   isOpen,
@@ -118,8 +98,6 @@ export function DAppWalletGateModal({
   selectedNetwork = 'all',
   isContractMissingOnNetwork = false,
 }: DAppWalletGateModalProps) {
-  const { openChainModal } = useChainModal();
-  const { isConnected: isEvmConnected } = useAccount();
   const access = useDAppAccess({ dapp, selectedNetwork, isContractMissingOnNetwork });
 
   useEffect(() => {
@@ -139,10 +117,8 @@ export function DAppWalletGateModal({
 
   if (!isOpen || typeof window === 'undefined') return null;
 
-  const { gateReason, message, networkInfo, requiredChainNames } = access;
+  const { gateReason, message } = access;
   const showL1Connect = gateReason === 'l1_wallet_required';
-  const showL2Connect = gateReason === 'l2_wallet_required';
-  const showSwitchNetwork = gateReason === 'l2_chain_mismatch' && isEvmConnected;
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={onClose}>
@@ -179,34 +155,14 @@ export function DAppWalletGateModal({
         <div className="p-5 space-y-4">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-4 space-y-2">
+          <div className="flex flex-col items-start gap-2">
             <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
               Required network
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold bg-zinc-200/80 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200">
-                {networkInfo.layer}
-              </span>
-              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{networkInfo.display}</span>
-            </div>
-            {requiredChainNames.length > 0 && networkInfo.layer === 'L2' ? (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Supported chains: {requiredChainNames.join(', ')}
-              </p>
-            ) : null}
+            <DAppNetworkBadge dapp={dapp} preferRequired size="md" />
           </div>
 
           {showL1Connect ? <L1WalletOptions onConnected={onClose} /> : null}
-          {showL2Connect ? <L2ConnectButton /> : null}
-          {showSwitchNetwork ? (
-            <button
-              type="button"
-              onClick={() => openChainModal?.()}
-              className="w-full rounded-xl px-4 py-3 text-sm font-semibold bg-[#02abb8] text-white hover:bg-[#028a94] transition-colors"
-            >
-              Switch network
-            </button>
-          ) : null}
 
           <button
             type="button"

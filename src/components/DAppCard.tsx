@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
@@ -16,6 +16,7 @@ import { DAppIcon } from './dapps/DAppIcon';
 import { getChainById } from '@/lib/wagmi';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
+import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 
@@ -27,7 +28,9 @@ interface DAppCardProps {
 export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const chainId = useChainId();
   const mergedDApp = mergeDAppData(null, dapp);
-  const { isOpenable } = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
+  const access = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
+  const { isOpenable } = access;
+  const { l1Modal, closeL1Modal, promptGate } = useDAppWalletGate();
 
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
@@ -50,8 +53,6 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const isLiked = hasLiked(mergedDApp.id);
   const isFavoriteDapp = isFavorite(mergedDApp.id);
 
-  const [showGateModal, setShowGateModal] = useState(false);
-
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();
     e.stopPropagation();
@@ -60,7 +61,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
 
   const handleCardClick = () => {
     if (!isOpenable) {
-      setShowGateModal(true);
+      promptGate(mergedDApp, access, { selectedNetwork });
     }
   };
 
@@ -195,12 +196,13 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
         </KxListingCardBody>
       </KxListingCard>
 
-      {showGateModal ? (
+      {l1Modal ? (
         <DAppWalletGateModal
-          dapp={mergedDApp}
-          isOpen={showGateModal}
-          onClose={() => setShowGateModal(false)}
-          selectedNetwork={selectedNetwork}
+          dapp={l1Modal.dapp}
+          isOpen
+          onClose={closeL1Modal}
+          selectedNetwork={l1Modal.selectedNetwork}
+          isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
         />
       ) : null}
     </>

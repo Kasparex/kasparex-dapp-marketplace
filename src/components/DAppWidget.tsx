@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
 import { SimplePaymentWidget } from './dapps/SimplePaymentWidget';
@@ -18,7 +18,9 @@ import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
+import { DAppNetworkBadge } from './dapps/DAppNetworkBadge';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
+import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 
 interface DAppWidgetProps {
   dapp: DApp;
@@ -32,6 +34,8 @@ interface DAppWidgetProps {
   hideInfo?: boolean;
   hideEmbed?: boolean;
   accentColor?: string;
+  /** On dApp detail pages: auto-prompt wallet connect and show a blocked overlay. */
+  autoPromptWhenBlocked?: boolean;
 }
 
 export function DAppWidget({ 
@@ -45,11 +49,13 @@ export function DAppWidget({
   hideInfo = false,
   hideEmbed = false,
   accentColor = '#02abb8',
+  autoPromptWhenBlocked = false,
 }: DAppWidgetProps) {
   const { isConnected: isEvmConnected } = useAccount();
   const networkType = getDAppNetworkType(dapp);
   const chainId = useChainId();
-  const [showGateModal, setShowGateModal] = useState(false);
+  const [autoPrompted, setAutoPrompted] = useState(false);
+  const { l1Modal, closeL1Modal, promptGate } = useDAppWalletGate();
   const isL1DApp = networkType === 'L1';
 
   let contractAddress = '';
@@ -70,46 +76,52 @@ export function DAppWidget({
     isL2ChainCompatible &&
     (!contractAddress || !contractAddress.startsWith('0x'));
 
-  const { isOpenable } = useDAppAccess({
+  const { isOpenable, gateReason } = useDAppAccess({
     dapp,
     isContractMissingOnNetwork: isContractMissingOnThisNetwork,
   });
 
   const isBlocked = !isOpenable || isContractMissingOnThisNetwork;
 
+  const gateOptions = {
+    isContractMissingOnNetwork: isContractMissingOnThisNetwork,
+  };
+
   const handleBlockedInteraction = () => {
     if (isBlocked) {
-      setShowGateModal(true);
+      promptGate(dapp, { isOpenable, gateReason }, gateOptions);
     }
   };
+
+  useEffect(() => {
+    if (!autoPromptWhenBlocked || !isBlocked || autoPrompted) return;
+    setAutoPrompted(true);
+    promptGate(dapp, { isOpenable, gateReason }, gateOptions);
+  }, [
+    autoPromptWhenBlocked,
+    autoPrompted,
+    dapp,
+    gateReason,
+    isBlocked,
+    isOpenable,
+    promptGate,
+    isContractMissingOnThisNetwork,
+  ]);
 
   const renderShell = (inner: React.ReactNode, resolvedContractAddress?: string) => {
     const cardClass = 'w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden';
 
     return (
       <div className="relative">
-        <DAppWalletGateModal
-          dapp={dapp}
-          isOpen={showGateModal}
-          onClose={() => setShowGateModal(false)}
-          isContractMissingOnNetwork={isContractMissingOnThisNetwork}
-        />
-        <div
-          className={cardClass}
-          onClick={isBlocked ? handleBlockedInteraction : undefined}
-          onKeyDown={
-            isBlocked
-              ? (e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleBlockedInteraction();
-                  }
-                }
-              : undefined
-          }
-          role={isBlocked ? 'button' : undefined}
-          tabIndex={isBlocked ? 0 : undefined}
-        >
+        {l1Modal ? (
+          <DAppWalletGateModal
+            dapp={l1Modal.dapp}
+            isOpen
+            onClose={closeL1Modal}
+            isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
+          />
+        ) : null}
+        <div className={cardClass}>
           {!hideHeader ? (
             <div className={isBlocked ? 'pointer-events-none' : ''}>
               <DAppWidgetHeader
@@ -141,6 +153,28 @@ export function DAppWidget({
             </div>
           ) : null}
         </div>
+
+        {autoPromptWhenBlocked && isBlocked ? (
+          <button
+            type="button"
+            onClick={handleBlockedInteraction}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-xl bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm px-6 text-center cursor-pointer border-0"
+            aria-label="Connect wallet to use this dApp"
+          >
+            <DAppNetworkBadge dapp={dapp} preferRequired size="md" />
+            <p className="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              Connect your wallet to use this dApp
+            </p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Click to connect</p>
+          </button>
+        ) : isBlocked ? (
+          <button
+            type="button"
+            onClick={handleBlockedInteraction}
+            className="absolute inset-0 z-20 rounded-xl cursor-pointer border-0 bg-transparent"
+            aria-label="Connect wallet to use this dApp"
+          />
+        ) : null}
       </div>
     );
   };
