@@ -19,6 +19,8 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { totalRaisedWei } from '@/lib/donations/totals';
 import type { DonationCampaign } from '@/lib/donations/types';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { CROWDKAS_L1_COVENANT_GATE, CROWDKAS_L2_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
 function dashboardGoalReached(c: DonationCampaign): boolean {
   const v2 = c.campaignIdV2 != null;
@@ -27,7 +29,7 @@ function dashboardGoalReached(c: DonationCampaign): boolean {
 }
 
 export default function DonationsDashboardPage() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { state: kaspaState } = useKaspaWallet();
   const { campaign, isLoading, error, refetch } = useDonationCampaign(address ?? null);
   const { campaigns: covenantLinked, loading: covenantLoading } = useCovenantCrowdfund();
@@ -177,34 +179,24 @@ export default function DonationsDashboardPage() {
                     New L1 campaign
                   </Link>
                 </div>
-                {!kaspaState.isConnected ? (
-                  <p className="text-sm text-zinc-500">Connect Kaspa wallet to manage L1 covenant campaigns.</p>
-                ) : covenantLoading && myCovenantCampaigns.length === 0 ? (
-                  <p className="text-sm text-zinc-500">Loading...</p>
-                ) : myCovenantCampaigns.length === 0 ? (
-                  <p className="text-sm text-zinc-500">No L1 covenant campaigns yet.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {myCovenantCampaigns.map((c) => (
-                      <CovenantCrowdfundCampaignCard key={c.id} campaign={c} />
-                    ))}
-                  </div>
-                )}
+                <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay">
+                  {covenantLoading && myCovenantCampaigns.length === 0 ? (
+                    <p className="text-sm text-zinc-500">Loading...</p>
+                  ) : myCovenantCampaigns.length === 0 ? (
+                    <p className="text-sm text-zinc-500">No L1 covenant campaigns yet.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {myCovenantCampaigns.map((c) => (
+                        <CovenantCrowdfundCampaignCard key={c.id} campaign={c} />
+                      ))}
+                    </div>
+                  )}
+                </HubWalletGateShell>
               </section>
             )}
 
-            {!isConnected && (
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-10 text-center">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Connect your wallet</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto">
-                  Connect your EVM wallet to see your creator campaigns. (This will expand to multiple campaigns once CrowdKAS V2 is live.)
-                </p>
-              </div>
-            )}
-
-            {isConnected && (
-              <>
-                <div className="flex flex-col gap-4 mb-6">
+            <HubWalletGateShell config={CROWDKAS_L2_DASHBOARD_GATE} mode="overlay">
+              <div className="flex flex-col gap-4 mb-6">
                   <FilterBar
                     search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search my campaigns...' }}
                     onReset={handleResetFilters}
@@ -259,8 +251,7 @@ export default function DonationsDashboardPage() {
                     </button>
                   </div>
                 )}
-              </>
-            )}
+            </HubWalletGateShell>
           </div>
         </main>
       </div>

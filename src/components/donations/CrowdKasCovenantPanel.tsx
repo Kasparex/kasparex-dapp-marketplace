@@ -88,13 +88,7 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
         </div>
       )}
 
-      {!state.isConnected ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 py-4 text-center">
-          Connect your Kaspa wallet to launch an L1 covenant campaign.
-        </p>
-      ) : null}
-
-      {state.isConnected && tab === 'create' && (
+      {!state.isConnected ? null : tab === 'create' && (
         <div className={crowdkasPanelClass}>
           <div>
             <CrowdKasFieldLabel

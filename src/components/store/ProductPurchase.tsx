@@ -8,6 +8,9 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
 import { recordPurchase } from '@/lib/store/purchases';
+import { useHubAccess } from '@/hooks/useHubAccess';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { STORE_L1_PURCHASE_GATE } from '@/lib/hub/gateConfigs';
 import type { Product } from '@/lib/store/types';
 
 interface ProductPurchaseProps {
@@ -18,17 +21,17 @@ interface ProductPurchaseProps {
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
 export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchaseProps) {
-  const { state, connect } = useKaspaWallet();
+  const { state } = useKaspaWallet();
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  
+  const access = useHubAccess(STORE_L1_PURCHASE_GATE.requirement);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [feeCalculation, setFeeCalculation] = useState<ReturnType<typeof calculatePlatformFee> | null>(null);
 
-  // Calculate fee on mount and when tier/NFT status changes
   useEffect(() => {
     if (state.address) {
       const fee = calculatePlatformFee(
@@ -41,17 +44,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   }, [state.address, product.priceKAS, krexTier, nftStatus]);
 
   const handlePurchase = async () => {
-    if (!state.isConnected || !state.provider) {
-      setError('Please connect your Kaspa wallet first');
-      try {
-        const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
-        const wallets = detectKaspaWallets();
-        if (wallets.length > 0) {
-          await connect(wallets[0].id);
-        }
-      } catch (err) {
-        console.error('Auto-connect failed:', err);
-      }
+    if (!access.isOpenable || !state.provider) {
       return;
     }
 
@@ -71,16 +64,13 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     setTxHash(null);
 
     try {
-      // Calculate fee
       const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
       setFeeCalculation(fee);
 
-      // Calculate amounts
       const sellerAmount = fee.sellerRevenue;
       const platformFee = fee.feeAmount;
-      const totalAmount = product.priceKAS; // Buyer pays full price
+      const totalAmount = product.priceKAS;
 
-      // Send payment to seller (seller receives price - fee)
       const sellerSompis = kasToSompis(sellerAmount);
       const sellerTransaction = {
         to: product.sellerAddress,
@@ -92,7 +82,6 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         throw new Error(sellerResult.error || 'Seller payment failed');
       }
 
-      // Send platform fee to treasury (if fee > 0)
       if (platformFee > 0) {
         const feeSompis = kasToSompis(platformFee);
         const feeTransaction = {
@@ -103,14 +92,11 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         const feeResult = await sendKaspaTransaction(state.provider, feeTransaction);
         if (feeResult.status === 'failed') {
           console.warn('Platform fee payment failed:', feeResult.error);
-          // Continue anyway - seller was paid
         }
       }
 
-      // Use seller transaction hash as the purchase transaction
       const purchaseTxHash = sellerResult.txHash;
 
-      // Record purchase
       const purchaseResult = await recordPurchase({
         productId: product.id,
         buyerAddress: state.address,
@@ -124,12 +110,9 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         throw new Error('Failed to record purchase');
       }
 
-      // Purchase registry CID is already stored in localStorage by recordPurchase
-
       setTxHash(purchaseTxHash);
       setSuccess(true);
 
-      // Record reward transaction
       try {
         const response = await fetch('/api/rewards/l1/record', {
           method: 'POST',
@@ -153,12 +136,10 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         console.error('Error recording reward:', rewardError);
       }
 
-      // Call completion callback
       if (onPurchaseComplete) {
         onPurchaseComplete();
       }
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccess(false);
         setTxHash(null);
@@ -172,38 +153,11 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     }
   };
 
-  if (!state.isConnected) {
+  if (!access.isOpenable) {
     return (
-      <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🔌</div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-            Connect Wallet to Purchase
-          </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-            Connect your Kaspa wallet to purchase this product
-          </p>
-          <button
-            onClick={async () => {
-              try {
-                const { detectKaspaWallets } = await import('@/lib/kaspa/wallet');
-                const wallets = detectKaspaWallets();
-                if (wallets.length > 0) {
-                  await connect(wallets[0].id);
-                } else {
-                  setError('No Kaspa wallet detected. Please install KasWare or Kastle.');
-                }
-              } catch (err) {
-                setError('Failed to connect wallet');
-                console.error(err);
-              }
-            }}
-            className="px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
-          >
-            Connect Wallet
-          </button>
-        </div>
-      </div>
+      <HubWalletGateShell config={STORE_L1_PURCHASE_GATE} mode="replace">
+        <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 min-h-[12rem]" />
+      </HubWalletGateShell>
     );
   }
 

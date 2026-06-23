@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useAccount, useChainId, useSwitchChain, useReadContracts } from 'wagmi';
+import { useAccount, useReadContracts } from 'wagmi';
 import type { Address } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -15,6 +15,8 @@ import { DONATION_MODULE_IDS, DONATION_MODULE_OFFERS } from '@/lib/donations/mod
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DonationEscrowModuleUnlockCard } from '@/components/donations/DonationEscrowModuleUnlockCard';
 import { getChainById } from '@/lib/wagmi';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { CROWDKAS_L2_MODULES_GATE } from '@/lib/hub/gateConfigs';
 
 const ROADMAP_ITEMS = [
   { title: 'Campaign updates feed', detail: 'Milestones and optional IPFS attachments - planned.' },
@@ -26,14 +28,11 @@ export default function CrowdKasModulesPage() {
   const searchParams = useSearchParams();
   const qCampaignId = searchParams.get('campaignId')?.trim() ?? '';
 
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
+  const { address } = useAccount();
   const igraEscrowV2Address = getContractAddress(CROWDKAS_CHAIN_ID, 'DonationEscrowV2') ?? '';
   /** L2 unlock must target CrowdKAS chain escrow, not whatever chain the wallet happens to be on. */
   const writeEscrowV2Address = (igraEscrowV2Address || undefined) as Address | undefined;
   const crowdkasName = getChainById(CROWDKAS_CHAIN_ID)?.name ?? 'Igra Mainnet';
-  const onCrowdkasChain = chainId === CROWDKAS_CHAIN_ID;
 
   const {
     campaigns: myCampaignsV2,
@@ -141,98 +140,76 @@ export default function CrowdKasModulesPage() {
               </p>
             )}
 
-            {v2Ready && isConnected && !onCrowdkasChain && (
-              <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm text-amber-900 dark:text-amber-200 space-y-2">
-                <p>
-                  Final on-chain unlock uses your EVM wallet on <strong>{crowdkasName}</strong>.
-                </p>
-                <button
-                  type="button"
-                  disabled={isSwitchPending}
-                  onClick={() => switchChain?.({ chainId: CROWDKAS_CHAIN_ID })}
-                  className="k-control-btn !bg-amber-600 !text-white !border-amber-500/30"
-                >
-                  {isSwitchPending ? 'Switching…' : `Switch to ${crowdkasName}`}
-                </button>
-              </div>
-            )}
+            {v2Ready && (
+              <HubWalletGateShell config={CROWDKAS_L2_MODULES_GATE} mode="overlay">
+                {myCampaignsLoading && <p className="text-sm text-zinc-500">Loading your campaigns…</p>}
 
-            {!isConnected && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Connect your EVM wallet to unlock modules for your campaigns. New here?{' '}
-                <Link href="/donations/studio" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                  Create a V2 campaign in Studio
-                </Link>
-                .
-              </p>
-            )}
+                {!myCampaignsLoading && myCampaignsV2.length === 0 && (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6">
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">You don’t have any V2 campaigns yet. Modules attach to a specific campaign id.</p>
+                    <Link href="/donations/studio#create" className="k-control-btn inline-flex">
+                      Create a V2 campaign
+                    </Link>
+                  </div>
+                )}
 
-            {isConnected && myCampaignsLoading && <p className="text-sm text-zinc-500">Loading your campaigns…</p>}
-
-            {isConnected && !myCampaignsLoading && myCampaignsV2.length === 0 && (
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6">
-                <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">You don’t have any V2 campaigns yet. Modules attach to a specific campaign id.</p>
-                <Link href="/donations/studio#create" className="k-control-btn inline-flex">
-                  Create a V2 campaign
-                </Link>
-              </div>
-            )}
-
-            {isConnected && myCampaignsV2.length > 0 && effectiveCampaign && (
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    Modules for <span className="font-mono font-semibold">#{effectiveCampaign.campaignId.toString()}</span>
-                    {effectiveCampaign.method === 'L2_ESCROW' ? ' · L2 escrow' : ' · L1 direct'}
-                  </p>
-                  {myCampaignsV2.length > 1 && (
-                    <div className="flex flex-wrap gap-2">
-                      {myCampaignsV2.map((c) => {
-                        const id = c.campaignId.toString();
-                        const active = id === effectiveCampaignId;
-                        return (
-                          <Link
-                            key={id}
-                            href={`/donations/modules?campaignId=${id}`}
-                            className={
-                              active
-                                ? 'px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white'
-                                : 'px-3 py-1 rounded-full text-xs font-medium border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500'
-                            }
-                          >
-                            #{id}
-                          </Link>
-                        );
-                      })}
+                {myCampaignsV2.length > 0 && effectiveCampaign && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                        Modules for <span className="font-mono font-semibold">#{effectiveCampaign.campaignId.toString()}</span>
+                        {effectiveCampaign.method === 'L2_ESCROW' ? ' · L2 escrow' : ' · L1 direct'}
+                      </p>
+                      {myCampaignsV2.length > 1 && (
+                        <div className="flex flex-wrap gap-2">
+                          {myCampaignsV2.map((c) => {
+                            const id = c.campaignId.toString();
+                            const active = id === effectiveCampaignId;
+                            return (
+                              <Link
+                                key={id}
+                                href={`/donations/modules?campaignId=${id}`}
+                                className={
+                                  active
+                                    ? 'px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white'
+                                    : 'px-3 py-1 rounded-full text-xs font-medium border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500'
+                                }
+                              >
+                                #{id}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <DonationEscrowModuleUnlockCard
-                    offer={DONATION_MODULE_OFFERS.featured}
-                    campaignId={effectiveCampaign.campaignId}
-                    igraEscrowV2Address={igraEscrowV2Address}
-                    writeEscrowV2Address={writeEscrowV2Address}
-                    creatorEvmAddress={address as Address}
-                    isUnlocked={Boolean(unlockForEffective?.featured)}
-                    onUnlockedOnChain={refetchUnlocks}
-                    accent="emerald"
-                    className="hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-                  />
-                  <DonationEscrowModuleUnlockCard
-                    offer={DONATION_MODULE_OFFERS.l1Tips}
-                    campaignId={effectiveCampaign.campaignId}
-                    igraEscrowV2Address={igraEscrowV2Address}
-                    writeEscrowV2Address={writeEscrowV2Address}
-                    creatorEvmAddress={address as Address}
-                    isUnlocked={Boolean(unlockForEffective?.l1Tips)}
-                    onUnlockedOnChain={refetchUnlocks}
-                    accent="amber"
-                    className="hover:border-amber-500 dark:hover:border-amber-500 transition-colors"
-                  />
-                </div>
-              </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <DonationEscrowModuleUnlockCard
+                        offer={DONATION_MODULE_OFFERS.featured}
+                        campaignId={effectiveCampaign.campaignId}
+                        igraEscrowV2Address={igraEscrowV2Address}
+                        writeEscrowV2Address={writeEscrowV2Address}
+                        creatorEvmAddress={address as Address}
+                        isUnlocked={Boolean(unlockForEffective?.featured)}
+                        onUnlockedOnChain={refetchUnlocks}
+                        accent="emerald"
+                        className="hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+                      />
+                      <DonationEscrowModuleUnlockCard
+                        offer={DONATION_MODULE_OFFERS.l1Tips}
+                        campaignId={effectiveCampaign.campaignId}
+                        igraEscrowV2Address={igraEscrowV2Address}
+                        writeEscrowV2Address={writeEscrowV2Address}
+                        creatorEvmAddress={address as Address}
+                        isUnlocked={Boolean(unlockForEffective?.l1Tips)}
+                        onUnlockedOnChain={refetchUnlocks}
+                        accent="amber"
+                        className="hover:border-amber-500 dark:hover:border-amber-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+                )}
+              </HubWalletGateShell>
             )}
 
             <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 p-6 space-y-3">

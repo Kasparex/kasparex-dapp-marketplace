@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useAccount, useChainId, useSwitchChain, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useChainId, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -28,6 +28,8 @@ import { config as wagmiChainConfig } from '@/lib/wagmi';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { CrowdKasCovenantPanel } from '@/components/donations/CrowdKasCovenantPanel';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { CROWDKAS_L1_COVENANT_GATE, CROWDKAS_L2_STUDIO_GATE } from '@/lib/hub/gateConfigs';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -44,8 +46,7 @@ const VDONATIONS_CHAIN_ID = CHAIN_IDS.IGRA_MAINNET; // 38833
 
 export default function DonationsStudioPage() {
   const chainId = useChainId();
-  const { address, isConnected } = useAccount();
-  const { switchChain, isPending: isSwitchPending } = useSwitchChain();
+  const { address } = useAccount();
   /** CrowdKAS escrow on Igra Mainnet - used for all reads so studio state works even when the wallet is on another chain. */
   const igraEscrowAddress = getContractAddress(VDONATIONS_CHAIN_ID, 'DonationEscrow');
   const writeEscrowAddress = getContractAddress(chainId, 'DonationEscrow');
@@ -58,9 +59,8 @@ export default function DonationsStudioPage() {
   const onRequiredChain = chainId === VDONATIONS_CHAIN_ID;
   const hasEscrowConfigured = Boolean(igraEscrowAddress);
   const hasEscrowV2Configured = Boolean(igraEscrowV2Address);
-  const showWrongChainNudge = isConnected && !onRequiredChain;
-  const showMissingConfigNudge = isConnected && onRequiredChain && !writeEscrowAddress;
-  const showMissingV2ConfigNudge = isConnected && onRequiredChain && hasEscrowV2Configured && !writeEscrowV2Address;
+  const showMissingConfigNudge = onRequiredChain && Boolean(address) && !writeEscrowAddress;
+  const showMissingV2ConfigNudge = onRequiredChain && Boolean(address) && hasEscrowV2Configured && !writeEscrowV2Address;
 
   const { data: isVerifiedV2, refetch: refetchVerifiedV2 } = useReadContract({
     chainId: VDONATIONS_CHAIN_ID,
@@ -744,7 +744,9 @@ export default function DonationsStudioPage() {
                   id="covenant-create"
                   className="scroll-mt-24 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8"
                 >
-                  <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
+                  <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay">
+                    <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
+                  </HubWalletGateShell>
                 </section>
 
                 <div className="relative py-2">
@@ -771,31 +773,8 @@ export default function DonationsStudioPage() {
                     </p>
                   </div>
 
-                  {!isConnected && (
-                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 text-center text-zinc-500 dark:text-zinc-400">
-                      Connect your L2 (EVM) wallet to continue.
-                    </div>
-                  )}
-
-                  {showWrongChainNudge && (
-                    <div className="rounded-xl border border-amber-200 dark:border-amber-800 p-4 bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 space-y-3">
-                      <p>
-                        CrowdKAS runs on <strong>Igra Mainnet</strong>. You are currently on{' '}
-                        <strong>{currentChain?.name ?? `chain ${chainId}`}</strong>.
-                      </p>
-                      <p className="text-sm">Switch your wallet to Igra Mainnet to verify and create campaigns.</p>
-                      <button
-                        type="button"
-                        onClick={() => switchChain?.({ chainId: VDONATIONS_CHAIN_ID })}
-                        disabled={isSwitchPending}
-                        className="k-control-btn !bg-amber-600 hover:!bg-amber-700 !text-white !border-amber-500/30"
-                      >
-                        {isSwitchPending ? 'Switching…' : 'Switch to Igra Mainnet'}
-                      </button>
-                    </div>
-                  )}
-
-                  {showMissingConfigNudge && (
+                  <HubWalletGateShell config={CROWDKAS_L2_STUDIO_GATE} mode="overlay">
+                    {showMissingConfigNudge && (
                     <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
                       <p className="font-semibold">CrowdKAS contracts are not configured for Igra Mainnet yet.</p>
                       <p className="text-sm">
@@ -815,7 +794,7 @@ export default function DonationsStudioPage() {
                     </div>
                   )}
 
-                  {isConnected && onRequiredChain && (writeEscrowV2Address || writeEscrowAddress) && (
+                  {(writeEscrowV2Address || writeEscrowAddress) && (
                     <div className="space-y-8">
                       {/* CrowdKAS V2 */}
                       {writeEscrowV2Address && hasEscrowV2Configured && (
@@ -1715,6 +1694,7 @@ export default function DonationsStudioPage() {
                       )}
                     </div>
                   )}
+                  </HubWalletGateShell>
                 </div>
               </div>
 

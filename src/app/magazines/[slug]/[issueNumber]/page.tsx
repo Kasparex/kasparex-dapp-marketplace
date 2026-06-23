@@ -8,18 +8,22 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { getMagazineBySlug, getIssuesForMagazine, markIssueAsPurchased } from '@/lib/magazines/data';
 import { Magazine, MagazineIssue } from '@/lib/magazines/types';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
 import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
+import { useHubAccess } from '@/hooks/useHubAccess';
+import { useHubWalletGate } from '@/hooks/useHubWalletGate';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { MAGAZINE_L1_PURCHASE_GATE } from '@/lib/hub/gateConfigs';
 
 export default function IssueDetailPage() {
     const { slug, issueNumber } = useParams();
     const router = useRouter();
-    const { state: walletState } = useKaspaWallet();
+    const access = useHubAccess(MAGAZINE_L1_PURCHASE_GATE.requirement);
+    const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
     const [magazine, setMagazine] = useState<Magazine | null>(null);
     const [issue, setIssue] = useState<MagazineIssue | null>(null);
     const [issues, setIssues] = useState<MagazineIssue[]>([]);
@@ -81,8 +85,13 @@ export default function IssueDetailPage() {
     const handlePurchase = async () => {
         if (!issue) return;
 
-        if (!walletState.isConnected) {
-            alert('Please connect your Kaspa wallet first.');
+        if (!access.isOpenable) {
+            promptHubGate(access, {
+                title: MAGAZINE_L1_PURCHASE_GATE.title ?? 'Wallet required',
+                name: MAGAZINE_L1_PURCHASE_GATE.name,
+                message: MAGAZINE_L1_PURCHASE_GATE.message ?? access.message,
+                networkBadge: MAGAZINE_L1_PURCHASE_GATE.networkBadge,
+            });
             return;
         }
 
@@ -111,6 +120,9 @@ export default function IssueDetailPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
+            {l1Modal ? (
+                <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
+            ) : null}
             <ReferralTracker contentType="magazine" contentSlug={slug as string} issueNumber={parseInt(issueNumber as string)} />
 
             <div className="flex flex-1">
