@@ -139,7 +139,7 @@ export function DAppWidget({
     const cardClass = 'w-full bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden';
 
     return (
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-xl">
         {l1Modal ? (
           <DAppWalletGateModal
             dapp={l1Modal.dapp}
@@ -183,7 +183,6 @@ export function DAppWidget({
 
         {isBlocked ? (
           <HubWalletGateOverlay
-            variant="fill"
             badge={<DAppNetworkBadge dapp={dapp} preferRequired size="md" />}
             title={getDAppBlockedOverlayMessage(effectiveGateReason, dapp, requiredChainNames)}
             availableNetworks={availableChainNames}

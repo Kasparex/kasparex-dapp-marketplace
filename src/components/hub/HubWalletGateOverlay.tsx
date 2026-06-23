@@ -2,6 +2,10 @@
 
 import type { ReactNode } from 'react';
 
+/**
+ * Full-area wallet gate: blurred cover over the parent, centered badge/message/networks.
+ * Parent must be `position: relative` with a defined size (min-height).
+ */
 export function HubWalletGateOverlay({
   badge,
   title,
@@ -9,27 +13,23 @@ export function HubWalletGateOverlay({
   availableNetworks,
   onClick,
   className = '',
-  variant = 'fill',
 }: {
   badge: ReactNode;
   title: string;
   subtitle?: string;
-  /** Networks where this content is available (shown below the title). */
   availableNetworks?: string[];
   onClick: () => void;
   className?: string;
-  /** fill: covers parent (blurred gate). standalone: centered card when nothing is behind. */
-  variant?: 'fill' | 'standalone';
 }) {
   const networks = availableNetworks?.filter(Boolean) ?? [];
 
-  const base =
-    variant === 'fill'
-      ? 'absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 p-6 sm:p-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center cursor-pointer rounded-xl'
-      : 'flex flex-col items-center justify-center gap-4 px-8 py-12 min-h-[16rem] w-full max-w-md mx-auto text-center cursor-pointer rounded-2xl bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm';
-
   return (
-    <button type="button" onClick={onClick} className={`${base} ${className}`} aria-label={title}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 p-6 sm:p-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center cursor-pointer rounded-xl ${className}`}
+      aria-label={title}
+    >
       {badge}
       <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-xs">
         {title}

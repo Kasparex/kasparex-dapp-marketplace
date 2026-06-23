@@ -72,7 +72,6 @@ export function HubWalletGateShell({
 
   const overlay = (
     <HubWalletGateOverlay
-      variant={mode === 'replace' ? 'standalone' : 'fill'}
       badge={<HubNetworkBadge badge={config.networkBadge} size="md" />}
       title={blockedMessage}
       availableNetworks={
@@ -83,24 +82,22 @@ export function HubWalletGateShell({
     />
   );
 
-  return (
-    <div className={`relative ${className}`}>
-      {l1Modal ? (
-        <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} />
-      ) : null}
+  if (mode === 'replace') {
+    return (
+      <div className={`relative overflow-hidden rounded-xl min-h-[min(24rem,70vh)] w-full ${className}`}>
+        {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
+        {overlay}
+      </div>
+    );
+  }
 
-      {mode === 'replace' ? (
-        <div className="flex items-center justify-center min-h-[min(24rem,70vh)] w-full p-6 sm:p-8">
-          {overlay}
-        </div>
-      ) : (
-        <>
-          <div className="pointer-events-none select-none" aria-hidden>
-            {children}
-          </div>
-          {overlay}
-        </>
-      )}
+  return (
+    <div className={`relative overflow-hidden rounded-xl ${className}`}>
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
+      <div className="pointer-events-none select-none" aria-hidden>
+        {children}
+      </div>
+      {overlay}
     </div>
   );
 }
