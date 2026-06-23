@@ -5,7 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { HubModuleListingCard } from '@/components/hub/HubModuleListingCard';
 
 type ModuleCurrency = 'KAS' | 'KREX';
 
@@ -46,73 +46,6 @@ const MOCK_PROFILE_MODULES: Array<{
     accent: 'studio',
   },
 ] as const;
-
-function ProfileModuleCard({
-  title,
-  description,
-  price,
-  currency,
-  requiredNetwork,
-  accent,
-}: {
-  title: string;
-  description: string;
-  price: number;
-  currency: ModuleCurrency;
-  requiredNetwork: 'L1' | 'L2' | 'either';
-  accent: 'studio';
-}) {
-  return (
-    <KxListingCard accent={accent} className="relative flex min-h-0 flex-col">
-      <KxListingCardMedia>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg
-            className="h-12 w-12 text-zinc-400 dark:text-zinc-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-            />
-          </svg>
-        </div>
-        <div className="pointer-events-none absolute left-4 top-4 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <span className="inline-flex items-center rounded-full border border-indigo-500/25 bg-indigo-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-800 dark:text-indigo-200">
-            {requiredNetwork === 'either' ? 'L1/L2' : requiredNetwork}
-          </span>
-        </div>
-      </KxListingCardMedia>
-
-      <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <h3 className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={title}>
-            {title}
-          </h3>
-        </div>
-
-        <div className="mb-4 min-h-0 flex-grow">
-          <p className="line-clamp-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{description}</p>
-        </div>
-
-        <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-black tabular-nums text-zinc-900 dark:text-zinc-100">
-              {price} {currency}
-            </div>
-            <button type="button" disabled className="k-control-btn cursor-not-allowed disabled:opacity-50">
-              Coming soon
-            </button>
-          </div>
-        </div>
-      </KxListingCardBody>
-    </KxListingCard>
-  );
-}
 
 export default function ProfileModulesPage() {
   return (
@@ -173,7 +106,7 @@ export default function ProfileModulesPage() {
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {MOCK_PROFILE_MODULES.map((m) => (
-                <ProfileModuleCard
+                <HubModuleListingCard
                   key={m.id}
                   title={m.title}
                   description={m.description}

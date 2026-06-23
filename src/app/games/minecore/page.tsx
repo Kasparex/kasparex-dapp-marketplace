@@ -5,13 +5,8 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGameBySlugFromRegistry } from '@/lib/games/registry';
-
-const KaspaL1WalletButton = dynamic(
-  () => import('@/components/KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
-  { ssr: false }
-);
+import { GamePlayWalletGate } from '@/components/games/GamePlayWalletGate';
 
 const MinecoreDashboard = dynamic(
   () => import('@/components/game/minecore/MinecoreDashboard').then((m) => ({ default: m.MinecoreDashboard })),
@@ -24,7 +19,6 @@ const MinecoreDashboard = dynamic(
 );
 
 function MinecoreContent() {
-  const { state } = useKaspaWallet();
   const game = getGameBySlugFromRegistry('minecore');
 
   if (!game) return <div className="p-8 text-zinc-600 dark:text-zinc-400">Game not found</div>;
@@ -69,26 +63,11 @@ function MinecoreContent() {
             </div>
           </div>
 
-          {!state.isConnected ? (
-            <div className="flex h-[60vh] flex-col items-center justify-center space-y-6 text-center">
-              <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-6">
-                <svg className="h-16 w-16 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2l7 7-7 13L5 9l7-7z" />
-                </svg>
-              </div>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 lg:text-4xl">Minecore</h1>
-              <p className="mx-auto max-w-md text-base text-zinc-600 dark:text-zinc-400">
-                Wallet connection required to activate plant slots and run mining cycles.
-              </p>
-              <div className="[&_button]:h-14 [&_button]:px-8 [&_button]:text-base">
-                <KaspaL1WalletButton />
-              </div>
-            </div>
-          ) : (
+          <GamePlayWalletGate game={game}>
             <div className="space-y-6">
               <MinecoreDashboard featuredImage={featuredImage} gameDescription={game.description} game={game} gameName={game.name} />
             </div>
-          )}
+          </GamePlayWalletGate>
         </div>
       </main>
 

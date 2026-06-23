@@ -14,6 +14,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { TierBadge } from '@/components/rewards/TierBadge';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 
 export default function MagazinesDashboardPage() {
     const { state: walletState } = useKaspaWallet();
@@ -84,16 +85,21 @@ export default function MagazinesDashboardPage() {
         return (
             <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
                 <Header />
-                <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center mb-6">
-                        <svg className="w-10 h-10 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                <main className="flex-1 flex items-center justify-center p-6">
+                    <div className="max-w-lg w-full">
+                        <HubWalletGateShell
+                            mode="replace"
+                            config={{
+                                name: 'Magazines dashboard',
+                                message: 'Connect your Kaspa wallet to view purchases, manage publications, and track revenue.',
+                                requirement: { layer: 'L1' },
+                                networkBadge: { layer: 'L1', label: 'Kaspa' },
+                                autoPrompt: true,
+                            }}
+                        >
+                            <div />
+                        </HubWalletGateShell>
                     </div>
-                    <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-4">Connect Your Wallet</h1>
-                    <p className="text-zinc-600 dark:text-zinc-400 max-w-md mb-8">
-                        View your purchased magazines, manage your own publications, and track your revenue shares by connecting your Kaspa wallet.
-                    </p>
                 </main>
                 <Footer />
             </div>

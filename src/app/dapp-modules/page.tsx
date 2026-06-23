@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { HubModuleListingCard } from '@/components/hub/HubModuleListingCard';
 
 type ModuleCurrency = 'KAS' | 'KREX';
 
@@ -47,63 +47,6 @@ const MOCK_MODULES: Array<{
     accent: 'dapps',
   },
 ] as const;
-
-function ModuleCard({
-  title,
-  description,
-  price,
-  currency,
-  requiredNetwork,
-  accent,
-}: {
-  title: string;
-  description: string;
-  price: number;
-  currency: ModuleCurrency;
-  requiredNetwork: 'L1' | 'L2' | 'either';
-  accent: 'dapps';
-}) {
-  return (
-    <KxListingCard accent={accent} className="relative flex flex-col min-h-0">
-      <KxListingCardMedia>
-        {/* Default placeholder plate (matches listing card behavior). */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg className="h-12 w-12 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div className="pointer-events-none absolute left-4 top-4 z-20 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-cyan-500/10 border-cyan-500/25 text-cyan-800 dark:text-cyan-200">
-            {requiredNetwork === 'either' ? 'L1/L2' : requiredNetwork}
-          </span>
-        </div>
-      </KxListingCardMedia>
-
-      <KxListingCardBody className="relative z-10 flex flex-1 min-h-0 flex-col">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100" title={title}>
-            {title}
-          </h3>
-        </div>
-
-        <div className="mb-4 flex-grow min-h-0">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">{description}</p>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-              {price} {currency}
-            </div>
-            <button type="button" disabled className="k-control-btn disabled:opacity-50 disabled:cursor-not-allowed">
-              Coming soon
-            </button>
-          </div>
-        </div>
-      </KxListingCardBody>
-    </KxListingCard>
-  );
-}
 
 export default function DAppModulesPage() {
   return (
@@ -169,7 +112,7 @@ export default function DAppModulesPage() {
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {MOCK_MODULES.map((m) => (
-                <ModuleCard
+                <HubModuleListingCard
                   key={m.id}
                   title={m.title}
                   description={m.description}

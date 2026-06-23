@@ -13,6 +13,7 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import type { Product, Purchase } from '@/lib/store/types';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 
 function DashboardContent() {
   const { state } = useKaspaWallet();
@@ -97,15 +98,20 @@ function DashboardContent() {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
-          <div className="text-center p-8 bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl max-w-md w-full">
-            <div className="text-4xl mb-6">🔌</div>
-            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mb-2 uppercase tracking-wide">
-              Wallet Required
-            </h2>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-6 font-medium">
-              Please connect your Kaspa wallet to access the seller dashboard.
-            </p>
+        <main className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-6">
+          <div className="max-w-lg w-full">
+            <HubWalletGateShell
+              mode="replace"
+              config={{
+                name: 'Store dashboard',
+                message: 'Connect your Kaspa wallet to access the seller dashboard.',
+                requirement: { layer: 'L1' },
+                networkBadge: { layer: 'L1', label: 'Kaspa' },
+                autoPrompt: true,
+              }}
+            >
+              <div />
+            </HubWalletGateShell>
           </div>
         </main>
         <Footer />
