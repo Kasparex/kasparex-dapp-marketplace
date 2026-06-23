@@ -81,11 +81,26 @@ export function getHubGateMessage(reason: HubGateReason, requiredChainNames: str
     case 'either_wallet_required':
       return 'Connect a Kaspa L1 or EVM wallet to continue.';
     case 'l2_chain_mismatch':
-      return requiredChainNames.length > 0
-        ? `Switch your wallet to ${requiredChainNames.join(' or ')} to continue.`
-        : 'Switch your wallet to a supported L2 network to continue.';
+      return requiredChainNames.length > 1
+        ? 'Switch your wallet to a supported network to continue.'
+        : requiredChainNames.length > 0
+          ? `Switch your wallet to ${requiredChainNames[0]} to continue.`
+          : 'Switch your wallet to a supported L2 network to continue.';
     default:
       return 'A wallet connection is required to continue.';
+  }
+}
+
+export function getHubGateOverlaySubtitle(reason: HubGateReason): string {
+  switch (reason) {
+    case 'l2_chain_mismatch':
+      return 'Click to change network';
+    case 'l2_wallet_required':
+    case 'l1_wallet_required':
+    case 'either_wallet_required':
+      return 'Click to connect';
+    default:
+      return 'Click to continue';
   }
 }
 

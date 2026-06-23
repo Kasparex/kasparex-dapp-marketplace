@@ -121,7 +121,6 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
         isOpen
         onClose={closeL1Modal}
         selectedNetwork={l1Modal.selectedNetwork}
-        isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
       />
     ) : null}
     </>

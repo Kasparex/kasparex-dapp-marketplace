@@ -10,18 +10,17 @@ import type { UseDAppAccessResult } from '@/hooks/useDAppAccess';
 export interface DAppWalletGateModalState {
   dapp: DApp;
   selectedNetwork?: 'all' | 'L1' | 'L2';
-  isContractMissingOnNetwork?: boolean;
 }
 
 function usesL1GateModal(reason: DAppGateReason, networkType: 'L1' | 'L2'): boolean {
-  if (networkType === 'L2' && (reason === 'l2_chain_mismatch' || reason === 'contract_missing')) {
-    return false;
+  if (networkType === 'L2') {
+    return reason === 'filter_mismatch';
   }
-  return (
-    reason === 'l1_wallet_required' ||
-    reason === 'filter_mismatch' ||
-    reason === 'contract_missing'
-  );
+  return reason === 'l1_wallet_required' || reason === 'filter_mismatch';
+}
+
+function isL2ChainGateReason(reason: DAppGateReason): boolean {
+  return reason === 'l2_chain_mismatch' || reason === 'contract_missing';
 }
 
 export function useDAppWalletGate() {
@@ -35,22 +34,36 @@ export function useDAppWalletGate() {
     (
       dapp: DApp,
       access: Pick<UseDAppAccessResult, 'gateReason' | 'isOpenable'>,
-      options?: Omit<DAppWalletGateModalState, 'dapp'>
+      options?: Omit<DAppWalletGateModalState, 'dapp'> & { isContractMissingOnNetwork?: boolean }
     ) => {
-      if (access.isOpenable) return;
-
-      const reason = access.gateReason;
       const networkType = getDAppNetworkType(dapp);
-      if (reason === 'l2_wallet_required') {
-        openConnectModal?.();
+      const forceBlocked = options?.isContractMissingOnNetwork === true;
+      if (access.isOpenable && !forceBlocked) return;
+
+      let reason = access.gateReason;
+      if (forceBlocked && networkType === 'L2' && (reason === 'open' || reason === 'contract_missing')) {
+        reason = 'l2_chain_mismatch';
+      }
+
+      if (networkType === 'L2') {
+        if (reason === 'l2_wallet_required') {
+          setL1Modal(null);
+          openConnectModal?.();
+          return;
+        }
+        if (isL2ChainGateReason(reason) || forceBlocked) {
+          setL1Modal(null);
+          openChainModal?.();
+          return;
+        }
+        if (usesL1GateModal(reason, networkType)) {
+          setL1Modal({ dapp, selectedNetwork: options?.selectedNetwork });
+        }
         return;
       }
-      if (reason === 'l2_chain_mismatch' || (reason === 'contract_missing' && networkType === 'L2')) {
-        openChainModal?.();
-        return;
-      }
-      if (usesL1GateModal(reason, networkType)) {
-        setL1Modal({ dapp, ...options });
+
+      if (reason === 'l1_wallet_required' || reason === 'filter_mismatch') {
+        setL1Modal({ dapp, selectedNetwork: options?.selectedNetwork });
       }
     },
     [openChainModal, openConnectModal]

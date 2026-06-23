@@ -117,3 +117,17 @@ export function getDAppPrimaryChainName(dapp: DApp): string {
   if (id === undefined) return dapp.network || 'L2';
   return getChainById(id)?.name ?? `Chain ${id}`;
 }
+
+/** Human-readable names for every chain where this dApp has a deployed contract. */
+export function getDAppAvailableChainNames(dapp: DApp): string[] {
+  const deployed = getDAppDeployedChainIds(dapp);
+  if (deployed.length > 0) {
+    return deployed.map((id) => getChainById(id)?.name ?? `Chain ${id}`);
+  }
+  const chainIds = getDAppChainIds(dapp);
+  if (chainIds.length > 0) {
+    return chainIds.map((id) => getChainById(id)?.name ?? `Chain ${id}`);
+  }
+  const primary = getDAppPrimaryChainName(dapp);
+  return primary ? [primary] : [];
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import type { HubAccessRequirement, HubNetworkBadgeConfig } from '@/lib/hub/access';
-import { getHubGateMessage } from '@/lib/hub/access';
+import { getHubGateMessage, getHubGateOverlaySubtitle } from '@/lib/hub/access';
 import { useHubAccess } from '@/hooks/useHubAccess';
 import { useHubWalletGate } from '@/hooks/useHubWalletGate';
 import { HubWalletGateModal } from './HubWalletGateModal';
@@ -56,8 +56,9 @@ export function HubWalletGateShell({
   useEffect(() => {
     if (!config.autoPrompt || !isBlocked || autoPrompted) return;
     setAutoPrompted(true);
+    if (access.gateReason === 'l2_chain_mismatch') return;
     openGate();
-  }, [config.autoPrompt, isBlocked, autoPrompted]);
+  }, [config.autoPrompt, isBlocked, autoPrompted, access.gateReason]);
 
   useEffect(() => {
     if (l1Modal && !isBlocked) {
@@ -73,9 +74,10 @@ export function HubWalletGateShell({
     <HubWalletGateOverlay
       badge={<HubNetworkBadge badge={config.networkBadge} size="md" />}
       title={blockedMessage}
-      subtitle={
-        access.gateReason === 'l2_chain_mismatch' ? 'Click to change network' : 'Click to connect'
+      availableNetworks={
+        access.requiredChainNames.length > 0 ? access.requiredChainNames : undefined
       }
+      subtitle={getHubGateOverlaySubtitle(access.gateReason)}
       onClick={openGate}
     />
   );

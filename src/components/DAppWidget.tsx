@@ -17,7 +17,8 @@ import { GenesisBadgeWidget } from './dapps/GenesisBadgeWidget';
 import { DAppWidgetHeader } from './dapps/DAppWidgetHeader';
 import { DAppWidgetFooter } from './dapps/DAppWidgetFooter';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
-import { getDAppBlockedOverlayMessage } from '@/lib/dapps/access';
+import { getDAppBlockedOverlayMessage, getDAppGateOverlaySubtitle } from '@/lib/dapps/access';
+import { getDAppAvailableChainNames } from '@/lib/dapps/contractResolver';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { DAppNetworkBadge } from './dapps/DAppNetworkBadge';
 import { HubWalletGateOverlay } from '@/components/hub/HubWalletGateOverlay';
@@ -89,23 +90,47 @@ export function DAppWidget({
     isContractMissingOnNetwork: isContractMissingOnThisNetwork,
   };
 
+  const effectiveGateReason =
+    isContractMissingOnThisNetwork && networkType === 'L2' ? 'l2_chain_mismatch' : gateReason;
+
   const handleBlockedInteraction = () => {
     if (isBlocked) {
-      promptGate(dapp, { isOpenable, gateReason }, gateOptions);
+      promptGate(
+        dapp,
+        { isOpenable: false, gateReason: effectiveGateReason },
+        gateOptions
+      );
     }
   };
+
+  const availableChainNames = useMemo(() => getDAppAvailableChainNames(dapp), [dapp]);
+
+  useEffect(() => {
+    if (l1Modal && !isBlocked) {
+      closeL1Modal();
+    }
+  }, [l1Modal, isBlocked, closeL1Modal]);
 
   useEffect(() => {
     if (!autoPromptWhenBlocked || !isBlocked || autoPrompted) return;
     setAutoPrompted(true);
-    promptGate(dapp, { isOpenable, gateReason }, gateOptions);
+    if (
+      effectiveGateReason === 'l2_chain_mismatch' ||
+      effectiveGateReason === 'contract_missing'
+    ) {
+      return;
+    }
+    promptGate(
+      dapp,
+      { isOpenable: false, gateReason: effectiveGateReason },
+      gateOptions
+    );
   }, [
     autoPromptWhenBlocked,
     autoPrompted,
     dapp,
-    gateReason,
+    effectiveGateReason,
     isBlocked,
-    isOpenable,
     promptGate,
     isContractMissingOnThisNetwork,
   ]);
@@ -120,7 +145,7 @@ export function DAppWidget({
             dapp={l1Modal.dapp}
             isOpen
             onClose={closeL1Modal}
-            isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
+            selectedNetwork={l1Modal.selectedNetwork}
           />
         ) : null}
         <div className={cardClass}>
@@ -156,28 +181,16 @@ export function DAppWidget({
           ) : null}
         </div>
 
-        {autoPromptWhenBlocked && isBlocked ? (
+        {isBlocked ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center p-6 sm:p-8">
             <HubWalletGateOverlay
               badge={<DAppNetworkBadge dapp={dapp} preferRequired size="md" />}
-              title={getDAppBlockedOverlayMessage(gateReason, dapp, requiredChainNames)}
-              subtitle={
-                gateReason === 'l2_chain_mismatch' || gateReason === 'contract_missing'
-                  ? 'Click to change network'
-                  : gateReason === 'l2_wallet_required'
-                    ? 'Click to connect'
-                    : 'Click to connect'
-              }
+              title={getDAppBlockedOverlayMessage(effectiveGateReason, dapp, requiredChainNames)}
+              availableNetworks={availableChainNames}
+              subtitle={getDAppGateOverlaySubtitle(effectiveGateReason)}
               onClick={handleBlockedInteraction}
             />
           </div>
-        ) : isBlocked ? (
-          <button
-            type="button"
-            onClick={handleBlockedInteraction}
-            className="absolute inset-0 z-20 rounded-xl cursor-pointer border-0 bg-transparent"
-            aria-label="Connect wallet to use this dApp"
-          />
         ) : null}
       </div>
     );

@@ -13,7 +13,6 @@ interface DAppWalletGateModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedNetwork?: 'all' | 'L1' | 'L2';
-  isContractMissingOnNetwork?: boolean;
 }
 
 function gateTitle(reason: DAppGateReason): string {
@@ -22,22 +21,19 @@ function gateTitle(reason: DAppGateReason): string {
       return 'Wallet required';
     case 'filter_mismatch':
       return 'Network filter';
-    case 'contract_missing':
-      return 'Not available';
     default:
       return 'Connect to continue';
   }
 }
 
-/** L1-only wallet gate modal for dApps. L2 uses RainbowKit via useDAppWalletGate. */
+/** L1-only wallet gate modal for dApps. L2 uses RainbowKit connect/chain modals via useDAppWalletGate. */
 export function DAppWalletGateModal({
   dapp,
   isOpen,
   onClose,
   selectedNetwork = 'all',
-  isContractMissingOnNetwork = false,
 }: DAppWalletGateModalProps) {
-  const access = useDAppAccess({ dapp, selectedNetwork, isContractMissingOnNetwork });
+  const access = useDAppAccess({ dapp, selectedNetwork });
   const { networkType, badgeNetworkLabel } = useDAppNetworkBadge(dapp, { preferRequired: true });
 
   useEffect(() => {

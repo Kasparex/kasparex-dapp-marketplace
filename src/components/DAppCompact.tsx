@@ -98,7 +98,6 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
                     isOpen
                     onClose={closeL1Modal}
                     selectedNetwork={l1Modal.selectedNetwork}
-                    isContractMissingOnNetwork={l1Modal.isContractMissingOnNetwork}
                 />
             ) : null}
         </div>

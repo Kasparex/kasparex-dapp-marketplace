@@ -37,10 +37,12 @@ export function useHubWalletGate() {
 
       const reason = access.gateReason;
       if (reason === 'l2_wallet_required') {
+        setL1Modal(null);
         openConnectModal?.();
         return;
       }
       if (reason === 'l2_chain_mismatch') {
+        setL1Modal(null);
         openChainModal?.();
         return;
       }

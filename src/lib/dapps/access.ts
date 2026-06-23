@@ -1,6 +1,9 @@
 import type { DApp } from '@/lib/dapps';
 import { getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
-import { getDAppDeployedChainIds, getDAppPrimaryChainName } from '@/lib/dapps/contractResolver';
+import {
+  getDAppAvailableChainNames,
+  getDAppPrimaryChainName,
+} from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 
 export type DAppGateReason =
@@ -73,9 +76,7 @@ export interface DAppAccessResult {
 }
 
 export function getRequiredChainNames(dapp: DApp): string[] {
-  const primaryName = getDAppPrimaryChainName(dapp);
-  if (primaryName) return [primaryName];
-  return getDAppChainIds(dapp).map((id) => getChainById(id)?.name || `Chain ${id}`);
+  return getDAppAvailableChainNames(dapp);
 }
 
 export function getDAppBlockedOverlayMessage(
@@ -88,15 +89,30 @@ export function getDAppBlockedOverlayMessage(
       return 'Connect your EVM wallet to use this dApp';
     case 'l2_chain_mismatch':
     case 'contract_missing':
-      return requiredChainNames[0]
-        ? `Switch your wallet to ${requiredChainNames[0]} to use this dApp`
-        : `Switch your wallet to ${getDAppPrimaryChainName(dapp)} to use this dApp`;
+      return requiredChainNames.length > 1
+        ? 'Switch your wallet to a supported network to use this dApp'
+        : requiredChainNames[0]
+          ? `Switch your wallet to ${requiredChainNames[0]} to use this dApp`
+          : `Switch your wallet to ${getDAppPrimaryChainName(dapp)} to use this dApp`;
     case 'l1_wallet_required':
       return 'Connect your Kaspa wallet to use this dApp';
     case 'filter_mismatch':
       return 'Adjust your network filter to use this dApp';
     default:
       return 'Connect your wallet to use this dApp';
+  }
+}
+
+export function getDAppGateOverlaySubtitle(reason: DAppGateReason): string {
+  switch (reason) {
+    case 'l2_chain_mismatch':
+    case 'contract_missing':
+      return 'Click to change network';
+    case 'l2_wallet_required':
+    case 'l1_wallet_required':
+      return 'Click to connect';
+    default:
+      return 'Click to continue';
   }
 }
 
@@ -121,19 +137,14 @@ export function evaluateDAppAccess(input: DAppAccessInput): DAppAccessResult {
 
   if (isContractMissingOnNetwork) {
     if (networkType === 'L2') {
-      const deployed = getDAppDeployedChainIds(dapp);
-      const chainNames =
-        deployed.length > 0
-          ? deployed.map((id) => getChainById(id)?.name || `Chain ${id}`)
-          : [getDAppPrimaryChainName(dapp)];
       return {
         isOpenable: false,
         reason: 'l2_chain_mismatch',
-        requiredChainNames: chainNames.slice(0, 1),
+        requiredChainNames: getDAppAvailableChainNames(dapp),
         networkInfo,
       };
     }
-    return { isOpenable: false, reason: 'contract_missing', requiredChainNames, networkInfo };
+    return { isOpenable: false, reason: 'l1_wallet_required', requiredChainNames, networkInfo };
   }
 
   if (networkType === 'L1') {
@@ -167,7 +178,9 @@ export function getDAppGateMessage(reason: DAppGateReason, requiredChainNames: s
         ? `Switch your wallet to ${requiredChainNames.join(' or ')} to use this dApp.`
         : 'Switch your wallet to a supported L2 network to use this dApp.';
     case 'contract_missing':
-      return 'This dApp contract is not deployed on your current network yet.';
+      return requiredChainNames.length > 0
+        ? `Switch your wallet to ${requiredChainNames.join(' or ')} to use this dApp.`
+        : 'Switch your wallet to a supported network to use this dApp.';
     default:
       return 'A wallet connection is required to use this dApp.';
   }
