@@ -1,0 +1,136 @@
+import type { DApp } from '@/lib/dapps';
+import { getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import { getChainById } from '@/lib/wagmi';
+
+export type DAppGateReason =
+  | 'open'
+  | 'filter_mismatch'
+  | 'l1_wallet_required'
+  | 'l2_wallet_required'
+  | 'l2_chain_mismatch'
+  | 'contract_missing';
+
+export function isTestnetDApp(dapp: DApp): boolean {
+  const status = (dapp.status || '').toLowerCase();
+  return (
+    status === 'testnet' ||
+    (dapp.network || '').toLowerCase().includes('testnet') ||
+    (dapp.network || '').toLowerCase().includes('galleon') ||
+    (dapp.name || '').toLowerCase().includes('testnet')
+  );
+}
+
+export function getDAppNetworkFamilyLabel(dapp: DApp, networkType: 'L1' | 'L2'): string {
+  const lower = (dapp.network || '').toLowerCase();
+  if (networkType === 'L2') {
+    if (lower.includes('igra')) return 'IGRA';
+    if (lower.includes('kasplex')) return 'Kasplex';
+    return 'L2 EVM';
+  }
+  if (lower.includes('kaspa')) return 'Kaspa';
+  return 'Kaspa';
+}
+
+export function getDAppEnvironmentLabel(dapp: DApp): string {
+  const status = (dapp.status || '').toLowerCase();
+  if (status === 'suspended') return 'Suspended';
+  if (status === 'testnet' || isTestnetDApp(dapp)) return 'Testnet';
+  if (status === 'mainnet') return 'Mainnet';
+  return dapp.status || 'Mainnet';
+}
+
+export function getDAppLayerLabel(dapp: DApp): {
+  layer: 'L1' | 'L2';
+  family: string;
+  env: string;
+  display: string;
+} {
+  const layer = getDAppNetworkType(dapp);
+  const family = getDAppNetworkFamilyLabel(dapp, layer);
+  const env = getDAppEnvironmentLabel(dapp);
+  const display =
+    layer === 'L1'
+      ? `${family} L1${env !== 'Mainnet' ? ` (${env})` : ''}`
+      : `${family} L2${env !== 'Mainnet' ? ` (${env})` : ''}`;
+  return { layer, family, env, display };
+}
+
+export interface DAppAccessInput {
+  dapp: DApp;
+  selectedNetwork?: 'all' | 'L1' | 'L2';
+  isKaspaConnected: boolean;
+  isEvmConnected: boolean;
+  chainId?: number;
+  isContractMissingOnNetwork?: boolean;
+}
+
+export interface DAppAccessResult {
+  isOpenable: boolean;
+  reason: DAppGateReason;
+  requiredChainNames: string[];
+  networkInfo: ReturnType<typeof getDAppLayerLabel>;
+}
+
+export function getRequiredChainNames(dapp: DApp): string[] {
+  return getDAppChainIds(dapp).map((id) => getChainById(id)?.name || `Chain ${id}`);
+}
+
+export function evaluateDAppAccess(input: DAppAccessInput): DAppAccessResult {
+  const {
+    dapp,
+    selectedNetwork = 'all',
+    isKaspaConnected,
+    isEvmConnected,
+    chainId,
+    isContractMissingOnNetwork = false,
+  } = input;
+
+  const networkInfo = getDAppLayerLabel(dapp);
+  const requiredChainNames = getRequiredChainNames(dapp);
+  const networkType = networkInfo.layer;
+
+  const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
+  if (isNetworkMismatch) {
+    return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
+  }
+
+  if (isContractMissingOnNetwork) {
+    return { isOpenable: false, reason: 'contract_missing', requiredChainNames, networkInfo };
+  }
+
+  if (networkType === 'L1') {
+    if (!isKaspaConnected) {
+      return { isOpenable: false, reason: 'l1_wallet_required', requiredChainNames, networkInfo };
+    }
+    return { isOpenable: true, reason: 'open', requiredChainNames, networkInfo };
+  }
+
+  if (!isEvmConnected) {
+    return { isOpenable: false, reason: 'l2_wallet_required', requiredChainNames, networkInfo };
+  }
+
+  if (chainId === undefined || !isDAppCompatibleWithChain(dapp, chainId)) {
+    return { isOpenable: false, reason: 'l2_chain_mismatch', requiredChainNames, networkInfo };
+  }
+
+  return { isOpenable: true, reason: 'open', requiredChainNames, networkInfo };
+}
+
+export function getDAppGateMessage(reason: DAppGateReason, requiredChainNames: string[]): string {
+  switch (reason) {
+    case 'filter_mismatch':
+      return 'This dApp is hidden by your current network filter. Switch the filter to match this dApp.';
+    case 'l1_wallet_required':
+      return 'Connect a Kaspa L1 wallet to open and use this dApp.';
+    case 'l2_wallet_required':
+      return 'Connect an EVM wallet to open and use this dApp.';
+    case 'l2_chain_mismatch':
+      return requiredChainNames.length > 0
+        ? `Switch your wallet to ${requiredChainNames.join(' or ')} to use this dApp.`
+        : 'Switch your wallet to a supported L2 network to use this dApp.';
+    case 'contract_missing':
+      return 'This dApp contract is not deployed on your current network yet.';
+    default:
+      return 'A wallet connection is required to use this dApp.';
+  }
+}

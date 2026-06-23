@@ -2,16 +2,15 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useAccount, useChainId } from 'wagmi';
-import { useKaspaWallet } from '@/lib/kaspa/context';
-import { DApp, generateSimulatedTicker, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { StatusIndicator } from './dapps/StatusIndicator';
-import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
+import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
-import { getContractAddress } from '@/lib/contracts/addresses';
-import { getChainById } from '@/lib/wagmi';
+import { useDAppAccess } from '@/hooks/useDAppAccess';
+import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
+import { isTestnetDApp } from '@/lib/dapps/access';
 
 interface DAppTableProps {
   dapps: DApp[];
@@ -27,85 +26,28 @@ type SortField = 'name' | 'token' | 'category' | 'status' | 'network' | 'version
 type SortDirection = 'asc' | 'desc';
 
 function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
-  const chainId = useChainId();
-  const { isConnected: isEvmConnected } = useAccount();
-  const { state: kaspaState } = useKaspaWallet();
   const mergedDApp = mergeDAppData(null, dapp);
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
-  
-  // Get contract data for token information
-  let contractAddress = mergedDApp.contractAddress || '';
-  if (!contractAddress) {
-    contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
-  }
-  const { data: contractData } = useDAppFromContract(
-    contractAddress?.startsWith('0x') ? contractAddress : undefined,
-    chainId
-  );
-  
-  // Get token information
-  // For L1 dApps, use special token mappings (Send KAS -> KAS, Send KREX -> KREX)
-  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
-  let rawTicker: string | null = null;
-  if (isL1DApp) {
-    // L1 dApps: map to actual tokens
-    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
-      rawTicker = 'KAS';
-    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
-      rawTicker = 'KREX';
-    }
-  } else {
-    // L2 dApps: use contract data or generate
-    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
-  }
-  const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
-  
-  // Get network type for badge
+  const [showGateModal, setShowGateModal] = useState(false);
+
   const networkType = getDAppNetworkType(mergedDApp);
-  const statusLower = (mergedDApp.status || '').toLowerCase();
-  const isTestnetDApp =
-    statusLower === 'testnet' ||
-    (mergedDApp.network || '').toLowerCase().includes('testnet') ||
-    (mergedDApp.network || '').toLowerCase().includes('galleon') ||
-    (mergedDApp.name || '').toLowerCase().includes('testnet');
-  const networkBadgeColor = isTestnetDApp
+  const isTestnet = isTestnetDApp(mergedDApp);
+  const networkBadgeColor = isTestnet
     ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
     : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
 
-  const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
-  const requiredChainIds = useMemo(() => getDAppChainIds(mergedDApp), [mergedDApp]);
-  const requiredChainNames = useMemo(
-    () => requiredChainIds.map((id) => getChainById(id)?.name || `Chain ${id}`),
-    [requiredChainIds]
-  );
-  const isL2ChainCompatible = useMemo(() => {
-    if (networkType !== 'L2') return true;
-    if (!isEvmConnected || chainId === undefined) return false;
-    return isDAppCompatibleWithChain(mergedDApp, chainId);
-  }, [networkType, isEvmConnected, chainId, mergedDApp]);
+  const { isOpenable } = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
 
-  const isOpenable =
-    !isNetworkMismatch &&
-    (networkType === 'L1'
-      ? kaspaState.isConnected
-      : isEvmConnected && chainId !== undefined && isL2ChainCompatible);
-
-  const gateHint = isNetworkMismatch
-    ? 'Not available for this filter'
-    : networkType === 'L1'
-      ? 'Connect L1 wallet'
-      : !isEvmConnected
-        ? 'Connect L2 wallet'
-        : !isL2ChainCompatible
-          ? `Switch to ${requiredChainNames.join(' or ')}`
-          : '';
+  const openGateModal = () => setShowGateModal(true);
   
   return (
+    <>
     <tr
       className={`border-b border-zinc-100 dark:border-zinc-800 transition-colors ${
-        isOpenable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50' : 'opacity-95'
+        isOpenable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer'
       }`}
+      onClick={!isOpenable ? openGateModal : undefined}
     >
       <td className="py-4 px-4">
         {isOpenable ? (
@@ -118,7 +60,7 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
             />
           </Link>
         ) : (
-          <div className="flex items-center cursor-not-allowed">
+          <div className="flex items-center">
             <DAppIcon
               dAppName={mergedDApp.name}
               category={mergedDApp.category}
@@ -136,15 +78,10 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
             </span>
           </Link>
         ) : (
-          <div className="block cursor-not-allowed">
+          <div className="block">
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               {mergedDApp.name}
             </span>
-            {gateHint ? (
-              <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-                {gateHint}
-              </div>
-            ) : null}
           </div>
         )}
       </td>
@@ -177,6 +114,15 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
         </span>
       </td>
     </tr>
+    {showGateModal ? (
+      <DAppWalletGateModal
+        dapp={mergedDApp}
+        isOpen={showGateModal}
+        onClose={() => setShowGateModal(false)}
+        selectedNetwork={selectedNetwork}
+      />
+    ) : null}
+    </>
   );
 }
 

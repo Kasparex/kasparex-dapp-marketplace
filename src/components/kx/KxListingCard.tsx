@@ -13,12 +13,14 @@ export function KxListingCard({
   href,
   accent,
   disabled,
+  onClick,
   className,
   children,
 }: {
   href?: string;
   accent: KxListingAccent;
   disabled?: boolean;
+  onClick?: () => void;
   className?: string;
   children: ReactNode;
 }) {
@@ -26,8 +28,21 @@ export function KxListingCard({
   if (!href || disabled) {
     return (
       <div
-        className={kxJoinClasses(cls, disabled ? 'cursor-not-allowed opacity-95' : undefined)}
+        className={kxJoinClasses(cls, onClick ? 'cursor-pointer' : undefined)}
         data-kx-accent={accent}
+        onClick={onClick}
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
       >
         {children}
       </div>

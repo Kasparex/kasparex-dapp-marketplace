@@ -1,17 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { DAppWidget } from './DAppWidget';
-import { NetworkCompatibilityModal } from './NetworkCompatibilityModal';
-import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
-import { useNetworkAwareWallet } from '@/hooks/useNetworkAwareWallet';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { TokenDisplay } from './dapps/TokenDisplay';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
-import { NetworkInfoMessage } from './NetworkInfoMessage';
 import { getDAppNetworkType } from '@/lib/dapps';
 import { GRIDHoldingsBox } from './rewards/GRIDHoldingsBox';
 import { XPPointsBox } from './rewards/XPPointsBox';
@@ -27,9 +22,6 @@ interface DAppDetailProps {
 }
 
 export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppDetailProps) {
-  const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
-  const compatibility = useNetworkCompatibility(dapp);
-  const networkWallet = useNetworkAwareWallet(dapp);
   const chainId = useChainId();
   
   let contractAddress = propContractAddress || dapp.contractAddress || '';
@@ -54,12 +46,6 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   return (
     <PaymentAmountProvider>
     <div className="space-y-6">
-      <NetworkCompatibilityModal
-        dapp={dapp}
-        isOpen={showCompatibilityModal}
-        onClose={() => setShowCompatibilityModal(false)}
-      />
-
       {/* Two Column Layout: Widget (left, wider) | Info (right) - widget focus on utility */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
         {/* Column 1 (left, wider): dApp Widget and related boxes - 3/5 width */}
