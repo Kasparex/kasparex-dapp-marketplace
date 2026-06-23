@@ -1,5 +1,17 @@
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { HubWalletGateConfig } from '@/components/hub/HubWalletGateShell';
+import type { Game } from '@/lib/games/games';
+
+export function gameL1PlayGateConfig(game: Pick<Game, 'name'>): HubWalletGateConfig {
+  return {
+    title: 'Wallet required',
+    name: game.name,
+    message: `Connect your Kaspa wallet to play ${game.name}.`,
+    requirement: { layer: 'L1' },
+    networkBadge: { layer: 'L1', label: 'Kaspa' },
+    autoPrompt: true,
+  };
+}
 
 export const CROWDKAS_L2_STUDIO_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
