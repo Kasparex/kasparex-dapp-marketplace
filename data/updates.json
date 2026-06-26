@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782509532-82ff6f0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine Kasparex AI layout: hero ads, roadmap steps, lean sidebar. (by Kasparex)",
+      "date": "2026-06-26T23:31:42+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782507352-d6b265e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Kasparex AI hub layout for autonomous agents on Kaspa L1. (by Kasparex)",
