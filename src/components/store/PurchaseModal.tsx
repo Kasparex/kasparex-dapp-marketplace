@@ -51,7 +51,7 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
       >
         <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
         <div
-          className="relative bg-white dark:bg-zinc-900 rounded-lg shadow-2xl max-w-md w-full border border-zinc-200 dark:border-zinc-800"
+          className="relative bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl max-w-md w-full border border-zinc-200 dark:border-zinc-800"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between z-10">
@@ -138,13 +138,13 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
             <div className="flex gap-3 pt-2">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                className="flex-1 k-control-btn justify-center"
               >
                 Cancel
               </button>
               <button
                 onClick={handleProceed}
-                className="flex-1 px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg font-medium transition-colors"
+                className="flex-1 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 rounded-xl font-bold transition-colors"
               >
                 {isOpenable ? 'Proceed to Payment' : 'Connect Wallet'}
               </button>

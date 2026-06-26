@@ -158,7 +158,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
 
   return (
     <HubWalletGateShell config={gateConfig} mode="overlay">
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -227,7 +227,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         <button
           onClick={handlePurchase}
           disabled={isProcessing || success}
-          className="w-full px-6 py-3 bg-[#02abb8] hover:bg-[#028a94] disabled:bg-zinc-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          className="w-full px-6 py-3 bg-yellow-500 hover:bg-yellow-400 disabled:bg-zinc-400 disabled:cursor-not-allowed text-zinc-950 rounded-xl font-bold transition-colors"
         >
           {isProcessing ? (
             <span className="flex items-center justify-center gap-2">

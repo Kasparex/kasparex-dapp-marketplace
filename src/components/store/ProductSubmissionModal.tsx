@@ -221,7 +221,7 @@ export function ProductSubmissionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white dark:bg-zinc-950 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 dark:border-zinc-800">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -392,14 +392,14 @@ export function ProductSubmissionModal({
               <div className="flex gap-3">
                 <button
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="flex-1 k-control-btn justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={isProcessing || !state.isConnected}
-                  className="flex-1 px-4 py-2 bg-[#02abb8] hover:bg-[#028a94] disabled:bg-zinc-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-400 disabled:bg-zinc-400 disabled:cursor-not-allowed text-zinc-950 rounded-xl font-bold transition-colors"
                 >
                   {!state.isConnected ? 'Connect Wallet' : isProcessing ? 'Processing...' : `Submit (${LISTING_FEE_KAS} KAS fee)`}
                 </button>
@@ -410,7 +410,7 @@ export function ProductSubmissionModal({
           {/* Payment Step */}
           {step === 'payment' && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#02abb8] mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
               <p className="text-zinc-600 dark:text-zinc-400">Processing payment and creating product...</p>
             </div>
           )}

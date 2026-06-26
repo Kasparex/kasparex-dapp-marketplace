@@ -105,7 +105,7 @@ export default function ProductPage({ params }: PageProps) {
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
             <p className="text-zinc-600 dark:text-zinc-400">Loading product...</p>
           </div>
         </main>
@@ -126,7 +126,7 @@ export default function ProductPage({ params }: PageProps) {
             </h2>
             <Link
               href="/store"
-              className="text-violet-500 hover:underline font-bold"
+              className="text-yellow-600 dark:text-yellow-400 hover:underline font-bold"
             >
               Back to Store
             </Link>
@@ -153,7 +153,7 @@ export default function ProductPage({ params }: PageProps) {
         />
 
         {/* Main Content */}
-        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/50">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8">
 
@@ -202,7 +202,7 @@ export default function ProductPage({ params }: PageProps) {
                 {/* Protected Content Section */}
                 <div id="content-section" className="scroll-mt-24">
                   {hasAccess ? (
-                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm ring-1 ring-violet-500/20">
+                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm ring-1 ring-yellow-500/20">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400">
                           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -239,20 +239,20 @@ export default function ProductPage({ params }: PageProps) {
                                   download
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center justify-between px-5 py-4 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all group hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5"
+                                  className="flex items-center justify-between px-5 py-4 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all group hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5"
                                 >
                                   <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 group-hover:text-violet-500 transition-colors">
+                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
                                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                     </div>
                                     <div>
-                                      <span className="block text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-violet-500 transition-colors">
+                                      <span className="block text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
                                         Asset File {index + 1}
                                       </span>
                                       <span className="text-[10px] font-mono text-zinc-400">IPFS: {cid.substring(0, 12)}...</span>
                                     </div>
                                   </div>
-                                  <svg className="w-5 h-5 text-zinc-300 group-hover:text-violet-500 transition-colors transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-5 h-5 text-zinc-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                   </svg>
                                 </a>

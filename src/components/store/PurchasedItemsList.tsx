@@ -30,7 +30,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
 
   if (purchases.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           My Purchases (0)
         </h2>
@@ -42,7 +42,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
         My Purchases ({purchases.length})
       </h2>
@@ -59,7 +59,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                   {product ? (
                     <a
                       href={`/store/${product.slug}`}
-                      className="hover:text-[#02abb8] transition-colors"
+                      className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                     >
                       {product.title}
                     </a>
@@ -79,7 +79,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                   href={getExplorerTxUrl(purchase.txHash)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-[#02abb8] hover:underline flex items-center gap-1 justify-end"
+                  className="text-sm font-medium text-yellow-600 dark:text-yellow-400 hover:underline flex items-center gap-1 justify-end"
                 >
                   View Transaction
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

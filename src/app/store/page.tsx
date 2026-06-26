@@ -102,8 +102,8 @@ export default function StorePage() {
           categoryCounts={categoryCounts}
         />
 
-        <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
-          <div className="w-full">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950 relative">
+          <div className="max-w-7xl mx-auto">
             {/* Premium Header */}
             <StoreHeader />
 
@@ -127,36 +127,38 @@ export default function StorePage() {
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
                 onReset={handleResetFilters}
               >
-                <div className="relative">
-                  <select
-                    value={selectedNetwork}
-                    onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}
-                    className="h-10 appearance-none pl-3 pr-8 py-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                    aria-label="Filter by network"
-                  >
-                    <option value="all">Every Network</option>
-                    <option value="L1">L1 Only</option>
-                    <option value="L2">L2 Only</option>
-                  </select>
-                  <svg className="w-3 h-3 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-                <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900 h-10">
+                <select
+                  value={selectedNetwork}
+                  onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}
+                  className="k-filter-select"
+                  aria-label="Filter by network"
+                >
+                  <option value="all">Every Network</option>
+                  <option value="L1">L1 Only</option>
+                  <option value="L2">L2 Only</option>
+                </select>
+                <div className="k-control-group">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'}`}
+                    className={`p-2.5 transition-colors ${viewMode === 'grid'
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
+                      : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                      }`}
                     title="Grid view"
+                    aria-label="Grid view"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                   </button>
-                  <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
                   <button
                     onClick={() => setViewMode('compact')}
-                    className={`p-2 transition-colors ${viewMode === 'compact' ? 'bg-zinc-100 dark:bg-zinc-800 text-violet-500' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'}`}
+                    className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
+                      ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
+                      : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                      }`}
                     title="Compact view"
+                    aria-label="Compact view"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                   </button>
                 </div>
                 <ProductSortFilters sortBy={sortBy} onSortChange={setSortBy} />

@@ -69,7 +69,7 @@ export function ProductGrid({ products, viewMode }: ProductGridProps) {
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:shadow-md transition-shadow"
+            className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:border-yellow-500/30 transition-colors"
           >
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded flex items-center justify-center overflow-hidden">

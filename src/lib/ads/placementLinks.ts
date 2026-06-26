@@ -50,6 +50,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'CrowdKAS listing, halo header right',
   },
   {
+    slotId: 'HALO_STORE_RIGHT',
+    title: 'Store halo',
+    href: '/store#ad-slot-store-halo',
+    placement: 'Kasparex Store listing, halo header right',
+  },
+  {
     slotId: 'HALO_GAMES_RIGHT',
     title: 'Games halo',
     href: '/games#ad-slot-games-halo',

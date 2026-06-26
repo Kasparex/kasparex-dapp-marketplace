@@ -124,11 +124,14 @@ function DashboardContent() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-zinc-50 dark:bg-zinc-900/50">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-12">
+        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-10">
               <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                Store <span className="text-[#02abb8]">Dashboard</span>
+                Store{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400">
+                  Dashboard
+                </span>
               </h1>
               <div className="flex items-center gap-2 text-zinc-500 font-mono text-xs">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -137,11 +140,11 @@ function DashboardContent() {
             </div>
 
             {/* Dashboard Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit mb-12 border border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-10">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'overview'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
               >
@@ -150,7 +153,7 @@ function DashboardContent() {
               <button
                 onClick={() => setActiveTab('products')}
                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'products'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
               >
@@ -159,7 +162,7 @@ function DashboardContent() {
               <button
                 onClick={() => setActiveTab('sales')}
                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'sales'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                   }`}
               >
@@ -168,8 +171,8 @@ function DashboardContent() {
             </div>
 
             {/* Rewards Status Card */}
-            <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-12 border border-zinc-800 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#02abb8]/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
+            <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-10 border border-zinc-800 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-4">
@@ -186,7 +189,7 @@ function DashboardContent() {
                   </div>
                   <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                     <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active Assets</div>
-                    <div className="text-2xl font-black text-[#02abb8]">NFT Enabled</div>
+                    <div className="text-2xl font-black text-yellow-400">NFT Enabled</div>
                   </div>
                 </div>
               </div>
@@ -208,7 +211,7 @@ function DashboardContent() {
                 {/* Stats Overview */}
                 {(activeTab === 'overview') && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 relative overflow-hidden group hover:border-violet-500/30 transition-colors">
+                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 relative overflow-hidden group hover:border-yellow-500/30 transition-colors">
                       <div className="relative z-10">
                         <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
                           Total Revenue
@@ -217,11 +220,11 @@ function DashboardContent() {
                           {stats.totalRevenue.toFixed(4)} <span className="text-lg text-zinc-500">KAS</span>
                         </div>
                       </div>
-                      <div className="absolute right-0 bottom-0 p-4 opacity-10 text-violet-500 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform">
+                      <div className="absolute right-0 bottom-0 p-4 opacity-10 text-yellow-500 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform">
                         <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" /></svg>
                       </div>
                     </div>
-                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 relative overflow-hidden group hover:border-violet-500/30 transition-colors">
+                    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 relative overflow-hidden group hover:border-yellow-500/30 transition-colors">
                       <div className="relative z-10">
                         <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
                           Total Sales
@@ -230,7 +233,7 @@ function DashboardContent() {
                           {stats.totalSales} <span className="text-lg text-zinc-500">Items</span>
                         </div>
                       </div>
-                      <div className="absolute right-0 bottom-0 p-4 opacity-10 text-violet-500 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform">
+                      <div className="absolute right-0 bottom-0 p-4 opacity-10 text-yellow-500 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform">
                         <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                       </div>
                     </div>
@@ -245,14 +248,14 @@ function DashboardContent() {
                         Your Products
                       </h2>
                       {activeTab === 'overview' && (
-                        <Link href="/store/dashboard?tab=products" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</Link>
+                        <Link href="/store/dashboard?tab=products" className="text-xs font-bold text-yellow-500 hover:underline uppercase tracking-wider">View All</Link>
                       )}
                     </div>
 
                     {products.length === 0 ? (
                       <div className="p-12 text-center text-zinc-500">
                         <p>You haven&apos;t listed any products yet.</p>
-                        <button className="mt-4 px-4 py-2 bg-violet-500 text-white rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-violet-600 transition-colors">
+                        <button className="mt-4 px-4 py-2 bg-yellow-500 text-zinc-950 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-yellow-400 transition-colors">
                           Create First Product
                         </button>
                       </div>
@@ -276,7 +279,7 @@ function DashboardContent() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Link href={`/store/${product.slug}`} className="p-2 text-zinc-400 hover:text-violet-500 transition-colors" title="View">
+                              <Link href={`/store/${product.slug}`} className="p-2 text-zinc-400 hover:text-yellow-500 transition-colors" title="View">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                               </Link>
                               {product.status === 'active' && (
@@ -300,7 +303,7 @@ function DashboardContent() {
                         Recent Sales
                       </h2>
                       {activeTab === 'overview' && (
-                        <Link href="/store/dashboard?tab=sales" className="text-xs font-bold text-violet-500 hover:underline uppercase tracking-wider">View All</Link>
+                        <Link href="/store/dashboard?tab=sales" className="text-xs font-bold text-yellow-500 hover:underline uppercase tracking-wider">View All</Link>
                       )}
                     </div>
                     <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -313,8 +316,8 @@ function DashboardContent() {
                               <div className="text-xs text-zinc-500 mt-1">{new Date(purchase.purchasedAt).toLocaleDateString()}</div>
                             </div>
                             <div className="text-right">
-                              <div className="font-black text-violet-500">+{purchase.sellerRevenueKAS.toFixed(4)} KAS</div>
-                              <a href={getExplorerTxUrl(purchase.txHash)} target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-400 hover:text-violet-500 hover:underline">
+                              <div className="font-black text-yellow-500">+{purchase.sellerRevenueKAS.toFixed(4)} KAS</div>
+                              <a href={getExplorerTxUrl(purchase.txHash)} target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-400 hover:text-yellow-500 hover:underline">
                                 View Tx
                               </a>
                             </div>
@@ -353,7 +356,7 @@ export default function SellerDashboardPage() {
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
         </main>
         <Footer />
       </div>

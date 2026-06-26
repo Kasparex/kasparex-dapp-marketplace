@@ -46,7 +46,7 @@ export function ProductSortFilters({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="k-control-btn w-full"
+        className="k-control-btn min-w-[160px]"
       >
         <span className="truncate">{currentLabel}</span>
         <svg
