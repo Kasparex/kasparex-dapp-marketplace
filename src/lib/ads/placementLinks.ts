@@ -63,6 +63,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
       'Kasparex Games listing (halo) and all game play dashboards (right column); one shared slot pool',
   },
   {
+    slotId: 'HALO_AI_RIGHT',
+    title: 'Kasparex AI halo',
+    href: '/ai#ad-slot-ai-halo',
+    placement: 'Kasparex AI hub, hero header right',
+  },
+  {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     title: 'vBlog article aside',
     href: '/vblog#ad-slot-vblog-article-aside-bottom',

@@ -65,6 +65,13 @@ export const AD_SLOTS: AdSlotConfig[] = [
     rotation: 'slider',
   },
   {
+    id: 'HALO_AI_RIGHT',
+    label: 'Kasparex AI Halo (right)',
+    pricePerDay: 100,
+    maxAds: 5,
+    rotation: 'slider',
+  },
+  {
     id: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     label: 'vBlog article aside (bottom)',
     pricePerDay: 80,

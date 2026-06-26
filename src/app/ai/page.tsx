@@ -5,6 +5,7 @@ import { AiPageShell } from '@/components/ai/AiPageShell';
 import { AiHeader } from '@/components/ai/AiHeader';
 import { AiAgentGrid } from '@/components/ai/AiAgentGrid';
 import { AiEcosystemBar } from '@/components/ai/AiEcosystemBar';
+import { AiRoadmapSteps } from '@/components/ai/AiRoadmapSteps';
 import { AiSectionPlaceholder } from '@/components/ai/AiSectionPlaceholder';
 import { FilterBar } from '@/components/FilterBar';
 import { PLACEHOLDER_AI_AGENTS, filterAgentsByTab } from '@/lib/ai/agents';
@@ -71,6 +72,7 @@ export default function KasparexAiPage() {
 
           <AiAgentGrid agents={filteredAgents} />
           <AiEcosystemBar />
+          <AiRoadmapSteps onOpenSection={setActiveSection} />
         </>
       ) : (
         <AiSectionPlaceholder section={activeSection as Exclude<AiHubSection, 'agents' | 'marketplace' | 'documentation'>} />

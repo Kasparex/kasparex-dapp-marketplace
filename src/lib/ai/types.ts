@@ -47,4 +47,7 @@ export type AiHubSection =
   | 'community'
   | 'documentation'
   | 'developer-tools'
-  | 'announcements';
+  | 'announcements'
+  | 'agent-sdk'
+  | 'agent-registry'
+  | 'l1-hooks';

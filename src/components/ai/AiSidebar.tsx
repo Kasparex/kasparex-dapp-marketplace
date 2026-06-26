@@ -8,7 +8,6 @@ import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
 import { AI_SIDEBAR_GROUPS } from '@/lib/ai/sidebarSections';
 import type { AiHubSection } from '@/lib/ai/types';
-import Link from 'next/link';
 
 export interface AiSidebarProps {
   activeSection: AiHubSection;
@@ -68,9 +67,22 @@ function sectionIcon(id: AiHubSection): ReactNode {
         </svg>
       );
     case 'developer-tools':
+    case 'agent-sdk':
       return (
         <svg {...props}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
+      );
+    case 'agent-registry':
+      return (
+        <svg {...props}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      );
+    case 'l1-hooks':
+      return (
+        <svg {...props}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
       );
     case 'announcements':
@@ -85,44 +97,6 @@ function sectionIcon(id: AiHubSection): ReactNode {
 }
 
 export function AiSidebar({ activeSection, onSectionChange }: AiSidebarProps) {
-  const aiFooter = (
-    <div className="border-t border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Token utility</p>
-        <div className="flex flex-wrap gap-1.5">
-          {(['KAS', 'KREX', 'ARIA'] as const).map((t) => (
-            <span
-              key={t}
-              className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                t === 'ARIA'
-                  ? 'bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                  : t === 'KREX'
-                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-              }`}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-        <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
-          Access, governance, and rewards on Kaspa L1 BlockDAG.
-        </p>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-[10px] font-black text-cyan-600 dark:text-cyan-400">
-          AI
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-            Kasparex AI
-          </p>
-          <p className="text-[9px] font-bold uppercase text-zinc-500">Autonomous Agents</p>
-        </div>
-      </div>
-    </div>
-  );
-
   const handleSectionClick = (id: AiHubSection) => {
     if (id === 'marketplace') return;
     if (id === 'documentation') return;
@@ -133,7 +107,6 @@ export function AiSidebar({ activeSection, onSectionChange }: AiSidebarProps) {
     <UnifiedSidebar
       storageKeyPrefix="kasparex-ai"
       header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
-      footer={aiFooter}
     >
       <SidebarQuickActions
         items={[
@@ -198,18 +171,6 @@ export function AiSidebar({ activeSection, onSectionChange }: AiSidebarProps) {
           </nav>
         </SidebarSection>
       ))}
-
-      <SidebarSection title="Programmability" className="mt-2">
-        <div className="px-3 py-2 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-500/5">
-          <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">Kaspa L1 scripts</p>
-          <p className="text-[11px] leading-relaxed text-zinc-500">
-            Agent settlement and covenant hooks reserved for native L1 programmability.{' '}
-            <Link href="/protocols" className="font-semibold text-[#02abb8] hover:underline">
-              Protocols
-            </Link>
-          </p>
-        </div>
-      </SidebarSection>
     </UnifiedSidebar>
   );
 }

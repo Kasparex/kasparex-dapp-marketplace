@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { AdSlider } from '@/components/ads/AdSlider';
 
 export function AiHeader() {
   return (
@@ -50,16 +51,19 @@ export function AiHeader() {
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[240px] min-h-[200px]">
-          <div className="relative w-full h-48">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-28 h-28 rounded-2xl border-2 border-cyan-500/40 bg-gradient-to-br from-cyan-500/20 to-teal-500/10 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
-                <span className="text-3xl font-black text-cyan-600 dark:text-cyan-300">K</span>
-              </div>
+        <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px]">
+          <div className="relative opacity-90 pointer-events-none">
+            <div className="w-48 h-56 rounded-2xl border-2 border-cyan-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
+            <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
+              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">AI Agent</span>
             </div>
-            <div className="absolute top-2 right-4 w-8 h-8 rounded-lg border border-emerald-400/30 bg-emerald-500/10 rotate-12" />
-            <div className="absolute bottom-4 left-2 w-6 h-6 rounded-md border border-violet-400/30 bg-violet-500/10 -rotate-6" />
-            <div className="absolute top-1/2 right-0 w-5 h-5 rounded border border-cyan-400/40 bg-cyan-500/15 rotate-45" />
+          </div>
+          <div
+            id="ad-slot-ai-halo"
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+          >
+            <AdSlider slotId="HALO_AI_RIGHT" />
           </div>
         </div>
       </div>

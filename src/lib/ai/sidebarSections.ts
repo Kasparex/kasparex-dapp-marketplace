@@ -39,6 +39,14 @@ export const AI_SIDEBAR_GROUPS: AiSidebarGroup[] = [
       { id: 'announcements', label: 'Announcements' },
     ],
   },
+  {
+    title: 'Roadmap',
+    items: [
+      { id: 'agent-sdk', label: 'Agent SDK' },
+      { id: 'agent-registry', label: 'On-chain Registry' },
+      { id: 'l1-hooks', label: 'L1 Covenant Hooks' },
+    ],
+  },
 ];
 
 export const AI_SECTION_PLACEHOLDERS: Record<
@@ -75,10 +83,25 @@ export const AI_SECTION_PLACEHOLDERS: Record<
   'developer-tools': {
     title: 'Developer Tools',
     description:
-      'Agent SDK, starter templates, and testnet tooling for building non-deterministic agents on Kaspa L1. Programmability hooks reserved for Toccata-era scripts.',
+      'Agent SDK, starter templates, and testnet tooling for building non-deterministic agents on Kaspa L1.',
   },
   announcements: {
     title: 'Announcements',
     description: 'Release notes, governance updates, and token utility changes for KAS, KREX, and future ARIA.',
+  },
+  'agent-sdk': {
+    title: 'Agent SDK and wallet deployment',
+    description:
+      'Connect Kasware, pick a starter template, configure tools and token pricing, then publish an agent to the Kasparex AI catalog. SDK layout mirrors OpenServ agent-starter patterns, adapted for Kaspa L1.',
+  },
+  'agent-registry': {
+    title: 'On-chain agent registry',
+    description:
+      'Browse and register agents with wallet-signed metadata, usage counters, and KAS / KREX payment rails. Registry entries will anchor to Kaspa indexers and Rewards ledger hooks where applicable.',
+  },
+  'l1-hooks': {
+    title: 'L1 covenant and script hooks',
+    description:
+      'Reserve covenant and Silverscript binding points for agent settlement, escrow, and governance once native L1 programmability is live. Integrates with Kasparex Protocols and Covenant Lab simulators.',
   },
 };

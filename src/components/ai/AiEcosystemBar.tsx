@@ -24,19 +24,10 @@ export function AiEcosystemBar() {
         </div>
       ),
     },
-    {
-      title: 'Programmability on the horizon',
-      description: 'Preparing native L1 scripts for agent covenants and on-chain workflows.',
-      icon: (
-        <svg className="h-6 w-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-        </svg>
-      ),
-    },
   ];
 
   return (
-    <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-4 sm:p-6">
+    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-4 sm:p-6">
       {items.map((item) => (
         <div key={item.title} className="flex gap-4 items-start p-2">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
