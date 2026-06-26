@@ -43,6 +43,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [thumbnailCid, setThumbnailCid] = useState<string | null>(product?.thumbnailCid ?? null);
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
+  const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
@@ -96,15 +97,22 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     const files = Array.from(e.target.files || []);
     const maxSize = 2 * 1024 * 1024;
     const cids: string[] = [];
+    const names: string[] = [];
     for (const file of files) {
       if (file.size > maxSize) {
         setError(`${file.name} exceeds 2MB limit`);
         continue;
       }
       const cid = await upload(file, { filename: file.name });
-      if (cid) cids.push(cid);
+      if (cid) {
+        cids.push(cid);
+        names.push(file.name);
+      }
     }
-    if (cids.length) setAssetCids((prev) => [...prev, ...cids]);
+    if (cids.length) {
+      setAssetCids((prev) => [...prev, ...cids]);
+      setAssetFileNames((prev) => [...prev, ...names]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,6 +136,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           network: formData.network,
           category: formData.category,
           assetCids,
+          assetFileNames,
           thumbnailCid: thumbnailCid!,
         });
         if (!result) throw new Error('Failed to update product');
@@ -146,6 +155,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             network: formData.network,
             category: formData.category,
             assetCids,
+            assetFileNames,
             thumbnailCid: thumbnailCid!,
             status: 'active',
           },

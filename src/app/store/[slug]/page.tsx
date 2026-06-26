@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
+import { StoreProductPremiumPanel } from '@/components/store/StoreProductPremiumPanel';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { getProductBySlug } from '@/lib/store/products';
-import { hasUserPurchased as checkPurchase, getPurchasesByBuyer } from '@/lib/store/purchases';
+import { hasUserPurchased as checkPurchase } from '@/lib/store/purchases';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { Product } from '@/lib/store/types';
@@ -101,7 +102,7 @@ export default function ProductPage({ params }: PageProps) {
             </div>
           )}
 
-          <div>
+          <div id="product-overview" className="scroll-mt-24">
             <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">{product.title}</h1>
             <div className="flex items-center gap-2 mb-6 text-sm flex-wrap">
               <span className={`px-2.5 py-1 font-bold rounded uppercase tracking-wider ${product.network === 'L1' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'}`}>
@@ -114,8 +115,8 @@ export default function ProductPage({ params }: PageProps) {
             <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">{product.description}</p>
           </div>
 
-          <div id="content-section" className="scroll-mt-24">
-            {hasAccess ? (
+          {hasAccess ? (
+            <div id="product-downloads" className="scroll-mt-24">
               <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm ring-1 ring-cyan-500/20">
                 <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-4">Purchased content</h2>
                 {product.content && (
@@ -134,22 +135,19 @@ export default function ProductPage({ params }: PageProps) {
                         rel="noopener noreferrer"
                         className="flex items-center justify-between px-5 py-4 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800 transition-all group hover:border-cyan-500/30"
                       >
-                        <span className="text-sm font-bold group-hover:text-[#02abb8]">Asset file {index + 1}</span>
+                        <span className="text-sm font-bold group-hover:text-[#02abb8]">
+                          {product.assetFileNames?.[index] ?? `Asset file ${index + 1}`}
+                        </span>
                         <svg className="w-5 h-5 text-zinc-300 group-hover:text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                       </a>
                     ))}
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="bg-gradient-to-br from-zinc-50 to-cyan-50/30 dark:from-zinc-900 dark:to-cyan-950/20 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-10 text-center">
-                <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-3">Premium content locked</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">Purchase this product to access downloads and protected content.</p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
-          <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800">
+          <div id="product-comments" className="scroll-mt-24 pt-8 border-t border-zinc-200 dark:border-zinc-800">
             <StoreCommentsSection productId={product.id} />
           </div>
         </div>
@@ -163,11 +161,12 @@ export default function ProductPage({ params }: PageProps) {
                   const purchased = await checkPurchase(product.id, state.address);
                   setHasAccess(purchased);
                   if (purchased) {
-                    document.getElementById('content-section')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('product-downloads')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }
               }}
             />
+            <StoreProductPremiumPanel product={product} hasAccess={hasAccess} />
           </div>
         </div>
       </div>

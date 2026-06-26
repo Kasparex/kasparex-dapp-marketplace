@@ -57,7 +57,8 @@ export function ProductCard({ product }: ProductCardProps) {
         defaultCurrency={listedCurrency}
         quantitySelector={{ min: 1, max: 99 }}
         buyDisabled={isProcessing || !state.isConnected}
-        buyLabel={isProcessing ? 'Processing...' : success ? 'Purchased!' : 'Buy now'}
+        buyLabel={isProcessing ? 'Processing...' : success ? 'Purchased!' : 'Buy'}
+        buyButtonClassName="k-cta-primary flex h-10 w-[5.25rem] shrink-0 items-center justify-center px-3 text-xs font-bold disabled:opacity-50 disabled:grayscale"
         onBuy={async ({ currency, quantity }) => {
           clearError();
           if (!isOpenable) {

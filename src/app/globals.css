@@ -500,15 +500,15 @@
 
 .k-segment-option {
   @apply h-full flex-1 min-w-0 px-3 text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap;
-  @apply text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800;
+  @apply text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800;
 }
 
 .k-segment-option-active {
-  @apply bg-[#02abb8] text-white shadow-sm;
+  @apply bg-[#02abb8] text-zinc-900 shadow-sm;
 }
 
 .k-segment-option-active:hover {
-  @apply bg-[#02abb8] text-white;
+  @apply bg-[#02abb8] text-zinc-900;
 }
 
 .k-switch {

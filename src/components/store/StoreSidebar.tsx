@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
@@ -13,6 +14,7 @@ import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarQuickActions } from '../sidebar/SidebarQuickActions';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
+import { STORE_PRODUCT_SECTIONS } from '@/lib/store/productPageSections';
 
 export interface StoreSidebarProps {
   mode: 'listing' | 'product' | 'dashboard';
@@ -88,6 +90,12 @@ const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string; icon: ReactNode }[]
   },
 ];
 
+const productSectionIcon = (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
+  </svg>
+);
+
 export function StoreSidebar({
   mode,
   categories = defaultCategories,
@@ -102,9 +110,43 @@ export function StoreSidebar({
 }: StoreSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [activeProductSection, setActiveProductSection] = useState<string>('product-overview');
+  const productSectionObserverRef = useRef<IntersectionObserver | null>(null);
   const isListing = mode === 'listing';
   const isProduct = mode === 'product';
   const isDashboard = mode === 'dashboard';
+
+  useEffect(() => {
+    if (!isProduct) return;
+
+    productSectionObserverRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveProductSection(entry.target.id);
+          }
+        });
+      },
+      { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 },
+    );
+
+    STORE_PRODUCT_SECTIONS.forEach((section) => {
+      const element = document.getElementById(section.id);
+      if (element) productSectionObserverRef.current?.observe(element);
+    });
+
+    return () => {
+      productSectionObserverRef.current?.disconnect();
+    };
+  }, [isProduct, currentProduct?.id]);
+
+  const scrollToProductSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveProductSection(sectionId);
+    }
+  };
 
   const backHref = isListing ? '/hub' : '/store';
   const backLabel = isListing ? 'Back to Hub' : 'Back to Store';
@@ -189,10 +231,6 @@ export function StoreSidebar({
 
       {isDashboard && (
         <SidebarSection title="Seller Panel">
-          <div className="px-2 py-4 mb-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-            <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
-            <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{sellerRevenue.toLocaleString()} KAS</div>
-          </div>
           <nav className="space-y-1">
             {SELLER_TAB_ITEMS.map((item) => (
               <SidebarNavItem
@@ -236,6 +274,22 @@ export function StoreSidebar({
               Seller dashboard
             </Link>
           </div>
+        </SidebarSection>
+      )}
+
+      {isProduct && currentProduct && (
+        <SidebarSection title="On this page" className="mt-2">
+          <nav className="space-y-1">
+            {STORE_PRODUCT_SECTIONS.map((section) => (
+              <SidebarNavItem
+                key={section.id}
+                label={section.label}
+                icon={productSectionIcon}
+                active={activeProductSection === section.id}
+                onClick={() => scrollToProductSection(section.id)}
+              />
+            ))}
+          </nav>
         </SidebarSection>
       )}
     </UnifiedSidebar>

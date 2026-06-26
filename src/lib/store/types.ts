@@ -21,6 +21,7 @@ export interface Product {
   network: ProductNetwork;
   category: ProductCategory;
   assetCids: string[]; // IPFS CIDs for product files
+  assetFileNames?: string[]; // Original filenames aligned with assetCids
   thumbnailCid: string; // IPFS CID for thumbnail image
   tags?: string[]; // Optional tags for categorization
   status: ProductStatus;

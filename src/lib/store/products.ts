@@ -327,6 +327,7 @@ export type ProductUpdateInput = Partial<
     | 'network'
     | 'category'
     | 'assetCids'
+    | 'assetFileNames'
     | 'thumbnailCid'
   >
 >;
