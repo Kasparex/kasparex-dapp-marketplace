@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
@@ -39,12 +40,52 @@ function StoreCategoryIcon({ id, className = '' }: { id: string; className?: str
 
 const defaultCategories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
 
-const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'purchased', label: 'My Purchases' },
-  { id: 'products', label: 'My Products' },
-  { id: 'sales', label: 'Sales History' },
-  { id: 'create', label: 'List Product' },
+const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string; icon: ReactNode }[] = [
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'purchased',
+    label: 'My Purchases',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'products',
+    label: 'My Products',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+  },
+  {
+    id: 'sales',
+    label: 'Sales History',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'create',
+    label: 'List Product',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    ),
+  },
 ];
 
 export function StoreSidebar({
@@ -152,11 +193,12 @@ export function StoreSidebar({
             <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
             <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{sellerRevenue.toLocaleString()} KAS</div>
           </div>
-          <nav className="space-y-0.5">
+          <nav className="space-y-1">
             {SELLER_TAB_ITEMS.map((item) => (
               <SidebarNavItem
                 key={item.id}
                 label={item.label}
+                icon={item.icon}
                 active={sellerTab === item.id}
                 onClick={() => goSellerTab(item.id)}
               />

@@ -13,6 +13,8 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
+import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
+import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 
 const LISTING_FEE_KAS = 50;
 export const SELLER_ACTION_FEE_KAS = 1;
@@ -238,36 +240,26 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="k-form-group">
               <label className="k-label">Category *</label>
-              <select
-                className="k-select"
+              <KxFilterDropdown
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-              >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onChange={(category) => setFormData({ ...formData, category })}
+                options={categories.map((c) => ({ value: c, label: c }))}
+                ariaLabel="Product category"
+                triggerClassName="k-control-btn w-full min-w-0"
+                menuClassName="w-full min-w-[12rem]"
+              />
             </div>
             <div className="k-form-group">
               <label className="k-label">Network *</label>
-              <div className="k-control-group h-10 p-1 w-full">
-                {(['L1', 'L2'] as ProductNetwork[]).map((net) => (
-                  <button
-                    key={net}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, network: net })}
-                    className={`flex-1 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
-                      formData.network === net
-                        ? 'bg-[#02abb8] text-white shadow-sm'
-                        : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    {net}
-                  </button>
-                ))}
-              </div>
+              <KxSegmentToggle
+                value={formData.network}
+                onChange={(network) => setFormData({ ...formData, network })}
+                options={[
+                  { value: 'L1', label: 'L1' },
+                  { value: 'L2', label: 'L2' },
+                ]}
+                ariaLabel="Product network"
+              />
             </div>
           </div>
 
@@ -313,22 +305,12 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 required
               />
               <label className="k-label">Payment currency *</label>
-              <div className="k-control-group h-10 p-1 w-full">
-                {STORE_PAYMENT_CURRENCIES.map((cur) => (
-                  <button
-                    key={cur}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, paymentCurrency: cur })}
-                    className={`flex-1 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
-                      formData.paymentCurrency === cur
-                        ? 'bg-[#02abb8] text-white shadow-sm'
-                        : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    {cur}
-                  </button>
-                ))}
-              </div>
+              <KxSegmentToggle
+                value={formData.paymentCurrency}
+                onChange={(paymentCurrency) => setFormData({ ...formData, paymentCurrency })}
+                options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                ariaLabel="Payment currency"
+              />
             </div>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               {isEdit ? 'Update fee' : 'One-time listing fee'}:{' '}

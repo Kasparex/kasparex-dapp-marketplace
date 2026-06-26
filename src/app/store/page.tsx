@@ -7,6 +7,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { getAllProducts } from '@/lib/store/products';
 import { getCategoryCounts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
+import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { FilterBar } from '@/components/FilterBar';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -97,16 +98,16 @@ export default function StorePage() {
           search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
           onReset={handleResetFilters}
         >
-          <select
+          <KxFilterDropdown
             value={selectedNetwork}
-            onChange={(e) => setSelectedNetwork(e.target.value as ProductNetwork | 'all')}
-            className="k-filter-select"
-            aria-label="Filter by network"
-          >
-            <option value="all">Every Network</option>
-            <option value="L1">L1 Only</option>
-            <option value="L2">L2 Only</option>
-          </select>
+            onChange={setSelectedNetwork}
+            options={[
+              { value: 'all', label: 'Every Network' },
+              { value: 'L1', label: 'L1 Only' },
+              { value: 'L2', label: 'L2 Only' },
+            ]}
+            ariaLabel="Filter by network"
+          />
           <div className="k-control-group">
             <button
               type="button"
