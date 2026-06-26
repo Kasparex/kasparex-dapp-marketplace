@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782516966-a9d9ad5",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unify Kasparex Stats with Store layout; trim AI ecosystem bar. (by Kasparex)",
+      "date": "2026-06-27T01:35:05+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782509532-82ff6f0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine Kasparex AI layout: hero ads, roadmap steps, lean sidebar. (by Kasparex)",
