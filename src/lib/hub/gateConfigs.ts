@@ -90,9 +90,9 @@ export const MAGAZINES_DASHBOARD_GATE: HubWalletGateConfig = {
 export const STORE_DASHBOARD_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
   name: 'Store dashboard',
-  message: 'Connect your Kaspa wallet to access the seller dashboard.',
-  requirement: { layer: 'L1' },
-  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  message: 'Connect a Kaspa L1 or EVM wallet to access the seller dashboard.',
+  requirement: { layer: 'either' },
+  networkBadge: { layer: 'either', label: 'Kaspa or EVM' },
   autoPrompt: true,
 };
 

@@ -342,11 +342,11 @@ export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
                                 <p className="text-sm text-zinc-700 dark:text-zinc-300">
                                     Are you sure you want to delete this comment?
                                 </p>
-                                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                                    <p className="text-xs text-yellow-800 dark:text-yellow-300 font-medium mb-1">
+                                <div className="p-3 bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg">
+                                    <p className="text-xs text-cyan-800 dark:text-cyan-300 font-medium mb-1">
                                         Important:
                                     </p>
-                                    <ul className="text-xs text-yellow-700 dark:text-yellow-400 space-y-1 list-disc list-inside">
+                                    <ul className="text-xs text-cyan-700 dark:text-cyan-400 space-y-1 list-disc list-inside">
                                         <li>Deleting a comment from the UI does not remove it from the BlockDAG (Kaspa Layer 1)</li>
                                         <li>Comments are immutable once recorded on-chain</li>
                                     </ul>

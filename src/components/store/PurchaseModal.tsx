@@ -127,9 +127,9 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
             </div>
 
             {!isOpenable && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 flex flex-col items-center gap-2 text-center">
+              <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 flex flex-col items-center gap-2 text-center">
                 <HubNetworkBadge badge={STORE_L1_PURCHASE_GATE.networkBadge} size="sm" />
-                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                <p className="text-sm text-cyan-800 dark:text-cyan-300">
                   {STORE_L1_PURCHASE_GATE.message}
                 </p>
               </div>
@@ -144,7 +144,7 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
               </button>
               <button
                 onClick={handleProceed}
-                className="flex-1 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 rounded-xl font-bold transition-colors"
+                className="flex-1 px-4 py-2.5 k-cta-primary disabled:opacity-50"
               >
                 {isOpenable ? 'Proceed to Payment' : 'Connect Wallet'}
               </button>

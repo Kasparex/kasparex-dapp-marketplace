@@ -10,7 +10,7 @@ import { SidebarQuickActions } from '../sidebar/SidebarQuickActions';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
 
-interface StoreSidebarProps {
+export interface StoreSidebarProps {
   mode: 'listing' | 'product' | 'dashboard';
   categories?: ProductCategory[];
   selectedCategories?: ProductCategory[];
@@ -76,7 +76,7 @@ export function StoreSidebar({
 
   const storeFooter = (
     <div className="flex items-center gap-3 p-4 bg-transparent border-t border-zinc-200 dark:border-zinc-800">
-      <div className="w-8 h-8 rounded-xl bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center font-black text-[10px]">KS</div>
+      <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-black text-[10px]">KS</div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">Kasparex Store</p>
         <p className="text-[9px] font-bold text-zinc-500 uppercase">Digital Marketplace</p>
@@ -108,7 +108,7 @@ export function StoreSidebar({
         <SidebarSection title="Seller Panel">
           <div className="px-2 py-4 mb-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
-            <div className="text-2xl font-black text-yellow-600 dark:text-yellow-400">{sellerRevenue.toLocaleString()} KAS</div>
+            <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{sellerRevenue.toLocaleString()} KAS</div>
           </div>
           <nav className="space-y-0.5">
             <SidebarNavItem href="/store/dashboard" label="Overview" active={pathname === '/store/dashboard'} />
@@ -125,7 +125,7 @@ export function StoreSidebar({
             <div className="space-y-4">
               <div>
                 <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Price</div>
-                <div className="text-lg font-black text-yellow-600 dark:text-yellow-400">{currentProduct.priceKAS} KAS</div>
+                <div className="text-lg font-black text-cyan-600 dark:text-cyan-400">{currentProduct.priceKAS} KAS</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Category</div>

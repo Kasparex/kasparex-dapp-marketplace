@@ -165,7 +165,7 @@ export function GameItemCard(props: {
   const hasDiscount = originalTotal != null && originalTotal > total + 1e-9;
 
   const listingAccent = props.kxListingAccent ?? 'games';
-  const hubChrome = listingAccent === 'hub';
+  const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
   const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
   const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
   const hideQuantityLabel = props.hideQuantityLabel ?? false;

@@ -59,7 +59,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                   {product ? (
                     <a
                       href={`/store/${product.slug}`}
-                      className="hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
+                      className="hover:text-[#02abb8] transition-colors"
                     >
                       {product.title}
                     </a>
@@ -79,7 +79,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                   href={getExplorerTxUrl(purchase.txHash)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-yellow-600 dark:text-yellow-400 hover:underline flex items-center gap-1 justify-end"
+                  className="text-sm font-medium text-[#02abb8] hover:underline flex items-center gap-1 justify-end"
                 >
                   View Transaction
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

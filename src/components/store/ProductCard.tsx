@@ -1,28 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
-import { ProductPreviewModal } from './ProductPreviewModal';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
+import { calculatePlatformFee } from '@/lib/store/fees';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const [showPreview, setShowPreview] = useState(false);
   const router = useRouter();
+  const { state } = useKaspaWallet();
   const gateConfig = storeProductGateConfig(product);
-  const { cardProps, promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
+  const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
+  const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
 
-  const thumbnailUrl = product.thumbnailCid
-    ? getBestGatewayUrl(product.thumbnailCid)
-    : null;
+  const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : undefined;
+  const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
 
   const goToProduct = () => {
     if (!isOpenable) {
@@ -32,97 +38,68 @@ export function ProductCard({ product }: ProductCardProps) {
     router.push(`/store/${product.slug}`);
   };
 
-  const handleBuy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    goToProduct();
-  };
-
   return (
     <>
-      <KxListingCard accent="store" className="h-full flex flex-col" {...cardProps(`/store/${product.slug}`)}>
-        <KxListingCardMedia aspectClass="aspect-[4/3]" className="bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
-          {thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt={product.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-zinc-300">
-              <svg className="w-12 h-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
-
-          <div className="absolute top-2 left-2 z-10">
-            <span className="px-2 py-1 bg-yellow-500/20 backdrop-blur-sm text-yellow-700 dark:text-yellow-300 text-[10px] font-bold uppercase tracking-wider rounded-md border border-yellow-500/20">
-              {product.category}
-            </span>
+      <GameItemCard
+        kxListingAccent="store"
+        imageSrc={thumbnailUrl}
+        imageAlt={product.title}
+        onMediaClick={goToProduct}
+        title={product.title}
+        category={product.category}
+        titleAccessory={
+          <span
+            className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+              product.network === 'L1'
+                ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
+                : 'bg-teal-500/15 text-teal-700 dark:text-teal-300'
+            }`}
+          >
+            {product.network}
+          </span>
+        }
+        description={
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-cyan-700 dark:text-cyan-300">
+              by {product.sellerAddress.slice(-8)}
+            </p>
+            <p className="line-clamp-2 text-sm">{product.description}</p>
+            <Link
+              href={`/store/${product.slug}`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-block text-xs font-bold text-[#02abb8] hover:underline"
+            >
+              View details
+            </Link>
           </div>
-
-          <div className="absolute top-2 right-2 z-10">
-            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${product.network === 'L1'
-              ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
-              : 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
-              }`}>
-              {product.network}
-            </span>
-          </div>
-        </KxListingCardMedia>
-
-        <KxListingCardBody className="flex-1 flex flex-col">
-          <div className="text-xs font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-widest mb-1">
-            by {product.sellerAddress.slice(-5)}
-          </div>
-          <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">
-            {product.title}
-          </h4>
-          <p className="text-zinc-500 dark:text-zinc-500 text-xs mb-4 line-clamp-2 flex-1">
-            {product.description}
-          </p>
-
-          <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <div className="text-lg font-black text-zinc-900 dark:text-zinc-100">
-              {product.priceKAS} <span className="text-sm text-zinc-500 font-bold">KAS</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowPreview(true);
-                }}
-                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                title="Quick Preview"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </button>
-              <button
-                onClick={handleBuy}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-yellow-500 text-zinc-950 hover:bg-yellow-400"
-              >
-                Buy Now
-              </button>
-            </div>
-          </div>
-        </KxListingCardBody>
-
-        <ProductPreviewModal
-          product={product}
-          isOpen={showPreview}
-          onClose={() => setShowPreview(false)}
-          onBuy={() => {
-            setShowPreview(false);
-            goToProduct();
-          }}
-        />
-      </KxListingCard>
+        }
+        effects={[
+          { label: 'Unit price', value: `${product.priceKAS} KAS`, color: 'accent' },
+          ...(fee.feePercent < 5
+            ? [{ label: 'Fee discount', value: `${fee.feePercent.toFixed(1)}%`, color: 'accent' as const }]
+            : []),
+        ]}
+        priceOptions={[{ currency: 'KAS', unitPrice: product.priceKAS }]}
+        quantitySelector={{ min: 1, max: 99 }}
+        buyDisabled={isProcessing || !state.isConnected}
+        buyLabel={isProcessing ? 'Processing...' : success ? 'Purchased!' : 'Buy now'}
+        onBuy={async ({ quantity }) => {
+          clearError();
+          if (!isOpenable) {
+            promptGate();
+            return;
+          }
+          const ok = await purchase(quantity);
+          if (ok) {
+            router.push(`/store/${product.slug}`);
+          }
+        }}
+        pricingFooterExtra={() =>
+          error ? (
+            <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
+          ) : null
+        }
+      />
 
       {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
     </>

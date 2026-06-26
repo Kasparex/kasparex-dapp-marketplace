@@ -197,7 +197,7 @@
 }
 .kx-listing-card[data-kx-accent="store"]:hover,
 .kx-listing-card[data-kx-accent="store"]:focus-visible {
-  border-color: rgb(234, 179, 8) !important; /* yellow-500 */
+  border-color: rgb(6, 182, 212) !important; /* cyan-500 */
 }
 .kx-listing-card[data-kx-accent="ads"]:hover,
 .kx-listing-card[data-kx-accent="ads"]:focus-visible {
