@@ -6,6 +6,7 @@
 export type ProductNetwork = 'L1' | 'L2';
 export type ProductStatus = 'active' | 'archived';
 export type ProductCategory = 'Software' | 'Art' | 'Music' | 'Templates' | 'Other';
+export type StorePaymentCurrency = 'KAS' | 'KREX';
 
 export interface Product {
   id: string; // UUID
@@ -14,7 +15,9 @@ export interface Product {
   description: string;
   content?: string; // Protected content (only for buyers)
   sellerAddress: string;
+  /** Price amount in `paymentCurrency` units (field name kept for registry compatibility). */
   priceKAS: number;
+  paymentCurrency?: StorePaymentCurrency;
   network: ProductNetwork;
   category: ProductCategory;
   assetCids: string[]; // IPFS CIDs for product files
@@ -33,6 +36,7 @@ export interface ProductRegistryEntry {
   thumbnailCid: string;
   sellerAddress: string;
   priceKAS: number;
+  paymentCurrency?: StorePaymentCurrency;
   network: ProductNetwork;
   category: ProductCategory;
   status: ProductStatus;

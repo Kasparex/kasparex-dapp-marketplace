@@ -129,6 +129,8 @@ export function GameItemCard(props: {
    */
   kxListingAccent?: KxListingAccent;
   onBuy: (args: { currency: GameItemCurrency; quantity: number }) => void | Promise<void>;
+  /** Navigate to detail when clicking card body (pricing footer stops propagation). */
+  onCardNavigate?: () => void;
   /** When set (e.g. ingredient shop cards), shows count on the right of the title row. Gray when 0. */
   ownedCount?: number;
   /** Rendered below description / effect capsules, above the pricing footer (interactive controls OK). */
@@ -409,7 +411,7 @@ export function GameItemCard(props: {
   }
 
   return (
-    <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col">
+    <KxListingCard accent={listingAccent} className="relative flex min-h-0 flex-col" onClick={props.onCardNavigate}>
       <KxListingCardMedia aspectClass="aspect-[3/2]">
         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -497,7 +499,12 @@ export function GameItemCard(props: {
           </div>
           )
         ) : (
-        <div className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3">
+        <div
+          className="mt-auto border-t border-zinc-100 pt-4 dark:border-zinc-800 space-y-3"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          role="presentation"
+        >
           {lockedQtyProp == null ? (
             hideQuantityLabel ? (
               <div className={`w-full ${qtyCfg && qtyCtlInteractive ? '' : 'opacity-60'}`}>{qtyStepperFullWidth()}</div>

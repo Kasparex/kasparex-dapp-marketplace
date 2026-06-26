@@ -35,6 +35,7 @@ export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalle
   kastle: {
     id: 'kastle',
     name: 'Kastle',
+    downloadUrl: 'https://kastle.cc/',
     documentationUrl: 'https://docs.kastle.cc/',
   },
   kaspium: {

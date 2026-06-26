@@ -202,6 +202,7 @@ export async function createProduct(
       thumbnailCid: product.thumbnailCid,
       sellerAddress: product.sellerAddress,
       priceKAS: product.priceKAS,
+      paymentCurrency: product.paymentCurrency,
       network: product.network,
       category: product.category,
       status: product.status,
@@ -297,11 +298,98 @@ export async function archiveProduct(
     entry.status = 'archived';
     registry.updatedAt = Date.now();
 
-    // Upload updated registry
+    const product = await fetchProduct(entry.productCid);
+    if (product) {
+      product.status = 'archived';
+      const newProductCid = await uploadProduct(product);
+      if (newProductCid) entry.productCid = newProductCid;
+    }
+
     const registryCid = await uploadProductRegistry(registry);
+    if (registryCid && typeof window !== 'undefined') {
+      localStorage.setItem('store-registry-cid', registryCid);
+    }
     return !!registryCid;
   } catch (error) {
     console.error('Failed to archive product:', error);
     return false;
+  }
+}
+
+export type ProductUpdateInput = Partial<
+  Pick<
+    Product,
+    | 'title'
+    | 'description'
+    | 'content'
+    | 'priceKAS'
+    | 'paymentCurrency'
+    | 'network'
+    | 'category'
+    | 'assetCids'
+    | 'thumbnailCid'
+  >
+>;
+
+/**
+ * Update an existing product listing (seller must match).
+ */
+export async function updateProduct(
+  productId: string,
+  sellerAddress: string,
+  updates: ProductUpdateInput
+): Promise<{ product: Product; registryCid: string } | null> {
+  try {
+    const registry = await fetchProductRegistry();
+    if (!registry) return null;
+
+    const entry = registry.products.find(
+      (p) => p.id === productId && p.sellerAddress.toLowerCase() === sellerAddress.toLowerCase()
+    );
+    if (!entry) return null;
+
+    const product = await fetchProduct(entry.productCid);
+    if (!product) return null;
+
+    const nextTitle = updates.title?.trim() ?? product.title;
+    const nextSlug = updates.title ? generateSlug(nextTitle) : product.slug;
+
+    if (nextSlug !== product.slug) {
+      const slugTaken = registry.products.some((p) => p.slug === nextSlug && p.id !== productId);
+      if (slugTaken) throw new Error('Product with this title already exists');
+    }
+
+    const updated: Product = {
+      ...product,
+      ...updates,
+      title: nextTitle,
+      slug: nextSlug,
+      description: updates.description?.trim() ?? product.description,
+      content: updates.content !== undefined ? updates.content.trim() || undefined : product.content,
+    };
+
+    const productCid = await uploadProduct(updated, `${updated.slug}-metadata.json`);
+    if (!productCid) throw new Error('Failed to upload updated product');
+
+    entry.slug = updated.slug;
+    entry.productCid = productCid;
+    entry.thumbnailCid = updated.thumbnailCid;
+    entry.priceKAS = updated.priceKAS;
+    entry.paymentCurrency = updated.paymentCurrency;
+    entry.network = updated.network;
+    entry.category = updated.category;
+    registry.updatedAt = Date.now();
+
+    const registryCid = await uploadProductRegistry(registry);
+    if (!registryCid) throw new Error('Failed to upload registry');
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('store-registry-cid', registryCid);
+    }
+
+    return { product: updated, registryCid };
+  } catch (error) {
+    console.error('Failed to update product:', error);
+    return null;
   }
 }

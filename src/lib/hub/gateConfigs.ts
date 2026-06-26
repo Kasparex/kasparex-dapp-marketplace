@@ -57,7 +57,7 @@ export const STORE_L1_PURCHASE_GATE: HubWalletGateConfig = {
   message: 'Connect your Kaspa wallet to purchase this product.',
   requirement: { layer: 'L1' },
   networkBadge: { layer: 'L1', label: 'Kaspa' },
-  autoPrompt: true,
+  autoPrompt: false,
 };
 
 export const MAGAZINE_L1_PURCHASE_GATE: HubWalletGateConfig = {
@@ -90,10 +90,10 @@ export const MAGAZINES_DASHBOARD_GATE: HubWalletGateConfig = {
 export const STORE_DASHBOARD_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
   name: 'Store dashboard',
-  message: 'Connect a Kaspa L1 or EVM wallet to access the seller dashboard.',
-  requirement: { layer: 'either' },
-  networkBadge: { layer: 'either', label: 'Kaspa or EVM' },
-  autoPrompt: true,
+  message: 'Connect your Kaspa wallet to manage listings, sales, and purchases.',
+  requirement: { layer: 'L1' },
+  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  autoPrompt: false,
 };
 
 export function storeProductGateConfig(product: Pick<{ title: string }, 'title'>): HubWalletGateConfig {

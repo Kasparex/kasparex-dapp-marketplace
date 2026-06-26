@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { detectKaspaWallets } from '@/lib/kaspa/wallet';
+import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
 
 export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }) {
@@ -14,7 +14,17 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
   const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
   const isKastleInstalled = typeof window !== 'undefined' && !!(window as Window & { kastle?: unknown }).kastle;
 
-  const handleConnect = async (provider: 'kasware' | 'kastle') => {
+  const handleWalletAction = async (provider: 'kasware' | 'kastle') => {
+    const installed = provider === 'kasware' ? isKasWareInstalled : isKastleInstalled;
+    if (!installed) {
+      const url =
+        KASPA_WALLET_PROVIDERS[provider].downloadUrl ??
+        KASPA_WALLET_PROVIDERS[provider].documentationUrl;
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      else setError(`${provider === 'kasware' ? 'KasWare' : 'Kastle'} is not installed`);
+      return;
+    }
+
     setConnecting(provider);
     setError(null);
     try {
@@ -38,8 +48,8 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
     <div className="space-y-2">
       <button
         type="button"
-        onClick={() => void handleConnect('kasware')}
-        disabled={!isKasWareInstalled || connecting !== null}
+        onClick={() => void handleWalletAction('kasware')}
+        disabled={connecting !== null}
         className="w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span>{isKasWareInstalled ? 'KasWare' : 'Install KasWare'}</span>
@@ -49,8 +59,8 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
       </button>
       <button
         type="button"
-        onClick={() => void handleConnect('kastle')}
-        disabled={!isKastleInstalled || connecting !== null}
+        onClick={() => void handleWalletAction('kastle')}
+        disabled={connecting !== null}
         className="w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span>{isKastleInstalled ? 'Kastle' : 'Install Kastle'}</span>

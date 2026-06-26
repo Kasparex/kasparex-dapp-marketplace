@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -8,10 +7,9 @@ import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
+import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
-import { calculatePlatformFee } from '@/lib/store/fees';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { getProductPaymentCurrency, getProductPriceOptions } from '@/lib/store/currencies';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface ProductCardProps {
@@ -24,17 +22,12 @@ export function ProductCard({ product }: ProductCardProps) {
   const gateConfig = storeProductGateConfig(product);
   const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
   const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
-  const { tier: krexTier } = useKREXBalance();
-  const { nftStatus } = useNFTStatus();
 
   const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : undefined;
-  const fee = calculatePlatformFee(product.priceKAS, krexTier, nftStatus);
+  const listedCurrency = getProductPaymentCurrency(product);
+  const priceOptions = getProductPriceOptions(product);
 
   const goToProduct = () => {
-    if (!isOpenable) {
-      promptGate();
-      return;
-    }
     router.push(`/store/${product.slug}`);
   };
 
@@ -45,6 +38,7 @@ export function ProductCard({ product }: ProductCardProps) {
         imageSrc={thumbnailUrl}
         imageAlt={product.title}
         onMediaClick={goToProduct}
+        onCardNavigate={goToProduct}
         title={product.title}
         category={product.category}
         titleAccessory={
@@ -58,38 +52,19 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.network}
           </span>
         }
-        description={
-          <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-cyan-700 dark:text-cyan-300">
-              by {product.sellerAddress.slice(-8)}
-            </p>
-            <p className="line-clamp-2 text-sm">{product.description}</p>
-            <Link
-              href={`/store/${product.slug}`}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-block text-xs font-bold text-[#02abb8] hover:underline"
-            >
-              View details
-            </Link>
-          </div>
-        }
-        effects={[
-          { label: 'Unit price', value: `${product.priceKAS} KAS`, color: 'accent' },
-          ...(fee.feePercent < 5
-            ? [{ label: 'Fee discount', value: `${fee.feePercent.toFixed(1)}%`, color: 'accent' as const }]
-            : []),
-        ]}
-        priceOptions={[{ currency: 'KAS', unitPrice: product.priceKAS }]}
+        description={<p className="line-clamp-3 text-sm">{product.description}</p>}
+        priceOptions={priceOptions}
+        defaultCurrency={listedCurrency}
         quantitySelector={{ min: 1, max: 99 }}
         buyDisabled={isProcessing || !state.isConnected}
         buyLabel={isProcessing ? 'Processing...' : success ? 'Purchased!' : 'Buy now'}
-        onBuy={async ({ quantity }) => {
+        onBuy={async ({ currency, quantity }) => {
           clearError();
           if (!isOpenable) {
             promptGate();
             return;
           }
-          const ok = await purchase(quantity);
+          const ok = await purchase(quantity, currency as GameItemCurrency);
           if (ok) {
             router.push(`/store/${product.slug}`);
           }

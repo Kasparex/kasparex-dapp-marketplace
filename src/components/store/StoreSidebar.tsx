@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { ProductCategory, Product } from '@/lib/store/types';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
@@ -125,7 +126,9 @@ export function StoreSidebar({
             <div className="space-y-4">
               <div>
                 <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Price</div>
-                <div className="text-lg font-black text-cyan-600 dark:text-cyan-400">{currentProduct.priceKAS} KAS</div>
+                <div className="text-lg font-black text-cyan-600 dark:text-cyan-400">
+                  {currentProduct.priceKAS} {getProductPaymentCurrency(currentProduct)}
+                </div>
               </div>
               <div>
                 <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Category</div>

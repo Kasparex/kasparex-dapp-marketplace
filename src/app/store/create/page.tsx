@@ -4,10 +4,13 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { StoreProductForm } from '@/components/store/StoreProductForm';
-import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { StoreWalletBanner } from '@/components/store/StoreWalletBanner';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
+import { useKaspaWallet } from '@/lib/kaspa/context';
 
 function CreateProductContent() {
+  const { state } = useKaspaWallet();
+
   return (
     <>
       <div className="mb-10">
@@ -16,15 +19,19 @@ function CreateProductContent() {
           List a <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">product</span>
         </h1>
         <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
-          Publish digital assets to the Kasparex Store. Upload files, set your price in KAS, and reach buyers across the ecosystem.
+          Publish digital assets to the Kasparex Store. Upload files, set your price, and choose KAS or KREX as payment currency.
         </p>
       </div>
 
-      <HubWalletGateShell mode="replace" config={STORE_DASHBOARD_GATE}>
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+      <StoreWalletBanner config={STORE_DASHBOARD_GATE} />
+
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+        {state.isConnected ? (
           <StoreProductForm />
-        </div>
-      </HubWalletGateShell>
+        ) : (
+          <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a product.</p>
+        )}
+      </div>
 
       <p className="mt-6 text-sm text-zinc-500">
         Already listed something?{' '}

@@ -60,6 +60,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     content: 'This detailed analysis covers:\n- Token distribution models\n- Reward calculation formulas\n- Fee reduction mechanics\n- NFT integration benefits\n- Future roadmap implications',
     sellerAddress: 'kaspa:demo1',
     priceKAS: 75,
+    paymentCurrency: 'KREX',
     network: 'L1',
     category: 'Other',
     assetCids: [],
