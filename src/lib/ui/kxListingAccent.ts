@@ -22,7 +22,8 @@ export type KxListingAccent =
   | 'store'
   | 'crowdkas'
   | 'ads'
-  | 'revenueTree';
+  | 'revenueTree'
+  | 'ai';
 
 export function kxJoinClasses(...parts: (string | undefined | false | null)[]): string {
   return parts.filter(Boolean).join(' ');

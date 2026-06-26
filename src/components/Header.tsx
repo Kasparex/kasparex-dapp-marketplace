@@ -111,6 +111,9 @@ function getCurrentSectionTitle(pathname: string): string {
   if (pathname.startsWith('/store')) {
     return 'Store';
   }
+  if (pathname.startsWith('/ai')) {
+    return 'Kasparex AI';
+  }
   if (pathname.startsWith('/games')) {
     return 'Games';
   }

@@ -154,6 +154,16 @@ export const hubProjects: HubProject[] = [
     earnPtsHint: 'Chronicles NFT slots tie to leaderboard pts (see Chronicles)',
   },
   {
+    id: 'kasparex-ai',
+    name: 'Kasparex AI',
+    category: 'Infrastructure',
+    description:
+      'Autonomous AI agents on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.',
+    route: '/ai',
+    status: 'beta',
+    earnPtsHint: 'pts when agent actions wire to the Rewards ledger',
+  },
+  {
     id: 'kasparex-store',
     name: 'Kasparex Store',
     category: 'Marketplace',

@@ -346,6 +346,31 @@ export const placeholderDApps: DApp[] = [
     createdAt: new Date().toISOString(),
   },
   {
+    id: 'kasparex-ai',
+    name: 'Kasparex AI',
+    slug: 'kasparex-ai',
+    category: 'tools',
+    utility: 'Build and deploy autonomous AI agents on Kaspa L1 BlockDAG.',
+    process: 'Browse agents, compose workflows, and settle actions with KAS, KREX, or future ARIA tokens.',
+    benefits: 'Open agent infrastructure adapted from OpenServ patterns for the Kasparex ecosystem.',
+    developer: 'Kasparex',
+    developerLinks: [
+      { label: 'OpenServ Labs', url: 'https://github.com/openserv-labs' },
+      { label: 'Hub', url: 'https://www.kasparex.com/hub' },
+    ],
+    status: 'Testnet',
+    network: 'Kaspa L1 BlockDAG',
+    networkType: 'L1',
+    provider: 'Kasparex',
+    version: '0.1.0',
+    description:
+      'Kasparex AI is the hub for autonomous agents on Kaspa L1. Layout-first release with agent catalog, workflow templates, MPC hooks, and programmability placeholders for native L1 scripts.',
+    url: '/ai',
+    roadmap:
+      'Phase 1: Layout and catalog (now)\nPhase 2: Agent SDK and wallet deployment\nPhase 3: L1 programmability and ARIA governance',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'revenue-tree',
     name: 'Revenue Tree',
     slug: 'revenue-tree',
