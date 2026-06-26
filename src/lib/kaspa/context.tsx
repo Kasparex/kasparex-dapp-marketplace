@@ -35,6 +35,81 @@ const KaspaWalletContext = createContext<KaspaWalletContextType | undefined>(und
 const STORAGE_KEY = 'kaspa_wallet_state';
 const SIWK_STORAGE_KEY = 'kaspa_siwk_auth';
 
+const DEFAULT_WALLET_STATE: KaspaWalletState & { siwkAuth?: SIWKAuthResult } = {
+  isConnected: false,
+  address: null,
+  provider: null,
+  error: null,
+};
+
+function normalizeStoredAddress(address: string): string {
+  return address.startsWith('kaspa:') ? address : `kaspa:${address}`;
+}
+
+function readPersistedWalletState(): KaspaWalletState & { siwkAuth?: SIWKAuthResult } {
+  if (typeof window === 'undefined') return DEFAULT_WALLET_STATE;
+
+  try {
+    const oldKeys = ['kasware_wallet_state'];
+    oldKeys.forEach((key) => {
+      if (localStorage.getItem(key)) localStorage.removeItem(key);
+    });
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const siwkStored = localStorage.getItem(SIWK_STORAGE_KEY);
+    if (!stored) return DEFAULT_WALLET_STATE;
+
+    const parsed = JSON.parse(stored) as KaspaWalletState;
+    if (!parsed.isConnected || !parsed.address || !parsed.provider) {
+      return DEFAULT_WALLET_STATE;
+    }
+
+    let siwkAuth: SIWKAuthResult | undefined;
+    if (siwkStored) {
+      try {
+        const siwkParsed = JSON.parse(siwkStored) as SIWKAuthResult;
+        if (siwkParsed.expirationTime && !isSIWKExpired(siwkParsed.expirationTime)) {
+          siwkAuth = siwkParsed;
+        } else {
+          localStorage.removeItem(SIWK_STORAGE_KEY);
+        }
+      } catch (error) {
+        console.error('Error loading SIWK auth:', error);
+      }
+    }
+
+    return {
+      ...parsed,
+      address: normalizeStoredAddress(parsed.address),
+      ...(siwkAuth && { siwkAuth }),
+    };
+  } catch (error) {
+    console.error('Error loading wallet state:', error);
+    return DEFAULT_WALLET_STATE;
+  }
+}
+
+function persistWalletState(state: KaspaWalletState & { siwkAuth?: SIWKAuthResult }) {
+  if (typeof window === 'undefined') return;
+  try {
+    const { siwkAuth, ...walletState } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(walletState));
+    if (siwkAuth && !isSIWKExpired(siwkAuth.expirationTime)) {
+      localStorage.setItem(SIWK_STORAGE_KEY, JSON.stringify(siwkAuth));
+    } else {
+      localStorage.removeItem(SIWK_STORAGE_KEY);
+    }
+  } catch (error) {
+    console.error('Error saving wallet state:', error);
+  }
+}
+
+function clearPersistedWalletState() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SIWK_STORAGE_KEY);
+}
+
 /**
  * Kaspa Wallet Provider Component
  */
@@ -44,112 +119,64 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
    * and wagmi can re-attach. While this timestamp is in the future, we run disconnect bursts.
    */
   const suppressEvmReconnectUntilRef = useRef(0);
+  const userDisconnectedRef = useRef(false);
+  const emptyAccountsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [state, setState] = useState<KaspaWalletState & { siwkAuth?: SIWKAuthResult }>(() => {
-    // Load from localStorage on mount
-    if (typeof window !== 'undefined') {
-      try {
-        // Clear old localStorage keys from previous implementation
-        const oldKeys = ['kasware_wallet_state'];
-        oldKeys.forEach(key => {
-          if (localStorage.getItem(key)) {
-            console.log(`Clearing old localStorage key: ${key}`);
-            localStorage.removeItem(key);
-          }
-        });
+  const [state, setState] = useState<KaspaWalletState & { siwkAuth?: SIWKAuthResult }>(() =>
+    readPersistedWalletState(),
+  );
 
-        const stored = localStorage.getItem(STORAGE_KEY);
-        const siwkStored = localStorage.getItem(SIWK_STORAGE_KEY);
-        
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          // Validate stored state and verify wallet is still connected
-          if (parsed.isConnected && parsed.address && parsed.provider) {
-            // Verify wallet is still actually connected.
-            // Some wallet extensions report false during early page init,
-            // so avoid hard-disconnecting on a single negative signal.
-            const walletProvider = getWalletProvider(parsed.provider);
-            const hasProvider = Boolean(walletProvider);
-            const isActuallyConnected = walletProvider?.isConnected?.();
-
-            if (!hasProvider) {
-              // Wallet is not actually connected, clear stored state
-              console.log('Stored wallet state found but provider is missing, clearing...');
-              localStorage.removeItem(STORAGE_KEY);
-              localStorage.removeItem(SIWK_STORAGE_KEY);
-              return {
-                isConnected: false,
-                address: null,
-                provider: null,
-                error: null,
-              };
-            }
-
-            // Load SIWK auth if available
-            let siwkAuth: SIWKAuthResult | undefined;
-            if (siwkStored) {
-              try {
-                const siwkParsed = JSON.parse(siwkStored);
-                // Check if SIWK auth is expired
-                if (siwkParsed.expirationTime && !isSIWKExpired(siwkParsed.expirationTime)) {
-                  siwkAuth = siwkParsed;
-                } else {
-                  // Remove expired SIWK auth
-                  localStorage.removeItem(SIWK_STORAGE_KEY);
-                }
-              } catch (error) {
-                console.error('Error loading SIWK auth:', error);
-              }
-            }
-            
-            return {
-              ...parsed,
-              ...(siwkAuth && { siwkAuth }),
-            };
-          }
-        }
-      } catch (error) {
-        console.error('Error loading wallet state:', error);
-      }
-    }
-    
-    return {
-      isConnected: false,
-      address: null,
-      provider: null,
-      error: null,
-    };
-  });
-
-  // Save to localStorage when state changes
+  // Save to localStorage when connected; only clear on explicit disconnect.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        if (state.isConnected) {
-          // Save wallet state (without siwkAuth for backward compatibility)
-          const { siwkAuth, ...walletState } = state;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(walletState));
-          
-          // Save SIWK auth separately if present
-          if (siwkAuth) {
-            // Check if expired before saving
-            if (!isSIWKExpired(siwkAuth.expirationTime)) {
-              localStorage.setItem(SIWK_STORAGE_KEY, JSON.stringify(siwkAuth));
-            } else {
-              localStorage.removeItem(SIWK_STORAGE_KEY);
+    if (typeof window === 'undefined') return;
+    if (state.isConnected && state.address && state.provider) {
+      persistWalletState(state);
+    }
+  }, [state.isConnected, state.address, state.provider, state.siwkAuth, state.error]);
+
+  // Re-verify session after wallet extensions inject (avoids false disconnect on refresh).
+  useEffect(() => {
+    if (typeof window === 'undefined' || userDisconnectedRef.current) return;
+
+    const provider = state.provider;
+    if (!provider) return;
+
+    let cancelled = false;
+
+    async function restoreSession() {
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        if (cancelled) return;
+
+        const walletProvider = getWalletProvider(provider!);
+        if (walletProvider) {
+          try {
+            const address = await getKaspaAddress(provider!);
+            if (cancelled) return;
+            if (address) {
+              setState((prev) => ({
+                ...prev,
+                isConnected: true,
+                address: normalizeStoredAddress(address),
+                provider: provider!,
+                error: null,
+              }));
             }
-          } else {
-            localStorage.removeItem(SIWK_STORAGE_KEY);
+          } catch (error) {
+            console.warn('Wallet session restore attempt failed:', error);
           }
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-          localStorage.removeItem(SIWK_STORAGE_KEY);
+          return;
         }
-      } catch (error) {
-        console.error('Error saving wallet state:', error);
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
-  }, [state]);
+
+    void restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.provider]);
 
   // KasWare: `window.ethereum` can mirror Kaspa account changes; briefly suppress wagmi reinject.
   // Kastle: do not listen here - the same `ethereum` object can emit when switching L1 even when
@@ -187,48 +214,60 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     }
 
     const cleanup = onKaspaAccountChange(state.provider, async (accounts) => {
-      // KasWare: shared `window.ethereum` can re-attach wagmi after L1 switch - tear down EVM bursts.
-      // Kastle: never disconnect wagmi here; users often pair L1 Kastle with a separate EVM (WC / MetaMask).
       if (accounts.length > 0 && state.provider === 'kasware') {
         suppressEvmReconnectUntilRef.current = Date.now() + 1500;
         scheduleDisconnectWagmiWalletBursts();
       }
 
-      if (accounts.length === 0) {
-        // Some providers may emit transient empty arrays during page transitions.
-        // Re-check address before forcing disconnect.
-        try {
-          const currentAddress = await getKaspaAddress(state.provider!);
-          if (currentAddress) {
-            setState(prev => ({
-              ...prev,
-              isConnected: true,
-              address: currentAddress,
-              error: null,
-            }));
-            return;
-          }
-        } catch {
-          // fall through to disconnect
-        }
-        await disconnectWagmiWallet();
-        setState({
-          isConnected: false,
-          address: null,
-          provider: null,
-          error: null,
-        });
-      } else {
-        // Address changed
-        const newAddress = accounts[0];
-        setState(prev => ({
-          ...prev,
-          address: newAddress.startsWith('kaspa:') ? newAddress : `kaspa:${newAddress}`,
-        }));
+      if (emptyAccountsTimerRef.current) {
+        clearTimeout(emptyAccountsTimerRef.current);
+        emptyAccountsTimerRef.current = null;
       }
+
+      if (accounts.length === 0) {
+        emptyAccountsTimerRef.current = setTimeout(async () => {
+          try {
+            const currentAddress = await getKaspaAddress(state.provider!);
+            if (currentAddress) {
+              setState((prev) => ({
+                ...prev,
+                isConnected: true,
+                address: normalizeStoredAddress(currentAddress),
+                error: null,
+              }));
+              return;
+            }
+          } catch {
+            // fall through to disconnect
+          }
+          if (userDisconnectedRef.current) return;
+          await disconnectWagmiWallet();
+          clearPersistedWalletState();
+          setState({
+            isConnected: false,
+            address: null,
+            provider: null,
+            error: null,
+          });
+        }, 750);
+        return;
+      }
+
+      const newAddress = accounts[0];
+      setState((prev) => ({
+        ...prev,
+        isConnected: true,
+        address: normalizeStoredAddress(newAddress),
+      }));
     });
 
-    return cleanup;
+    return () => {
+      if (emptyAccountsTimerRef.current) {
+        clearTimeout(emptyAccountsTimerRef.current);
+        emptyAccountsTimerRef.current = null;
+      }
+      cleanup();
+    };
   }, [state.isConnected, state.provider]);
 
   const connect = useCallback(async (
@@ -282,6 +321,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       }
       
       setState(newState);
+      userDisconnectedRef.current = false;
       // L1 Kaspa connect is independent from EVM; avoid auto-pairing an EVM wallet.
       await disconnectWagmiWallet();
       console.log('Wallet state updated successfully:', { 
@@ -302,19 +342,17 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const disconnect = useCallback(async () => {
+    userDisconnectedRef.current = true;
     if (state.provider) {
       await disconnectKaspaWallet(state.provider);
     }
+    clearPersistedWalletState();
     setState({
       isConnected: false,
       address: null,
       provider: null,
       error: null,
     });
-    // Clear SIWK auth from localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(SIWK_STORAGE_KEY);
-    }
   }, [state.provider]);
   
   const signInWithKaspa = useCallback(async (
@@ -354,20 +392,18 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const address = await getKaspaAddress(state.provider);
-    if (address) {
-      setState(prev => ({
-        ...prev,
-        address,
-        error: null,
-      }));
-    } else {
-      setState({
-        isConnected: false,
-        address: null,
-        provider: null,
-        error: null,
-      });
+    try {
+      const address = await getKaspaAddress(state.provider);
+      if (address) {
+        setState((prev) => ({
+          ...prev,
+          isConnected: true,
+          address: normalizeStoredAddress(address),
+          error: null,
+        }));
+      }
+    } catch (error) {
+      console.warn('Wallet refresh failed, keeping stored session:', error);
     }
   }, [state.provider]);
 

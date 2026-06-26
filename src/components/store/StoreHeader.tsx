@@ -42,7 +42,7 @@ export function StoreHeader() {
             >
               Seller Dashboard
             </Link>
-            <Link href="/store/create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
+            <Link href="/store/dashboard?tab=create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
               List a product
             </Link>
             <Link href="/store/dashboard?tab=purchased" className="k-control-btn">

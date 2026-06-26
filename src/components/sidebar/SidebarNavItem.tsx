@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { MouseEventHandler, ReactNode } from 'react';
 
 export interface SidebarNavItemProps {
@@ -63,15 +64,23 @@ export function SidebarNavItem({
   );
 
   if (href != null) {
+    if (external) {
+      return (
+        <a
+          href={href}
+          className={baseClass}
+          onClick={onLinkClick}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {content}
+        </a>
+      );
+    }
     return (
-      <a
-        href={href}
-        className={baseClass}
-        onClick={onLinkClick}
-        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      >
+      <Link href={href} className={baseClass} onClick={onLinkClick}>
         {content}
-      </a>
+      </Link>
     );
   }
   if (onCheckedChange != null) {

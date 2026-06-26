@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
+import type { StoreSellerTab } from '@/lib/store/sellerTabs';
+import { storeSellerTabHref } from '@/lib/store/sellerTabs';
 import type { ProductCategory, Product } from '@/lib/store/types';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
@@ -20,6 +22,8 @@ export interface StoreSidebarProps {
   currentProduct?: Product;
   sellerRevenue?: number;
   totalSales?: number;
+  sellerTab?: StoreSellerTab;
+  onSellerTabChange?: (tab: StoreSellerTab) => void;
 }
 
 function StoreCategoryIcon({ id, className = '' }: { id: string; className?: string }) {
@@ -35,10 +39,12 @@ function StoreCategoryIcon({ id, className = '' }: { id: string; className?: str
 
 const defaultCategories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
 
-const quickActionsListing = [
-  { id: 'dashboard', label: 'My Dashboard', href: '/store/dashboard', icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
-  { id: 'create', label: 'Add New', href: '/store/create', icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg> },
-  { id: 'purchased', label: 'My Purchases', href: '/store/dashboard?tab=purchased', icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg> },
+const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'purchased', label: 'My Purchases' },
+  { id: 'products', label: 'My Products' },
+  { id: 'sales', label: 'Sales History' },
+  { id: 'create', label: 'List Product' },
 ];
 
 export function StoreSidebar({
@@ -50,14 +56,46 @@ export function StoreSidebar({
   currentProduct,
   sellerRevenue = 0,
   totalSales = 0,
+  sellerTab = 'overview',
+  onSellerTabChange,
 }: StoreSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isListing = mode === 'listing';
   const isProduct = mode === 'product';
   const isDashboard = mode === 'dashboard';
 
   const backHref = isListing ? '/hub' : '/store';
   const backLabel = isListing ? 'Back to Hub' : 'Back to Store';
+
+  const goSellerTab = (tab: StoreSellerTab) => {
+    if (onSellerTabChange) {
+      onSellerTabChange(tab);
+      return;
+    }
+    router.push(storeSellerTabHref(tab));
+  };
+
+  const quickActionsListing = [
+    {
+      id: 'dashboard',
+      label: 'My Dashboard',
+      href: '/store/dashboard',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+    },
+    {
+      id: 'create',
+      label: 'Add New',
+      href: '/store/dashboard?tab=create',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>,
+    },
+    {
+      id: 'purchased',
+      label: 'My Purchases',
+      href: '/store/dashboard?tab=purchased',
+      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>,
+    },
+  ];
 
   const handleCategoryToggle = (id: string) => {
     if (!onCategoryChange) return;
@@ -93,7 +131,10 @@ export function StoreSidebar({
     >
       {isListing && (
         <>
-          <SidebarQuickActions items={quickActionsListing} />
+          <SidebarQuickActions
+            items={quickActionsListing}
+            activeId={pathname.startsWith('/store/dashboard') ? 'dashboard' : undefined}
+          />
           <SidebarCategories
             title="Categories"
             items={categoryItems}
@@ -112,9 +153,14 @@ export function StoreSidebar({
             <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{sellerRevenue.toLocaleString()} KAS</div>
           </div>
           <nav className="space-y-0.5">
-            <SidebarNavItem href="/store/dashboard" label="Overview" active={pathname === '/store/dashboard'} />
-            <SidebarNavItem href="/store/dashboard?tab=products" label="My Products" />
-            <SidebarNavItem href="/store/dashboard?tab=sales" label="Sales History" />
+            {SELLER_TAB_ITEMS.map((item) => (
+              <SidebarNavItem
+                key={item.id}
+                label={item.label}
+                active={sellerTab === item.id}
+                onClick={() => goSellerTab(item.id)}
+              />
+            ))}
           </nav>
         </SidebarSection>
       )}
@@ -144,6 +190,9 @@ export function StoreSidebar({
                 </div>
               </div>
             </div>
+            <Link href="/store/dashboard" className="mt-4 inline-block text-xs font-bold text-[#02abb8] hover:underline">
+              Seller dashboard
+            </Link>
           </div>
         </SidebarSection>
       )}
