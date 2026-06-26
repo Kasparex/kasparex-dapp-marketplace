@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { AiPageShell } from '@/components/ai/AiPageShell';
 import { AiHeader } from '@/components/ai/AiHeader';
 import { AiAgentGrid } from '@/components/ai/AiAgentGrid';
-import { AiEcosystemBar } from '@/components/ai/AiEcosystemBar';
 import { AiRoadmapSteps } from '@/components/ai/AiRoadmapSteps';
 import { AiSectionPlaceholder } from '@/components/ai/AiSectionPlaceholder';
 import { FilterBar } from '@/components/FilterBar';
@@ -71,7 +70,6 @@ export default function KasparexAiPage() {
           </div>
 
           <AiAgentGrid agents={filteredAgents} />
-          <AiEcosystemBar />
           <AiRoadmapSteps onOpenSection={setActiveSection} />
         </>
       ) : (

@@ -10,6 +10,7 @@ import {
   type ContractKey,
   type ContractMetadataEntry,
 } from '@/lib/contracts/contractsMetadata';
+import { STATS_PANEL } from '@/components/stats/StatsHeader';
 import { ContractTableView } from './ContractTableView';
 import { ContractTreeView } from './ContractTreeView';
 import { ContractFlowView } from './ContractFlowView';
@@ -47,18 +48,26 @@ export function SmartContractsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex gap-2 border-b border-zinc-200 dark:border-zinc-700 pb-2">
+      <div>
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Contract explorer</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {contractList.length > 0
+            ? `${contractList.length} contract${contractList.length !== 1 ? 's' : ''} on the connected network`
+            : 'Connect your wallet and select a supported network'}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-1 p-1 k-control-group w-fit flex-wrap">
         {TABS.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' +
-              (tab === t
-                ? 'bg-violet-500/20 text-violet-700 dark:text-violet-400 border border-violet-500/30'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800')
-            }
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              tab === t
+                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+            }`}
           >
             {t}
           </button>
@@ -66,15 +75,17 @@ export function SmartContractsPage() {
       </div>
 
       {contractList.length === 0 ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 py-8 text-center">
-          Connect your wallet and select a supported network to see contracts.
-        </p>
+        <div className={`${STATS_PANEL} p-8 text-center`}>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Connect your wallet and select a supported network to see contracts.
+          </p>
+        </div>
       ) : (
-        <>
+        <div className={`${STATS_PANEL} p-4 sm:p-6`}>
           {tab === 'Tree view' && <ContractTreeView contractList={contractList} chainId={chainId} />}
           {tab === 'Table view' && <ContractTableView contractList={contractList} chainId={chainId} />}
           {tab === 'Flow' && <ContractFlowView contractList={contractList} chainId={chainId} />}
-        </>
+        </div>
       )}
     </section>
   );

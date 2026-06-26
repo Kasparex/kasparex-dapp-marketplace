@@ -14,7 +14,7 @@ const STATS_LINKS = [
 
 const QUICK_LINKS = [
   { href: '/hub', label: 'Hub' },
-  { href: '/', label: 'dApps' },
+  { href: '/dapps', label: 'dApps' },
   { href: '/nodes', label: 'KREX Nodes' },
   { href: '/rewards', label: 'Rewards' },
 ] as const;
@@ -38,23 +38,8 @@ export function StatsSidebar() {
     <UnifiedSidebar
       storageKeyPrefix="stats"
       header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
-      defaultWidth={260}
     >
-      <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-xl border border-cyan-500/20 mb-6">
-        <div className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mb-3">Ecosystem Stats</div>
-        <div className="space-y-4">
-          <div>
-            <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Global Transactions</div>
-            <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 italic">4.2M+</div>
-          </div>
-          <div>
-            <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight mb-0.5">Connected Nodes</div>
-            <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 italic">1,248</div>
-          </div>
-        </div>
-      </div>
-
-      <SidebarSection title="Main stats">
+      <SidebarSection title="Stats">
         <nav className="space-y-0.5">
           {STATS_LINKS.map((item) => (
             <SidebarNavItem

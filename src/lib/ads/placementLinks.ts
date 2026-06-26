@@ -69,6 +69,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'Kasparex AI hub, hero header right',
   },
   {
+    slotId: 'HALO_STATS_RIGHT',
+    title: 'Kasparex Stats halo',
+    href: '/stats#ad-slot-stats-halo',
+    placement: 'Kasparex Stats hub, hero header right',
+  },
+  {
     slotId: 'VBLOG_ARTICLE_ASIDE_BOTTOM',
     title: 'vBlog article aside',
     href: '/vblog#ad-slot-vblog-article-aside-bottom',

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { StatsSidebar } from '@/components/stats/StatsSidebar';
+import Link from 'next/link';
+import { StatsPageShell } from '@/components/stats/StatsPageShell';
+import { StatsHeader, statsHeadlineAccent } from '@/components/stats/StatsHeader';
 import { StatsPageContent } from '@/components/stats/StatsPageContent';
 
 export const metadata: Metadata = {
@@ -11,30 +11,26 @@ export const metadata: Metadata = {
 
 export default function StatsPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Header />
-
-      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
-        <StatsSidebar />
-
-        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
-          <div className="mx-auto w-full max-w-6xl">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                Ecosystem Stats
-              </h1>
-              <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
-                Treasury, TVL, and ecosystem metrics for the Kasparex platform.
-              </p>
-            </div>
-
-            <StatsPageContent />
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+    <StatsPageShell>
+      <StatsHeader
+        headline={
+          <>
+            Kasparex {statsHeadlineAccent('Stats')}
+          </>
+        }
+        description="Treasury, TVL, and ecosystem metrics for the Kasparex platform on Kaspa L1 and supported L2 networks."
+        actions={
+          <>
+            <Link href="/stats/contracts" className="k-cta-primary text-xs py-2.5 px-5">
+              Smart Contracts
+            </Link>
+            <Link href="/nodes" className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300">
+              KREX Nodes
+            </Link>
+          </>
+        }
+      />
+      <StatsPageContent />
+    </StatsPageShell>
   );
 }

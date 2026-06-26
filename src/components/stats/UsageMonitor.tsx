@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/Toaster';
+import { STATS_PANEL } from '@/components/stats/StatsHeader';
 
 type UsageSnapshot = {
   nowIsoMinuteUtc: string;
@@ -166,52 +167,40 @@ export function UsageMonitor() {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-100">Usage Monitor</h1>
-              <span
-                className={`inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/40 px-3 py-1 text-xs font-black uppercase tracking-wider ${meta.text}`}
-                title="Overall health based on last 5 minutes vs baseline"
-              >
-                <span className={`h-2.5 w-2.5 rounded-full ${meta.dot} ring-4 ${meta.ring}`} />
-                {meta.label}
-              </span>
-            </div>
-            <p className="text-base text-zinc-600 dark:text-zinc-400 mt-2 max-w-3xl">
-              Cheap, sampled counters for early spike detection. Use this to catch sudden increases in API traffic before they
-              become expensive.
-            </p>
+      <div className={`${STATS_PANEL} p-4 sm:p-6`}>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${meta.text}`}
+              title="Overall health based on last 5 minutes vs baseline"
+            >
+              <span className={`h-2 w-2 rounded-full ${meta.dot}`} />
+              {meta.label}
+            </span>
             {isWarmingUp ? (
-              <div className="mt-3 text-sm text-sky-700 dark:text-sky-300">
-                Warming up: baseline is still building, so spike detection is conservative for the first ~30 minutes.
-              </div>
+              <span className="text-xs text-sky-700 dark:text-sky-300">
+                Baseline still building (~30 min warmup).
+              </span>
             ) : null}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <button
               type="button"
               onClick={() => setNotifyEnabled((v) => !v)}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-black uppercase tracking-wider transition-colors ${
+              className={`k-control-btn text-xs ${
                 notifyEnabled
-                  ? 'border-[#02abb8]/40 bg-[#02abb8]/10 text-[#02abb8]'
-                  : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
+                  ? '!border-[#02abb8]/40 !bg-[#02abb8]/10 !text-[#02abb8]'
+                  : ''
               }`}
-              title="Show a toast + optional browser notification when a spike is detected"
             >
-              <span className="h-2 w-2 rounded-full bg-[#02abb8]" />
               Alerts {notifyEnabled ? 'On' : 'Off'}
             </button>
-
             {data ? (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400 rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2 bg-white/50 dark:bg-zinc-950/30">
-                <span className="font-black uppercase tracking-wider text-[10px] text-zinc-400">UTC</span>{' '}
-                <span className="font-mono font-semibold">{data.nowIsoMinuteUtc}</span>
-                <span className="mx-2 text-zinc-300 dark:text-zinc-700">•</span>
-                <span className="font-black uppercase tracking-wider text-[10px] text-zinc-400">sample</span>{' '}
-                <span className="font-mono font-semibold">{data.sampleRate}</span>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 k-control-btn !cursor-default">
+                <span className="font-mono">{data.nowIsoMinuteUtc}</span>
+                <span className="mx-2 text-zinc-300 dark:text-zinc-700">·</span>
+                sample <span className="font-mono">{data.sampleRate}</span>
               </div>
             ) : null}
           </div>
@@ -227,7 +216,7 @@ export function UsageMonitor() {
       {data ? (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+            <div className={`lg:col-span-2 ${STATS_PANEL} p-5`}>
               <div className="flex items-end justify-between gap-3 mb-4">
                 <div>
                   <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Traffic</div>
@@ -239,7 +228,7 @@ export function UsageMonitor() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {data.dimensions.map((d) => (
-                  <div key={d.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-white/40 dark:bg-zinc-950/20">
+                  <div key={d.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50 dark:bg-zinc-900/30">
                     <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">{d.label}</div>
                     <div className="text-4xl font-black text-zinc-900 dark:text-zinc-100 leading-none">
                       {fmt(data.totals[d.id] ?? 0)}
@@ -252,7 +241,7 @@ export function UsageMonitor() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+            <div className={`${STATS_PANEL} p-5`}>
               <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Alerts</div>
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Spike detection</div>
               {spikes.length === 0 ? (
@@ -278,8 +267,8 @@ export function UsageMonitor() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">How it works</div>
+            <div className={`${STATS_PANEL} p-6`}>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">How it works</div>
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Interpretation</div>
               <ul className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
                 <li>
@@ -297,8 +286,8 @@ export function UsageMonitor() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
-              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">Runbook</div>
+            <div className={`${STATS_PANEL} p-6`}>
+              <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Runbook</div>
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">What to do during a spike</div>
               <ol className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
                 <li>
@@ -325,7 +314,7 @@ export function UsageMonitor() {
           </div>
         </>
       ) : (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm text-base text-zinc-600 dark:text-zinc-400">
+        <div className={`${STATS_PANEL} p-6 text-sm text-zinc-600 dark:text-zinc-400`}>
           Loading counters…
         </div>
       )}

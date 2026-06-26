@@ -38,7 +38,7 @@ function ContractTreeCard({
   const param1 = p1 ? r1.value : null;
 
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4 flex flex-row gap-4 flex-wrap">
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30 p-4 flex flex-row gap-4 flex-wrap">
       <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-zinc-900 dark:text-white">{contract.key}</h4>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
@@ -52,7 +52,7 @@ function ContractTreeCard({
             {(contract.metadata.linksTo ?? []).map((k) => (
               <span
                 key={k}
-                className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
+                className="inline-flex px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20"
               >
                 {k}
               </span>
@@ -73,7 +73,7 @@ function ContractTreeCard({
               href={contract.explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-violet-600 dark:text-violet-400 hover:underline"
+              className="text-[#02abb8] hover:underline"
             >
               {contract.address.slice(0, 10)}…{contract.address.slice(-8)}
             </a>
@@ -122,7 +122,7 @@ export function ContractTreeView({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as TreeSortOption)}
-          className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-sm text-zinc-700 dark:text-zinc-300 px-3 py-1.5 focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+          className="h-10 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-zinc-700 dark:text-zinc-300 px-3 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/30 focus:border-[#02abb8]"
         >
           <option value="category">Category (default)</option>
           <option value="name-asc">Name A–Z</option>

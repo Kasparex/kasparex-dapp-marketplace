@@ -81,7 +81,7 @@ function ContractTableRow({
     addr.length > 10 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
 
   return (
-    <tr className="border-b border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+    <tr className="border-b border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
       <td className="py-3 px-3 text-sm font-medium text-zinc-900 dark:text-white">
         {contract.key}
       </td>
@@ -102,7 +102,7 @@ function ContractTableRow({
             href={contract.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-violet-600 dark:text-violet-400 hover:underline"
+            className="text-[#02abb8] hover:underline"
           >
             {truncate(contract.address)}
           </a>
@@ -115,7 +115,7 @@ function ContractTableRow({
           {(contract.metadata.linksTo ?? []).map((k) => (
             <span
               key={k}
-              className="inline-flex px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-500/20"
+              className="inline-flex px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20"
             >
               {k}
             </span>
@@ -148,7 +148,7 @@ export function ContractTableView({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as TableSortOption)}
-          className="rounded-lg border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-sm text-zinc-700 dark:text-zinc-300 px-3 py-1.5 focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+          className="h-10 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-zinc-700 dark:text-zinc-300 px-3 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/30 focus:border-[#02abb8]"
         >
           <option value="name-asc">Name A–Z</option>
           <option value="name-desc">Name Z–A</option>
@@ -158,10 +158,10 @@ export function ContractTableView({
           <option value="address-desc">Address Z–A</option>
         </select>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+            <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
               <th className="py-3 px-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Name
               </th>

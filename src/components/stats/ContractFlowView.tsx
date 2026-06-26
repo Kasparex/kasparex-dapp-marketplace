@@ -80,7 +80,7 @@ function ContractNode({ data, id }: NodeProps<{ contract: ContractListItem; chai
             href={contract.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] font-mono text-violet-600 dark:text-violet-400 hover:underline truncate block"
+            className="text-[10px] font-mono text-[#02abb8] hover:underline truncate block"
           >
             {contract.address.slice(0, 8)}…{contract.address.slice(-6)}
           </a>
@@ -151,7 +151,7 @@ export function ContractFlowView({
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         Execution flow (left → right): Treasury on the left, then contracts that feed into the system. Arrows show on-chain links. Read-only - pan and zoom to explore.
       </p>
-      <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
+      <div className="h-[600px] w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
         <ReactFlow
         nodes={nodes}
         edges={edges}
