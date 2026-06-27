@@ -1,5 +1,6 @@
 import { Category } from './categories';
 import { CHAIN_IDS } from './wagmi';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 export type DAppStatus =
   | 'Mainnet'
@@ -683,6 +684,25 @@ export function isMultichainDApp(dapp: DApp): boolean {
 
 export function isDirectoryListingDApp(dapp: DApp): boolean {
   return dapp.source === 'directory';
+}
+
+/** Resolve square logo URL for cards, tables, and detail headers. */
+export function getDAppLogoSrc(
+  dapp: Pick<DApp, 'logoImage' | 'image' | 'featuredImage' | 'directoryListing'>,
+): string | undefined {
+  if (dapp.logoImage?.trim()) return dapp.logoImage.trim();
+
+  const listing = dapp.directoryListing;
+  if (listing?.logoUrl?.trim()) return listing.logoUrl.trim();
+  if (listing?.logoCid?.trim()) return getBestGatewayUrl(listing.logoCid.trim());
+
+  const image = dapp.image?.trim();
+  if (image) {
+    const featured = dapp.featuredImage?.trim();
+    if (!featured || image !== featured) return image;
+  }
+
+  return undefined;
 }
 
 export function isCovenantDApp(dapp: DApp): boolean {

@@ -279,6 +279,8 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
 
   // Apply saved metadata from localStorage (overrides contract and frontend data)
   if (savedMetadata) {
+    const preservedLogo = merged.logoImage;
+    const preservedListing = merged.directoryListing;
     merged = {
       ...merged,
       ...savedMetadata,
@@ -286,6 +288,12 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
       id: merged.id,
       slug: merged.slug || merged.id,
     };
+    if (!merged.logoImage && preservedLogo) {
+      merged.logoImage = preservedLogo;
+    }
+    if (!merged.directoryListing && preservedListing) {
+      merged.directoryListing = preservedListing;
+    }
   }
 
   // Apply saved images from localStorage (highest priority)
@@ -294,6 +302,7 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
   }
   if (savedLogo) {
     merged.image = savedLogo;
+    merged.logoImage = savedLogo;
   }
 
   // Auto-sync dApp logo from token logo if dApp doesn't have one
@@ -308,6 +317,7 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
         const syncedLogo = loadDAppLogo(frontendData.id);
         if (syncedLogo) {
           merged.image = syncedLogo;
+          merged.logoImage = syncedLogo;
         }
       }
     } catch (err) {

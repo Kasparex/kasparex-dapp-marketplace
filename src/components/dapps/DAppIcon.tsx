@@ -6,13 +6,15 @@
 'use client';
 
 import { IconDisplay, type IconDisplayProps } from '@/components/IconDisplay';
-import { getCategoryIcon } from '@/lib/icons/generator';
+import { getDAppLogoSrc, type DApp } from '@/lib/dapps';
 
 export interface DAppIconProps extends Omit<IconDisplayProps, 'type' | 'identifier' | 'name'> {
   dAppName: string;
   category?: string;
   /** Custom uploaded logo URL (replaces generated letter icon). */
   imageSrc?: string;
+  /** When set, logo is resolved via getDAppLogoSrc (overridden by imageSrc). */
+  dapp?: Pick<DApp, 'logoImage' | 'image' | 'featuredImage' | 'directoryListing'>;
   size?: number;
   className?: string;
 }
@@ -21,14 +23,17 @@ export function DAppIcon({
   dAppName,
   category = 'general',
   imageSrc,
+  dapp,
   size = 48,
   className = '',
   ...props
 }: DAppIconProps) {
-  if (imageSrc) {
+  const resolvedSrc = imageSrc ?? (dapp ? getDAppLogoSrc(dapp) : undefined);
+
+  if (resolvedSrc) {
     return (
       <img
-        src={imageSrc}
+        src={resolvedSrc}
         alt=""
         width={size}
         height={size}
@@ -37,9 +42,6 @@ export function DAppIcon({
       />
     );
   }
-
-  // Get category icon name for future icon library integration
-  const categoryIconName = getCategoryIcon(category);
 
   return (
     <IconDisplay

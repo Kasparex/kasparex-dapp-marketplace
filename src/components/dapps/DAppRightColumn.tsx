@@ -90,6 +90,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
         <DAppIcon
           dAppName={mergedDApp.name}
           category={mergedDApp.category}
+          dapp={mergedDApp}
           size={64}
           className="flex-shrink-0 rounded-xl"
         />

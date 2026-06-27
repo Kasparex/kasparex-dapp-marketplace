@@ -41,6 +41,7 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
                 <DAppIcon
                     dAppName={mergedDApp.name}
                     category={mergedDApp.category}
+                    dapp={mergedDApp}
                     size={40}
                     className="rounded-lg"
                 />

@@ -29,8 +29,16 @@ import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { getCategoryById } from '@/lib/categories';
 import { DAppIcon } from '@/components/dapps/DAppIcon';
+import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
+import { DIRECTORY_LISTING_CHAINS } from '@/lib/dapps/listingChains';
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
+const LOGO_MAX_SIZE_MB = 0.5;
+
+const CHAIN_OPTIONS = DIRECTORY_LISTING_CHAINS.map((chain) => ({
+  value: chain,
+  label: chain,
+}));
 
 type LinkRow = { label: string; url: string };
 
@@ -142,7 +150,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [feesOverview, setFeesOverview] = useState(listing?.feesOverview ?? '');
   const [feesPricing, setFeesPricing] = useState(listing?.feesPricing ?? '');
   const [feesCosts, setFeesCosts] = useState(listing?.feesCosts ?? '');
-  const [chainsRaw, setChainsRaw] = useState(listing?.supportedChains.join(', ') ?? '');
+  const [chains, setChains] = useState<string[]>(listing?.supportedChains ?? []);
   const [networkLayer, setNetworkLayer] = useState<NetworkLayer>(listing?.networkLayer ?? 'L1');
   const [websiteUrl, setWebsiteUrl] = useState(listing?.websiteUrl ?? '');
   const [socialLinks, setSocialLinks] = useState<LinkRow[]>(
@@ -158,6 +166,10 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [featureImageName, setFeatureImageName] = useState<string | null>(null);
   const [logoCid, setLogoCid] = useState<string | null>(listing?.logoCid ?? null);
   const [logoName, setLogoName] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState(listing?.logoUrl ?? '');
+  const [logoSource, setLogoSource] = useState<'url' | 'file'>(() =>
+    listing?.logoUrl ? 'url' : 'file',
+  );
   const [galleryCids, setGalleryCids] = useState<string[]>(listing?.galleryCids ?? []);
   const [galleryFileNames, setGalleryFileNames] = useState<string[]>(listing?.galleryFileNames ?? []);
   const [optionalFileCids, setOptionalFileCids] = useState<string[]>(listing?.optionalFileCids ?? []);
@@ -184,7 +196,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setFeesOverview(listing.feesOverview ?? '');
     setFeesPricing(listing.feesPricing ?? '');
     setFeesCosts(listing.feesCosts ?? '');
-    setChainsRaw(listing.supportedChains.join(', '));
+    setChains(listing.supportedChains ?? []);
     setNetworkLayer(listing.networkLayer);
     setWebsiteUrl(listing.websiteUrl);
     setSocialLinks(listing.socialLinks.length ? listing.socialLinks : [{ label: '', url: '' }]);
@@ -194,6 +206,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setActionButtons(listing.actionButtons.length ? listing.actionButtons : [{ label: '', url: '' }]);
     setFeatureImageCid(listing.featureImageCid ?? null);
     setLogoCid(listing.logoCid ?? null);
+    setLogoUrl(listing.logoUrl ?? '');
+    setLogoSource(listing.logoUrl ? 'url' : 'file');
     setGalleryCids(listing.galleryCids);
     setGalleryFileNames(listing.galleryFileNames);
     setOptionalFileCids(listing.optionalFileCids);
@@ -214,7 +228,12 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     () => listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas),
     [paymentCurrency, listingFee.effectiveKas],
   );
-  const logoPreviewUrl = logoCid ? getBestGatewayUrl(logoCid) : null;
+  const logoPreviewUrl =
+    logoSource === 'url' && logoUrl.trim()
+      ? logoUrl.trim()
+      : logoCid
+        ? getBestGatewayUrl(logoCid)
+        : null;
   const listingCategory = getCategoryById(category);
 
   const canSubmit = Boolean(
@@ -251,10 +270,11 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const handleLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const cid = await uploadFile(file, 1);
+    const cid = await uploadFile(file, LOGO_MAX_SIZE_MB);
     if (cid) {
       setLogoCid(cid);
       setLogoName(file.name);
+      setLogoUrl('');
       setError(null);
     }
     e.target.value = '';
@@ -308,14 +328,15 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     feesOverview: feesOverview.trim(),
     feesPricing: feesPricing.trim(),
     feesCosts: feesCosts.trim(),
-    supportedChains: parseList(chainsRaw),
+    supportedChains: chains,
     networkLayer,
     websiteUrl: websiteUrl.trim(),
     socialLinks: cleanLinks(socialLinks),
     documentationLinks: cleanLinks(documentationLinks),
     actionButtons: cleanLinks(actionButtons),
     featureImageCid: featureImageCid || undefined,
-    logoCid: logoCid || undefined,
+    logoCid: logoSource === 'file' ? logoCid || undefined : undefined,
+    logoUrl: logoSource === 'url' && logoUrl.trim() ? logoUrl.trim() : undefined,
     galleryCids,
     galleryFileNames,
     optionalFileCids,
@@ -535,13 +556,17 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
 
           <div className="k-form-group">
             <label className="k-label">Supported chains</label>
-            <input
-              type="text"
-              className="k-input"
-              value={chainsRaw}
-              onChange={(e) => setChainsRaw(e.target.value)}
-              placeholder="Kaspa, Kasplex, Igra (comma separated)"
+            <KxMultiSelectDropdown
+              values={chains}
+              onChange={setChains}
+              options={CHAIN_OPTIONS}
+              ariaLabel="Supported chains"
+              placeholder="Select one or more chains"
+              triggerClassName="k-control-btn w-full min-w-0 justify-between"
             />
+            <p className="text-xs text-zinc-500 mt-1.5">
+              Choose every network your dApp supports ({DIRECTORY_LISTING_CHAINS.join(', ')}).
+            </p>
           </div>
 
           <div className="k-form-group">
@@ -574,18 +599,66 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             addLabel="Add action button"
           />
 
-          <StoreFileUpload
-            label="Custom logo (optional)"
-            hint="Square PNG, JPG, or WebP under 1MB. Shown in dApp icon slots."
-            accept="image/*"
-            fileName={logoName ?? (logoCid && !logoName ? 'Uploaded logo' : null)}
-            onClear={() => {
-              setLogoCid(null);
-              setLogoName(null);
-            }}
-            onChange={handleLogo}
-            disabled={isUploading}
-          />
+          <div className="k-form-group">
+            <label className="k-label">Custom logo (optional)</label>
+            <div className="space-y-3">
+              <div className="k-control-group h-10 p-1 flex w-full">
+                <button
+                  type="button"
+                  onClick={() => setLogoSource('url')}
+                  className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
+                    logoSource === 'url'
+                      ? 'bg-[#02abb8] text-white shadow-sm'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  Image URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLogoSource('file')}
+                  className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
+                    logoSource === 'file'
+                      ? 'bg-[#02abb8] text-white shadow-sm'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  Upload (IPFS)
+                </button>
+              </div>
+              {logoSource === 'url' ? (
+                <div>
+                  <input
+                    type="url"
+                    className="k-input"
+                    value={logoUrl}
+                    onChange={(e) => {
+                      setLogoUrl(e.target.value);
+                      setLogoCid(null);
+                      setLogoName(null);
+                    }}
+                    placeholder="https://..."
+                  />
+                  <p className="text-xs text-zinc-500 mt-1.5">
+                    Direct HTTPS image URL. Recommended square ratio, max 500 KB file size when hosted.
+                  </p>
+                </div>
+              ) : (
+                <StoreFileUpload
+                  label=""
+                  hint="Square PNG, JPG, or WebP under 500 KB"
+                  accept="image/*"
+                  fileName={logoName ?? (logoCid && !logoName ? 'Uploaded logo' : null)}
+                  onClear={() => {
+                    setLogoCid(null);
+                    setLogoName(null);
+                  }}
+                  onChange={handleLogo}
+                  disabled={isUploading}
+                />
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <StoreFileUpload

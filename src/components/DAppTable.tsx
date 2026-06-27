@@ -59,6 +59,7 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
             <DAppIcon
               dAppName={mergedDApp.name}
               category={mergedDApp.category}
+              dapp={mergedDApp}
               size={32}
               className="flex-shrink-0"
             />
@@ -68,6 +69,7 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
             <DAppIcon
               dAppName={mergedDApp.name}
               category={mergedDApp.category}
+              dapp={mergedDApp}
               size={32}
               className="flex-shrink-0"
             />

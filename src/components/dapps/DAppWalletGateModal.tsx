@@ -60,7 +60,7 @@ export function DAppWalletGateModal({
       }}
       showL1Connect={showL1Connect}
       showEvmConnect={false}
-      icon={<DAppIcon dAppName={dapp.name} category={dapp.category} size={40} className="rounded-lg" />}
+      icon={<DAppIcon dAppName={dapp.name} category={dapp.category} dapp={dapp} size={40} className="rounded-lg" />}
     />
   );
 }
