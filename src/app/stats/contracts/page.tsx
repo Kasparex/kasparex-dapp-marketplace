@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { StatsPageShell } from '@/components/stats/StatsPageShell';
-import { StatsHeader, statsHeadlineAccent } from '@/components/stats/StatsHeader';
+import { StatsHeader } from '@/components/stats/StatsHeader';
+import { statsHeadlineAccent } from '@/lib/stats/statsUi';
 import { SmartContractsPage } from '@/components/stats/SmartContractsPage';
 
 export const metadata: Metadata = {

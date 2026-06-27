@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/Toaster';
-import { STATS_PANEL } from '@/components/stats/StatsHeader';
+import { STATS_PANEL } from '@/lib/stats/statsUi';
 
 type UsageSnapshot = {
   nowIsoMinuteUtc: string;

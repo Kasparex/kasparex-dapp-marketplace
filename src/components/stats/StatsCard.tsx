@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { STATS_PANEL } from '@/components/stats/StatsHeader';
+import { STATS_PANEL } from '@/lib/stats/statsUi';
 
 export interface StatsCardProps {
   title: string;

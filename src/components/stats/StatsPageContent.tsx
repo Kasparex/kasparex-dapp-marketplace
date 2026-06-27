@@ -3,7 +3,7 @@
 import { useChainId } from 'wagmi';
 import { TreasuryBox } from '@/components/treasury/TreasuryBox';
 import { StatsCard } from '@/components/stats/StatsCard';
-import { STATS_PANEL } from '@/components/stats/StatsHeader';
+import { STATS_PANEL } from '@/lib/stats/statsUi';
 import {
   CONTRACT_KEYS,
   getContractsWithAddress,

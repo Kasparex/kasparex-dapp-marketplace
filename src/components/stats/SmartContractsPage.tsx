@@ -10,7 +10,7 @@ import {
   type ContractKey,
   type ContractMetadataEntry,
 } from '@/lib/contracts/contractsMetadata';
-import { STATS_PANEL } from '@/components/stats/StatsHeader';
+import { STATS_PANEL } from '@/lib/stats/statsUi';
 import { ContractTableView } from './ContractTableView';
 import { ContractTreeView } from './ContractTreeView';
 import { ContractFlowView } from './ContractFlowView';

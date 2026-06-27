@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { StatsPageShell } from '@/components/stats/StatsPageShell';
-import { StatsHeader, statsHeadlineAccent, STATS_PANEL } from '@/components/stats/StatsHeader';
+import { StatsHeader } from '@/components/stats/StatsHeader';
+import { statsHeadlineAccent, STATS_PANEL } from '@/lib/stats/statsUi';
 import { UsageMonitor } from '@/components/stats/UsageMonitor';
 
 export const metadata: Metadata = {
