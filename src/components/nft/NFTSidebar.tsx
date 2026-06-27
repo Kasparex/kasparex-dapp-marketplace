@@ -1,12 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
+import { NFT_LISTING_TABS, type NftListingTab } from '@/lib/nft/listingTabs';
 
 export type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'collections' | 'stats';
 
@@ -15,26 +14,13 @@ export interface NFTSidebarProps {
   onTabChange: (tab: TabType) => void;
   collectionSlug?: string;
   isListingPage?: boolean;
-  /** /nft/roadmap - minimal nav, no collection tabs */
-  isRoadmapPage?: boolean;
-  /** Listing: switch to Collections tab and scroll to section */
-  onListingSectionNavigate?: (sectionId: string) => void;
+  listingTab?: NftListingTab;
+  onListingTabChange?: (tab: NftListingTab) => void;
 }
 
 const sectionIcon = (
   <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-  </svg>
-);
-
-const gridIcon = (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-    />
   </svg>
 );
 
@@ -107,13 +93,9 @@ export function NFTSidebar({
   onTabChange,
   collectionSlug,
   isListingPage = false,
-  isRoadmapPage = false,
-  onListingSectionNavigate,
+  listingTab = 'premium',
+  onListingTabChange,
 }: NFTSidebarProps) {
-  const pathname = usePathname();
-  const onNftHome = pathname === '/nft';
-  const onRoadmap = pathname === '/nft/roadmap';
-
   const backHref = collectionSlug ? '/nft' : '/hub';
   const backLabel = collectionSlug ? 'Back to NFT Tools' : 'Back to Hub';
 
@@ -127,7 +109,6 @@ export function NFTSidebar({
 
   const goMyNfts = () => {
     onTabChange('my-nfts');
-    requestAnimationFrame(() => document.getElementById('nft-section-my-nfts')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   return (
@@ -137,36 +118,21 @@ export function NFTSidebar({
       header={(onHide) => (
         <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} className="bg-white dark:bg-zinc-950" />
       )}
+      footer={
+        <div className="px-4 py-3 border-t border-zinc-200/70 dark:border-zinc-800/70">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-lime-500/15 border border-lime-500/30 text-[10px] font-black text-lime-700 dark:text-lime-300">
+              NT
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 truncate">NFT Tools</p>
+              <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 truncate">Kasparex Hub</p>
+            </div>
+          </div>
+        </div>
+      }
     >
-      <div className="px-3 pt-3 pb-4 space-y-2 border-b border-zinc-200/70 dark:border-zinc-800/70 mb-4">
-        <Link
-          href="/nft"
-          className={`k-control-btn w-full justify-center gap-2 ${
-            onNftHome
-              ? '!border-[#02abb8]/40 !bg-[#02abb8]/15 !text-[#017a84] dark:!text-[#8ff1f8]'
-              : '!border-[#02abb8]/30 !bg-[#02abb8]/10 !text-[#017a84] dark:!text-[#8ff1f8] hover:!bg-[#02abb8]/15'
-          }`}
-        >
-          {gridIcon}
-          <span className="text-xs font-black uppercase tracking-widest">Collections</span>
-        </Link>
-
-        <Link
-          href="/nft/roadmap"
-          className={`k-control-btn w-full justify-center gap-2 ${
-            onRoadmap
-              ? '!border-cyan-500/40 !bg-cyan-500/15 !text-cyan-800 dark:!text-cyan-300'
-              : '!border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300 hover:!bg-cyan-500/15'
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-xs font-black uppercase tracking-widest">NFT Tools</span>
-        </Link>
-      </div>
-
-      {!isRoadmapPage && isListingPage && (
+      {isListingPage && (
         <>
           <div className="space-y-1 mb-4">
             <button
@@ -187,24 +153,25 @@ export function NFTSidebar({
             </button>
           </div>
 
-          <SidebarSection title="On this page">
+          <SidebarSection title="Browse">
             <nav className="space-y-0.5">
-              <SidebarNavItem
-                label="Premium collections"
-                icon={sectionIcon}
-                onClick={() => onListingSectionNavigate?.('nft-section-premium')}
-              />
-              <SidebarNavItem
-                label="Partner collections"
-                icon={sectionIcon}
-                onClick={() => onListingSectionNavigate?.('nft-section-partner')}
-              />
-              <SidebarNavItem
-                label="Standard tier"
-                icon={sectionIcon}
-                onClick={() => onListingSectionNavigate?.('nft-section-standard')}
-              />
-              <SidebarNavItem label="My NFTs" icon={sectionIcon} onClick={goMyNfts} />
+              {NFT_LISTING_TABS.map((item) => (
+                <SidebarNavItem
+                  key={item.value}
+                  label={item.label}
+                  icon={sectionIcon}
+                  active={activeTab === 'collections' && listingTab === item.value}
+                  onClick={() => {
+                    onTabChange('collections');
+                    onListingTabChange?.(item.value);
+                  }}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
+
+          <SidebarSection title="Links">
+            <nav className="space-y-0.5">
               <SidebarNavItem
                 href="/chronicles/leaderboard#points-table"
                 label="NFT slot points"
@@ -219,7 +186,7 @@ export function NFTSidebar({
         </>
       )}
 
-      {!isRoadmapPage && collectionSlug && (
+      {!isListingPage && collectionSlug && (
         <SidebarSection title="Collection">
           <nav className="space-y-0.5">
             {collectionTabs.map((tab) => (
@@ -231,14 +198,6 @@ export function NFTSidebar({
                 onClick={() => onTabChange(tab.id)}
               />
             ))}
-          </nav>
-        </SidebarSection>
-      )}
-
-      {isRoadmapPage && (
-        <SidebarSection title="On this page">
-          <nav className="space-y-0.5">
-            <SidebarNavItem href="/nft/roadmap#nft-roadmap-grid" label="Roadmap grid" icon={sectionIcon} />
           </nav>
         </SidebarSection>
       )}

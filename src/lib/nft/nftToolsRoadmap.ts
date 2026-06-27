@@ -1,5 +1,5 @@
 /**
- * Planned NFT Tools modules (informational). Shown on /nft/roadmap.
+ * Planned NFT Tools (informational). Shown on the main listing Tools tab (/nft?tab=tools).
  */
 export interface NftToolsRoadmapItem {
   id: string;

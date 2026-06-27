@@ -2,8 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+import Link from 'next/link';
 import { RarityChecker } from '@/components/nft/RarityChecker';
 import { TraitAnalysis } from '@/components/nft/TraitAnalysis';
 import { PFPBuilder } from '@/components/nft/PFPBuilder';
@@ -11,10 +10,18 @@ import { UserNFTsTab } from '@/components/nft/UserNFTsTab';
 import { CollectionStats } from '@/components/nft/CollectionStats';
 import { NFTSidebar } from '@/components/nft/NFTSidebar';
 import { NFTHaloHeader } from '@/components/nft/NFTHaloHeader';
+import { NFTPageShell } from '@/components/nft/NFTPageShell';
 import { getCollectionBySlug, isValidCollection, type CollectionConfig } from '@/lib/nft/collections';
-import Link from 'next/link';
 
 type TabType = 'checker' | 'traits' | 'builder' | 'my-nfts' | 'stats';
+
+const TAB_HEADINGS: Record<TabType, { eyebrow: string; title: string }> = {
+  'my-nfts': { eyebrow: 'Wallet', title: 'My NFTs' },
+  checker: { eyebrow: 'Module', title: 'Rarity Checker' },
+  traits: { eyebrow: 'Module', title: 'Trait Analysis' },
+  builder: { eyebrow: 'Module', title: 'PFP Builder' },
+  stats: { eyebrow: 'Module', title: 'Collection Statistics' },
+};
 
 export default function CollectionPage() {
   const params = useParams();
@@ -29,107 +36,57 @@ export default function CollectionPage() {
     }
   }, [collection]);
 
-
   if (!collection || !isValidCollection(collection) || !collectionConfig) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
+      <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
         <main className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-              Collection Not Found
-            </h1>
-            <Link
-              href="/nft"
-              className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-            >
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Collection Not Found</h1>
+            <Link href="/nft" className="k-control-btn inline-flex">
               ← Back to NFT Tools
             </Link>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
+  const heading = TAB_HEADINGS[activeTab];
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      
-      <main className="flex-1">
-        {/* Main Content with Sidebar */}
-        <div className="flex min-h-[calc(100vh-4rem)]">
-          {/* Sidebar */}
-          <NFTSidebar
-            activeTab={activeTab}
-            onTabChange={(tab) => {
-              // Filter out 'collections' tab as it's not valid for collection pages
-              if (tab !== 'collections') {
-                setActiveTab(tab);
-              }
-            }}
-            collectionSlug={collection}
-          />
+    <NFTPageShell
+      sidebar={{
+        activeTab,
+        onTabChange: (tab) => {
+          if (tab !== 'collections') {
+            setActiveTab(tab);
+          }
+        },
+        collectionSlug: collection,
+      }}
+    >
+      <NFTHaloHeader
+        variant="collection"
+        collectionName={collectionConfig.name}
+        collectionDescription={
+          collectionConfig.description || `Explore ${collectionConfig.name} in Kasparex NFT Tools.`
+        }
+      />
 
-          {/* Content */}
-          <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
-            <NFTHaloHeader
-              variant="collection"
-              collectionName={collectionConfig.name}
-              collectionDescription={
-                collectionConfig.description || `Explore ${collectionConfig.name} in Kasparex NFT Tools.`
-              }
-            />
-            
-            <section className="py-8 sm:py-12">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                {activeTab === 'checker' && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                      Rarity Checker
-                    </h2>
-                    <RarityChecker collectionId={collectionConfig.id} />
-                  </div>
-                )}
-                {activeTab === 'traits' && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                      Trait Analysis
-                    </h2>
-                    <TraitAnalysis collectionId={collectionConfig.id} />
-                  </div>
-                )}
-                {activeTab === 'builder' && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                      PFP Builder
-                    </h2>
-                    <PFPBuilder collectionId={collectionConfig.id} />
-                  </div>
-                )}
-                {activeTab === 'my-nfts' && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                      My NFTs
-                    </h2>
-                    <UserNFTsTab collectionId={collectionConfig.id} />
-                  </div>
-                )}
-                {activeTab === 'stats' && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                      Collection Statistics
-                    </h2>
-                    <CollectionStats collectionId={collectionConfig.id} />
-                  </div>
-                )}
-              </div>
-            </section>
-          </main>
+      <section className="scroll-mt-24">
+        <div className="mb-6">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-lime-400 mb-1">
+            {heading.eyebrow}
+          </p>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{heading.title}</h2>
         </div>
-      </main>
 
-      <Footer />
-    </div>
+        {activeTab === 'checker' && <RarityChecker collectionId={collectionConfig.id} />}
+        {activeTab === 'traits' && <TraitAnalysis collectionId={collectionConfig.id} />}
+        {activeTab === 'builder' && <PFPBuilder collectionId={collectionConfig.id} />}
+        {activeTab === 'my-nfts' && <UserNFTsTab collectionId={collectionConfig.id} />}
+        {activeTab === 'stats' && <CollectionStats collectionId={collectionConfig.id} />}
+      </section>
+    </NFTPageShell>
   );
 }
