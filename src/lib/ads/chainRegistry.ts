@@ -21,7 +21,9 @@ import {
   isValidAdKasPayment,
   isValidAdKrexBindingKasPaid,
   isValidAdKrexPriceMeta,
+  premiumOptionsFromMeta,
 } from '@/lib/ads/adPriceValidation';
+import { exposureBonusSecondsFromPremium } from '@/lib/ads/carouselTiming';
 import { expectedKrexAmtSmallestFromHuman, verifyKrexTreasuryTransfer } from '@/lib/ads/krexPaymentVerify';
 import type { AdEntry } from '@/lib/ads/types';
 
@@ -209,11 +211,13 @@ export function campaignToAdEntry(
   startMs: number
 ): AdEntry {
   const endMs = startMs + meta.days * 24 * 60 * 60 * 1000;
+  const exposureBonusSeconds = exposureBonusSecondsFromPremium(meta.extendedExposure);
   return {
     id: `${txId}-${metadataCid}`,
     slotId: meta.slotId,
     slotIndex: meta.slotIndex,
     featuredHighlight: meta.featuredHighlight === true,
+    exposureBonusSeconds,
     format: meta.format,
     imageUrl: resolveAdImageUrl(meta.image),
     link: meta.link,
@@ -235,12 +239,13 @@ async function verifyAdEconomics(
   payerPrefixed: string,
 ): Promise<boolean> {
   const currency = meta.paymentCurrency ?? 'KAS';
+  const premium = premiumOptionsFromMeta(meta);
   if (currency === 'KAS') {
-    return isValidAdKasPayment(meta.priceKas, paidSompi, slotBaseKas, meta.featuredHighlight);
+    return isValidAdKasPayment(meta.priceKas, paidSompi, slotBaseKas, premium);
   }
   if (!isValidAdKrexBindingKasPaid(paidSompi)) return false;
   if (!meta.priceKrex || !meta.krexPaymentTxHash) return false;
-  if (!isValidAdKrexPriceMeta(meta.priceKas, meta.priceKrex, slotBaseKas, meta.featuredHighlight)) return false;
+  if (!isValidAdKrexPriceMeta(meta.priceKas, meta.priceKrex, slotBaseKas, premium)) return false;
   const minAmt = expectedKrexAmtSmallestFromHuman(meta.priceKrex);
   return verifyKrexTreasuryTransfer({
     payerAddress: payerPrefixed,

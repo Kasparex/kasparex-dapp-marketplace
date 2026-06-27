@@ -183,7 +183,13 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
         onClose={() => setShowInfoModal(false)}
       />
 
-      <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto">
+      <div
+        className={
+          dappSectionHeader
+            ? 'mt-2 pt-2 max-w-4xl mx-auto'
+            : 'mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto'
+        }
+      >
         {/* Header with Collapse and Info */}
         <div className="flex items-center justify-between mb-6">
           {dappSectionHeader ? (

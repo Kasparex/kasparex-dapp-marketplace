@@ -39,6 +39,8 @@ export type DirectoryListing = {
   socialLinks: DirectoryLink[];
   documentationLinks: DirectoryLink[];
   actionButtons: DirectoryLink[];
+  /** Small square logo for cards and icon slots (optional). */
+  logoCid?: string;
   featureImageCid?: string;
   galleryCids: string[];
   galleryFileNames: string[];
@@ -274,6 +276,7 @@ export function saveDAppListingSubmission(
     documentationLinks: data.documentationLinks ?? [],
     actionButtons: data.actionButtons ?? [],
     featureImageCid: data.featureImageCid,
+    logoCid: data.logoCid,
     galleryCids: data.galleryCids ?? [],
     galleryFileNames: data.galleryFileNames ?? [],
     optionalFileCids: data.optionalFileCids ?? [],
@@ -336,6 +339,7 @@ export function archiveDirectoryListing(id: string, submitterAddress: string): b
 }
 
 export function directoryListingToDApp(listing: DirectoryListing): DApp {
+  const logoUrl = listing.logoCid ? getBestGatewayUrl(listing.logoCid) : undefined;
   const featureUrl = listing.featureImageCid
     ? getBestGatewayUrl(listing.featureImageCid)
     : undefined;
@@ -365,7 +369,8 @@ export function directoryListingToDApp(listing: DirectoryListing): DApp {
     id: listing.id,
     slug: listing.slug,
     name: listing.name,
-    image: featureUrl,
+    image: logoUrl,
+    logoImage: logoUrl,
     featuredImage: featureUrl,
     createdAt: listing.submittedAt,
     category: listing.category,

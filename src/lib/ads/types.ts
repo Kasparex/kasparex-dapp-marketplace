@@ -36,6 +36,8 @@ export interface AdEntry {
   slotIndex?: number;
   /** Paid featured capsule - stronger border / emphasis in listings. */
   featuredHighlight?: boolean;
+  /** Extra seconds this ad stays visible in slider rotations (+5 when purchased). */
+  exposureBonusSeconds?: number;
   /** Template type for mosaic layout: square, wide rectangle, or tall rectangle. */
   format: AdFormat;
   imageUrl: string;

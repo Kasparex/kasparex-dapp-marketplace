@@ -52,7 +52,11 @@ function ListingRow({
   isDeleting: boolean;
 }) {
   const cat = getCategoryById(item.category);
-  const thumb = item.featureImageCid ? getBestGatewayUrl(item.featureImageCid) : null;
+  const thumb = item.logoCid
+    ? getBestGatewayUrl(item.logoCid)
+    : item.featureImageCid
+      ? getBestGatewayUrl(item.featureImageCid)
+      : null;
 
   return (
     <div className="p-4 flex items-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">

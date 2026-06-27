@@ -31,6 +31,8 @@ export interface AdCampaignMetadataV1 {
   krexPaymentTxHash?: string;
   /** Flat premium - highlighted placement frame */
   featuredHighlight?: boolean;
+  /** Flat premium - extra carousel exposure seconds */
+  extendedExposure?: boolean;
   /** Optional short promo line for hover tooltip on the creative */
   promoTooltip?: string;
 }
@@ -49,6 +51,7 @@ export function buildCampaignMetadataV1(input: {
   priceKrex?: number;
   krexPaymentTxHash?: string;
   featuredHighlight?: boolean;
+  extendedExposure?: boolean;
   promoTooltip?: string;
 }): AdCampaignMetadataV1 {
   const row: AdCampaignMetadataV1 = {
@@ -70,6 +73,7 @@ export function buildCampaignMetadataV1(input: {
     if (input.krexPaymentTxHash) row.krexPaymentTxHash = input.krexPaymentTxHash;
   }
   if (input.featuredHighlight === true) row.featuredHighlight = true;
+  if (input.extendedExposure === true) row.extendedExposure = true;
   const tip = input.promoTooltip?.trim();
   if (tip && tip.length <= ADS_MAX_PROMO_TOOLTIP_CHARS) row.promoTooltip = tip;
   return row;
@@ -125,6 +129,7 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   const krexPaymentTxHash =
     typeof o.krexPaymentTxHash === 'string' && o.krexPaymentTxHash.trim() ? o.krexPaymentTxHash.trim() : undefined;
   const featuredHighlight = o.featuredHighlight === true;
+  const extendedExposure = o.extendedExposure === true;
 
   if (paymentCurrency === 'KREX') {
     if (!krexPaymentTxHash || priceKrex == null || priceKrex <= 0) return null;
@@ -147,6 +152,7 @@ export function parseAdMetadataJson(data: unknown): AdCampaignMetadataV1 | null 
   if (priceKrex != null) base.priceKrex = priceKrex;
   if (krexPaymentTxHash) base.krexPaymentTxHash = krexPaymentTxHash;
   if (featuredHighlight) base.featuredHighlight = true;
+  if (extendedExposure) base.extendedExposure = true;
   if (promoTooltip) base.promoTooltip = promoTooltip;
   return base;
 }

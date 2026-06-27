@@ -26,6 +26,9 @@ import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getCategoryById } from '@/lib/categories';
+import { DAppIcon } from '@/components/dapps/DAppIcon';
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
 
@@ -153,6 +156,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   );
   const [featureImageCid, setFeatureImageCid] = useState<string | null>(listing?.featureImageCid ?? null);
   const [featureImageName, setFeatureImageName] = useState<string | null>(null);
+  const [logoCid, setLogoCid] = useState<string | null>(listing?.logoCid ?? null);
+  const [logoName, setLogoName] = useState<string | null>(null);
   const [galleryCids, setGalleryCids] = useState<string[]>(listing?.galleryCids ?? []);
   const [galleryFileNames, setGalleryFileNames] = useState<string[]>(listing?.galleryFileNames ?? []);
   const [optionalFileCids, setOptionalFileCids] = useState<string[]>(listing?.optionalFileCids ?? []);
@@ -188,6 +193,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     );
     setActionButtons(listing.actionButtons.length ? listing.actionButtons : [{ label: '', url: '' }]);
     setFeatureImageCid(listing.featureImageCid ?? null);
+    setLogoCid(listing.logoCid ?? null);
     setGalleryCids(listing.galleryCids);
     setGalleryFileNames(listing.galleryFileNames);
     setOptionalFileCids(listing.optionalFileCids);
@@ -208,6 +214,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     () => listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas),
     [paymentCurrency, listingFee.effectiveKas],
   );
+  const logoPreviewUrl = logoCid ? getBestGatewayUrl(logoCid) : null;
+  const listingCategory = getCategoryById(category);
 
   const canSubmit = Boolean(
     state.isConnected &&
@@ -235,6 +243,18 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     if (cid) {
       setFeatureImageCid(cid);
       setFeatureImageName(file.name);
+      setError(null);
+    }
+    e.target.value = '';
+  };
+
+  const handleLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const cid = await uploadFile(file, 1);
+    if (cid) {
+      setLogoCid(cid);
+      setLogoName(file.name);
       setError(null);
     }
     e.target.value = '';
@@ -295,6 +315,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     documentationLinks: cleanLinks(documentationLinks),
     actionButtons: cleanLinks(actionButtons),
     featureImageCid: featureImageCid || undefined,
+    logoCid: logoCid || undefined,
     galleryCids,
     galleryFileNames,
     optionalFileCids,
@@ -553,6 +574,19 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             addLabel="Add action button"
           />
 
+          <StoreFileUpload
+            label="Custom logo (optional)"
+            hint="Square PNG, JPG, or WebP under 1MB. Shown in dApp icon slots."
+            accept="image/*"
+            fileName={logoName ?? (logoCid && !logoName ? 'Uploaded logo' : null)}
+            onClear={() => {
+              setLogoCid(null);
+              setLogoName(null);
+            }}
+            onChange={handleLogo}
+            disabled={isUploading}
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <StoreFileUpload
               label="Feature image *"
@@ -633,7 +667,32 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
         </div>
 
-        <aside className="xl:sticky xl:top-6 h-fit">
+        <aside className="xl:sticky xl:top-6 h-fit space-y-4">
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Card preview</p>
+            <div className="flex items-start gap-3">
+              <DAppIcon
+                dAppName={name.trim() || 'Project'}
+                category={category}
+                imageSrc={logoPreviewUrl ?? undefined}
+                size={48}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                  {name.trim() || 'Project name'}
+                </p>
+                {listingCategory ? (
+                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                    {listingCategory.emoji} {listingCategory.name}
+                  </p>
+                ) : null}
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
+                  {shortDescription.trim() || 'Short description appears on listing cards.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
               {isEdit ? 'Update listing' : 'Listing fee'}

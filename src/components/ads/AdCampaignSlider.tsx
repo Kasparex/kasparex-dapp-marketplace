@@ -4,6 +4,7 @@ import type { AdEntry } from '@/lib/ads/types';
 import { AdCard } from '@/components/ads/AdCard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
+import { ADS_BASE_CAROUSEL_INTERVAL_MS, getAdSlideIntervalMs } from '@/lib/ads/carouselTiming';
 
 interface AdCampaignSliderProps {
   ads: AdEntry[];
@@ -12,7 +13,11 @@ interface AdCampaignSliderProps {
 
 export function AdCampaignSlider({ ads, onEdit }: AdCampaignSliderProps) {
   const n = ads.length;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, 4000, false, false);
+  const intervalForSlide = (index: number) => {
+    const ad = ads[index];
+    return ad ? getAdSlideIntervalMs(ad) : ADS_BASE_CAROUSEL_INTERVAL_MS;
+  };
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(n, intervalForSlide, false, false);
 
   if (n === 0) return null;
 

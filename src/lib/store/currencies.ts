@@ -41,3 +41,13 @@ export function getProductPriceOptions(product: Pick<Product, 'priceKAS' | 'paym
 export function formatStoreCurrencyLabel(currency: StorePaymentCurrency): string {
   return currency;
 }
+
+/** Display label for a KAS-denominated price in the selected payment currency. */
+export function formatPaymentLabel(currency: StorePaymentCurrency, kasAmount: number): string {
+  const formattedKas =
+    Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
+  if (currency === 'KREX') {
+    return `${kasToKrexAmount(kasAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
+  }
+  return `${formattedKas} KAS`;
+}

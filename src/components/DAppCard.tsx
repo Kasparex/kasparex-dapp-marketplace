@@ -77,6 +77,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             <DAppIcon
               dAppName={mergedDApp.name}
               category={mergedDApp.category}
+              imageSrc={mergedDApp.logoImage ?? mergedDApp.image}
               size={56}
               className="flex-shrink-0 rounded-xl"
             />

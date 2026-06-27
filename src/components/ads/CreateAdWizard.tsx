@@ -3,19 +3,20 @@
 import { useState, useEffect, useMemo, useRef, useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AD_SLOTS, getSlotConfig, priceKasForDays } from '@/lib/ads/slots';
-import { getAdsTreasuryL1Address, kasToSompi } from '@/lib/ads/config';
+import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import {
   ADS_MIN_DURATION_DAYS,
   ADS_MAX_DURATION_DAYS,
   ADS_FEATURED_HIGHLIGHT_KAS,
+  ADS_EXTENDED_EXPOSURE_KAS,
+  ADS_EXTENDED_EXPOSURE_SECONDS,
   ADS_MAX_PROMO_TOOLTIP_CHARS,
 } from '@/lib/ads/constants';
-import { buildCampaignMetadataV1, type AdImageRef } from '@/lib/ads/metadata';
-import { buildAdsBindingPayloadHex, buildAdsBindingPlainNote } from '@/lib/ads/payloadHex';
+import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
+import { buildCampaignMetadataV1, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
 import type { AdSlotId, AdFormat, AdEntry } from '@/lib/ads/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction, detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -27,34 +28,19 @@ import { countActiveForSlot, filterActiveAdsForSlot } from '@/lib/ads/registryUt
 import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creativeSpecs';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-
-function ModalSectionTitle({
-  children,
-  className,
-  required,
-}: {
-  children: ReactNode;
-  className?: string;
-  /** Shows a red asterisk after the title for required fields. */
-  required?: boolean;
-}) {
-  return (
-    <div className={`flex items-center gap-3 mb-2 ${className ?? ''}`}>
-      <span
-        className="h-5 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
-        aria-hidden
-      />
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300 inline-flex items-baseline gap-1 flex-wrap">
-        <span>{children}</span>
-        {required ? (
-          <span className="text-red-500 dark:text-red-400 font-bold normal-case" aria-hidden title="Required">
-            *
-          </span>
-        ) : null}
-      </p>
-    </div>
-  );
-}
+import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
+import {
+  STORE_PAYMENT_CURRENCIES,
+  formatPaymentLabel,
+  type StorePaymentCurrency,
+} from '@/lib/store/currencies';
+import {
+  adsPriceKrexFromKas,
+  transferKrexForAdsPayment,
+  useAdsPayment,
+} from '@/hooks/useAdsPayment';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
 function resolveInitialSlotId(initial: AdSlotId | null | undefined, adsList: AdEntry[]): AdSlotId | null {
   const normalized =
@@ -95,6 +81,8 @@ export function CreateAdWizard({
   const [promoTooltip, setPromoTooltip] = useState('');
   const [durationDays, setDurationDays] = useState(7);
   const [featuredHighlight, setFeaturedHighlight] = useState(false);
+  const [extendedExposure, setExtendedExposure] = useState(false);
+  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [imageSpecError, setImageSpecError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -115,6 +103,7 @@ export function CreateAdWizard({
   const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
   const { ads, refresh: registryRefresh } = useAdsRegistryContext();
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
+  const { payAdCampaign, isProcessing: isPayProcessing } = useAdsPayment();
   const { tier: krexTier } = useKREXBalance();
 
   const l1Ready =
@@ -130,9 +119,10 @@ export function CreateAdWizard({
   const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
   const discountedSlotKas =
     basePriceKas > 0 ? Number((basePriceKas * (1 - krexDiscountPct / 100)).toFixed(8)) : 0;
-  const featuredAddonKas = featuredHighlight ? ADS_FEATURED_HIGHLIGHT_KAS : 0;
+  const premiumAddonKas = adPremiumAddonKas({ featuredHighlight, extendedExposure });
   const priceKas =
-    discountedSlotKas > 0 ? Number((discountedSlotKas + featuredAddonKas).toFixed(8)) : 0;
+    discountedSlotKas > 0 ? Number((discountedSlotKas + premiumAddonKas).toFixed(8)) : 0;
+  const payLabel = formatPaymentLabel(paymentCurrency, priceKas);
 
   const treasuryAddress = getAdsTreasuryL1Address();
 
@@ -175,6 +165,8 @@ export function CreateAdWizard({
       setPromoTooltip('');
       setDurationDays(7);
       setFeaturedHighlight(false);
+      setExtendedExposure(false);
+      setPaymentCurrency('KAS');
       setImageSpecError(null);
       setTxHash(null);
       setMetadataCid(null);
@@ -320,6 +312,19 @@ export function CreateAdWizard({
     try {
       const image = await buildImageRef();
 
+      let krexPaymentTxHash: string | undefined;
+      let priceKrex: number | undefined;
+      const payCur: AdPaymentCurrency = paymentCurrency;
+
+      if (payCur === 'KREX') {
+        krexPaymentTxHash = await transferKrexForAdsPayment(
+          kaspaState.provider as KaspaWalletProvider,
+          priceKas,
+          treasuryAddress,
+        );
+        priceKrex = adsPriceKrexFromKas(priceKas);
+      }
+
       const meta = buildCampaignMetadataV1({
         slotId,
         slotIndex,
@@ -330,7 +335,11 @@ export function CreateAdWizard({
         link: link.trim(),
         image,
         format,
+        paymentCurrency: payCur === 'KREX' ? 'KREX' : undefined,
+        priceKrex,
+        krexPaymentTxHash,
         featuredHighlight: featuredHighlight || undefined,
+        extendedExposure: extendedExposure || undefined,
         promoTooltip: promoTooltipTrimmed || undefined,
       });
 
@@ -340,21 +349,12 @@ export function CreateAdWizard({
       });
       setMetadataCid(cid);
 
-      const payloadHex = buildAdsBindingPayloadHex(cid);
-      const plainNote = buildAdsBindingPlainNote(cid);
-
-      const amountSompi = kasToSompi(priceKas);
-
-      const txRes = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: treasuryAddress,
-        amount: String(amountSompi),
-        note: plainNote,
-        payload: payloadHex,
+      const { txHash: hash } = await payAdCampaign({
+        currency: payCur,
+        priceKas,
+        metadataCid: cid,
+        krexPaymentTxHash,
       });
-      if (txRes.status === 'failed' || !txRes.txHash) {
-        throw new Error(txRes.error ?? 'Transaction was rejected or failed');
-      }
-      const hash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
@@ -475,7 +475,7 @@ export function CreateAdWizard({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {phase === 'connect' && (
             <>
-              <ModalSectionTitle>Connect wallet</ModalSectionTitle>
+              <KxModalSectionTitle>Connect wallet</KxModalSectionTitle>
               <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                 Connect a Kaspa (L1) wallet to reserve a slot, pin campaign metadata, and pay in KAS. This uses the same
                 connection as the site header.
@@ -523,7 +523,7 @@ export function CreateAdWizard({
           {phase === 'form' && (
             <>
               <div ref={slotMenuRootRef} className="relative overflow-visible">
-                <ModalSectionTitle required>Placement</ModalSectionTitle>
+                <KxModalSectionTitle required>Placement</KxModalSectionTitle>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
                   Pick a slot with capacity. Pricing updates after you set duration below.
                 </p>
@@ -602,7 +602,7 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <ModalSectionTitle required>Creative</ModalSectionTitle>
+                <KxModalSectionTitle required>Creative</KxModalSectionTitle>
                 <div className="space-y-4">
                   <div>
                     <div className="k-control-group h-10 p-1 flex w-full">
@@ -702,7 +702,7 @@ export function CreateAdWizard({
                     )}
                   </div>
                   <div>
-                    <ModalSectionTitle required>Link</ModalSectionTitle>
+                    <KxModalSectionTitle required>Link</KxModalSectionTitle>
                     <input
                       type="url"
                       value={link}
@@ -712,7 +712,7 @@ export function CreateAdWizard({
                     />
                   </div>
                   <div>
-                    <ModalSectionTitle required>Title</ModalSectionTitle>
+                    <KxModalSectionTitle required>Title</KxModalSectionTitle>
                     <input
                       type="text"
                       value={title}
@@ -722,7 +722,7 @@ export function CreateAdWizard({
                     />
                   </div>
                   <div>
-                    <ModalSectionTitle>Hover promo (optional)</ModalSectionTitle>
+                    <KxModalSectionTitle>Hover promo (optional)</KxModalSectionTitle>
                     <textarea
                       value={promoTooltip}
                       onChange={(e) => setPromoTooltip(e.target.value.slice(0, ADS_MAX_PROMO_TOOLTIP_CHARS))}
@@ -740,7 +740,7 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <ModalSectionTitle required>Duration</ModalSectionTitle>
+                <KxModalSectionTitle required>Duration</KxModalSectionTitle>
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
                   <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-500">Days</span>
                   <div className="flex items-center gap-2">
@@ -784,38 +784,82 @@ export function CreateAdWizard({
               </div>
 
               <div>
-                <ModalSectionTitle>Premium (L1)</ModalSectionTitle>
-                <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Featured highlight</p>
-                    <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
-                      More visible placement with a colorful frame for the duration of the campaign. One-time{' '}
-                      {ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.
-                    </p>
-                  </div>
-                  <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">
-                    +{ADS_FEATURED_HIGHLIGHT_KAS} KAS
-                  </span>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={featuredHighlight}
-                    onClick={() => setFeaturedHighlight((v) => !v)}
-                    className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-                      featuredHighlight ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                        featuredHighlight ? 'translate-x-6' : 'translate-x-0'
+                <KxModalSectionTitle>Premium (L1)</KxModalSectionTitle>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Featured highlight</p>
+                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        More visible placement with a colorful frame for the duration of the campaign. One-time{' '}
+                        {ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.
+                      </p>
+                    </div>
+                    <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">
+                      +{ADS_FEATURED_HIGHLIGHT_KAS} KAS
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={featuredHighlight}
+                      onClick={() => setFeaturedHighlight((v) => !v)}
+                      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
+                        featuredHighlight ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
                       }`}
-                    />
-                  </button>
+                    >
+                      <span
+                        className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                          featuredHighlight ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Extended exposure</p>
+                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        Your ad stays visible +{ADS_EXTENDED_EXPOSURE_SECONDS} seconds longer before the slider
+                        advances. One-time {ADS_EXTENDED_EXPOSURE_KAS} KAS - not per day.
+                      </p>
+                    </div>
+                    <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">
+                      +{ADS_EXTENDED_EXPOSURE_KAS} KAS
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={extendedExposure}
+                      onClick={() => setExtendedExposure((v) => !v)}
+                      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
+                        extendedExposure ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                          extendedExposure ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
 
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
+                <KxModalSectionTitle className="mb-2">Pay with</KxModalSectionTitle>
+                <KxSegmentToggle
+                  value={paymentCurrency}
+                  onChange={setPaymentCurrency}
+                  options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                  ariaLabel="Ad payment currency"
+                />
+                {paymentCurrency === 'KREX' ? (
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 leading-relaxed">
+                    KREX settlement includes a small KAS binding transaction that carries your campaign metadata.
+                  </p>
+                ) : null}
+              </div>
+
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                <ModalSectionTitle className="mb-1">Summary</ModalSectionTitle>
+                <KxModalSectionTitle className="mb-1">Summary</KxModalSectionTitle>
                 {krexDiscountPct > 0 && (
                   <p className="line-through opacity-70">
                     Slot list: {basePriceKas} KAS ({durationDays} × {slotConfig?.pricePerDay ?? 0} KAS/day)
@@ -832,13 +876,20 @@ export function CreateAdWizard({
                     <span className="text-zinc-500">(one-time)</span>
                   </p>
                 )}
+                {extendedExposure && (
+                  <p>
+                    Extended exposure:{' '}
+                    <strong className="text-zinc-900 dark:text-zinc-100">+{ADS_EXTENDED_EXPOSURE_KAS} KAS</strong>{' '}
+                    <span className="text-zinc-500">(+{ADS_EXTENDED_EXPOSURE_SECONDS}s, one-time)</span>
+                  </p>
+                )}
                 <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-2 tabular-nums">
-                  Total: {priceKas} KAS
+                  Total: {payLabel}
                 </p>
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3 text-xs">
-                <ModalSectionTitle className="mb-2">L1 wallet</ModalSectionTitle>
+                <KxModalSectionTitle className="mb-2">L1 wallet</KxModalSectionTitle>
                 <p
                   className={`mt-1 ${l1Ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
                 >
@@ -932,10 +983,10 @@ export function CreateAdWizard({
                 <button
                   type="button"
                   onClick={() => void handlePay()}
-                  disabled={isSubmitting || !canPay}
+                  disabled={isSubmitting || isPayProcessing || !canPay}
                   className="px-4 py-2 rounded-lg bg-[#02abb8] text-white font-medium text-sm disabled:opacity-50 min-w-[140px]"
                 >
-                  {isSubmitting ? 'Sending…' : `Pay ${priceKas} KAS`}
+                  {isSubmitting || isPayProcessing ? 'Sending…' : `Pay ${payLabel}`}
                 </button>
               </div>
             </>

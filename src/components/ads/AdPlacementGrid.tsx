@@ -11,6 +11,7 @@ import type { AdEntry, AdSlotId } from '@/lib/ads/types';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
 import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads/carouselNavStyles';
+import { ADS_BASE_CAROUSEL_INTERVAL_MS, getAdSlideIntervalMs } from '@/lib/ads/carouselTiming';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
@@ -30,7 +31,7 @@ function frameForVariant(v: AdPlacementVariant, relaxHaloFrame?: boolean): strin
   return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
 }
 
-const CAROUSEL_INTERVAL_MS = 4000;
+const CAROUSEL_INTERVAL_MS = ADS_BASE_CAROUSEL_INTERVAL_MS;
 
 interface AdPlacementGridProps {
   slotId: AdSlotId;
@@ -80,7 +81,11 @@ export function AdPlacementGrid({ slotId, variant, maxCellsShown, relaxHaloFrame
 
   const cells = Array.from({ length: limit }, (_, i) => i);
   const showNav = limit > 1;
-  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, CAROUSEL_INTERVAL_MS, false, false);
+  const intervalForSlide = (index: number) => {
+    const ad = byIndex.get(index);
+    return ad ? getAdSlideIntervalMs(ad) : CAROUSEL_INTERVAL_MS;
+  };
+  const { slide, setSlide, pauseOnHover } = useCarouselAutoplay(limit, intervalForSlide, false, false);
 
   const rounded = variant === 'halo' ? 'rounded-2xl' : 'rounded-xl';
 

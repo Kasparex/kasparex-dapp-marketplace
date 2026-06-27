@@ -16,6 +16,8 @@ export interface DApp {
   name: string;
   slug?: string; // URL-friendly identifier, auto-generated from name if not provided
   image?: string;
+  /** Square logo for card icon slots (directory listings). */
+  logoImage?: string;
   featuredImage?: string; // 16:9 featured image for sidebar display
   createdAt?: string; // ISO date string for sorting by creation date
   category: Category;

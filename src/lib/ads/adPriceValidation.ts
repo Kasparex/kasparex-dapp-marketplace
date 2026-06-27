@@ -1,14 +1,15 @@
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { kasToSompi } from '@/lib/ads/config';
-import { ADS_FEATURED_HIGHLIGHT_KAS, ADS_KREX_BINDING_FEE_KAS } from '@/lib/ads/constants';
+import { ADS_KREX_BINDING_FEE_KAS } from '@/lib/ads/constants';
+import { adPremiumAddonKas, type AdPremiumOptions } from '@/lib/ads/premiumAddons';
 
 /**
- * Distinct totals (KAS) for an ad: tier-discounted slot portion + optional flat featured add-on.
+ * Distinct totals (KAS) for an ad: tier-discounted slot portion + optional flat premium add-ons.
  */
-export function allowedAdTotalsKasFromSlotBase(slotBaseKas: number, featuredHighlight: boolean): number[] {
+export function allowedAdTotalsKasFromSlotBase(slotBaseKas: number, premium: AdPremiumOptions): number[] {
   if (slotBaseKas <= 0) return [];
-  const addon = featuredHighlight ? ADS_FEATURED_HIGHLIGHT_KAS : 0;
+  const addon = adPremiumAddonKas(premium);
   const discounts = new Set<number>([0, ...Object.values(KREX_TIER_SHOP_DISCOUNT_PCT)]);
   const prices = [...discounts].map((d) =>
     Number((slotBaseKas * (1 - d / 100) + addon).toFixed(8)),
@@ -16,9 +17,9 @@ export function allowedAdTotalsKasFromSlotBase(slotBaseKas: number, featuredHigh
   return [...new Set(prices)].sort((a, b) => a - b);
 }
 
-/** Legacy helper - slot-only base (no featured add-on). */
+/** Legacy helper - slot-only base (no premium add-ons). */
 export function allowedAdPricesKasFromBase(baseKas: number): number[] {
-  return allowedAdTotalsKasFromSlotBase(baseKas, false);
+  return allowedAdTotalsKasFromSlotBase(baseKas, {});
 }
 
 export function expectedPriceKrexFromTotalKas(totalKas: number): number {
@@ -29,20 +30,29 @@ export function expectedPriceKrexFromTotalKas(totalKas: number): number {
 function metaPriceMatchesSlotBase(
   metaPriceKas: number,
   slotBaseKas: number,
-  featuredHighlight: boolean,
+  premium: AdPremiumOptions,
 ): boolean {
   if (slotBaseKas <= 0 || metaPriceKas <= 0) return false;
-  const allowed = allowedAdTotalsKasFromSlotBase(slotBaseKas, featuredHighlight);
+  const allowed = allowedAdTotalsKasFromSlotBase(slotBaseKas, premium);
   return allowed.some((k) => Math.abs(k - metaPriceKas) < 1e-6);
+}
+
+export function premiumOptionsFromMeta(meta: {
+  featuredHighlight?: boolean;
+  extendedExposure?: boolean;
+}): AdPremiumOptions {
+  return {
+    featuredHighlight: meta.featuredHighlight === true,
+    extendedExposure: meta.extendedExposure === true,
+  };
 }
 
 export function isValidAdPriceMeta(
   metaPriceKas: number,
   slotBaseKas: number,
-  featuredHighlight: boolean | undefined,
+  premium: AdPremiumOptions,
 ): boolean {
-  const featured = featuredHighlight === true;
-  return metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, featured);
+  return metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, premium);
 }
 
 function krexMetaMatchesPeg(metaPriceKas: number, metaPriceKrex: number): boolean {
@@ -54,17 +64,16 @@ function krexMetaMatchesPeg(metaPriceKas: number, metaPriceKrex: number): boolea
 }
 
 /**
- * Full native-KAS settlement: metadata total must match tier + featured rules; treasury sompi must match total.
+ * Full native-KAS settlement: metadata total must match tier + premium rules; treasury sompi must match total.
  */
 export function isValidAdKasPayment(
   metaPriceKas: number,
   paidSompi: number,
   slotBaseKas: number,
-  featuredHighlight: boolean | undefined,
+  premium: AdPremiumOptions,
 ): boolean {
   if (paidSompi <= 0) return false;
-  const featured = featuredHighlight === true;
-  if (!metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, featured)) return false;
+  if (!metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, premium)) return false;
   const expectedSompi = kasToSompi(metaPriceKas);
   return expectedSompi === paidSompi || Math.abs(expectedSompi - paidSompi) <= 1;
 }
@@ -81,10 +90,9 @@ export function isValidAdKrexPriceMeta(
   metaPriceKas: number,
   metaPriceKrex: number,
   slotBaseKas: number,
-  featuredHighlight: boolean | undefined,
+  premium: AdPremiumOptions,
 ): boolean {
-  const featured = featuredHighlight === true;
-  if (!metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, featured)) return false;
+  if (!metaPriceMatchesSlotBase(metaPriceKas, slotBaseKas, premium)) return false;
   return krexMetaMatchesPeg(metaPriceKas, metaPriceKrex);
 }
 
@@ -92,5 +100,5 @@ export function isValidAdKrexPriceMeta(
  * @deprecated Use isValidAdKasPayment / KREX helpers - kept for older imports if any.
  */
 export function isValidAdPayment(metaPriceKas: number, paidSompi: number, baseKas: number): boolean {
-  return isValidAdKasPayment(metaPriceKas, paidSompi, baseKas, false);
+  return isValidAdKasPayment(metaPriceKas, paidSompi, baseKas, {});
 }
