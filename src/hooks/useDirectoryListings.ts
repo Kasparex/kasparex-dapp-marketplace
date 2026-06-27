@@ -8,11 +8,11 @@ import {
   type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
 
-export function useDirectoryListings(submitterAddress?: string) {
+export function useDirectoryListings(submitterAddress?: string | null) {
   const [listings, setListings] = useState<DirectoryListing[]>([]);
 
   const refresh = useCallback(() => {
-    setListings(getDirectoryListings(submitterAddress));
+    setListings(getDirectoryListings(submitterAddress ?? undefined));
   }, [submitterAddress]);
 
   useEffect(() => {

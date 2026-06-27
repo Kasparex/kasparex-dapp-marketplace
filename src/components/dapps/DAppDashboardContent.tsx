@@ -135,7 +135,7 @@ export function DAppDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
-  const { listings, refresh } = useDirectoryListings(state.address);
+  const { listings, refresh } = useDirectoryListings(state.address ?? undefined);
   const { payActionFee } = useDAppListingPayment();
 
   const [activeTab, setActiveTab] = useState<DAppDashboardTab>('overview');
