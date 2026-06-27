@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 
 export type SortOption =
   | 'newest'
@@ -26,9 +25,7 @@ interface SortFiltersProps {
 
 export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode = 'cards', onViewModeChange }: SortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const sortContainerRef = useRef<HTMLDivElement>(null);
-  const plusContainerRef = useRef<HTMLDivElement>(null);
 
   // Close sort menu when clicking outside (same pattern as wallet dropdown)
   useEffect(() => {
@@ -46,23 +43,6 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
-
-  // Close plus menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (plusContainerRef.current && !plusContainerRef.current.contains(event.target as Node)) {
-        setIsPlusMenuOpen(false);
-      }
-    };
-
-    if (isPlusMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isPlusMenuOpen]);
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'newest', label: 'Newly Created' },
@@ -199,42 +179,6 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           )}
         </div>
       </button>
-
-      {/* Plus Button with Dropdown - absolute so it stays with button on scroll (like wallet) */}
-      <div className="relative overflow-visible" ref={plusContainerRef}>
-        <button
-          type="button"
-          onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
-          className="k-control-icon-btn"
-          aria-label="More options"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
-
-        {isPlusMenuOpen && (
-          <div
-            data-plus-dropdown
-            className="absolute left-0 top-full mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden"
-          >
-            <Link
-              href="/u?tab=my-dapps&view=list-dapp"
-              onClick={() => setIsPlusMenuOpen(false)}
-              className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              List dApp
-            </Link>
-            <Link
-              href="/u?tab=my-dapps&view=build-dapp"
-              onClick={() => setIsPlusMenuOpen(false)}
-              className="block w-full text-left px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              Build dApp
-            </Link>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DApp } from '@/lib/dapps';
+import { DApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { DAppCard } from './DAppCard';
 
 interface DAppGridProps {
   dapps: DApp[];
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
   // Favorites and likes are handled internally by DAppCard using hooks
 }
 

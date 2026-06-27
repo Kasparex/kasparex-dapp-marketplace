@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, generateSimulatedTicker, getDAppNetworkType, isDirectoryListingDApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppActionsColumn } from './DAppActionsColumn';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
@@ -101,7 +101,9 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span className="font-medium">{formatLargeNumber(xpReward)} pts</span>
+            <span className="font-medium">
+              {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
+            </span>
           </div>
         </div>
       </div>

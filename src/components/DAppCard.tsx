@@ -1,6 +1,6 @@
 'use client';
 
-import { DApp } from '@/lib/dapps';
+import { DApp, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -17,7 +17,7 @@ import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/componen
 
 interface DAppCardProps {
   dapp: DApp;
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
 }
 
 export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
@@ -100,7 +100,9 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span className="font-medium">{formatLargeNumber(xpReward)} pts</span>
+                <span className="font-medium">
+                  {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
+                </span>
               </div>
             </div>
           </div>

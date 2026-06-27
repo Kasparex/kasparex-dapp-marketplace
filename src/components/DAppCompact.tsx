@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { DApp, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, getDAppNetworkType, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -17,10 +17,10 @@ import { isTestnetDApp } from '@/lib/dapps/access';
 
 interface DAppCompactProps {
     dapps: DApp[];
-    selectedNetwork?: 'all' | 'L1' | 'L2';
+    selectedNetwork?: DAppNetworkFilter;
 }
 
-function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selectedNetwork?: 'all' | 'L1' | 'L2' }) {
+function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selectedNetwork?: DAppNetworkFilter }) {
     const mergedDApp = mergeDAppData(null, dapp);
     const category = getCategoryById(mergedDApp.category);
     const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
@@ -58,7 +58,9 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
                 <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                     <span className="truncate">{category?.emoji} {category?.name}</span>
                     <span>•</span>
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">{formatLargeNumber(xpReward)} pts</span>
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                      {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
+                    </span>
                 </div>
                 {mergedDApp.description && (
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">

@@ -659,6 +659,23 @@ export function getDAppNetworkType(dapp: DApp): 'L1' | 'L2' {
   return 'L1';
 }
 
+export type DAppNetworkFilter = 'all' | 'L1' | 'L2' | 'MIX';
+
+export function isMultichainDApp(dapp: DApp): boolean {
+  return dapp.directoryListing?.networkLayer === 'multichain';
+}
+
+export function isDirectoryListingDApp(dapp: DApp): boolean {
+  return dapp.source === 'directory';
+}
+
+export function matchesDAppNetworkFilter(dapp: DApp, filter: DAppNetworkFilter): boolean {
+  if (filter === 'all') return true;
+  if (isMultichainDApp(dapp)) return filter === 'MIX';
+  if (filter === 'MIX') return false;
+  return getDAppNetworkType(dapp) === filter;
+}
+
 /**
  * Get payment configuration for a dApp
  * Uses paymentConfig field if available, otherwise uses default configs

@@ -2,14 +2,14 @@
 
 import { useCallback, useState } from 'react';
 import { useConnectModal, useChainModal } from '@rainbow-me/rainbowkit';
-import type { DApp } from '@/lib/dapps';
+import type { DApp, DAppNetworkFilter } from '@/lib/dapps';
 import { getDAppNetworkType } from '@/lib/dapps';
 import type { DAppGateReason } from '@/lib/dapps/access';
 import type { UseDAppAccessResult } from '@/hooks/useDAppAccess';
 
 export interface DAppWalletGateModalState {
   dapp: DApp;
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
 }
 
 function usesL1GateModal(reason: DAppGateReason, networkType: 'L1' | 'L2'): boolean {

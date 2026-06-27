@@ -11,9 +11,11 @@ import {
   type DAppGateReason,
 } from '@/lib/dapps/access';
 
+import type { DAppNetworkFilter } from '@/lib/dapps';
+
 export interface UseDAppAccessOptions {
   dapp: DApp;
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
   isContractMissingOnNetwork?: boolean;
 }
 

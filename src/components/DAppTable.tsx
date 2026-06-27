@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { DApp, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, getDAppNetworkType, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -17,12 +17,12 @@ import { isTestnetDApp } from '@/lib/dapps/access';
 
 interface DAppTableProps {
   dapps: DApp[];
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
 }
 
 interface DAppTableRowProps {
   dapp: DApp;
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
 }
 
 type SortField = 'name' | 'token' | 'category' | 'status' | 'network' | 'version' | 'id';
@@ -90,7 +90,9 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
         )}
       </td>
       <td className="py-4 px-4">
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">{formatLargeNumber(xpReward)} pts</span>
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
+        </span>
       </td>
       <td className="py-4 px-4">
         {category && (

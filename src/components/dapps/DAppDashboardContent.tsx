@@ -255,24 +255,12 @@ export function DAppDashboardContent() {
         totalListings: stats.totalListings,
       }}
     >
-      <div className="mb-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-        <div>
-          <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-            dApps <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
-          </h1>
-          {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
-        </div>
-        <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/20 p-4 lg:max-w-md shrink-0">
-          <p className="text-sm font-bold text-cyan-900 dark:text-cyan-200 mb-1">
-            List your project on Kasparex dApps
-          </p>
-          <p className="text-xs text-cyan-800 dark:text-cyan-300/90 leading-relaxed">
-            Submit a full project profile for the public dApps directory. Your listing gets its own page with
-            description, links, media, and contact details. Integrated live widgets are reserved for official
-            Kasparex dApps.
-          </p>
-        </div>
+      <div className="mb-10">
+        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
+          dApps <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
+        </h1>
+        {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
       </div>
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
@@ -416,23 +404,38 @@ export function DAppDashboardContent() {
             </div>
           )}
 
-          {activeTab === 'overview' && stats.totalListings > 0 && (
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
-              <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-4">
-                By category
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {LISTING_CATEGORIES.filter((c) => stats.byCategory[c.id] > 0).map((c) => (
-                  <span
-                    key={c.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300"
-                  >
-                    {c.emoji} {c.name}
-                    <span className="font-bold text-[#02abb8]">{stats.byCategory[c.id]}</span>
-                  </span>
-                ))}
+          {activeTab === 'overview' && (
+            <>
+              <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/20 p-6">
+                <p className="text-sm font-bold text-cyan-900 dark:text-cyan-200 mb-2">
+                  List your project on Kasparex dApps
+                </p>
+                <p className="text-sm text-cyan-800 dark:text-cyan-300/90 leading-relaxed">
+                  Submit a full project profile for the public dApps directory. Your listing gets its own page with
+                  description, links, media, and contact details. Integrated live widgets are reserved for official
+                  Kasparex dApps.
+                </p>
               </div>
-            </div>
+
+              {stats.totalListings > 0 ? (
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
+                  <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-4">
+                    By category
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {LISTING_CATEGORIES.filter((c) => stats.byCategory[c.id] > 0).map((c) => (
+                      <span
+                        key={c.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300"
+                      >
+                        {c.emoji} {c.name}
+                        <span className="font-bold text-[#02abb8]">{stats.byCategory[c.id]}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
       )}

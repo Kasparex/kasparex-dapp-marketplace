@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { DApp } from '@/lib/dapps';
+import type { DApp, DAppNetworkFilter } from '@/lib/dapps';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import type { DAppGateReason } from '@/lib/dapps/access';
 import { DAppIcon } from './DAppIcon';
@@ -12,7 +12,7 @@ interface DAppWalletGateModalProps {
   dapp: DApp;
   isOpen: boolean;
   onClose: () => void;
-  selectedNetwork?: 'all' | 'L1' | 'L2';
+  selectedNetwork?: DAppNetworkFilter;
 }
 
 function gateTitle(reason: DAppGateReason): string {

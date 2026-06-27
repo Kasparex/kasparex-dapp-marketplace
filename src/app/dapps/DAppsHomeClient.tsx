@@ -11,7 +11,7 @@ import { DAppGrid } from '@/components/DAppGrid';
 import { DAppTable } from '@/components/DAppTable';
 import { DAppCompact } from '@/components/DAppCompact';
 import { Footer } from '@/components/Footer';
-import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, getDAppNetworkType, type DApp } from '@/lib/dapps';
+import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, type DAppNetworkFilter, matchesDAppNetworkFilter, type DApp } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
@@ -51,7 +51,7 @@ export function DAppsHomeContent() {
     developer: [],
     network: [],
   });
-  const [networkFilter, setNetworkFilter] = useState<'all' | 'L1' | 'L2'>('all');
+  const [networkFilter, setNetworkFilter] = useState<DAppNetworkFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<DAppSourceFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { activeDirectoryDApps } = useDirectoryListings();
@@ -89,10 +89,7 @@ export function DAppsHomeContent() {
     }
 
     if (networkFilter !== 'all') {
-      filtered = filtered.filter((dapp) => {
-        if (dapp.directoryListing?.networkLayer === 'multichain') return true;
-        return getDAppNetworkType(dapp) === networkFilter;
-      });
+      filtered = filtered.filter((dapp) => matchesDAppNetworkFilter(dapp, networkFilter));
     }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
