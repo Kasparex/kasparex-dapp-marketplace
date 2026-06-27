@@ -12,7 +12,6 @@ import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
-import { getDAppNetworkType } from '@/lib/dapps';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 
 interface DAppSidebarProps {
