@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
+import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 
-type DirectoryDAppProfileProps = {
+type DirectoryDAppOverviewPanelProps = {
   dapp: DApp;
   listing: DirectoryListing;
 };
@@ -36,12 +37,17 @@ function LinkGrid({ links, emptyLabel }: { links: { label: string; url: string }
   );
 }
 
-export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProps) {
+export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverviewPanelProps) {
   const category = getCategoryById(listing.category);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const galleryUrls = useMemo(
-    () => listing.galleryCids.map((cid) => getBestGatewayUrl(cid)),
-    [listing.galleryCids],
+  const galleryImages = useMemo(
+    () =>
+      listing.galleryCids.map((cid, index) => ({
+        url: getBestGatewayUrl(cid),
+        alt: listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`,
+      })),
+    [listing.galleryCids, listing.galleryFileNames, dapp.name],
   );
 
   const optionalFiles = useMemo(
@@ -55,7 +61,7 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
         <div className="flex flex-wrap items-start gap-3 mb-4">
           {category ? (
@@ -71,7 +77,7 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-3">{dapp.name}</h1>
+        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-3">{dapp.name}</h2>
         <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">{listing.shortDescription}</p>
 
         {listing.tags.length > 0 ? (
@@ -86,11 +92,27 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
             ))}
           </div>
         ) : null}
+
+        {listing.supportedChains.length > 0 ? (
+          <div className="mt-6">
+            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Supported chains</p>
+            <div className="flex flex-wrap gap-2">
+              {listing.supportedChains.map((chain) => (
+                <span
+                  key={chain}
+                  className="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm text-zinc-700 dark:text-zinc-300"
+                >
+                  {chain}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {listing.actionButtons.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Actions</h2>
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Actions</h3>
           <div className="flex flex-wrap gap-3">
             {listing.actionButtons.map((btn) => (
               <a
@@ -108,67 +130,34 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
       ) : null}
 
       <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-        <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Overview</h2>
-        <div className="prose prose-zinc dark:prose-invert max-w-none">
-          <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300 leading-relaxed">
-            {listing.fullDescription || listing.shortDescription}
-          </p>
-        </div>
+        <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Links</h3>
+        <LinkGrid
+          links={[
+            ...(listing.websiteUrl ? [{ label: 'Website', url: listing.websiteUrl }] : []),
+            ...listing.socialLinks,
+            ...listing.documentationLinks,
+          ]}
+          emptyLabel="No links provided."
+        />
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-3">Utility</h2>
-          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{listing.utility || '—'}</p>
-        </div>
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-3">Supported chains</h2>
-          {listing.supportedChains.length > 0 ? (
-            <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
-              {listing.supportedChains.map((chain) => (
-                <li key={chain}>{chain}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-zinc-500">{dapp.network}</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 space-y-6">
-        <div>
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Links</h2>
-          <LinkGrid
-            links={[
-              ...(listing.websiteUrl
-                ? [{ label: 'Website', url: listing.websiteUrl }]
-                : []),
-              ...listing.socialLinks,
-              ...listing.documentationLinks,
-            ]}
-            emptyLabel="No links provided."
-          />
-        </div>
-      </section>
-
-      {galleryUrls.length > 0 ? (
+      {galleryImages.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Gallery</h2>
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Gallery</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {galleryUrls.map((url, index) => (
-              <a
-                key={url}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block aspect-video overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800"
+            {galleryImages.map((image, index) => (
+              <button
+                key={image.url}
+                type="button"
+                onClick={() => setLightboxIndex(index)}
+                className="block aspect-video overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 text-left"
               >
                 <img
-                  src={url}
-                  alt={listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`}
+                  src={image.url}
+                  alt={image.alt}
                   className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
                 />
-              </a>
+              </button>
             ))}
           </div>
         </section>
@@ -176,7 +165,7 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
 
       {optionalFiles.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Files</h2>
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Files</h3>
           <div className="space-y-2">
             {optionalFiles.map((file) => (
               <a
@@ -196,7 +185,7 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
 
       {(listing.contactEmail || listing.contactTelegram || listing.contactDiscord || listing.additionalNotes) ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 space-y-4">
-          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-500">Project details</h2>
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">Project details</h3>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             {listing.contactEmail ? (
               <div>
@@ -228,6 +217,15 @@ export function DirectoryDAppProfile({ dapp, listing }: DirectoryDAppProfileProp
             </div>
           ) : null}
         </section>
+      ) : null}
+
+      {lightboxIndex !== null ? (
+        <DirectoryGalleryLightbox
+          images={galleryImages}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={setLightboxIndex}
+        />
       ) : null}
     </div>
   );

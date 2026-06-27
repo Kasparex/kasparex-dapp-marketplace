@@ -16,12 +16,13 @@ import { DAppInfoModal } from './DAppInfoModal';
 interface DAppRightColumnProps {
   dapp: DApp;
   contractAddress?: string;
+  hideRevenueTree?: boolean;
 }
 
 /**
  * Premium right column: Meta row (category, version, ID, modals, star/heart) → Title → Reward tokens → Description (clickable → info modal) → Actions/Purchase box.
  */
-export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: DAppRightColumnProps) {
+export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hideRevenueTree = false }: DAppRightColumnProps) {
   const chainId = useChainId();
   const mergedDApp = mergeDAppData(null, dapp);
 
@@ -123,7 +124,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
       </div>
 
       {/* Actions, Costs & Fees */}
-      <DAppActionsColumn dapp={dapp} contractAddress={propContractAddress} />
+      <DAppActionsColumn dapp={dapp} contractAddress={propContractAddress} hideRevenueTree={hideRevenueTree} />
 
       {showInfoModal && (
         <DAppInfoModal

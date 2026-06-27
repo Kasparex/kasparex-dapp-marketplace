@@ -26,6 +26,7 @@ import { AdSlider } from '@/components/ads/AdSlider';
 interface DAppActionsColumnProps {
   dapp: DApp;
   contractAddress?: string;
+  hideRevenueTree?: boolean;
 }
 
 /** Format number for display (integers without decimals, decimals trimmed). */
@@ -43,7 +44,7 @@ function formatFee(value: number): string {
   return '0';
 }
 
-export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnProps) {
+export function DAppActionsColumn({ dapp, contractAddress, hideRevenueTree = false }: DAppActionsColumnProps) {
   const { address: userWalletAddress, isConnected } = useAccount();
   const chainId = useChainId();
   const slug = dapp.slug || generateDAppSlug(dapp.name);
@@ -218,7 +219,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
 
       <AdSlider slotId="HALO_DAPPS_RIGHT" relaxHaloFrame />
 
-      {isL2 && (
+      {isL2 && !hideRevenueTree && (
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
           {pendingReferrer && !unifiedTree?.referrerSet && setReferrerSupported && userWalletAddress && (
             <div className="mb-4 p-3 bg-[#02abb8]/10 border border-[#02abb8]/30 rounded-lg">

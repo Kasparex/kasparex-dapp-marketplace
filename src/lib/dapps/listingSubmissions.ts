@@ -1,4 +1,9 @@
 import type { Category } from '@/lib/categories';
+import {
+  krexTierDiscountPercent,
+  vaultEffectivePriceKas,
+} from '@/lib/chronicles/vault/pricing';
+import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
 import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { generateDAppSlug } from '@/lib/utils';
 import type { DApp, DeveloperLink } from '@/lib/dapps';
@@ -23,6 +28,11 @@ export type DirectoryListing = {
   category: Category;
   tags: string[];
   utility: string;
+  process: string;
+  benefits: string;
+  feesOverview: string;
+  feesPricing: string;
+  feesCosts: string;
   supportedChains: string[];
   networkLayer: NetworkLayer;
   websiteUrl: string;
@@ -79,6 +89,11 @@ function migrateLegacyListing(raw: LegacyListing): DirectoryListing {
     category: raw.category,
     tags: [],
     utility: raw.description,
+    process: '',
+    benefits: '',
+    feesOverview: '',
+    feesPricing: '',
+    feesCosts: '',
     supportedChains: [],
     networkLayer: 'L1',
     websiteUrl: raw.websiteUrl || '',
@@ -110,6 +125,11 @@ function normalizeListing(raw: unknown): DirectoryListing | null {
       ...item,
       slug: item.slug || generateDAppSlug(item.name),
       tags: item.tags ?? [],
+      process: item.process ?? '',
+      benefits: item.benefits ?? '',
+      feesOverview: item.feesOverview ?? '',
+      feesPricing: item.feesPricing ?? '',
+      feesCosts: item.feesCosts ?? '',
       supportedChains: item.supportedChains ?? [],
       socialLinks: item.socialLinks ?? [],
       documentationLinks: item.documentationLinks ?? [],
@@ -242,6 +262,11 @@ export function saveDAppListingSubmission(
     category: data.category,
     tags: data.tags ?? [],
     utility: data.utility ?? data.shortDescription ?? '',
+    process: data.process ?? '',
+    benefits: data.benefits ?? '',
+    feesOverview: data.feesOverview ?? '',
+    feesPricing: data.feesPricing ?? '',
+    feesCosts: data.feesCosts ?? '',
     supportedChains: data.supportedChains ?? [],
     networkLayer: data.networkLayer ?? 'L1',
     websiteUrl: data.websiteUrl ?? '',
@@ -345,8 +370,8 @@ export function directoryListingToDApp(listing: DirectoryListing): DApp {
     createdAt: listing.submittedAt,
     category: listing.category,
     utility: listing.utility || listing.shortDescription,
-    process: listing.shortDescription,
-    benefits: listing.tags.length > 0 ? listing.tags.join(' · ') : listing.utility,
+    process: listing.process || listing.shortDescription,
+    benefits: listing.benefits || (listing.tags.length > 0 ? listing.tags.join(' · ') : listing.utility),
     developer: 'Community',
     developerLinks: developerLinks.length > 0 ? developerLinks : undefined,
     status: 'Mainnet',
@@ -367,9 +392,23 @@ export function getActiveDirectoryDApps(): DApp[] {
     .map(directoryListingToDApp);
 }
 
+export function calculateDirectoryListingFeeKas(
+  baseFeeKas: number,
+  krexTier: KREXTier,
+  nftStatus: NFTStatus | null | undefined,
+): { baseKas: number; effectiveKas: number; discountPercent: number } {
+  const effectiveKas = vaultEffectivePriceKas(baseFeeKas, krexTier, nftStatus ?? null);
+  const tierDiscount = krexTierDiscountPercent(krexTier);
+  const discountPercent =
+    baseFeeKas > 0 ? Math.min(100, Math.round((1 - effectiveKas / baseFeeKas) * 100)) : tierDiscount;
+  return { baseKas: baseFeeKas, effectiveKas, discountPercent };
+}
+
 export function listingActionFeeLabel(currency: StorePaymentCurrency, feeKas: number): string {
+  const formattedKas =
+    Number.isInteger(feeKas) ? `${feeKas}` : feeKas.toFixed(2).replace(/\.?0+$/, '');
   if (currency === 'KREX') {
     return `${kasToKrexAmount(feeKas).toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
   }
-  return `${feeKas} KAS`;
+  return `${formattedKas} KAS`;
 }

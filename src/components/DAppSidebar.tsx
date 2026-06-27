@@ -235,7 +235,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             <div className="mb-8">
               <div className="space-y-2">
                 <Link href="/dapps/dashboard" className="k-control-btn w-full">
-                  List dApp
+                  Dashboard
                 </Link>
                 <Link href="/tree/dashboard" className="k-control-btn w-full">
                   Revenue Tree

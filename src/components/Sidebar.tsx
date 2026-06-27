@@ -143,10 +143,7 @@ export function Sidebar({
       <div className="mb-8">
         <div className="space-y-2">
           <Link href="/dapps/dashboard" className="k-control-btn w-full">
-            List dApp
-          </Link>
-          <Link href="/protocols" className="k-control-btn w-full">
-            Kasparex Protocols
+            Dashboard
           </Link>
           <Link href="/tree/dashboard" className="k-control-btn w-full">
             Revenue Tree

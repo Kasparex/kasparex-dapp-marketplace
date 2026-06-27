@@ -17,12 +17,15 @@ import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
   archiveDirectoryListing,
+  calculateDirectoryListingFeeKas,
   getDirectoryListingById,
   listingActionFeeLabel,
   type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -137,6 +140,8 @@ export function DAppDashboardContent() {
   const { state } = useKaspaWallet();
   const { listings, refresh } = useDirectoryListings(state.address ?? undefined);
   const { payActionFee } = useDAppListingPayment();
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
 
   const [activeTab, setActiveTab] = useState<DAppDashboardTab>('overview');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
@@ -193,7 +198,10 @@ export function DAppDashboardContent() {
     const listing = getDirectoryListingById(id);
     if (!listing) return;
 
-    const feeLabel = listingActionFeeLabel(listing.paymentCurrency, DAPP_LISTING_ACTION_FEE_KAS);
+    const feeLabel = listingActionFeeLabel(
+      listing.paymentCurrency,
+      calculateDirectoryListingFeeKas(DAPP_LISTING_ACTION_FEE_KAS, krexTier, nftStatus).effectiveKas,
+    );
     if (
       !confirm(
         `Remove "${listing.name}" from the public directory? A ${feeLabel} fee applies.`,
@@ -205,7 +213,12 @@ export function DAppDashboardContent() {
     setDeletingId(id);
     setActionError(null);
     try {
-      await payActionFee(listing.paymentCurrency, DAPP_LISTING_ACTION_FEE_KAS);
+      const deleteFeeKas = calculateDirectoryListingFeeKas(
+        DAPP_LISTING_ACTION_FEE_KAS,
+        krexTier,
+        nftStatus,
+      ).effectiveKas;
+      await payActionFee(listing.paymentCurrency, deleteFeeKas);
       const ok = archiveDirectoryListing(id, state.address);
       if (!ok) throw new Error('Failed to remove listing');
       refresh();
@@ -224,12 +237,24 @@ export function DAppDashboardContent() {
         totalListings: stats.totalListings,
       }}
     >
-      <div className="mb-10">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-          dApps <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
-        </h1>
-        {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div>
+          <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
+            dApps <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
+          </h1>
+          {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
+        </div>
+        <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/20 p-4 lg:max-w-md shrink-0">
+          <p className="text-sm font-bold text-cyan-900 dark:text-cyan-200 mb-1">
+            List your project on Kasparex dApps
+          </p>
+          <p className="text-xs text-cyan-800 dark:text-cyan-300/90 leading-relaxed">
+            Submit a full project profile for the public dApps directory. Your listing gets its own page with
+            description, links, media, and contact details. Integrated live widgets are reserved for official
+            Kasparex dApps.
+          </p>
+        </div>
       </div>
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />

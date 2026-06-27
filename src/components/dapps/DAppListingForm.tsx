@@ -9,9 +9,12 @@ import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
+  calculateDirectoryListingFeeKas,
   listingActionFeeLabel,
   saveDirectoryListing,
   updateDirectoryListing,
@@ -121,7 +124,9 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const router = useRouter();
   const { state } = useKaspaWallet();
   const { upload, isUploading } = useIPFSUpload();
-  const { payListingFee, payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
 
   const [name, setName] = useState(listing?.name ?? '');
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
@@ -129,6 +134,11 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [category, setCategory] = useState<Category>(listing?.category ?? 'general');
   const [tagsRaw, setTagsRaw] = useState(listing?.tags.join(', ') ?? '');
   const [utility, setUtility] = useState(listing?.utility ?? '');
+  const [process, setProcess] = useState(listing?.process ?? '');
+  const [benefits, setBenefits] = useState(listing?.benefits ?? '');
+  const [feesOverview, setFeesOverview] = useState(listing?.feesOverview ?? '');
+  const [feesPricing, setFeesPricing] = useState(listing?.feesPricing ?? '');
+  const [feesCosts, setFeesCosts] = useState(listing?.feesCosts ?? '');
   const [chainsRaw, setChainsRaw] = useState(listing?.supportedChains.join(', ') ?? '');
   const [networkLayer, setNetworkLayer] = useState<NetworkLayer>(listing?.networkLayer ?? 'L1');
   const [websiteUrl, setWebsiteUrl] = useState(listing?.websiteUrl ?? '');
@@ -164,6 +174,11 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setCategory(listing.category);
     setTagsRaw(listing.tags.join(', '));
     setUtility(listing.utility);
+    setProcess(listing.process ?? '');
+    setBenefits(listing.benefits ?? '');
+    setFeesOverview(listing.feesOverview ?? '');
+    setFeesPricing(listing.feesPricing ?? '');
+    setFeesCosts(listing.feesCosts ?? '');
     setChainsRaw(listing.supportedChains.join(', '));
     setNetworkLayer(listing.networkLayer);
     setWebsiteUrl(listing.websiteUrl);
@@ -184,10 +199,14 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setPaymentCurrency(listing.paymentCurrency);
   }, [listing]);
 
-  const actionFeeKas = isEdit ? DAPP_LISTING_ACTION_FEE_KAS : DAPP_LISTING_FEE_KAS;
+  const baseFeeKas = isEdit ? DAPP_LISTING_ACTION_FEE_KAS : DAPP_LISTING_FEE_KAS;
+  const listingFee = useMemo(
+    () => calculateDirectoryListingFeeKas(baseFeeKas, krexTier, nftStatus),
+    [baseFeeKas, krexTier, nftStatus],
+  );
   const feeLabel = useMemo(
-    () => listingActionFeeLabel(paymentCurrency, actionFeeKas),
-    [paymentCurrency, actionFeeKas],
+    () => listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas),
+    [paymentCurrency, listingFee.effectiveKas],
   );
 
   const canSubmit = Boolean(
@@ -264,6 +283,11 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     category,
     tags: parseTags(tagsRaw),
     utility: utility.trim() || shortDescription.trim(),
+    process: process.trim(),
+    benefits: benefits.trim(),
+    feesOverview: feesOverview.trim(),
+    feesPricing: feesPricing.trim(),
+    feesCosts: feesCosts.trim(),
     supportedChains: parseList(chainsRaw),
     networkLayer,
     websiteUrl: websiteUrl.trim(),
@@ -291,22 +315,20 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setStep('payment');
 
     try {
-      const feeTxHash = isEdit
-        ? await payActionFee(paymentCurrency, actionFeeKas)
-        : await payListingFee(paymentCurrency);
+      const feeTxHash = await payActionFee(paymentCurrency, listingFee.effectiveKas);
 
       if (isEdit && listing) {
         const updated = updateDirectoryListing(listing.id, state.address, {
           ...buildPayload(),
           feeTxHash,
-          feeAmountKAS: actionFeeKas,
+          feeAmountKAS: listingFee.effectiveKas,
         });
         if (!updated) throw new Error('Failed to update listing');
       } else {
         saveDirectoryListing({
           ...buildPayload(),
           feeTxHash,
-          feeAmountKAS: DAPP_LISTING_FEE_KAS,
+          feeAmountKAS: listingFee.effectiveKas,
         });
 
         const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
@@ -352,17 +374,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/20 p-4">
-        <p className="text-[11px] font-bold text-cyan-900 dark:text-cyan-200 uppercase tracking-wider mb-1">
-          {isEdit ? 'Update directory listing' : 'List your project on Kasparex dApps'}
-        </p>
-        <p className="text-xs text-cyan-800 dark:text-cyan-300/90 leading-relaxed">
-          Submit a full project profile for the public dApps directory. Your listing gets its own page with
-          description, links, media, and contact details. Integrated live widgets are reserved for official
-          Kasparex dApps.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-8">
         <div className="space-y-6">
           <div className="k-form-group">
@@ -448,6 +459,57 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               onChange={(e) => setUtility(e.target.value)}
               placeholder="What problem does your project solve?"
             />
+          </div>
+
+          <div className="k-form-group">
+            <label className="k-label">How to use</label>
+            <textarea
+              className="k-textarea min-h-[80px]"
+              value={process}
+              onChange={(e) => setProcess(e.target.value)}
+              placeholder="Explain how users interact with your project"
+            />
+          </div>
+
+          <div className="k-form-group">
+            <label className="k-label">Benefits</label>
+            <textarea
+              className="k-textarea min-h-[80px]"
+              value={benefits}
+              onChange={(e) => setBenefits(e.target.value)}
+              placeholder="Key benefits for users or communities"
+            />
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-4">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Fees &amp; costs (public page)</h3>
+            <div className="k-form-group">
+              <label className="k-label">Fees overview</label>
+              <textarea
+                className="k-textarea min-h-[80px]"
+                value={feesOverview}
+                onChange={(e) => setFeesOverview(e.target.value)}
+                placeholder="Summarize any fees users should expect"
+              />
+            </div>
+            <div className="k-form-group">
+              <label className="k-label">Pricing details</label>
+              <textarea
+                className="k-textarea min-h-[80px]"
+                value={feesPricing}
+                onChange={(e) => setFeesPricing(e.target.value)}
+                placeholder="List prices, tiers, or subscription models"
+              />
+            </div>
+            <div className="k-form-group">
+              <label className="k-label">Additional costs</label>
+              <textarea
+                className="k-textarea min-h-[80px]"
+                value={feesCosts}
+                onChange={(e) => setFeesCosts(e.target.value)}
+                placeholder="Gas, network, or service costs"
+              />
+            </div>
           </div>
 
           <div className="k-form-group">
@@ -577,7 +639,9 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               {isEdit ? 'Update listing' : 'Listing fee'}
             </h3>
             <div className="k-form-group mb-4">
-              <label className="k-label">Pay with *</label>
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case">
+                Pay with *
+              </label>
               <KxSegmentToggle
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
@@ -587,11 +651,22 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </div>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               {isEdit ? 'Update fee' : 'One-time directory fee'}:{' '}
+              {listingFee.discountPercent > 0 ? (
+                <>
+                  <span className="line-through text-zinc-400 mr-1">
+                    {listingActionFeeLabel(paymentCurrency, listingFee.baseKas)}
+                  </span>
+                </>
+              ) : null}
               <span className="font-black text-[#02abb8]">{feeLabel}</span>
             </p>
+            {listingFee.discountPercent > 0 ? (
+              <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+                KREX tier discount applied ({listingFee.discountPercent}% off)
+              </p>
+            ) : null}
             <p className="text-xs text-zinc-500 mt-2">
-              Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}. Equivalent to{' '}
-              {actionFeeKas} KAS.
+              Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}.
             </p>
           </div>
 
@@ -611,8 +686,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               : isProcessing
                 ? 'Processing...'
                 : isEdit
-                  ? `Save changes (${feeLabel})`
-                  : `Publish listing (${feeLabel})`}
+                  ? 'Save changes'
+                  : 'PUBLISH'}
           </button>
         </aside>
       </div>

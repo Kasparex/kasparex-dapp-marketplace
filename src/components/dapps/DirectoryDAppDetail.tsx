@@ -4,15 +4,19 @@ import { useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppRightColumn } from '@/components/dapps/DAppRightColumn';
-import { DirectoryDAppProfile } from '@/components/dapps/DirectoryDAppProfile';
+import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryDAppOverviewPanel';
+import { DirectoryDAppDescriptionsPanel } from '@/components/dapps/panels/DirectoryDAppDescriptionsPanel';
+import { DirectoryDAppFeesPanel } from '@/components/dapps/panels/DirectoryDAppFeesPanel';
 import { DAppsWithSidebarLayout } from '@/components/dapps/layout/DAppsWithSidebarLayout';
-import { IconOverview, IconComments } from '@/components/dapps/icons/DAppTabIcons';
+import { IconDAppWidget, IconDAppFees, IconOverview, IconComments } from '@/components/dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
 
 const BASE_TABS = [
-  { id: 'profile', label: 'Project', icon: <IconOverview /> },
+  { id: 'overview', label: 'Overview', icon: <IconDAppWidget /> },
+  { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
+  { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
@@ -33,7 +37,7 @@ type DirectoryDAppDetailProps = {
 };
 
 export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps) {
-  const [tab, setTab] = useState<DirectoryTabId>('profile');
+  const [tab, setTab] = useState<DirectoryTabId>('overview');
   const articleId = `dapp:${dapp.slug || dapp.id}`;
   const commentsCount = useDAppCommentsCount(articleId);
 
@@ -52,11 +56,13 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
       onTabChange={setTab}
       main={
         <>
-          {tab === 'profile' ? <DirectoryDAppProfile dapp={dapp} listing={listing} /> : null}
+          {tab === 'overview' ? <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} /> : null}
+          {tab === 'descriptions' ? <DirectoryDAppDescriptionsPanel listing={listing} /> : null}
+          {tab === 'fees' ? <DirectoryDAppFeesPanel listing={listing} /> : null}
           {tab === 'comments' ? <CommentsSection articleId={articleId} /> : null}
         </>
       }
-      sidebar={<DAppRightColumn dapp={dapp} contractAddress="" />}
+      sidebar={<DAppRightColumn dapp={dapp} contractAddress="" hideRevenueTree />}
     />
   );
 }
