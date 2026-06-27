@@ -1,6 +1,7 @@
 'use client';
 
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 type DirectoryDAppDescriptionsPanelProps = {
   listing: DirectoryListing;
@@ -9,10 +10,10 @@ type DirectoryDAppDescriptionsPanelProps = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   if (!children) return null;
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3">{title}</h3>
+    <section>
+      <DAppSectionHeader title={title} />
       <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{children}</p>
-    </div>
+    </section>
   );
 }
 

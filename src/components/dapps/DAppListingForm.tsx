@@ -667,6 +667,20 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}.
             </p>
 
+            {!isEdit ? (
+              <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300 mb-1">
+                  Hub points
+                </p>
+                <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
+                  +{HUB_EARN_POINTS.dappDirectoryList} pts
+                </p>
+                <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 mt-1 leading-relaxed">
+                  Redeemable Hub points awarded once when you publish a new listing.
+                </p>
+              </div>
+            ) : null}
+
             {error ? (
               <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
                 {error}

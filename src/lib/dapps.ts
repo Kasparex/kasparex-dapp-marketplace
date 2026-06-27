@@ -659,10 +659,24 @@ export function getDAppNetworkType(dapp: DApp): 'L1' | 'L2' {
   return 'L1';
 }
 
-export type DAppNetworkFilter = 'all' | 'L1' | 'L2' | 'MIX';
+export type DAppNetworkFilter = 'all' | 'L1' | 'L2' | 'MULTI';
+
+function getDAppChainNetworkKey(chainId: number): string {
+  if (chainId === CHAIN_IDS.KASPLEX_L2_TESTNET) return 'kasplex-testnet';
+  if (chainId === CHAIN_IDS.KASPLEX_L2_MAINNET) return 'kasplex-mainnet';
+  if (chainId === CHAIN_IDS.IGRA_GALLEON_TESTNET) return 'igra-testnet';
+  if (chainId === CHAIN_IDS.IGRA_MAINNET) return 'igra-mainnet';
+  return `chain-${chainId}`;
+}
 
 export function isMultichainDApp(dapp: DApp): boolean {
-  return dapp.directoryListing?.networkLayer === 'multichain';
+  if (dapp.directoryListing?.networkLayer === 'multichain') return true;
+
+  const chainIds = getDAppChainIds(dapp);
+  if (chainIds.length < 2) return false;
+
+  const networkKeys = new Set(chainIds.map(getDAppChainNetworkKey));
+  return networkKeys.size >= 2;
 }
 
 export function isDirectoryListingDApp(dapp: DApp): boolean {
@@ -671,8 +685,8 @@ export function isDirectoryListingDApp(dapp: DApp): boolean {
 
 export function matchesDAppNetworkFilter(dapp: DApp, filter: DAppNetworkFilter): boolean {
   if (filter === 'all') return true;
-  if (isMultichainDApp(dapp)) return filter === 'MIX';
-  if (filter === 'MIX') return false;
+  if (isMultichainDApp(dapp)) return filter === 'MULTI';
+  if (filter === 'MULTI') return false;
   return getDAppNetworkType(dapp) === filter;
 }
 

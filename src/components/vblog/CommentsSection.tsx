@@ -14,15 +14,17 @@ import { CommentsInfoModal } from './CommentsInfoModal';
 import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
 import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface CommentsSectionProps {
   articleId: string;
+  dappSectionHeader?: boolean;
 }
 
 const COMMENTS_PER_PAGE = 5;
 const COMMENTS_LOAD_MORE = 10;
 
-export function CommentsSection({ articleId }: CommentsSectionProps) {
+export function CommentsSection({ articleId, dappSectionHeader = false }: CommentsSectionProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const { getArticleComments, addArticleComment } = useVBlog();
@@ -184,9 +186,13 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
       <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto">
         {/* Header with Collapse and Info */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Comments ({commentsCount})
-          </h2>
+          {dappSectionHeader ? (
+            <DAppSectionHeader title={`Comments (${commentsCount})`} className="mb-0" />
+          ) : (
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              Comments ({commentsCount})
+            </h2>
+          )}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowInfoModal(true)}

@@ -185,11 +185,7 @@ export function DAppsHomeContent() {
                   <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
                     Discover and use decentralized applications on Kaspa. Explore a growing ecosystem of tools, games, and services built for the future of finance.
                   </p>
-                  <div className="flex flex-wrap gap-4">
-                    <a href="#content" className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all">
-                      EXPLORE DAPPS
-                    </a>
-                  </div>
+                  <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
                 </div>
                 <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
                   <div className="relative opacity-90 pointer-events-none">
@@ -211,16 +207,13 @@ export function DAppsHomeContent() {
 
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                  Available dApps
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
-              </div>
-              <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                Available dApps
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+              </p>
             </div>
 
             <div className="flex flex-col gap-4 mb-6">

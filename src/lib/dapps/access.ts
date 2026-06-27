@@ -1,5 +1,10 @@
 import type { DApp } from '@/lib/dapps';
-import { getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } from '@/lib/dapps';
+import {
+  getDAppChainIds,
+  getDAppNetworkType,
+  isDAppCompatibleWithChain,
+  isMultichainDApp,
+} from '@/lib/dapps';
 import {
   getDAppAvailableChainNames,
   getDAppPrimaryChainName,
@@ -61,7 +66,7 @@ export function getDAppLayerLabel(dapp: DApp): {
 
 export interface DAppAccessInput {
   dapp: DApp;
-  selectedNetwork?: 'all' | 'L1' | 'L2' | 'MIX';
+  selectedNetwork?: 'all' | 'L1' | 'L2' | 'MULTI';
   isKaspaConnected: boolean;
   isEvmConnected: boolean;
   chainId?: number;
@@ -130,28 +135,25 @@ export function evaluateDAppAccess(input: DAppAccessInput): DAppAccessResult {
   const requiredChainNames = getRequiredChainNames(dapp);
   const networkType = networkInfo.layer;
 
+  if (selectedNetwork === 'MULTI' && !isMultichainDApp(dapp)) {
+    return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
+  }
+
+  if (isMultichainDApp(dapp) && selectedNetwork !== 'all' && selectedNetwork !== 'MULTI') {
+    return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
+  }
+
   if (dapp.source === 'directory') {
-    const isMultichain = dapp.directoryListing?.networkLayer === 'multichain';
-    if (selectedNetwork === 'MIX') {
-      if (!isMultichain) {
-        return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
-      }
-      return { isOpenable: true, reason: 'open', requiredChainNames, networkInfo };
-    }
-    if (isMultichain && selectedNetwork !== 'all') {
-      return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
-    }
-    if (selectedNetwork !== 'all' && dapp.networkType && networkType !== selectedNetwork) {
+    if (selectedNetwork !== 'all' && selectedNetwork !== 'MULTI' && dapp.networkType && networkType !== selectedNetwork) {
       return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
     }
     return { isOpenable: true, reason: 'open', requiredChainNames, networkInfo };
   }
 
-  if (selectedNetwork === 'MIX') {
-    return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
-  }
-
-  const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
+  const isNetworkMismatch =
+    selectedNetwork !== 'all' &&
+    selectedNetwork !== 'MULTI' &&
+    networkType !== selectedNetwork;
   if (isNetworkMismatch) {
     return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
   }

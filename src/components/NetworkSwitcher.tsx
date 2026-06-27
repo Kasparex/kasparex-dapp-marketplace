@@ -12,7 +12,7 @@ const OPTIONS: { value: DAppNetworkFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'L1', label: 'L1' },
   { value: 'L2', label: 'L2' },
-  { value: 'MIX', label: 'Mix' },
+  { value: 'MULTI', label: 'Multi' },
 ];
 
 export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwitcherProps) {

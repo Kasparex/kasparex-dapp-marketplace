@@ -80,7 +80,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
             {tab === 'widget' && <DAppWidget dapp={dapp} autoPromptWhenBlocked />}
             {tab === 'descriptions' && <DAppDescriptionsPanel dapp={mergedDApp} />}
             {tab === 'fees' && <DAppFeesPanel dapp={mergedDApp} contractAddress={contractAddress} />}
-            {tab === 'comments' && <CommentsSection articleId={articleId} />}
+            {tab === 'comments' && <CommentsSection articleId={articleId} dappSectionHeader />}
           </>
         }
         sidebar={<DAppRightColumn dapp={dapp} contractAddress={contractAddress} />}

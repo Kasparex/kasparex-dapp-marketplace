@@ -59,7 +59,7 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
           {tab === 'overview' ? <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} /> : null}
           {tab === 'descriptions' ? <DirectoryDAppDescriptionsPanel listing={listing} /> : null}
           {tab === 'fees' ? <DirectoryDAppFeesPanel listing={listing} /> : null}
-          {tab === 'comments' ? <CommentsSection articleId={articleId} /> : null}
+          {tab === 'comments' ? <CommentsSection articleId={articleId} dappSectionHeader /> : null}
         </>
       }
       sidebar={<DAppRightColumn dapp={dapp} contractAddress="" hideRevenueTree />}

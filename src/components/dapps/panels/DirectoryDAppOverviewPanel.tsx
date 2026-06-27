@@ -6,6 +6,7 @@ import { getCategoryById } from '@/lib/categories';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 type DirectoryDAppOverviewPanelProps = {
   dapp: DApp;
@@ -62,7 +63,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
+      <section>
         <div className="flex flex-wrap items-start gap-3 mb-4">
           {category ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300">
@@ -73,7 +74,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
             Community listing
           </span>
           <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
-            {listing.networkLayer === 'multichain' ? 'Multichain' : `${listing.networkLayer} layer`}
+            {listing.networkLayer === 'multichain' ? 'Multi' : `${listing.networkLayer} layer`}
           </span>
         </div>
 
@@ -95,7 +96,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
         {listing.supportedChains.length > 0 ? (
           <div className="mt-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Supported chains</p>
+            <DAppSectionHeader title="Supported chains" />
             <div className="flex flex-wrap gap-2">
               {listing.supportedChains.map((chain) => (
                 <span
@@ -112,7 +113,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
       {listing.actionButtons.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Actions</h3>
+          <DAppSectionHeader title="Actions" />
           <div className="flex flex-wrap gap-3">
             {listing.actionButtons.map((btn) => (
               <a
@@ -130,7 +131,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
       ) : null}
 
       <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-        <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Links</h3>
+        <DAppSectionHeader title="Links" />
         <LinkGrid
           links={[
             ...(listing.websiteUrl ? [{ label: 'Website', url: listing.websiteUrl }] : []),
@@ -143,7 +144,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
       {galleryImages.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Gallery</h3>
+          <DAppSectionHeader title="Gallery" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {galleryImages.map((image, index) => (
               <button
@@ -165,7 +166,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
       {optionalFiles.length > 0 ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500 mb-4">Files</h3>
+          <DAppSectionHeader title="Files" />
           <div className="space-y-2">
             {optionalFiles.map((file) => (
               <a
@@ -185,7 +186,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
 
       {(listing.contactEmail || listing.contactTelegram || listing.contactDiscord || listing.additionalNotes) ? (
         <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 space-y-4">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">Project details</h3>
+          <DAppSectionHeader title="Project details" />
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             {listing.contactEmail ? (
               <div>

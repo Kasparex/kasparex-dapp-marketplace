@@ -30,6 +30,7 @@ import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 const TAB_LABELS: Record<DAppDashboardTab, string> = {
   overview: 'Overview',
@@ -406,22 +407,18 @@ export function DAppDashboardContent() {
 
           {activeTab === 'overview' && (
             <>
-              <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/20 p-6">
-                <p className="text-sm font-bold text-cyan-900 dark:text-cyan-200 mb-2">
-                  List your project on Kasparex dApps
-                </p>
-                <p className="text-sm text-cyan-800 dark:text-cyan-300/90 leading-relaxed">
+              <section>
+                <DAppSectionHeader title="List your project on Kasparex dApps" />
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                   Submit a full project profile for the public dApps directory. Your listing gets its own page with
                   description, links, media, and contact details. Integrated live widgets are reserved for official
                   Kasparex dApps.
                 </p>
-              </div>
+              </section>
 
               {stats.totalListings > 0 ? (
                 <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
-                  <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-4">
-                    By category
-                  </h2>
+                  <DAppSectionHeader title="By category" />
                   <div className="flex flex-wrap gap-2">
                     {LISTING_CATEGORIES.filter((c) => stats.byCategory[c.id] > 0).map((c) => (
                       <span
