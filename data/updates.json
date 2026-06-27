@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782590658-1f247ae",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Refine dApp listing form: chains, URL uploads, X handle (by Kasparex)",
+      "date": "2026-06-27T22:03:42+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782516966-a9d9ad5",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unify Kasparex Stats with Store layout; trim AI ecosystem bar. (by Kasparex)",
