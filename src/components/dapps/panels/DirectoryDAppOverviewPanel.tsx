@@ -210,7 +210,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
             <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
               {listing.contactX ? (
                 <div>
-                  <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">X (Twitter)</dt>
+                  <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">X handle</dt>
                   <dd>
                     <a
                       href={contactXProfileUrl(listing.contactX)}

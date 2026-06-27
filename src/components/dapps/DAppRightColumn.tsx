@@ -16,13 +16,12 @@ import { DAppInfoModal } from './DAppInfoModal';
 interface DAppRightColumnProps {
   dapp: DApp;
   contractAddress?: string;
-  hideRevenueTree?: boolean;
 }
 
 /**
  * Premium right column: Meta row (category, version, ID, modals, star/heart) → Title → Reward tokens → Description (clickable → info modal) → Actions/Purchase box.
  */
-export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hideRevenueTree = false }: DAppRightColumnProps) {
+export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: DAppRightColumnProps) {
   const chainId = useChainId();
   const mergedDApp = mergeDAppData(null, dapp);
 
@@ -35,10 +34,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
     chainId
   );
 
-  const category = getCategoryById(mergedDApp.category);
   const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
-  const networkType = getDAppNetworkType(mergedDApp);
-
   const xpReward = useDAppXpReward(mergedDApp);
 
   let rawTicker: string | null = null;
@@ -51,7 +47,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
   } else {
     rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
   }
-  const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
 
   const featured = mergedDApp.featuredImage || mergedDApp.image || '';
   const description = mergedDApp.utility || mergedDApp.description || mergedDApp.process || '';
@@ -59,7 +54,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
 
   return (
     <div className="flex flex-col h-full space-y-6">
-      {/* Featured image opens dApp info modal */}
       <button
         type="button"
         onClick={() => setShowInfoModal(true)}
@@ -85,7 +79,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
         )}
       </button>
 
-      {/* Logo + Title */}
       <div className="flex items-start gap-4">
         <DAppIcon
           dAppName={mergedDApp.name}
@@ -109,7 +102,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
         </div>
       </div>
 
-      {/* Clickable description (opens Info modal) */}
       <div>
         <p className="text-zinc-600 dark:text-zinc-400 text-sm lg:text-base leading-relaxed line-clamp-5">
           {description || 'No description available.'}
@@ -126,8 +118,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress, hi
         </button>
       </div>
 
-      {/* Actions, Costs & Fees */}
-      <DAppActionsColumn dapp={dapp} contractAddress={propContractAddress} hideRevenueTree={hideRevenueTree} />
+      <DAppActionsColumn dapp={dapp} contractAddress={propContractAddress} />
 
       {showInfoModal && (
         <DAppInfoModal

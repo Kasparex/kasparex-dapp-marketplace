@@ -234,7 +234,7 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
                 <DAppSectionHeader title="Contact & listing" />
                 {listing.contactX ? (
                   <p className="text-sm">
-                    <span className="text-zinc-500">X (Twitter): </span>
+                    <span className="text-zinc-500">X handle: </span>
                     <a
                       href={contactXProfileUrl(listing.contactX)}
                       target="_blank"

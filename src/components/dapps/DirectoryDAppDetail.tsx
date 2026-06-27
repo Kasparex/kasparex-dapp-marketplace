@@ -7,8 +7,10 @@ import { DAppRightColumn } from '@/components/dapps/DAppRightColumn';
 import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryDAppOverviewPanel';
 import { DirectoryDAppDescriptionsPanel } from '@/components/dapps/panels/DirectoryDAppDescriptionsPanel';
 import { DirectoryDAppFeesPanel } from '@/components/dapps/panels/DirectoryDAppFeesPanel';
+import { DAppRevenueTreePanel } from '@/components/dapps/panels/DAppRevenueTreePanel';
 import { DAppsWithSidebarLayout } from '@/components/dapps/layout/DAppsWithSidebarLayout';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments } from '@/components/dapps/icons/DAppTabIcons';
+import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
+import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from '@/components/dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
@@ -17,6 +19,7 @@ const BASE_TABS = [
   { id: 'overview', label: 'Overview', icon: <IconDAppWidget /> },
   { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
   { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
+  { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
@@ -50,19 +53,22 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
   }, [commentsCount]);
 
   return (
-    <DAppsWithSidebarLayout
-      tabs={tabs}
-      currentTab={tab}
-      onTabChange={setTab}
-      main={
-        <>
-          {tab === 'overview' ? <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} /> : null}
-          {tab === 'descriptions' ? <DirectoryDAppDescriptionsPanel listing={listing} /> : null}
-          {tab === 'fees' ? <DirectoryDAppFeesPanel listing={listing} /> : null}
-          {tab === 'comments' ? <CommentsSection articleId={articleId} dappSectionHeader /> : null}
-        </>
-      }
-      sidebar={<DAppRightColumn dapp={dapp} contractAddress="" hideRevenueTree />}
-    />
+    <PaymentAmountProvider>
+      <DAppsWithSidebarLayout
+        tabs={tabs}
+        currentTab={tab}
+        onTabChange={setTab}
+        main={
+          <>
+            {tab === 'overview' ? <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} /> : null}
+            {tab === 'descriptions' ? <DirectoryDAppDescriptionsPanel listing={listing} /> : null}
+            {tab === 'fees' ? <DirectoryDAppFeesPanel listing={listing} /> : null}
+            {tab === 'revenue-tree' ? <DAppRevenueTreePanel dapp={dapp} /> : null}
+            {tab === 'comments' ? <CommentsSection articleId={articleId} dappSectionHeader /> : null}
+          </>
+        }
+        sidebar={<DAppRightColumn dapp={dapp} contractAddress="" />}
+      />
+    </PaymentAmountProvider>
   );
 }

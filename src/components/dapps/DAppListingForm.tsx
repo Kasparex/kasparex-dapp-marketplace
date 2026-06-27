@@ -768,7 +768,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="k-form-group">
-              <label className="k-label">X (Twitter) handle</label>
+              <label className="k-label">X handle</label>
               <input
                 type="text"
                 className="k-input"
@@ -869,20 +869,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}.
             </p>
 
-            {!isEdit ? (
-              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Hub points</p>
-                <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-4">
-                  <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
-                    +{HUB_EARN_POINTS.dappDirectoryList} pts
-                  </p>
-                  <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 mt-1 leading-relaxed">
-                    Redeemable Hub points awarded once when you publish a new listing.
-                  </p>
-                </div>
-              </div>
-            ) : null}
-
             {error ? (
               <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
                 {error}
@@ -903,6 +889,20 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
                     : 'PUBLISH'}
             </button>
           </div>
+
+          {!isEdit ? (
+            <div className="rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-5 space-y-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">
+                Hub points
+              </h3>
+              <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
+                +{HUB_EARN_POINTS.dappDirectoryList} pts
+              </p>
+              <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 leading-relaxed">
+                Redeemable Hub points awarded once when you publish a new listing.
+              </p>
+            </div>
+          ) : null}
         </aside>
       </div>
     </form>

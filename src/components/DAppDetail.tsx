@@ -13,7 +13,8 @@ import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppRightColumn } from './dapps/DAppRightColumn';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
 import { DAppFeesPanel } from './dapps/panels/DAppFeesPanel';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments } from './dapps/icons/DAppTabIcons';
+import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
+import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from './dapps/icons/DAppTabIcons';
 import { DAppsWithSidebarLayout } from './dapps/layout/DAppsWithSidebarLayout';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DAppTab } from './dapps/layout/DAppTabs';
@@ -22,6 +23,7 @@ const BASE_TABS = [
   { id: 'widget', label: 'DApp', icon: <IconDAppWidget /> },
   { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
   { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
+  { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
@@ -80,6 +82,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
             {tab === 'widget' && <DAppWidget dapp={dapp} autoPromptWhenBlocked />}
             {tab === 'descriptions' && <DAppDescriptionsPanel dapp={mergedDApp} />}
             {tab === 'fees' && <DAppFeesPanel dapp={mergedDApp} contractAddress={contractAddress} />}
+            {tab === 'revenue-tree' && <DAppRevenueTreePanel dapp={mergedDApp} />}
             {tab === 'comments' && <CommentsSection articleId={articleId} dappSectionHeader />}
           </>
         }

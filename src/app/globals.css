@@ -493,7 +493,7 @@
 }
 
 .k-control-group {
-  @apply flex items-center rounded-xl overflow-hidden;
+  @apply flex items-center gap-1 rounded-xl p-1;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
 }

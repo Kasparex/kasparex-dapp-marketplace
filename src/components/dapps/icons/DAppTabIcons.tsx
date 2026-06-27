@@ -24,4 +24,18 @@ export function IconDAppFees(props: { className?: string }) {
   );
 }
 
+export function IconRevenueTree(props: { className?: string }) {
+  return (
+    <IconBase className={props.className}>
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+        <path
+          d="M12 3v4m0 0a3 3 0 100 6m0-6a3 3 0 110 6m0 0v4m-6-2a3 3 0 100-6m6 8a3 3 0 100 6m-6-6a3 3 0 110-6"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </IconBase>
+  );
+}
+
 export { IconOverview, IconComments } from '@/components/games/icons/TabIcons';

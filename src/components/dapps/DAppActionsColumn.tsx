@@ -3,15 +3,8 @@
 import { useMemo } from 'react';
 import { useAccount, useChainId, useBalance } from 'wagmi';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
-import { formatEther, formatUnits } from 'viem';
+import { formatUnits } from 'viem';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
-import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
-import { generateMockRevenueTree } from '@/lib/revenue-tree/mockData';
-import { generateDAppSlug } from '@/lib/utils';
-import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
-import { getCurrentReferrer } from '@/lib/revenue-tree/referral';
-import { useRevenueTree } from '@/hooks/useRevenueTree';
-import { useSetReferrer } from '@/hooks/useSetReferrer';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useGRIDToken } from '@/hooks/useGRIDToken';
@@ -26,7 +19,6 @@ import { AdSlider } from '@/components/ads/AdSlider';
 interface DAppActionsColumnProps {
   dapp: DApp;
   contractAddress?: string;
-  hideRevenueTree?: boolean;
 }
 
 /** Format number for display (integers without decimals, decimals trimmed). */
@@ -44,30 +36,13 @@ function formatFee(value: number): string {
   return '0';
 }
 
-export function DAppActionsColumn({ dapp, contractAddress, hideRevenueTree = false }: DAppActionsColumnProps) {
+export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnProps) {
   const { address: userWalletAddress, isConnected } = useAccount();
   const chainId = useChainId();
-  const slug = dapp.slug || generateDAppSlug(dapp.name);
   const nativeSymbol = getNativeCurrencySymbol(chainId);
   const { paymentAmount } = usePaymentAmount();
 
   const networkType = getDAppNetworkType(dapp);
-  const isL2 = networkType === 'L2';
-
-  const { tree: unifiedTree } = useRevenueTree();
-  const { setReferrer, isPending: setReferrerPending, isConfirming: setReferrerConfirming, isSupported: setReferrerSupported } = useSetReferrer();
-  const pendingReferrer = typeof window !== 'undefined' ? getCurrentReferrer() : null;
-
-  const revenueTreeData = useMemo(() => {
-    const data = unifiedToRevenueTreeData(unifiedTree ?? null);
-    if (data) return data;
-    return generateMockRevenueTree(dapp.id, slug, userWalletAddress ?? undefined, chainId, false);
-  }, [unifiedTree, dapp.id, slug, userWalletAddress, chainId]);
-
-  const activationAmount = useMemo(() => {
-    if (!unifiedTree?.lifetimeVolume) return 0;
-    return parseFloat(formatEther(BigInt(unifiedTree.lifetimeVolume)));
-  }, [unifiedTree?.lifetimeVolume]);
 
   // Connected wallet balances for real fee/reward display
   const { data: nativeBalance } = useBalance({
@@ -218,34 +193,6 @@ export function DAppActionsColumn({ dapp, contractAddress, hideRevenueTree = fal
       </div>
 
       <AdSlider slotId="HALO_DAPPS_RIGHT" relaxHaloFrame />
-
-      {isL2 && !hideRevenueTree && (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-          {pendingReferrer && !unifiedTree?.referrerSet && setReferrerSupported && userWalletAddress && (
-            <div className="mb-4 p-3 bg-[#02abb8]/10 border border-[#02abb8]/30 rounded-lg">
-              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">
-                Set your referrer once to join the tree: <span className="font-mono text-xs">{pendingReferrer.slice(0, 10)}…{pendingReferrer.slice(-8)}</span>
-              </p>
-              <button
-                type="button"
-                onClick={() => setReferrer(pendingReferrer as `0x${string}`)}
-                disabled={setReferrerPending || setReferrerConfirming}
-                className="px-3 py-1.5 bg-[#02abb8] hover:bg-[#0299a6] text-white text-sm font-bold rounded-lg disabled:opacity-50"
-              >
-                {setReferrerPending || setReferrerConfirming ? 'Confirm in wallet…' : 'Set referrer'}
-              </button>
-            </div>
-          )}
-          <RevenueTree
-            data={revenueTreeData}
-            userWalletAddress={userWalletAddress || undefined}
-            isL2Only={true}
-            activationAmount={activationAmount}
-            amountSpent={paymentAmount ?? actionCosts[0]?.costBreakdown?.finalCost ?? 10}
-            treeBps={1000}
-          />
-        </div>
-      )}
     </div>
   );
 }
