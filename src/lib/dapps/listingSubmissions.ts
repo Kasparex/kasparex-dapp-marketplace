@@ -44,11 +44,20 @@ export type DirectoryListing = {
   /** Direct HTTPS logo URL (optional alternative to logoCid). */
   logoUrl?: string;
   featureImageCid?: string;
+  /** Direct HTTPS featured image URL (optional alternative to featureImageCid). */
+  featureImageUrl?: string;
   galleryCids: string[];
   galleryFileNames: string[];
+  /** Direct HTTPS gallery image URLs (optional alternative to galleryCids). */
+  galleryUrls: string[];
   optionalFileCids: string[];
   optionalFileNames: string[];
-  contactEmail: string;
+  /** Optional file download links (URL only for new submissions). */
+  optionalFileUrls: DirectoryLink[];
+  /** Legacy email field; new listings use contactX. */
+  contactEmail?: string;
+  /** X (Twitter) handle, with or without leading @. */
+  contactX?: string;
   contactTelegram?: string;
   contactDiscord?: string;
   additionalNotes?: string;
@@ -106,8 +115,10 @@ function migrateLegacyListing(raw: LegacyListing): DirectoryListing {
     actionButtons: [],
     galleryCids: [],
     galleryFileNames: [],
+    galleryUrls: [],
     optionalFileCids: [],
     optionalFileNames: [],
+    optionalFileUrls: [],
     contactEmail: raw.contactEmail || '',
     paymentCurrency: raw.paymentCurrency,
     feeAmountKAS: raw.feeAmountKAS,
@@ -140,8 +151,11 @@ function normalizeListing(raw: unknown): DirectoryListing | null {
       actionButtons: item.actionButtons ?? [],
       galleryCids: item.galleryCids ?? [],
       galleryFileNames: item.galleryFileNames ?? [],
+      galleryUrls: item.galleryUrls ?? [],
       optionalFileCids: item.optionalFileCids ?? [],
       optionalFileNames: item.optionalFileNames ?? [],
+      optionalFileUrls: item.optionalFileUrls ?? [],
+      contactX: item.contactX,
       status: item.status === 'archived' ? 'archived' : 'active',
       submittedAt: item.submittedAt || new Date().toISOString(),
       updatedAt: item.updatedAt || item.submittedAt || new Date().toISOString(),
@@ -282,9 +296,12 @@ export function saveDAppListingSubmission(
     logoUrl: data.logoUrl,
     galleryCids: data.galleryCids ?? [],
     galleryFileNames: data.galleryFileNames ?? [],
+    galleryUrls: data.galleryUrls ?? [],
     optionalFileCids: data.optionalFileCids ?? [],
     optionalFileNames: data.optionalFileNames ?? [],
-    contactEmail: data.contactEmail ?? '',
+    optionalFileUrls: data.optionalFileUrls ?? [],
+    contactEmail: data.contactEmail,
+    contactX: data.contactX,
     contactTelegram: data.contactTelegram,
     contactDiscord: data.contactDiscord,
     additionalNotes: data.additionalNotes,
@@ -341,13 +358,25 @@ export function archiveDirectoryListing(id: string, submitterAddress: string): b
   return true;
 }
 
+export function contactXProfileUrl(handle?: string): string | undefined {
+  if (!handle?.trim()) return undefined;
+  const normalized = handle.trim().replace(/^@/, '');
+  return normalized ? `https://x.com/${encodeURIComponent(normalized)}` : undefined;
+}
+
+export function contactXDisplayLabel(handle?: string): string | undefined {
+  if (!handle?.trim()) return undefined;
+  const normalized = handle.trim().replace(/^@/, '');
+  return normalized ? `@${normalized}` : undefined;
+}
+
 export function directoryListingToDApp(listing: DirectoryListing): DApp {
   const logoUrl =
     listing.logoUrl?.trim() ||
     (listing.logoCid ? getBestGatewayUrl(listing.logoCid) : undefined);
-  const featureUrl = listing.featureImageCid
-    ? getBestGatewayUrl(listing.featureImageCid)
-    : undefined;
+  const featureUrl =
+    listing.featureImageUrl?.trim() ||
+    (listing.featureImageCid ? getBestGatewayUrl(listing.featureImageCid) : undefined);
 
   const developerLinks: DeveloperLink[] = [];
   if (listing.websiteUrl) {

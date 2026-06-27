@@ -3,7 +3,11 @@
 import { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { DApp } from '@/lib/dapps';
-import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
+import {
+  contactXDisplayLabel,
+  contactXProfileUrl,
+  type DirectoryListing,
+} from '@/lib/dapps/listingSubmissions';
 import { getCategoryById } from '@/lib/categories';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -47,23 +51,29 @@ function LinkList({ links }: { links: { label: string; url: string }[] }) {
 export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDAppInfoModalProps) {
   const category = getCategoryById(listing.category);
 
-  const galleryImages = useMemo(
-    () =>
-      listing.galleryCids.map((cid, index) => ({
-        url: getBestGatewayUrl(cid),
-        alt: listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`,
-      })),
-    [listing.galleryCids, listing.galleryFileNames, dapp.name],
-  );
+  const galleryImages = useMemo(() => {
+    const fromCids = listing.galleryCids.map((cid, index) => ({
+      url: getBestGatewayUrl(cid),
+      alt: listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`,
+    }));
+    const fromUrls = (listing.galleryUrls ?? []).map((url, index) => ({
+      url,
+      alt: `${dapp.name} screenshot ${fromCids.length + index + 1}`,
+    }));
+    return [...fromCids, ...fromUrls];
+  }, [listing.galleryCids, listing.galleryFileNames, listing.galleryUrls, dapp.name]);
 
-  const optionalFiles = useMemo(
-    () =>
-      listing.optionalFileCids.map((cid, index) => ({
-        name: listing.optionalFileNames[index] || 'Download',
-        url: getBestGatewayUrl(cid),
-      })),
-    [listing.optionalFileCids, listing.optionalFileNames],
-  );
+  const optionalFiles = useMemo(() => {
+    const fromCids = listing.optionalFileCids.map((cid, index) => ({
+      name: listing.optionalFileNames[index] || 'Download',
+      url: getBestGatewayUrl(cid),
+    }));
+    const fromUrls = (listing.optionalFileUrls ?? []).map((file) => ({
+      name: file.label || 'Download',
+      url: file.url,
+    }));
+    return [...fromCids, ...fromUrls];
+  }, [listing.optionalFileCids, listing.optionalFileNames, listing.optionalFileUrls]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -222,7 +232,19 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
 
               <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-4 space-y-3">
                 <DAppSectionHeader title="Contact & listing" />
-                {listing.contactEmail ? (
+                {listing.contactX ? (
+                  <p className="text-sm">
+                    <span className="text-zinc-500">X (Twitter): </span>
+                    <a
+                      href={contactXProfileUrl(listing.contactX)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#02abb8] hover:underline"
+                    >
+                      {contactXDisplayLabel(listing.contactX)}
+                    </a>
+                  </p>
+                ) : listing.contactEmail ? (
                   <p className="text-sm">
                     <span className="text-zinc-500">Email: </span>
                     <a href={`mailto:${listing.contactEmail}`} className="text-[#02abb8] hover:underline">

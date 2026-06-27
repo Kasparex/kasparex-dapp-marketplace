@@ -33,7 +33,7 @@ import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { DIRECTORY_LISTING_CHAINS } from '@/lib/dapps/listingChains';
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
-const LOGO_MAX_SIZE_MB = 0.5;
+const IMAGE_MAX_SIZE_MB = 0.5;
 
 const CHAIN_OPTIONS = DIRECTORY_LISTING_CHAINS.map((chain) => ({
   value: chain,
@@ -50,12 +50,39 @@ function parseTags(raw: string): string[] {
     .slice(0, 12);
 }
 
-function parseList(raw: string): string[] {
-  return raw
-    .split(/[,;\n]/)
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 12);
+function ImageSourceToggle({
+  value,
+  onChange,
+}: {
+  value: 'url' | 'file';
+  onChange: (next: 'url' | 'file') => void;
+}) {
+  return (
+    <div className="k-control-group h-10 p-1 flex w-full">
+      <button
+        type="button"
+        onClick={() => onChange('url')}
+        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
+          value === 'url'
+            ? 'bg-[#02abb8] text-white shadow-sm'
+            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+        }`}
+      >
+        Via URL
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('file')}
+        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
+          value === 'file'
+            ? 'bg-[#02abb8] text-white shadow-sm'
+            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+        }`}
+      >
+        Upload (IPFS)
+      </button>
+    </div>
+  );
 }
 
 function cleanLinks(rows: LinkRow[]): DirectoryLink[] {
@@ -164,6 +191,10 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   );
   const [featureImageCid, setFeatureImageCid] = useState<string | null>(listing?.featureImageCid ?? null);
   const [featureImageName, setFeatureImageName] = useState<string | null>(null);
+  const [featureImageUrl, setFeatureImageUrl] = useState(listing?.featureImageUrl ?? '');
+  const [featureImageSource, setFeatureImageSource] = useState<'url' | 'file'>(() =>
+    listing?.featureImageUrl ? 'url' : 'file',
+  );
   const [logoCid, setLogoCid] = useState<string | null>(listing?.logoCid ?? null);
   const [logoName, setLogoName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState(listing?.logoUrl ?? '');
@@ -172,9 +203,14 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   );
   const [galleryCids, setGalleryCids] = useState<string[]>(listing?.galleryCids ?? []);
   const [galleryFileNames, setGalleryFileNames] = useState<string[]>(listing?.galleryFileNames ?? []);
-  const [optionalFileCids, setOptionalFileCids] = useState<string[]>(listing?.optionalFileCids ?? []);
-  const [optionalFileNames, setOptionalFileNames] = useState<string[]>(listing?.optionalFileNames ?? []);
-  const [contactEmail, setContactEmail] = useState(listing?.contactEmail ?? '');
+  const [galleryUrlsRaw, setGalleryUrlsRaw] = useState((listing?.galleryUrls ?? []).join('\n'));
+  const [gallerySource, setGallerySource] = useState<'url' | 'file'>(() =>
+    listing?.galleryUrls?.length ? 'url' : 'file',
+  );
+  const [optionalFileLinks, setOptionalFileLinks] = useState<LinkRow[]>(
+    listing?.optionalFileUrls?.length ? listing.optionalFileUrls : [{ label: '', url: '' }],
+  );
+  const [contactX, setContactX] = useState(listing?.contactX ?? listing?.contactEmail ?? '');
   const [contactTelegram, setContactTelegram] = useState(listing?.contactTelegram ?? '');
   const [contactDiscord, setContactDiscord] = useState(listing?.contactDiscord ?? '');
   const [additionalNotes, setAdditionalNotes] = useState(listing?.additionalNotes ?? '');
@@ -205,14 +241,19 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     );
     setActionButtons(listing.actionButtons.length ? listing.actionButtons : [{ label: '', url: '' }]);
     setFeatureImageCid(listing.featureImageCid ?? null);
+    setFeatureImageUrl(listing.featureImageUrl ?? '');
+    setFeatureImageSource(listing.featureImageUrl ? 'url' : 'file');
     setLogoCid(listing.logoCid ?? null);
     setLogoUrl(listing.logoUrl ?? '');
     setLogoSource(listing.logoUrl ? 'url' : 'file');
     setGalleryCids(listing.galleryCids);
     setGalleryFileNames(listing.galleryFileNames);
-    setOptionalFileCids(listing.optionalFileCids);
-    setOptionalFileNames(listing.optionalFileNames);
-    setContactEmail(listing.contactEmail);
+    setGalleryUrlsRaw((listing.galleryUrls ?? []).join('\n'));
+    setGallerySource(listing.galleryUrls?.length ? 'url' : 'file');
+    setOptionalFileLinks(
+      listing.optionalFileUrls?.length ? listing.optionalFileUrls : [{ label: '', url: '' }],
+    );
+    setContactX(listing.contactX ?? listing.contactEmail ?? '');
     setContactTelegram(listing.contactTelegram ?? '');
     setContactDiscord(listing.contactDiscord ?? '');
     setAdditionalNotes(listing.additionalNotes ?? '');
@@ -236,17 +277,20 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         : null;
   const listingCategory = getCategoryById(category);
 
+  const hasFeatureImage =
+    featureImageSource === 'url' ? Boolean(featureImageUrl.trim()) : Boolean(featureImageCid);
+
   const canSubmit = Boolean(
     state.isConnected &&
       name.trim() &&
       shortDescription.trim() &&
       fullDescription.trim() &&
-      featureImageCid &&
+      hasFeatureImage &&
       !isProcessing &&
       !isUploading,
   );
 
-  const uploadFile = async (file: File, maxSizeMb = 2): Promise<string | null> => {
+  const uploadFile = async (file: File, maxSizeMb = IMAGE_MAX_SIZE_MB): Promise<string | null> => {
     const maxSize = maxSizeMb * 1024 * 1024;
     if (file.size > maxSize) {
       setError(`${file.name} must be under ${maxSizeMb}MB`);
@@ -262,6 +306,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     if (cid) {
       setFeatureImageCid(cid);
       setFeatureImageName(file.name);
+      setFeatureImageUrl('');
       setError(null);
     }
     e.target.value = '';
@@ -270,7 +315,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const handleLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const cid = await uploadFile(file, LOGO_MAX_SIZE_MB);
+    const cid = await uploadFile(file, IMAGE_MAX_SIZE_MB);
     if (cid) {
       setLogoCid(cid);
       setLogoName(file.name);
@@ -294,29 +339,20 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     if (cids.length) {
       setGalleryCids((prev) => [...prev, ...cids]);
       setGalleryFileNames((prev) => [...prev, ...names]);
+      setGalleryUrlsRaw('');
     }
     e.target.value = '';
   };
 
-  const handleOptionalFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const cids: string[] = [];
-    const names: string[] = [];
-    for (const file of files) {
-      const cid = await uploadFile(file, 5);
-      if (cid) {
-        cids.push(cid);
-        names.push(file.name);
-      }
-    }
-    if (cids.length) {
-      setOptionalFileCids((prev) => [...prev, ...cids]);
-      setOptionalFileNames((prev) => [...prev, ...names]);
-    }
-    e.target.value = '';
-  };
+  const parsedGalleryUrls = galleryUrlsRaw
+    .split(/[\n,;]/)
+    .map((url) => url.trim())
+    .filter(Boolean)
+    .slice(0, 12);
 
-  const buildPayload = () => ({
+  const buildPayload = () => {
+    const nextOptionalFileUrls = cleanLinks(optionalFileLinks);
+    return {
     name: name.trim(),
     shortDescription: shortDescription.trim(),
     fullDescription: fullDescription.trim(),
@@ -334,20 +370,27 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     socialLinks: cleanLinks(socialLinks),
     documentationLinks: cleanLinks(documentationLinks),
     actionButtons: cleanLinks(actionButtons),
-    featureImageCid: featureImageCid || undefined,
+    featureImageCid: featureImageSource === 'file' ? featureImageCid || undefined : undefined,
+    featureImageUrl:
+      featureImageSource === 'url' && featureImageUrl.trim() ? featureImageUrl.trim() : undefined,
     logoCid: logoSource === 'file' ? logoCid || undefined : undefined,
     logoUrl: logoSource === 'url' && logoUrl.trim() ? logoUrl.trim() : undefined,
-    galleryCids,
-    galleryFileNames,
-    optionalFileCids,
-    optionalFileNames,
-    contactEmail: contactEmail.trim(),
+    galleryCids: gallerySource === 'file' ? galleryCids : [],
+    galleryFileNames: gallerySource === 'file' ? galleryFileNames : [],
+    galleryUrls: gallerySource === 'url' ? parsedGalleryUrls : [],
+    optionalFileCids:
+      nextOptionalFileUrls.length > 0 ? [] : (listing?.optionalFileCids ?? []),
+    optionalFileNames:
+      nextOptionalFileUrls.length > 0 ? [] : (listing?.optionalFileNames ?? []),
+    optionalFileUrls: nextOptionalFileUrls,
+    contactX: contactX.trim() || undefined,
     contactTelegram: contactTelegram.trim() || undefined,
     contactDiscord: contactDiscord.trim() || undefined,
     additionalNotes: additionalNotes.trim() || undefined,
     paymentCurrency,
     submitterAddress: state.address!,
-  });
+    };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -561,8 +604,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               onChange={setChains}
               options={CHAIN_OPTIONS}
               ariaLabel="Supported chains"
-              placeholder="Select one or more chains"
-              triggerClassName="k-control-btn w-full min-w-0 justify-between"
+              placeholder="Select chains"
+              triggerClassName="k-control-btn w-full min-w-0 h-10"
             />
             <p className="text-xs text-zinc-500 mt-1.5">
               Choose every network your dApp supports ({DIRECTORY_LISTING_CHAINS.join(', ')}).
@@ -602,30 +645,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           <div className="k-form-group">
             <label className="k-label">Custom logo (optional)</label>
             <div className="space-y-3">
-              <div className="k-control-group h-10 p-1 flex w-full">
-                <button
-                  type="button"
-                  onClick={() => setLogoSource('url')}
-                  className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-                    logoSource === 'url'
-                      ? 'bg-[#02abb8] text-white shadow-sm'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  Image URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLogoSource('file')}
-                  className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-                    logoSource === 'file'
-                      ? 'bg-[#02abb8] text-white shadow-sm'
-                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  Upload (IPFS)
-                </button>
-              </div>
+              <ImageSourceToggle value={logoSource} onChange={setLogoSource} />
               {logoSource === 'url' ? (
                 <div>
                   <input
@@ -660,51 +680,101 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <StoreFileUpload
-              label="Feature image *"
-              hint="PNG, JPG, or WebP under 2MB"
-              accept="image/*"
-              fileName={
-                featureImageName ??
-                (featureImageCid && !featureImageName ? 'Uploaded feature image' : null)
-              }
-              onClear={() => {
-                setFeatureImageCid(null);
-                setFeatureImageName(null);
-              }}
-              onChange={handleFeatureImage}
-              disabled={isUploading}
-            />
-            <StoreFileUpload
-              label="Gallery / screenshots"
-              hint="Images under 2MB each"
-              accept="image/*"
-              multiple
-              fileCount={galleryCids.length}
-              onChange={handleGallery}
-              disabled={isUploading}
-            />
+          <div className="k-form-group">
+            <label className="k-label">Featured image *</label>
+            <div className="space-y-3">
+              <ImageSourceToggle value={featureImageSource} onChange={setFeatureImageSource} />
+              {featureImageSource === 'url' ? (
+                <div>
+                  <input
+                    type="url"
+                    className="k-input"
+                    value={featureImageUrl}
+                    onChange={(e) => {
+                      setFeatureImageUrl(e.target.value);
+                      setFeatureImageCid(null);
+                      setFeatureImageName(null);
+                    }}
+                    placeholder="https://..."
+                    required={featureImageSource === 'url'}
+                  />
+                  <p className="text-xs text-zinc-500 mt-1.5">
+                    Direct HTTPS image URL. PNG, JPG, or WebP under 500 KB when hosted.
+                  </p>
+                </div>
+              ) : (
+                <StoreFileUpload
+                  label=""
+                  hint="PNG, JPG, or WebP under 500 KB"
+                  accept="image/*"
+                  fileName={
+                    featureImageName ??
+                    (featureImageCid && !featureImageName ? 'Uploaded feature image' : null)
+                  }
+                  onClear={() => {
+                    setFeatureImageCid(null);
+                    setFeatureImageName(null);
+                  }}
+                  onChange={handleFeatureImage}
+                  disabled={isUploading}
+                />
+              )}
+            </div>
           </div>
 
-          <StoreFileUpload
-            label="Optional files"
-            hint="PDFs, docs, or assets up to 5MB each"
-            multiple
-            fileCount={optionalFileCids.length}
-            onChange={handleOptionalFiles}
-            disabled={isUploading}
+          <div className="k-form-group">
+            <label className="k-label">Gallery / screenshots</label>
+            <div className="space-y-3">
+              <ImageSourceToggle value={gallerySource} onChange={setGallerySource} />
+              {gallerySource === 'url' ? (
+                <div>
+                  <textarea
+                    className="k-textarea min-h-[100px]"
+                    value={galleryUrlsRaw}
+                    onChange={(e) => {
+                      setGalleryUrlsRaw(e.target.value);
+                      setGalleryCids([]);
+                      setGalleryFileNames([]);
+                    }}
+                    placeholder="One image URL per line"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1.5">
+                    Direct HTTPS image URLs. Max 500 KB per file when hosted.
+                  </p>
+                </div>
+              ) : (
+                <StoreFileUpload
+                  label=""
+                  hint="Images under 500 KB each"
+                  accept="image/*"
+                  multiple
+                  fileCount={galleryCids.length}
+                  onChange={handleGallery}
+                  disabled={isUploading}
+                />
+              )}
+            </div>
+          </div>
+
+          <LinkRowsEditor
+            label="Optional files (URL links only)"
+            rows={optionalFileLinks}
+            onChange={setOptionalFileLinks}
+            addLabel="Add file link"
           />
+          <p className="text-xs text-zinc-500 -mt-4">
+            PDFs, docs, or assets linked via HTTPS. Direct uploads are not supported.
+          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="k-form-group">
-              <label className="k-label">Contact email</label>
+              <label className="k-label">X (Twitter) handle</label>
               <input
-                type="email"
+                type="text"
                 className="k-input"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="you@example.com"
+                value={contactX}
+                onChange={(e) => setContactX(e.target.value)}
+                placeholder="@username"
               />
             </div>
             <div className="k-form-group">
@@ -800,16 +870,16 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </p>
 
             {!isEdit ? (
-              <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300 mb-1">
-                  Hub points
-                </p>
-                <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
-                  +{HUB_EARN_POINTS.dappDirectoryList} pts
-                </p>
-                <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 mt-1 leading-relaxed">
-                  Redeemable Hub points awarded once when you publish a new listing.
-                </p>
+              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Hub points</p>
+                <div className="rounded-xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-4">
+                  <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
+                    +{HUB_EARN_POINTS.dappDirectoryList} pts
+                  </p>
+                  <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 mt-1 leading-relaxed">
+                    Redeemable Hub points awarded once when you publish a new listing.
+                  </p>
+                </div>
               </div>
             ) : null}
 

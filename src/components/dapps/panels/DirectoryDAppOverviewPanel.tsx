@@ -4,7 +4,11 @@ import { useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
+import {
+  contactXDisplayLabel,
+  contactXProfileUrl,
+  type DirectoryListing,
+} from '@/lib/dapps/listingSubmissions';
 import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { DAppWidgetHeader } from '@/components/dapps/DAppWidgetHeader';
@@ -45,24 +49,31 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
   const category = getCategoryById(listing.category);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const galleryImages = useMemo(
-    () =>
-      listing.galleryCids.map((cid, index) => ({
-        url: getBestGatewayUrl(cid),
-        alt: listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`,
-      })),
-    [listing.galleryCids, listing.galleryFileNames, dapp.name],
-  );
+  const galleryImages = useMemo(() => {
+    const fromCids = listing.galleryCids.map((cid, index) => ({
+      url: getBestGatewayUrl(cid),
+      alt: listing.galleryFileNames[index] || `${dapp.name} screenshot ${index + 1}`,
+    }));
+    const fromUrls = (listing.galleryUrls ?? []).map((url, index) => ({
+      url,
+      alt: `${dapp.name} screenshot ${fromCids.length + index + 1}`,
+    }));
+    return [...fromCids, ...fromUrls];
+  }, [listing.galleryCids, listing.galleryFileNames, listing.galleryUrls, dapp.name]);
 
-  const optionalFiles = useMemo(
-    () =>
-      listing.optionalFileCids.map((cid, index) => ({
-        cid,
-        name: listing.optionalFileNames[index] || 'Download',
-        url: getBestGatewayUrl(cid),
-      })),
-    [listing.optionalFileCids, listing.optionalFileNames],
-  );
+  const optionalFiles = useMemo(() => {
+    const fromCids = listing.optionalFileCids.map((cid, index) => ({
+      cid,
+      name: listing.optionalFileNames[index] || 'Download',
+      url: getBestGatewayUrl(cid),
+    }));
+    const fromUrls = (listing.optionalFileUrls ?? []).map((file) => ({
+      cid: file.url,
+      name: file.label || 'Download',
+      url: file.url,
+    }));
+    return [...fromCids, ...fromUrls];
+  }, [listing.optionalFileCids, listing.optionalFileNames, listing.optionalFileUrls]);
 
   const networkLabel =
     listing.networkLayer === 'multichain'
@@ -193,11 +204,25 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
           </div>
         ) : null}
 
-        {(listing.contactEmail || listing.contactTelegram || listing.contactDiscord || listing.additionalNotes) ? (
+        {(listing.contactX || listing.contactEmail || listing.contactTelegram || listing.contactDiscord || listing.additionalNotes) ? (
           <div className={covenantPanelClass}>
             <DAppSectionHeader title="Project details" />
             <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-              {listing.contactEmail ? (
+              {listing.contactX ? (
+                <div>
+                  <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">X (Twitter)</dt>
+                  <dd>
+                    <a
+                      href={contactXProfileUrl(listing.contactX)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#02abb8] hover:underline"
+                    >
+                      {contactXDisplayLabel(listing.contactX)}
+                    </a>
+                  </dd>
+                </div>
+              ) : listing.contactEmail ? (
                 <div>
                   <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Email</dt>
                   <dd>
