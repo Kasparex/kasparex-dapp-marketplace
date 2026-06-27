@@ -130,6 +130,13 @@ export function evaluateDAppAccess(input: DAppAccessInput): DAppAccessResult {
   const requiredChainNames = getRequiredChainNames(dapp);
   const networkType = networkInfo.layer;
 
+  if (dapp.source === 'directory') {
+    if (selectedNetwork !== 'all' && dapp.networkType && networkType !== selectedNetwork) {
+      return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };
+    }
+    return { isOpenable: true, reason: 'open', requiredChainNames, networkInfo };
+  }
+
   const isNetworkMismatch = selectedNetwork !== 'all' && networkType !== selectedNetwork;
   if (isNetworkMismatch) {
     return { isOpenable: false, reason: 'filter_mismatch', requiredChainNames, networkInfo };

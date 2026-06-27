@@ -58,6 +58,11 @@ export interface DApp {
       costL2?: number;
     }>;
   };
+  /** Kasparex integrated dApp vs community directory listing */
+  source?: 'kasparex' | 'directory';
+  directoryListingId?: string;
+  tags?: string[];
+  directoryListing?: import('@/lib/dapps/listingSubmissions').DirectoryListing;
 }
 
 // Placeholder dApps for template demonstration

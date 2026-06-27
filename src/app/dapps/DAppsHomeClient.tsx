@@ -11,13 +11,15 @@ import { DAppGrid } from '@/components/DAppGrid';
 import { DAppTable } from '@/components/DAppTable';
 import { DAppCompact } from '@/components/DAppCompact';
 import { Footer } from '@/components/Footer';
-import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, getDAppNetworkType } from '@/lib/dapps';
+import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, getDAppNetworkType, type DApp } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { DAppSourceSwitcher, type DAppSourceFilter } from '@/components/dapps/DAppSourceSwitcher';
+import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { FilterBar } from '@/components/FilterBar';
 import { AdSlider } from '@/components/ads/AdSlider';
 
@@ -50,7 +52,9 @@ export function DAppsHomeContent() {
     network: [],
   });
   const [networkFilter, setNetworkFilter] = useState<'all' | 'L1' | 'L2'>('all');
+  const [sourceFilter, setSourceFilter] = useState<DAppSourceFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { activeDirectoryDApps } = useDirectoryListings();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [displayedCount, setDisplayedCount] = useState(50);
@@ -63,30 +67,42 @@ export function DAppsHomeContent() {
     }
   }, [favoritesSet.size, sortBy]);
 
+  const catalogDApps = useMemo((): DApp[] => {
+    return [...placeholderDApps, ...activeDirectoryDApps];
+  }, [activeDirectoryDApps]);
+
   const categoryCounts = useMemo(() => {
-    let filteredForCounts = placeholderDApps;
-    return getCategoryCounts(filteredForCounts, filters, searchQuery);
-  }, [filters, searchQuery]);
+    return getCategoryCounts(catalogDApps, filters, searchQuery);
+  }, [catalogDApps, filters, searchQuery]);
 
   const filteredDApps = useMemo(() => {
     const filterState: FilterState = {
       category: selectedCategories,
       ...filters,
     };
-    let filtered = filterDApps(placeholderDApps, filterState, searchQuery);
-    // ALL | L1 | L2 switcher should filter the listing, not just gate clickability.
+    let filtered = filterDApps(catalogDApps, filterState, searchQuery);
+
+    if (sourceFilter === 'kasparex') {
+      filtered = filtered.filter((dapp) => dapp.source !== 'directory');
+    } else if (sourceFilter === 'directory') {
+      filtered = filtered.filter((dapp) => dapp.source === 'directory');
+    }
+
     if (networkFilter !== 'all') {
-      filtered = filtered.filter((dapp) => getDAppNetworkType(dapp) === networkFilter);
+      filtered = filtered.filter((dapp) => {
+        if (dapp.directoryListing?.networkLayer === 'multichain') return true;
+        return getDAppNetworkType(dapp) === networkFilter;
+      });
     }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter]);
+  }, [catalogDApps, selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter, sourceFilter]);
 
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedCategories, filters, searchQuery, sortBy]);
+  }, [selectedCategories, filters, searchQuery, sortBy, sourceFilter, networkFilter]);
 
   const displayedDApps = useMemo(() => {
     return filteredDApps.slice(0, displayedCount);
@@ -111,6 +127,7 @@ export function DAppsHomeContent() {
       network: [],
     });
     setNetworkFilter('all');
+    setSourceFilter('all');
     setSearchQuery('');
   };
 
@@ -212,6 +229,7 @@ export function DAppsHomeContent() {
                 onReset={handleResetFilters}
               >
                 <NetworkSwitcher value={networkFilter} onChange={setNetworkFilter} />
+                <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
                 <SortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}

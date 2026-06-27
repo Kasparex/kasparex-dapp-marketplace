@@ -89,6 +89,11 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                 >
                   {mergedDApp.name}
                 </h3>
+                {mergedDApp.source === 'directory' ? (
+                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 dark:text-amber-300">
+                    Community
+                  </span>
+                ) : null}
               </div>
 
               <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400 mt-2">

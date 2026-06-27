@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DAppSidebar } from '@/components/DAppSidebar';
 import { DAppDetail } from '@/components/DAppDetail';
+import { DAppDirectorySlugPage } from '@/components/dapps/DAppDirectorySlugPage';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
@@ -47,7 +48,7 @@ export default async function DAppPage({ params }: PageProps) {
   const dapp = getDAppBySlug(placeholderDApps, slug);
 
   if (!dapp) {
-    notFound();
+    return <DAppDirectorySlugPage slug={slug} />;
   }
 
   // Get contract address for Simple Payment dApp

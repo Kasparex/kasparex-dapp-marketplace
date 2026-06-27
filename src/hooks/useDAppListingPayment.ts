@@ -38,8 +38,8 @@ export function useDAppListingPayment() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const payListingFee = useCallback(
-    async (currency: StorePaymentCurrency): Promise<string> => {
+  const payFee = useCallback(
+    async (currency: StorePaymentCurrency, feeKas: number): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
         throw new Error('Connect your Kaspa wallet to pay the listing fee');
       }
@@ -52,7 +52,7 @@ export function useDAppListingPayment() {
 
       try {
         if (currency === 'KREX') {
-          const amountKrex = kasToKrexAmount(DAPP_LISTING_FEE_KAS);
+          const amountKrex = kasToKrexAmount(feeKas);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance for listing fee');
           }
@@ -61,7 +61,7 @@ export function useDAppListingPayment() {
 
         const result = await sendKaspaTransaction(state.provider, {
           to: TREASURY,
-          amount: kasToSompis(DAPP_LISTING_FEE_KAS).toString(),
+          amount: kasToSompis(feeKas).toString(),
         });
         if (result.status === 'failed') {
           throw new Error(result.error || 'Listing fee payment failed');
@@ -78,5 +78,15 @@ export function useDAppListingPayment() {
     [state.isConnected, state.address, state.provider, krexL1Balance],
   );
 
-  return { payListingFee, isProcessing, error, setError };
+  const payListingFee = useCallback(
+    (currency: StorePaymentCurrency) => payFee(currency, DAPP_LISTING_FEE_KAS),
+    [payFee],
+  );
+
+  const payActionFee = useCallback(
+    (currency: StorePaymentCurrency, feeKas: number) => payFee(currency, feeKas),
+    [payFee],
+  );
+
+  return { payListingFee, payActionFee, isProcessing, error, setError };
 }

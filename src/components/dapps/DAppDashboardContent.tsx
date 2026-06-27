@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { DAppPageShell } from '@/components/dapps/DAppPageShell';
@@ -13,12 +14,18 @@ import {
   type DAppDashboardTab,
 } from '@/lib/dapps/dashboardTabs';
 import {
+  DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
-  getDAppListingSubmissions,
-  type DAppListingSubmission,
+  archiveDirectoryListing,
+  getDirectoryListingById,
+  listingActionFeeLabel,
+  type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
+import { useDirectoryListings } from '@/hooks/useDirectoryListings';
+import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { getExplorerTxUrl } from '@/lib/store/utils';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
 const TAB_LABELS: Record<DAppDashboardTab, string> = {
   overview: 'Overview',
@@ -28,15 +35,38 @@ const TAB_LABELS: Record<DAppDashboardTab, string> = {
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
 
-function ListingRow({ item }: { item: DAppListingSubmission }) {
+function ListingRow({
+  item,
+  onEdit,
+  onDelete,
+  isDeleting,
+}: {
+  item: DirectoryListing;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  isDeleting: boolean;
+}) {
   const cat = getCategoryById(item.category);
+  const thumb = item.featureImageCid ? getBestGatewayUrl(item.featureImageCid) : null;
+
   return (
     <div className="p-4 flex items-start gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center flex-shrink-0 font-black text-lg">
-        {cat?.emoji ?? '⚡'}
+      <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center flex-shrink-0 font-black text-lg">
+        {thumb ? (
+          <img src={thumb} alt="" className="h-full w-full object-cover" />
+        ) : (
+          (cat?.emoji ?? '⚡')
+        )}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.name}</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.name}</h3>
+          {item.status === 'archived' ? (
+            <span className="rounded px-2 py-0.5 text-[10px] font-bold uppercase bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              archived
+            </span>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1">
           {cat ? <span>{cat.name}</span> : null}
           <span>•</span>
@@ -46,7 +76,7 @@ function ListingRow({ item }: { item: DAppListingSubmission }) {
           <span>•</span>
           <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
         </div>
-        <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{item.description}</p>
+        <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{item.shortDescription}</p>
         {item.websiteUrl ? (
           <a
             href={item.websiteUrl}
@@ -59,9 +89,14 @@ function ListingRow({ item }: { item: DAppListingSubmission }) {
         ) : null}
       </div>
       <div className="flex flex-col items-end gap-2 shrink-0">
-        <span className="rounded px-2 py-1 text-[10px] font-bold uppercase bg-cyan-500/10 text-cyan-800 dark:text-cyan-300">
-          {item.status}
-        </span>
+        {item.status === 'active' ? (
+          <Link
+            href={`/dapps/${item.slug}`}
+            className="text-[10px] font-bold uppercase tracking-wider text-[#02abb8] hover:underline"
+          >
+            View page
+          </Link>
+        ) : null}
         {item.feeTxHash ? (
           <a
             href={getExplorerTxUrl(item.feeTxHash)}
@@ -72,6 +107,25 @@ function ListingRow({ item }: { item: DAppListingSubmission }) {
             View tx
           </a>
         ) : null}
+        {item.status === 'active' ? (
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              type="button"
+              onClick={() => onEdit(item.id)}
+              className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-[#02abb8]"
+            >
+              Edit ({DAPP_LISTING_ACTION_FEE_KAS} KAS)
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => onDelete(item.id)}
+              className="text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600 disabled:opacity-50"
+            >
+              {isDeleting ? 'Removing...' : `Delete (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -81,63 +135,92 @@ export function DAppDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
+  const { listings, refresh } = useDirectoryListings(state.address);
+  const { payActionFee } = useDAppListingPayment();
 
   const [activeTab, setActiveTab] = useState<DAppDashboardTab>('overview');
-  const [listings, setListings] = useState<DAppListingSubmission[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(true);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(parseDAppDashboardTab(searchParams.get('tab')));
+    setEditId(searchParams.get('edit'));
   }, [searchParams]);
 
   const goTab = useCallback(
-    (tab: DAppDashboardTab) => {
+    (tab: DAppDashboardTab, edit?: string | null) => {
       setActiveTab(tab);
+      if (tab === 'create' && edit) {
+        router.replace(`/dapps/dashboard?tab=create&edit=${edit}`);
+        setEditId(edit);
+        return;
+      }
       router.replace(dAppDashboardTabHref(tab));
+      setEditId(null);
     },
     [router],
   );
 
-  const refreshListings = useCallback(() => {
-    if (!state.address) {
-      setListings([]);
-      setIsLoading(false);
-      return;
-    }
-    setListings(getDAppListingSubmissions(state.address));
-    setIsLoading(false);
-  }, [state.address]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    refreshListings();
-    const onUpdate = () => refreshListings();
-    window.addEventListener('dapp-listing-submissions-updated', onUpdate);
-    return () => window.removeEventListener('dapp-listing-submissions-updated', onUpdate);
-  }, [refreshListings]);
+  const editListing = useMemo(
+    () => (editId ? getDirectoryListingById(editId) : undefined),
+    [editId, listings],
+  );
 
   const filteredListings = useMemo(() => {
-    if (categoryFilter === 'all') return listings;
-    return listings.filter((s) => s.category === categoryFilter);
+    const active = listings.filter((s) => s.status === 'active');
+    if (categoryFilter === 'all') return active;
+    return active.filter((s) => s.category === categoryFilter);
   }, [categoryFilter, listings]);
 
   const stats = useMemo(() => {
+    const active = listings.filter((l) => l.status === 'active');
     const byCategory = LISTING_CATEGORIES.reduce(
       (acc, cat) => {
-        acc[cat.id] = listings.filter((l) => l.category === cat.id).length;
+        acc[cat.id] = active.filter((l) => l.category === cat.id).length;
         return acc;
       },
       {} as Record<string, number>,
     );
-    return { totalListings: listings.length, byCategory };
+    return { totalListings: active.length, byCategory };
   }, [listings]);
+
+  const handleEdit = (id: string) => goTab('create', id);
+
+  const handleDelete = async (id: string) => {
+    if (!state.address) return;
+    const listing = getDirectoryListingById(id);
+    if (!listing) return;
+
+    const feeLabel = listingActionFeeLabel(listing.paymentCurrency, DAPP_LISTING_ACTION_FEE_KAS);
+    if (
+      !confirm(
+        `Remove "${listing.name}" from the public directory? A ${feeLabel} fee applies.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(id);
+    setActionError(null);
+    try {
+      await payActionFee(listing.paymentCurrency, DAPP_LISTING_ACTION_FEE_KAS);
+      const ok = archiveDirectoryListing(id, state.address);
+      if (!ok) throw new Error('Failed to remove listing');
+      refresh();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to remove listing');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <DAppPageShell
       sidebar={{
         dashboardTab: activeTab,
-        onDashboardTabChange: goTab,
+        onDashboardTabChange: (tab) => goTab(tab),
         totalListings: stats.totalListings,
       }}
     >
@@ -168,10 +251,39 @@ export function DAppDashboardContent() {
         ))}
       </div>
 
+      {actionError ? (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <p className="text-sm font-bold text-red-800 dark:text-red-300">{actionError}</p>
+        </div>
+      ) : null}
+
       {activeTab === 'create' ? (
         <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
           {state.isConnected ? (
-            <DAppListingForm onSubmitted={refreshListings} />
+            editId && !editListing ? (
+              <p className="text-center text-zinc-500 py-12">Listing not found or you do not have access.</p>
+            ) : editListing &&
+              editListing.submitterAddress.toLowerCase() !== state.address?.toLowerCase() ? (
+              <p className="text-center text-zinc-500 py-12">Only the listing owner can edit this entry.</p>
+            ) : (
+              <>
+                {editListing ? (
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
+                      Editing: <span className="text-zinc-900 dark:text-zinc-100">{editListing.name}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => goTab('create')}
+                      className="text-xs font-bold uppercase tracking-wider text-[#02abb8] hover:underline"
+                    >
+                      New listing
+                    </button>
+                  </div>
+                ) : null}
+                <DAppListingForm listing={editListing} onSubmitted={refresh} />
+              </>
+            )
           ) : (
             <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a dApp.</p>
           )}
@@ -179,22 +291,18 @@ export function DAppDashboardContent() {
       ) : !state.isConnected ? (
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-12 text-center">
           <p className="text-zinc-600 dark:text-zinc-400">
-            Connect your Kaspa wallet to view directory listings and submit promotional dApps.
+            Connect your Kaspa wallet to view directory listings and submit your project.
           </p>
-        </div>
-      ) : isLoading ? (
-        <div className="py-12 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500" />
         </div>
       ) : (
         <div className="space-y-8">
           {(activeTab === 'overview' || activeTab === 'listings') && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Directory listings</h3>
+                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Active listings</h3>
                 <div className="text-4xl font-black text-zinc-900 dark:text-white">
                   {stats.totalListings}{' '}
-                  <span className="text-lg text-zinc-500">submitted</span>
+                  <span className="text-lg text-zinc-500">live</span>
                 </div>
               </div>
               <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
@@ -246,9 +354,9 @@ export function DAppDashboardContent() {
                 </div>
               </div>
 
-              {(activeTab === 'overview' ? listings.slice(0, 5) : filteredListings).length === 0 ? (
+              {(activeTab === 'overview' ? filteredListings.slice(0, 5) : filteredListings).length === 0 ? (
                 <div className="p-12 text-center text-zinc-500">
-                  <p>You haven&apos;t submitted any directory listings yet.</p>
+                  <p>You haven&apos;t published any directory listings yet.</p>
                   <button
                     type="button"
                     onClick={() => goTab('create')}
@@ -259,8 +367,14 @@ export function DAppDashboardContent() {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {(activeTab === 'overview' ? listings.slice(0, 5) : filteredListings).map((item) => (
-                    <ListingRow key={item.id} item={item} />
+                  {(activeTab === 'overview' ? filteredListings.slice(0, 5) : filteredListings).map((item) => (
+                    <ListingRow
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      isDeleting={deletingId === item.id}
+                    />
                   ))}
                 </div>
               )}
