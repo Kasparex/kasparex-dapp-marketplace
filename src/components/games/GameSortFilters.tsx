@@ -60,14 +60,11 @@ export function GameSortFilters({
     <div className="flex items-center gap-2">
       {/* View Mode Switcher */}
       {onViewModeChange && (
-        <div className="k-control-group">
+        <div className="k-segment-group">
           <button
+            type="button"
             onClick={() => onViewModeChange('grid')}
-            className={`p-2.5 transition-colors ${
-              viewMode === 'grid'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
+            className={`k-segment-option-icon ${viewMode === 'grid' ? 'k-segment-option-icon-active' : ''}`}
             title="Grid view"
             aria-label="Grid view"
           >
@@ -76,12 +73,9 @@ export function GameSortFilters({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => onViewModeChange('compact')}
-            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
-              viewMode === 'compact'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
+            className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
             title="Compact view"
             aria-label="Compact view"
           >
@@ -90,12 +84,9 @@ export function GameSortFilters({
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => onViewModeChange('list')}
-            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${
-              viewMode === 'list'
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-                : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
+            className={`k-segment-option-icon ${viewMode === 'list' ? 'k-segment-option-icon-active' : ''}`}
             title="List view"
             aria-label="List view"
           >

@@ -59,19 +59,13 @@ export function ChroniclesViewSwitcher({
   onChange: (v: ChroniclesViewMode) => void;
 }) {
   return (
-    <div className="k-control-group shrink-0" role="group" aria-label="View mode">
-      {modes.map((m, i) => (
+    <div className="k-segment-group shrink-0" role="group" aria-label="View mode">
+      {modes.map((m) => (
         <button
           key={m.id}
           type="button"
           onClick={() => onChange(m.id)}
-          className={`p-2.5 transition-colors ${
-            i > 0 ? 'border-l border-zinc-200 dark:border-zinc-800' : ''
-          } ${
-            value === m.id
-              ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-              : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-          }`}
+          className={`k-segment-option-icon ${value === m.id ? 'k-segment-option-icon-active' : ''}`}
           title={m.title}
           aria-label={m.aria}
           aria-pressed={value === m.id}

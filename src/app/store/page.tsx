@@ -108,11 +108,11 @@ export default function StorePage() {
             ]}
             ariaLabel="Filter by network"
           />
-          <div className="k-control-group">
+          <div className="k-segment-group">
             <button
               type="button"
               onClick={() => setViewMode('grid')}
-              className={`p-2.5 transition-colors ${viewMode === 'grid' ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]' : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+              className={`k-segment-option-icon ${viewMode === 'grid' ? 'k-segment-option-icon-active' : ''}`}
               title="Grid view"
               aria-label="Grid view"
             >
@@ -121,7 +121,7 @@ export default function StorePage() {
             <button
               type="button"
               onClick={() => setViewMode('compact')}
-              className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact' ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]' : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+              className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
               title="Compact view"
               aria-label="Compact view"
             >

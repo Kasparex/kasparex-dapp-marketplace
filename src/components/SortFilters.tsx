@@ -64,13 +64,11 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
     <div className="flex items-center gap-2">
       {/* View Mode Switcher */}
       {onViewModeChange && (
-        <div className="k-control-group">
+        <div className="k-segment-group">
           <button
+            type="button"
             onClick={() => onViewModeChange('cards')}
-            className={`p-2.5 transition-colors ${viewMode === 'cards'
-              ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-              : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
+            className={`k-segment-option-icon ${viewMode === 'cards' ? 'k-segment-option-icon-active' : ''}`}
             title="Card view"
             aria-label="Card view"
           >
@@ -79,11 +77,9 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => onViewModeChange('table')}
-            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'table'
-              ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-              : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
+            className={`k-segment-option-icon ${viewMode === 'table' ? 'k-segment-option-icon-active' : ''}`}
             title="Table view"
             aria-label="Table view"
           >
@@ -92,11 +88,9 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             </svg>
           </button>
           <button
+            type="button"
             onClick={() => onViewModeChange('compact')}
-            className={`p-2.5 transition-colors border-l border-zinc-200 dark:border-zinc-800 ${viewMode === 'compact'
-              ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8]'
-              : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
+            className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
             title="Compact view"
             aria-label="Compact view"
           >

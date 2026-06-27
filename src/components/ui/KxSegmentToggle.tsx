@@ -20,7 +20,7 @@ export function KxSegmentToggle<T extends string>({
 }) {
   return (
     <div
-      className={`k-control-group h-10 p-1 flex w-full ${className}`.trim()}
+      className={`k-segment-group k-segment-group-full ${className}`.trim()}
       role="group"
       aria-label={ariaLabel}
     >

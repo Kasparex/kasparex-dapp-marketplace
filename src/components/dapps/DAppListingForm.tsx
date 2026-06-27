@@ -58,26 +58,18 @@ function ImageSourceToggle({
   onChange: (next: 'url' | 'file') => void;
 }) {
   return (
-    <div className="k-control-group h-10 p-1 flex w-full">
+    <div className="k-segment-group k-segment-group-full">
       <button
         type="button"
         onClick={() => onChange('url')}
-        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-          value === 'url'
-            ? 'bg-[#02abb8] text-white shadow-sm'
-            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-        }`}
+        className={`k-segment-option ${value === 'url' ? 'k-segment-option-active' : ''}`}
       >
         Via URL
       </button>
       <button
         type="button"
         onClick={() => onChange('file')}
-        className={`h-full flex-1 px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-          value === 'file'
-            ? 'bg-[#02abb8] text-white shadow-sm'
-            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-        }`}
+        className={`k-segment-option ${value === 'file' ? 'k-segment-option-active' : ''}`}
       >
         Upload (IPFS)
       </button>

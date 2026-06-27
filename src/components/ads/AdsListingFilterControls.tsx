@@ -58,17 +58,13 @@ export function AdsListingFilterControls({
 
   return (
     <div ref={rootRef} className="flex items-center gap-2 flex-shrink-0 overflow-visible">
-      <div className="k-control-group h-10 p-1 flex min-w-0 max-w-full overflow-x-auto">
+      <div className="k-segment-group min-w-0 max-w-full overflow-x-auto">
         {formatOptions.map((opt) => (
           <button
             key={opt.value}
             type="button"
             onClick={() => onFormatChange(opt.value)}
-            className={`h-full shrink-0 px-2 sm:px-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-              formatFilter === opt.value
-                ? 'bg-[#02abb8] text-white shadow-sm'
-                : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
+            className={`k-segment-option shrink-0 ${formatFilter === opt.value ? 'k-segment-option-active' : ''}`}
           >
             {opt.label}
           </button>

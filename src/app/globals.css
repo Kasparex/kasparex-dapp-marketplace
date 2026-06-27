@@ -493,13 +493,23 @@
 }
 
 .k-control-group {
-  @apply flex items-center gap-1 rounded-xl p-1;
+  @apply flex items-center rounded-xl overflow-hidden;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
 }
 
+.k-segment-group {
+  @apply inline-flex items-center gap-1 rounded-xl p-1 h-10 shrink-0;
+  background-color: var(--k-control-bg);
+  border: 1px solid var(--k-control-border);
+}
+
+.k-segment-group-full {
+  @apply flex w-full min-w-0;
+}
+
 .k-segment-option {
-  @apply h-full flex-1 min-w-0 px-3 text-xs font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap;
+  @apply inline-flex h-8 flex-1 min-w-0 items-center justify-center px-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all whitespace-nowrap;
   @apply text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800;
 }
 
@@ -509,6 +519,15 @@
 
 .k-segment-option-active:hover {
   @apply bg-[#02abb8] text-zinc-900;
+}
+
+.k-segment-option-icon {
+  @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all;
+  @apply text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800;
+}
+
+.k-segment-option-icon-active {
+  @apply bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20;
 }
 
 .k-switch {
