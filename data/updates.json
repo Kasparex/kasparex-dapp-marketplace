@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782592267-ea192c3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add Revenue Tree tab, unify switcher spacing, refine listing sidebar (by Kasparex)",
+      "date": "2026-06-27T22:30:40+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782590658-1f247ae",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Refine dApp listing form: chains, URL uploads, X handle (by Kasparex)",
