@@ -214,13 +214,16 @@ export function DAppsHomeContent() {
 
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                Available dApps
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-              </p>
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                  Available dApps
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+              <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
             </div>
 
             <div className="flex flex-col gap-4 mb-6">
@@ -229,7 +232,6 @@ export function DAppsHomeContent() {
                 onReset={handleResetFilters}
               >
                 <NetworkSwitcher value={networkFilter} onChange={setNetworkFilter} />
-                <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
                 <SortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}

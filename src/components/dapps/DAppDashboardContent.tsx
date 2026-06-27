@@ -27,6 +27,7 @@ import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
+import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 
@@ -53,7 +54,7 @@ function ListingRow({
   const thumb = item.featureImageCid ? getBestGatewayUrl(item.featureImageCid) : null;
 
   return (
-    <div className="p-4 flex items-start gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
+    <div className="p-4 flex items-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
       <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center flex-shrink-0 font-black text-lg">
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
@@ -91,13 +92,18 @@ function ListingRow({
           </a>
         ) : null}
       </div>
-      <div className="flex flex-col items-end gap-2 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {item.status === 'active' ? (
           <Link
             href={`/dapps/${item.slug}`}
-            className="text-[10px] font-bold uppercase tracking-wider text-[#02abb8] hover:underline"
+            className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            title="View page"
+            aria-label="View page"
           >
-            View page
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
           </Link>
         ) : null}
         {item.feeTxHash ? (
@@ -105,29 +111,41 @@ function ListingRow({
             href={getExplorerTxUrl(item.feeTxHash)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-zinc-400 hover:text-[#02abb8] hover:underline"
+            className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            title="View transaction"
+            aria-label="View transaction"
           >
-            View tx
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
           </a>
         ) : null}
         {item.status === 'active' ? (
-          <div className="flex items-center gap-2 mt-1">
+          <>
             <button
               type="button"
               onClick={() => onEdit(item.id)}
-              className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-[#02abb8]"
+              className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              title={`Edit (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
+              aria-label="Edit listing"
             >
-              Edit ({DAPP_LISTING_ACTION_FEE_KAS} KAS)
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
             </button>
             <button
               type="button"
               disabled={isDeleting}
               onClick={() => onDelete(item.id)}
-              className="text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600 disabled:opacity-50"
+              className="p-2 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+              title={`Delete (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
+              aria-label="Delete listing"
             >
-              {isDeleting ? 'Removing...' : `Delete (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             </button>
-          </div>
+          </>
         ) : null}
       </div>
     </div>
@@ -340,35 +358,27 @@ export function DAppDashboardContent() {
             </div>
           )}
 
-          {(activeTab === 'listings' || activeTab === 'overview') && (
+          {activeTab === 'listings' && (
             <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
               <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
                   Your directory listings
                 </h2>
                 <div className="flex items-center gap-3 flex-wrap">
-                  {activeTab === 'overview' ? (
-                    <button
-                      type="button"
-                      onClick={() => goTab('listings')}
-                      className="text-xs font-bold text-[#02abb8] hover:underline uppercase tracking-wider"
-                    >
-                      View all
-                    </button>
-                  ) : (
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value as Category | 'all')}
-                      className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs"
-                    >
-                      <option value="all">All categories</option>
-                      {LISTING_CATEGORIES.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.emoji} {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  <KxFilterDropdown
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    options={[
+                      { value: 'all', label: 'All categories' },
+                      ...LISTING_CATEGORIES.map((c) => ({
+                        value: c.id,
+                        label: `${c.emoji} ${c.name}`,
+                      })),
+                    ]}
+                    ariaLabel="Filter by category"
+                    triggerClassName="k-control-btn min-w-[160px]"
+                    menuClassName="w-56"
+                  />
                   <button
                     type="button"
                     onClick={() => goTab('create')}
@@ -379,7 +389,7 @@ export function DAppDashboardContent() {
                 </div>
               </div>
 
-              {(activeTab === 'overview' ? filteredListings.slice(0, 5) : filteredListings).length === 0 ? (
+              {filteredListings.length === 0 ? (
                 <div className="p-12 text-center text-zinc-500">
                   <p>You haven&apos;t published any directory listings yet.</p>
                   <button
@@ -392,7 +402,7 @@ export function DAppDashboardContent() {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {(activeTab === 'overview' ? filteredListings.slice(0, 5) : filteredListings).map((item) => (
+                  {filteredListings.map((item) => (
                     <ListingRow
                       key={item.id}
                       item={item}

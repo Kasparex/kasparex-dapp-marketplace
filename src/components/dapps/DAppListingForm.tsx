@@ -633,15 +633,15 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
         </div>
 
-        <aside className="xl:sticky xl:top-6 h-fit space-y-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5">
-            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100 mb-4">
+        <aside className="xl:sticky xl:top-6 h-fit">
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
               {isEdit ? 'Update listing' : 'Listing fee'}
             </h3>
-            <div className="k-form-group mb-4">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case">
+            <div>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case tracking-normal">
                 Pay with *
-              </label>
+              </span>
               <KxSegmentToggle
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
@@ -652,43 +652,41 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               {isEdit ? 'Update fee' : 'One-time directory fee'}:{' '}
               {listingFee.discountPercent > 0 ? (
-                <>
-                  <span className="line-through text-zinc-400 mr-1">
-                    {listingActionFeeLabel(paymentCurrency, listingFee.baseKas)}
-                  </span>
-                </>
+                <span className="line-through text-zinc-400 mr-1">
+                  {listingActionFeeLabel(paymentCurrency, listingFee.baseKas)}
+                </span>
               ) : null}
               <span className="font-black text-[#02abb8]">{feeLabel}</span>
             </p>
             {listingFee.discountPercent > 0 ? (
-              <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+              <p className="text-xs text-green-700 dark:text-green-400">
                 KREX tier discount applied ({listingFee.discountPercent}% off)
               </p>
             ) : null}
-            <p className="text-xs text-zinc-500 mt-2">
+            <p className="text-xs text-zinc-500">
               Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}.
             </p>
+
+            {error ? (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="w-full k-cta-primary !justify-center !tracking-normal disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUploading
+                ? 'Uploading...'
+                : isProcessing
+                  ? 'Processing...'
+                  : isEdit
+                    ? 'Save changes'
+                    : 'PUBLISH'}
+            </button>
           </div>
-
-          {error ? (
-            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
-              {error}
-            </div>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full k-cta-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isUploading
-              ? 'Uploading...'
-              : isProcessing
-                ? 'Processing...'
-                : isEdit
-                  ? 'Save changes'
-                  : 'PUBLISH'}
-          </button>
         </aside>
       </div>
     </form>
