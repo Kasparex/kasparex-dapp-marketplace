@@ -58,15 +58,20 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
 
   return (
     <div className="flex flex-col h-full space-y-6">
-      {/* Featured image moved here (from widget header). */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+      {/* Featured image opens dApp info modal */}
+      <button
+        type="button"
+        onClick={() => setShowInfoModal(true)}
+        className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-100 dark:bg-zinc-900 w-full text-left cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#02abb8]"
+        aria-label={`View ${mergedDApp.name} details`}
+      >
         {featured ? (
           <div className="relative aspect-video w-full">
             <Image
               src={featured}
               alt={`${mergedDApp.name} - Featured image`}
               fill
-              className="object-cover"
+              className="object-cover transition-opacity group-hover:opacity-90"
               unoptimized
             />
           </div>
@@ -77,7 +82,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
             </svg>
           </div>
         )}
-      </div>
+      </button>
 
       {/* Logo + Title */}
       <div className="flex items-start gap-4">

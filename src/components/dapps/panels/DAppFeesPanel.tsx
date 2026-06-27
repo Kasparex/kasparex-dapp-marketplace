@@ -26,16 +26,16 @@ export function DAppFeesPanel({ dapp, contractAddress }: DAppFeesPanelProps) {
   const nativeSymbol = getNativeCurrencySymbol(chainId);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-      <div className="lg:col-span-3 space-y-4">
+    <div className="space-y-8">
+      <section className="space-y-4">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Fees & Costs
         </h3>
-        <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-x-auto">
+          <table className="w-full min-w-[480px]">
             <thead>
               <tr className="bg-zinc-100 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Action</th>
@@ -101,13 +101,12 @@ export function DAppFeesPanel({ dapp, contractAddress }: DAppFeesPanelProps) {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="lg:col-span-2">
-        <div className="lg:sticky lg:top-24">
-          <DAppInfoTimeline dapp={dapp} contractAddress={contractAddress} />
-        </div>
-      </div>
+      <section className="space-y-4 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Ecosystem timeline</h3>
+        <DAppInfoTimeline dapp={dapp} contractAddress={contractAddress} />
+      </section>
     </div>
   );
 }

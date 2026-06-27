@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAccount, useChainId } from 'wagmi';
-import { DApp } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { isDeployer } from '@/lib/dapps/deployer';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
@@ -12,10 +12,8 @@ import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
-import { getDAppNetworkType } from '@/lib/dapps';
-import { SidebarSection } from './sidebar/SidebarSection';
+import { DAppSidebarDashboard } from './dapps/DAppSidebarDashboard';
 import { SidebarHeader } from './sidebar/SidebarHeader';
-import { usePathname } from 'next/navigation';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -65,9 +63,7 @@ const getLinkIcon = (label: string, url: string) => {
 export function DAppSidebar({ dapp }: DAppSidebarProps) {
   const { address: connectedAddress } = useAccount();
   const chainId = useChainId();
-  const pathname = usePathname();
   const [showQuickGuide, setShowQuickGuide] = useState(false);
-  // Edit functionality removed
 
   // Sidebar hide/show and resize state
   const [isHidden, setIsHidden] = useState(false);
@@ -237,19 +233,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         />
 
         <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
-            <div className="mb-8">
-              <div className="space-y-2">
-                <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
-                  List dApp
-                </Link>
-                <Link href="/tree/dashboard" className="k-control-btn w-full">
-                  Revenue Tree
-                </Link>
-                <Link href="/dapp-modules" className="k-control-btn w-full">
-                  Modules
-                </Link>
-              </div>
-            </div>
+            <DAppSidebarDashboard />
 
             <div className="space-y-3">
               <UnifiedStatusBox />

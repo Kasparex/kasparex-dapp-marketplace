@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { DAppWidget } from './DAppWidget';
@@ -11,23 +11,34 @@ import { CommentsSection } from './vblog/CommentsSection';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppRightColumn } from './dapps/DAppRightColumn';
-import { GameTabs } from './games/layout/GameTabs';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
 import { DAppFeesPanel } from './dapps/panels/DAppFeesPanel';
 import { IconDAppWidget, IconDAppFees, IconOverview, IconComments } from './dapps/icons/DAppTabIcons';
+import { DAppsWithSidebarLayout } from './dapps/layout/DAppsWithSidebarLayout';
+import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
+import type { DAppTab } from './dapps/layout/DAppTabs';
 
-const DAPP_TABS = [
+const BASE_TABS = [
   { id: 'widget', label: 'DApp', icon: <IconDAppWidget /> },
   { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
   { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
-type DAppTabId = (typeof DAPP_TABS)[number]['id'];
+type DAppTabId = (typeof BASE_TABS)[number]['id'];
 
 interface DAppDetailProps {
   dapp: DApp;
   contractAddress?: string;
+}
+
+function CommentsTabBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-cyan-800 dark:text-cyan-300">
+      {count}
+    </span>
+  );
 }
 
 export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppDetailProps) {
@@ -48,30 +59,32 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
 
   const mergedDApp = mergeDAppData(contractData, dapp);
   const articleId = `dapp:${dapp.slug || dapp.id || 'unknown'}`;
+  const commentsCount = useDAppCommentsCount(articleId);
+
+  const tabs = useMemo((): readonly DAppTab<DAppTabId>[] => {
+    return BASE_TABS.map((t) =>
+      t.id === 'comments'
+        ? { ...t, rightAdornment: <CommentsTabBadge count={commentsCount} /> }
+        : t,
+    );
+  }, [commentsCount]);
 
   return (
     <PaymentAmountProvider>
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
-          <div className="space-y-6 lg:col-span-3 order-1 min-w-0">
-            <GameTabs tabs={DAPP_TABS} value={tab} onChange={setTab} />
-
+      <DAppsWithSidebarLayout
+        tabs={tabs}
+        currentTab={tab}
+        onTabChange={setTab}
+        main={
+          <>
             {tab === 'widget' && <DAppWidget dapp={dapp} autoPromptWhenBlocked />}
-
             {tab === 'descriptions' && <DAppDescriptionsPanel dapp={mergedDApp} />}
-
-            {tab === 'fees' && (
-              <DAppFeesPanel dapp={mergedDApp} contractAddress={contractAddress} />
-            )}
-
+            {tab === 'fees' && <DAppFeesPanel dapp={mergedDApp} contractAddress={contractAddress} />}
             {tab === 'comments' && <CommentsSection articleId={articleId} />}
-          </div>
-
-          <div className="lg:col-span-2 order-2">
-            <DAppRightColumn dapp={dapp} contractAddress={contractAddress} />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+        sidebar={<DAppRightColumn dapp={dapp} contractAddress={contractAddress} />}
+      />
     </PaymentAmountProvider>
   );
 }

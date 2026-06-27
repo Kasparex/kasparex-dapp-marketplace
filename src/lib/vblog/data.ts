@@ -195,6 +195,9 @@ export function addComment(commentData: Omit<VBlogComment, 'id' | 'timestamp'>):
     const allComments: VBlogComment[] = stored ? JSON.parse(stored) : [];
     allComments.push(newComment);
     localStorage.setItem(STORAGE_KEYS.comments, JSON.stringify(allComments));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('vblog-comments-updated'));
+    }
   } catch (error) {
     console.error('Error saving comment:', error);
     throw error;
