@@ -9,6 +9,7 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
+import { StatusIndicator } from './dapps/StatusIndicator';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
