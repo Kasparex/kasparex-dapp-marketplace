@@ -96,6 +96,15 @@ export const STORE_DASHBOARD_GATE: HubWalletGateConfig = {
   autoPrompt: false,
 };
 
+export const DAPPS_DASHBOARD_GATE: HubWalletGateConfig = {
+  title: 'Wallet required',
+  name: 'dApps dashboard',
+  message: 'Connect your Kaspa wallet to manage directory listings and submit promotional dApps.',
+  requirement: { layer: 'L1' },
+  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  autoPrompt: false,
+};
+
 export function storeProductGateConfig(product: Pick<{ title: string }, 'title'>): HubWalletGateConfig {
   return {
     title: 'Wallet required',

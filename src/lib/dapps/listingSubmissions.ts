@@ -1,4 +1,5 @@
 import type { Category } from '@/lib/categories';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 
 export const DAPP_LISTING_FEE_KAS = 50;
 
@@ -9,8 +10,10 @@ export type DAppListingSubmission = {
   description: string;
   websiteUrl: string;
   contactEmail: string;
-  paymentPreference: 'KAS' | 'KREX';
-  submitterAddress?: string;
+  paymentCurrency: StorePaymentCurrency;
+  feeAmountKAS: number;
+  feeTxHash: string;
+  submitterAddress: string;
   status: 'pending' | 'informational';
   submittedAt: string;
 };

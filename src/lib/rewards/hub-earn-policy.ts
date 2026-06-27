@@ -6,6 +6,7 @@ export const HUB_EARN_POINTS = {
   vblogArticleCreate: 120,
   vblogArticleUpdate: 40,
   storeProductList: 100,
+  dappDirectoryList: 100,
   hubAdPlacement: 80,
   crowdkasCampaignCreate: 150,
   magazineIssuePublish: 130,

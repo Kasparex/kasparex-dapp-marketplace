@@ -59,6 +59,7 @@ function friendlyEarnSource(source: string): string {
     vblog_article_update: 'vBlog update',
     crowdkas_campaign_create: 'CrowdKAS campaign',
     store_product_list: 'Store listing',
+    dapp_directory_list: 'dApp directory listing',
     magazine_issue_publish: 'Magazine publish',
     hub_ad_placement: 'Ads placement',
     dapp_l1_interaction: 'dApp (L1)',

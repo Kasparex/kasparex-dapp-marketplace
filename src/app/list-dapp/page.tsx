@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Listing flow lives in Profile Hub (My dApps → List dApp). */
+/** Paid promotional dApp directory listings live on the dApps dashboard. */
 export default function ListDAppRedirectPage() {
-  redirect('/dapps/editor/new?mode=list');
+  redirect('/dapps/dashboard?tab=create');
 }

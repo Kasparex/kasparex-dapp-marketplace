@@ -142,7 +142,7 @@ export function Sidebar({
     >
       <div className="mb-8">
         <div className="space-y-2">
-          <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
+          <Link href="/dapps/dashboard" className="k-control-btn w-full">
             List dApp
           </Link>
           <Link href="/protocols" className="k-control-btn w-full">

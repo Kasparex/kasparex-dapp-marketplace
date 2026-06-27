@@ -12,7 +12,7 @@ import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
-import { DAppSidebarDashboard } from './dapps/DAppSidebarDashboard';
+import { getDAppNetworkType } from '@/lib/dapps';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 
 interface DAppSidebarProps {
@@ -233,7 +233,19 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
         />
 
         <div className={`p-5 space-y-6 ${isHidden ? 'lg:hidden' : ''}`}>
-            <DAppSidebarDashboard />
+            <div className="mb-8">
+              <div className="space-y-2">
+                <Link href="/dapps/dashboard" className="k-control-btn w-full">
+                  List dApp
+                </Link>
+                <Link href="/tree/dashboard" className="k-control-btn w-full">
+                  Revenue Tree
+                </Link>
+                <Link href="/dapp-modules" className="k-control-btn w-full">
+                  Modules
+                </Link>
+              </div>
+            </div>
 
             <div className="space-y-3">
               <UnifiedStatusBox />

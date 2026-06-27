@@ -14,6 +14,7 @@ export type EarnSource =
   | 'vblog_article_update'
   | 'crowdkas_campaign_create'
   | 'store_product_list'
+  | 'dapp_directory_list'
   | 'magazine_issue_publish'
   | 'hub_ad_placement'
   | 'dapp_l1_interaction'
