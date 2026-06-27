@@ -1,20 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
-import { getDAppPaymentConfig } from '@/lib/payments/config';
-import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './dapps/CategoryIcon';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
-import { getChainById } from '@/lib/wagmi';
-import { getDAppNetworkType } from '@/lib/dapps';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
@@ -26,7 +21,6 @@ interface DAppCardProps {
 }
 
 export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
-  const chainId = useChainId();
   const mergedDApp = mergeDAppData(null, dapp);
   const access = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
   const { isOpenable } = access;
@@ -34,19 +28,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
 
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
-  const networkType = getDAppNetworkType(mergedDApp);
-  const chain = useMemo(() => (chainId ? getChainById(chainId) : null), [chainId]);
-  const isTestnet = Boolean(chain?.testnet);
-  const dAppRewards = useMemo(() => {
-    const config = getDAppPaymentConfig(mergedDApp, networkType);
-    const rewards = getDefaultRewardsBreakdown(chainId);
-    const firstAction = config?.actions?.[0];
-    const baseCost = firstAction?.baseCost ?? 1;
-    const gridReward = Math.round(rewards.gridPerKas * baseCost);
-    const xpReward = Math.round(rewards.xpPerKas * baseCost);
-    const gridLabel = isTestnet ? 'tGRID' : 'GRID';
-    return { gridReward, xpReward, gridLabel };
-  }, [mergedDApp, networkType, chainId, isTestnet]);
+  const xpReward = useDAppXpReward(mergedDApp);
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(mergedDApp.id);
@@ -109,19 +91,11 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                 </h3>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="font-medium">{formatLargeNumber(dAppRewards.gridReward)} {dAppRewards.gridLabel}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="font-medium">{formatLargeNumber(dAppRewards.xpReward)} pts</span>
-                </div>
+              <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="font-medium">{formatLargeNumber(xpReward)} pts</span>
               </div>
             </div>
           </div>

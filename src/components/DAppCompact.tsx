@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
-import { StatusIndicator } from './dapps/StatusIndicator';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
@@ -27,6 +28,7 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
     const { l1Modal, closeL1Modal, promptGate } = useDAppWalletGate();
 
     const networkType = getDAppNetworkType(mergedDApp);
+    const xpReward = useDAppXpReward(mergedDApp);
     const isTestnet = isTestnetDApp(mergedDApp);
     const networkBadgeColor = isTestnet
         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
@@ -55,7 +57,7 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
                 <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                     <span className="truncate">{category?.emoji} {category?.name}</span>
                     <span>•</span>
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">GRID</span>
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">{formatLargeNumber(xpReward)} pts</span>
                 </div>
                 {mergedDApp.description && (
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">
