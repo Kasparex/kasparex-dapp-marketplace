@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782595466-07c553c",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Unify switchers with tab strip styling via KxTabStrip (by Kasparex)",
+      "date": "2026-06-27T23:23:43+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782593679-7bfdfc0",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix switcher styling: separate segment group from tabs, align sorting height (by Kasparex)",
