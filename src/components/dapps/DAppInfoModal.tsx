@@ -18,6 +18,7 @@ import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FE
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { getDAppPaymentConfig, getActionCost } from '@/lib/payments/config';
+import { DirectoryDAppInfoModal } from './DirectoryDAppInfoModal';
 
 interface DAppInfoModalProps {
   dapp: DApp;
@@ -528,6 +529,12 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
 
   if (typeof window === 'undefined') {
     return null;
+  }
+
+  if (dapp.source === 'directory' && dapp.directoryListing) {
+    return (
+      <DirectoryDAppInfoModal dapp={dapp} listing={dapp.directoryListing} onClose={onClose} />
+    );
   }
 
   return createPortal(modalContent, document.body);

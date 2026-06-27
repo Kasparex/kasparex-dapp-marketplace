@@ -683,6 +683,11 @@ export function isDirectoryListingDApp(dapp: DApp): boolean {
   return dapp.source === 'directory';
 }
 
+export function isCovenantDApp(dapp: DApp): boolean {
+  const slug = dapp.slug ?? '';
+  return slug.startsWith('covenant-');
+}
+
 export function matchesDAppNetworkFilter(dapp: DApp, filter: DAppNetworkFilter): boolean {
   if (filter === 'all') return true;
   if (isMultichainDApp(dapp)) return filter === 'MULTI';

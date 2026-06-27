@@ -35,13 +35,13 @@ export function DAppsWithSidebarLayout<T extends string>({
       </div>
 
       <div className={`grid grid-cols-1 gap-8 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-        <div className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
+        <div className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
           {main}
         </div>
         {rightOpen ? (
           <aside
             id="kasparex-dapp-side-panel"
-            className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4"
+            className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-5"
           >
             {sidebar}
           </aside>

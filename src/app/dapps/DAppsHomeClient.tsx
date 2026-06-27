@@ -11,7 +11,7 @@ import { DAppGrid } from '@/components/DAppGrid';
 import { DAppTable } from '@/components/DAppTable';
 import { DAppCompact } from '@/components/DAppCompact';
 import { Footer } from '@/components/Footer';
-import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, type DAppNetworkFilter, matchesDAppNetworkFilter, type DApp } from '@/lib/dapps';
+import { placeholderDApps, filterDApps, getCategoryCounts, type FilterState, type DAppNetworkFilter, matchesDAppNetworkFilter, isCovenantDApp, type DApp } from '@/lib/dapps';
 import { sortDApps } from '@/lib/sorting';
 import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
@@ -83,9 +83,11 @@ export function DAppsHomeContent() {
     let filtered = filterDApps(catalogDApps, filterState, searchQuery);
 
     if (sourceFilter === 'kasparex') {
-      filtered = filtered.filter((dapp) => dapp.source !== 'directory');
+      filtered = filtered.filter((dapp) => dapp.source !== 'directory' && !isCovenantDApp(dapp));
     } else if (sourceFilter === 'directory') {
       filtered = filtered.filter((dapp) => dapp.source === 'directory');
+    } else if (sourceFilter === 'covenants') {
+      filtered = filtered.filter((dapp) => isCovenantDApp(dapp));
     }
 
     if (networkFilter !== 'all') {
