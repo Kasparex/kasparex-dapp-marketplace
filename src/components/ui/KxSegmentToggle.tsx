@@ -1,5 +1,7 @@
 'use client';
 
+import { KxTabStrip, type KxTabStripOption } from '@/components/ui/KxTabStrip';
+
 export type KxSegmentToggleOption<T extends string = string> = {
   value: T;
   label: string;
@@ -18,22 +20,19 @@ export function KxSegmentToggle<T extends string>({
   ariaLabel?: string;
   className?: string;
 }) {
+  const tabOptions: KxTabStripOption<T>[] = options.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
+
   return (
-    <div
-      className={`k-segment-group k-segment-group-full ${className}`.trim()}
-      role="group"
-      aria-label={ariaLabel}
-    >
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`k-segment-option ${value === option.value ? 'k-segment-option-active' : ''}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={tabOptions}
+      ariaLabel={ariaLabel}
+      className={className}
+      fullWidth
+    />
   );
 }

@@ -6,6 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { categories, type Category } from '@/lib/categories';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
@@ -58,22 +59,16 @@ function ImageSourceToggle({
   onChange: (next: 'url' | 'file') => void;
 }) {
   return (
-    <div className="k-segment-group k-segment-group-full">
-      <button
-        type="button"
-        onClick={() => onChange('url')}
-        className={`k-segment-option ${value === 'url' ? 'k-segment-option-active' : ''}`}
-      >
-        Via URL
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange('file')}
-        className={`k-segment-option ${value === 'file' ? 'k-segment-option-active' : ''}`}
-      >
-        Upload (IPFS)
-      </button>
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: 'url', label: 'Via URL' },
+        { value: 'file', label: 'Upload (IPFS)' },
+      ]}
+      ariaLabel="Image source"
+      fullWidth
+    />
   );
 }
 
@@ -440,7 +435,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   if (step === 'complete') {
     return (
       <div className="text-center py-16">
-        <div className="text-5xl mb-4">✓</div>
+        <div className="text-5xl mb-4">?</div>
         <p className="text-zinc-900 dark:text-zinc-100 font-black uppercase tracking-widest">
           {isEdit ? 'Listing updated' : 'Listing submitted'}
         </p>

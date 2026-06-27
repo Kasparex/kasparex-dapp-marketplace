@@ -1,6 +1,7 @@
 'use client';
 
 import type { DAppNetworkFilter } from '@/lib/dapps';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 
 interface NetworkSwitcherProps {
   value: DAppNetworkFilter;
@@ -17,17 +18,12 @@ const OPTIONS: { value: DAppNetworkFilter; label: string }[] = [
 
 export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwitcherProps) {
   return (
-    <div className={`k-segment-group ${className}`.trim()}>
-      {OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`k-segment-option ${value === option.value ? 'k-segment-option-active' : ''}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={OPTIONS}
+      ariaLabel="Network filter"
+      className={className}
+    />
   );
 }

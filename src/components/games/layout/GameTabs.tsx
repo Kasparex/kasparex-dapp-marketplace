@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { kxTabBtnClass } from '@/components/ui/KxTabStrip';
+
 export type GameTab<T extends string = string> = {
   id: T;
   label: string;
@@ -10,14 +12,8 @@ export type GameTab<T extends string = string> = {
   rightAdornment?: ReactNode;
 };
 
-const TAB_ACTIVE =
-  'bg-emerald-500/10 text-emerald-900 dark:text-emerald-300';
-const TAB_INACTIVE =
-  'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800';
-
 /**
- * Kasparex Games tab strip: same segmented control shell as Profile Hub (`k-control-group`),
- * with emerald active state for gameplay accents.
+ * Kasparex Games tab strip: unified tab control styling.
  */
 export function GameTabs<T extends string>(props: {
   tabs: readonly GameTab<T>[];
@@ -153,9 +149,7 @@ export function GameTabs<T extends string>(props: {
             key={t.id}
             type="button"
             onClick={() => props.onChange(t.id)}
-            className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
-              props.value === t.id ? TAB_ACTIVE : TAB_INACTIVE
-            }`}
+            className={kxTabBtnClass(props.value === t.id)}
           >
             <span className="pointer-events-none inline-flex items-center gap-2">
               {t.icon ? <span className="inline-flex h-4 w-4 items-center justify-center shrink-0">{t.icon}</span> : null}

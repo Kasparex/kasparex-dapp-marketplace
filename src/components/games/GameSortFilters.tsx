@@ -2,8 +2,42 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { GameSortOption } from '@/lib/games/sorting';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 
 export type GameViewMode = 'grid' | 'compact' | 'list';
+
+const VIEW_MODE_OPTIONS = [
+  {
+    value: 'grid' as const,
+    title: 'Grid view',
+    ariaLabel: 'Grid view',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'compact' as const,
+    title: 'Compact view',
+    ariaLabel: 'Compact view',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'list' as const,
+    title: 'List view',
+    ariaLabel: 'List view',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    ),
+  },
+];
 
 interface GameSortFiltersProps {
   sortBy: GameSortOption;
@@ -59,43 +93,15 @@ export function GameSortFilters({
   return (
     <div className="flex items-center gap-2">
       {/* View Mode Switcher */}
-      {onViewModeChange && (
-        <div className="k-segment-group">
-          <button
-            type="button"
-            onClick={() => onViewModeChange('grid')}
-            className={`k-segment-option-icon ${viewMode === 'grid' ? 'k-segment-option-icon-active' : ''}`}
-            title="Grid view"
-            aria-label="Grid view"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('compact')}
-            className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
-            title="Compact view"
-            aria-label="Compact view"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('list')}
-            className={`k-segment-option-icon ${viewMode === 'list' ? 'k-segment-option-icon-active' : ''}`}
-            title="List view"
-            aria-label="List view"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {onViewModeChange ? (
+        <KxTabStrip
+          value={viewMode}
+          onChange={onViewModeChange}
+          options={VIEW_MODE_OPTIONS}
+          ariaLabel="View mode"
+          iconOnly
+        />
+      ) : null}
 
       {/* Sort Dropdown - absolute so it stays with button on scroll (like wallet) */}
       <div className="relative flex-shrink-0 overflow-visible" ref={sortContainerRef}>

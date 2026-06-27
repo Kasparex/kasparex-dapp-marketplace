@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { kxTabBtnClass } from '@/components/ui/KxTabStrip';
 
 export type DAppTab<T extends string = string> = {
   id: T;
@@ -9,9 +10,6 @@ export type DAppTab<T extends string = string> = {
   icon?: ReactNode;
   rightAdornment?: ReactNode;
 };
-
-const TAB_ACTIVE = 'bg-cyan-500/10 text-cyan-900 dark:text-cyan-300';
-const TAB_INACTIVE = 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800';
 
 /** Kasparex DApps tab strip: cyan active state (standard Kasparex theme). */
 export function DAppTabs<T extends string>(props: {
@@ -143,9 +141,7 @@ export function DAppTabs<T extends string>(props: {
             key={t.id}
             type="button"
             onClick={() => props.onChange(t.id)}
-            className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
-              props.value === t.id ? TAB_ACTIVE : TAB_INACTIVE
-            }`}
+            className={kxTabBtnClass(props.value === t.id)}
           >
             <span className="pointer-events-none inline-flex items-center gap-2">
               {t.icon ? <span className="inline-flex h-4 w-4 items-center justify-center shrink-0">{t.icon}</span> : null}

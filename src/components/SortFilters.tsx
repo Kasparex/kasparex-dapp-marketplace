@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 
 export type SortOption =
   | 'newest'
@@ -15,6 +16,39 @@ export type SortOption =
 
 export type ViewMode = 'cards' | 'table' | 'compact';
 
+const VIEW_MODE_OPTIONS = [
+  {
+    value: 'cards' as const,
+    title: 'Card view',
+    ariaLabel: 'Card view',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'table' as const,
+    title: 'Table view',
+    ariaLabel: 'Table view',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'compact' as const,
+    title: 'Compact view',
+    ariaLabel: 'Compact view',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+      </svg>
+    ),
+  },
+];
+
 interface SortFiltersProps {
   sortBy: SortOption;
   onSortChange: (sort: SortOption) => void;
@@ -27,7 +61,6 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
   const [isOpen, setIsOpen] = useState(false);
   const sortContainerRef = useRef<HTMLDivElement>(null);
 
-  // Close sort menu when clicking outside (same pattern as wallet dropdown)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sortContainerRef.current && !sortContainerRef.current.contains(event.target as Node)) {
@@ -57,51 +90,20 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
   ];
 
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
-
   const isFavoritesActive = sortBy === 'favorites';
 
   return (
     <div className="flex items-center gap-2">
-      {/* View Mode Switcher */}
-      {onViewModeChange && (
-        <div className="k-segment-group">
-          <button
-            type="button"
-            onClick={() => onViewModeChange('cards')}
-            className={`k-segment-option-icon ${viewMode === 'cards' ? 'k-segment-option-icon-active' : ''}`}
-            title="Card view"
-            aria-label="Card view"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('table')}
-            className={`k-segment-option-icon ${viewMode === 'table' ? 'k-segment-option-icon-active' : ''}`}
-            title="Table view"
-            aria-label="Table view"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('compact')}
-            className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
-            title="Compact view"
-            aria-label="Compact view"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {onViewModeChange ? (
+        <KxTabStrip
+          value={viewMode}
+          onChange={onViewModeChange}
+          options={VIEW_MODE_OPTIONS}
+          ariaLabel="View mode"
+          iconOnly
+        />
+      ) : null}
 
-      {/* Sort Dropdown - absolute so it stays with button on scroll (like wallet) */}
       <div className="relative flex-shrink-0 overflow-visible" ref={sortContainerRef}>
         <button
           type="button"
@@ -109,12 +111,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           className="k-control-btn min-w-[160px]"
         >
           <span className="truncate">{currentLabel}</span>
-          <svg
-            className="w-4 h-4 ml-auto"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -132,10 +129,11 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
                   onSortChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === option.value
-                  ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
-                  : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
-                  }`}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                  sortBy === option.value
+                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
               >
                 {option.label}
               </button>
@@ -144,15 +142,15 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
         )}
       </div>
 
-      {/* Favorites Star Button */}
       <button
         onClick={() => {
           onSortChange(isFavoritesActive ? 'newest' : 'favorites');
         }}
-        className={`k-control-icon-btn ${isFavoritesActive
-          ? 'bg-yellow-100 dark:bg-yellow-900/30 !border-yellow-300 dark:!border-yellow-700 text-yellow-600 dark:text-yellow-400'
-          : ''
-          }`}
+        className={`k-control-icon-btn ${
+          isFavoritesActive
+            ? 'bg-yellow-100 dark:bg-yellow-900/30 !border-yellow-300 dark:!border-yellow-700 text-yellow-600 dark:text-yellow-400'
+            : ''
+        }`}
         title={isFavoritesActive ? 'Show All' : 'Show Favorites'}
         aria-label={isFavoritesActive ? 'Show All' : 'Show Favorites'}
       >
@@ -176,4 +174,3 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
     </div>
   );
 }
-

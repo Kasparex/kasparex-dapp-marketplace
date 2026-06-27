@@ -8,6 +8,7 @@ import { getAllProducts } from '@/lib/store/products';
 import { getCategoryCounts } from '@/lib/store/filtering';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { FilterBar } from '@/components/FilterBar';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
@@ -108,26 +109,34 @@ export default function StorePage() {
             ]}
             ariaLabel="Filter by network"
           />
-          <div className="k-segment-group">
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`k-segment-option-icon ${viewMode === 'grid' ? 'k-segment-option-icon-active' : ''}`}
-              title="Grid view"
-              aria-label="Grid view"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('compact')}
-              className={`k-segment-option-icon ${viewMode === 'compact' ? 'k-segment-option-icon-active' : ''}`}
-              title="Compact view"
-              aria-label="Compact view"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-            </button>
-          </div>
+          <KxTabStrip
+            value={viewMode}
+            onChange={setViewMode}
+            options={[
+              {
+                value: 'grid',
+                title: 'Grid view',
+                ariaLabel: 'Grid view',
+                icon: (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                ),
+              },
+              {
+                value: 'compact',
+                title: 'Compact view',
+                ariaLabel: 'Compact view',
+                icon: (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                ),
+              },
+            ]}
+            ariaLabel="View mode"
+            iconOnly
+          />
           <ProductSortFilters sortBy={sortBy} onSortChange={setSortBy} />
         </FilterBar>
       </div>

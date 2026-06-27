@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AD_SLOTS } from '@/lib/ads/slots';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import type { AdFormat, AdSlotId } from '@/lib/ads/types';
 
 export type AdsSortOption = 'newest' | 'ending-soon' | 'slot' | 'format';
@@ -58,18 +59,14 @@ export function AdsListingFilterControls({
 
   return (
     <div ref={rootRef} className="flex items-center gap-2 flex-shrink-0 overflow-visible">
-      <div className="k-segment-group min-w-0 max-w-full overflow-x-auto">
-        {formatOptions.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onFormatChange(opt.value)}
-            className={`k-segment-option shrink-0 ${formatFilter === opt.value ? 'k-segment-option-active' : ''}`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      <KxTabStrip
+        value={formatFilter}
+        onChange={onFormatChange}
+        options={formatOptions}
+        ariaLabel="Ad format filter"
+        scrollable
+        className="min-w-0 max-w-full"
+      />
 
       <div className="relative flex-shrink-0 overflow-visible">
         <button

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import type { ChroniclesViewMode } from '@/lib/chronicles/types';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 
 const modes: {
   id: ChroniclesViewMode;
@@ -59,20 +60,18 @@ export function ChroniclesViewSwitcher({
   onChange: (v: ChroniclesViewMode) => void;
 }) {
   return (
-    <div className="k-segment-group shrink-0" role="group" aria-label="View mode">
-      {modes.map((m) => (
-        <button
-          key={m.id}
-          type="button"
-          onClick={() => onChange(m.id)}
-          className={`k-segment-option-icon ${value === m.id ? 'k-segment-option-icon-active' : ''}`}
-          title={m.title}
-          aria-label={m.aria}
-          aria-pressed={value === m.id}
-        >
-          {m.icon}
-        </button>
-      ))}
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={modes.map((m) => ({
+        value: m.id,
+        icon: m.icon,
+        title: m.title,
+        ariaLabel: m.aria,
+      }))}
+      ariaLabel="View mode"
+      iconOnly
+      className="shrink-0"
+    />
   );
 }

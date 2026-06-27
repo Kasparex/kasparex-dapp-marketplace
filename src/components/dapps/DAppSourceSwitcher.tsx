@@ -1,5 +1,7 @@
 'use client';
 
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
+
 export type DAppSourceFilter = 'all' | 'kasparex' | 'directory' | 'covenants';
 
 interface DAppSourceSwitcherProps {
@@ -17,17 +19,12 @@ const OPTIONS: { value: DAppSourceFilter; label: string }[] = [
 
 export function DAppSourceSwitcher({ value, onChange, className = '' }: DAppSourceSwitcherProps) {
   return (
-    <div className={`k-segment-group w-fit ${className}`.trim()}>
-      {OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`k-segment-option ${value === option.value ? 'k-segment-option-active' : ''}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={OPTIONS}
+      ariaLabel="dApp source filter"
+      className={className}
+    />
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import type { TokenType } from '@/lib/tokens/types';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
 
 interface TokenTypeSwitcherProps {
   value: TokenType | 'all';
@@ -17,17 +18,12 @@ const OPTIONS: { value: TokenType | 'all'; label: string }[] = [
 
 export function TokenTypeSwitcher({ value, onChange, className = '' }: TokenTypeSwitcherProps) {
   return (
-    <div className={`k-segment-group ${className}`.trim()}>
-      {OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`k-segment-option ${value === option.value ? 'k-segment-option-active' : ''}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={OPTIONS}
+      ariaLabel="Token type filter"
+      className={className}
+    />
   );
 }

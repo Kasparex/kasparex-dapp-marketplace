@@ -605,22 +605,15 @@ export function CreateAdWizard({
                 <KxModalSectionTitle required>Creative</KxModalSectionTitle>
                 <div className="space-y-4">
                   <div>
-                    <div className="k-segment-group k-segment-group-full">
-                      <button
-                        type="button"
-                        onClick={() => setImageSource('url')}
-                        className={`k-segment-option ${imageSource === 'url' ? 'k-segment-option-active' : ''}`}
-                      >
-                        Image URL
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setImageSource('file')}
-                        className={`k-segment-option ${imageSource === 'file' ? 'k-segment-option-active' : ''}`}
-                      >
-                        Upload (IPFS)
-                      </button>
-                    </div>
+                    <KxSegmentToggle
+                      value={imageSource}
+                      onChange={setImageSource}
+                      options={[
+                        { value: 'url', label: 'Image URL' },
+                        { value: 'file', label: 'Upload (IPFS)' },
+                      ]}
+                      ariaLabel="Creative image source"
+                    />
                     {imageSource === 'url' ? (
                       <div className="mt-3">
                         <input
