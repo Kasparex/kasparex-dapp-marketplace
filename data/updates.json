@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782593679-7bfdfc0",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix switcher styling: separate segment group from tabs, align sorting height (by Kasparex)",
+      "date": "2026-06-27T22:54:01+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782592267-ea192c3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Add Revenue Tree tab, unify switcher spacing, refine listing sidebar (by Kasparex)",
