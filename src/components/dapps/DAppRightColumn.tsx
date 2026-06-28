@@ -103,7 +103,7 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
       </div>
 
       <div>
-        <p className="text-zinc-600 dark:text-zinc-400 text-sm lg:text-base leading-relaxed line-clamp-5">
+        <p className="kx-body text-sm lg:text-base line-clamp-5">
           {description || 'No description available.'}
         </p>
         <button

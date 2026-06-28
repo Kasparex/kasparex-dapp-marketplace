@@ -16,7 +16,8 @@ import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCa
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { KxBadge } from '@/components/ui/KxBadge';
-import { chronicleVehicleKindBadgeVariant, chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
+import { ChronicleCardTagBadges } from '@/components/chronicles/ChronicleCardTagBadges';
+import { chronicleVehicleKindBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityVehicleToEntity } from '@/lib/chronicles/communityAdapters';
 
@@ -153,11 +154,7 @@ export function VehiclesListing({
               badges={
                 <>
                   <KxBadge variant={chronicleVehicleKindBadgeVariant(v.kind)}>{v.kind}</KxBadge>
-                  {v.tags.slice(0, 2).map((t) => (
-                    <KxBadge key={t} variant={chronicleTagBadgeVariant(t)}>
-                      {t}
-                    </KxBadge>
-                  ))}
+                  <ChronicleCardTagBadges tags={v.tags} max={2} />
                   {'isCommunity' in v && v.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </>
               }

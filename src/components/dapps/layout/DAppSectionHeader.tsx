@@ -1,6 +1,7 @@
 'use client';
 
 import { FieldHint } from '@/components/ui/FieldHint';
+import { KX_SECTION_HEADER_MARGIN } from '@/lib/ui/kxLayout';
 
 export function DAppSectionHeader(props: {
   title: string;
@@ -9,7 +10,7 @@ export function DAppSectionHeader(props: {
   className?: string;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-3 mb-4 ${props.className ?? ''}`}>
+    <div className={`flex items-center justify-between gap-3 ${KX_SECTION_HEADER_MARGIN} ${props.className ?? ''}`}>
       <div className="flex items-center gap-3">
         <div
           className="h-5 w-1 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"

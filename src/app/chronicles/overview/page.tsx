@@ -8,7 +8,9 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
 import { ChroniclesAdSlot } from '@/components/chronicles/ChroniclesAdSlot';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
-import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { chronicleTimelineBadgeVariant, chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
+import { KX_TEXT_BODY, KX_TEXT_BODY_SM } from '@/lib/ui/kxTypography';
 
 export default function ChroniclesOverviewPage() {
   const overview = getOverview();
@@ -28,8 +30,8 @@ export default function ChroniclesOverviewPage() {
         <div className="lg:col-span-2 space-y-10">
           <ChronicleFeaturedVisual imageUrl={overview.featuredImageUrl} alt={overview.title} badge="Overview" />
           <div>
-            <DAppSectionHeader title={overview.title} className="mb-4" />
-            <p className={`${CHRONICLES_TEASER} mb-8`}>{overview.tagline}</p>
+            <DAppSectionHeader title={overview.title} />
+            <p className={`${KX_TEXT_BODY} mb-8`}>{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
           <div className="pt-4">
@@ -56,15 +58,19 @@ export default function ChroniclesOverviewPage() {
                       <div className="flex gap-4 p-4">
                         <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-20 h-20 shrink-0 rounded-xl" />
                         <KxListingCardBody className="p-0 min-w-0">
-                          <span className="text-xs font-mono text-zinc-400">
-                            Chapter {c.number}
-                            {isPremium ? ' · Premium' : ''}
-                            {isLatest ? ' · Latest' : ''}
-                          </span>
+                          <div className="mb-2 flex flex-wrap gap-1.5">
+                            <KxBadge variant="zinc">Ch {c.number}</KxBadge>
+                            {isPremium ? <KxBadge variant="amber">Premium</KxBadge> : null}
+                            {isLatest ? <KxBadge variant="cyan">Latest</KxBadge> : null}
+                            <KxBadge variant={chronicleTimelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
+                            {c.relatedGameSlug === 'minecore' ? (
+                              <KxBadge variant={chronicleTagBadgeVariant('minecore')}>minecore</KxBadge>
+                            ) : null}
+                          </div>
                           <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] text-base leading-snug">
                             {c.title}
                           </span>
-                          <span className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-1 leading-relaxed">{c.teaser}</span>
+                          <span className={`${KX_TEXT_BODY_SM} line-clamp-2 mt-1`}>{c.teaser}</span>
                         </KxListingCardBody>
                       </div>
                     </KxListingCard>

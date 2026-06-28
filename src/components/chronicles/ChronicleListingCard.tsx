@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KX_TEXT_BODY_SM } from '@/lib/ui/kxTypography';
 import {
   KX_LISTING_PLACEHOLDER_GRADIENT,
   KX_LISTING_PLACEHOLDER_ICON,
@@ -73,7 +74,7 @@ export function ChronicleListingCard({
 
         {badges ? <div className="mb-3 flex flex-wrap gap-1.5">{badges}</div> : null}
 
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed flex-grow min-h-0 mb-4">
+        <p className={`${KX_TEXT_BODY_SM} line-clamp-3 flex-grow min-h-0 mb-4`}>
           {description}
         </p>
 

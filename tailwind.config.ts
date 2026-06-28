@@ -11,6 +11,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      lineHeight: {
+        /** Platform body rhythm (matches Chronicles prose / leading-8). */
+        relaxed: '2rem',
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":

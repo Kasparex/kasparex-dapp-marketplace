@@ -26,6 +26,7 @@ import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChro
 import type { ChronicleAccessMeta } from '@/lib/chronicles/types';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 type Phase = 'pay' | 'quiz' | 'result';
@@ -147,15 +148,11 @@ export function ChronicleChapterQuiz({
             Test your lore knowledge
           </h2>
         </div>
-        <span
-          className="shrink-0 inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300"
+        <KxHubPtsBadge
+          points={HUB_EARN_POINTS.chroniclesQuizComplete}
           title="Hub PTS reward for passing this quiz"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          {HUB_EARN_POINTS.chroniclesQuizComplete} PTS
-        </span>
+          className="shrink-0"
+        />
       </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
         Answer {CHRONICLE_QUIZ_QUESTION_COUNT} questions from this chapter. One paid entry equals one attempt. Pass the

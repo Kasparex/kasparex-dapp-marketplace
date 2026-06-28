@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { KX_TEXT_BODY_SM } from '@/lib/ui/kxTypography';
 
 export function MinecoreCallout({ className = '' }: { className?: string }) {
   return (
@@ -11,18 +13,17 @@ export function MinecoreCallout({ className = '' }: { className?: string }) {
       />
       <div className="relative">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+          <KxBadge variant="reward" icon={
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
+          }>
             Official game link
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-teal-700 dark:text-teal-300">
-            Krex&apos;s Chronicles × Minecore
-          </span>
+          </KxBadge>
+          <KxBadge variant="teal">Krex&apos;s Chronicles × Minecore</KxBadge>
         </div>
         <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-2">Minecore</h3>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed mb-4">
+        <p className={`${KX_TEXT_BODY_SM} text-zinc-700 dark:text-zinc-300 mb-4`}>
           Beneath the neon spine of Kaspaland, unstable diamond veins pulse with raw network energy.{' '}
           <strong className="text-emerald-800 dark:text-emerald-200">Minecore</strong> is Krex&apos;s industrial layer:
           crewed plants, grid load, refinement, and the force that keeps the metropolis powered.

@@ -109,7 +109,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
           </div>
 
           <div className="mb-4 flex-grow min-h-0">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">
+            <p className="kx-body-sm line-clamp-3">
               {mergedDApp.utility || mergedDApp.description || mergedDApp.process || ''}
             </p>
           </div>

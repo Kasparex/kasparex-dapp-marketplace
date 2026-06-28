@@ -6,6 +6,7 @@ import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesViewSwitcher } from './ChroniclesViewSwitcher';
 import type { ChroniclesViewMode } from '@/lib/chronicles/types';
 import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
+import { ChronicleCardTagBadges } from '@/components/chronicles/ChronicleCardTagBadges';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
@@ -52,7 +53,12 @@ export function ArticlesListing({ title = 'Articles' }: { title?: string }) {
               alt={a.title}
               title={a.title}
               description={a.summary}
-              badges={<ChroniclesCommunityBadge />}
+              badges={
+                <>
+                  <ChronicleCardTagBadges tags={a.tags ?? []} />
+                  <ChroniclesCommunityBadge />
+                </>
+              }
             />
           ))}
         </div>

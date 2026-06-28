@@ -17,7 +17,7 @@ import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChro
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { KxBadge } from '@/components/ui/KxBadge';
-import { chronicleTimelineBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
+import { chronicleTimelineBadgeVariant, chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
 
@@ -51,6 +51,9 @@ function ChapterCard({ c }: { c: ChronicleChapterMeta & { isCommunity?: boolean 
         <>
           {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
           {isPremium ? <KxBadge variant="amber">Premium</KxBadge> : null}
+          {c.relatedGameSlug === 'minecore' ? (
+            <KxBadge variant={chronicleTagBadgeVariant('minecore')}>minecore</KxBadge>
+          ) : null}
           <KxBadge variant={chronicleTimelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
         </>
       }

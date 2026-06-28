@@ -9,6 +9,7 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
+import { KxBadge } from '@/components/ui/KxBadge';
 import { getProductPaymentCurrency, getProductPriceOptions } from '@/lib/store/currencies';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
@@ -42,15 +43,7 @@ export function ProductCard({ product }: ProductCardProps) {
         title={product.title}
         category={product.category}
         titleAccessory={
-          <span
-            className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              product.network === 'L1'
-                ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
-                : 'bg-teal-500/15 text-teal-700 dark:text-teal-300'
-            }`}
-          >
-            {product.network}
-          </span>
+          <KxBadge variant={product.network === 'L1' ? 'sky' : 'teal'}>{product.network}</KxBadge>
         }
         description={<p className="line-clamp-3 text-sm">{product.description}</p>}
         priceOptions={priceOptions}

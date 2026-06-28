@@ -44,6 +44,40 @@
   }
 }
 
+@layer components {
+  /** Platform body copy rhythm (see src/lib/ui/kxTypography.ts). */
+  .kx-body {
+    @apply text-base text-zinc-600 dark:text-zinc-400 leading-8;
+  }
+
+  .kx-body-sm {
+    @apply text-sm text-zinc-600 dark:text-zinc-400 leading-8;
+  }
+
+  /** Long-form readable prose blocks. */
+  .kx-prose {
+    @apply max-w-none text-base text-zinc-600 dark:text-zinc-400 leading-8;
+  }
+
+  .kx-prose p {
+    @apply mb-6;
+  }
+
+  .kx-prose ul,
+  .kx-prose ol {
+    @apply mb-6 space-y-2.5 pl-5;
+  }
+
+  .kx-prose li {
+    @apply leading-8;
+  }
+
+  /** Category kicker spacing before main titles. */
+  .kx-page-kicker {
+    @apply mb-5 flex items-center gap-2.5;
+  }
+}
+
 /* Kaspa Theme Overrides */
 .kaspa {
   --kaspa-primary: #70C7BA;

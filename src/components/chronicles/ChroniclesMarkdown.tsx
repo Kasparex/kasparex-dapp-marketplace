@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { linkifyWikiTokens } from '@/lib/chronicles/linkify';
-import { CHRONICLES_PROSE } from '@/lib/chronicles/typography';
+import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 export function ChroniclesMarkdown({ markdown }: { markdown: string }) {
   const md = linkifyWikiTokens(markdown);
 
   return (
-    <div className={CHRONICLES_PROSE}>
+    <div className={KX_PROSE}>
       <ReactMarkdown
         components={{
           a: ({ href, children }) => {
@@ -44,13 +44,13 @@ export function ChroniclesMarkdown({ markdown }: { markdown: string }) {
           h3: ({ children }) => (
             <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-10 mb-3 leading-snug">{children}</h3>
           ),
-          p: ({ children }) => <p className="mb-6">{children}</p>,
-          ul: ({ children }) => <ul className="list-disc pl-5 mb-6 space-y-2.5">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-5 mb-6 space-y-2.5">{children}</ol>,
-          li: ({ children }) => <li className="leading-8">{children}</li>,
+          p: ({ children }) => <p className={KX_PROSE_PARAGRAPH}>{children}</p>,
+          ul: ({ children }) => <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>{children}</ul>,
+          ol: ({ children }) => <ol className={`list-decimal pl-5 ${KX_PROSE_LIST}`}>{children}</ol>,
+          li: ({ children }) => <li className={KX_PROSE_LIST_ITEM}>{children}</li>,
           hr: () => <hr className="my-12 border-zinc-200 dark:border-zinc-800" />,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-cyan-500/40 pl-5 my-8 italic text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
+            <blockquote className="border-l-4 border-cyan-500/40 pl-5 my-8 italic text-zinc-600 dark:text-zinc-400 text-base leading-8">
               {children}
             </blockquote>
           ),

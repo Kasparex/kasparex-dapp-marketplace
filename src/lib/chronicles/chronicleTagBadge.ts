@@ -23,6 +23,8 @@ const TAG_VARIANT_MAP: Record<string, KxBadgeVariant> = {
   'primary-setting': 'cyan',
   vantage: 'teal',
   anomaly: 'violet',
+  article: 'sky',
+  lore: 'violet',
   plant: 'emerald',
   industrial: 'orange',
   facility: 'teal',
