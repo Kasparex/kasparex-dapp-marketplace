@@ -83,12 +83,12 @@ export function HeaderRewardsPointsLink() {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth={1.5}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden
         >
-          <path d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m-8.25 3.75h16.5m-9-3.75v9" />
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
         </svg>
         {hasNewPoints ? (
           <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-[#02abb8] border-2 border-white dark:border-zinc-950" />

@@ -499,8 +499,8 @@ export function Header() {
 
         {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
-          <AdminLink />
           <HeaderRewardsPointsLink />
+          <AdminLink />
           <Link
             href="/updates"
             onClick={() => {

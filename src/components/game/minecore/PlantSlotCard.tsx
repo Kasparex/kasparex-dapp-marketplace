@@ -187,6 +187,9 @@ function plantStatusVariant(status: PlantSlotState['status']): KxBadgeVariant {
   return 'zinc';
 }
 
+const STAT_BADGE_COMPACT =
+  'inline-flex max-h-[14px] items-center !py-0 !px-1.5 !text-[9px] !leading-none !rounded normal-case tracking-normal tabular-nums';
+
 function StatBadge({
   variant,
   children,
@@ -197,7 +200,7 @@ function StatBadge({
   className?: string;
 }) {
   return (
-    <KxBadge variant={variant} className={`tabular-nums normal-case tracking-normal ${className}`.trim()}>
+    <KxBadge variant={variant} className={`${STAT_BADGE_COMPACT} ${className}`.trim()}>
       {children}
     </KxBadge>
   );
@@ -367,10 +370,10 @@ function CheckRow(props: {
 }) {
   const statCls =
     props.statTone === 'rose'
-      ? 'text-[10px] font-bold flex-shrink-0 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
-      : 'text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded';
+      ? 'inline-flex max-h-[14px] items-center flex-shrink-0 rounded px-1.5 py-0 text-[9px] font-bold leading-none bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
+      : 'inline-flex max-h-[14px] items-center flex-shrink-0 rounded px-1.5 py-0 text-[9px] font-bold leading-none text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800';
   const interactive = Boolean(props.onClick) && !props.disabled;
-  const rowCls = `flex w-full items-center gap-2 py-2 px-2 rounded-lg transition-colors group text-left font-sans ${
+  const rowCls = `flex w-full items-center gap-2 py-1.5 px-2 rounded-lg transition-colors group text-left font-sans ${
     interactive ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 cursor-pointer' : 'cursor-not-allowed opacity-55'
   }`;
 
@@ -419,7 +422,7 @@ function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
     <>
       {arr.slice(0, max)}
       <span title="Additional bonuses; see row tooltip">
-        <KxBadge variant="zinc" className="px-1 text-[8px]">
+        <KxBadge variant="zinc" className={`${STAT_BADGE_COMPACT} !px-1 !text-[8px]`}>
           …
         </KxBadge>
       </span>

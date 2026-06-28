@@ -1,10 +1,11 @@
-'use client';
-
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProjectCard } from '@/components/ProjectCard';
 import { hubProjects } from '@/lib/hubProjects';
+
+/** Hub marketing content is static; cache at the edge for faster first paint. */
+export const revalidate = 3600;
 
 export default function HubPage() {
   return (

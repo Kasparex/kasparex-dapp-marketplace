@@ -134,7 +134,13 @@ const nextConfig = {
   // Experimental optimizations
   experimental: {
     // Reduce build output size
-    optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem'],
+    optimizePackageImports: [
+      '@rainbow-me/rainbowkit',
+      'wagmi',
+      'viem',
+      'lucide-react',
+      '@tanstack/react-query',
+    ],
   },
 };
 
