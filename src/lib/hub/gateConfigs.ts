@@ -105,6 +105,15 @@ export const DAPPS_DASHBOARD_GATE: HubWalletGateConfig = {
   autoPrompt: false,
 };
 
+export const CHRONICLES_CENTER_GATE: HubWalletGateConfig = {
+  title: 'Wallet required',
+  name: 'Chronicles Center',
+  message: 'Connect your Kaspa wallet to submit and manage community lore.',
+  requirement: { layer: 'L1' },
+  networkBadge: { layer: 'L1', label: 'Kaspa' },
+  autoPrompt: false,
+};
+
 export function storeProductGateConfig(product: Pick<{ title: string }, 'title'>): HubWalletGateConfig {
   return {
     title: 'Wallet required',

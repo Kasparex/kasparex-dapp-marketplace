@@ -10,6 +10,7 @@ import { ChroniclesSubmissionForm } from '@/components/chronicles/center/Chronic
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { StoreWalletBanner } from '@/components/store/StoreWalletBanner';
+import { CHRONICLES_CENTER_GATE } from '@/lib/hub/gateConfigs';
 import {
   chroniclesCenterTabHref,
   parseChroniclesCenterTab,
@@ -82,11 +83,7 @@ export function ChroniclesCenterContent() {
         />
       </div>
 
-      {!state.isConnected ? (
-        <div className="mb-8">
-          <StoreWalletBanner message="Connect your Kaspa wallet to submit and manage community lore." />
-        </div>
-      ) : null}
+      <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />
 
       {tab === 'overview' ? (
         <div className="space-y-8">
