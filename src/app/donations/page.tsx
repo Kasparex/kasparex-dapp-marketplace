@@ -213,7 +213,7 @@ export default function DonationsListingPage() {
             <div id="content" className="scroll-mt-4" />
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Campaigns</h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 {isLoading
                   ? 'Loading...'
                   : `${totalVisible} campaign${totalVisible !== 1 ? 's' : ''} found`}

@@ -73,7 +73,7 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                   Fees & Rewards
                 </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                <p className="kx-body mt-1">
                   Base fees and rewards for {dapp.name}
                 </p>
               </div>
@@ -107,10 +107,10 @@ export function DAppFeesModal({ dapp, clickable = true }: DAppFeesModalProps) {
                         <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                           {fee.action}
                         </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="py-3 px-4 kx-body">
                           {fee.cost}
                         </td>
-                        <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        <td className="py-3 px-4 kx-body">
                           {fee.rewards}
                         </td>
                       </tr>

@@ -6,14 +6,14 @@ export function DonorsGuideContent() {
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS · Donors</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Claims, refunds &amp; what you should know</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Short guide for people who donate - especially on <strong>L2 escrow</strong> campaigns.
         </p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L2 escrow (Igra / Kasplex)</h2>
-        <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400 space-y-2">
+        <ul className="list-disc pl-5 kx-body space-y-2">
           <li>
             Your donation is held in the <strong>escrow contract</strong> until the campaign ends or the creator claims after success.
           </li>
@@ -30,7 +30,7 @@ export function DonorsGuideContent() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">L1 direct (Kaspa)</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Donations go straight to the creator&apos;s Kaspa address. There is <strong>no escrow refund path</strong> on-chain like L2 - support is between you and the creator.
           Perks or points may still apply according to how the app records or displays them.
         </p>
@@ -38,7 +38,7 @@ export function DonorsGuideContent() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Revenue Tree &amp; fees</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           On L2 escrow, part of the donation may route to the platform fee system (Revenue Tree) as defined in the contract. That does not replace your refund rights when a
           campaign fails - refunds are still handled through the escrow <strong>claim refund</strong> flow when applicable.
         </p>

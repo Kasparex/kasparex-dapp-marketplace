@@ -84,7 +84,7 @@ export function CollectionCard({ collection, prefetched, tierLabel }: Collection
       <KxListingCardBody className="flex flex-col flex-1">
         <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-1">{collection.name}</h3>
         {collection.description ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2 flex-1">{collection.description}</p>
+          <p className="kx-body-sm mb-4 line-clamp-2 flex-1">{collection.description}</p>
         ) : (
           <div className="flex-1" />
         )}

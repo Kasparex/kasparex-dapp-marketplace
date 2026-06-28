@@ -66,7 +66,7 @@ export function RevenueDashboard() {
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Treasury</span>
+              <span className="kx-body">Treasury</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {revenueData.treasuryShare} KAS
               </span>
@@ -80,7 +80,7 @@ export function RevenueDashboard() {
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Developer</span>
+              <span className="kx-body">Developer</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {revenueData.developerShare} KAS
               </span>
@@ -94,7 +94,7 @@ export function RevenueDashboard() {
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Builder</span>
+              <span className="kx-body">Builder</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {revenueData.builderShare} KAS
               </span>

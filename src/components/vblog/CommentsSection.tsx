@@ -258,7 +258,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                             >
                               {authorDisplay}
                             </Link>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                            <p className="kx-body">
                               {formatDateTime(comment.timestamp)}
                             </p>
                           </div>
@@ -314,7 +314,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                       L2
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-1">
+                  <p className="kx-body flex-1">
                     Comments can be posted using either L1 (Kaspa) or L2 (EVM) wallets. Choose the network that matches your dApp or preference.
                   </p>
                 </div>
@@ -353,7 +353,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="kx-body">
                     {hasCredits() ? (
                       <>You have {credits?.creditsRemaining || 0} comment credit{credits?.creditsRemaining !== 1 ? 's' : ''} remaining</>
                     ) : (
@@ -394,7 +394,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
               }}
             >
               <div className="space-y-3">
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                <p className="kx-body">
                   Are you sure you want to delete this comment?
                 </p>
                 <div className="p-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg">

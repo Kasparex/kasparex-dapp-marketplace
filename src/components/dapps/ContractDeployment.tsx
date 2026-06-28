@@ -103,7 +103,7 @@ export function ContractStep({ formData, onUpdate }: ContractStepProps) {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Smart Contract
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Link your existing smart contract or deploy a new one. Registration is optional but recommended for on-chain verification.
         </p>
       </div>

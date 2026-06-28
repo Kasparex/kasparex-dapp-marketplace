@@ -156,7 +156,7 @@ export function SubscriptionManager() {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Manage Subscription Plans
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Configure subscription pricing for your dApps. Users can subscribe monthly, quarterly, or yearly.
         </p>
       </div>

@@ -68,7 +68,7 @@ export function DAppHeader({ dapp, contractAddress }: DAppHeaderProps) {
               {contractData?.name || dapp.name}
             </h1>
             {(dapp.description || dapp.utility) && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 {dapp.description || dapp.utility}
               </p>
             )}

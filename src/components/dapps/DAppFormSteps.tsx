@@ -20,7 +20,7 @@ export function BasicInfoStep({ formData, onUpdate }: FormStepProps) {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Basic Information
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Provide essential information about your dApp.
         </p>
       </div>
@@ -198,7 +198,7 @@ export function MediaLinksStep({ formData, onUpdate }: FormStepProps) {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Media & Links
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Add images, URLs, and social media links for your dApp.
         </p>
       </div>
@@ -316,7 +316,7 @@ export function SubscriptionStep({ formData, onUpdate }: FormStepProps) {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Subscription Setup (Optional)
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Configure subscription pricing for your dApp. Users can subscribe monthly, quarterly, or yearly.
         </p>
       </div>

@@ -65,7 +65,7 @@ export function CommentsInfoModal({ isOpen, onClose }: CommentsInfoModalProps) {
 
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4">
             <KxModalSectionTitle>Payment</KxModalSectionTitle>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
+            <p className="kx-body mt-2 leading-relaxed">
               Comment credits can be purchased with KAS or KREX through the same L1 wallet flow used across
               Kasparex. Choose your preferred currency in the purchase modal before confirming.
             </p>
@@ -73,7 +73,7 @@ export function CommentsInfoModal({ isOpen, onClose }: CommentsInfoModalProps) {
 
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4">
             <KxModalSectionTitle>On-chain storage</KxModalSectionTitle>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
+            <p className="kx-body mt-2 leading-relaxed">
               Comments are stored and confirmed on the Kaspa BlockDAG, making them publicly verifiable. The
               credit-based system helps keep spam low and discussion quality high.
             </p>

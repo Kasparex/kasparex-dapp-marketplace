@@ -9,7 +9,7 @@ export function AiRoadmapSteps({ onOpenSection }: { onOpenSection: (section: AiH
       <div className="mb-6">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Roadmap</p>
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Next steps</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Layout previews for upcoming Kasparex AI infrastructure on Kaspa L1.
         </p>
       </div>

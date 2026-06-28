@@ -110,7 +110,7 @@ export function DonationCampaignCard({
         <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden mb-2">
           <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="kx-body">
           {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
         </p>
       </div>

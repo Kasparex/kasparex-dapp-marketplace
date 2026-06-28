@@ -88,7 +88,7 @@ export function DAppRevenueTreePanel({ dapp }: DAppRevenueTreePanelProps) {
       <div className="space-y-4">
         <DAppSectionHeader title="Revenue Tree" hint="Native referral rewards on L2 dApps." />
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-6 text-center">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             Revenue Tree is only available for L2 (Igra) dApps.
           </p>
         </div>
@@ -105,7 +105,7 @@ export function DAppRevenueTreePanel({ dapp }: DAppRevenueTreePanelProps) {
 
       {pendingReferrer && !unifiedTree?.referrerSet && setReferrerSupported && userWalletAddress ? (
         <div className="rounded-xl border border-[#02abb8]/30 bg-[#02abb8]/5 dark:bg-[#02abb8]/10 p-4 space-y-3">
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="kx-body">
             Set your referrer once to join the tree:{' '}
             <span className="font-mono text-xs">
               {pendingReferrer.slice(0, 10)}…{pendingReferrer.slice(-8)}

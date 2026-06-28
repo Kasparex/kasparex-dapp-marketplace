@@ -29,5 +29,8 @@ export const KX_BODY_CLASS = 'kx-body';
 /** Tailwind class for compact listing descriptions. */
 export const KX_BODY_SM_CLASS = 'kx-body-sm';
 
+/** Listing card description excerpt (16px). */
+export const KX_CARD_EXCERPT = `${KX_TEXT_BODY_SM} line-clamp-3`;
+
 /** Tailwind class for long-form prose blocks. */
 export const KX_PROSE_CLASS = 'kx-prose';

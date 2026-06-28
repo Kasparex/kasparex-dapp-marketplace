@@ -28,7 +28,7 @@ export function NFTModuleCard({ module }: { module: NftModuleItem }) {
 
       <KxListingCardBody className="flex flex-col flex-1">
         <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100 mb-2">{module.title}</h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{module.description}</p>
+        <p className="kx-body flex-1 leading-relaxed">{module.description}</p>
         <span className="mt-4 text-xs font-bold uppercase tracking-wide text-lime-700 dark:text-lime-300 group-hover:text-lime-800 dark:group-hover:text-lime-200 transition-colors">
           Open module →
         </span>

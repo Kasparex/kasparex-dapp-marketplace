@@ -57,7 +57,7 @@ export default function DonationsHelpPage() {
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-10">
             <div className="max-w-4xl mx-auto">
-              <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+              <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
                 ← Back to campaigns
               </Link>
 
@@ -65,7 +65,7 @@ export default function DonationsHelpPage() {
                 <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 mb-12">
                   <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS</p>
                   <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">What happens after a campaign ends?</h1>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="kx-body">
                     A super simple guide to funds, safety, and refunds - plus how this fits into Revenue Tree.
                   </p>
                   <HowItWorksWizard />

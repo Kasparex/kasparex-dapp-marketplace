@@ -274,7 +274,7 @@ export function DonationBlock({
 
       {!deadlinePassed && (
         <div className="space-y-4">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             Donate iKAS to the escrow. Min {formatEther(VDONATIONS_MIN_DONATION_WEI)} iKAS (10 iKAS). Rewards (if enabled) are handled automatically on-chain.
           </p>
           {!isL2Connected && (
@@ -326,7 +326,7 @@ export function DonationBlock({
 
       {deadlinePassed && isEscrowClaimsPath && (
         <div className="space-y-4">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             This campaign has ended. L2 escrow actions below use <strong>{crowdkasChainName}</strong>.
           </p>
           {!isL2Connected && (
@@ -359,7 +359,7 @@ export function DonationBlock({
           )}
           {showDonorRefund && (
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3 space-y-2">
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+              <p className="kx-body">
                 The goal was not reached. This wallet has L2 escrow funds you can withdraw.
               </p>
               <button
@@ -389,7 +389,7 @@ export function DonationBlock({
       )}
 
       {deadlinePassed && !isEscrowClaimsPath && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">This campaign has ended. L1-direct flows do not use L2 escrow claim/refund here.</p>
+        <p className="kx-body">This campaign has ended. L1-direct flows do not use L2 escrow claim/refund here.</p>
       )}
 
       <TransactionPendingModal

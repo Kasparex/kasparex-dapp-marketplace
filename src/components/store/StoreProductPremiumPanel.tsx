@@ -14,7 +14,7 @@ function AssetPreviewTable({ product }: { product: Product }) {
 
   if (fileCount === 0 && !product.content?.trim()) {
     return (
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="kx-body">
         Seller has not attached downloadable files yet.
       </p>
     );
@@ -71,7 +71,7 @@ export function StoreProductPremiumPanel({ product, hasAccess }: StoreProductPre
         <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5 space-y-4">
           <div>
             <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Premium content unlocked</h3>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="mt-1 kx-body">
               Your purchase includes the files below. Download them from the main content section.
             </p>
           </div>
@@ -100,7 +100,7 @@ export function StoreProductPremiumPanel({ product, hasAccess }: StoreProductPre
         <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 to-cyan-50/30 p-5 dark:border-zinc-800 dark:from-zinc-900 dark:to-cyan-950/20 space-y-4">
           <div>
             <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Premium content locked</h3>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="mt-1 kx-body">
               Purchase this product to access downloads and protected content.
             </p>
           </div>

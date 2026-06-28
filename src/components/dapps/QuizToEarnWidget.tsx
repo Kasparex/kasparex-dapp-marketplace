@@ -131,7 +131,7 @@ export function QuizToEarnWidget() {
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
             Quiz-to-Earn
           </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             Answer crypto and ecosystem questions to earn rewards! Each correct answer earns you GRID or token rewards.
           </p>
         </div>
@@ -362,7 +362,7 @@ export function QuizToEarnWidget() {
                   </>
                 )}
               </div>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 You selected: {selectedQuestion.options[Number(currentAnswer.selectedAnswerIndex)]}
               </p>
               {currentAnswer.isCorrect && (

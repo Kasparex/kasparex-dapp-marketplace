@@ -59,7 +59,7 @@ export function VehiclesListing({
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{title}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           {filtered.length} {countLabel}
           {filtered.length !== 1 ? 's' : ''} found
         </p>

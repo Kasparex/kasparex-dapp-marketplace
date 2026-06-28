@@ -19,7 +19,7 @@ export default function DonationsDonorsPage() {
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-10">
             <div className="max-w-3xl mx-auto">
-              <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+              <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
                 ← Back to campaigns
               </Link>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">

@@ -194,7 +194,7 @@ export function CovenantMilestoneWidget() {
       {tab === 'deals' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="kx-body">
               {deals.length} deal{deals.length === 1 ? '' : 's'}
             </span>
             <button

@@ -322,7 +322,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 ariaLabel="Payment currency"
               />
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               {isEdit ? 'Update fee' : 'One-time listing fee'}:{' '}
               <span className="font-black text-[#02abb8]">{actionFee} KAS</span>
             </p>

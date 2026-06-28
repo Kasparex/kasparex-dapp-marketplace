@@ -25,7 +25,7 @@ export function GameMetadataPanel(props: { categories?: string[]; tags?: string[
           </span>
         ))}
         {categories.length === 0 && tags.length === 0 ? (
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">No metadata.</span>
+          <span className="kx-body">No metadata.</span>
         ) : null}
       </div>
     </GamePanelCard>

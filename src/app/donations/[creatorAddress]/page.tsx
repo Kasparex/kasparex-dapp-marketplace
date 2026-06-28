@@ -120,13 +120,13 @@ export default function DonationCampaignPage() {
 
           {/* Two columns: campaign (left) | info + leaderboard + Revenue Tree (right) */}
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-8">
-            <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+            <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
               ← All campaigns
             </Link>
             <Link href="/donations/help#how-it-works" className="text-sm text-emerald-700 dark:text-emerald-400 hover:underline mb-4 ml-4 inline-block">
               What happens after it ends?
             </Link>
-            <Link href="/donations/help#donors" className="text-sm text-zinc-600 dark:text-zinc-400 hover:underline mb-4 ml-4 inline-block">
+            <Link href="/donations/help#donors" className="kx-body hover:underline mb-4 ml-4 inline-block">
               Donors · Claims &amp; refunds
             </Link>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
@@ -252,7 +252,7 @@ export default function DonationCampaignPage() {
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">No external links on this campaign.</p>
+                      <p className="kx-body">No external links on this campaign.</p>
                     )}
                   </div>
                 </div>

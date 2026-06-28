@@ -8,6 +8,7 @@ import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './dapps/CategoryIcon';
+import { KX_LISTING_CATEGORY_CHIP } from '@/lib/ui/kxLayout';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
@@ -118,7 +119,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                 {category && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
+                  <div className={KX_LISTING_CATEGORY_CHIP}>
                     <CategoryIcon id={category.id} />
                     <span>{category.name}</span>
                   </div>

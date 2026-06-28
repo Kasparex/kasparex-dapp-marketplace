@@ -3,38 +3,30 @@
 import { HubProject } from '@/lib/hubProjects';
 import { hubProjectListingAccent } from '@/lib/hub/hubProjectListingAccent';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KX_LISTING_CATEGORY_CHIP } from '@/lib/ui/kxLayout';
+import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 interface ProjectCardProps {
   project: HubProject;
 }
 
+function statusBadgeVariant(status: HubProject['status']) {
+  if (status === 'demo') return 'sky' as const;
+  if (status === 'beta') return 'violet' as const;
+  if (status === 'coming-soon') return 'amber' as const;
+  return 'zinc' as const;
+}
+
+function statusLabel(status: HubProject['status']) {
+  if (status === 'demo') return 'Demo';
+  if (status === 'beta') return 'Beta';
+  if (status === 'coming-soon') return 'Coming soon';
+  return status;
+}
+
 export function ProjectCard({ project }: ProjectCardProps) {
   const accent = hubProjectListingAccent(project.id);
-
-  const getStatusBadge = () => {
-    switch (project.status) {
-      case 'demo':
-        return (
-          <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded">
-            Demo
-          </span>
-        );
-      case 'beta':
-        return (
-          <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded">
-            Beta
-          </span>
-        );
-      case 'coming-soon':
-        return (
-          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded">
-            Coming Soon
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <KxListingCard
@@ -94,28 +86,23 @@ export function ProjectCard({ project }: ProjectCardProps) {
       </KxListingCardMedia>
 
       <KxListingCardBody className="relative z-10 flex-1 min-h-0">
-        {getStatusBadge() ? <div className="absolute top-4 right-4 z-10">{getStatusBadge()}</div> : null}
+        {project.status !== 'available' ? (
+          <div className="absolute top-4 right-4 z-10">
+            <KxBadge variant={statusBadgeVariant(project.status)}>{statusLabel(project.status)}</KxBadge>
+          </div>
+        ) : null}
 
         <div className="mb-2 pr-24">
           <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{project.name}</h3>
         </div>
 
         <div className="mb-3 flex-grow min-h-0">
-          <p className="kx-body line-clamp-3">{project.description}</p>
-          {project.earnPtsHint ? (
-            <p className="text-[11px] leading-snug text-zinc-600 dark:text-zinc-400 mt-2">
-              <span className="font-semibold text-[#017a84] dark:text-[#8ff1f8]">Hub pts </span>
-              {project.earnPtsHint}
-              <span className="text-zinc-500 dark:text-zinc-500">. Policy: Rewards → Points tab.</span>
-            </p>
-          ) : null}
+          <p className={KX_CARD_EXCERPT}>{project.description}</p>
         </div>
 
         <div className="mt-auto pt-3 border-t border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-              {project.category}
-            </span>
+          <div className={KX_LISTING_CATEGORY_CHIP}>
+            <span>{project.category}</span>
           </div>
         </div>
       </KxListingCardBody>

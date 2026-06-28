@@ -58,7 +58,7 @@ export function RewardsDisplay({
   if (!isConnected || !address) {
     return (
       <div className={`p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 ${className}`}>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Connect wallet to view rewards
         </p>
       </div>

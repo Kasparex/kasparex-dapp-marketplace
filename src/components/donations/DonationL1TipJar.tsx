@@ -222,7 +222,7 @@ export function DonationL1TipJar({
               I donated on L1 - reveal gift
             </button>
           ) : (
-            <div className="text-sm text-zinc-700 dark:text-zinc-300 space-y-2">
+            <div className="kx-body space-y-2">
               {gift?.type === 'text' && <p className="whitespace-pre-wrap">{gift.value}</p>}
               {gift?.type === 'url' && gift.value && (
                 <a href={gift.value} target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 break-all hover:underline">

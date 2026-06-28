@@ -72,7 +72,7 @@ export function NFTCard({
 
       {/* Info */}
       <div className="p-4">
-        <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+        <div className="kx-body mb-1">
           {collection?.name || collectionId}
         </div>
         <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -80,7 +80,7 @@ export function NFTCard({
         </div>
 
         {metadata?.name && metadata.name !== `${collection?.name} #${tokenId}` && (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+          <div className="kx-body mb-2">
             {metadata.name}
           </div>
         )}

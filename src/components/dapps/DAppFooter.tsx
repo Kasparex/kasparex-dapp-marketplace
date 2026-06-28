@@ -23,7 +23,7 @@ export function DAppFooter({ contractAddress }: DAppFooterProps) {
       <div className="flex items-center justify-between px-4 py-3">
         {/* Left: Contract Address */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">Contract:</span>
+          <span className="kx-body">Contract:</span>
           <a
             href={explorerUrl}
             target="_blank"

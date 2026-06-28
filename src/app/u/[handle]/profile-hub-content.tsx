@@ -500,7 +500,7 @@ export function ProfileHubContent({
 
                 {!kaspaAddress && (
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="kx-body">
                       <div>
                         This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-semibold">yourname.kas</span>) or a Kaspa address.
                       </div>
@@ -567,7 +567,7 @@ function OverviewTab({
 
       <div className="space-y-6">
         <Card title="Public profile">
-          <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="space-y-3 kx-body">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Visibility</span>
               <span className="font-black text-zinc-900 dark:text-zinc-100">Public</span>
@@ -942,7 +942,7 @@ function CreatorContentTab({
 
       {typeFilter === 'articles' || typeFilter === 'all' ? (
         vblogLoading ? (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 kx-body">
             Loading articles…
           </div>
         ) : null
@@ -962,7 +962,7 @@ function CreatorContentTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 kx-body">
           {isOwnProfile ? 'No items yet. Use Create to publish your first content.' : 'No published items yet.'}
         </div>
       ) : (
@@ -1052,7 +1052,7 @@ function CreatorCreateTab({
 }) {
   if (!isOwnProfile) {
     return (
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 kx-body">
         Connect your wallet and open your own profile to access creator tools.
       </div>
     );
@@ -1156,7 +1156,7 @@ function AssetsTab() {
   return (
     <div className="space-y-6">
       <Card title="Assets and history">
-        <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+        <div className="kx-body mb-4">
           Asset library and generation history are being unified under Profile Hub. Use the links below while we complete final migration.
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -1196,7 +1196,7 @@ function KnsTab({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <SectionTitle title="KNS" />
-            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-2 kx-body">
               Primary: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{primaryName ? primaryName.toLowerCase() : ' - '}</span>
               {primaryName ? <span className="ml-2"><CopyIconButton value={primaryName.toLowerCase()} label="Copy primary domain" /></span> : null}
             </div>
@@ -1210,11 +1210,11 @@ function KnsTab({
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         <SectionTitle title="Owned domains" />
         {!kaspaAddress ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Resolve a Kaspa address to load domains.</div>
+          <div className="kx-body">Resolve a Kaspa address to load domains.</div>
         ) : isLoading ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
+          <div className="kx-body">Loading…</div>
         ) : cards.length === 0 ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">No domains found.</div>
+          <div className="kx-body">No domains found.</div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {cards.slice(0, 24).map((d) => {
@@ -1282,11 +1282,11 @@ function InsTab({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <SectionTitle title="INS" />
-            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-2 kx-body">
               Linked EVM:{' '}
               <span className="font-semibold font-mono text-zinc-900 dark:text-zinc-100">{linkedEvmAddress}</span>
             </div>
-            <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-2 kx-body">
               Primary:{' '}
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                 {primaryName ? primaryName.toLowerCase() : ' - '}
@@ -1312,9 +1312,9 @@ function InsTab({
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         <SectionTitle title="Owned .igra names" />
         {isLoading ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">Loading…</div>
+          <div className="kx-body">Loading…</div>
         ) : names.length === 0 ? (
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="kx-body">
             No INS names found for the linked EVM wallet.{' '}
             <a href={INS_REGISTER_URL} target="_blank" rel="noopener noreferrer" className="text-[#02abb8] font-semibold underline">
               Register a name
@@ -1652,7 +1652,7 @@ function ProfileHaloHeader({
                     {displayName}
                   </h1>
                   {!kpxIdentityLoading && kpxDisplay ? (
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 truncate">
+                    <p className="mt-1 kx-body truncate">
                       <span className="font-bold text-[#02abb8]">kpx/pf</span>{' '}
                       <span className="font-semibold text-zinc-800 dark:text-zinc-200">{kpxDisplay}</span>
                       <Link
@@ -1922,7 +1922,7 @@ function ActionLink({ href, label }: { href: string; label: string }) {
 function LoadingCard({ label }: { label: string }) {
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-      <div className="text-sm text-zinc-600 dark:text-zinc-400">{label}</div>
+      <div className="kx-body">{label}</div>
     </div>
   );
 }

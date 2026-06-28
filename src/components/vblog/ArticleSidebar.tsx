@@ -70,7 +70,7 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
                         </a>
                     </div>
                 ) : (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">No author links provided.</p>
+                    <p className="kx-body">No author links provided.</p>
                 )}
             </div>
 
@@ -79,7 +79,7 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
                 <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
                     {balance.toLocaleString()} <span className="text-xs text-[#02abb8] lowercase pr-1">krex</span>
                 </div>
-                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="mt-2 kx-body">
                     Tier: <span className="font-bold text-zinc-900 dark:text-zinc-100">{tier}</span> ({holderDiscount}% discount)
                 </p>
             </div>

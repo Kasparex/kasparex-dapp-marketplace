@@ -60,7 +60,7 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
       <div id="crowdkas-donate" className={`${crowdkasCardClass} scroll-mt-28 space-y-4`}>
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Pledge KAS</h3>
         {!state.isConnected ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="kx-body">
             Connect your Kaspa wallet to pledge or manage this campaign.
           </p>
         ) : isLive ? (
@@ -93,7 +93,7 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
             </div>
           </>
         ) : (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">This campaign is no longer accepting pledges.</p>
+          <p className="kx-body">This campaign is no longer accepting pledges.</p>
         )}
 
         {isCreator && campaign.status === 'succeeded' && !campaign.claimedAt && (
@@ -163,7 +163,7 @@ export function CovenantCrowdfundRightColumn({ campaign }: { campaign: Crowdfund
       <div id="crowdkas-supporters" className={`${crowdkasCardClass} scroll-mt-28`}>
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Backers</h3>
         {activePledges.length === 0 ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No pledges yet. Be the first to back this campaign.</p>
+          <p className="kx-body">No pledges yet. Be the first to back this campaign.</p>
         ) : (
           <ul className="space-y-2 text-sm max-h-64 overflow-y-auto">
             {activePledges.map((p) => {

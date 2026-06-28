@@ -146,7 +146,7 @@ export default function CrowdKasModulesPage() {
 
                 {!myCampaignsLoading && myCampaignsV2.length === 0 && (
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-6">
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">You don’t have any V2 campaigns yet. Modules attach to a specific campaign id.</p>
+                    <p className="kx-body mb-3">You don’t have any V2 campaigns yet. Modules attach to a specific campaign id.</p>
                     <Link href="/donations/studio#create" className="k-control-btn inline-flex">
                       Create a V2 campaign
                     </Link>
@@ -156,7 +156,7 @@ export default function CrowdKasModulesPage() {
                 {myCampaignsV2.length > 0 && effectiveCampaign && (
                   <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                      <p className="kx-body">
                         Modules for <span className="font-mono font-semibold">#{effectiveCampaign.campaignId.toString()}</span>
                         {effectiveCampaign.method === 'L2_ESCROW' ? ' · L2 escrow' : ' · L1 direct'}
                       </p>
@@ -214,8 +214,8 @@ export default function CrowdKasModulesPage() {
 
             <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 p-6 space-y-3">
               <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Later</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Roadmap ideas (not available to purchase yet):</p>
-              <ul className="text-sm text-zinc-500 dark:text-zinc-400 space-y-2 list-disc pl-5">
+              <p className="kx-body">Roadmap ideas (not available to purchase yet):</p>
+              <ul className="kx-body space-y-2 list-disc pl-5">
                 {ROADMAP_ITEMS.map((item) => (
                   <li key={item.title}>
                     <span className="font-medium text-zinc-700 dark:text-zinc-300">{item.title}</span> - {item.detail}

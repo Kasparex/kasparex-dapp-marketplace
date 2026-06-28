@@ -199,7 +199,7 @@ export function SendKREXWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Connect <strong>KasWare</strong> or <strong>Kastle</strong> from the site header to send KREX.
         </p>
       </div>

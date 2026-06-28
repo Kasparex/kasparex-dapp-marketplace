@@ -248,10 +248,10 @@ export function KasparexNftSlotSelector({
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-start justify-between gap-4 flex-shrink-0">
           <div>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-            {description ? <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-2xl">{description}</p> : null}
+            {description ? <p className="kx-body mt-1 max-w-2xl">{description}</p> : null}
             {currentValue && onRemove ? (
               <div className="mt-3 flex items-center gap-3">
-                <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">Selected: {currentValue}</span>
+                <span className="kx-body truncate">Selected: {currentValue}</span>
                 <button
                   type="button"
                   aria-label="Remove NFT from this slot"
@@ -290,7 +290,7 @@ export function KasparexNftSlotSelector({
             <div className="min-h-48 flex flex-col items-center justify-center text-center p-6 space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
               <p className="font-semibold text-zinc-700 dark:text-zinc-300">No NFTs found</p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Connect a wallet that can read your NFT holdings.</p>
+              <p className="kx-body">Connect a wallet that can read your NFT holdings.</p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <a
                   href={KREXPRIME_KASPACOM}
@@ -314,7 +314,7 @@ export function KasparexNftSlotSelector({
             <div className="min-h-48 flex flex-col items-center justify-center text-center p-6 space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
               <p className="font-semibold text-zinc-700 dark:text-zinc-300">No matching NFTs for this slot</p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
+              <p className="kx-body max-w-md">
                 Your wallet has NFTs, but none from the collections allowed for this role.
               </p>
             </div>

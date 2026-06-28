@@ -266,11 +266,11 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
           </div>
           <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-700">
             <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">You Receive</p>
-            <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between kx-body">
               <span>{gridLabel}</span>
               <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
             </div>
-            <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between kx-body">
               <span>pts</span>
               <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
             </div>

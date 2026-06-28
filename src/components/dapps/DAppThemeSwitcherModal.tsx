@@ -104,7 +104,7 @@ export function DAppThemeSwitcherModal({
                     </div>
                     <div>
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">Light Theme</div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">Clean and bright appearance</div>
+                      <div className="kx-body">Clean and bright appearance</div>
                     </div>
                   </div>
                   {selectedTheme === 'light' && (
@@ -133,7 +133,7 @@ export function DAppThemeSwitcherModal({
                     </div>
                     <div>
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">Dark Theme</div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">Easy on the eyes</div>
+                      <div className="kx-body">Easy on the eyes</div>
                     </div>
                   </div>
                   {selectedTheme === 'dark' && (

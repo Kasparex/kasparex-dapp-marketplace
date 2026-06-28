@@ -2,6 +2,8 @@
 
 import { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
+import { KX_LISTING_CATEGORY_CHIP } from '@/lib/ui/kxLayout';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 interface DAppPreviewProps {
   formData: Partial<DApp>;
@@ -16,7 +18,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
           Review Your dApp
         </h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Review all information before submitting. You can go back to edit any step.
         </p>
       </div>
@@ -36,22 +38,14 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
               {formData.name || 'Untitled dApp'}
             </h4>
             <div className="flex items-center gap-2 flex-wrap">
-              {category && (
-                <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
+              {category ? (
+                <span className={KX_LISTING_CATEGORY_CHIP}>
                   {category.emoji} {category.name}
                 </span>
-              )}
-              <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
-                {formData.status || 'Testnet'}
-              </span>
-              <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
-                {formData.network || 'Testnet'}
-              </span>
-              {formData.version && (
-                <span className="px-2 py-1 text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded">
-                  {formData.version}
-                </span>
-              )}
+              ) : null}
+              <KxBadge variant="zinc">{formData.status || 'Testnet'}</KxBadge>
+              <KxBadge variant="teal">{formData.network || 'Testnet'}</KxBadge>
+              {formData.version ? <KxBadge variant="cyan">v{formData.version}</KxBadge> : null}
             </div>
           </div>
         </div>
@@ -62,7 +56,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
             <h5 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               Description
             </h5>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{formData.description}</p>
+            <p className="kx-body">{formData.description}</p>
           </div>
         )}
 
@@ -72,7 +66,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
             <h5 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               Utility
             </h5>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{formData.utility}</p>
+            <p className="kx-body">{formData.utility}</p>
           </div>
         )}
 
@@ -82,7 +76,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
             <h5 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               Process
             </h5>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{formData.process}</p>
+            <p className="kx-body">{formData.process}</p>
           </div>
         )}
 
@@ -92,7 +86,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
             <h5 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
               Benefits
             </h5>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{formData.benefits}</p>
+            <p className="kx-body">{formData.benefits}</p>
           </div>
         )}
 
@@ -135,7 +129,7 @@ export function DAppPreview({ formData }: DAppPreviewProps) {
           <h5 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             Developer
           </h5>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+          <p className="kx-body mb-2">
             {formData.developer || 'Not specified'}
           </p>
           {formData.developerLinks && formData.developerLinks.length > 0 && (

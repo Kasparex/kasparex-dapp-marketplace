@@ -46,7 +46,7 @@ export function TransactionPendingModal({
           </div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
         </div>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Waiting for confirmation. You can track the transaction below.</p>
+        <p className="kx-body">Waiting for confirmation. You can track the transaction below.</p>
         <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="font-mono text-sm text-zinc-800 dark:text-zinc-200">{shortHash}</span>

@@ -348,7 +348,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
             {/* Sorting Controls */}
             <div className="flex items-center gap-2 border-l border-zinc-200 dark:border-zinc-700 pl-3">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400 font-medium whitespace-nowrap">Sort:</span>
+              <span className="kx-body font-medium whitespace-nowrap">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
@@ -378,7 +378,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
             {/* Results count */}
             {(filterDiamond || filterRarest || selectedCollection) && (
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-nowrap border-l border-zinc-200 dark:border-zinc-700 pl-3">
+              <div className="kx-body whitespace-nowrap border-l border-zinc-200 dark:border-zinc-700 pl-3">
                 {filteredNFTs.length} / {userNFTs.length}
               </div>
             )}
@@ -413,7 +413,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
                     +{NFT_MULTIPLIER}x
                   </td>
-                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                  <td className="py-3 px-4 kx-body">
                     -{NFT_FEE_REDUCTION}%
                   </td>
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -430,7 +430,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
                     +{DIAMOND_NFT_MULTIPLIER}x
                   </td>
-                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                  <td className="py-3 px-4 kx-body">
                     -{DIAMOND_NFT_FEE_REDUCTION}%
                   </td>
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -447,7 +447,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100">
                     +{RAREST_NFT_MULTIPLIER}x
                   </td>
-                  <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400">
+                  <td className="py-3 px-4 kx-body">
                     -{RAREST_NFT_FEE_REDUCTION}% (Zero Fee)
                   </td>
                   <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
@@ -514,7 +514,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
                 {/* Info */}
                 <div className="p-4">
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                  <div className="kx-body mb-1">
                     {collection?.name || nft.collection}
                   </div>
                   <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">

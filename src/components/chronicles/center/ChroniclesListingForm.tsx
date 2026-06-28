@@ -379,7 +379,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
                 ariaLabel="Listing fee currency"
               />
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               One-time submission fee:{' '}
               {listingFee.discountPercent > 0 ? (
                 <span className="line-through text-zinc-400 mr-1">

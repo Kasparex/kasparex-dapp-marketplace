@@ -103,7 +103,7 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
       </div>
 
       {/* Results Count */}
-      <div className="text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="kx-body">
         Showing {filteredDApps.length} of {dApps.length} dApp{dApps.length !== 1 ? 's' : ''}
       </div>
 
@@ -161,13 +161,13 @@ export function MyDAppsList({ dApps, isLoading, isEmpty }: MyDAppsListProps) {
                     </div>
 
                     {dapp.description && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">
+                      <p className="kx-body mb-4 line-clamp-2">
                         {dapp.description}
                       </p>
                     )}
 
                     {dapp.utility && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                      <p className="kx-body mb-4">
                         <span className="font-medium">Utility:</span> {dapp.utility}
                       </p>
                     )}

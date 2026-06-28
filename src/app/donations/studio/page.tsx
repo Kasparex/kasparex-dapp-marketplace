@@ -699,7 +699,7 @@ export default function DonationsStudioPage() {
             <h3 id="delete-campaign-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               Delete this campaign?
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3">
+            <p className="kx-body mt-3">
               This action is <strong className="text-red-700 dark:text-red-400">irreversible</strong>. On-chain campaign #
               {deleteCampaignId.toString()} will be cancelled and will no longer appear in your studio list. You can only delete
               campaigns that have received no donations and have no recorded L1 activity.
@@ -734,7 +734,7 @@ export default function DonationsStudioPage() {
           </div>
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-8">
-            <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+            <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
               ← All campaigns
             </Link>
 
@@ -774,7 +774,7 @@ export default function DonationsStudioPage() {
                     <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
                       Create and manage your campaign
                     </h1>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="kx-body mt-1">
                       Your EVM wallet is used for on-chain actions. Your Kaspa L1 wallet (optional) helps fill your L1 donation address.
                     </p>
                   </div>
@@ -810,7 +810,7 @@ export default function DonationsStudioPage() {
                               <p className="text-emerald-600 dark:text-emerald-400">Verified</p>
                             ) : (
                               <>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                                <p className="kx-body mb-4">
                                   Pay 1 wei to verify. Only verified wallets can create campaigns.
                                 </p>
                                 <button
@@ -831,7 +831,7 @@ export default function DonationsStudioPage() {
                           {isVerifiedV2 && (
                             <section id="create" className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900 scroll-mt-24">
                               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Create campaign (V2)</h2>
-                              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                              <p className="kx-body mb-4">
                                 New campaigns use <strong>L2 escrow</strong> on Igra for the funding goal. Optional Kaspa L1 tips (separate from the goal) can be added later in edit after you unlock the L1 tip jar module.
                               </p>
                               <div className="space-y-4">
@@ -990,7 +990,7 @@ export default function DonationsStudioPage() {
 
                             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.07] dark:bg-emerald-950/25 p-4 mb-4">
                               <p className="text-xs font-bold uppercase tracking-widest text-emerald-800 dark:text-emerald-300 mb-2">Premium modules</p>
-                              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
+                              <p className="kx-body mb-3">
                                 Unlock featured placement on the campaign listing, the Kaspa L1 tip jar, and other upgrades - pay with Kaspa (L1), then confirm one transaction on Igra.
                                 All unlocks are managed from the Modules page.
                               </p>
@@ -1008,10 +1008,10 @@ export default function DonationsStudioPage() {
                               </div>
                             )}
 
-                            {myCampaignsV2Loading && <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading campaigns…</div>}
+                            {myCampaignsV2Loading && <div className="kx-body">Loading campaigns…</div>}
 
                             {!myCampaignsV2Loading && myCampaignsV2.length === 0 && (
-                              <div className="text-sm text-zinc-500 dark:text-zinc-400">No campaigns yet.</div>
+                              <div className="kx-body">No campaigns yet.</div>
                             )}
 
                             {!myCampaignsV2Loading && myCampaignsV2.length > 0 && (
@@ -1105,7 +1105,7 @@ export default function DonationsStudioPage() {
                 <p className="text-emerald-600 dark:text-emerald-400">Verified</p>
               ) : (
                 <>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  <p className="kx-body mb-4">
                     Pay 1 wei to verify. Only verified wallets can create a campaign.
                   </p>
                   <button
@@ -1707,17 +1707,17 @@ export default function DonationsStudioPage() {
               <div className="lg:col-span-2 space-y-4">
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Network</h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="kx-body">
                     Required: <span className="font-semibold">Igra Mainnet</span>
                   </p>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="kx-body">
                     Current: <span className="font-semibold">{currentChain?.name ?? (chainId ? `chain ${chainId}` : 'Not connected')}</span>
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">How it works</h3>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  <ol className="list-decimal list-inside space-y-1 kx-body">
                     <li>Verify your wallet (tiny on-chain tx).</li>
                     <li>Create your campaign (goal + deadline).</li>
                     <li>Share the campaign link.</li>
@@ -1728,7 +1728,7 @@ export default function DonationsStudioPage() {
                 {kaspaState.isConnected && kaspaState.address && (
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
                     <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Kaspa L1 wallet</h3>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 break-all font-mono">{kaspaState.address}</p>
+                    <p className="kx-body break-all font-mono">{kaspaState.address}</p>
                   </div>
                 )}
               </div>

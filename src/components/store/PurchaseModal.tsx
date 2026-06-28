@@ -74,14 +74,14 @@ export function PurchaseModal({ product, isOpen, onClose, onProceed }: PurchaseM
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                 {product.title}
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+              <p className="kx-body line-clamp-2">
                 {product.description}
               </p>
             </div>
 
             <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 space-y-3 border border-zinc-200 dark:border-zinc-800">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">Product Price:</span>
+                <span className="kx-body">Product Price:</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                     {product.priceKAS}

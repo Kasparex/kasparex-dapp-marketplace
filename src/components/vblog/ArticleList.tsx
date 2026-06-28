@@ -87,7 +87,7 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">
                 {article.title}
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3 line-clamp-2 flex-grow">
+              <p className="kx-body mb-3 line-clamp-2 flex-grow">
                 {excerpt}
               </p>
 

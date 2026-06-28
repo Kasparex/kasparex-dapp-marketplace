@@ -100,7 +100,7 @@ export function DonationCampaignRightColumn({
       {userWalletAddress && (
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Your points</h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             {pointsLoading ? 'Calculating…' : `${points} points`}
           </p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">

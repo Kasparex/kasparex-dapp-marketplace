@@ -39,7 +39,7 @@ export function ChronicleArticleAside({
                     {l.label}
                   </Link>
                   {l.sublabel ? (
-                    <span className="block text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                    <span className="block kx-body mt-0.5 leading-relaxed">
                       {l.sublabel}
                     </span>
                   ) : null}

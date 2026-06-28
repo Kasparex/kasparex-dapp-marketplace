@@ -115,7 +115,7 @@ export default function CovenantCrowdfundPage({
           </div>
 
           <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-8">
-            <Link href="/donations" className="text-sm text-zinc-500 dark:text-zinc-400 hover:underline mb-4 inline-block">
+            <Link href="/donations" className="kx-body hover:underline mb-4 inline-block">
               ← All campaigns
             </Link>
             <Link
@@ -126,7 +126,7 @@ export default function CovenantCrowdfundPage({
             </Link>
             <Link
               href="/donations/help#donors"
-              className="text-sm text-zinc-600 dark:text-zinc-400 hover:underline mb-4 ml-4 inline-block"
+              className="kx-body hover:underline mb-4 ml-4 inline-block"
             >
               Donors · Claims &amp; refunds
             </Link>
@@ -227,11 +227,11 @@ export default function CovenantCrowdfundPage({
                         <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{campaign.memo}</p>
                       </div>
                     ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">No description provided for this campaign.</p>
+                      <p className="kx-body">No description provided for this campaign.</p>
                     )}
                     <div className="mt-4">
                       <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">How this campaign works</h3>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      <ul className="list-disc list-inside space-y-1 kx-body">
                         <li>All-or-nothing: the creator claims only if the goal is met before the deadline.</li>
                         <li>If the goal is missed, backers can refund their pledges (simulated).</li>
                         <li>Rules will be enforced on Kaspa L1 by covenants when wallets support them.</li>

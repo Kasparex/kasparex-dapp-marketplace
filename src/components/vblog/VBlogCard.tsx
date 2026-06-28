@@ -68,7 +68,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2">
             {article.title}
           </h3>
-          <p className="kx-body mb-6 line-clamp-3 flex-1">
+          <p className="kx-body-sm mb-6 line-clamp-3 flex-1">
             {excerpt}
           </p>
 

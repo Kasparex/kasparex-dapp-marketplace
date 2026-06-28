@@ -272,7 +272,7 @@ export function CovenantSplitWidget() {
       {tab === 'splits' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="kx-body">
               {openCount} open, {splits.length} total
             </span>
             <button

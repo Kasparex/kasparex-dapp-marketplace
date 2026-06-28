@@ -63,9 +63,9 @@ export function ChroniclesUnlockModal({
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {alreadyUnlocked ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">You already have access to this content.</p>
+            <p className="kx-body">You already have access to this content.</p>
           ) : !offer ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">This unlock offer is not available.</p>
+            <p className="kx-body">This unlock offer is not available.</p>
           ) : (
             <>
               <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="w-full h-40 rounded-xl" />
@@ -85,7 +85,7 @@ export function ChroniclesUnlockModal({
               {!unlock.isConnected ? (
                 <>
                   <KxModalSectionTitle>Connect wallet</KxModalSectionTitle>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="kx-body">
                     Connect your Kaspa wallet using the site header, then return here to pay and unlock.
                   </p>
                 </>

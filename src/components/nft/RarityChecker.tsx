@@ -159,14 +159,14 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
                   {collection?.name} #{rarity.tokenId}
                 </h3>
                 {rank && (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  <p className="kx-body mt-1">
                     Rank: #{rank}
                   </p>
                 )}
               </div>
 
               <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-                <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                <div className="kx-body mb-1">
                   Total Rarity Score
                 </div>
                 <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -187,7 +187,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
                   key={index}
                   className="p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
                 >
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                  <div className="kx-body mb-1">
                     {trait.traitType}
                   </div>
                   <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -206,7 +206,7 @@ export function RarityChecker({ collectionId }: RarityCheckerProps) {
 
       {/* Info Note */}
       {!rarity && !error && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg kx-body">
           <p>
             Enter a token ID to check its rarity score and trait breakdown. Rarity is calculated using the standard method:
             sum of (1 / trait frequency) for each trait.

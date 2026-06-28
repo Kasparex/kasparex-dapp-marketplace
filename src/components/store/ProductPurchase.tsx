@@ -69,7 +69,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
       <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5">
         <div>
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Purchase product</h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             Pay with KAS or KREX from your connected Kaspa wallet.
           </p>
         </div>

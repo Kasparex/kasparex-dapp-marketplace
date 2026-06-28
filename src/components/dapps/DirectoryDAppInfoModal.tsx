@@ -104,7 +104,7 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
         <div className="px-6 sm:px-8 py-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">{dapp.name}</h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Community directory listing</p>
+            <p className="kx-body mt-1">Community directory listing</p>
           </div>
           <button
             type="button"
@@ -253,13 +253,13 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
                   </p>
                 ) : null}
                 {listing.contactTelegram ? (
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <p className="kx-body">
                     <span className="text-zinc-500">Telegram: </span>
                     {listing.contactTelegram}
                   </p>
                 ) : null}
                 {listing.contactDiscord ? (
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <p className="kx-body">
                     <span className="text-zinc-500">Discord: </span>
                     {listing.contactDiscord}
                   </p>
@@ -267,7 +267,7 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
                 {listing.additionalNotes ? (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Additional notes</p>
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">{listing.additionalNotes}</p>
+                    <p className="kx-body whitespace-pre-wrap">{listing.additionalNotes}</p>
                   </div>
                 ) : null}
                 <p className="text-xs text-zinc-500 pt-2 border-t border-zinc-200 dark:border-zinc-800">

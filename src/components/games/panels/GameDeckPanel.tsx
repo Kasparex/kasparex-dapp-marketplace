@@ -176,7 +176,7 @@ export function GameDeckPanel(props: {
             const innerContent = (
               <>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <div className="flex items-center gap-2 kx-body">
                     {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
                     <span className="truncate font-medium">{r.label}</span>
                   </div>

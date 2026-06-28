@@ -93,7 +93,7 @@ export function ProductGrid({ products, viewMode }: ProductGridProps) {
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                   {product.title}
                 </h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-1 mt-1">
+                <p className="kx-body line-clamp-1 mt-1">
                   {product.description}
                 </p>
               </div>

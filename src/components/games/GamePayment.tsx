@@ -136,7 +136,7 @@ export function GamePayment({ game }: GamePaymentProps) {
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             Connect Wallet to Play
           </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+          <p className="kx-body mb-4">
             Connect your Kaspa wallet to play {game.name} and earn rewards!
           </p>
           <button
@@ -170,14 +170,14 @@ export function GamePayment({ game }: GamePaymentProps) {
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
             Ready to Play?
           </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             Pay the entry fee to start playing and earn rewards!
           </p>
         </div>
 
         <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Entry Cost:</span>
+            <span className="kx-body">Entry Cost:</span>
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                 {entryAmount}

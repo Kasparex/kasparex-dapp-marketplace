@@ -544,7 +544,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
         </div>
         <aside className="xl:sticky xl:top-6 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
           <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
-          <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <div className="space-y-2 kx-body">
             <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{updateQuote.baseFeeKas} KAS</span></div>
             <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{updateQuote.sizeFeeKas} KAS</span></div>
             <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{updateQuote.networkFeeBufferKas} KAS</span></div>

@@ -85,7 +85,7 @@ export function TokenDisplay({
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             {ticker} Token
           </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="kx-body">
             {dAppName} Token
           </p>
         </div>
@@ -93,7 +93,7 @@ export function TokenDisplay({
 
       {isConnected && balance !== undefined && balance !== null && (
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Your Balance</p>
+          <p className="kx-body mb-1">Your Balance</p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             {maskValue(formattedBalance, isBalanceVisible)} {ticker}
           </p>

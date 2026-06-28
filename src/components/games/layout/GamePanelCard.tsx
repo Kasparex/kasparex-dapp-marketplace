@@ -24,7 +24,7 @@ export function GamePanelRows(props: { rows: Array<{ label: ReactNode; value: Re
           key={idx}
           className={`flex justify-between items-center ${props.dense ? 'py-2' : 'py-2.5'} border-b border-zinc-100 dark:border-zinc-800 last:border-0`}
         >
-          <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
+          <span className="kx-body inline-flex items-center gap-1.5">
             {r.label}
           </span>
           <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{r.value}</span>

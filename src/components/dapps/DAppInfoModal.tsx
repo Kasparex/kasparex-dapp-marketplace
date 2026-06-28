@@ -192,7 +192,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     href={deployerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    className="block px-4 py-2 kx-body hover:bg-zinc-100 dark:hover:bg-zinc-700"
                   >
                     View Profile
                   </a>
@@ -253,7 +253,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                             <td className="py-3 px-4 text-sm text-zinc-900 dark:text-zinc-100 font-medium">
                               {action.action}
                             </td>
-                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 text-right">
+                            <td className="py-3 px-4 kx-body text-right">
                               {costReductionPercent > 0 ? (
                                 <>
                                   <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">
@@ -267,7 +267,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                                 `${formatPrice(toRecipient)} ${nativeSymbol}`
                               )}
                             </td>
-                            <td className="py-3 px-4 text-sm text-zinc-600 dark:text-zinc-400 text-right">
+                            <td className="py-3 px-4 kx-body text-right">
                               {feePercent < baseFee ? (
                                 <>
                                   <span className="line-through text-zinc-400 dark:text-zinc-600 mr-1">

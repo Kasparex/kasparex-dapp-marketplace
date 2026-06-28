@@ -204,7 +204,7 @@ export function ChronicleChapterQuiz({
                 ariaLabel="Quiz entry currency"
               />
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               One attempt:{' '}
               {listingFee.discountPercent > 0 ? (
                 <span className="line-through text-zinc-400 mr-1">

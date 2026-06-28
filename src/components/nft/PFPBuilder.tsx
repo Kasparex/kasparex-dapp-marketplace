@@ -665,7 +665,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
           {activeTraitTab && availableTraits.has(activeTraitTab) && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Select {activeTraitTab}
                 </p>
                 <button
@@ -782,7 +782,7 @@ export function PFPBuilder({ collectionId }: PFPBuilderProps) {
       </div>
 
       {/* Info Note */}
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg kx-body">
         {collection?.traitImagesBaseUri ? (
           <p>
             Select traits from different categories using the tabs above. Click on trait images to select them.

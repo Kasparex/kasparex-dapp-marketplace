@@ -23,7 +23,7 @@ export function DAppDescriptionsPanel({ dapp }: DAppDescriptionsPanelProps) {
 
   if (!hasContent) {
     return (
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 py-4">No description available for this dApp.</p>
+      <p className="kx-body py-4">No description available for this dApp.</p>
     );
   }
 

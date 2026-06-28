@@ -239,7 +239,7 @@ export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
                                                     )}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                                            <p className="kx-body whitespace-pre-wrap">
                                                 {comment.content}
                                             </p>
                                         </div>
@@ -339,7 +339,7 @@ export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
                             }}
                         >
                             <div className="space-y-3">
-                                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                                <p className="kx-body">
                                     Are you sure you want to delete this comment?
                                 </p>
                                 <div className="p-3 bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg">

@@ -89,7 +89,7 @@ export function SendKASWidget() {
   if (!state.isConnected) {
     return (
       <div className="p-6 space-y-4">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Connect <strong>KasWare</strong> or <strong>Kastle</strong> from the site header to send KAS.
         </p>
       </div>
@@ -101,13 +101,13 @@ export function SendKASWidget() {
       {/* Wallet Info */}
       <div className="bg-zinc-800 dark:bg-zinc-800/50 rounded-lg p-4 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">Connected Address:</span>
+          <span className="kx-body">Connected Address:</span>
           <span className="text-sm font-mono text-zinc-900 dark:text-zinc-100">
             {state.address ? `${state.address.slice(0, 8)}...${state.address.slice(-8)}` : 'N/A'}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">KAS Balance:</span>
+          <span className="kx-body">KAS Balance:</span>
           <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
             {isBalanceLoading ? 'Loading...' : kasBalance || '0.00'} KAS
           </span>

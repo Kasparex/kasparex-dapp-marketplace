@@ -377,7 +377,7 @@ export function ProductSubmissionModal({
 
               {/* Listing Fee Info */}
               <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Listing fee: <span className="font-semibold">{LISTING_FEE_KAS} KAS</span>
                 </p>
               </div>
@@ -422,7 +422,7 @@ export function ProductSubmissionModal({
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                 Product Submitted!
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 Your product has been listed successfully.
               </p>
             </div>

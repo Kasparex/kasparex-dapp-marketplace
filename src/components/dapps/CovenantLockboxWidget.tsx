@@ -236,7 +236,7 @@ export function CovenantLockboxWidget() {
       {tab === 'vaults' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="kx-body">
               {myLocked.length} active, {vaults.length} total
             </span>
             <button

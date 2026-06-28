@@ -202,7 +202,7 @@ export function VBlogModuleUnlockCards({
                   <p className="text-base font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
                   {isUnlocked ? <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Unlocked</span> : null}
                 </div>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 flex-1">{offer.description}</p>
+                <p className="mt-1 kx-body flex-1">{offer.description}</p>
                 <div className="mt-3">
                   <div className="flex items-end gap-2">
                     <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{effectiveKas} KAS</span>

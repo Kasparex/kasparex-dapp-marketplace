@@ -62,14 +62,14 @@ export function KASFeeConfirmation({
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">Transaction Fee</p>
+                <p className="kx-body">Transaction Fee</p>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                   <TokenLogoImage tokenId="kas" size={28} />
                   {feeInfo.amount} KAS
                 </p>
               </div>
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               {feeInfo.description}
             </p>
           </div>

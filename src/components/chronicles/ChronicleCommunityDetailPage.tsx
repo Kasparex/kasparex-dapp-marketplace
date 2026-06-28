@@ -44,7 +44,7 @@ export function ChronicleCommunityDetailPage({
   if (!item) {
     return (
       <div className="text-center py-16 space-y-4">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Community entry not found.</p>
+        <p className="kx-body">Community entry not found.</p>
         <Link href={BACK_HREF[kind]} className="text-sm font-bold text-[#02abb8] hover:underline">
           Back to {backLabel}
         </Link>

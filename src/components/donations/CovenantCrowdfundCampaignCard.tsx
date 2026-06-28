@@ -65,7 +65,7 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="kx-body">
           {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
         </p>
       </div>

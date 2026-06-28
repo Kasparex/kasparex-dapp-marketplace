@@ -107,7 +107,7 @@ export function TokenDeploymentWizard({
   if (!isConnected) {
     return (
       <div className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Connect wallet to deploy token
         </p>
       </div>
@@ -120,7 +120,7 @@ export function TokenDeploymentWizard({
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
           Deploy Token for {dAppName}
         </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Step {step} of 3: Configure your token
         </p>
       </div>

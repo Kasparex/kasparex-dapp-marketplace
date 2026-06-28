@@ -159,13 +159,13 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {!isWalletConnected ? (
-            <p className="text-center py-8 text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-center py-8 kx-body">
               Connect your wallet to purchase credits
             </p>
           ) : hasUnlimitedCredits ? (
             <div className="text-center py-8">
               <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Unlimited Credits Unlocked</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 You hold 100M+ KREX ({krexBalance.toLocaleString()} KREX).
               </p>
             </div>

@@ -71,7 +71,7 @@ export function GenesisDappWidget() {
         <h2 className="text-3xl font-bold text-white dark:text-zinc-100 mb-2">
           🌱 Genesis Dapp
         </h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           Leave your mark in Kaspa history. Your message will be permanently stored on-chain.
         </p>
         {state && (

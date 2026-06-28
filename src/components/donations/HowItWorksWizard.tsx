@@ -112,7 +112,7 @@ export function HowItWorksWizard() {
               </div>
               <div className="min-w-0">
                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">{s.title}</h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 whitespace-pre-wrap">{s.body}</p>
+                <p className="kx-body mt-1 whitespace-pre-wrap">{s.body}</p>
               </div>
             </div>
           </div>
@@ -121,7 +121,7 @@ export function HowItWorksWizard() {
 
       <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Revenue Tree (simple view)</h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+        <p className="kx-body mt-1">
           If a donation happens through a referral link, the Revenue Tree can attribute that donation and distribute rewards/points based on the configured fee rules.
           For escrow campaigns, this can be derived from on-chain donation events. For L1 direct donations, attribution typically needs a recorded donation entry or a payload-based binding.
         </p>

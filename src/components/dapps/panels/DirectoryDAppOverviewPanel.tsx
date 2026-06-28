@@ -23,7 +23,7 @@ type DirectoryDAppOverviewPanelProps = {
 function LinkGrid({ links, emptyLabel }: { links: { label: string; url: string }[]; emptyLabel?: string }) {
   if (links.length === 0) {
     return emptyLabel ? (
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">{emptyLabel}</p>
+      <p className="kx-body">{emptyLabel}</p>
     ) : null;
   }
 
@@ -248,7 +248,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
             {listing.additionalNotes ? (
               <div className="mt-4">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Additional notes</p>
-                <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">{listing.additionalNotes}</p>
+                <p className="whitespace-pre-wrap kx-body">{listing.additionalNotes}</p>
               </div>
             ) : null}
           </div>

@@ -96,7 +96,7 @@ export function DonationTagMultiFilter({
           </div>
           <div className="max-h-[280px] overflow-auto">
             {filteredTags.length === 0 && (
-              <div className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">No tags</div>
+              <div className="px-4 py-3 kx-body">No tags</div>
             )}
             {filteredTags.map((tag) => {
               const checked = selectedTags.includes(tag);

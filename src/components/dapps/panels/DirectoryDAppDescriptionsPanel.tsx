@@ -26,7 +26,7 @@ export function DirectoryDAppDescriptionsPanel({ listing }: DirectoryDAppDescrip
 
   if (!hasContent) {
     return (
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 py-4">
+      <p className="kx-body py-4">
         No description has been provided for this listing yet.
       </p>
     );

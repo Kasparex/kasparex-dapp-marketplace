@@ -207,22 +207,22 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">Total NFTs</div>
+          <div className="kx-body font-medium mb-2">Total NFTs</div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.totalNFTs}</div>
         </div>
 
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">Total Points</div>
+          <div className="kx-body font-medium mb-2">Total Points</div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.totalPoints}</div>
         </div>
 
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">L1 NFTs</div>
+          <div className="kx-body font-medium mb-2">L1 NFTs</div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.networkBreakdown.l1}</div>
         </div>
 
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div className="text-sm text-zinc-600 dark:text-zinc-400 font-medium mb-2">L2 NFTs</div>
+          <div className="kx-body font-medium mb-2">L2 NFTs</div>
           <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{stats.networkBreakdown.l2}</div>
         </div>
       </div>
@@ -240,7 +240,7 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
                   <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                     {collection?.name || collectionId}
                   </span>
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="kx-body">
                     {count} ({percentage}%)
                   </span>
                 </div>

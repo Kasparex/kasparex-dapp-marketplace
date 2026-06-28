@@ -67,7 +67,7 @@ export function PurchasedItemsList({ purchases }: PurchasedItemsListProps) {
                     `Product ID: ${purchase.productId.slice(0, 8)}...`
                   )}
                 </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                <div className="kx-body">
                   {new Date(purchase.purchasedAt).toLocaleDateString()}
                 </div>
               </div>

@@ -146,7 +146,7 @@ export function DAOVotingWidget() {
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
             Proposals {proposalCount !== null && `(${proposalCount.toString()})`}
           </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="kx-body mt-1">
             Submit and vote on future dApp ideas
           </p>
         </div>

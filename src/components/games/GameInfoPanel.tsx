@@ -20,7 +20,7 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
         </h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Type:</span>
+            <span className="kx-body">Type:</span>
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               <span className="inline-flex items-center gap-2">
                 <GameTypeIcon type={game.gameType} className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
@@ -29,11 +29,11 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Difficulty:</span>
+            <span className="kx-body">Difficulty:</span>
             <GameDifficultyBadge difficulty={game.difficulty} size="sm" />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Status:</span>
+            <span className="kx-body">Status:</span>
             {game.status === 'beta' && (
               <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded">
                 Beta
@@ -56,14 +56,14 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
             )}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Developer:</span>
+            <span className="kx-body">Developer:</span>
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               {game.developer}
             </span>
           </div>
           {game.version && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Version:</span>
+              <span className="kx-body">Version:</span>
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {game.version}
               </span>
@@ -92,7 +92,7 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
           <div className="space-y-2">
             {game.rewardConfig.gridReward && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">GRID:</span>
+                <span className="kx-body">GRID:</span>
                 <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {game.rewardConfig.gridReward} GRID
                 </span>
@@ -100,7 +100,7 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
             )}
             {game.rewardConfig.xpReward && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">pts:</span>
+                <span className="kx-body">pts:</span>
                 <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {game.rewardConfig.xpReward} pts
                 </span>
@@ -108,7 +108,7 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
             )}
             {game.rewardConfig.dAppTokenReward && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">dApp Token:</span>
+                <span className="kx-body">dApp Token:</span>
                 <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   {game.rewardConfig.dAppTokenReward} Tokens
                 </span>

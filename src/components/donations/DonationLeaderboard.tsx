@@ -21,12 +21,12 @@ export function DonationLeaderboard({ creatorAddress, limit = 20, donorCount, ra
         Latest {limit} donations
       </h3>
       <div className="p-4">
-        {isLoading && <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</p>}
+        {isLoading && <p className="kx-body">Loading…</p>}
         {!isLoading && error && (
           <p className="text-sm text-amber-600 dark:text-amber-400">Could not load donations. Try again later.</p>
         )}
         {!isLoading && !error && latestDonations.length === 0 && (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No donations recorded yet.</p>
+          <p className="kx-body">No donations recorded yet.</p>
         )}
         {!isLoading && latestDonations.length > 0 && (
           <ul className="space-y-3">

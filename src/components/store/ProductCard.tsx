@@ -10,6 +10,7 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 import { getProductPaymentCurrency, getProductPriceOptions } from '@/lib/store/currencies';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
@@ -45,7 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
         titleAccessory={
           <KxBadge variant={product.network === 'L1' ? 'sky' : 'teal'}>{product.network}</KxBadge>
         }
-        description={<p className="kx-body line-clamp-3">{product.description}</p>}
+        description={<p className={KX_CARD_EXCERPT}>{product.description}</p>}
         priceOptions={priceOptions}
         defaultCurrency={listedCurrency}
         quantitySelector={{ min: 1, max: 99 }}

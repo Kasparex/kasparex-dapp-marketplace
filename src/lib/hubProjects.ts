@@ -1,5 +1,3 @@
-import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-
 export type ProjectStatus = 'available' | 'demo' | 'beta' | 'coming-soon';
 
 export interface HubProject {
@@ -9,11 +7,7 @@ export interface HubProject {
   description: string;
   route: string;
   status: ProjectStatus;
-  /** Short hint for typical redeemable hub pts when ledger rules apply (policy, not a promise). */
-  earnPtsHint?: string;
 }
-
-const P = HUB_EARN_POINTS;
 
 export const hubProjects: HubProject[] = [
   {
@@ -23,7 +17,6 @@ export const hubProjects: HubProject[] = [
     description: 'Explore modular dApps, dashboards and tools built on Kaspa. Discover a growing ecosystem of decentralized applications.',
     route: '/dapps',
     status: 'beta',
-    earnPtsHint: `from ${P.dappL1Interaction}+ pts on classified Kaspa actions (policy)`,
   },
   {
     id: 'kasparex-protocols',
@@ -33,7 +26,6 @@ export const hubProjects: HubProject[] = [
       'Open protocols, tools, documentation, and reference implementations for identity, publishing, and cross-chain workflows on Kaspa - aligned with Kasparex indexers.',
     route: '/protocols',
     status: 'beta',
-    earnPtsHint: 'no direct pts; use apps that implement ledger earns',
   },
   {
     id: 'kasparex-records',
@@ -50,7 +42,6 @@ export const hubProjects: HubProject[] = [
     description: 'Token creation, management, and trading tools for the Kaspa ecosystem. Create and manage your tokens with ease.',
     route: '/tokens',
     status: 'beta',
-    earnPtsHint: 'pts when a flow is wired to the Rewards ledger',
   },
   {
     id: 'kasparex-games',
@@ -59,7 +50,6 @@ export const hubProjects: HubProject[] = [
     description: 'Simple web3 mini games and interactive experiences with rewards. Play, earn, and have fun in the Kasparex ecosystem.',
     route: '/games',
     status: 'beta',
-    earnPtsHint: 'Minecore: pts from Diamond refine into your gameplay wallet',
   },
   {
     id: 'kasparex-vblog',
@@ -68,7 +58,6 @@ export const hubProjects: HubProject[] = [
     description: 'An on-chain blog system where authors publish articles stored via CIDs or IPFS-like storage. Decentralized content creation.',
     route: '/vblog',
     status: 'beta',
-    earnPtsHint: `~${P.vblogArticleCreate} pts new publish, ~${P.vblogArticleUpdate} pts update`,
   },
   {
     id: 'kasparex-magazines',
@@ -77,7 +66,6 @@ export const hubProjects: HubProject[] = [
     description: 'Digital magazines and curated issues from creators and the community. Discover curated content and stories.',
     route: '/magazines',
     status: 'beta',
-    earnPtsHint: `~${P.magazineIssuePublish} pts per verified issue publish`,
   },
   {
     id: 'krex-chronicles',
@@ -87,7 +75,6 @@ export const hubProjects: HubProject[] = [
       'Central lore hub for Kaspaland: chapters, characters, locations, and tech; wiki and CMS-ready, built for future tokens and cross-links to games like Diamond Veins.',
     route: '/chronicles/chapters',
     status: 'beta',
-    earnPtsHint: `~${P.chroniclesQuizComplete} pts chapter quiz; vault and community paths in Chronicles Center`,
   },
   {
     id: 'kasparex-movies',
@@ -104,7 +91,6 @@ export const hubProjects: HubProject[] = [
     description: 'DeFi hub for Kaspa. Swap tokens, provide liquidity, and manage your DeFi portfolio with professional tools.',
     route: '/defi/swaps',
     status: 'beta',
-    earnPtsHint: `may credit from ${P.dappL1Interaction}+ pts pattern when Kaspa txs qualify`,
   },
   {
     id: 'kasparex-studio',
@@ -113,7 +99,6 @@ export const hubProjects: HubProject[] = [
     description: 'Unified creator workspace for dashboards, editors, dApp listings, ads, and assets tied to your Kaspa + KNS identity.',
     route: '/u',
     status: 'beta',
-    earnPtsHint: 'launch Store, vBlog, Ads, CrowdKAS from here for listed pts',
   },
   {
     id: 'krex-nodes',
@@ -122,7 +107,6 @@ export const hubProjects: HubProject[] = [
     description: 'User-run nodes that support the Kasparex ecosystem and optionally earn rewards. Help power the network.',
     route: '/nodes',
     status: 'beta',
-    earnPtsHint: `~${P.krexNodeEnrollmentOnce} pts enrollment once, ~${P.krexNodeOperatorDaily} pts daily when epochs qualify`,
   },
   {
     id: 'kasparex-rewards',
@@ -131,7 +115,6 @@ export const hubProjects: HubProject[] = [
     description: 'One hub wallet for redeemable pts, catalog offers, and GRID-style multipliers where partners wire them in.',
     route: '/rewards',
     status: 'available',
-    earnPtsHint: 'balances, earn table, and History for your Kaspa profile',
   },
   {
     id: 'kasparex-stats',
@@ -140,7 +123,6 @@ export const hubProjects: HubProject[] = [
     description: 'Treasury, Total Value Locked (TVL), and ecosystem statistics. Real data will replace placeholders in a future update.',
     route: '/stats',
     status: 'beta',
-    earnPtsHint: 'analytics only',
   },
   {
     id: 'kasparex-nft-tools',
@@ -149,7 +131,6 @@ export const hubProjects: HubProject[] = [
     description: 'Rarity checker, trait analysis, and PFP builder for KREXPRIME and PIXELKREX collections.',
     route: '/nft',
     status: 'beta',
-    earnPtsHint: 'Rarity tools and collection utilities for KRC-721',
   },
   {
     id: 'kasparex-ai',
@@ -159,7 +140,6 @@ export const hubProjects: HubProject[] = [
       'Autonomous AI agents on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.',
     route: '/ai',
     status: 'beta',
-    earnPtsHint: 'pts when agent actions wire to the Rewards ledger',
   },
   {
     id: 'kasparex-store',
@@ -168,7 +148,6 @@ export const hubProjects: HubProject[] = [
     description: 'Digital products marketplace powered by KAS. Buy and sell software, art, music, templates, and more with IPFS storage.',
     route: '/store',
     status: 'beta',
-    earnPtsHint: `~${P.storeProductList} pts per product listing (paid tx)`,
   },
   {
     id: 'kasparex-donations',
@@ -177,7 +156,6 @@ export const hubProjects: HubProject[] = [
     description: 'One hub for crowdfunding: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises with the same campaign layout.',
     route: '/donations',
     status: 'beta',
-    earnPtsHint: `~${P.crowdkasCampaignCreate} pts when a campaign create tx qualifies`,
   },
   {
     id: 'kasparex-ads',
@@ -186,7 +164,6 @@ export const hubProjects: HubProject[] = [
     description: 'Time-locked ad slots across the platform. Pay in KAS, choose a slot and duration, and your ad goes live in halo, sidebar, and footer placements.',
     route: '/ads',
     status: 'beta',
-    earnPtsHint: `~${P.hubAdPlacement} pts on verified ad binding`,
   },
   {
     id: 'revenue-tree',
@@ -195,6 +172,5 @@ export const hubProjects: HubProject[] = [
     description: 'Track your network, rewards, and structural flow in real-time. Visualize the Kasparex revenue distribution system.',
     route: '/tree/dashboard',
     status: 'available',
-    earnPtsHint: 'L2 revenue view; hub pts accrue on Kaspa ledger routes',
   },
 ];

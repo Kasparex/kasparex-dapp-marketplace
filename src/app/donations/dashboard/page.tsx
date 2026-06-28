@@ -145,7 +145,7 @@ export default function DonationsDashboardPage() {
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">My campaigns</h1>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                  <p className="kx-body mt-1">
                     Manage and track your CrowdKAS campaigns.
                   </p>
                 </div>
@@ -168,7 +168,7 @@ export default function DonationsDashboardPage() {
                       L1 covenant
                     </p>
                     <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">My L1 campaigns</h2>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    <p className="kx-body mt-1">
                       Same CrowdKAS layout as L2; simulator data on this device.
                     </p>
                   </div>

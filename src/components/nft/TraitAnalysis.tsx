@@ -134,7 +134,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
           {/* Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+              <div className="kx-body mb-1">
                 Total NFTs Analyzed
               </div>
               <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -142,7 +142,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
               </div>
             </div>
             <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+              <div className="kx-body mb-1">
                 Trait Types
               </div>
               <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -150,7 +150,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
               </div>
             </div>
             <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+              <div className="kx-body mb-1">
                 Total Unique Traits
               </div>
               <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -196,7 +196,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
                     <div className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
                       {traitType.traitType}
                     </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="kx-body">
                       {traitType.uniqueValues} unique values
                     </div>
                   </div>
@@ -222,7 +222,7 @@ export function TraitAnalysis({ collectionId }: TraitAnalysisProps) {
                           <span className="font-medium text-zinc-900 dark:text-zinc-100">
                             {freq.value}
                           </span>
-                          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <span className="kx-body">
                             {freq.count} ({freq.percentage.toFixed(2)}%)
                           </span>
                         </div>

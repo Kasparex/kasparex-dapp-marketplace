@@ -24,7 +24,7 @@ export default function ProfileHubResolverPage() {
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="max-w-xl w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 text-center">
           <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Profile Hub</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 kx-body">
             Connect your Kaspa wallet to open your creator workspace.
           </p>
         </div>

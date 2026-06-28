@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import { Magazine } from '@/lib/magazines/types';
-import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 
 interface MagazineCardProps {
     magazine: Magazine;
@@ -14,9 +15,9 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
             <KxListingCardMedia aspectClass="aspect-[3/4]" className="relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                     <div className="absolute top-4 left-4 z-20">
-                        <span className="px-3 py-1 bg-violet-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg">
+                        <KxBadge variant="violet-solid" className="shadow-lg">
                             {magazine.category}
-                        </span>
+                        </KxBadge>
                     </div>
                     <Image
                         src={magazine.coverImage || '/img/placeholder-magazine.jpg'}
@@ -34,7 +35,7 @@ export function MagazineCard({ magazine }: MagazineCardProps) {
                     </div>
             </KxListingCardMedia>
             <KxListingCardBody comfortable className="flex-1">
-                    <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4 line-clamp-3">
+                    <p className={`mb-4 ${KX_CARD_EXCERPT}`}>
                         {magazine.description}
                     </p>
                     <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-500">

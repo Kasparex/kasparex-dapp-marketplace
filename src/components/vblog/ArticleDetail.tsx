@@ -347,7 +347,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
               {!premiumUnlockEntitled ? (
                 <div className="mt-3 space-y-3">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
+                  <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
                   <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
                     {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
                   </button>
@@ -377,7 +377,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
               <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
               {!tipRevealEntitled ? (
-                <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
+                <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
               ) : (
                 <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
               )}
@@ -417,7 +417,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           {article.modules?.readingReceiptsEnabled && (
             <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
               <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
+              <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
               <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
                 Record on-chain reading receipt
               </button>

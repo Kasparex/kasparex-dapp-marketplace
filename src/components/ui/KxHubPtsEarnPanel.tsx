@@ -82,7 +82,7 @@ export function KxHubPtsEarnPanel({
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{source.label}</p>
                   {source.detail ? (
-                    <p className={`${KX_TEXT_BODY_SM} text-sm mt-1 line-clamp-2`}>{source.detail}</p>
+                    <p className={`${KX_TEXT_BODY_SM} mt-1 line-clamp-2`}>{source.detail}</p>
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">

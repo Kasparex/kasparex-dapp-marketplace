@@ -36,6 +36,7 @@ import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { KxBadge, kxBadgeClassName, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import {
   canAssignBatteryToPlantSlot,
   countBatteriesAssigned,
@@ -176,14 +177,31 @@ const BATTERY_LOW_RECHARGE_THRESHOLD = 0.35;
 
 const MINING_ASSIGNABLE_TYPES = ['worker', 'operator', 'foreman'] as const;
 
-/** Rolling-cap contributions (diamonds / 24h toward cap) */
-const CAP_CONTRIB_BADGE_CLS =
-  'rounded-full border border-emerald-500/35 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-emerald-800 dark:text-emerald-300';
-const MODULE_REFINE_BADGE_CLS =
-  'rounded-full border border-violet-500/35 bg-violet-500/12 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-violet-900 dark:text-violet-200';
-/** Slot max runtime capsule (battery pillar). */
-const BATTERY_SKY_BADGE_CLS =
-  'rounded-full border border-sky-500/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-sky-800 dark:text-sky-300';
+function plantStatusVariant(status: PlantSlotState['status']): KxBadgeVariant {
+  if (status === 'MiningActive' || status === 'ReadyToMine') return 'emerald';
+  if (status === 'MiningPaused' || status === 'SetupIncomplete') return 'amber';
+  if (status === 'CreditingReady') return 'sky';
+  if (status === 'BatteryEmpty' || status === 'InsufficientPower') return 'orange';
+  if (status === 'DailyCapReached') return 'violet';
+  if (status === 'NeedsPower' || status === 'NeedsRepair') return 'rose';
+  return 'zinc';
+}
+
+function StatBadge({
+  variant,
+  children,
+  className = '',
+}: {
+  variant: KxBadgeVariant;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <KxBadge variant={variant} className={`tabular-nums normal-case tracking-normal ${className}`.trim()}>
+      {children}
+    </KxBadge>
+  );
+}
 
 function ToggleSwitch(props: {
   checked: boolean;
@@ -240,24 +258,6 @@ function formatCapResetCountdown(ms: number) {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
-
-function statusBadge(status: PlantSlotState['status']) {
-  const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-black uppercase tracking-wide';
-  if (status === 'MiningActive')    return `${base} border border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300`;
-  if (status === 'MiningPaused')    return `${base} border border-amber-500/30 bg-amber-500/15 text-amber-800 dark:text-amber-300`;
-  if (status === 'CreditingReady') return `${base} border border-sky-500/30 bg-sky-500/15 text-sky-800 dark:text-sky-300`;
-  if (status === 'ReadyToMine')     return `${base} border border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300`;
-  if (status === 'SetupIncomplete') return `${base} border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300`;
-  if (status === 'BatteryEmpty')    return `${base} border border-orange-500/30 bg-orange-500/15 text-orange-800 dark:text-orange-300`;
-  if (status === 'InsufficientPower') return `${base} border border-orange-500/35 bg-orange-500/15 text-orange-900 dark:text-orange-200`;
-  if (status === 'DailyCapReached') return `${base} border border-violet-500/30 bg-violet-500/10 text-violet-900 dark:text-violet-200`;
-  if (status === 'NeedsPower' || status === 'NeedsRepair') return `${base} border border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-300`;
-  return `${base} border border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`;
-}
-
-function efficiencyBadgeClassName() {
-  return 'inline-flex items-center rounded-full border border-cyan-500/35 bg-cyan-500/12 px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-cyan-900 dark:text-cyan-200';
 }
 
 function labelForStatus(status: PlantSlotState['status']) {
@@ -418,12 +418,9 @@ function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
   return (
     <>
       {arr.slice(0, max)}
-      <span
-        className="rounded-full border border-zinc-400/35 bg-zinc-200/70 px-1 py-0.5 text-[8px] font-black uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-        title="Additional bonuses; see row tooltip"
-      >
+      <KxBadge variant="zinc" className="px-1 text-[8px]" title="Additional bonuses; see row tooltip">
         …
-      </span>
+      </KxBadge>
     </>
   );
 }
@@ -1483,11 +1480,11 @@ export function PlantSlotCard(props: {
               >
                 <span>{moduleOverlayBadge}</span>
                 {moduleSlots > 0 && s.setup.moduleIds.length > 0 ? (
-                  <span className={CAP_CONTRIB_BADGE_CLS}>
+                  <StatBadge variant="emerald">
                     {moduleFlatCapBonus > 0
                       ? `+${moduleFlatCapBonus} D`
                       : `${s.setup.moduleIds.length} mod${s.setup.moduleIds.length === 1 ? '' : 's'}`}
-                  </span>
+                  </StatBadge>
                 ) : null}
               </span>
             </Tooltip>
@@ -1513,9 +1510,7 @@ export function PlantSlotCard(props: {
                   </>,
                 )}
               >
-                <span className="inline-flex shrink-0 cursor-help items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black tabular-nums tracking-wide text-violet-900 dark:text-violet-200">
-                  −{maintSlowdownPct}%
-                </span>
+                <StatBadge variant="violet">−{maintSlowdownPct}%</StatBadge>
               </Tooltip>
             ) : null}
             <Tooltip
@@ -1559,7 +1554,7 @@ export function PlantSlotCard(props: {
           {/* Status badges */}
           <div className="flex flex-wrap items-center gap-2">
             <Tooltip content={tooltipForStatus(s.status)}>
-              <span className={statusBadge(s.status)}>{labelForStatus(s.status)}</span>
+              <KxBadge variant={plantStatusVariant(s.status)}>{labelForStatus(s.status)}</KxBadge>
             </Tooltip>
             {s.unlocked && s.setup.machineId ? (
               <Tooltip
@@ -1568,7 +1563,7 @@ export function PlantSlotCard(props: {
                   'Combines maintenance wear with grid load bands. Raise max power or trim draw for a healthier score.',
                 )}
               >
-                <span className={`inline-flex ${efficiencyBadgeClassName()}`}>Eff {effDisplayPct.toFixed(0)}%</span>
+                <KxBadge variant="cyan">Eff {effDisplayPct.toFixed(0)}%</KxBadge>
               </Tooltip>
             ) : null}
             {s.unlocked &&
@@ -1591,9 +1586,7 @@ export function PlantSlotCard(props: {
                   </>,
                 )}
               >
-                <span className="inline-flex items-center rounded-full border border-violet-500/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-900 dark:text-violet-200">
-                  KREX Boost
-                </span>
+                <KxBadge variant="violet">KREX Boost</KxBadge>
               </Tooltip>
             ) : null}
             {s.unlocked &&
@@ -1606,9 +1599,7 @@ export function PlantSlotCard(props: {
                   'Temporarily boosts the rolling cap ceiling and/or adds flat diamonds to your next completed cycle.',
                 )}
               >
-                <span className="inline-flex items-center rounded-full border border-amber-500/35 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200">
-                  Overclock
-                </span>
+                <KxBadge variant="amber">Overclock</KxBadge>
               </Tooltip>
             ) : null}
             {s.unlocked ? (
@@ -1619,12 +1610,9 @@ export function PlantSlotCard(props: {
                     'Link a Foreman from the Crew tab into this plant’s Crew row in Mining setup. Worker or Operator NFTs alone do not unlock AUTO.',
                   )}
                 >
-                  <span
-                    className="inline-flex items-center rounded-full border border-zinc-300/40 bg-zinc-100/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-zinc-400 opacity-80 dark:border-zinc-600/50 dark:bg-zinc-800/50 dark:text-zinc-500"
-                    aria-disabled
-                  >
+                  <KxBadge variant="zinc" className="opacity-80">
                     Auto · off
-                  </span>
+                  </KxBadge>
                 </Tooltip>
               ) : (
                 <Tooltip
@@ -1636,11 +1624,7 @@ export function PlantSlotCard(props: {
                   <button
                     type="button"
                     onClick={() => props.onTogglePlantAutoRestartMining?.(!s.autoRestartMining)}
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide transition-opacity ${
-                      s.autoRestartMining
-                        ? 'cursor-pointer border-sky-500/30 bg-sky-500/15 text-sky-800 hover:opacity-90 dark:text-sky-300'
-                        : 'cursor-pointer border-zinc-400/35 bg-zinc-200/50 text-zinc-700 hover:opacity-90 dark:border-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300'
-                    }`}
+                    className={`${kxBadgeClassName(s.autoRestartMining ? 'sky' : 'zinc')} cursor-pointer transition-opacity hover:opacity-90`}
                   >
                     Auto {s.autoRestartMining ? 'on' : 'off'}
                   </button>
@@ -1724,17 +1708,14 @@ export function PlantSlotCard(props: {
               badges={limitSetupBadges(
                 <>
                   {crewCapRollup.totalCapBonus > 0 ? (
-                    <span key="crew-cap-total" className={CAP_CONTRIB_BADGE_CLS}>
+                    <StatBadge key="crew-cap-total" variant="emerald">
                       +{crewCapRollup.totalCapBonus} D
-                    </span>
+                    </StatBadge>
                   ) : null}
                   {crewCapRollup.hasForemanAuto ? (
-                    <span
-                      key="foreman-auto"
-                      className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-900 dark:text-amber-200"
-                    >
+                    <KxBadge key="foreman-auto" variant="amber">
                       Auto
-                    </span>
+                    </KxBadge>
                   ) : null}
                 </>,
               )}
@@ -1761,7 +1742,7 @@ export function PlantSlotCard(props: {
               value={machineConfig?.label}
               badges={
                 machineConfig
-                  ? limitSetupBadges(<span className={CAP_CONTRIB_BADGE_CLS}>+{machineConfig.diamondsPer24h} D</span>)
+                  ? limitSetupBadges(<StatBadge variant="emerald">+{machineConfig.diamondsPer24h} D</StatBadge>)
                   : undefined
               }
               tooltip={
@@ -1794,10 +1775,10 @@ export function PlantSlotCard(props: {
                 badges={limitSetupBadges(
                   <>
                     {moduleFlatCapBonus > 0 ? (
-                      <span className={CAP_CONTRIB_BADGE_CLS}>+{moduleFlatCapBonus} cap</span>
+                      <StatBadge variant="emerald">+{moduleFlatCapBonus} cap</StatBadge>
                     ) : null}
                     {moduleRefineBonusFrac > 0 ? (
-                      <span className={MODULE_REFINE_BADGE_CLS}>+{Math.round(moduleRefineBonusFrac * 100)}% refine</span>
+                      <StatBadge variant="violet">+{Math.round(moduleRefineBonusFrac * 100)}% refine</StatBadge>
                     ) : null}
                   </>,
                 )}
@@ -1821,9 +1802,7 @@ export function PlantSlotCard(props: {
               }
               badges={
                 reactorBonusKw > 0 ? (
-                  <span className="rounded-full border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-amber-900 dark:text-amber-200">
-                    +{reactorBonusKw} kW max
-                  </span>
+                  <StatBadge variant="amber">+{reactorBonusKw} kW max</StatBadge>
                 ) : undefined
               }
               tooltip={
@@ -1865,7 +1844,7 @@ export function PlantSlotCard(props: {
                       ? limitSetupBadges(
                           <>
                             {maxEff > 0 ? (
-                              <span className={BATTERY_SKY_BADGE_CLS}>{formatShortBatterySlotRuntime(maxEff)} max</span>
+                              <StatBadge variant="sky">{formatShortBatterySlotRuntime(maxEff)} max</StatBadge>
                             ) : null}
                           </>,
                         )
