@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Magazine } from '@/lib/magazines/types';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 
 interface MagazineCardProps {
