@@ -7,7 +7,7 @@ export function DiamondVeinsCallout({ className = '' }: { className?: string }) 
       <p className={`${CHRONICLES_PANEL_LABEL} mb-2`}>Also in Kasparex</p>
       <p className={`${CHRONICLES_PANEL_BODY} mb-3`}>
         Mine Krex Diamonds beneath Kaspaland in the{' '}
-        <strong className="text-zinc-900 dark:text-white">Diamond Veins</strong> game: same world, underground layer.
+        <strong className="text-zinc-900 dark:text-zinc-100">Diamond Veins</strong> game: same world, underground layer.
       </p>
       <Link
         href="/games/diamond-veins"

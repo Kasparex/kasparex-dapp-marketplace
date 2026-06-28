@@ -12,7 +12,8 @@ import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
-import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
+import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityCharacterToEntity } from '@/lib/chronicles/communityAdapters';
@@ -138,21 +139,24 @@ export function CharactersListing({
       {view === 'card' && (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
-            <KxListingCard key={c.slug} href={`/chronicles/characters/${c.slug}`} accent="chronicles">
-              <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
-              <KxListingCardBody>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{c.kind}</p>
+            <ChronicleListingCard
+              key={c.slug}
+              href={
+                'isCommunity' in c && c.isCommunity
+                  ? communityDetailHref('character', c.slug)
+                  : `/chronicles/characters/${c.slug}`
+              }
+              imageUrl={c.featuredImageUrl}
+              alt={c.name}
+              title={c.name}
+              description={c.summary}
+              badges={
+                <>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{c.kind}</span>
                   {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
-                </div>
-                <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  <Tooltip content={gameTooltipRich('Character', c.name)} side="top" align="start">
-                    <span className="block">{c.name}</span>
-                  </Tooltip>
-                </h3>
-                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{c.summary}</p>
-              </KxListingCardBody>
-            </KxListingCard>
+                </>
+              }
+            />
           ))}
         </div>
       )}

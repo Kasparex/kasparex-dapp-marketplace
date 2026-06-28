@@ -12,7 +12,8 @@ import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
-import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
+import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityLocationToEntity } from '@/lib/chronicles/communityAdapters';
@@ -130,21 +131,20 @@ export function LocationsListing({
       {view === 'card' && (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((l) => (
-            <KxListingCard key={l.slug} href={`/chronicles/locations/${l.slug}`} accent="chronicles">
-              <ChronicleThumb imageUrl={l.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
-              <KxListingCardBody>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors">
-                    <Tooltip content={gameTooltipRich('Location', l.name)} side="top" align="start">
-                      <span className="block">{l.name}</span>
-                    </Tooltip>
-                  </h3>
-                  {'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
-                </div>
-                <p className="text-sm text-zinc-500 mb-2">{l.visualStyle}</p>
-                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{l.summary}</p>
-              </KxListingCardBody>
-            </KxListingCard>
+            <ChronicleListingCard
+              key={l.slug}
+              href={
+                'isCommunity' in l && l.isCommunity
+                  ? communityDetailHref('location', l.slug)
+                  : `/chronicles/locations/${l.slug}`
+              }
+              imageUrl={l.featuredImageUrl}
+              alt={l.name}
+              title={l.name}
+              description={l.summary}
+              badges={'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
+              footer={<span className="text-xs text-zinc-500">{l.visualStyle}</span>}
+            />
           ))}
         </div>
       )}

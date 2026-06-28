@@ -61,10 +61,10 @@ export default function ChroniclesOverviewPage() {
                             {isPremium ? ' · Premium' : ''}
                             {isLatest ? ' · Latest' : ''}
                           </span>
-                          <span className="block font-bold text-zinc-900 dark:text-white group-hover:text-[#02abb8] text-base leading-snug">
+                          <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] text-base leading-snug">
                             {c.title}
                           </span>
-                          <span className="text-sm text-zinc-600 dark:text-white/70 line-clamp-2 mt-1 leading-relaxed">{c.teaser}</span>
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mt-1 leading-relaxed">{c.teaser}</span>
                         </KxListingCardBody>
                       </div>
                     </KxListingCard>

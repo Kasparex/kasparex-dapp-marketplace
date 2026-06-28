@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ChronicleLocationPage({ params }: PageProps) {
   const { slug } = await params;
   const location = getLocationBySlug(slug);
-  if (!location) notFound();
+  if (!location) {
+    return <ChronicleCommunityDetailPage slug={slug} kind="location" />;
+  }
 
   const chapters = getChapterSummaries();
   const chapterLinks = location.chapterSlugs

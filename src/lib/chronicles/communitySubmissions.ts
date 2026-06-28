@@ -102,6 +102,10 @@ export function saveCommunitySubmission(
   return entry;
 }
 
+export function getCommunitySubmissionBySlug(slug: string): ChroniclesCommunitySubmission | null {
+  return readAll().find((i) => i.slug === slug && i.status === 'active') ?? null;
+}
+
 export function archiveCommunitySubmission(id: string): void {
   writeAll(readAll().map((i) => (i.id === id ? { ...i, status: 'archived' as const } : i)));
 }

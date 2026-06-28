@@ -17,9 +17,12 @@ import {
   type ChroniclesContentKind,
 } from '@/lib/chronicles/communitySubmissions';
 import type { CharacterKind, ChronicleTimeline, VehicleKind } from '@/lib/chronicles/types';
-import { chroniclesCenterTabHref } from '@/lib/chronicles/centerTabs';
+import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 const CONTENT_KINDS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
 
@@ -60,7 +63,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
     try {
       const feeTxHash = await payActionFee(paymentCurrency, listingFee.effectiveKas);
-      saveCommunitySubmission({
+      const entry = saveCommunitySubmission({
         kind,
         title: title.trim(),
         summary: summary.trim(),
@@ -80,8 +83,20 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           .filter(Boolean)
           .slice(0, 12),
       });
+
+      if (kind === 'article') {
+        const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
+        appendHubActivityEarn({
+          walletRaw: state.address,
+          source: 'chronicles_article_create',
+          redeemableDelta: HUB_EARN_POINTS.chroniclesArticleCreate,
+          idempotencyKey: `chronicles:article:${txNorm}`,
+          meta: { title: title.trim() },
+        });
+      }
+
       onSubmitted?.();
-      router.replace(chroniclesCenterTabHref('listings'));
+      router.replace(communityDetailHref(entry.kind, entry.slug));
     } catch {
       /* payActionFee sets error */
     }
@@ -296,6 +311,20 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               {isProcessing ? 'Processing...' : 'PUBLISH'}
             </button>
           </div>
+
+          {kind === 'article' ? (
+            <div className="rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-5 space-y-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">
+                Hub points
+              </h3>
+              <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
+                +{HUB_EARN_POINTS.chroniclesArticleCreate} pts
+              </p>
+              <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 leading-relaxed">
+                Redeemable Hub points awarded once when you publish a new article.
+              </p>
+            </div>
+          ) : null}
         </aside>
       </div>
     </form>

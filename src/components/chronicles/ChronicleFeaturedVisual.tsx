@@ -45,14 +45,7 @@ export function ChronicleFeaturedVisual({
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
           <PlaceholderIcon />
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Featured visual</p>
-            <p className="text-sm text-zinc-400 mt-1 max-w-sm">
-              Set{' '}
-              <code className="text-xs font-mono bg-zinc-200/80 dark:bg-zinc-800 px-1 rounded">featuredImageUrl</code>{' '}
-              in lore JSON to swap this for art.
-            </p>
-          </div>
+          <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Featured visual</p>
         </div>
       )}
       {badge ? (

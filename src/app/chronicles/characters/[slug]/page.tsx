@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { TokenPlaceholder } from '@/components/chronicles/TokenPlaceholder';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
+import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { getCharacterBySlug, getChapterSummaries, getAllCharacterSlugs } from '@/lib/chronicles/loaders';
 import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
@@ -27,7 +27,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ChronicleCharacterPage({ params }: PageProps) {
   const { slug } = await params;
   const character = getCharacterBySlug(slug);
-  if (!character) notFound();
+  if (!character) {
+    return <ChronicleCommunityDetailPage slug={slug} kind="character" />;
+  }
 
   const chapters = getChapterSummaries();
   const firstCh = character.firstAppearanceChapterSlug
@@ -52,12 +54,12 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
       body: (
         <dl className="space-y-3 text-base leading-relaxed">
           <div>
-            <dt className="text-zinc-600 dark:text-white/70 text-xs font-black uppercase tracking-wider">Role</dt>
-            <dd className="font-semibold text-zinc-900 dark:text-white">{character.role}</dd>
+            <dt className="text-zinc-600 dark:text-zinc-400 text-xs font-black uppercase tracking-wider">Role</dt>
+            <dd className="font-semibold text-zinc-900 dark:text-zinc-100">{character.role}</dd>
           </div>
           <div>
-            <dt className="text-zinc-600 dark:text-white/70 text-xs font-black uppercase tracking-wider">Story status</dt>
-            <dd className="font-semibold text-zinc-900 dark:text-white">{character.storyStatus}</dd>
+            <dt className="text-zinc-600 dark:text-zinc-400 text-xs font-black uppercase tracking-wider">Story status</dt>
+            <dd className="font-semibold text-zinc-900 dark:text-zinc-100">{character.storyStatus}</dd>
           </div>
           {firstCh ? (
             <div>
@@ -89,7 +91,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
                 {character.abilities.map((a) => (
                   <li
                     key={a}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-800 dark:text-white"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-800 dark:text-zinc-200"
                   >
                     {a}
                   </li>

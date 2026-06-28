@@ -85,7 +85,7 @@ export function ChroniclesVaultDashboard() {
             </div>
             <div>
               <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Connect your Kaspa wallet</h3>
-              <p className="text-base text-zinc-600 dark:text-white/80 mt-3 leading-relaxed">
+              <p className="text-base text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">
                 Connect a wallet to view your address and unlocks. Holder discounts are based on collections detected on your Kaspa address.
               </p>
             </div>
@@ -168,7 +168,7 @@ export function ChroniclesVaultDashboard() {
 
         <section id="workspace" className="scroll-mt-24 chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 space-y-3">
           <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Workspace (source files)</h2>
-          <p className="text-base text-zinc-700 dark:text-white/80 leading-relaxed max-w-3xl">
+          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
             Shared lore, KMAG, and community drafts live under{' '}
             <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">content/story-management/</code>. They are
             not published as web pages; sync the canon into{' '}
@@ -178,7 +178,7 @@ export function ChroniclesVaultDashboard() {
 
         <section id="drafts" className="scroll-mt-24 chronicles-vault-card rounded-2xl border border-dashed border-amber-500/35 bg-amber-500/5 dark:bg-amber-500/10 p-6 sm:p-8 space-y-3">
           <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Draft characters</h2>
-          <p className="text-base text-zinc-700 dark:text-white/80 leading-relaxed max-w-3xl">
+          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
             Folders such as Axel Vane and Torq appear in the sidebar as drafts until they have a public slug in{' '}
             <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">data/chronicles/characters.json</code> and
             an entry in <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">story-folder-map.json</code>.

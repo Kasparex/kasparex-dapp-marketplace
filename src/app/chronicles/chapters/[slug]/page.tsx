@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ChronicleChapterPage({ params }: PageProps) {
   const { slug } = await params;
   const chapter = getChapterBySlug(slug);
-  if (!chapter) notFound();
+  if (!chapter) {
+    return <ChronicleCommunityDetailPage slug={slug} kind="chapter" />;
+  }
 
   const { prev, next } = getAdjacentChapters(slug);
 
@@ -99,7 +101,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <p className="text-base text-zinc-600 dark:text-white/70 mt-2 leading-relaxed">Timeline: {chapter.timeline}</p>
+          <p className="text-base text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">Timeline: {chapter.timeline}</p>
 
           <article className="pb-8 pt-10">
             <ChroniclesChapterAccessGate access={chapter.access}>

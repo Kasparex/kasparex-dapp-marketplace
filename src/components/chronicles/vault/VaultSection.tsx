@@ -27,7 +27,7 @@ export function VaultSection({
           </p>
         ) : null}
         {subtitle ? (
-          <p className="text-base text-zinc-600 dark:text-white/75 mt-2 max-w-2xl leading-relaxed">{subtitle}</p>
+          <p className="text-base text-zinc-600 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">{subtitle}</p>
         ) : null}
       </div>
       {controls ? <div>{controls}</div> : null}

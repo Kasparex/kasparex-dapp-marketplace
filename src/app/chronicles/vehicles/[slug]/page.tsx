@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
@@ -26,7 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ChronicleVehiclePage({ params }: PageProps) {
   const { slug } = await params;
   const vehicle = getVehicleBySlug(slug);
-  if (!vehicle) notFound();
+  if (!vehicle) {
+    return <ChronicleCommunityDetailPage slug={slug} kind="vehicle" />;
+  }
 
   const chapters = getChapterSummaries();
   const chapterLinks = vehicle.chapterSlugs

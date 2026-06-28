@@ -13,4 +13,5 @@ export const HUB_EARN_POINTS = {
   dappL1Interaction: 25,
   krexNodeOperatorDaily: 15,
   krexNodeEnrollmentOnce: 200,
+  chroniclesArticleCreate: 50,
 } as const;

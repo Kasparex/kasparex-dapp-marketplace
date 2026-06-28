@@ -16,7 +16,8 @@ export type EarnSource =
   | 'magazine_issue_publish'
   | 'hub_ad_placement'
   | 'dapp_l1_interaction'
-  | 'krex_node_operator';
+  | 'krex_node_operator'
+  | 'chronicles_article_create';
 
 export type HubLedgerEntry = {
   id: string;

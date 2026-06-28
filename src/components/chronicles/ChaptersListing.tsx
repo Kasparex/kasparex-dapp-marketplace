@@ -10,7 +10,11 @@ import { filterChaptersByTimeline, searchChapters } from '@/lib/chronicles/filte
 import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
-import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
+import { useChroniclesUnlock } from '@/components/chronicles/ChroniclesUnlockProvider';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChroniclesEntitlements';
+import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
@@ -28,6 +32,46 @@ function timelineBadge(t: ChronicleTimeline) {
     future: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20',
   };
   return map[t];
+}
+
+function ChapterCard({ c }: { c: ChronicleChapterMeta & { isCommunity?: boolean } }) {
+  const { state } = useKaspaWallet();
+  const { isUnlocked } = useChroniclesEntitlements(state.address);
+  const { openUnlock } = useChroniclesUnlock();
+  const isPremium = c.access && c.access.tier !== 'free';
+  const locked = Boolean(isPremium && c.access && !isUnlocked(c.access.contentId));
+  const href = locked
+    ? undefined
+    : 'isCommunity' in c && c.isCommunity
+      ? communityDetailHref('chapter', c.slug)
+      : `/chronicles/chapters/${c.slug}`;
+
+  return (
+    <ChronicleListingCard
+      href={href}
+      onClick={locked && c.access ? () => openUnlock(c.access!.contentId) : undefined}
+      imageUrl={c.featuredImageUrl}
+      alt={c.title}
+      title={c.title}
+      description={c.teaser}
+      badges={
+        <>
+          {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
+          {isPremium ? (
+            <span className="text-xs font-black uppercase px-2 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
+              Premium
+            </span>
+          ) : null}
+          <span className={`text-xs font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
+            {c.timeline}
+          </span>
+        </>
+      }
+      footer={
+        <span className="text-xs font-mono text-zinc-500">Chapter {c.number}</span>
+      }
+    />
+  );
 }
 
 export function ChaptersListing({
@@ -160,29 +204,7 @@ export function ChaptersListing({
       {view === 'card' && (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
-            <KxListingCard key={c.slug} href={`/chronicles/chapters/${c.slug}`} accent="chronicles">
-              <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
-              <KxListingCardBody>
-                <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
-                  <span className="text-sm font-mono text-zinc-400">Ch. {c.number}</span>
-                  <div className="flex flex-wrap gap-1.5 justify-end">
-                    {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
-                    {c.access && c.access.tier !== 'free' ? (
-                      <span className="text-xs font-black uppercase px-2 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
-                        Vault
-                      </span>
-                    ) : null}
-                    <span className={`text-xs font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
-                      {c.timeline}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  {c.title}
-                </h3>
-                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{c.teaser}</p>
-              </KxListingCardBody>
-            </KxListingCard>
+            <ChapterCard key={c.slug} c={c} />
           ))}
         </div>
       )}

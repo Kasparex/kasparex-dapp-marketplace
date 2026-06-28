@@ -28,12 +28,12 @@ export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }
                 <li key={`${l.href}-${l.label}`}>
                   <Link
                     href={l.href}
-                    className="text-base font-semibold text-zinc-800 dark:text-white hover:text-[#02abb8] transition-colors leading-relaxed"
+                    className="text-base font-semibold text-zinc-800 dark:text-zinc-200 hover:text-[#02abb8] transition-colors leading-relaxed"
                   >
                     {l.label}
                   </Link>
                   {l.sublabel ? (
-                    <span className="block text-sm text-zinc-600 dark:text-white/70 mt-0.5 leading-relaxed">{l.sublabel}</span>
+                    <span className="block text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">{l.sublabel}</span>
                   ) : null}
                 </li>
               ))}

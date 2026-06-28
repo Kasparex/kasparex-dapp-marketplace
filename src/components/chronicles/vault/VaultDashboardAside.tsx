@@ -19,14 +19,14 @@ export function VaultDashboardAside({
         <h2 className={`${CHRONICLES_PANEL_LABEL} mb-3`}>Your holder perks</h2>
         <dl className="space-y-2 text-base leading-relaxed">
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-white/70">KREX tier</dt>
-            <dd className="font-semibold mt-0.5 text-zinc-900 dark:text-white">
+            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">KREX tier</dt>
+            <dd className="font-semibold mt-0.5 text-zinc-900 dark:text-zinc-100">
               {isKrexLoading ? 'Loading…' : krexTier.replace('Tier', 'Tier ')}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-white/70">NFT tier</dt>
-            <dd className="font-semibold mt-0.5 text-zinc-900 dark:text-white">PIXELKREX / KREXPRIME</dd>
+            <dt className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">NFT tier</dt>
+            <dd className="font-semibold mt-0.5 text-zinc-900 dark:text-zinc-100">PIXELKREX / KREXPRIME</dd>
           </div>
         </dl>
         <p className={`${CHRONICLES_PANEL_BODY} text-sm mt-4`}>The exact price is shown on each offer card.</p>
