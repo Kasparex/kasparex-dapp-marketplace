@@ -105,7 +105,7 @@ export default function DAppModulesPage() {
               <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">
                 Add-ons, unlocks & extras
               </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+              <p className="kx-body max-w-3xl">
                 Modules are paid add-ons (KAS or KREX) that unlock extra features across Kasparex.
               </p>
             </div>

@@ -47,16 +47,16 @@
 @layer components {
   /** Platform body copy rhythm (see src/lib/ui/kxTypography.ts). */
   .kx-body {
-    @apply text-base text-zinc-600 dark:text-zinc-400 leading-8;
+    @apply text-lg text-zinc-600 dark:text-zinc-400 leading-8;
   }
 
   .kx-body-sm {
-    @apply text-sm text-zinc-600 dark:text-zinc-400 leading-8;
+    @apply text-base text-zinc-600 dark:text-zinc-400 leading-8;
   }
 
   /** Long-form readable prose blocks. */
   .kx-prose {
-    @apply max-w-none text-base text-zinc-600 dark:text-zinc-400 leading-8;
+    @apply max-w-none text-lg text-zinc-600 dark:text-zinc-400 leading-8;
   }
 
   .kx-prose p {

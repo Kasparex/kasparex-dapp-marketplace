@@ -417,7 +417,7 @@ export function DAppDashboardContent() {
             <>
               <section>
                 <DAppSectionHeader title="List your project on Kasparex dApps" />
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <p className="kx-body">
                   Submit a full project profile for the public dApps directory. Your listing gets its own page with
                   description, links, media, and contact details. Integrated live widgets are reserved for official
                   Kasparex dApps.

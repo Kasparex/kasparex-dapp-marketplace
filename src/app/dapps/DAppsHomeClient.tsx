@@ -184,7 +184,7 @@ export function DAppsHomeContent() {
                   <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
                     Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300">dApps</span>
                   </h1>
-                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+                  <p className="kx-body max-w-xl leading-relaxed mb-8">
                     Discover and use decentralized applications on Kaspa. Explore a growing ecosystem of tools, games, and services built for the future of finance.
                   </p>
                   <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />

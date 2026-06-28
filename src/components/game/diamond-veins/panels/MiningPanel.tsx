@@ -141,7 +141,7 @@ export function MiningPanel({
                 DIAMONDS
               </span>
             </div>
-            <p className="max-w-md text-base text-zinc-600 dark:text-zinc-400">
+            <p className="max-w-md kx-body">
               Refine at <strong>{refineMinDiamonds}+</strong> for refinement points and GRID checkpoint entries.
             </p>
           </div>

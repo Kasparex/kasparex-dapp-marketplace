@@ -310,7 +310,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </svg>
                     Description
                   </h3>
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  <p className="kx-body whitespace-pre-line">
                     {dapp.description}
                   </p>
                 </div>
@@ -325,7 +325,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </svg>
                     Utility
                   </h3>
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  <p className="kx-body whitespace-pre-line">
                     {dapp.utility}
                   </p>
                 </div>
@@ -340,7 +340,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </svg>
                     How to Use
                   </h3>
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  <p className="kx-body whitespace-pre-line">
                     {dapp.process}
                   </p>
                 </div>
@@ -355,7 +355,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </svg>
                     Benefits
                   </h3>
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  <p className="kx-body whitespace-pre-line">
                     {dapp.benefits}
                   </p>
                 </div>
@@ -370,7 +370,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </svg>
                     Security
                   </h3>
-                  <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+                  <p className="kx-body whitespace-pre-line">
                     {dapp.security}
                   </p>
                 </div>

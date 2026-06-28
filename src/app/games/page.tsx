@@ -171,7 +171,7 @@ function GamesContent() {
                   <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
                     Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Games</span>
                   </h1>
-                  <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+                  <p className="kx-body max-w-xl leading-relaxed mb-8">
                     Play and discover games on Kaspa. Connect a wallet to start.
                   </p>
                   <a href="#content" className="k-cta-primary">

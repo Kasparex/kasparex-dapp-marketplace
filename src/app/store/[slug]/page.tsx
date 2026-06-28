@@ -112,7 +112,7 @@ export default function ProductPage({ params }: PageProps) {
                 {product.category}
               </span>
             </div>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">{product.description}</p>
+            <p className="kx-body">{product.description}</p>
           </div>
 
           {hasAccess ? (
@@ -121,7 +121,7 @@ export default function ProductPage({ params }: PageProps) {
                 <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-4">Purchased content</h2>
                 {product.content && (
                   <div className="prose dark:prose-invert max-w-none mb-8 bg-zinc-50 dark:bg-zinc-900/50 p-6 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                    <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono text-sm">{product.content}</p>
+                    <p className="kx-body-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap font-mono">{product.content}</p>
                   </div>
                 )}
                 {product.assetCids && product.assetCids.length > 0 && (

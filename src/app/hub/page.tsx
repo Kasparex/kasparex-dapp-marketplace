@@ -34,7 +34,7 @@ export default function HubPage() {
                   Kasparex Hub
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed max-w-2xl mx-auto font-medium">
+              <p className="kx-body mb-6 leading-relaxed max-w-2xl mx-auto font-medium">
                 Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, publishing tools, and infrastructure built around Kaspa.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -56,7 +56,7 @@ export default function HubPage() {
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                 Explore Our Projects
               </h2>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+              <p className="kx-body max-w-2xl mx-auto">
                 Discover projects across the Kasparex ecosystem. Cards summarize typical redeemable Hub pts tied to Rewards policy;
                 authoritative numbers stay on Rewards → Points and History per wallet.
               </p>
@@ -77,7 +77,7 @@ export default function HubPage() {
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 text-center">
                 Kasparex Ecosystem Overview
               </h2>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed text-center">
+              <p className="kx-body text-center">
                 Kasparex is a unified hub of modular dApps, media, games, publishing tools and infrastructure built around Kaspa. Everything connects through wallet-based interactions, smart logic and on-chain actions. All these projects are designed to work together so that users, builders and creators can move between them smoothly, creating a seamless experience across the entire ecosystem.
               </p>
             </div>
@@ -91,7 +91,7 @@ export default function HubPage() {
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                 Key Features
               </h2>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+              <p className="kx-body max-w-2xl mx-auto">
                 What makes Kasparex unique
               </p>
             </div>
@@ -148,7 +148,7 @@ export default function HubPage() {
                 Benefits and Rewards
               </h2>
 
-              <div className="space-y-6 text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <div className="space-y-6 kx-body">
                 <p>
                   Users earn <strong className="text-zinc-900 dark:text-zinc-100">GRID</strong> (Global Reward Token) for using any dApp in the ecosystem. Holding KREX and NFTs multiplies your GRID rewards.
                 </p>

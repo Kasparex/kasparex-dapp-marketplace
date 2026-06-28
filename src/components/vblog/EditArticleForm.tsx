@@ -316,7 +316,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
             Edit Article
           </h3>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
+          <p className="kx-body mb-6">
             Update your article details. Estimated cost: {updateQuote.totalKas} KAS ({updateQuote.chunkCount} chunk{updateQuote.chunkCount === 1 ? '' : 's'}, {updateQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
           {pricing.tier.hasNFTPerks && (

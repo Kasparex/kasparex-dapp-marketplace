@@ -270,7 +270,7 @@ export function UsageMonitor() {
             <div className={`${STATS_PANEL} p-6`}>
               <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">How it works</div>
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">Interpretation</div>
-              <ul className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
+              <ul className="space-y-2 kx-body">
                 <li>
                   - <span className="font-black text-zinc-800 dark:text-zinc-200">Sampled & scaled</span>: edge requests are counted at a
                   sample rate and scaled by \(1 / sampleRate\). Use for trends, not billing-grade accuracy.
@@ -289,7 +289,7 @@ export function UsageMonitor() {
             <div className={`${STATS_PANEL} p-6`}>
               <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Runbook</div>
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">What to do during a spike</div>
-              <ol className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
+              <ol className="space-y-2 kx-body">
                 <li>
                   <span className="font-black text-zinc-800 dark:text-zinc-200">1.</span> Identify which bucket spiked. If it is{' '}
                   <span className="font-mono">api.kaspa</span> or <span className="font-mono">api.rewards</span>, check upstream rate limits

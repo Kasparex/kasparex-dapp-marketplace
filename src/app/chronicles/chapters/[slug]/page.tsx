@@ -104,7 +104,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">Timeline: {chapter.timeline}</p>
+          <p className="kx-body mt-2 leading-relaxed">Timeline: {chapter.timeline}</p>
 
           <article className="pb-8 pt-10">
             <ChroniclesChapterAccessGate access={chapter.access}>

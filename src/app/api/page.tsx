@@ -49,7 +49,7 @@ export default function KasparexAPIPage() {
               <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
                 Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-500 dark:from-cyan-400 dark:to-cyan-300">API</span>
               </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+              <p className="kx-body max-w-2xl mx-auto leading-relaxed">
                 The coordination brain of the decentralized Kasparex network
               </p>
             </div>

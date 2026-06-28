@@ -91,7 +91,7 @@ export default function MagazineDetailPage() {
                                 <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-4 leading-tight">
                                     {magazine.name}
                                 </h1>
-                                <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
+                                <p className="kx-body mb-6 leading-relaxed">
                                     {magazine.description}
                                 </p>
 

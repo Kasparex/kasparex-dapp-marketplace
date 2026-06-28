@@ -46,7 +46,7 @@ export default function VBlogDashboardPage() {
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
                   Creator <span className="text-orange-500">Center</span>
                 </h1>
-                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+                <p className="text-base sm:kx-body max-w-3xl">
                   Manage your decentralized vBlog publications
                 </p>
               </div>

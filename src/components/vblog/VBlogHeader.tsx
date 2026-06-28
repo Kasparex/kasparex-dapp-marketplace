@@ -25,7 +25,7 @@ export function VBlogHeader() {
           Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400">vBlog</span>
         </h1>
 
-        <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
+        <p className="kx-body max-w-2xl mb-8">
           The decentralized voice of the Kaspa ecosystem. Every post is permanently linked to IPFS, ensuring your content is truly on-chain and community-driven.
         </p>
 

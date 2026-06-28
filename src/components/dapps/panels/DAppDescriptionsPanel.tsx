@@ -13,7 +13,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section>
       <DAppSectionHeader title={title} />
-      <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{children}</p>
+      <p className="kx-body whitespace-pre-line">{children}</p>
     </section>
   );
 }

@@ -1661,7 +1661,7 @@ export default function StyleGuidePage() {
                 <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
                   Kasparex Design System
                 </h1>
-                <p className="text-lg text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Complete reference guide for all UI components and styling standards
                 </p>
               </div>

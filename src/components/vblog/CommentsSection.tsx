@@ -284,7 +284,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
               </div>
             ) : (
               <div className="text-center py-8 mb-8">
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   No comments yet. Be the first to comment!
                 </p>
               </div>

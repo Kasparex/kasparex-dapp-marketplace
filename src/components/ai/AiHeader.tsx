@@ -31,7 +31,7 @@ export function AiHeader() {
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
             Autonomous AI agents built on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.
           </p>
 

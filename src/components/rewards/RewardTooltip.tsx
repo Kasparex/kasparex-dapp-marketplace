@@ -90,7 +90,7 @@ export function RewardTooltip({ description, children, showTrailingIcon = true }
             left: `${tooltipPosition.left}px`,
           }}
         >
-          <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          <p className="kx-body text-zinc-700 dark:text-zinc-300">
             {description}
           </p>
         </div>,

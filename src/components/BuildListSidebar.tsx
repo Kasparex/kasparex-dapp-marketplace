@@ -53,7 +53,7 @@ export function BuildListSidebar({ title }: BuildListSidebarProps) {
         <ChevronIcon expanded={expanded} />
       </button>
       {expanded && (
-        <div className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        <div className="kx-body">
           {children}
         </div>
       )}

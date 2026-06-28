@@ -313,7 +313,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
             Create New Article
           </h3>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
+          <p className="kx-body mb-6">
             Fill in the details below to create a new article. Estimated cost: {createQuote.totalKas} KAS ({createQuote.chunkCount} chunk{createQuote.chunkCount === 1 ? '' : 's'}, {createQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
           {pricing.tier.hasNFTPerks && (

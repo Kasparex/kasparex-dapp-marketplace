@@ -114,7 +114,7 @@ export default function AdsListingPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
               Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">Ads</span>
             </h1>
-            <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-6">
+            <p className="kx-body max-w-xl leading-relaxed mb-6">
               Browse time-locked ad campaigns across halo, sidebar, and footer placements. Filter by format and slot.
             </p>
             <div className="flex flex-wrap gap-3">

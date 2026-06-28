@@ -161,7 +161,7 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
   if (!hasL1Wallet) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
+        <p className="kx-body mb-2">
           Connect your Kaspa L1 wallet to view collection statistics
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500">
@@ -192,7 +192,7 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
   if (!stats || stats.totalNFTs === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
+        <p className="kx-body mb-2">
           No NFTs found
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500">

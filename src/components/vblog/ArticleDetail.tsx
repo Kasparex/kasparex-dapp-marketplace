@@ -250,7 +250,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 leading-tight">
               {article.title}
             </h1>
-            <p id="article-intro" className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-2xl mb-8 select-text">
+            <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text">
               {article.description}
             </p>
 
@@ -322,9 +322,9 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         <div className="flex-1 min-w-0">
           <div
             id="article-main"
-            className="prose prose-zinc dark:prose-invert max-w-none 
+            className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
-              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-xl sm:prose-p:text-2xl prose-p:mb-5
+              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-5
               prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
               prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
@@ -353,7 +353,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
                   </button>
                 </div>
               ) : (
-                <div className="mt-3 prose prose-zinc dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
+                <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
               )}
             </div>
           )}
@@ -379,7 +379,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
               {!tipRevealEntitled ? (
                 <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
               ) : (
-                <div className="mt-3 prose prose-zinc dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
+                <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
               )}
             </div>
           )}

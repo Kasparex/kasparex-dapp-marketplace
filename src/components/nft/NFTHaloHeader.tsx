@@ -50,7 +50,7 @@ export function NFTHaloHeader({
                   NFT Tools
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+              <p className="kx-body max-w-xl leading-relaxed mb-8">
                 Rarity checks, trait analysis, and PFP building for premium collections and partner drops across the Kaspa NFT ecosystem.
               </p>
               <div className="flex flex-wrap items-center gap-3">
@@ -76,7 +76,7 @@ export function NFTHaloHeader({
               <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white mb-3 leading-tight">
                 {collectionName ?? 'Collection'}
               </h1>
-              <p className="text-base text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+              <p className="kx-body max-w-2xl leading-relaxed">
                 {collectionDescription?.trim() || 'Rarity, traits, and PFP tools for this collection.'}
               </p>
             </>

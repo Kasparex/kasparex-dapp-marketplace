@@ -23,7 +23,7 @@ export function TokensHero() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
             Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-[#02abb8] to-cyan-600 dark:from-teal-400 dark:via-[#02abb8] dark:to-cyan-400">Tokens</span>
           </h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
             Discover ecosystem tokens, track prices and balances, and explore various assets across the Kasparex platform.
           </p>
           <div className="flex flex-wrap gap-4">

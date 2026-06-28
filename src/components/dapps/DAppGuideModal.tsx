@@ -89,7 +89,7 @@ export function DAppGuideModal({ dapp, isOpen, onClose }: DAppGuideModalProps) {
 
           <div className="mb-6">
             <div className="prose prose-zinc dark:prose-invert max-w-none">
-              <div className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+              <div className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
                 {guideContent}
               </div>
             </div>

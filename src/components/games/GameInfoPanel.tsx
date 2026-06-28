@@ -123,7 +123,7 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
           <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
             How to Play
           </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          <p className="kx-body">
             {game.instructions}
           </p>
         </div>

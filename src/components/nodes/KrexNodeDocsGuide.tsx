@@ -12,7 +12,7 @@ export function KrexNodeDocsGuide() {
       <section>
         <div className={`${NODES_DASH_CARD} space-y-3`}>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Documentation</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          <p className="kx-body">
             Deep dives live in the knowledge base and repository. This tab is the stable entry point from the Nodes dashboard.
           </p>
           <ul className="space-y-2 text-sm">
@@ -74,7 +74,7 @@ export function KrexNodeDocsGuide() {
       <section>
         <div className={`${NODES_DASH_CARD} space-y-3`}>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Environment &amp; safety</h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+          <p className="kx-body">
             Keep <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code> off public repos. Rotate if
             exposed. Use HTTPS for mirror URLs when exposing a public API.
           </p>

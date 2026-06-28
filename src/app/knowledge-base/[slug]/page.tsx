@@ -461,7 +461,7 @@ export default async function KnowledgeBaseArticlePage({ params }: PageProps) {
               <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                 {article.title}
               </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400">
+              <p className="kx-body">
                 {article.description}
               </p>
             </div>
@@ -473,8 +473,8 @@ export default async function KnowledgeBaseArticlePage({ params }: PageProps) {
                   <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                     {section.title}
                   </h2>
-                  <div className="prose prose-zinc dark:prose-invert max-w-none">
-                    <p className="text-zinc-600 dark:text-zinc-400 whitespace-pre-line">
+                  <div className="kx-prose prose prose-zinc dark:prose-invert max-w-none">
+                    <p className="whitespace-pre-line">
                       {section.content}
                     </p>
                   </div>

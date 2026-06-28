@@ -19,7 +19,7 @@ export function RewardsCalculatorHeader() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
             Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600 dark:from-[#02abb8] dark:to-cyan-400">Rewards Calculator</span>
           </h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
             Simulate GRID and pts from our spend model based on KAS spent, KREX tier, NFT ownership, node status, and seasonal boosters. Confirm redeemable totals on /rewards.
           </p>
         </div>

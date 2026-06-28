@@ -548,7 +548,7 @@ function OverviewTab({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         <Card title="Bio">
-          <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+          <div className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
             {(profileBio || knsProfile?.bio || 'No bio yet.').trim()}
           </div>
         </Card>
@@ -1729,7 +1729,7 @@ function ProfileHaloHeader({
                 </div>
               </div>
 
-              <p className="mt-4 text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
+              <p className="mt-4 text-sm sm:kx-body max-w-3xl leading-relaxed">
                 {subtitle}
               </p>
             </div>

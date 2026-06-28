@@ -43,7 +43,7 @@ export function DonationL2FeeInfoModal() {
                   </svg>
                 </button>
               </div>
-              <div className="p-5 text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+              <div className="p-5 kx-body text-zinc-700 dark:text-zinc-300">
                 <p>
                   {VDONATIONS_L2_FEE_PERCENT}% of your donation goes to the <strong>Kasparex Revenue Tree</strong> to support community rewards and the referral program. The rest
                   is escrowed for this campaign and goes to the creator when the goal is reached.

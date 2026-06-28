@@ -98,7 +98,7 @@ export function HubHaloHeader(props: {
             )}
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">{props.title}</h1>
-          <div className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-6">{props.subtitle}</div>
+          <div className="kx-body max-w-xl leading-relaxed mb-6">{props.subtitle}</div>
           {props.actions ? <div className="flex flex-wrap gap-3">{props.actions}</div> : null}
         </div>
         {props.rightSlot ? (

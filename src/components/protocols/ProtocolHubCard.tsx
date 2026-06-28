@@ -37,7 +37,7 @@ export function ProtocolHubCard({ item }: { item: ProtocolHubItem }) {
       {item.subtitle ? (
         <p className="mt-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">{item.subtitle}</p>
       ) : null}
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{item.description}</p>
+      <p className="mt-2 kx-body">{item.description}</p>
       <div className="mt-3 text-xs font-bold text-[#02abb8]">
         {isApi ? 'Open API response →' : 'Open →'}
       </div>

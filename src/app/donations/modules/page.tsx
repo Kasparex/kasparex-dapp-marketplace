@@ -119,7 +119,7 @@ export default function CrowdKasModulesPage() {
             <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-white via-emerald-500/5 to-transparent dark:from-zinc-900 dark:via-emerald-500/10 dark:to-zinc-950 p-8 sm:p-10">
               <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400 mb-4">CrowdKAS modules</p>
               <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">Unlock campaign upgrades</h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+              <p className="kx-body max-w-3xl">
                 Paid modules are recorded on <strong>DonationEscrowV2</strong>: pay with Kaspa (L1), then confirm one transaction on {crowdkasName}. Discounts may apply from KREX
                 tier and NFTs.
               </p>

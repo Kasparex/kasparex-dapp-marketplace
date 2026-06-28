@@ -248,7 +248,7 @@ export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
                             </div>
                         ) : (
                             <div className="text-center py-8 mb-8 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800">
-                                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                                <p className="kx-body">
                                     No reviews or comments yet.
                                 </p>
                             </div>

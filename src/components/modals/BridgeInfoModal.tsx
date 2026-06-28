@@ -53,7 +53,7 @@ export function BridgeInfoModal({
           </button>
         </div>
         <div className="p-5 space-y-4">
-          <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{defaultBody}</div>
+          <div className="kx-body text-zinc-700 dark:text-zinc-300">{defaultBody}</div>
           {links && links.length ? (
             <div className="space-y-2">
               {links.map((l) => (

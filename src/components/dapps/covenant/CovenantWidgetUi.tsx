@@ -32,7 +32,7 @@ export function CovenantHeader({ title, subtitle }: { title: string; subtitle: s
   return (
     <header className="text-center space-y-2">
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mx-auto">
+      <p className="kx-body max-w-lg mx-auto">
         {subtitle}
       </p>
       <p className="text-xs text-amber-600 dark:text-amber-400">
@@ -113,7 +113,7 @@ export function CovenantError({ message }: { message: string }) {
 
 export function CovenantHowItWorks({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-4 text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+    <div className="space-y-4 kx-body text-zinc-700 dark:text-zinc-300">
       {children}
     </div>
   );

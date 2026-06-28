@@ -8,7 +8,7 @@ export function VBlogExplainer() {
           How vBlog Works
         </h2>
         
-        <p className="text-base text-zinc-600 dark:text-zinc-400 mb-6">
+        <p className="kx-body mb-6">
           Kasparex vBlog is designed as an on-chain blog platform that combines decentralized storage with BlockDAG transactions. Each article&apos;s content is stored off-chain using a Content Identifier (CID), which allows for verifiable and immutable content storage while keeping on-chain costs low.
         </p>
 
@@ -20,7 +20,7 @@ export function VBlogExplainer() {
               </svg>
               CID Storage
             </h4>
-            <p className="text-base text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               Article content is stored via CID on decentralized storage networks (IPFS, etc.)
             </p>
           </div>
@@ -31,7 +31,7 @@ export function VBlogExplainer() {
               </svg>
               Article Creation
             </h4>
-            <p className="text-base text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               Creating a new article costs KAS (e.g., 5 KAS) to ensure quality and prevent spam
             </p>
           </div>
@@ -42,7 +42,7 @@ export function VBlogExplainer() {
               </svg>
               Article Updates
             </h4>
-            <p className="text-base text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               Updating an article costs a smaller KAS fee (e.g., 2 KAS) compared to creation
             </p>
           </div>
@@ -53,7 +53,7 @@ export function VBlogExplainer() {
               </svg>
               Comment Credits
             </h4>
-            <p className="text-base text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               Comments use a pre-paid credit system where users purchase batches (e.g., 10 KAS for 10 comments)
             </p>
           </div>
@@ -68,7 +68,7 @@ export function VBlogExplainer() {
               </svg>
               About Kasparex vBlog
             </h3>
-            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
+            <p className="kx-body mb-4">
               Kasparex vBlog is a decentralized publishing platform built on the Kaspa BlockDAG. It enables authors to create, publish, and manage content with on-chain verification while keeping content storage efficient through CID-based decentralized storage.
             </p>
           </div>
@@ -81,37 +81,37 @@ export function VBlogExplainer() {
               </svg>
               What&apos;s Coming Next
             </h3>
-            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
+            <p className="kx-body mb-4">
               vBlog will integrate with other Kasparex dApps to create a comprehensive content ecosystem:
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
                 <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Premium Content</h4>
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Premium posts unlocked with NFTs or tokens
                 </p>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
                 <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Author Features</h4>
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Special author features and gated categories
                 </p>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
                 <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Reward Systems</h4>
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Reward systems for quality content and engagement
                 </p>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
                 <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Content Sharing</h4>
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Cross-dApp content sharing and discovery
                 </p>
               </div>
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
                 <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Ecosystem Integration</h4>
-                <p className="text-base text-zinc-600 dark:text-zinc-400">
+                <p className="kx-body">
                   Integration with Kasparex rewards, tokens, and subscription systems
                 </p>
               </div>
@@ -126,7 +126,7 @@ export function VBlogExplainer() {
               </svg>
               Technical Details
             </h3>
-            <p className="text-base text-zinc-600 dark:text-zinc-400">
+            <p className="kx-body">
               This is a front-end prototype version of vBlog. All smart contract interactions and KAS fee logic are currently mocked, but the UX reflects how the final system will behave. The codebase is structured to easily integrate real smart contract calls, IPFS storage, and on-chain BlockDAG transaction handling in future updates.
             </p>
           </div>

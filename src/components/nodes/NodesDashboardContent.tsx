@@ -254,7 +254,7 @@ export function NodesDashboardContent() {
                   Nodes
                 </span>
               </h1>
-              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
+              <p className="kx-body max-w-2xl leading-relaxed mb-8">
                 Manage your KREX node: connect and register, monitor status, and track incentives. Advanced diagnostics live under the Premium tab.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -316,7 +316,7 @@ export function NodesDashboardContent() {
         <div className={NODES_TAB_STACK}>
           <div className={NODES_DASH_CARD}>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Register &amp; enroll</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            <p className="kx-body">
               Connect your Kaspa wallet and complete the Worker flow: signed challenge, on-chain 1 KAS verification (new
               enrollments), then node details. Your{' '}
               <code className="font-mono text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code> is shown only

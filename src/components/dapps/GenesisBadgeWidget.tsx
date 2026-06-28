@@ -205,7 +205,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     return (
       <div className="px-6 py-8 text-center">
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Genesis Badge</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400">Connect your wallet to unlock or boost your genesis badge.</p>
+        <p className="kx-body">Connect your wallet to unlock or boost your genesis badge.</p>
       </div>
     );
   }
@@ -214,7 +214,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     <div className="px-6 py-4 space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Genesis Badge</h2>
-        <p className="text-lg text-zinc-600 dark:text-zinc-400">
+        <p className="kx-body">
           {hasBadge ? 'Boost your badge and earn more tGRID and pts.' : 'Unlock a unique random badge. Earn tGRID and pts.'}
         </p>
         {hasBadge && (

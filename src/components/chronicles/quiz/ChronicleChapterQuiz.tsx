@@ -154,7 +154,7 @@ export function ChronicleChapterQuiz({
           className="shrink-0"
         />
       </div>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+      <p className="kx-body">
         Answer {CHRONICLE_QUIZ_QUESTION_COUNT} questions from this chapter. One paid entry equals one attempt. Pass the
         quiz to earn {HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS.
       </p>
@@ -162,7 +162,7 @@ export function ChronicleChapterQuiz({
       {phase === 'pay' && !completed ? (
         <div className="mt-8 space-y-8">
           <div className="space-y-3">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            <p className="kx-body">
               Questions are drawn at random from official Kasparex chapter lore. Read the article above, then pay the
               entry fee to start your attempt.
             </p>

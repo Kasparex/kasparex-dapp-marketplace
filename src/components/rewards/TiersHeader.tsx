@@ -18,7 +18,7 @@ export function TiersHeader() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
             Tiers &amp; multipliers
           </h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
+          <p className="kx-body max-w-2xl leading-relaxed">
             Informational breakdown of how KREX tiers, NFT multipliers, node perks, and premium flags influence Hub scoring and fee math. Spending redeemable catalog
             items happens exclusively on{' '}
             <a href="/rewards" className="font-semibold text-[#02abb8] underline">

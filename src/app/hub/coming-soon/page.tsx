@@ -28,7 +28,7 @@ export default function ComingSoonPage() {
             <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
               Coming Soon
             </h1>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8">
+            <p className="kx-body mb-8">
               This project is currently under development. Check back soon for updates!
             </p>
           </div>

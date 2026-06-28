@@ -45,7 +45,7 @@ export function ProductCard({ product }: ProductCardProps) {
         titleAccessory={
           <KxBadge variant={product.network === 'L1' ? 'sky' : 'teal'}>{product.network}</KxBadge>
         }
-        description={<p className="line-clamp-3 text-sm">{product.description}</p>}
+        description={<p className="kx-body line-clamp-3">{product.description}</p>}
         priceOptions={priceOptions}
         defaultCurrency={listedCurrency}
         quantitySelector={{ min: 1, max: 99 }}

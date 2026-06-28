@@ -23,7 +23,7 @@ function InfoSection({ title, children }: { title: string; children: React.React
   return (
     <section>
       <DAppSectionHeader title={title} />
-      <div className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">{children}</div>
+      <div className="kx-body whitespace-pre-line">{children}</div>
     </section>
   );
 }
@@ -141,7 +141,7 @@ export function DirectoryDAppInfoModal({ dapp, listing, onClose }: DirectoryDApp
               </div>
 
               {listing.shortDescription ? (
-                <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed">{listing.shortDescription}</p>
+                <p className="kx-body text-zinc-700 dark:text-zinc-300">{listing.shortDescription}</p>
               ) : null}
 
               <InfoSection title="Description">{listing.fullDescription || listing.shortDescription}</InfoSection>

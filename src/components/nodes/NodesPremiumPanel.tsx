@@ -100,7 +100,7 @@ export function NodesPremiumPanel() {
 
         {!unlocked ? (
           <div className="space-y-4">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            <p className="kx-body">
               Payment is sent on Kaspa L1 to the Kasparex treasury address configured for this deployment. After a successful
               transaction, diagnostics and stats tools unlock on this device for the connected wallet.
             </p>

@@ -31,7 +31,7 @@ export function StoreHeader() {
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
             The premier destination for digital assets on Kaspa. Discover exclusive software, art, music, and templates, secured by the blockDAG.
           </p>
 

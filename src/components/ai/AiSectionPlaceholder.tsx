@@ -15,7 +15,7 @@ export function AiSectionPlaceholder({ section }: { section: Exclude<AiHubSectio
       </div>
       <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Layout preview</p>
       <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-4">{meta.title}</h2>
-      <p className="text-base text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed">{meta.description}</p>
+      <p className="kx-body max-w-xl mx-auto leading-relaxed">{meta.description}</p>
       <p className="mt-6 text-xs font-bold uppercase tracking-wider text-zinc-400">Coming in a future release</p>
     </div>
   );

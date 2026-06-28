@@ -50,7 +50,7 @@ export default function KnowledgeBasePage() {
                 <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
                   Knowledge Base
                 </h1>
-                <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
+                <p className="kx-body mb-4">
                   Everything you need to know about the Kasparex ecosystem
                 </p>
                 <div className="k-search-container h-10 max-w-md overflow-visible">

@@ -58,7 +58,7 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
         <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
           L1 covenant campaign
         </p>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        <p className="kx-body">
           Same CrowdKAS experience as L2 campaigns, powered by Kaspa L1 covenant rules (simulator on this device for now).
         </p>
       </div>
@@ -161,7 +161,7 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
       )}
 
       {tab === 'about' && (
-        <div className="space-y-4 text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+        <div className="space-y-4 kx-body text-zinc-700 dark:text-zinc-300">
           <p>
             L1 covenant campaigns use the same CrowdKAS pages as L2 escrow campaigns. The difference is funding rules on
             Kaspa L1 instead of Igra smart contracts.

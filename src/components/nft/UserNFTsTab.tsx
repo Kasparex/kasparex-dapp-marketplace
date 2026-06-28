@@ -244,7 +244,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   if (!hasL1Wallet) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
+        <p className="kx-body mb-4">
           Connect your Kaspa L1 wallet to view your NFTs
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4 max-w-md mx-auto">
@@ -463,7 +463,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
       {/* Empty State */}
       {!isLoading && filteredNFTs.length === 0 && userNFTs.length > 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
+          <p className="kx-body mb-2">
             No NFTs found
           </p>
           <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6 max-w-md mx-auto">

@@ -98,7 +98,7 @@ export function DAppGuideAndInfoModal({ dapp, isOpen, onClose }: DAppGuideAndInf
                 </svg>
                 How to Use
               </h3>
-              <div className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+              <div className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
                 {guideContent}
               </div>
             </div>
@@ -112,7 +112,7 @@ export function DAppGuideAndInfoModal({ dapp, isOpen, onClose }: DAppGuideAndInf
                   </svg>
                   Security
                 </h3>
-                <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+                <p className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
                   {dapp.security}
                 </p>
               </div>
@@ -127,7 +127,7 @@ export function DAppGuideAndInfoModal({ dapp, isOpen, onClose }: DAppGuideAndInf
                   </svg>
                   Roadmap
                 </h3>
-                <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+                <p className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
                   {dapp.roadmap}
                 </p>
               </div>

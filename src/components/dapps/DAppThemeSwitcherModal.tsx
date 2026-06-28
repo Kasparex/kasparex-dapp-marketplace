@@ -81,7 +81,7 @@ export function DAppThemeSwitcherModal({
           </div>
 
           <div className="mb-6">
-            <p className="text-base text-zinc-600 dark:text-zinc-400 mb-4">
+            <p className="kx-body mb-4">
               Choose a theme for the entire page. This will change the appearance of all components.
             </p>
 

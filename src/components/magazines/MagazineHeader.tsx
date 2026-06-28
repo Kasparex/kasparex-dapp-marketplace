@@ -25,7 +25,7 @@ export function MagazineHeader() {
                         Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-600 dark:from-cyan-400 dark:to-emerald-400">Magazines</span>
                     </h1>
 
-                    <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
+                    <p className="kx-body max-w-2xl leading-relaxed mb-8">
                         The hub for digital publications within the Kaspa ecosystem. High-quality magazines, technical deep dives, and community-driven content, all powered by KAS.
                     </p>
 

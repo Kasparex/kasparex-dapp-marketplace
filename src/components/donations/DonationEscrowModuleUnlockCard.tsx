@@ -241,7 +241,7 @@ export function DonationEscrowModuleUnlockCard({
         <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{offer.title}</h3>
       </div>
       <div className="p-4 sm:p-5 space-y-3 flex flex-col flex-1 min-h-0">
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">{offer.description}</p>
+        <p className="kx-body">{offer.description}</p>
         {!isUnlocked && (
           <>
             <div className="mt-1 space-y-2">

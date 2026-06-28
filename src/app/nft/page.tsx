@@ -276,7 +276,7 @@ export default function NFTPage() {
           {listingTab === 'standard' && (
             <section id="nft-section-standard" className="scroll-mt-24">
               <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/70 dark:bg-zinc-900/40 px-6 py-8">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+                <p className="kx-body max-w-3xl">
                   Standard-tier rules follow the public points tables (base slot values for non-premium, non-partner
                   NFTs). When we onboard additional collections into this app with rarity and trait tooling, they will
                   appear in the Premium or Partners tabs by tier.

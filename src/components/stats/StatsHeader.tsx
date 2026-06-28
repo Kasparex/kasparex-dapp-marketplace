@@ -38,7 +38,7 @@ export function StatsHeader({
             {headline}
           </h1>
 
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
             {description}
           </p>
 

@@ -294,7 +294,7 @@ export function DAOVotingWidget() {
                         
                         {/* Proposal Description - More Visible */}
                         <div className="mb-5">
-                          <p className="text-base text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                          <p className="kx-body text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
                             {proposal.description}
                           </p>
                         </div>

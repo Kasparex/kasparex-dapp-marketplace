@@ -426,7 +426,7 @@ export default function RevenueTreeSimulationPage() {
                            </div>
                            <div>
                               <h4 className="text-amber-700 dark:text-amber-500 font-bold text-base uppercase mb-1">Transparency Note</h4>
-                              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                              <p className="kx-body">
                                  Alex (L2) was inactive, so his <strong>5% share</strong> was redirected to the protocol reserve. Activation is key to network growth.
                               </p>
                            </div>
