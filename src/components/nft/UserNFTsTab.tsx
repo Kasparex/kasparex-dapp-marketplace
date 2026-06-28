@@ -281,23 +281,6 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end mb-4">
-        <button
-          type="button"
-          onClick={loadUserNFTs}
-          disabled={isLoading}
-          className="k-control-btn text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Loading…' : 'Refresh'}
-        </button>
-      </div>
-
-      {error ? (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-          <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
-        </div>
-      ) : null}
-
       {/* Filters and Sorting Controls */}
       {userNFTs.length > 0 && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -426,22 +409,8 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
         </div>
       )}
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-12">
-          <div className="text-zinc-600 dark:text-zinc-400">Loading your NFTs...</div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200">
-          {error}
-        </div>
-      )}
-
-      {/* NFT Rewards & Benefits Card - Show when no NFTs or always visible */}
-      {userNFTs.length === 0 && !isLoading && !error && (
+      {/* NFT Rewards & Benefits Card - Show when no NFTs */}
+      {userNFTs.length === 0 && !isLoading && (
         <div className="mb-8 p-6 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
             NFT Rewards & Benefits
@@ -515,7 +484,7 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && filteredNFTs.length === 0 && (
+      {!isLoading && filteredNFTs.length === 0 && userNFTs.length > 0 && (
         <div className="text-center py-12">
           <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
             No NFTs found

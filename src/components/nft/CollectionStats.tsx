@@ -167,7 +167,6 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
         <p className="text-sm text-zinc-500 dark:text-zinc-500">
           Use KasWare or Kastle from the header wallet menu
         </p>
-        </p>
       </div>
     );
   }

@@ -72,7 +72,7 @@ export async function fetchNFTsByAddress(address: string): Promise<KRC721StreamT
 
     const allTokens: KRC721StreamToken[] = [];
     let endpoint = baseEndpoint;
-    const maxPages = 25;
+    const maxPages = 5;
 
     for (let page = 0; page < maxPages; page += 1) {
       const data = await fetchStreamPage(endpoint);
