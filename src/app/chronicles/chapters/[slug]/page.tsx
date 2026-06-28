@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
@@ -69,11 +69,11 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
         ...(next ? [{ href: `/chronicles/chapters/${next.slug}`, label: `Next: ${next.title}` }] : []),
       ],
     },
-    ...(chapter.relatedGameSlug === 'diamond-veins'
+    ...(chapter.relatedGameSlug === 'minecore'
       ? [
           {
             title: 'Related game',
-            body: <DiamondVeinsCallout />,
+            body: <MinecoreCallout />,
           },
         ]
       : []),

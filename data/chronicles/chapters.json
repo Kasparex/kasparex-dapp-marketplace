@@ -7,8 +7,8 @@
     "status": "published",
     "timeline": "past",
     "highlightCharacterSlugs": ["krex", "tessa", "vector", "null-gang"],
-    "locationSlugs": ["kaspaland", "kasparex"],
-    "relatedGameSlug": "diamond-veins",
+    "locationSlugs": ["kaspaland", "kasparex", "minecore-complex"],
+    "relatedGameSlug": "minecore",
     "bodyPath": "bodies/chapter-01-the-heart-of-kasparex.md"
   },
   {
@@ -41,8 +41,8 @@
     "status": "published",
     "timeline": "future",
     "highlightCharacterSlugs": ["krex", "tessa", "vector", "null-gang"],
-    "locationSlugs": ["kasparex", "kaspaland"],
-    "relatedGameSlug": "diamond-veins",
+    "locationSlugs": ["kasparex", "kaspaland", "minecore-complex"],
+    "relatedGameSlug": "minecore",
     "bodyPath": "bodies/chapter-04-premium-echoes-of-the-veil.md",
     "access": {
       "contentId": "chapter-early-04",

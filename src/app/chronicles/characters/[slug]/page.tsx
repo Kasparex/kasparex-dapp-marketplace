@@ -2,7 +2,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { TokenPlaceholder } from '@/components/chronicles/TokenPlaceholder';
-import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
+import { KxBadge } from '@/components/ui/KxBadge';
+import {
+  chronicleAbilityBadgeVariant,
+  chronicleTagBadgeVariant,
+} from '@/lib/chronicles/chronicleTagBadge';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
@@ -37,8 +42,8 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
     ? chapters.find((x) => x.slug === character.firstAppearanceChapterSlug)
     : null;
 
-  const showDiamond =
-    character.tags.includes('diamond-veins') ||
+  const showMinecore =
+    character.tags.includes('minecore') ||
     character.slug === 'vector' ||
     character.slug === 'aria' ||
     character.slug === 'krex';
@@ -86,15 +91,12 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
     ...(character.abilities.length > 0
       ? [
           {
-            title: 'Abilities / traits',
+            title: 'Abilities',
             body: (
               <ul className="flex flex-wrap gap-2">
-                {character.abilities.map((a) => (
-                  <li
-                    key={a}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-800 dark:text-zinc-200"
-                  >
-                    {a}
+                {character.abilities.map((a, i) => (
+                  <li key={a}>
+                    <KxBadge variant={chronicleAbilityBadgeVariant(i)}>{a}</KxBadge>
                   </li>
                 ))}
               </ul>
@@ -102,11 +104,27 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
           },
         ]
       : []),
-    ...(showDiamond
+    ...(character.tags.length > 0
       ? [
           {
-            title: 'Diamond Veins',
-            body: <DiamondVeinsCallout />,
+            title: 'Traits',
+            body: (
+              <ul className="flex flex-wrap gap-2">
+                {character.tags.map((t) => (
+                  <li key={t}>
+                    <KxBadge variant={chronicleTagBadgeVariant(t)}>{t}</KxBadge>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+        ]
+      : []),
+    ...(showMinecore
+      ? [
+          {
+            title: 'Related game',
+            body: <MinecoreCallout />,
           },
         ]
       : []),
@@ -134,7 +152,11 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
 
       <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="min-w-0">
-          <ChronicleFeaturedVisual imageUrl={character.featuredImageUrl} alt={character.name} badge={character.kind} />
+          <ChronicleFeaturedVisual
+            imageUrl={character.featuredImageUrl}
+            alt={character.name}
+            badge={character.kind}
+          />
           <ChronicleCategoryKicker>{character.kind}</ChronicleCategoryKicker>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{character.name}</h1>
           <p className={`${CHRONICLES_TEASER} mt-4`}>{character.summary}</p>

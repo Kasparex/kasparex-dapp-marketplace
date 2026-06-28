@@ -139,11 +139,24 @@ export function ChronicleChapterQuiz({
   const answeredCount = questions.filter((q) => answers[q.id] != null).length;
 
   return (
-    <section className={`${CHRONICLES_PANEL} p-5 sm:p-6 mt-10`} aria-labelledby="chapter-quiz-heading">
-      <p className={CHRONICLES_PANEL_LABEL}>Chapter quiz</p>
-      <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-2 mb-3">
-        Test your lore knowledge
-      </h2>
+    <section className={`${CHRONICLES_PANEL} p-5 sm:p-6 mt-10 relative`} aria-labelledby="chapter-quiz-heading">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className={CHRONICLES_PANEL_LABEL}>Chapter quiz</p>
+          <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-2 mb-3">
+            Test your lore knowledge
+          </h2>
+        </div>
+        <span
+          className="shrink-0 inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300"
+          title="Hub PTS reward for passing this quiz"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          {HUB_EARN_POINTS.chroniclesQuizComplete} PTS
+        </span>
+      </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
         Answer {CHRONICLE_QUIZ_QUESTION_COUNT} questions from this chapter. One paid entry equals one attempt. Pass the
         quiz to earn {HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS.

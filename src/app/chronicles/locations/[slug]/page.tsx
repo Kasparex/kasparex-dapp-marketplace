@@ -2,7 +2,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
@@ -62,8 +64,24 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
     },
     ...(chapterLinks.length > 0 ? [{ title: 'Chapters', links: chapterLinks }] : []),
     ...(characterLinks.length > 0 ? [{ title: 'Characters', links: characterLinks }] : []),
-    ...(location.relatedGameSlug === 'diamond-veins'
-      ? [{ title: 'Related game', body: <DiamondVeinsCallout /> }]
+    ...(location.tags.length > 0
+      ? [
+          {
+            title: 'Tags',
+            body: (
+              <ul className="flex flex-wrap gap-2">
+                {location.tags.map((t) => (
+                  <li key={t}>
+                    <KxBadge variant={chronicleTagBadgeVariant(t)}>{t}</KxBadge>
+                  </li>
+                ))}
+              </ul>
+            ),
+          },
+        ]
+      : []),
+    ...(location.relatedGameSlug === 'minecore'
+      ? [{ title: 'Related game', body: <MinecoreCallout /> }]
       : []),
   ];
 

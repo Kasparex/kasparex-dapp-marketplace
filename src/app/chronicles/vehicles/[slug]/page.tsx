@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
@@ -42,7 +42,7 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
   const owner =
     vehicle.ownerCharacterSlug != null ? getCharacterBySlug(vehicle.ownerCharacterSlug) : null;
 
-  const showDiamond = vehicle.tags.includes('diamond-veins');
+  const showMinecore = vehicle.tags.includes('minecore');
 
   const asideSections = [
     {
@@ -58,7 +58,7 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
         ]
       : []),
     ...(chapterLinks.length > 0 ? [{ title: 'Appearances', links: chapterLinks }] : []),
-    ...(showDiamond ? [{ title: 'Diamond Veins', body: <DiamondVeinsCallout /> }] : []),
+    ...(showMinecore ? [{ title: 'Related game', body: <MinecoreCallout /> }] : []),
   ];
 
   return (

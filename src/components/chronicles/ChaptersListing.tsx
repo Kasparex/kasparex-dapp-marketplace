@@ -16,7 +16,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChroniclesEntitlements';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
-import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { chronicleTimelineBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
 
@@ -25,15 +26,6 @@ const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'current', label: 'Current' },
   { id: 'future', label: 'Future' },
 ];
-
-function timelineBadgeVariant(t: ChronicleTimeline): KxBadgeVariant {
-  const map: Record<ChronicleTimeline, KxBadgeVariant> = {
-    past: 'zinc',
-    current: 'cyan',
-    future: 'emerald',
-  };
-  return map[t];
-}
 
 function ChapterCard({ c }: { c: ChronicleChapterMeta & { isCommunity?: boolean } }) {
   const { state } = useKaspaWallet();
@@ -59,7 +51,7 @@ function ChapterCard({ c }: { c: ChronicleChapterMeta & { isCommunity?: boolean 
         <>
           {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
           {isPremium ? <KxBadge variant="amber">Premium</KxBadge> : null}
-          <KxBadge variant={timelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
+          <KxBadge variant={chronicleTimelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
         </>
       }
       footer={
@@ -156,7 +148,7 @@ export function ChaptersListing({
                   <td className="p-3 font-mono text-zinc-500">{c.number}</td>
                   <td className="p-3 font-semibold text-zinc-900 dark:text-zinc-100">{c.title}</td>
                   <td className="p-3">
-                    <KxBadge variant={timelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
+                    <KxBadge variant={chronicleTimelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
                   </td>
                   <td className="p-3 text-right">
                     <Link href={`/chronicles/chapters/${c.slug}`} className="text-[#02abb8] font-bold text-xs uppercase">
@@ -184,7 +176,7 @@ export function ChaptersListing({
                     <span className="text-zinc-400 font-mono mr-2">{c.number}.</span>
                     {c.title}
                   </span>
-                  <KxBadge variant={timelineBadgeVariant(c.timeline)} className="shrink-0">
+                  <KxBadge variant={chronicleTimelineBadgeVariant(c.timeline)} className="shrink-0">
                     {c.timeline}
                   </KxBadge>
                 </div>

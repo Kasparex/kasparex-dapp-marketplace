@@ -25,10 +25,10 @@
     "slug": "vector-diamond-machines",
     "name": "Vector's diamond processing machines",
     "kind": "device",
-    "summary": "Lore crossover: special machines that process Krex Diamonds (Diamond Veins game).",
-    "bodyMarkdown": "Per [Diamond Veins](/games/diamond-veins) lore, **Vector** builds machines that process condensed network-energy crystals; **ARIA** monitors the pipeline. Chronicles treats this as the same universe's industrial layer beneath [[location:kaspaland|Kaspaland]].",
+    "summary": "Lore crossover: special machines that process Krex Diamonds in the Minecore grid.",
+    "bodyMarkdown": "Per [Minecore](/games/minecore) lore, **Vector** builds machines that process condensed network-energy crystals; **ARIA** monitors the pipeline. Chronicles treats this as the same universe's industrial layer beneath [[location:kaspaland|Kaspaland]] and the [[location:minecore-complex|Minecore Complex]].",
     "ownerCharacterSlug": "vector",
     "chapterSlugs": [],
-    "tags": ["diamond-veins", "crossover"]
+    "tags": ["minecore", "crossover"]
   }
 ]

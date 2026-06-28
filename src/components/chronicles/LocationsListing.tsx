@@ -15,6 +15,8 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityLocationToEntity } from '@/lib/chronicles/communityAdapters';
 
@@ -142,7 +144,16 @@ export function LocationsListing({
               alt={l.name}
               title={l.name}
               description={l.summary}
-              badges={'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
+              badges={
+                <>
+                  {l.tags.slice(0, 3).map((t) => (
+                    <KxBadge key={t} variant={chronicleTagBadgeVariant(t)}>
+                      {t}
+                    </KxBadge>
+                  ))}
+                  {'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
+                </>
+              }
               footer={<span className="text-xs text-zinc-500">{l.visualStyle}</span>}
             />
           ))}

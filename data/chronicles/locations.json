@@ -2,8 +2,8 @@
   {
     "slug": "kaspaland",
     "name": "Kaspaland",
-    "summary": "Neon metropolis of holo-ads, aerial traffic, underground markets, and the Diamond Veins below.",
-    "bodyMarkdown": "**Kaspaland** is the primary urban setting of Krex's Chronicles: cyber skyscrapers, holographic billboards, autonomous drones, and streets dense with crypto commerce. From [[location:kasparex|Kasparex]]'s tower the **cybernetic sky** can glitch when higher powers interfere.\n\nBeneath the city, **Krex Diamonds** and ancient crystal veins appear in the [Diamond Veins](/games/diamond-veins) experience - treat it as the same world, different depth.",
+    "summary": "Neon metropolis of holo-ads, aerial traffic, underground markets, and the Minecore plants below.",
+    "bodyMarkdown": "**Kaspaland** is the primary urban setting of Krex's Chronicles: cyber skyscrapers, holographic billboards, autonomous drones, and streets dense with crypto commerce. From [[location:kasparex|Kasparex]]'s tower the **cybernetic sky** can glitch when higher powers interfere.\n\nBeneath the city, **[[location:minecore-complex|Minecore]]** drills into unstable diamond veins. Treat the [Minecore game](/games/minecore) as the same world at industrial depth.",
     "visualStyle": "Cyberpunk neon, decentralized ad layers, electric veins of light",
     "roleInStory": "The city Krex protects; stage for gangs, listings, and sky anomalies.",
     "chapterSlugs": [
@@ -12,8 +12,8 @@
       "chapter-03-the-ghost-in-the-code"
     ],
     "characterSlugs": ["krex", "null-gang"],
-    "relatedGameSlug": "diamond-veins",
-    "secretsMarkdown": "Whispers of rare crystal chambers and cores of energy tie to game lore beneath the streets.",
+    "relatedGameSlug": "minecore",
+    "secretsMarkdown": "Whispers of rare crystal chambers and reactor cores tie to Minecore lore beneath the streets.",
     "tags": ["city", "primary-setting"]
   },
   {
@@ -54,5 +54,98 @@
     "chapterSlugs": ["chapter-03-the-ghost-in-the-code"],
     "characterSlugs": ["krex", "aria", "silent-protocol"],
     "tags": ["network", "kaspa"]
+  },
+  {
+    "slug": "minecore-complex",
+    "name": "Minecore Complex",
+    "summary": "Krex's subterranean industrial network beneath Kaspaland: plants, grid load, and diamond refinement.",
+    "bodyMarkdown": "The **Minecore Complex** is the official game layer of Krex's Chronicles: a deep industrial stratum where [[character:krex|Krex]], [[character:vector|Vector]], and [[character:aria|ARIA]] coordinate extraction from unstable **diamond veins**.\n\nOperators deploy tiered plants from [[location:minecore-standard-plant|Standard rigs]] up to the [[location:minecore-dominion-complex|Dominion Complex]]. Crew NFTs, battery pillars, fabrication modules, and grid efficiency determine whether a cycle completes or collapses under load.\n\nThis is not spectacle mining. Minecore is **infrastructure**: the force that keeps Kaspaland lit when Null Gang erasure and Silent Protocol glitches threaten the surface.\n\nPlay the live experience at [Minecore](/games/minecore).",
+    "visualStyle": "Emerald reactor glow, teal grid HUDs, subterranean steel catwalks",
+    "roleInStory": "Industrial backbone of Kaspaland; bridge between Chronicles lore and playable extraction.",
+    "chapterSlugs": [
+      "chapter-01-the-heart-of-kasparex",
+      "chapter-04-premium-echoes-of-the-veil"
+    ],
+    "characterSlugs": ["krex", "vector", "aria", "tessa"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "facility", "industrial"]
+  },
+  {
+    "slug": "minecore-standard-plant",
+    "name": "Standard Plant (Minecore)",
+    "summary": "Entry-tier Minecore rig: one battery pillar, one crew link, reliable baseline output.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_20f6148d91ca410ba4e3ec8dae8784e7~mv2.png",
+    "bodyMarkdown": "**Standard Plants** are the first footprint in the Minecore grid: affordable, dependable, and built for operators learning the rhythm of charge cycles and maintenance wear.\n\nLore treats these rigs as the **street-level industrial face** of Krex's network - where new crew prove they can keep a single pillar stable before Vector authorizes tier upgrades.\n\nIn [Minecore](/games/minecore): basic mining operations, one battery pillar, one workforce slot.",
+    "visualStyle": "Compact forge bays, hammer-marked plating, single cyan reactor column",
+    "roleInStory": "Gateway tier for surface-to-depth operators in the Minecore canon.",
+    "chapterSlugs": ["chapter-01-the-heart-of-kasparex"],
+    "characterSlugs": ["krex", "vector"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant"]
+  },
+  {
+    "slug": "minecore-premium-plant",
+    "name": "Premium Plant (Minecore)",
+    "summary": "Upgraded Minecore infrastructure with dual battery pillars and fabrication modules.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_5ea48177c9034a89ba58e44c60c15c51~mv2.png",
+    "bodyMarkdown": "**Premium Plants** mark the moment an operator stops surviving the grid and starts **shaping** it: dual battery pillars, fabrication hooks, and longer maintenance intervals.\n\nTessa's stealth workflows sometimes route surplus power from Premium bays into Kasparex failover lines during Null Gang spikes.\n\nIn [Minecore](/games/minecore): upgraded infrastructure with dual pillars and module slots.",
+    "visualStyle": "Shielded dual reactors, teal maintenance rails, modular fab arms",
+    "roleInStory": "Mid-tier industrial anchor when Kasparex needs redundant underground power.",
+    "chapterSlugs": ["chapter-01-the-heart-of-kasparex"],
+    "characterSlugs": ["tessa", "vector"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant"]
+  },
+  {
+    "slug": "minecore-advanced-complex",
+    "name": "Advanced Complex (Minecore)",
+    "summary": "Industrial-scale Minecore site with three crew links and high rolling diamond caps.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_da16975f19d8437195ef88d1915cde44~mv2.png",
+    "bodyMarkdown": "The **Advanced Complex** is where Minecore lore meets **city-scale logistics**: three staffed crew rows, heavier grid draw, and rolling caps that can feed refinement pools for Hub rewards.\n\nARIA monitors these sites for Silent Protocol fingerprints in power telemetry.\n\nIn [Minecore](/games/minecore): industrial-scale mining with three module slots and higher daily ceilings.",
+    "visualStyle": "Zap-lit catwalks, triple reactor stacks, industrial warning stripes",
+    "roleInStory": "Primary production tier linking underground extraction to Kasparex intelligence budgets.",
+    "chapterSlugs": ["chapter-02-shadows-and-secrets"],
+    "characterSlugs": ["aria", "krex"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant", "industrial"]
+  },
+  {
+    "slug": "minecore-industrial-site",
+    "name": "Industrial Site (Minecore)",
+    "summary": "Heavy-duty Minecore grid headroom with four crew links and deep daily ceilings.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_6df3ca1ce59c46c888649690e4244ddd~mv2.jpg",
+    "bodyMarkdown": "**Industrial Sites** span whole cavern wings under Kaspaland: four battery pillars, four crew decks, and maintenance cycles measured in multi-day endurance runs.\n\nVector's garage schematics often prototype here before surface deployment.\n\nIn [Minecore](/games/minecore): heavy-duty grid headroom and four staffed crew links.",
+    "visualStyle": "Massive gantry cranes, orange safety beacons, four-pillar reactor ring",
+    "roleInStory": "Vector's preferred tier for stress-testing machines that later appear in Chronicles crossovers.",
+    "chapterSlugs": ["chapter-02-shadows-and-secrets"],
+    "characterSlugs": ["vector"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant", "industrial"]
+  },
+  {
+    "slug": "minecore-elite-foundry",
+    "name": "Elite Foundry (Minecore)",
+    "summary": "Five-pillar apex foundry for dedicated operators with elite rolling caps.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_85049789ce0744feafe794224de71eef~mv2.jpg",
+    "bodyMarkdown": "The **Elite Foundry** is reserved for crews who treat Minecore as **doctrine**, not side income: five reactor pillars, five NFT crew links, and efficiency discipline that Null Gang cannot easily spoof.\n\nKrex uses Foundry output to fund premium chapter unlocks and emergency Kaspa treasury moves.\n\nIn [Minecore](/games/minecore): five pillars and apex-tier rolling caps.",
+    "visualStyle": "Crown-lit control spire, gold-teal reactor crown, elite crew decks",
+    "roleInStory": "High-trust industrial tier tied to premium Chronicles arcs.",
+    "chapterSlugs": ["chapter-04-premium-echoes-of-the-veil"],
+    "characterSlugs": ["krex"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant"]
+  },
+  {
+    "slug": "minecore-dominion-complex",
+    "name": "Dominion Complex (Minecore)",
+    "summary": "Maximum Minecore facility scale: six pillars, six crew rows, six module slots.",
+    "featuredImageUrl": "https://static.wixstatic.com/media/de4185_c8728dbcdd12453aa9add461ff121f8a~mv2.jpg",
+    "bodyMarkdown": "The **Dominion Complex** is the mythic ceiling of Minecore canon: six pillars, six crew rows, six module slots, and rolling caps that can reshape refinement economics across Kaspaland.\n\nLore hints that Dominion telemetry once pinged the [[location:forgotten-blocks|forgotten blocks]] during a Silent Protocol flare - proof the deepest rigs touch network history itself.\n\nIn [Minecore](/games/minecore): maximum facility scale for dedicated operators.",
+    "visualStyle": "Landmark-scale reactor cathedral, emerald dominion banners, six-pillar symmetry",
+    "roleInStory": "Endgame industrial seat of power beneath the metropolis.",
+    "chapterSlugs": ["chapter-04-premium-echoes-of-the-veil"],
+    "characterSlugs": ["krex", "aria"],
+    "relatedGameSlug": "minecore",
+    "tags": ["minecore", "plant", "facility"]
   }
 ]

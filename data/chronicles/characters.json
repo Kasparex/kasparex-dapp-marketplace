@@ -6,7 +6,7 @@
     "role": "Hero",
     "summary": "Visionary cryptographer, half-human half-reptile, architect of Kasparex and the KREX Token network.",
     "featuredImageUrl": "https://static.wixstatic.com/media/de4185_0a76e786791d4b7f9b7920b343cfba1c~mv2.png",
-    "bodyMarkdown": "[[character:krex|Krex]] is the central figure of Krex's Chronicles: a half-human, half-reptile cryptography mastermind known for his yellow cyber hoodie, neon glasses, and calm authority in the alleys and code of [[location:kaspaland|Kaspaland]]. He designed [[location:kasparex|Kasparex]] as a concealed, high-security database at the heart of the metropolis and uses the KREX Token to empower allies with rare digital abilities.\n\nHis mission: protect Kaspaland, guard the Kaspa network, and unlock secrets hidden in encrypted paths. When the [[character:null-gang|Null Gang]] strikes or the [[character:silent-protocol|Silent Protocol]] watches from the [[location:forgotten-blocks|forgotten blocks]], Krex is the line between order and erasure.\n\nIn the [Diamond Veins](/games/diamond-veins) game layer, Krex is tied to the discovery of **Krex Diamonds** deep beneath Kaspaland - canon that complements this narrative.",
+    "bodyMarkdown": "[[character:krex|Krex]] is the central figure of Krex's Chronicles: a half-human, half-reptile cryptography mastermind known for his yellow cyber hoodie, neon glasses, and calm authority in the alleys and code of [[location:kaspaland|Kaspaland]]. He designed [[location:kasparex|Kasparex]] as a concealed, high-security database at the heart of the metropolis and uses the KREX Token to empower allies with rare digital abilities.\n\nHis mission: protect Kaspaland, guard the Kaspa network, and unlock secrets hidden in encrypted paths. When the [[character:null-gang|Null Gang]] strikes or the [[character:silent-protocol|Silent Protocol]] watches from the [[location:forgotten-blocks|forgotten blocks]], Krex is the line between order and erasure.\n\nIn [Minecore](/games/minecore), Krex is tied to the discovery of **Krex Diamonds** deep beneath Kaspaland and the [[location:minecore-complex|Minecore Complex]] that keeps the city powered.",
     "abilities": ["Cryptography", "Network command", "KREX Token attunement", "Holographic visor interface"],
     "firstAppearanceChapterSlug": "chapter-01-the-heart-of-kasparex",
     "relationships": [
@@ -16,7 +16,7 @@
       { "characterSlug": "aria", "relation": "AI partner  -  scans and diagnostics" }
     ],
     "storyStatus": "Active",
-    "tags": ["protagonist", "kasparex", "krex-token"],
+    "tags": ["protagonist", "kasparex", "krex-token", "minecore"],
     "token": {
       "status": "live",
       "utility": "Powers allies and gates elite capabilities across Kasparex."
@@ -46,7 +46,7 @@
     "kind": "person",
     "role": "Hacker",
     "summary": "Master hacker who once collapsed a corporation's security overnight; builder of extreme tech.",
-    "bodyMarkdown": "Vector is Krex's heavy-hitter in pure hacking muscle - legendary for taking down an entire corporation's security in one night. In [[chapter:chapter-01-the-heart-of-kasparex|Chapter 1]] he works alongside Tessa to hold the line against infiltration.\n\n**Diamond Veins crossover:** In Kasparex games, **Vector's Garage** sells boosts like *Vector's Overclock*, and lore describes machines built by Vector processing network-energy diamonds - see [Diamond Veins](/games/diamond-veins).",
+    "bodyMarkdown": "Vector is Krex's heavy-hitter in pure hacking muscle - legendary for taking down an entire corporation's security in one night. In [[chapter:chapter-01-the-heart-of-kasparex|Chapter 1]] he works alongside Tessa to hold the line against infiltration.\n\n**Minecore crossover:** In Kasparex games, **Vector's Garage** sells boosts like *Vector's Overclock*, and lore describes machines built by Vector processing network-energy diamonds beneath [[location:minecore-complex|Minecore]] - see [Minecore](/games/minecore).",
     "abilities": ["Enterprise-scale breach", "Layered code analysis", "Hardware and garage tech"],
     "firstAppearanceChapterSlug": "chapter-01-the-heart-of-kasparex",
     "relationships": [
@@ -54,7 +54,7 @@
       { "characterSlug": "tessa", "relation": "Teammate" }
     ],
     "storyStatus": "Active",
-    "tags": ["ally", "garage", "diamond-veins"],
+    "tags": ["ally", "garage", "minecore"],
     "token": { "status": "not-launched" }
   },
   {
@@ -78,12 +78,12 @@
     "role": "AI",
     "summary": "Krex's holographic AI - real-time scans, decryption, and rare moments of human urgency.",
     "featuredImageUrl": "https://static.wixstatic.com/media/de4185_7527c763646143ef95b05626aa082c94~mv2.png",
-    "bodyMarkdown": "ARIA manifests as cyan-light holographic form beside Krex, running scans, decrypting [[location:forgotten-blocks|forgotten blocks]], and flagging when **The Silent Protocol** traces Kasparex. She bridges raw chain data and operator instinct.\n\n**Diamond Veins crossover:** *ARIA Auto-Refiner* and monitoring of diamond processing appear in [Diamond Veins](/games/diamond-veins) shop and lore.",
+    "bodyMarkdown": "ARIA manifests as cyan-light holographic form beside Krex, running scans, decrypting [[location:forgotten-blocks|forgotten blocks]], and flagging when **The Silent Protocol** traces Kasparex. She bridges raw chain data and operator instinct.\n\n**Minecore crossover:** *ARIA Auto-Refiner* and monitoring of diamond processing appear in [Minecore](/games/minecore) shop and lore.",
     "abilities": ["Full system scan", "Decryption", "Intrusion analytics", "Anomaly recording"],
     "firstAppearanceChapterSlug": "chapter-03-the-ghost-in-the-code",
     "relationships": [{ "characterSlug": "krex", "relation": "Primary operator" }],
     "storyStatus": "Active",
-    "tags": ["ai", "diamond-veins"],
+    "tags": ["ai", "minecore"],
     "token": { "status": "not-launched" }
   },
   {

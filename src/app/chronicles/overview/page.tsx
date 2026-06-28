@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
-import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
+import { MinecoreCallout } from '@/components/chronicles/MinecoreCallout';
 import { ChronicleFeaturedVisual, ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
@@ -33,7 +33,7 @@ export default function ChroniclesOverviewPage() {
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
           <div className="pt-4">
-            <DiamondVeinsCallout />
+            <MinecoreCallout />
           </div>
         </div>
 

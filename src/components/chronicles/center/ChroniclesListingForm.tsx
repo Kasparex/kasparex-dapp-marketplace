@@ -20,16 +20,42 @@ import type { CharacterKind, ChronicleTimeline, VehicleKind } from '@/lib/chroni
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { StoreFileUpload } from '@/components/store/StoreFileUpload';
+import { useIPFSUpload } from '@/lib/ipfs/hooks';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 const CONTENT_KINDS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
+const FEATURED_IMAGE_MAX_SIZE_MB = 5;
+
+function FeaturedImageSourceToggle({
+  value,
+  onChange,
+}: {
+  value: 'url' | 'file';
+  onChange: (next: 'url' | 'file') => void;
+}) {
+  return (
+    <KxTabStrip
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: 'url', label: 'Via URL' },
+        { value: 'file', label: 'Upload (IPFS)' },
+      ]}
+      ariaLabel="Featured image source"
+      fullWidth
+    />
+  );
+}
 
 export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => void }) {
   const router = useRouter();
   const { state } = useKaspaWallet();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { upload, isUploading } = useIPFSUpload();
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
@@ -39,6 +65,9 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const [summary, setSummary] = useState('');
   const [bodyMarkdown, setBodyMarkdown] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState('');
+  const [featuredImageSource, setFeaturedImageSource] = useState<'url' | 'file'>('file');
+  const [featuredImageCid, setFeaturedImageCid] = useState<string | null>(null);
+  const [featuredImageName, setFeaturedImageName] = useState<string | null>(null);
   const [chapterNumber, setChapterNumber] = useState('');
   const [timeline, setTimeline] = useState<ChronicleTimeline>('current');
   const [characterKind, setCharacterKind] = useState<CharacterKind>('person');
@@ -51,7 +80,43 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
     [baseFeeKas, krexTier, nftStatus],
   );
   const feeLabel = listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas);
-  const canSubmit = Boolean(state.isConnected && title.trim() && summary.trim() && bodyMarkdown.trim() && !isProcessing);
+  const featuredPreviewUrl =
+    featuredImageSource === 'url' && featuredImageUrl.trim()
+      ? featuredImageUrl.trim()
+      : featuredImageCid
+        ? getBestGatewayUrl(featuredImageCid)
+        : undefined;
+  const canSubmit = Boolean(
+    state.isConnected && title.trim() && summary.trim() && bodyMarkdown.trim() && !isProcessing && !isUploading,
+  );
+
+  const uploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const maxSize = FEATURED_IMAGE_MAX_SIZE_MB * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError(`Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`);
+      e.target.value = '';
+      return;
+    }
+    const cid = await upload(file, { filename: file.name });
+    if (cid) {
+      setFeaturedImageCid(cid);
+      setFeaturedImageName(file.name);
+      setFeaturedImageUrl('');
+      setError(null);
+    } else {
+      setError('Failed to upload featured image to IPFS');
+    }
+    e.target.value = '';
+  };
+
+  const resolveFeaturedImageUrl = () => {
+    if (featuredImageSource === 'url') {
+      return featuredImageUrl.trim() || undefined;
+    }
+    return featuredImageCid ? getBestGatewayUrl(featuredImageCid) : undefined;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +137,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
         feeAmountKas: listingFee.effectiveKas,
         paymentCurrency,
         feeTxHash,
-        featuredImageUrl: featuredImageUrl.trim() || undefined,
+        featuredImageUrl: resolveFeaturedImageUrl(),
         chapterNumber: kind === 'chapter' && chapterNumber ? Number(chapterNumber) : undefined,
         timeline: kind === 'chapter' ? timeline : undefined,
         characterKind: kind === 'character' ? characterKind : undefined,
@@ -155,14 +220,47 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Featured image URL (optional)</label>
-            <input
-              type="url"
-              className="k-input"
-              value={featuredImageUrl}
-              onChange={(e) => setFeaturedImageUrl(e.target.value)}
-              placeholder="https://"
-            />
+            <label className="k-label">Featured image (optional)</label>
+            <div className="space-y-3">
+              <FeaturedImageSourceToggle
+                value={featuredImageSource}
+                onChange={setFeaturedImageSource}
+              />
+              {featuredImageSource === 'url' ? (
+                <div>
+                  <input
+                    type="url"
+                    className="k-input"
+                    value={featuredImageUrl}
+                    onChange={(e) => {
+                      setFeaturedImageUrl(e.target.value);
+                      setFeaturedImageCid(null);
+                      setFeaturedImageName(null);
+                    }}
+                    placeholder="https://..."
+                  />
+                  <p className="text-xs text-zinc-500 mt-1.5">
+                    Direct HTTPS image URL. PNG, JPG, or WebP.
+                  </p>
+                </div>
+              ) : (
+                <StoreFileUpload
+                  label=""
+                  hint={`PNG, JPG, or WebP under ${FEATURED_IMAGE_MAX_SIZE_MB} MB`}
+                  accept="image/*"
+                  fileName={
+                    featuredImageName ??
+                    (featuredImageCid && !featuredImageName ? 'Uploaded featured image' : null)
+                  }
+                  onClear={() => {
+                    setFeaturedImageCid(null);
+                    setFeaturedImageName(null);
+                  }}
+                  onChange={uploadFeaturedImage}
+                  disabled={isUploading}
+                />
+              )}
+            </div>
           </div>
 
           {kind === 'chapter' ? (
@@ -247,7 +345,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Card preview</p>
             <div className="flex items-start gap-3">
               <ChronicleThumb
-                imageUrl={featuredImageUrl || undefined}
+                imageUrl={featuredPreviewUrl}
                 alt=""
                 className="w-12 h-12 shrink-0 rounded-xl"
               />
@@ -308,7 +406,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               disabled={!canSubmit}
               className="w-full k-cta-primary !justify-center !tracking-normal disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Processing...' : 'PUBLISH'}
+              {isProcessing ? 'Processing...' : isUploading ? 'Uploading...' : 'PUBLISH'}
             </button>
           </div>
 
