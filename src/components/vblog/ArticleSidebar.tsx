@@ -6,7 +6,7 @@ import { formatAddress } from '@/lib/vblog/utils';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { Avatar } from '@/components/Avatar';
 import { KxBadge } from '@/components/ui/KxBadge';
-import { VBlogArticleAside } from '@/components/vblog/VBlogArticleAside';
+import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
 
 function getSocialMeta(href: string) {
   const normalized = href.toLowerCase();
@@ -116,7 +116,7 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
   const links = [article.primaryLink, ...(article.socialLinks ?? [])].filter(Boolean) as string[];
 
-  const sections = [
+  const sections: VBlogAsideSection[] = [
     {
       title: 'Author',
       rawBody: true as const,
