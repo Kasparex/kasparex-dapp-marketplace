@@ -1,9 +1,10 @@
-export type ChroniclesCenterTab = 'overview' | 'submissions' | 'create';
+export type ChroniclesCenterTab = 'overview' | 'listings' | 'create';
 
 export function parseChroniclesCenterTab(value: string | null): ChroniclesCenterTab {
   switch (value) {
+    case 'listings':
     case 'submissions':
-      return 'submissions';
+      return 'listings';
     case 'create':
       return 'create';
     default:

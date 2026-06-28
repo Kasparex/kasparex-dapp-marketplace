@@ -28,7 +28,7 @@ export default function ChroniclesOverviewPage() {
           <ChronicleFeaturedVisual imageUrl={overview.featuredImageUrl} alt={overview.title} badge="Overview" />
           <div>
             <DAppSectionHeader title={overview.title} className="mb-4" />
-            <p className="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
           <div className="pt-4">

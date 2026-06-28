@@ -133,7 +133,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
           <ChronicleFeaturedVisual imageUrl={character.featuredImageUrl} alt={character.name} badge={character.kind} />
           <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{character.kind}</p>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{character.name}</h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-4 leading-relaxed">{character.summary}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4 leading-relaxed">{character.summary}</p>
 
           <div className="mt-10">
             <ChroniclesMarkdown markdown={character.bodyMarkdown} />

@@ -17,7 +17,15 @@ import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesComm
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityLocationToEntity } from '@/lib/chronicles/communityAdapters';
 
-export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) {
+export function LocationsListing({
+  initial,
+  title = 'Locations',
+  countLabel = 'location',
+}: {
+  initial: ChronicleLocation[];
+  title?: string;
+  countLabel?: string;
+}) {
   const [search, setSearch] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [view, setView] = useState<ChroniclesViewMode>('card');
@@ -44,7 +52,15 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
 
   return (
     <div>
-      <div className="mb-10">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{title}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {filtered.length} {countLabel}
+          {filtered.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 mb-6">
         <FilterBar
           flexWrap
           search={{ value: search, onChange: setSearch, placeholder: 'Search locations...' }}
@@ -63,8 +79,6 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
-
-      <p className="text-base text-zinc-500 dark:text-zinc-400 mb-6">{filtered.length} locations</p>
 
       {view === 'table' && (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -120,7 +134,7 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
               <ChronicleThumb imageUrl={l.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <KxListingCardBody>
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">
+                  <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors">
                     <Tooltip content={gameTooltipRich('Location', l.name)} side="top" align="start">
                       <span className="block">{l.name}</span>
                     </Tooltip>
@@ -128,7 +142,7 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
                   {'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </div>
                 <p className="text-sm text-zinc-500 mb-2">{l.visualStyle}</p>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{l.summary}</p>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{l.summary}</p>
               </KxListingCardBody>
             </KxListingCard>
           ))}

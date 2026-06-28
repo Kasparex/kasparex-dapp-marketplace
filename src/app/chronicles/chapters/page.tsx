@@ -1,6 +1,5 @@
 import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { ChaptersListing } from '@/components/chronicles/ChaptersListing';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getChapterSummaries } from '@/lib/chronicles/loaders';
 
 export default function ChroniclesChaptersPage() {
@@ -12,15 +11,10 @@ export default function ChroniclesChaptersPage() {
         kicker="Lore codex"
         title="Chapters"
         titleAccent="Chapters"
-        subtitle="Published saga: previous, current, and future beats. Community chapters appear with a Community badge."
+        subtitle="Published saga: previous, current, and future beats."
         showDefaultActions
       />
-      <DAppSectionHeader
-        title="All chapters"
-        hint="Browse the full chapter list with search, timeline filters, and view modes."
-        className="mb-6"
-      />
-      <ChaptersListing initialChapters={chapters} />
+      <ChaptersListing initialChapters={chapters} title="All chapters" />
     </div>
   );
 }

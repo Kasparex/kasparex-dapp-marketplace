@@ -30,7 +30,15 @@ function timelineBadge(t: ChronicleTimeline) {
   return map[t];
 }
 
-export function ChaptersListing({ initialChapters }: { initialChapters: ChronicleChapterMeta[] }) {
+export function ChaptersListing({
+  initialChapters,
+  title = 'Chapters',
+  countLabel = 'chapter',
+}: {
+  initialChapters: ChronicleChapterMeta[];
+  title?: string;
+  countLabel?: string;
+}) {
   const [search, setSearch] = useState('');
   const [timelineFilter, setTimelineFilter] = useState<ChronicleTimeline | ''>('');
   const [view, setView] = useState<ChroniclesViewMode>('card');
@@ -55,7 +63,15 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
 
   return (
     <div>
-      <div className="flex flex-col gap-4 mb-10">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{title}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {filtered.length} {countLabel}
+          {filtered.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 mb-6">
         <FilterBar
           flexWrap
           search={{ value: search, onChange: setSearch, placeholder: 'Search chapters...' }}
@@ -72,10 +88,6 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
           <ChroniclesViewSwitcher value={view} onChange={setView} />
         </FilterBar>
       </div>
-
-      <p className="text-base text-zinc-500 dark:text-zinc-400 mb-6">
-        {filtered.length} chapter{filtered.length !== 1 ? 's' : ''}
-      </p>
 
       {view === 'table' && (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -165,10 +177,10 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                     </span>
                   </div>
                 </div>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors mb-2">
+                <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
                   {c.title}
                 </h3>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
               </KxListingCardBody>
             </KxListingCard>
           ))}

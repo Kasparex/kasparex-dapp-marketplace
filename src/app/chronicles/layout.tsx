@@ -1,8 +1,17 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ChroniclesSidebar } from '@/components/chronicles/ChroniclesSidebar';
 
 export default function ChroniclesLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/chronicles/center')) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Header />

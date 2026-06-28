@@ -91,7 +91,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
           />
           <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">Chapter {chapter.number}</p>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{chapter.title}</h1>
-          <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">{chapter.teaser}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">{chapter.teaser}</p>
           <div className="mt-5 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden max-w-md">
             <div
               className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8]"
