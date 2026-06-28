@@ -7,6 +7,7 @@ import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { getCharacterBySlug, getChapterSummaries, getAllCharacterSlugs } from '@/lib/chronicles/loaders';
+import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,14 +50,14 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
     {
       title: 'At a glance',
       body: (
-        <dl className="space-y-3 text-sm">
+        <dl className="space-y-3 text-base leading-relaxed">
           <div>
-            <dt className="text-zinc-500 text-xs font-black uppercase tracking-wider">Role</dt>
-            <dd className="font-semibold text-zinc-900 dark:text-zinc-100">{character.role}</dd>
+            <dt className="text-zinc-600 dark:text-white/70 text-xs font-black uppercase tracking-wider">Role</dt>
+            <dd className="font-semibold text-zinc-900 dark:text-white">{character.role}</dd>
           </div>
           <div>
-            <dt className="text-zinc-500 text-xs font-black uppercase tracking-wider">Story status</dt>
-            <dd className="font-semibold text-zinc-900 dark:text-zinc-100">{character.storyStatus}</dd>
+            <dt className="text-zinc-600 dark:text-white/70 text-xs font-black uppercase tracking-wider">Story status</dt>
+            <dd className="font-semibold text-zinc-900 dark:text-white">{character.storyStatus}</dd>
           </div>
           {firstCh ? (
             <div>
@@ -88,7 +89,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
                 {character.abilities.map((a) => (
                   <li
                     key={a}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-zinc-800 dark:text-white"
                   >
                     {a}
                   </li>
@@ -133,7 +134,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
           <ChronicleFeaturedVisual imageUrl={character.featuredImageUrl} alt={character.name} badge={character.kind} />
           <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{character.kind}</p>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{character.name}</h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-4 leading-relaxed">{character.summary}</p>
+          <p className={`${CHRONICLES_TEASER} mt-4`}>{character.summary}</p>
 
           <div className="mt-10">
             <ChroniclesMarkdown markdown={character.bodyMarkdown} />

@@ -142,7 +142,7 @@ export function CharactersListing({
               <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <KxListingCardBody>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-400">{c.kind}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{c.kind}</p>
                   {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </div>
                 <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
@@ -150,7 +150,7 @@ export function CharactersListing({
                     <span className="block">{c.name}</span>
                   </Tooltip>
                 </h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.summary}</p>
+                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{c.summary}</p>
               </KxListingCardBody>
             </KxListingCard>
           ))}

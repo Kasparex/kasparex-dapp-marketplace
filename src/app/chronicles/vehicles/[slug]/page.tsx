@@ -6,6 +6,7 @@ import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { getVehicleBySlug, getAllVehicleSlugs, getCharacterBySlug, getChapterSummaries } from '@/lib/chronicles/loaders';
+import { CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -43,7 +44,7 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
   const asideSections = [
     {
       title: 'Summary',
-      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{vehicle.summary}</p>,
+      body: <p className={CHRONICLES_PANEL_BODY}>{vehicle.summary}</p>,
     },
     ...(owner
       ? [

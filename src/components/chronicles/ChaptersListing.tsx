@@ -24,8 +24,8 @@ const timelines: { id: ChronicleTimeline; label: string }[] = [
 function timelineBadge(t: ChronicleTimeline) {
   const map = {
     past: 'bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200',
-    current: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25',
-    future: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20',
+    current: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/25',
+    future: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20',
   };
   return map[t];
 }
@@ -122,7 +122,7 @@ export function ChaptersListing({
                     </span>
                   </td>
                   <td className="p-3 text-right">
-                    <Link href={`/chronicles/chapters/${c.slug}`} className="text-violet-600 dark:text-violet-400 font-bold text-xs uppercase">
+                    <Link href={`/chronicles/chapters/${c.slug}`} className="text-[#02abb8] font-bold text-xs uppercase">
                       Read
                     </Link>
                   </td>
@@ -139,7 +139,7 @@ export function ChaptersListing({
             <li key={c.slug}>
               <Link
                 href={`/chronicles/chapters/${c.slug}`}
-                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-violet-500/30 hover:bg-violet-500/5 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-colors"
               >
                 <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
                 <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
@@ -180,7 +180,7 @@ export function ChaptersListing({
                 <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
                   {c.title}
                 </h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
+                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{c.teaser}</p>
               </KxListingCardBody>
             </KxListingCard>
           ))}

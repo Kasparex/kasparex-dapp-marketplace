@@ -138,7 +138,9 @@
 .kx-listing-card[data-kx-accent="dapps"]:hover,
 .kx-listing-card[data-kx-accent="dapps"]:focus-visible,
 .kx-listing-card[data-kx-accent="protocols"]:hover,
-.kx-listing-card[data-kx-accent="protocols"]:focus-visible {
+.kx-listing-card[data-kx-accent="protocols"]:focus-visible,
+.kx-listing-card[data-kx-accent="chronicles"]:hover,
+.kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
   border-color: rgb(6, 182, 212) !important; /* cyan-500 */
 }
 .kx-listing-card[data-kx-accent="records"]:hover,
@@ -162,10 +164,6 @@
 .kx-listing-card[data-kx-accent="magazines"]:hover,
 .kx-listing-card[data-kx-accent="magazines"]:focus-visible {
   border-color: rgb(139, 92, 246) !important; /* violet-500 */
-}
-.kx-listing-card[data-kx-accent="chronicles"]:hover,
-.kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
-  border-color: rgb(167, 139, 250) !important; /* violet-400 */
 }
 .kx-listing-card[data-kx-accent="movies"]:hover,
 .kx-listing-card[data-kx-accent="movies"]:focus-visible {

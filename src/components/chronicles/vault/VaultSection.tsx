@@ -19,20 +19,15 @@ export function VaultSection({
 }) {
   return (
     <section id={id} className="scroll-mt-24 space-y-5">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">{title}</h2>
-            {typeof count === 'number' ? (
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{count}</span>
-            ) : null}
-          </div>
-          {subtitle ? (
-            <p className="text-base text-zinc-500 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">{subtitle}</p>
-          ) : null}
-        </div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{title}</h2>
+        {typeof count === 'number' ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {count} offer{count !== 1 ? 's' : ''} found
+          </p>
+        ) : null}
         {subtitle ? (
-          null
+          <p className="text-base text-zinc-600 dark:text-white/75 mt-2 max-w-2xl leading-relaxed">{subtitle}</p>
         ) : null}
       </div>
       {controls ? <div>{controls}</div> : null}

@@ -72,7 +72,7 @@ export function ChroniclesVaultDashboard() {
 
       <div className="min-w-0 space-y-14">
         {!state.isConnected ? (
-          <div className="chronicles-vault-card rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-zinc-50 to-cyan-500/5 dark:from-zinc-900 dark:to-cyan-950/30 p-7 sm:p-8 max-w-lg mx-auto text-center space-y-6">
+          <div className="chronicles-vault-card rounded-xl border border-cyan-500/25 bg-white dark:bg-zinc-900 p-7 sm:p-8 max-w-lg mx-auto text-center space-y-6">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-[#02abb8] mx-auto">
               <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                 <path
@@ -85,7 +85,7 @@ export function ChroniclesVaultDashboard() {
             </div>
             <div>
               <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100">Connect your Kaspa wallet</h3>
-              <p className="text-base text-zinc-500 dark:text-zinc-400 mt-3 leading-relaxed">
+              <p className="text-base text-zinc-600 dark:text-white/80 mt-3 leading-relaxed">
                 Connect a wallet to view your address and unlocks. Holder discounts are based on collections detected on your Kaspa address.
               </p>
             </div>
@@ -168,7 +168,7 @@ export function ChroniclesVaultDashboard() {
 
         <section id="workspace" className="scroll-mt-24 chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 space-y-3">
           <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Workspace (source files)</h2>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+          <p className="text-base text-zinc-700 dark:text-white/80 leading-relaxed max-w-3xl">
             Shared lore, KMAG, and community drafts live under{' '}
             <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">content/story-management/</code>. They are
             not published as web pages; sync the canon into{' '}
@@ -178,7 +178,7 @@ export function ChroniclesVaultDashboard() {
 
         <section id="drafts" className="scroll-mt-24 chronicles-vault-card rounded-2xl border border-dashed border-amber-500/35 bg-amber-500/5 dark:bg-amber-500/10 p-6 sm:p-8 space-y-3">
           <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Draft characters</h2>
-          <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-3xl">
+          <p className="text-base text-zinc-700 dark:text-white/80 leading-relaxed max-w-3xl">
             Folders such as Axel Vane and Torq appear in the sidebar as drafts until they have a public slug in{' '}
             <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">data/chronicles/characters.json</code> and
             an entry in <code className="text-sm bg-zinc-100 dark:bg-zinc-800 px-1 rounded">story-folder-map.json</code>.

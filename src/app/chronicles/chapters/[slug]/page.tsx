@@ -8,6 +8,7 @@ import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleA
 import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
 import { getChapterBySlug } from '@/lib/chronicles/server';
 import { getAdjacentChapters, getAllChapterSlugs, getCharacterBySlug, getLocationBySlug } from '@/lib/chronicles/loaders';
+import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -91,14 +92,14 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
           />
           <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">Chapter {chapter.number}</p>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{chapter.title}</h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 leading-relaxed">{chapter.teaser}</p>
+          <p className={`${CHRONICLES_TEASER} mt-3`}>{chapter.teaser}</p>
           <div className="mt-5 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden max-w-md">
             <div
               className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8]"
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <p className="text-base text-zinc-500 mt-2">Timeline: {chapter.timeline}</p>
+          <p className="text-base text-zinc-600 dark:text-white/70 mt-2 leading-relaxed">Timeline: {chapter.timeline}</p>
 
           <article className="pb-8 pt-10">
             <ChroniclesChapterAccessGate access={chapter.access}>
@@ -114,10 +115,10 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
         {prev ? (
           <Link
             href={`/chronicles/chapters/${prev.slug}`}
-            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors"
+            className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 hover:border-cyan-500/30 transition-colors"
           >
             <span className="text-xs font-black uppercase text-zinc-500">Previous</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xl">{prev.title}</p>
+            <p className="font-bold text-zinc-900 dark:text-white text-lg leading-snug">{prev.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />
@@ -128,7 +129,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
             className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:border-cyan-500/30 transition-colors text-right sm:text-right"
           >
             <span className="text-xs font-black uppercase text-zinc-500">Next</span>
-            <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xl">{next.title}</p>
+            <p className="font-bold text-zinc-900 dark:text-white text-lg leading-snug">{next.title}</p>
           </Link>
         ) : (
           <div className="flex-1" />

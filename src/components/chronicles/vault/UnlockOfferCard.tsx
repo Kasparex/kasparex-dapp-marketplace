@@ -128,12 +128,12 @@ export function UnlockOfferCard({
   }
 
   const inner = (
-    <div className="chronicles-vault-card rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 overflow-hidden h-full flex flex-col">
+    <div className="chronicles-vault-card rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden h-full flex flex-col">
       <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="h-40 w-full shrink-0" />
       <div className="p-6 flex flex-col flex-1 min-h-0">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">{offer.kind}</p>
         <h3 className="font-black text-zinc-900 dark:text-zinc-100 text-lg mb-2 leading-snug">{offer.title}</h3>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{offer.shortDescription}</p>
+        <p className="text-base text-zinc-700 dark:text-white/85 flex-1 leading-relaxed">{offer.shortDescription}</p>
         {baseKas > 0 ? (
           <div className="mt-4 space-y-2">
             <div className="flex items-baseline gap-3 flex-wrap">

@@ -8,6 +8,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
 export default function ChroniclesOverviewPage() {
   const overview = getOverview();
@@ -28,7 +29,7 @@ export default function ChroniclesOverviewPage() {
           <ChronicleFeaturedVisual imageUrl={overview.featuredImageUrl} alt={overview.title} badge="Overview" />
           <div>
             <DAppSectionHeader title={overview.title} className="mb-4" />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 leading-relaxed">{overview.tagline}</p>
+            <p className={`${CHRONICLES_TEASER} mb-8`}>{overview.tagline}</p>
             <ChroniclesMarkdown markdown={overview.bodyMarkdown} />
           </div>
           <div className="pt-4">
@@ -50,7 +51,7 @@ export default function ChroniclesOverviewPage() {
                     <KxListingCard
                       href={`/chronicles/chapters/${c.slug}`}
                       accent="chronicles"
-                      className={isHighlighted ? 'border-violet-500/40 bg-violet-500/5 dark:bg-violet-950/30' : undefined}
+                      className={isHighlighted ? 'border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-950/30' : undefined}
                     >
                       <div className="flex gap-4 p-4">
                         <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-20 h-20 shrink-0 rounded-xl" />
@@ -60,10 +61,10 @@ export default function ChroniclesOverviewPage() {
                             {isPremium ? ' · Premium' : ''}
                             {isLatest ? ' · Latest' : ''}
                           </span>
-                          <span className="block font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 text-base sm:text-lg leading-snug">
+                          <span className="block font-bold text-zinc-900 dark:text-white group-hover:text-[#02abb8] text-base leading-snug">
                             {c.title}
                           </span>
-                          <span className="text-sm text-zinc-500 line-clamp-2 mt-1">{c.teaser}</span>
+                          <span className="text-sm text-zinc-600 dark:text-white/70 line-clamp-2 mt-1 leading-relaxed">{c.teaser}</span>
                         </KxListingCardBody>
                       </div>
                     </KxListingCard>
@@ -71,7 +72,7 @@ export default function ChroniclesOverviewPage() {
                 );
               })}
             </ol>
-            <Link href="/chronicles/chapters" className="inline-block mt-5 text-base font-bold text-violet-600 dark:text-violet-400 hover:underline">
+            <Link href="/chronicles/chapters" className="inline-block mt-5 text-base font-bold text-[#02abb8] hover:underline">
               All chapters →
             </Link>
           </div>
@@ -95,22 +96,22 @@ export default function ChroniclesOverviewPage() {
               <DAppSectionHeader title="Explore" className="mb-4" />
               <ul className="space-y-3 text-base font-semibold">
                 <li>
-                  <Link href="/chronicles/characters" className="text-violet-600 dark:text-violet-400 hover:underline">
+                  <Link href="/chronicles/characters" className="text-[#02abb8] hover:underline">
                     Characters & factions
                   </Link>
                 </li>
                 <li>
-                  <Link href="/chronicles/locations" className="text-violet-600 dark:text-violet-400 hover:underline">
+                  <Link href="/chronicles/locations" className="text-[#02abb8] hover:underline">
                     Locations
                   </Link>
                 </li>
                 <li>
-                  <Link href="/chronicles/vehicles" className="text-violet-600 dark:text-violet-400 hover:underline">
+                  <Link href="/chronicles/vehicles" className="text-[#02abb8] hover:underline">
                     Vehicles & tech
                   </Link>
                 </li>
                 <li>
-                  <Link href="/chronicles/center" className="text-violet-600 dark:text-violet-400 hover:underline">
+                  <Link href="/chronicles/center" className="text-[#02abb8] hover:underline">
                     Chronicles Center
                   </Link>
                 </li>

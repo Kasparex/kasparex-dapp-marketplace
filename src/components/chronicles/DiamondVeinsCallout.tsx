@@ -1,17 +1,13 @@
 import Link from 'next/link';
+import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY, CHRONICLES_PANEL_LABEL } from '@/lib/chronicles/typography';
 
 export function DiamondVeinsCallout({ className = '' }: { className?: string }) {
   return (
-    <div
-      className={`rounded-2xl border border-emerald-500/25 bg-emerald-500/5 dark:bg-emerald-500/10 p-5 ${className}`.trim()}
-    >
-      <p className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">
-        Also in Kasparex
-      </p>
-      <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
+    <div className={`${CHRONICLES_PANEL} border-l-4 border-l-cyan-500/50 p-4 ${className}`.trim()}>
+      <p className={`${CHRONICLES_PANEL_LABEL} mb-2`}>Also in Kasparex</p>
+      <p className={`${CHRONICLES_PANEL_BODY} mb-3`}>
         Mine Krex Diamonds beneath Kaspaland in the{' '}
-        <strong className="text-zinc-900 dark:text-zinc-100">Diamond Veins</strong> game: same world, underground
-        layer.
+        <strong className="text-zinc-900 dark:text-white">Diamond Veins</strong> game: same world, underground layer.
       </p>
       <Link
         href="/games/diamond-veins"

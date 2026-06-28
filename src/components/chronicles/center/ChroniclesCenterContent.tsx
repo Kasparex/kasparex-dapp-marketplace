@@ -275,7 +275,7 @@ export function ChroniclesCenterContent() {
             <>
               <section>
                 <DAppSectionHeader title="Submit community lore on Krex's Chronicles" />
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed">
                   Create chapters, articles, characters, locations, and tech entries for the community codex. Paid
                   submissions appear in public listings with a Community badge. Official canon remains curated
                   separately.

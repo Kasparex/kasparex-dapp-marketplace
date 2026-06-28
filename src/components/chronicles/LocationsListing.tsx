@@ -142,7 +142,7 @@ export function LocationsListing({
                   {'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </div>
                 <p className="text-sm text-zinc-500 mb-2">{l.visualStyle}</p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">{l.summary}</p>
+                <p className="text-base text-zinc-700 dark:text-white/85 leading-relaxed line-clamp-3">{l.summary}</p>
               </KxListingCardBody>
             </KxListingCard>
           ))}

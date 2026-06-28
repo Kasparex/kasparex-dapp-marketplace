@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { HubHaloHeader } from '@/components/hub/HubHaloHeader';
 import { AdSlider } from '@/components/ads/AdSlider';
 
+const TITLE_ACCENT_GRADIENT =
+  'text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300';
+
 export function ChroniclesHaloHeader({
   kicker = 'Lore codex',
   title = "Krex's Chronicles",
@@ -32,9 +35,7 @@ export function ChroniclesHaloHeader({
     title.endsWith(accent) && accent.length > 0 ? (
       <>
         {titlePrefix ? `${titlePrefix} ` : null}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-700 via-purple-600 to-fuchsia-600 dark:from-violet-300 dark:via-purple-300 dark:to-fuchsia-400">
-          {accent}
-        </span>
+        <span className={TITLE_ACCENT_GRADIENT}>{accent}</span>
       </>
     ) : (
       title
@@ -42,7 +43,10 @@ export function ChroniclesHaloHeader({
 
   const defaultActions = showDefaultActions ? (
     <>
-      <Link href="/chronicles/center?tab=create" className="k-control-btn !border-violet-500/35 !text-violet-800 dark:!text-violet-200">
+      <Link
+        href="/chronicles/center?tab=create"
+        className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300"
+      >
         Create lore
       </Link>
       <Link href="/chronicles/center" className="k-control-btn">
@@ -57,7 +61,7 @@ export function ChroniclesHaloHeader({
   return (
     <HubHaloHeader
       id="ad-slot-chronicles-halo"
-      theme="violet"
+      theme="cyan"
       badgeLabel={kicker}
       badgeVariant={badgeVariant}
       title={titleNode}

@@ -11,6 +11,7 @@ import {
   getCharacterBySlug,
   getChapterSummaries,
 } from '@/lib/chronicles/loaders';
+import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -50,11 +51,11 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
   const asideSections = [
     {
       title: 'Story role',
-      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{location.roleInStory}</p>,
+      body: <p className={CHRONICLES_PANEL_BODY}>{location.roleInStory}</p>,
     },
     {
       title: 'Look & feel',
-      body: <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{location.visualStyle}</p>,
+      body: <p className={CHRONICLES_PANEL_BODY}>{location.visualStyle}</p>,
     },
     ...(chapterLinks.length > 0 ? [{ title: 'Chapters', links: chapterLinks }] : []),
     ...(characterLinks.length > 0 ? [{ title: 'Characters', links: characterLinks }] : []),
@@ -87,8 +88,8 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
           </div>
 
           {location.secretsMarkdown ? (
-            <details className="mt-12 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <summary className="cursor-pointer text-sm font-black uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+            <details className={`${CHRONICLES_PANEL} p-4 sm:p-5`}>
+              <summary className="cursor-pointer text-sm font-black uppercase tracking-wider text-zinc-800 dark:text-white">
                 Hidden lore
               </summary>
               <div className="mt-4">
