@@ -11,7 +11,7 @@ export default function ChroniclesChaptersPage() {
         kicker="Lore codex"
         title="Chapters"
         titleAccent="Chapters"
-        subtitle="Published saga: previous, current, and future beats."
+        subtitle="Published saga: previous, current, and future beats. Follow the official storyline chapter by chapter through Kaspaland."
         showDefaultActions
       />
       <ChaptersListing initialChapters={chapters} title="All chapters" />

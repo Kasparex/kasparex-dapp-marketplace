@@ -12,7 +12,7 @@ export function ChroniclesHaloHeader({
   kicker = 'Lore codex',
   title = "Krex's Chronicles",
   titleAccent,
-  subtitle = 'Wiki, story, and CMS-ready lore for Kaspaland: the narrative backbone of Kasparex.',
+  subtitle = 'Wiki, story, and CMS-ready lore for Kaspaland. The narrative backbone of Kasparex, from official chapters to community submissions.',
   showHaloAd = true,
   badgeVariant = 'pulse' as 'pulse' | 'plain',
   actions,

@@ -11,7 +11,7 @@ export default function ChroniclesVehiclesPage() {
         kicker="Lore codex"
         title="Vehicles & tech"
         titleAccent="tech"
-        subtitle="Ships, craft, and technology from the Chronicles universe."
+        subtitle="Ships, craft, and technology from the Chronicles universe. Browse vessels and tools used across Kaspaland."
       />
       <VehiclesListing initial={vehicles} title="All vehicles & tech" />
     </div>

@@ -1,0 +1,178 @@
+{
+  "chapter-01-the-heart-of-kasparex": [
+    {
+      "id": "ch1-q1",
+      "prompt": "Which group attempted to infiltrate Kasparex in Chapter 1?",
+      "options": ["Null Gang", "Silent Protocol", "CoinEx traders", "The Forgotten Blocks"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch1-q2",
+      "prompt": "Who is the stealth-focused coder on Krex's team?",
+      "options": ["Vector", "Tessa", "Sarah", "ARIA"],
+      "correctIndex": 1
+    },
+    {
+      "id": "ch1-q3",
+      "prompt": "Which ally is described as a master hacker?",
+      "options": ["Tessa", "Vector", "Null Gang", "Sarah"],
+      "correctIndex": 1
+    },
+    {
+      "id": "ch1-q4",
+      "prompt": "KREX Token grants its holders what kind of advantage in the story?",
+      "options": ["Extraordinary powers", "Free exchange listings", "Ownership of Kasparex HQ", "Immunity from Null Gang"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch1-q5",
+      "prompt": "Where is the hidden Kasparex database center located?",
+      "options": ["CoinEx headquarters", "The forgotten blocks", "The shadows of Kaspaland", "Diamond Veins mine"],
+      "correctIndex": 2
+    },
+    {
+      "id": "ch1-q6",
+      "prompt": "Which Kasparex game ties into the same underground canon as this chapter?",
+      "options": ["Diamond Veins", "Minecore", "CrowdKAS", "Tycon"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch1-q7",
+      "prompt": "What does Kasparex power in Kaspaland's lore economy?",
+      "options": ["KREX Token and crypto intelligence", "Only NFT minting", "Public transit holograms", "Sarah's voice network"],
+      "correctIndex": 0
+    }
+  ],
+  "chapter-02-shadows-and-secrets": [
+    {
+      "id": "ch2-q1",
+      "prompt": "Which mysterious name keeps surfacing in the data after the Null Gang attack?",
+      "options": ["Sarah", "ARIA", "CoinEx", "The Veil"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q2",
+      "prompt": "On which exchanges had KREX Token already been listed during Chapter 2?",
+      "options": ["XT and Biconomy", "CoinEx only", "Kasplex and Igra", "Null Gang markets"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q3",
+      "prompt": "What exchange did Krex identify as the next listing goal?",
+      "options": ["CoinEx", "XT", "Biconomy", "Diamond Veins"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q4",
+      "prompt": "How does Tessa describe Sarah when tracing her references?",
+      "options": ["A ghost in the system", "A Null Gang leader", "A CoinEx auditor", "A rooftop array"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q5",
+      "prompt": "What did Vector notice about the Null Gang's tampering traces?",
+      "options": ["They wanted Kasparex to notice", "They erased all KREX listings", "They only attacked Diamond Veins", "They forged Sarah's identity"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q6",
+      "prompt": "Sarah tells Krex that some answers are not his to find yet because…",
+      "options": ["Even great mysteries need a partner", "CoinEx blocked the chain", "ARIA deleted the logs", "The Veil is offline"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch2-q7",
+      "prompt": "What resource did the team say would be critical to reach CoinEx?",
+      "options": ["Donations to the project", "Premium vault unlocks", "Forgotten block mining", "Null Gang alliances"],
+      "correctIndex": 0
+    }
+  ],
+  "chapter-03-the-ghost-in-the-code": [
+    {
+      "id": "ch3-q1",
+      "prompt": "Who runs the full system scan when Krex detects something wrong?",
+      "options": ["ARIA", "Tessa", "Sarah", "Vector"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q2",
+      "prompt": "Where does ARIA trace the masked signature?",
+      "options": ["The forgotten blocks", "CoinEx cold storage", "Null Gang HQ", "Diamond Veins shaft"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q3",
+      "prompt": "What are the forgotten blocks in Kaspa lore?",
+      "options": ["Obsolete early network fragments nobody references", "Krex's personal wallet backups", "Premium chapter vaults", "Sarah's hologram cache"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q4",
+      "prompt": "What key phrase appears in the decrypted message?",
+      "options": ["Find me before they do", "List on CoinEx today", "Null Gang surrender now", "Unlock the Veil first"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q5",
+      "prompt": "Krex concludes the anomaly is different from which group's usual method?",
+      "options": ["Null Gang", "CoinEx", "XT", "Biconomy"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q6",
+      "prompt": "Which location's neon glow frames the Kasparex control room in this chapter?",
+      "options": ["Kaspaland", "Kasparex rooftop only", "Forgotten blocks mine", "CoinEx tower"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch3-q7",
+      "prompt": "The chapter title refers to a ghost in what domain?",
+      "options": ["The code / network", "The physical streets", "Exchange order books", "Vault payments"],
+      "correctIndex": 0
+    }
+  ],
+  "chapter-04-premium-echoes-of-the-veil": [
+    {
+      "id": "ch4-q1",
+      "prompt": "According to Tessa, Null Gang fights erosion by seeking what outcome?",
+      "options": ["Forgetting", "CoinEx dominance", "Free KREX airdrops", "Public block maps"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q2",
+      "prompt": "What amber thread on Vector's overlay suggests someone is mirroring their feed?",
+      "options": ["An echo from inside the Veil", "A CoinEx API key", "A Null Gang ransom note", "ARIA's backup daemon"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q3",
+      "prompt": "Sarah's resurfaced data is described as proof of what?",
+      "options": ["Pattern, not proof of life", "CoinEx delisting", "Vector's retirement", "Kaspaland's shutdown"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q4",
+      "prompt": "Which protocol taught the team that some ghosts are documentation errors?",
+      "options": ["The Silent Protocol", "Null Gang charter", "CoinEx compliance", "Diamond Veins fork"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q5",
+      "prompt": "Krex sends coordinates through a temporary bridge tied to which game relay?",
+      "options": ["Diamond Veins", "Minecore", "CrowdKAS", "Tycon deck"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q6",
+      "prompt": "Where does Krex stand when the rooftop arrays pulse?",
+      "options": ["Where the wind bites hardest", "Inside the forgotten blocks", "At CoinEx HQ", "In the vault treasury"],
+      "correctIndex": 0
+    },
+    {
+      "id": "ch4-q7",
+      "prompt": "Null Gang scrubs blocks from maps by stitching over absence with what?",
+      "options": ["Cheerful placeholders", "KREX banners", "Premium unlocks", "Sarah's voice"],
+      "correctIndex": 0
+    }
+  ]
+}

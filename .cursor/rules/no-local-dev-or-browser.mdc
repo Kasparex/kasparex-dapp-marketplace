@@ -1,0 +1,26 @@
+---
+description: Never run local dev server, builds, or browser verification. Commit and push to Vercel only.
+alwaysApply: true
+---
+
+# No local dev or browser runs
+
+**Never** run any of the following unless the user **explicitly** asks in that message:
+
+- `npm run dev`, `next dev`, or starting a local dev server
+- `npm run build`, `tsc`, lint-only CI simulation, or other local build/check commands before deploy
+- Browser DevTools MCP, Playwright, screenshots, or any browser automation for verification
+- Opening localhost to "verify" changes
+
+Vercel is the build and the verification environment for this project.
+
+## Deploy workflow (default)
+
+When implementation is done:
+
+1. `git pull --rebase origin main` if needed
+2. Stage and commit relevant changes
+3. `git push origin main` immediately
+4. Do not ask for confirmation to push
+
+Only skip push if the user explicitly says to stop or keep changes local.

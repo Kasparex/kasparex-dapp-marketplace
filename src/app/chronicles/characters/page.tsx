@@ -11,7 +11,7 @@ export default function ChroniclesCharactersPage() {
         kicker="Lore codex"
         title="Characters"
         titleAccent="Characters"
-        subtitle="People, AI, factions, and future token pages."
+        subtitle="People, AI, factions, and future token pages. Meet the cast and groups shaping the Kasparex saga."
       />
       <CharactersListing initial={characters} title="All characters" />
     </div>

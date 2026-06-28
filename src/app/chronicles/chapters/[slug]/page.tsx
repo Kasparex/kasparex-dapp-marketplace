@@ -5,8 +5,10 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
+import { ChronicleChapterQuiz } from '@/components/chronicles/quiz/ChronicleChapterQuiz';
 import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
 import { getChapterBySlug } from '@/lib/chronicles/server';
+import { officialChapterHasQuiz } from '@/lib/chronicles/quiz/questions';
 import { getAdjacentChapters, getAllChapterSlugs, getCharacterBySlug, getLocationBySlug } from '@/lib/chronicles/loaders';
 import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
@@ -108,6 +110,14 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
               <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
             </ChroniclesChapterAccessGate>
           </article>
+
+          {officialChapterHasQuiz(slug) ? (
+            <ChronicleChapterQuiz
+              chapterSlug={slug}
+              chapterTitle={chapter.title}
+              access={chapter.access}
+            />
+          ) : null}
         </div>
 
         <ChronicleArticleAside sections={asideSections} />

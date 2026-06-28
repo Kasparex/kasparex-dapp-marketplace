@@ -66,7 +66,7 @@ export function ChroniclesVaultDashboard() {
         kicker="Vault & unlocks"
         title="Vault & Unlocks"
         titleAccent="Unlocks"
-        subtitle="Unlock premium chapters, items, and future perks. Unlocks are verified on-chain and saved in this browser for your Kaspa address."
+        subtitle="Unlock premium chapters, items, and future perks with on-chain KAS payments. Entitlements are verified and saved in this browser for your Kaspa address."
         showHaloAd
       />
 

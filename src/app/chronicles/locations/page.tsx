@@ -11,7 +11,7 @@ export default function ChroniclesLocationsPage() {
         kicker="Lore codex"
         title="Locations"
         titleAccent="Locations"
-        subtitle="Places, regions, and landmarks across Kaspaland."
+        subtitle="Places, regions, and landmarks across Kaspaland. Explore where key story events unfold."
       />
       <LocationsListing initial={locations} title="All locations" />
     </div>
