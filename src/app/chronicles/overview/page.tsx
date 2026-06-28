@@ -6,7 +6,7 @@ import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout
 import { ChronicleFeaturedVisual, ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getOverview, getFragments, getChapterSummaries } from '@/lib/chronicles/loaders';
-import { AdSlider } from '@/components/ads/AdSlider';
+import { ChroniclesAdSlot } from '@/components/chronicles/ChroniclesAdSlot';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
 import { CHRONICLES_TEASER } from '@/lib/chronicles/typography';
 
@@ -119,14 +119,7 @@ export default function ChroniclesOverviewPage() {
             </KxListingCardBody>
           </KxListingCard>
 
-          <KxListingCard accent="chronicles">
-            <KxListingCardBody>
-              <DAppSectionHeader title="Ad slots" className="mb-4" />
-              <div className="flex items-center justify-center min-h-[200px]">
-                <AdSlider slotId="HALO_CHRONICLES_RIGHT" />
-              </div>
-            </KxListingCardBody>
-          </KxListingCard>
+          <ChroniclesAdSlot layout="rail" />
         </aside>
       </div>
     </div>

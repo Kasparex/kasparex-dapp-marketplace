@@ -49,12 +49,6 @@ const articleIcon = (
   </svg>
 );
 
-const vaultIcon = (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-  </svg>
-);
-
 const LORE_NAV_ITEMS = [
   { href: '/chronicles/chapters', label: 'Chapters', icon: bookIcon, match: (p: string) => p.startsWith('/chronicles/chapters') || p === '/chronicles' },
   { href: '/chronicles/overview', label: 'Overview', icon: homeIcon, match: (p: string) => p === '/chronicles/overview' },
@@ -62,7 +56,6 @@ const LORE_NAV_ITEMS = [
   { href: '/chronicles/characters', label: 'Characters', icon: usersIcon, match: (p: string) => p.startsWith('/chronicles/characters') },
   { href: '/chronicles/locations', label: 'Locations', icon: mapIcon, match: (p: string) => p.startsWith('/chronicles/locations') },
   { href: '/chronicles/vehicles', label: 'Vehicles & tech', icon: truckIcon, match: (p: string) => p.startsWith('/chronicles/vehicles') },
-  { href: '/chronicles/dashboard', label: 'Vault & unlocks', icon: vaultIcon, match: (p: string) => p.startsWith('/chronicles/dashboard') },
 ] as const;
 
 export function ChroniclesSidebar() {

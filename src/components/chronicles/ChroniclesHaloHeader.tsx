@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { HubHaloHeader } from '@/components/hub/HubHaloHeader';
-import { AdSlider } from '@/components/ads/AdSlider';
+import { ChroniclesAdSlot } from '@/components/chronicles/ChroniclesAdSlot';
 
 const TITLE_ACCENT_GRADIENT =
   'text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 via-cyan-600 to-teal-600 dark:from-cyan-300 dark:via-cyan-300 dark:to-teal-300';
@@ -26,7 +26,7 @@ export function ChroniclesHaloHeader({
   showHaloAd?: boolean;
   badgeVariant?: 'pulse' | 'plain';
   actions?: ReactNode;
-  /** When true and no custom actions, show Create + Vault shortcuts. */
+  /** When true and no custom actions, show Create + Center shortcuts. */
   showDefaultActions?: boolean;
 }) {
   const accent = titleAccent ?? title.split(' ').slice(-1)[0] ?? title;
@@ -52,9 +52,6 @@ export function ChroniclesHaloHeader({
       <Link href="/chronicles/center" className="k-control-btn">
         Chronicles Center
       </Link>
-      <Link href="/chronicles/dashboard" className="k-control-btn">
-        Vault & unlocks
-      </Link>
     </>
   ) : null;
 
@@ -67,13 +64,7 @@ export function ChroniclesHaloHeader({
       title={titleNode}
       subtitle={subtitle}
       actions={actions ?? defaultActions ?? undefined}
-      rightSlot={
-        showHaloAd ? (
-          <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px] scroll-mt-24">
-            <AdSlider slotId="HALO_CHRONICLES_RIGHT" />
-          </div>
-        ) : undefined
-      }
+      rightSlot={showHaloAd ? <ChroniclesAdSlot layout="halo" id="ad-slot-chronicles-halo" /> : undefined}
     />
   );
 }

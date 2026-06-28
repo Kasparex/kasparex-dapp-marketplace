@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { CHRONICLES_CONTENT_KIND_LABELS, type ChroniclesContentKind } from '@/lib/chronicles/communitySubmissions';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
@@ -61,13 +62,11 @@ export function ChronicleCommunityDetailPage({
       </Link>
 
       <ChronicleFeaturedVisual imageUrl={item.featuredImageUrl} alt={item.title} badge={CHRONICLES_CONTENT_KIND_LABELS[kind]} />
-      <div className="flex items-center gap-2 mb-1">
-        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">
-          {CHRONICLES_CONTENT_KIND_LABELS[kind]}
-        </p>
+      <div className="mb-5 flex flex-wrap items-center gap-2.5">
+        <ChronicleCategoryKicker className="!mb-0">{CHRONICLES_CONTENT_KIND_LABELS[kind]}</ChronicleCategoryKicker>
         <ChroniclesCommunityBadge />
       </div>
-      <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{item.title}</h1>
+      <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{item.title}</h1>
       <p className={`${CHRONICLES_TEASER} mt-4`}>{item.summary}</p>
 
       <div className="mt-10">

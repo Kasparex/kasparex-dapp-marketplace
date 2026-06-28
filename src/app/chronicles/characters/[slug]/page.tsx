@@ -4,6 +4,7 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { TokenPlaceholder } from '@/components/chronicles/TokenPlaceholder';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleCommunityDetailPage';
 import { getCharacterBySlug, getChapterSummaries, getAllCharacterSlugs } from '@/lib/chronicles/loaders';
@@ -134,8 +135,8 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
       <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="min-w-0">
           <ChronicleFeaturedVisual imageUrl={character.featuredImageUrl} alt={character.name} badge={character.kind} />
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{character.kind}</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{character.name}</h1>
+          <ChronicleCategoryKicker>{character.kind}</ChronicleCategoryKicker>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{character.name}</h1>
           <p className={`${CHRONICLES_TEASER} mt-4`}>{character.summary}</p>
 
           <div className="mt-10">

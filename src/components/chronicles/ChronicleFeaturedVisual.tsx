@@ -47,11 +47,8 @@ export function ChronicleFeaturedVisual({
           sizes="(max-width: 1280px) 100vw, 960px"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
+        <div className="absolute inset-0 flex items-center justify-center">
           <PlaceholderIcon />
-          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Featured visual
-          </p>
         </div>
       )}
       {badge ? (

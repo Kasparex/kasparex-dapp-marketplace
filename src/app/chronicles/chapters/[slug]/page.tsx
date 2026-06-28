@@ -4,6 +4,7 @@ import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleC
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { ChronicleChapterQuiz } from '@/components/chronicles/quiz/ChronicleChapterQuiz';
 import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
@@ -94,7 +95,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
             alt={chapter.title}
             badge={`Chapter ${chapter.number}`}
           />
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">Chapter {chapter.number}</p>
+          <ChronicleCategoryKicker>Chapter {chapter.number}</ChronicleCategoryKicker>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{chapter.title}</h1>
           <p className={`${CHRONICLES_TEASER} mt-3`}>{chapter.teaser}</p>
           <div className="mt-5 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden max-w-md">

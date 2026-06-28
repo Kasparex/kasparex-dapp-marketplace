@@ -68,9 +68,7 @@ export function ChroniclesUnlockModal({
             <p className="text-sm text-zinc-600 dark:text-zinc-400">This unlock offer is not available.</p>
           ) : (
             <>
-              {offer.imageUrl ? (
-                <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="w-full h-40 rounded-xl" />
-              ) : null}
+              <ChronicleThumb imageUrl={offer.imageUrl} alt={offer.title} className="w-full h-40 rounded-xl" />
 
               <KxPaymentSummary totalLabel="Unlock price" totalValue={`${unlock.effectiveKas} KAS`}>
                 {unlock.hasDiscount ? (

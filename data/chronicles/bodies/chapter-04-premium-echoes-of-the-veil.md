@@ -18,4 +18,4 @@ The city inhaled.
 
 ---
 
-*This chapter is premium content. Unlock it from **Vault & unlocks** to read future revisions and bonus beats as they ship.*
+*This chapter is premium content. Unlock it from the chapter page to read future revisions and bonus beats as they ship.*

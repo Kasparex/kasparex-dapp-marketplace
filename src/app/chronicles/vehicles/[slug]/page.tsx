@@ -4,6 +4,7 @@ import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleC
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { getVehicleBySlug, getAllVehicleSlugs, getCharacterBySlug, getChapterSummaries } from '@/lib/chronicles/loaders';
 import { CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
@@ -72,8 +73,8 @@ export default async function ChronicleVehiclePage({ params }: PageProps) {
       <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="min-w-0">
           <ChronicleFeaturedVisual imageUrl={vehicle.featuredImageUrl} alt={vehicle.name} badge={vehicle.kind} />
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{vehicle.kind}</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{vehicle.name}</h1>
+          <ChronicleCategoryKicker>{vehicle.kind}</ChronicleCategoryKicker>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{vehicle.name}</h1>
 
           <div className="mt-8">
             <ChroniclesMarkdown markdown={vehicle.bodyMarkdown} />

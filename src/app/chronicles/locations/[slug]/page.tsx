@@ -4,6 +4,7 @@ import { ChronicleCommunityDetailPage } from '@/components/chronicles/ChronicleC
 import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
+import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import {
   getLocationBySlug,
@@ -82,8 +83,8 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
             alt={location.name}
             badge="Location"
           />
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">{location.visualStyle}</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{location.name}</h1>
+          <ChronicleCategoryKicker>{location.visualStyle}</ChronicleCategoryKicker>
+          <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100">{location.name}</h1>
 
           <div className="mt-8">
             <ChroniclesMarkdown markdown={location.bodyMarkdown} />

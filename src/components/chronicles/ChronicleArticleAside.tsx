@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { AdSlider } from '@/components/ads/AdSlider';
-import { AdSlotColumn } from '@/components/ads/AdSlotColumn';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { ChroniclesAdSlot } from '@/components/chronicles/ChroniclesAdSlot';
 import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 export type AsideLink = { href: string; label: string; sublabel?: string };
@@ -15,7 +14,6 @@ export type AsideSection = {
 
 export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }) {
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
-  if (filtered.length === 0) return null;
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-6 self-start">
@@ -45,12 +43,7 @@ export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }
         </div>
       ))}
 
-      <div className={`${CHRONICLES_PANEL} p-4`}>
-        <DAppSectionHeader title="Ad slots" className="mb-3" />
-        <AdSlotColumn className="rounded-xl">
-          <AdSlider slotId="HALO_CHRONICLES_RIGHT" variant="sidebar" />
-        </AdSlotColumn>
-      </div>
+      <ChroniclesAdSlot layout="rail" />
     </aside>
   );
 }
