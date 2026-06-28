@@ -51,7 +51,7 @@ function VBlogFeaturedImagePlaceholder({
 
   return (
     <div
-      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 transition-transform duration-700 group-hover:scale-105 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
+      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
     >
       <div className="px-6 text-center">
         <div className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">vBlog</div>

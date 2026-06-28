@@ -11,6 +11,11 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { Avatar } from '@/components/Avatar';
 import { ArticleSidebar } from './ArticleSidebar';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
+import { VBlogAuthorCard } from '@/components/vblog/ArticleSidebar';
+import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
+import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
+import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -32,6 +37,15 @@ interface ArticleDetailProps {
   onEdit?: (article: VBlogArticle) => void;
 }
 
+type ArticleContentTab = 'article' | 'author' | 'modules' | 'comments';
+
+const ARTICLE_TABS: readonly DAppTab<ArticleContentTab>[] = [
+  { id: 'article', label: 'Article' },
+  { id: 'author', label: 'Author' },
+  { id: 'modules', label: 'Modules' },
+  { id: 'comments', label: 'Comments' },
+];
+
 export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
@@ -44,6 +58,8 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [selectedPollOption, setSelectedPollOption] = useState(0);
+  const [contentTab, setContentTab] = useState<ArticleContentTab>('article');
+  const [rightOpen, setRightOpen] = useVBlogRightPanelOpen(true);
 
   // Check if current user is the author
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
@@ -305,115 +321,158 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         )}
       </div>
 
-      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
-        <div className="flex-1 min-w-0">
-          <div
-            id="article-main"
-            className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
+      <div className="flex w-full min-w-0 flex-col gap-6">
+        <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+          <div className="min-w-0 flex-1">
+            <DAppTabs tabs={ARTICLE_TABS} value={contentTab} onChange={setContentTab} />
+          </div>
+          <div className="flex shrink-0 justify-end sm:items-center">
+            <DAppSidePanelToggle
+              open={rightOpen}
+              onToggle={() => setRightOpen(!rightOpen)}
+              panelId="kasparex-vblog-side-panel"
+            />
+          </div>
+        </div>
+
+        <div className={`grid grid-cols-1 gap-8 xl:gap-12 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+            {contentTab === 'article' ? (
+              <div
+                id="article-main"
+                className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
               prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-5
               prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
               prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
               prose-img:rounded-2xl select-text cursor-text"
-            onClick={(e) => {
-              const selection = window.getSelection()?.toString().trim();
-              if (!selection) return;
-              void navigator.clipboard.writeText(selection).catch(() => undefined);
-            }}
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
-          />
+                onClick={(e) => {
+                  const selection = window.getSelection()?.toString().trim();
+                  if (!selection) return;
+                  void navigator.clipboard.writeText(selection).catch(() => undefined);
+                }}
+                dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
+              />
+            ) : null}
 
-          {actionError && (
-            <p className="mt-4 text-sm text-red-600 dark:text-red-300">{actionError}</p>
-          )}
-
-          <div id="article-modules">
-          {article.modules?.premiumSectionEnabled && (
-            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
-              {!premiumUnlockEntitled ? (
-                <div className="mt-3 space-y-3">
-                  <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
-                  <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
-                    {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
-              )}
-            </div>
-          )}
-
-          {article.modules?.tipBoxEnabled && (
-            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Support the author</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {[10, 50, 100].map((amount) => (
-                  <button key={amount} disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(amount)} className="k-control-btn">
-                    Tip {amount} KAS
-                  </button>
-                ))}
-                <input value={customTipKas} onChange={(e) => setCustomTipKas(e.target.value)} className="k-input max-w-[140px]" />
-                <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(Number(customTipKas) || 1)} className="k-control-btn">Custom tip</button>
+            {contentTab === 'author' ? (
+              <div id="article-author">
+                <VBlogAuthorCard article={article} />
               </div>
-            </div>
-          )}
+            ) : null}
 
-          {article.modules?.tipToRevealEnabled && (
-            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
-              {!tipRevealEntitled ? (
-                <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
-              ) : (
-                <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
-              )}
-            </div>
-          )}
+            {contentTab === 'modules' ? (
+              <div id="article-modules" className="space-y-6">
+                {actionError ? (
+                  <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
+                ) : null}
 
-          {article.modules?.premiumPollEnabled && premiumUnlockEntitled && (
-            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
-              <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
-              <div className="mt-3 space-y-2">
-                {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
-                  const votes = pollVotes.filter((x) => x.optionIndex === index).length;
-                  const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
-                  return (
-                    <label key={option} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={selectedPollOption === index}
-                          onChange={() => setSelectedPollOption(index)}
-                          disabled={!canVotePoll}
-                        />
-                        {option}
-                      </span>
-                      <span className="text-zinc-500">{votes} ({pct}%)</span>
-                    </label>
-                  );
-                })}
+                {article.modules?.premiumSectionEnabled ? (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
+                    {!premiumUnlockEntitled ? (
+                      <div className="mt-3 space-y-3">
+                        <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
+                        <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
+                          {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
+                    )}
+                  </div>
+                ) : null}
+
+                {article.modules?.tipBoxEnabled ? (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Support the author</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[10, 50, 100].map((amount) => (
+                        <button key={amount} disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(amount)} className="k-control-btn">
+                          Tip {amount} KAS
+                        </button>
+                      ))}
+                      <input value={customTipKas} onChange={(e) => setCustomTipKas(e.target.value)} className="k-input max-w-[140px]" />
+                      <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(Number(customTipKas) || 1)} className="k-control-btn">Custom tip</button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {article.modules?.tipToRevealEnabled ? (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
+                    {!tipRevealEntitled ? (
+                      <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
+                    ) : (
+                      <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
+                    )}
+                  </div>
+                ) : null}
+
+                {article.modules?.premiumPollEnabled && premiumUnlockEntitled ? (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
+                    <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
+                    <div className="mt-3 space-y-2">
+                      {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
+                        const votes = pollVotes.filter((x) => x.optionIndex === index).length;
+                        const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
+                        return (
+                          <label key={option} className="flex items-center justify-between gap-3 text-sm">
+                            <span className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                checked={selectedPollOption === index}
+                                onChange={() => setSelectedPollOption(index)}
+                                disabled={!canVotePoll}
+                              />
+                              {option}
+                            </span>
+                            <span className="text-zinc-500">{votes} ({pct}%)</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
+                      {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
+                    </button>
+                  </div>
+                ) : null}
+
+                {article.modules?.readingReceiptsEnabled ? (
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
+                    <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
+                    <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
+                      Record on-chain reading receipt
+                    </button>
+                  </div>
+                ) : null}
+
+                {!article.modules?.premiumSectionEnabled &&
+                !article.modules?.tipBoxEnabled &&
+                !article.modules?.tipToRevealEnabled &&
+                !article.modules?.premiumPollEnabled &&
+                !article.modules?.readingReceiptsEnabled ? (
+                  <p className="kx-body text-zinc-500">No modules are enabled for this article.</p>
+                ) : null}
               </div>
-              <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
-                {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
-              </button>
-            </div>
-          )}
+            ) : null}
 
-          {article.modules?.readingReceiptsEnabled && (
-            <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-zinc-50/80 dark:bg-zinc-900/40">
-              <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
-              <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
-              <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
-                Record on-chain reading receipt
-              </button>
-            </div>
-          )}
+            {contentTab === 'comments' ? (
+              <div id="article-comments">
+                <CommentsSection articleId={article.id} />
+              </div>
+            ) : null}
           </div>
-        </div>
 
-        <ArticleSidebar article={article} />
+          {rightOpen ? (
+            <div className="min-w-0 lg:col-span-5">
+              <ArticleSidebar article={article} />
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

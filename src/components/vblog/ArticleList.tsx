@@ -71,7 +71,7 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
                 title={article.title}
                 variant="list"
                 className="h-full w-full"
-                imgClassName="h-full w-full object-cover transition-transform group-hover:scale-105"
+                imgClassName="h-full w-full object-cover"
               />
             </div>
 
