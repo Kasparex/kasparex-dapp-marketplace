@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { NodesDashboardContent } from '@/components/nodes/NodesDashboardContent';
 
 export const metadata: Metadata = {
@@ -7,5 +8,15 @@ export const metadata: Metadata = {
 };
 
 export default function NodesDashboardPage() {
-  return <NodesDashboardContent />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-16 text-zinc-500 dark:text-zinc-400">
+          Loading nodes dashboard…
+        </div>
+      }
+    >
+      <NodesDashboardContent />
+    </Suspense>
+  );
 }
