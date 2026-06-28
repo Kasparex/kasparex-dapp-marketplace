@@ -165,7 +165,7 @@
 }
 .kx-listing-card[data-kx-accent="chronicles"]:hover,
 .kx-listing-card[data-kx-accent="chronicles"]:focus-visible {
-  border-color: rgb(245, 158, 11) !important; /* amber-500 */
+  border-color: rgb(167, 139, 250) !important; /* violet-400 */
 }
 .kx-listing-card[data-kx-accent="movies"]:hover,
 .kx-listing-card[data-kx-accent="movies"]:focus-visible {

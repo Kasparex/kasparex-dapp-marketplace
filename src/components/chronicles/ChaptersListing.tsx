@@ -11,6 +11,9 @@ import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
+import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -21,7 +24,7 @@ const timelines: { id: ChronicleTimeline; label: string }[] = [
 function timelineBadge(t: ChronicleTimeline) {
   const map = {
     past: 'bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200',
-    current: 'bg-cyan-500/15 text-[#02abb8] border border-cyan-500/25',
+    current: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25',
     future: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20',
   };
   return map[t];
@@ -31,14 +34,19 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
   const [search, setSearch] = useState('');
   const [timelineFilter, setTimelineFilter] = useState<ChronicleTimeline | ''>('');
   const [view, setView] = useState<ChroniclesViewMode>('card');
+  const { items: communityItems } = useChroniclesCommunitySubmissions({ kind: 'chapter' });
+
+  const allChapters = useMemo(() => {
+    const community = communityItems.map(communityChapterToMeta);
+    return [...initialChapters, ...community];
+  }, [initialChapters, communityItems]);
 
   const filtered = useMemo(() => {
-    // Latest chapters first (reverse chronological by number).
-    let list = sortChaptersByNumber(initialChapters).slice().reverse();
+    let list = sortChaptersByNumber(allChapters).slice().reverse();
     list = searchChapters(list, search);
     list = filterChaptersByTimeline(list, timelineFilter ? [timelineFilter] : []);
     return list;
-  }, [initialChapters, search, timelineFilter]);
+  }, [allChapters, search, timelineFilter]);
 
   const reset = () => {
     setSearch('');
@@ -102,7 +110,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                     </span>
                   </td>
                   <td className="p-3 text-right">
-                    <Link href={`/chronicles/chapters/${c.slug}`} className="text-[#02abb8] font-bold text-xs uppercase">
+                    <Link href={`/chronicles/chapters/${c.slug}`} className="text-violet-600 dark:text-violet-400 font-bold text-xs uppercase">
                       Read
                     </Link>
                   </td>
@@ -119,7 +127,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
             <li key={c.slug}>
               <Link
                 href={`/chronicles/chapters/${c.slug}`}
-                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-violet-500/30 hover:bg-violet-500/5 transition-colors"
               >
                 <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="w-14 h-14 shrink-0" />
                 <div className="min-w-0 flex-1 flex items-center justify-between gap-4">
@@ -146,6 +154,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                 <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
                   <span className="text-sm font-mono text-zinc-400">Ch. {c.number}</span>
                   <div className="flex flex-wrap gap-1.5 justify-end">
+                    {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
                     {c.access && c.access.tier !== 'free' ? (
                       <span className="text-xs font-black uppercase px-2 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
                         Vault
@@ -156,7 +165,7 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                     </span>
                   </div>
                 </div>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors mb-2">
                   {c.title}
                 </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>

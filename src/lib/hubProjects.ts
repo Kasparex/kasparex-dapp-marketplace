@@ -85,9 +85,9 @@ export const hubProjects: HubProject[] = [
     category: 'Publishing',
     description:
       'Central lore hub for Kaspaland: chapters, characters, locations, and tech; wiki and CMS-ready, built for future tokens and cross-links to games like Diamond Veins.',
-    route: '/chronicles',
+    route: '/chronicles/chapters',
     status: 'beta',
-    earnPtsHint: 'Read lore and unlock vault chapters on Kaspa L1',
+    earnPtsHint: 'Read lore, unlock vault chapters, or submit community content in Chronicles Center',
   },
   {
     id: 'kasparex-movies',

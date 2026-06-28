@@ -13,6 +13,9 @@ import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
+import { communityLocationToEntity } from '@/lib/chronicles/communityAdapters';
 
 export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) {
   const [search, setSearch] = useState('');
@@ -25,12 +28,19 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
     return [...s].sort();
   }, [initial]);
 
+  const { items: communityItems } = useChroniclesCommunitySubmissions({ kind: 'location' });
+
+  const allLocations = useMemo(() => {
+    const community = communityItems.map(communityLocationToEntity);
+    return [...initial, ...community];
+  }, [initial, communityItems]);
+
   const filtered = useMemo(() => {
-    let list = sortLocationsByName(initial);
+    let list = sortLocationsByName(allLocations);
     list = searchLocations(list, search);
     list = filterLocationsByTag(list, tagFilter);
     return list;
-  }, [initial, search, tagFilter]);
+  }, [allLocations, search, tagFilter]);
 
   return (
     <div>
@@ -109,11 +119,14 @@ export function LocationsListing({ initial }: { initial: ChronicleLocation[] }) 
             <KxListingCard key={l.slug} href={`/chronicles/locations/${l.slug}`} accent="chronicles">
               <ChronicleThumb imageUrl={l.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <KxListingCardBody>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  <Tooltip content={gameTooltipRich('Location', l.name)} side="top" align="start">
-                    <span className="block">{l.name}</span>
-                  </Tooltip>
-                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">
+                    <Tooltip content={gameTooltipRich('Location', l.name)} side="top" align="start">
+                      <span className="block">{l.name}</span>
+                    </Tooltip>
+                  </h3>
+                  {'isCommunity' in l && l.isCommunity ? <ChroniclesCommunityBadge /> : null}
+                </div>
                 <p className="text-sm text-zinc-500 mb-2">{l.visualStyle}</p>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{l.summary}</p>
               </KxListingCardBody>

@@ -13,6 +13,9 @@ import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
+import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
+import { communityVehicleToEntity } from '@/lib/chronicles/communityAdapters';
 
 const kinds: { id: VehicleKind; label: string }[] = [
   { id: 'vehicle', label: 'Vehicles' },
@@ -26,12 +29,19 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
   const [kindFilter, setKindFilter] = useState<VehicleKind | ''>('');
   const [view, setView] = useState<ChroniclesViewMode>('card');
 
+  const { items: communityItems } = useChroniclesCommunitySubmissions({ kind: 'vehicle' });
+
+  const allVehicles = useMemo(() => {
+    const community = communityItems.map(communityVehicleToEntity);
+    return [...initial, ...community];
+  }, [initial, communityItems]);
+
   const filtered = useMemo(() => {
-    let list = sortVehiclesByName(initial);
+    let list = sortVehiclesByName(allVehicles);
     list = searchVehicles(list, search);
     list = filterVehiclesByKind(list, kindFilter ? [kindFilter] : []);
     return list;
-  }, [initial, search, kindFilter]);
+  }, [allVehicles, search, kindFilter]);
 
   return (
     <div>
@@ -115,8 +125,11 @@ export function VehiclesListing({ initial }: { initial: ChronicleVehicle[] }) {
             <KxListingCard key={v.slug} href={`/chronicles/vehicles/${v.slug}`} accent="chronicles">
               <ChronicleThumb imageUrl={v.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
               <KxListingCardBody>
-                <p className="text-[10px] font-black text-[#02abb8] uppercase mb-1">{v.kind}</p>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase">{v.kind}</p>
+                  {'isCommunity' in v && v.isCommunity ? <ChroniclesCommunityBadge /> : null}
+                </div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors mb-2">
                   <Tooltip content={gameTooltipRich('Vehicle', v.name)} side="top" align="start">
                     <span className="block">{v.name}</span>
                   </Tooltip>

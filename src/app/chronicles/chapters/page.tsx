@@ -12,7 +12,8 @@ export default function ChroniclesChaptersPage() {
         kicker="Lore codex"
         title="Chapters"
         titleAccent="Chapters"
-        subtitle="Published saga: previous, current, and future beats."
+        subtitle="Published saga: previous, current, and future beats. Community chapters appear with a Community badge."
+        showDefaultActions
       />
       <DAppSectionHeader
         title="All chapters"
