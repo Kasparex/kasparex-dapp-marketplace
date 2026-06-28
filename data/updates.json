@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782633467-70085a7",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix NFT wallet detection fallbacks when KRC721 Stream is unavailable. (by Kasparex)",
+      "date": "2026-06-28T09:57:24+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782595466-07c553c",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Unify switchers with tab strip styling via KxTabStrip (by Kasparex)",
