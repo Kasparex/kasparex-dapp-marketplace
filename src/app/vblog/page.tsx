@@ -117,11 +117,11 @@ export default function VBlogPage() {
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                   <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Publishing Fee</span>
-                  <span className="text-base font-black text-orange-500">{pricing.createFee} KAS</span>
+                  <span className="text-base font-black text-[#0884a4]">{pricing.createFee} KAS</span>
                 </div>
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                   <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Edit/Update Fee</span>
-                  <span className="text-base font-black text-orange-500">{pricing.editFee} KAS</span>
+                  <span className="text-base font-black text-[#0884a4]">{pricing.editFee} KAS</span>
                 </div>
                 <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                   <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">On-Chain Publication</span>
@@ -156,7 +156,7 @@ export default function VBlogPage() {
                     <button
                       key={tag}
                       onClick={() => handleTagToggle(tag)}
-                      className="px-3 py-1.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-orange-500/20"
+                      className="px-3 py-1.5 bg-[#0884a4]/10 text-[#0884a4] dark:text-[#4db8d4] rounded-lg text-[10px] font-black uppercase tracking-wider border border-[#0884a4]/20"
                     >
                       #{tag} ×
                     </button>
@@ -172,7 +172,7 @@ export default function VBlogPage() {
               {/* Content Grid */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-24">
-                  <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-12 h-12 border-4 border-[#0884a4] border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : filteredArticles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">

@@ -3,6 +3,7 @@
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import Link from 'next/link';
 
 interface VBlogCardProps {
@@ -25,7 +26,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
               {article.category}
             </span>
             {isLinked && (
-              <span className="px-2.5 py-1 bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-[#0884a4] text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg flex items-center gap-1">
                 <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -43,24 +44,13 @@ export function VBlogCard({ article }: VBlogCardProps) {
             </span>
           </div>
 
-          {article.featuredImage ? (
-            <img
-              src={article.featuredImage}
-              alt={article.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 transition-transform duration-700 group-hover:scale-105">
-              <div className="text-center px-6">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-3">
-                  vBlog
-                </div>
-                <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 leading-tight line-clamp-2">
-                  {article.title}
-                </div>
-              </div>
-            </div>
-          )}
+          <VBlogFeaturedImage
+            src={article.featuredImage}
+            title={article.title}
+            variant="card"
+            className="absolute inset-0 w-full h-full"
+            imgClassName="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
 
       </KxListingCardMedia>
 

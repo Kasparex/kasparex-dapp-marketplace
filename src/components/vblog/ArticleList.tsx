@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
+import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 
 interface ArticleListProps {
   articles: VBlogArticle[];
@@ -65,22 +66,13 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
                 </span>
               </div>
 
-              {article.featuredImage ? (
-                <img
-                  src={article.featuredImage}
-                  alt={article.title}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
-                  <svg className="w-8 h-8 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                  </svg>
-                </div>
-              )}
+              <VBlogFeaturedImage
+                src={article.featuredImage}
+                title={article.title}
+                variant="list"
+                className="h-full w-full"
+                imgClassName="h-full w-full object-cover transition-transform group-hover:scale-105"
+              />
             </div>
 
             <div className="p-4 flex flex-col flex-1">

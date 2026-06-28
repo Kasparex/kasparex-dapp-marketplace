@@ -1718,9 +1718,9 @@ export function PlantSlotCard(props: {
                     </StatBadge>
                   ) : null}
                   {crewCapRollup.hasForemanAuto ? (
-                    <KxBadge key="foreman-auto" variant="amber">
-                      Auto
-                    </KxBadge>
+                    <StatBadge key="foreman-auto" variant="amber">
+                      AUTO
+                    </StatBadge>
                   ) : null}
                 </>,
               )}

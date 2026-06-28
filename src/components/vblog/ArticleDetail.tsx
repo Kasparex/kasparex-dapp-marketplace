@@ -10,6 +10,7 @@ import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
 import { Avatar } from '@/components/Avatar';
 import { ArticleSidebar } from './ArticleSidebar';
+import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -273,26 +274,12 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           </div>
 
           <div className="w-full lg:w-[40%] relative min-h-[260px] lg:min-h-full bg-zinc-100 dark:bg-zinc-800 border-l border-zinc-200 dark:border-zinc-800">
-            {article.featuredImage ? (
-              <img
-                src={article.featuredImage}
-                alt={article.title}
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${article.category === 'Development' ? 'from-cyan-500 to-blue-600' :
-                article.category === 'Ecosystem' ? 'from-emerald-500 to-teal-600' :
-                  'from-[#02abb8] to-cyan-700'
-                }`}>
-                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-                <svg className="w-24 h-24 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-              </div>
-            )}
+            <VBlogFeaturedImage
+              src={article.featuredImage}
+              title={article.title}
+              variant="hero"
+              imgClassName="absolute inset-0 w-full h-full object-cover"
+            />
           </div>
         </div>
 

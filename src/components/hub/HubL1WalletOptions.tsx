@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
+import { L1WalletConnectLabel } from '@/components/wallet/L1WalletLogo';
 
 export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }) {
   const { connect } = useKaspaWallet();
@@ -52,7 +53,10 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
         disabled={connecting !== null}
         className="w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span>{isKasWareInstalled ? 'KasWare' : 'Install KasWare'}</span>
+        <L1WalletConnectLabel
+          provider="kasware"
+          label={isKasWareInstalled ? 'KasWare' : 'Install KasWare'}
+        />
         <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
           {connecting === 'kasware' ? 'Connecting…' : 'L1'}
         </span>
@@ -63,7 +67,10 @@ export function HubL1WalletOptions({ onConnected }: { onConnected?: () => void }
         disabled={connecting !== null}
         className="w-full flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span>{isKastleInstalled ? 'Kastle' : 'Install Kastle'}</span>
+        <L1WalletConnectLabel
+          provider="kastle"
+          label={isKastleInstalled ? 'Kastle' : 'Install Kastle'}
+        />
         <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
           {connecting === 'kastle' ? 'Connecting…' : 'L1'}
         </span>

@@ -19,7 +19,7 @@ export function VBlogRewardsSection() {
 
     return (
         <div className="mt-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl">
-            <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-orange-500/5 to-amber-500/5 dark:from-orange-500/10 dark:to-amber-500/10 flex items-center justify-between">
+            <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-[#0884a4]/5 to-teal-500/5 dark:from-[#0884a4]/10 dark:to-teal-500/10 flex items-center justify-between">
                 <div>
                     <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1">Author Rewards & Discounts</h3>
                     <p className="text-zinc-500 text-xs">Maximize your earnings through KREX and NFT ownership.</p>
@@ -53,8 +53,8 @@ export function VBlogRewardsSection() {
                 {/* Magazine Revenue Share */}
                 <div className="p-6 bg-white dark:bg-zinc-900">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-8 h-8 rounded-lg bg-[#0884a4]/10 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-[#0884a4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
@@ -70,8 +70,8 @@ export function VBlogRewardsSection() {
             </div>
 
             {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) && (
-                <div className="p-4 bg-orange-500/5 border-t border-zinc-100 dark:border-zinc-800 text-center">
-                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400">
+                <div className="p-4 bg-[#0884a4]/5 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                    <span className="text-xs font-bold text-[#0884a4] dark:text-[#4db8d4]">
                         NFT Multiplier Active: You qualify for premium text limits and enhanced on-chain visibility.
                     </span>
                 </div>

@@ -9,6 +9,7 @@ import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { VBLOG_CTA_BTN } from '@/lib/vblog/theme';
 
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
@@ -83,12 +84,12 @@ export function VBlogSidebar({
     <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
         <div className="mb-6 space-y-2">
           {onCreateArticle ? (
-            <button type="button" onClick={onCreateArticle} className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
+            <button type="button" onClick={onCreateArticle} className={`k-control-btn w-full justify-center gap-2 ${VBLOG_CTA_BTN}`}>
               <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               Create Article
             </button>
           ) : (
-            <Link href="/vblog/editor/new" className="k-control-btn w-full justify-center gap-2 !bg-orange-500 hover:!bg-orange-600 !text-white !border-orange-400/30">
+            <Link href="/vblog/editor/new" className={`k-control-btn w-full justify-center gap-2 ${VBLOG_CTA_BTN}`}>
               <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               Create Article
             </Link>
