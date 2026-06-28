@@ -1,15 +1,14 @@
 /**
  * KRC721 Stream API Integration
  * Fetches NFT ownership data directly from KRC721 protocol API
- * 
+ *
  * API Documentation: https://mainnet.krc721.stream/docs#http-api
  * Endpoint: GET /api/v1/krc721/{network}/address/{address}
  */
 
-const KRC721_STREAM_API_BASE = 'https://mainnet.krc721.stream/api/v1/krc721/mainnet';
+import { resolveCollectionIdFromTick } from './collections';
 
 function getApiUrl(endpoint: string): string {
-  // In browser, use proxy route to avoid CORS.
   if (typeof window !== 'undefined') {
     return `/api/krc721-stream?endpoint=${encodeURIComponent(endpoint)}`;
   }
@@ -17,9 +16,8 @@ function getApiUrl(endpoint: string): string {
 }
 
 export interface KRC721StreamToken {
-  tick: string; // Note: API uses "tick" not "ticker"
-  tokenId: string; // Note: API returns tokenId as string
-  /** Base URI for token metadata (field name varies by API version) */
+  tick: string;
+  tokenId: string;
   buri?: string;
   baseUri?: string;
   base_uri?: string;
@@ -27,77 +25,69 @@ export interface KRC721StreamToken {
 }
 
 export interface KRC721StreamResponse {
-  message: string; // Should be "success" if successful
-  result?: KRC721StreamToken[]; // Array of tokens
-  next?: string; // Pagination offset
+  message: string;
+  result?: KRC721StreamToken[];
+  next?: string;
   [key: string]: unknown;
 }
 
+function parseStreamTokens(data: KRC721StreamResponse): KRC721StreamToken[] {
+  if (data.message === 'success' && Array.isArray(data.result)) {
+    return data.result;
+  }
+  const alt = (data as Record<string, unknown>).tokens;
+  if (Array.isArray(alt)) {
+    return alt as KRC721StreamToken[];
+  }
+  return [];
+}
+
+async function fetchStreamPage(endpoint: string): Promise<KRC721StreamResponse> {
+  const url = getApiUrl(endpoint);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(20000),
+  });
+
+  if (!response.ok) {
+    if (response.status === 404 || response.status === 400) {
+      return { message: 'empty', result: [] };
+    }
+    const errorText = await response.text();
+    throw new Error(`KRC721 Stream API error: ${response.status} ${response.statusText} ${errorText}`);
+  }
+
+  return (await response.json()) as KRC721StreamResponse;
+}
+
 /**
- * Fetch NFTs owned by an address using KRC721 Stream API
- * 
- * API Response format:
- * {
- *   "message": "success",
- *   "result": [
- *     {
- *       "tick": "FOO",
- *       "tokenId": "381",
- *       "buri": "ipfs://..."
- *     }
- *   ],
- *   "next": "FOO-123" (optional, for pagination)
- * }
+ * Fetch all NFTs owned by an address using KRC721 Stream API (with pagination).
  */
-export async function fetchNFTsByAddress(
-  address: string
-): Promise<KRC721StreamToken[]> {
+export async function fetchNFTsByAddress(address: string): Promise<KRC721StreamToken[]> {
   try {
-    // API requires kaspa: prefix - ensure it's present
-    const normalizedAddress = address.startsWith('kaspa:') 
-      ? address 
-      : `kaspa:${address}`;
-    
-    console.log('[KRC721 Stream] Fetching NFTs for address:', normalizedAddress);
-    
-    const endpoint = `/api/v1/krc721/mainnet/address/${encodeURIComponent(normalizedAddress)}`;
-    const url = getApiUrl(endpoint);
-    console.log('[KRC721 Stream] API URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(15000), // 15 second timeout
-    });
+    const normalizedAddress = address.startsWith('kaspa:') ? address : `kaspa:${address}`;
+    const baseEndpoint = `/api/v1/krc721/mainnet/address/${encodeURIComponent(normalizedAddress)}`;
 
-    console.log('[KRC721 Stream] Response status:', response.status, response.statusText);
+    const allTokens: KRC721StreamToken[] = [];
+    let endpoint = baseEndpoint;
+    const maxPages = 25;
 
-    if (!response.ok) {
-      if (response.status === 404 || response.status === 400) {
-        console.log('[KRC721 Stream] No NFTs found for address');
-        return [];
+    for (let page = 0; page < maxPages; page += 1) {
+      const data = await fetchStreamPage(endpoint);
+      const batch = parseStreamTokens(data);
+      if (batch.length > 0) {
+        allTokens.push(...batch);
       }
-      const errorText = await response.text();
-      console.error('[KRC721 Stream] API error response:', errorText);
-      throw new Error(`KRC721 Stream API error: ${response.status} ${response.statusText}`);
+
+      const next = typeof data.next === 'string' ? data.next.trim() : '';
+      if (!next) break;
+
+      endpoint = `${baseEndpoint}?next=${encodeURIComponent(next)}`;
     }
 
-    const data = await response.json() as KRC721StreamResponse;
-    
-    console.log('[KRC721 Stream] API response:', data);
-    console.log('[KRC721 Stream] Message:', data.message);
-    
-    // Check if request was successful
-    if (data.message === 'success' && data.result && Array.isArray(data.result)) {
-      console.log(`[KRC721 Stream] ✓ Found ${data.result.length} NFTs`);
-      return data.result;
-    }
-    
-    console.warn('[KRC721 Stream] Unexpected response format:', data);
-    return [];
+    return allTokens;
   } catch (error) {
     console.error('[KRC721 Stream] Error fetching NFTs:', error);
     return [];
@@ -113,8 +103,7 @@ export function streamTokenBaseUri(token: KRC721StreamToken): string | null {
   return candidates[0] ?? null;
 }
 
-/**
- * Build IPFS path (CID/subpath) for `{tokenId}.json` under the collection base URI. */
+/** Build IPFS path (CID/subpath) for `{tokenId}.json` under the collection base URI. */
 export function streamMetaJsonPathFromBaseUri(baseUri: string, tokenId: number): string | null {
   const s = baseUri.trim();
   if (!s) return null;
@@ -130,14 +119,15 @@ export function streamMetaJsonPathFromBaseUri(baseUri: string, tokenId: number):
 }
 
 /**
- * Filter NFTs by collection tickers
+ * Filter NFTs by collection tickers (case-insensitive, resolves slug aliases).
  */
 export function filterNFTsByCollections(
   tokens: KRC721StreamToken[],
-  collectionIds: string[]
+  collectionIds: string[],
 ): KRC721StreamToken[] {
-  return tokens.filter(token => {
-    const tick = token.tick?.toUpperCase() || '';
-    return collectionIds.includes(tick);
+  const idSet = new Set(collectionIds.map((id) => id.toUpperCase()));
+  return tokens.filter((token) => {
+    const resolved = resolveCollectionIdFromTick(token.tick);
+    return resolved ? idSet.has(resolved) : false;
   });
 }

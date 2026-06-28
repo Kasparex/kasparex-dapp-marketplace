@@ -9,7 +9,7 @@ import { queryUserNFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { getNFTMetadata } from '@/lib/nft/metadata';
 import { fetchMultipleNFTRanks } from '@/lib/nft/kaspa-com-api';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import { collections } from '@/lib/nft/collections';
+import { collections, getAllSupportedCollectionIds } from '@/lib/nft/collections';
 import { getCollectionMetadata } from '@/lib/nft/collection-loader';
 import { getNFTRarityCached } from '@/lib/nft/rarity-cache';
 import { isDiamondNFT as checkDiamondNFT } from '@/lib/nft/diamond-detection';
@@ -54,9 +54,8 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   const [chroniclesBump, setChroniclesBump] = useState(0);
   const [visibleCount, setVisibleCount] = useState(24);
 
-  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
   const l1Address = kaspaState.address;
-  const l2Address = evmAddress || null;
+  const hasL1Wallet = Boolean(kaspaState.isConnected && l1Address);
 
   const payerKaspa = useMemo(() => (l1Address ? normKaspaAddr(l1Address) : ''), [l1Address]);
 
@@ -83,39 +82,25 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   }
 
   const loadUserNFTs = async () => {
-    if (!l1Address && !l2Address) {
-      console.log('[UserNFTsTab] No wallet addresses available:', { 
-        l1Address, 
-        l2Address, 
-        kaspaState, 
-        isEVMConnected,
-        isWalletConnected 
-      });
+    if (!l1Address) {
       return;
+    }
+
+    let queryAddress = l1Address;
+    try {
+      queryAddress = normKaspaAddr(l1Address);
+    } catch {
+      queryAddress = l1Address.startsWith('kaspa:') ? l1Address : `kaspa:${l1Address}`;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('[UserNFTsTab] Loading NFTs for addresses:', { 
-        l1Address, 
-        l2Address, 
-        collectionId,
-        kaspaState: {
-          isConnected: kaspaState.isConnected,
-          address: kaspaState.address,
-          provider: kaspaState.provider
-        }
-      });
-      const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
-      console.log('[UserNFTsTab] ✓ Fetched NFTs:', nfts.length, nfts);
+      const collectionFilter = collectionId ? [collectionId] : getAllSupportedCollectionIds();
+      const nfts = await queryUserNFTs(queryAddress, null, collectionFilter);
       setUserNFTs(nfts);
       setVisibleCount(24);
-      
-      if (nfts.length === 0) {
-        console.warn('[UserNFTsTab] No NFTs found. Check console for NFT query logs.');
-      }
 
       // Load collection metadata for accurate rarity calculation
       const collectionMetadataMap = new Map<string, any[]>();
@@ -198,27 +183,14 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
   };
 
   useEffect(() => {
-    console.log('[UserNFTsTab] useEffect triggered:', {
-      isWalletConnected,
-      l1Address,
-      l2Address,
-      kaspaState: {
-        isConnected: kaspaState.isConnected,
-        address: kaspaState.address,
-        provider: kaspaState.provider
-      }
-    });
-    
-    if (isWalletConnected && (l1Address || l2Address)) {
-      console.log('[UserNFTsTab] Calling loadUserNFTs...');
+    if (hasL1Wallet && l1Address) {
       loadUserNFTs();
     } else {
-      console.log('[UserNFTsTab] Wallet not connected or no address, clearing NFTs');
       setUserNFTs([]);
       setNftDetails(new Map());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWalletConnected, l1Address, l2Address, collectionId]);
+  }, [hasL1Wallet, l1Address, collectionId]);
 
   // Helper function to detect Rarest NFTs
   const isRareNFT = (collectionId: string, tokenId: number): boolean => {
@@ -292,40 +264,39 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     return acc;
   }, {} as Record<string, number>);
 
-  if (!isWalletConnected) {
+  if (!hasL1Wallet) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
-          Connect your wallet to view your NFTs
+          Connect your Kaspa L1 wallet to view your NFTs
         </p>
-        <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
-          Supports both Kaspa L1 and Kasplex L2 wallets
+        <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4 max-w-md mx-auto">
+          {isEVMConnected
+            ? 'KRC-721 NFTs are held on Kaspa L1. Connect KasWare or Kastle to load your holdings.'
+            : 'Use KasWare or Kastle from the header wallet menu.'}
         </p>
-        <div className="text-xs text-zinc-400 dark:text-zinc-600 mt-4">
-          Debug: kaspaState.isConnected={String(kaspaState.isConnected)}, 
-          address={kaspaState.address ? 'present' : 'null'},
-          isEVMConnected={String(isEVMConnected)}
-        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Debug Info and Refresh Button */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-xs text-zinc-400 dark:text-zinc-600">
-          Wallet: {l1Address ? `L1: ${l1Address.substring(0, 10)}...` : 'None'} 
-          {l2Address ? ` L2: ${l2Address.substring(0, 10)}...` : ''}
-        </div>
+      <div className="flex items-center justify-end mb-4">
         <button
+          type="button"
           onClick={loadUserNFTs}
           disabled={isLoading}
-          className="px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="k-control-btn text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Loading...' : 'Refresh'}
+          {isLoading ? 'Loading…' : 'Refresh'}
         </button>
       </div>
+
+      {error ? (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <p className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</p>
+        </div>
+      ) : null}
 
       {/* Filters and Sorting Controls */}
       {userNFTs.length > 0 && (
@@ -549,8 +520,10 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
           <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
             No NFTs found
           </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6">
-            You don&apos;t own any NFTs from KREXPRIME or PIXELKREX collections.
+          <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-6 max-w-md mx-auto">
+            {collectionId
+              ? `No NFTs found in ${collections[collectionId]?.name ?? collectionId} for this wallet.`
+              : 'No NFTs found in supported Kasparex collections for this wallet.'}
           </p>
           <button
             onClick={() => setShowBuyWizard(true)}
@@ -576,7 +549,8 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
             return (
               <div
                 key={key}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                className="kx-listing-card flex flex-col h-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
+                data-kx-accent="nftTools"
               >
                 {/* Image */}
                 <div className="aspect-square bg-zinc-100 dark:bg-zinc-800">

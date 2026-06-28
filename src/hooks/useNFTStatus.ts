@@ -3,13 +3,14 @@
  * Fetches user's NFTs and computes NFT status
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { queryL1NFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
-import { collections, getPartnerCollections } from '@/lib/nft/collections';
+import { collections, getAllSupportedCollectionIds, getPartnerCollections } from '@/lib/nft/collections';
 import { calculateTotalNFTPoints } from '@/lib/nft/points';
 
 function isRareNFT(collectionId: string, tokenId: number): boolean {
@@ -23,7 +24,7 @@ function isRareNFT(collectionId: string, tokenId: number): boolean {
 
 function computeNFTStatus(
   nfts: UserNFT[],
-  metadataMap: Map<string, ParsedNFTMetadata>
+  metadataMap: Map<string, ParsedNFTMetadata>,
 ): NFTStatus {
   const status: NFTStatus = {
     hasKREXPRIME: false,
@@ -35,7 +36,6 @@ function computeNFTStatus(
     partnerDiamonds: {},
   };
 
-  // Initialize partner collections tracking
   const partnerCollections = getPartnerCollections();
   partnerCollections.forEach((coll) => {
     status.partnerCollections![coll.id] = false;
@@ -48,17 +48,14 @@ function computeNFTStatus(
     const metadata = metadataMap.get(metadataKey) || null;
     const collectionConfig = collections[collection];
 
-    // Check collection ownership
     if (collection === 'KREXPRIME') {
       status.hasKREXPRIME = true;
     } else if (collection === 'PIXELKREX') {
       status.hasPIXELKREX = true;
     } else if (collectionConfig?.isPartnerCollection) {
-      // Partner collection
       status.partnerCollections![collection] = true;
     }
 
-    // Check for Diamond NFT (uses shared detection logic)
     const isDiamond = isDiamondNFT(collection, metadata);
     if (isDiamond) {
       if (collection === 'KREXPRIME') {
@@ -66,18 +63,33 @@ function computeNFTStatus(
       } else if (collection === 'PIXELKREX') {
         status.hasDiamondPIXELKREX = true;
       } else if (collectionConfig?.isPartnerCollection) {
-        // Partner collection Diamond
         status.partnerDiamonds![collection] = true;
       }
     }
 
-    // Check for Rare NFT (only for KREXPRIME and PIXELKREX)
     if (isRareNFT(collection, tokenId)) {
       status.hasRarestNFT = true;
     }
   }
 
   return status;
+}
+
+function emptyNFTStatus(): NFTStatus {
+  const emptyStatus: NFTStatus = {
+    hasKREXPRIME: false,
+    hasPIXELKREX: false,
+    hasDiamondKREXPRIME: false,
+    hasDiamondPIXELKREX: false,
+    hasRarestNFT: false,
+    partnerCollections: {},
+    partnerDiamonds: {},
+  };
+  getPartnerCollections().forEach((coll) => {
+    emptyStatus.partnerCollections![coll.id] = false;
+    emptyStatus.partnerDiamonds![coll.id] = false;
+  });
+  return emptyStatus;
 }
 
 export interface UseNFTStatusReturn {
@@ -94,17 +106,17 @@ export interface UseNFTStatusReturn {
  */
 export function useNFTStatus(): UseNFTStatusReturn {
   const { state } = useKaspaWallet();
-  const address = state.address;
+  const rawAddress = state.address;
   const isConnected = state.isConnected;
-  
+
   const [nftStatus, setNftStatus] = useState<NFTStatus | null>(null);
   const [nfts, setNfts] = useState<UserNFT[]>([]);
   const [nftPoints, setNftPoints] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNFTStatus = async () => {
-    if (!isConnected || !address) {
+  const fetchNFTStatus = useCallback(async () => {
+    if (!isConnected || !rawAddress) {
       setNftStatus(null);
       setNfts([]);
       setNftPoints(0);
@@ -113,43 +125,28 @@ export function useNFTStatus(): UseNFTStatusReturn {
       return;
     }
 
+    let walletAddress = rawAddress;
+    try {
+      walletAddress = normalizeKaspaAddress(rawAddress);
+    } catch {
+      walletAddress = rawAddress.startsWith('kaspa:') ? rawAddress : `kaspa:${rawAddress}`;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Get all collection IDs (main + partner)
-      const allCollectionIds = Object.keys(collections);
-      
-      // Query user's NFTs from L1 (all collections)
-      const userNFTs = await queryL1NFTs(address, allCollectionIds);
+      const allCollectionIds = getAllSupportedCollectionIds();
+      const userNFTs = await queryL1NFTs(walletAddress, allCollectionIds);
       setNfts(userNFTs);
 
       if (userNFTs.length === 0) {
-        // No NFTs found, return empty status
-        const emptyStatus: NFTStatus = {
-          hasKREXPRIME: false,
-          hasPIXELKREX: false,
-          hasDiamondKREXPRIME: false,
-          hasDiamondPIXELKREX: false,
-          hasRarestNFT: false,
-          partnerCollections: {},
-          partnerDiamonds: {},
-        };
-        // Initialize partner collections
-        getPartnerCollections().forEach((coll) => {
-          emptyStatus.partnerCollections![coll.id] = false;
-          emptyStatus.partnerDiamonds![coll.id] = false;
-        });
-        setNftStatus(emptyStatus);
+        setNftStatus(emptyNFTStatus());
         setNftPoints(0);
-        setIsLoading(false);
         return;
       }
 
-      // Fetch metadata for all NFTs
       const metadataMap = new Map<string, ParsedNFTMetadata>();
-      
-      // Group NFTs by collection
       const nftsByCollection = new Map<string, number[]>();
       userNFTs.forEach((nft) => {
         if (!nftsByCollection.has(nft.collection)) {
@@ -158,7 +155,6 @@ export function useNFTStatus(): UseNFTStatusReturn {
         nftsByCollection.get(nft.collection)!.push(nft.tokenId);
       });
 
-      // Fetch metadata for each collection
       for (const [collectionId, tokenIds] of nftsByCollection.entries()) {
         const collectionMetadata = await fetchMultipleNFTMetadata(collectionId, tokenIds);
         collectionMetadata.forEach((metadata, tokenId) => {
@@ -166,25 +162,28 @@ export function useNFTStatus(): UseNFTStatusReturn {
         });
       }
 
-      // Compute NFT status
       const status = computeNFTStatus(userNFTs, metadataMap);
       setNftStatus(status);
-
-      // Calculate total points from all NFTs
-      const totalPoints = calculateTotalNFTPoints(userNFTs, metadataMap);
-      setNftPoints(totalPoints);
+      setNftPoints(calculateTotalNFTPoints(userNFTs, metadataMap));
     } catch (err) {
       console.error('Error fetching NFT status:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch NFT status');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isConnected, rawAddress]);
 
   useEffect(() => {
-    fetchNFTStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isConnected]);
+    void fetchNFTStatus();
+  }, [fetchNFTStatus]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      void fetchNFTStatus();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [fetchNFTStatus]);
 
   return {
     nftStatus,

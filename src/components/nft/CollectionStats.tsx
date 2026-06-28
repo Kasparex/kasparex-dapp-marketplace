@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useAccount } from 'wagmi';
 import { queryUserNFTs, type UserNFT } from '@/lib/nft/nft-query';
 import { fetchMultipleNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
-import { collections } from '@/lib/nft/collections';
+import { collections, getAllSupportedCollectionIds } from '@/lib/nft/collections';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { isDiamondNFT } from '@/lib/nft/diamond-detection';
 import { calculateTotalNFTPoints, NFT_POINTS } from '@/lib/nft/points';
 
@@ -40,18 +40,16 @@ function isRareNFT(collectionId: string, tokenId: number): boolean {
 
 export function CollectionStats({ collectionId }: CollectionStatsProps) {
   const { state: kaspaState } = useKaspaWallet();
-  const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const [stats, setStats] = useState<CollectionStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isWalletConnected = kaspaState.isConnected || isEVMConnected;
+  const hasL1Wallet = Boolean(kaspaState.isConnected && kaspaState.address);
   const l1Address = kaspaState.address;
-  const l2Address = evmAddress || null;
 
   useEffect(() => {
     const loadStats = async () => {
-      if (!l1Address && !l2Address) {
+      if (!hasL1Wallet || !l1Address) {
         setStats(null);
         return;
       }
@@ -60,7 +58,15 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
       setError(null);
 
       try {
-        const nfts = await queryUserNFTs(l1Address, l2Address, collectionId ? [collectionId] : undefined);
+        let queryAddress = l1Address;
+        try {
+          queryAddress = normalizeKaspaAddress(l1Address);
+        } catch {
+          queryAddress = l1Address.startsWith('kaspa:') ? l1Address : `kaspa:${l1Address}`;
+        }
+
+        const collectionFilter = collectionId ? [collectionId] : getAllSupportedCollectionIds();
+        const nfts = await queryUserNFTs(queryAddress, null, collectionFilter);
 
         if (nfts.length === 0) {
           setStats({
@@ -150,16 +156,17 @@ export function CollectionStats({ collectionId }: CollectionStatsProps) {
     };
 
     loadStats();
-  }, [l1Address, l2Address, collectionId]);
+  }, [hasL1Wallet, l1Address, collectionId]);
 
-  if (!isWalletConnected) {
+  if (!hasL1Wallet) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-2">
-          Connect your wallet to view collection statistics
+          Connect your Kaspa L1 wallet to view collection statistics
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500">
-          Connect your KasWare or EVM wallet to see detailed statistics about your NFT collection
+          Use KasWare or Kastle from the header wallet menu
+        </p>
         </p>
       </div>
     );

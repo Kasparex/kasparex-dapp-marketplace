@@ -38,6 +38,8 @@ export interface CollectionConfig {
    * Partner/collaboration project name (if isPartnerCollection is true)
    */
   partnerName?: string;
+  /** Optimized static image for listing cards (avoids IPFS for collection previews). */
+  cardImageUrl?: string;
 }
 
 export const collections: Record<string, CollectionConfig> = {
@@ -49,6 +51,7 @@ export const collections: Record<string, CollectionConfig> = {
     baseUri: 'ipfs://bafybeiaeazylbtfb5drled7wtiib53llv25f5obovugjbccuw23ot6wneq',
     kaspaComUrl: 'https://www.kaspa.com/nft/collections/KREXPRIME',
     description: 'KREXPRIME NFT collection',
+    cardImageUrl: 'https://static.wixstatic.com/media/de4185_ec3a24b7869e436baa812cce50f44526~mv2.jpg',
   },
   PIXELKREX: {
     id: 'PIXELKREX',
@@ -59,6 +62,7 @@ export const collections: Record<string, CollectionConfig> = {
     kaspaComUrl: 'https://kaspa.com/nft/collections/PIXELKREX',
     description: 'PIXELKREX NFT collection',
     traitImagesBaseUri: 'ipfs://bafybeichueiciyapedscvqi2lh7h7cb3tnxm6wlfhugn464hacr6hxzheq',
+    cardImageUrl: 'https://static.wixstatic.com/media/de4185_92b592a4539447de80751c7f0dace90d~mv2.jpg',
   },
   KASGOTHS: {
     id: 'KASGOTHS',
@@ -70,6 +74,7 @@ export const collections: Record<string, CollectionConfig> = {
     description: 'KASGOTHS partner NFT collection',
     isPartnerCollection: true,
     partnerName: 'KASGOTHS',
+    cardImageUrl: 'https://static.wixstatic.com/media/de4185_4d4a65c6a7f4411680cf381939fecefd~mv2.jpg',
   },
   KASZOMBIES: {
     id: 'KASZOMBIES',
@@ -81,6 +86,7 @@ export const collections: Record<string, CollectionConfig> = {
     description: 'KASZOMBIES partner collection (KasBTC / Kasgoths ecosystem)',
     isPartnerCollection: true,
     partnerName: 'KASZOMBIES',
+    cardImageUrl: 'https://static.wixstatic.com/media/de4185_cdb805774af3489fb61eb72129d38578~mv2.jpg',
   },
   '21MCOVEN': {
     id: '21MCOVEN',
@@ -92,8 +98,25 @@ export const collections: Record<string, CollectionConfig> = {
     description: '21 Million Coven partner collection (KasBTC / Kasgoths ecosystem)',
     isPartnerCollection: true,
     partnerName: '21MCOVEN',
+    cardImageUrl: 'https://static.wixstatic.com/media/de4185_dc57a910ff314462bf6436ba82e7e2c7~mv2.jpg',
   },
 };
+
+/** All supported KRC-721 collection IDs for wallet queries. */
+export function getAllSupportedCollectionIds(): string[] {
+  return Object.keys(collections);
+}
+
+/** Map a KRC-721 tick from Stream/KaspaCom to our collection id. */
+export function resolveCollectionIdFromTick(tick: string | undefined | null): string | null {
+  if (!tick) return null;
+  const normalized = tick.trim().toUpperCase();
+  if (collections[normalized]) return normalized;
+  const match = Object.values(collections).find(
+    (c) => c.id.toUpperCase() === normalized || c.slug.toUpperCase() === normalized,
+  );
+  return match?.id ?? null;
+}
 
 /** Premium collections with full tooling (rarity, traits, PFP) in NFT Tools. */
 export const NFT_TOOLS_PREMIUM_IDS = ['KREXPRIME', 'PIXELKREX'] as const;
