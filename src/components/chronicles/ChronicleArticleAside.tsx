@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { AdSlotColumn } from '@/components/ads/AdSlotColumn';
-import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY, CHRONICLES_PANEL_LABEL } from '@/lib/chronicles/typography';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 export type AsideLink = { href: string; label: string; sublabel?: string };
 
@@ -20,7 +21,7 @@ export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }
     <aside className="space-y-4 lg:sticky lg:top-6 self-start">
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>
-          <h2 className={`${CHRONICLES_PANEL_LABEL} mb-3`}>{sec.title}</h2>
+          <DAppSectionHeader title={sec.title} className="mb-3" />
           {sec.body ? <div className={CHRONICLES_PANEL_BODY}>{sec.body}</div> : null}
           {sec.links && sec.links.length > 0 ? (
             <ul className="space-y-2.5">
@@ -33,7 +34,9 @@ export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }
                     {l.label}
                   </Link>
                   {l.sublabel ? (
-                    <span className="block text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">{l.sublabel}</span>
+                    <span className="block text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                      {l.sublabel}
+                    </span>
                   ) : null}
                 </li>
               ))}
@@ -43,7 +46,7 @@ export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }
       ))}
 
       <div className={`${CHRONICLES_PANEL} p-4`}>
-        <h2 className={`${CHRONICLES_PANEL_LABEL} mb-3`}>Ad slots</h2>
+        <DAppSectionHeader title="Ad slots" className="mb-3" />
         <AdSlotColumn className="rounded-xl">
           <AdSlider slotId="HALO_CHRONICLES_RIGHT" variant="sidebar" />
         </AdSlotColumn>

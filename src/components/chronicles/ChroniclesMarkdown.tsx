@@ -32,25 +32,25 @@ export function ChroniclesMarkdown({ markdown }: { markdown: string }) {
             );
           },
           h1: ({ children }) => (
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-8 mb-4 tracking-tight leading-snug">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-5 tracking-tight leading-snug first:mt-0">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-8 mb-3 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-2 leading-snug">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-4 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-3 leading-snug">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-2 leading-snug">{children}</h3>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-10 mb-3 leading-snug">{children}</h3>
           ),
-          p: ({ children }) => <p className="mb-5">{children}</p>,
-          ul: ({ children }) => <ul className="list-disc pl-5 mb-5 space-y-2">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-5 mb-5 space-y-2">{children}</ol>,
+          p: ({ children }) => <p className="mb-6">{children}</p>,
+          ul: ({ children }) => <ul className="list-disc pl-5 mb-6 space-y-2.5">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-5 mb-6 space-y-2.5">{children}</ol>,
           li: ({ children }) => <li className="leading-8">{children}</li>,
-          hr: () => <hr className="my-10 border-zinc-200 dark:border-zinc-800" />,
+          hr: () => <hr className="my-12 border-zinc-200 dark:border-zinc-800" />,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-cyan-500/40 pl-4 my-6 italic text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
+            <blockquote className="border-l-4 border-cyan-500/40 pl-5 my-8 italic text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
               {children}
             </blockquote>
           ),

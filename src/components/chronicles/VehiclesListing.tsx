@@ -15,6 +15,7 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { KxBadge } from '@/components/ui/KxBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityVehicleToEntity } from '@/lib/chronicles/communityAdapters';
 
@@ -150,7 +151,7 @@ export function VehiclesListing({
               description={v.summary}
               badges={
                 <>
-                  <span className="text-[10px] font-black text-[#02abb8] uppercase">{v.kind}</span>
+                  <KxBadge variant="cyan">{v.kind}</KxBadge>
                   {'isCommunity' in v && v.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </>
               }

@@ -3,6 +3,8 @@
 import type { AiAgent } from '@/lib/ai/types';
 import { formatAgentUsage } from '@/lib/ai/agents';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 
 const CATEGORY_LABELS: Record<AiAgent['category'], string> = {
   'content-creation': 'Content Creation',
@@ -13,14 +15,20 @@ const CATEGORY_LABELS: Record<AiAgent['category'], string> = {
   utilities: 'Utilities',
 };
 
-const TOKEN_STYLES: Record<AiAgent['token'], string> = {
-  KAS: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
-  KREX: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-  ARIA: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
+const TOKEN_VARIANT: Record<AiAgent['token'], 'cyan' | 'emerald' | 'violet'> = {
+  KAS: 'cyan',
+  KREX: 'emerald',
+  ARIA: 'violet',
 };
 
 function AgentIcon({ category }: { category: AiAgent['category'] }) {
-  const props = { className: 'w-8 h-8 text-cyan-600 dark:text-cyan-400', fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 1.5 };
+  const props = {
+    className: 'w-8 h-8 text-cyan-600 dark:text-cyan-400',
+    fill: 'none' as const,
+    viewBox: '0 0 24 24',
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+  };
   switch (category) {
     case 'research':
       return (
@@ -31,7 +39,11 @@ function AgentIcon({ category }: { category: AiAgent['category'] }) {
     case 'content-creation':
       return (
         <svg {...props}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+          />
         </svg>
       );
     case 'productivity':
@@ -49,7 +61,11 @@ function AgentIcon({ category }: { category: AiAgent['category'] }) {
     default:
       return (
         <svg {...props}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
         </svg>
       );
   }
@@ -62,13 +78,13 @@ export function AiAgentCard({ agent }: { agent: AiAgent }) {
   return (
     <KxListingCard accent="ai" disabled={isSoon} className={isSoon ? 'opacity-80' : undefined}>
       <KxListingCardMedia aspectClass="aspect-[16/10]">
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-100 to-cyan-50/80 dark:from-zinc-800 dark:to-cyan-950/40">
+        <div className={`flex h-full w-full items-center justify-center ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
           <AgentIcon category={agent.category} />
         </div>
         {isSoon ? (
-          <span className="absolute top-3 right-3 rounded-md bg-violet-500/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+          <KxBadge variant="violet-solid" className="absolute top-3 right-3 tracking-wider">
             Soon
-          </span>
+          </KxBadge>
         ) : null}
         {isOnline ? (
           <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-zinc-900/90 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -77,9 +93,9 @@ export function AiAgentCard({ agent }: { agent: AiAgent }) {
           </span>
         ) : null}
         {agent.programmabilityReady ? (
-          <span className="absolute bottom-3 left-3 rounded-md bg-cyan-500/15 px-2 py-0.5 text-[9px] font-bold uppercase text-cyan-700 dark:text-cyan-300">
+          <KxBadge variant="cyan" className="absolute bottom-3 left-3">
             L1 ready
-          </span>
+          </KxBadge>
         ) : null}
       </KxListingCardMedia>
 
@@ -89,9 +105,7 @@ export function AiAgentCard({ agent }: { agent: AiAgent }) {
             <h3 className="truncate text-base font-bold text-zinc-900 dark:text-zinc-100">{agent.name}</h3>
             <p className="text-xs font-medium text-zinc-500">{CATEGORY_LABELS[agent.category]}</p>
           </div>
-          <span className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${TOKEN_STYLES[agent.token]}`}>
-            {agent.token}
-          </span>
+          <KxBadge variant={TOKEN_VARIANT[agent.token]}>{agent.token}</KxBadge>
         </div>
 
         <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{agent.description}</p>
@@ -111,7 +125,7 @@ export function AiAgentCard({ agent }: { agent: AiAgent }) {
               </span>
             </div>
           ) : (
-            <span className="text-[10px] font-bold uppercase text-violet-600 dark:text-violet-400">Coming soon</span>
+            <KxBadge variant="violet">Coming soon</KxBadge>
           )}
         </div>
       </KxListingCardBody>

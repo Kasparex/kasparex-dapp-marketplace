@@ -16,6 +16,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useChroniclesEntitlements } from '@/lib/chronicles/entitlements/useChroniclesEntitlements';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
 
@@ -25,11 +26,11 @@ const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'future', label: 'Future' },
 ];
 
-function timelineBadge(t: ChronicleTimeline) {
-  const map = {
-    past: 'bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200',
-    current: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/25',
-    future: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20',
+function timelineBadgeVariant(t: ChronicleTimeline): KxBadgeVariant {
+  const map: Record<ChronicleTimeline, KxBadgeVariant> = {
+    past: 'zinc',
+    current: 'cyan',
+    future: 'emerald',
   };
   return map[t];
 }
@@ -57,14 +58,8 @@ function ChapterCard({ c }: { c: ChronicleChapterMeta & { isCommunity?: boolean 
       badges={
         <>
           {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
-          {isPremium ? (
-            <span className="text-xs font-black uppercase px-2 py-1 rounded-md bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
-              Premium
-            </span>
-          ) : null}
-          <span className={`text-xs font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
-            {c.timeline}
-          </span>
+          {isPremium ? <KxBadge variant="amber">Premium</KxBadge> : null}
+          <KxBadge variant={timelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
         </>
       }
       footer={
@@ -161,9 +156,7 @@ export function ChaptersListing({
                   <td className="p-3 font-mono text-zinc-500">{c.number}</td>
                   <td className="p-3 font-semibold text-zinc-900 dark:text-zinc-100">{c.title}</td>
                   <td className="p-3">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${timelineBadge(c.timeline)}`}>
-                      {c.timeline}
-                    </span>
+                    <KxBadge variant={timelineBadgeVariant(c.timeline)}>{c.timeline}</KxBadge>
                   </td>
                   <td className="p-3 text-right">
                     <Link href={`/chronicles/chapters/${c.slug}`} className="text-[#02abb8] font-bold text-xs uppercase">
@@ -191,9 +184,9 @@ export function ChaptersListing({
                     <span className="text-zinc-400 font-mono mr-2">{c.number}.</span>
                     {c.title}
                   </span>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md shrink-0 ${timelineBadge(c.timeline)}`}>
+                  <KxBadge variant={timelineBadgeVariant(c.timeline)} className="shrink-0">
                     {c.timeline}
-                  </span>
+                  </KxBadge>
                 </div>
               </Link>
             </li>

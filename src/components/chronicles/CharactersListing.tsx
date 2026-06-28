@@ -15,6 +15,7 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { ChronicleListingCard } from '@/components/chronicles/ChronicleListingCard';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
+import { KxBadge } from '@/components/ui/KxBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityCharacterToEntity } from '@/lib/chronicles/communityAdapters';
 
@@ -152,7 +153,7 @@ export function CharactersListing({
               description={c.summary}
               badges={
                 <>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#02abb8]">{c.kind}</span>
+                  <KxBadge variant="cyan">{c.kind}</KxBadge>
                   {'isCommunity' in c && c.isCommunity ? <ChroniclesCommunityBadge /> : null}
                 </>
               }

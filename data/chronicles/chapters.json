@@ -44,7 +44,6 @@
     "locationSlugs": ["kasparex", "kaspaland"],
     "relatedGameSlug": "diamond-veins",
     "bodyPath": "bodies/chapter-04-premium-echoes-of-the-veil.md",
-    "featuredImageUrl": "https://placehold.co/1200x675/155e75/fef9c3/png?text=Chapter+4+Premium",
     "access": {
       "contentId": "chapter-early-04",
       "tier": "premium"

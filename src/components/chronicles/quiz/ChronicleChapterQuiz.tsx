@@ -7,6 +7,8 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { calculateDirectoryListingFeeKas, listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { KxAlert } from '@/components/ui/KxAlert';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { CHRONICLES_PANEL, CHRONICLES_PANEL_LABEL } from '@/lib/chronicles/typography';
 import { CHRONICLE_QUIZ_ENTRY_FEE_KAS, CHRONICLE_QUIZ_QUESTION_COUNT } from '@/lib/chronicles/quiz/constants';
@@ -56,11 +58,9 @@ export function ChronicleChapterQuiz({
   );
   const feeLabel = listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas);
 
-  const contentLocked =
-    access?.tier === 'premium' && access.contentId && !isUnlocked(access.contentId);
+  const contentLocked = access?.tier === 'premium' && access.contentId && !isUnlocked(access.contentId);
 
   const completed = isChapterQuizCompleted(state.address, chapterSlug);
-  const hasEntry = hasActiveQuizEntry(state.address, chapterSlug);
 
   const syncPhase = useCallback(() => {
     if (completed) {
@@ -136,33 +136,35 @@ export function ChronicleChapterQuiz({
   };
 
   const allAnswered = questions.length > 0 && questions.every((q) => answers[q.id] != null);
+  const answeredCount = questions.filter((q) => answers[q.id] != null).length;
 
   return (
     <section className={`${CHRONICLES_PANEL} p-5 sm:p-6 mt-10`} aria-labelledby="chapter-quiz-heading">
       <p className={CHRONICLES_PANEL_LABEL}>Chapter quiz</p>
-      <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-2 mb-2">
+      <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-2 mb-3">
         Test your lore knowledge
       </h2>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">
-        Answer {CHRONICLE_QUIZ_QUESTION_COUNT} questions from this chapter. One paid entry equals one attempt. Pass
-        the quiz to earn {HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS.
+      <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        Answer {CHRONICLE_QUIZ_QUESTION_COUNT} questions from this chapter. One paid entry equals one attempt. Pass the
+        quiz to earn {HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS.
       </p>
 
       {phase === 'pay' && !completed ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-6 items-start">
-          <div className="space-y-4">
+        <div className="mt-8 space-y-8">
+          <div className="space-y-3">
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
               Questions are drawn at random from official Kasparex chapter lore. Read the article above, then pay the
               entry fee to start your attempt.
             </p>
             {!state.isConnected ? (
-              <p className="text-sm text-zinc-500">Connect your Kaspa wallet using the site header to continue.</p>
+              <KxAlert variant="info" title="Wallet required">
+                Connect your Kaspa wallet using the site header to continue.
+              </KxAlert>
             ) : null}
           </div>
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-              Entry fee
-            </h3>
+
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/50 p-5 sm:p-6 space-y-5 max-w-xl">
+            <DAppSectionHeader title="Entry fee" className="mb-0" />
             <div>
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">Pay with *</span>
               <KxSegmentToggle
@@ -187,9 +189,9 @@ export function ChronicleChapterQuiz({
               </p>
             ) : null}
             {error ? (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
+              <KxAlert variant="error" title="Payment failed">
                 {error}
-              </div>
+              </KxAlert>
             ) : null}
             <button
               type="button"
@@ -204,12 +206,28 @@ export function ChronicleChapterQuiz({
       ) : null}
 
       {phase === 'quiz' && questions.length > 0 ? (
-        <div className="space-y-6">
+        <div className="mt-8 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              Question {Math.min(answeredCount + 1, questions.length)} of {questions.length}
+            </p>
+            <div className="h-1.5 flex-1 min-w-[120px] max-w-xs rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-[#02abb8] transition-all duration-300"
+                style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
           <ol className="space-y-5">
             {questions.map((q, idx) => (
-              <li key={q.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-950">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
-                  {idx + 1}. {q.prompt}
+              <li
+                key={q.id}
+                className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-5 bg-white dark:bg-zinc-950"
+              >
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4 leading-relaxed">
+                  <span className="text-[#02abb8] mr-2">{idx + 1}.</span>
+                  {q.prompt}
                 </p>
                 <div className="space-y-2">
                   {q.options.map((opt, optIdx) => {
@@ -219,10 +237,10 @@ export function ChronicleChapterQuiz({
                         key={`${q.id}-${optIdx}`}
                         type="button"
                         onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: optIdx }))}
-                        className={`w-full text-left px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                        className={`w-full text-left px-3.5 py-3 rounded-lg border text-sm transition-colors ${
                           selected
-                            ? 'border-cyan-500/50 bg-cyan-500/10 text-zinc-900 dark:text-zinc-100'
-                            : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-cyan-500/30'
+                            ? 'border-cyan-500/50 bg-cyan-500/10 text-zinc-900 dark:text-zinc-100 font-medium'
+                            : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-cyan-500/30 hover:bg-cyan-500/5'
                         }`}
                       >
                         {opt}
@@ -233,46 +251,84 @@ export function ChronicleChapterQuiz({
               </li>
             ))}
           </ol>
-          <button
-            type="button"
-            disabled={!allAnswered}
-            onClick={handleSubmit}
-            className="k-cta-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Submit answers
-          </button>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
+            <button
+              type="button"
+              disabled={!allAnswered}
+              onClick={handleSubmit}
+              className="k-cta-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Submit answers
+            </button>
+            {!allAnswered ? (
+              <p className="text-xs text-zinc-500">
+                {answeredCount} of {questions.length} answered
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
       {phase === 'result' && result ? (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-5 space-y-3">
+        <div className="mt-8 space-y-5">
           {result.passed || completed ? (
             <>
-              <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">Quiz passed!</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                You answered {result.correct} of {result.total} correctly and earned{' '}
-                {HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS.
-              </p>
+              <KxAlert variant="success" title="Quiz completed successfully">
+                You answered {result.correct} of {result.total} correctly. Great work on {chapterTitle}.
+              </KxAlert>
+              <KxAlert variant="reward" title={`Reward earned: ${HUB_EARN_POINTS.chroniclesQuizComplete} Hub PTS`}>
+                Your Hub PTS balance will update shortly. This attempt is recorded for this chapter.
+              </KxAlert>
             </>
           ) : (
             <>
-              <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">Not quite.</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                You answered {result.correct} of {result.total} correctly. Pay the entry fee again for another
-                attempt.
-              </p>
+              <KxAlert variant="error" title="Incorrect answers">
+                You answered {result.correct} of {result.total} correctly. Review the chapter above and try again with a
+                new paid entry.
+              </KxAlert>
               <button
                 type="button"
                 onClick={() => {
                   setResult(null);
+                  setAnswers({});
+                  setQuestions([]);
                   setPhase('pay');
                 }}
-                className="k-control-btn mt-2"
+                className="k-control-btn"
               >
                 Try again
               </button>
             </>
           )}
+
+          {!result.passed && !completed ? (
+            <ol className="space-y-3 pt-2">
+              {questions.map((q, idx) => {
+                const chosen = answers[q.id];
+                const isCorrect = chosen === q.correctIndex;
+                return (
+                  <li
+                    key={q.id}
+                    className={`rounded-lg border px-4 py-3 text-sm ${
+                      isCorrect
+                        ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-900 dark:text-emerald-200'
+                        : 'border-rose-500/30 bg-rose-500/5 text-rose-900 dark:text-rose-200'
+                    }`}
+                  >
+                    <span className="font-semibold">
+                      {idx + 1}. {isCorrect ? 'Correct' : 'Incorrect'}
+                    </span>
+                    {!isCorrect ? (
+                      <span className="block mt-1 text-xs opacity-90">
+                        Correct answer: {q.options[q.correctIndex]}
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ol>
+          ) : null}
         </div>
       ) : null}
     </section>
