@@ -1,5 +1,6 @@
-import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { ChaptersListing } from '@/components/chronicles/ChaptersListing';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getChapterSummaries } from '@/lib/chronicles/loaders';
 
 export default function ChroniclesChaptersPage() {
@@ -7,13 +8,17 @@ export default function ChroniclesChaptersPage() {
 
   return (
     <div>
-      <ChroniclesHeader />
-      <div className="mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-4">Chapters</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          Published saga: previous, current, and future beats.
-        </p>
-      </div>
+      <ChroniclesHaloHeader
+        kicker="Lore codex"
+        title="Chapters"
+        titleAccent="Chapters"
+        subtitle="Published saga: previous, current, and future beats."
+      />
+      <DAppSectionHeader
+        title="All chapters"
+        hint="Browse the full chapter list with search, timeline filters, and view modes."
+        className="mb-6"
+      />
       <ChaptersListing initialChapters={chapters} />
     </div>
   );

@@ -1,5 +1,6 @@
-import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { CharactersListing } from '@/components/chronicles/CharactersListing';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getAllCharacters } from '@/lib/chronicles/loaders';
 
 export default function ChroniclesCharactersPage() {
@@ -7,13 +8,13 @@ export default function ChroniclesCharactersPage() {
 
   return (
     <div>
-      <ChroniclesHeader />
-      <div className="mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Characters</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          People, AI, factions, and future token pages.
-        </p>
-      </div>
+      <ChroniclesHaloHeader
+        kicker="Lore codex"
+        title="Characters"
+        titleAccent="Characters"
+        subtitle="People, AI, factions, and future token pages."
+      />
+      <DAppSectionHeader title="All characters" className="mb-6" />
       <CharactersListing initial={characters} />
     </div>
   );

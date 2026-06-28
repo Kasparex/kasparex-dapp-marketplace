@@ -5,7 +5,7 @@ import { useAccount, useChainId, useWriteContract } from 'wagmi';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
-import { currentSeasonWindowUtc } from '@/lib/leaderboard/seasons';
+import { currentLedgerSeasonBucket } from '@/lib/rewards/ledger-season';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { rewardsItemRequiresL2Gate } from '@/components/rewards/RewardsL2Gate';
@@ -112,7 +112,7 @@ export function RewardsPageContent() {
   const { writeContractAsync } = useWriteContract();
   const breakdown = useRedeemablePointsBreakdown();
   const kaspaAddr = kaspaState.address ? normKaspa(kaspaState.address) : '';
-  const season = useMemo(() => currentSeasonWindowUtc(), []);
+  const ledgerSeason = useMemo(() => currentLedgerSeasonBucket(), []);
   const vaultPools = useRewardsClaimVaultPoolBalances();
   const {
     gridDisplay: vaultGridDisplay,
@@ -345,7 +345,7 @@ export function RewardsPageContent() {
             });
             recordUnifiedCatalogRedeem({
               walletKaspaL1: kaspaAddr,
-              seasonId: season.id,
+              seasonId: ledgerSeason,
               costPoints: pointsSpend,
               catalogItemId: item.id,
               quantity: Math.max(0, tokenOutL2),
@@ -390,7 +390,7 @@ export function RewardsPageContent() {
         const tokenOut = Math.floor(pointsSpend * item.tokenPoolRate.tokensPerPoint);
         recordUnifiedCatalogRedeem({
           walletKaspaL1: kaspaAddr,
-          seasonId: season.id,
+          seasonId: ledgerSeason,
           costPoints: pointsSpend,
           catalogItemId: item.id,
           quantity: Math.max(0, tokenOut),
@@ -449,7 +449,7 @@ export function RewardsPageContent() {
 
       recordUnifiedCatalogRedeem({
         walletKaspaL1: kaspaAddr,
-        seasonId: season.id,
+        seasonId: ledgerSeason,
         costPoints: cost,
         catalogItemId: item.id,
         quantity: q,
@@ -485,7 +485,7 @@ export function RewardsPageContent() {
       evmConnected,
       kaspaAddr,
       kaspaState.provider,
-      season.id,
+      ledgerSeason,
       writeContractAsync,
       refetchVaultPools,
     ],

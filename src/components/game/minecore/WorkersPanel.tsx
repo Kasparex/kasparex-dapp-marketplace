@@ -11,9 +11,9 @@ import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import * as Icons from 'lucide-react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import {
-  ChroniclesNftSlotSelector,
-  chroniclesNftRefToCollectionAndId,
-} from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
+  KasparexNftSlotSelector,
+  kasparexNftRefToCollectionAndId,
+} from '@/components/nft/KasparexNftSlotSelector';
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
@@ -315,7 +315,7 @@ export function WorkersPanel(props: {
       ) : null}
 
       {selected !== null && modalCopy && modalSlot ? (
-        <ChroniclesNftSlotSelector
+        <KasparexNftSlotSelector
           isOpen={true}
           title={modalCopy.title}
           description={modalCopy.description}
@@ -327,7 +327,7 @@ export function WorkersPanel(props: {
           footerNotice="Assignments save to your Minecore profile in this browser. NFTs used in Chronicles or Diamond Mining show as locked here."
           onClose={() => setSelected(null)}
           onSelect={(ref) => {
-            const parsed = chroniclesNftRefToCollectionAndId(ref);
+            const parsed = kasparexNftRefToCollectionAndId(ref);
             if (!parsed) return;
             props.onDeploy(selected, parsed.tokenId, parsed.collection);
             setSelected(null);

@@ -46,10 +46,10 @@ export const NFT_TOOLS_MODULES: NftModuleItem[] = [
     status: 'live',
   },
   {
-    id: 'leaderboard-bridge',
-    title: 'Leaderboard Bridge',
-    description: 'Jump from held NFTs to Chronicles slot scoring and season progress for premium lines.',
-    href: '/chronicles/leaderboard#points-table',
-    status: 'beta',
+    id: 'games-deck',
+    title: 'Game NFT decks',
+    description: 'Deploy held NFTs into Minecore worker slots for mining bonuses and cross-game lock tracking.',
+    href: '/games/minecore?tab=workers',
+    status: 'live',
   },
 ];

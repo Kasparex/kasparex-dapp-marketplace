@@ -10,9 +10,7 @@ function sampleRate(): number {
 }
 
 function dimFromPath(pathname: string): string {
-  if (pathname === '/api/leaderboard/finalize') return 'api.leaderboard.finalize';
   if (pathname === '/api/updates') return 'api.updates';
-  if (pathname.startsWith('/api/leaderboard/')) return 'api.leaderboard.other';
   if (pathname.startsWith('/api/kaspa/')) return 'api.kaspa';
   if (pathname.startsWith('/api/')) return 'api.other';
   return 'other';

@@ -11,7 +11,6 @@ import { handleNodeRequest } from './kasparex-api/nodes';
 import { handleRewardRequest } from './kasparex-api/rewards';
 import { handleL1RewardRequest } from './kasparex-api/rewards-l1';
 import { handlePublicRequest } from './kasparex-api/public';
-import { handleLeaderboardRequest } from './kasparex-api/leaderboard';
 import { handleWalletRequest } from './kasparex-api/wallet';
 import { handleDiamondsRequest } from './kasparex-api/diamonds';
 import { handlePaymentsRequest } from './kasparex-api/payments';
@@ -142,10 +141,6 @@ export default {
         pathname.startsWith('/kasparex/dapps/availability')
       ) {
         return handlePublicRequest(request, env);
-      }
-
-      if (pathname.startsWith('/kasparex/leaderboard/')) {
-        return handleLeaderboardRequest(request, env);
       }
 
       if (pathname.startsWith('/kasparex/wallet/')) {

@@ -19,9 +19,7 @@ type SnapshotResponse = {
 };
 
 const DIMENSIONS = [
-  { id: 'api.leaderboard.finalize', label: 'Leaderboard finalize (cron)' },
   { id: 'api.updates', label: 'Updates feed' },
-  { id: 'api.leaderboard.other', label: 'Leaderboard other' },
   { id: 'api.kaspa', label: 'Kaspa API' },
   { id: 'api.other', label: 'Other API' },
 ] as const;

@@ -1,4 +1,3 @@
-import { CHRONICLES_LB_POINTS_PER_READ_CONFIRM } from '@/lib/chronicles/leaderboard/constants';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 export type ProjectStatus = 'available' | 'demo' | 'beta' | 'coming-soon';
@@ -15,7 +14,6 @@ export interface HubProject {
 }
 
 const P = HUB_EARN_POINTS;
-const CH_READ = CHRONICLES_LB_POINTS_PER_READ_CONFIRM;
 
 export const hubProjects: HubProject[] = [
   {
@@ -89,7 +87,7 @@ export const hubProjects: HubProject[] = [
       'Central lore hub for Kaspaland: chapters, characters, locations, and tech; wiki and CMS-ready, built for future tokens and cross-links to games like Diamond Veins.',
     route: '/chronicles',
     status: 'beta',
-    earnPtsHint: `${CH_READ}+ pts read confirm; NFT slots add seasonal leaderboard weight`,
+    earnPtsHint: 'Read lore and unlock vault chapters on Kaspa L1',
   },
   {
     id: 'kasparex-movies',
@@ -151,7 +149,7 @@ export const hubProjects: HubProject[] = [
     description: 'Rarity checker, trait analysis, and PFP builder for KREXPRIME and PIXELKREX collections.',
     route: '/nft',
     status: 'beta',
-    earnPtsHint: 'Chronicles NFT slots tie to leaderboard pts (see Chronicles)',
+    earnPtsHint: 'Rarity tools and collection utilities for KRC-721',
   },
   {
     id: 'kasparex-ai',
@@ -200,4 +198,3 @@ export const hubProjects: HubProject[] = [
     earnPtsHint: 'L2 revenue view; hub pts accrue on Kaspa ledger routes',
   },
 ];
-

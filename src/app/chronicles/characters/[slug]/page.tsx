@@ -6,8 +6,6 @@ import { TokenPlaceholder } from '@/components/chronicles/TokenPlaceholder';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
-import { ChroniclesEntitySlots } from '@/components/chronicles/leaderboard/ChroniclesEntitySlots';
-import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import { getCharacterBySlug, getChapterSummaries, getAllCharacterSlugs } from '@/lib/chronicles/loaders';
 
 interface PageProps {
@@ -139,11 +137,6 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
 
           <div className="mt-10">
             <ChroniclesMarkdown markdown={character.bodyMarkdown} />
-          </div>
-
-          <div className="mt-10 space-y-6">
-            <ChroniclesEntitySlots entityType="character" entityId={character.slug} title="Character slots" />
-            <ChroniclesReadConfirmCard entityType="character" entityId={character.slug} />
           </div>
         </div>
 

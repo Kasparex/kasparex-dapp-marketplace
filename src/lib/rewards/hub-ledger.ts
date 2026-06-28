@@ -1,12 +1,13 @@
 'use client';
 
-import type { SeasonId } from '@/lib/leaderboard/seasons';
-import type { EarnSource, HubLedgerEntry, LedgerSeasonBucket } from './hub-ledger-types';
+import type { LedgerSeasonBucket } from './ledger-season';
+import type { EarnSource, HubLedgerEntry } from './hub-ledger-types';
 
 export type {
   HubLedgerEntry,
   EarnSource,
   HubLedgerEntryKind,
+  LedgerSeasonBucket,
 } from './hub-ledger-types';
 
 import {
@@ -16,6 +17,7 @@ import {
 } from './hub-ledger-storage';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
 import { deductMinecoreRefinementPointsPersisted } from '@/lib/game/minecore/deduct-refinement-hub';
+import { currentLedgerSeasonBucket } from './ledger-season';
 
 /** Client-only: dispatch after mutating persisted hub ledger */
 export function broadcastHubLedgerChanged() {
@@ -23,32 +25,24 @@ export function broadcastHubLedgerChanged() {
   window.dispatchEvent(new Event('kasparex-hub-ledger'));
 }
 
-/** Sum leaderboard units for wallet in season (projection for hub leaderboard UX). */
-export function sumLeaderboardUnitsForSeason(walletL1Norm: string, seasonId: SeasonId): number {
-  const entries = readHubLedgerEntries(walletL1Norm).filter((e) => e.seasonId === seasonId);
-  return entries.reduce((acc, e) => acc + e.leaderboardWeight, 0);
-}
-
-/** Net redeemable from hub ledger (earns minus spends). Chronicles and other sources contribute positive deltas via earns. */
+/** Net redeemable from hub ledger (earns minus spends). */
 export function sumLedgerRedeemableNet(walletL1Norm: string): number {
   return readHubLedgerEntries(walletL1Norm).reduce((acc, e) => acc + e.redeemableDelta, 0);
 }
 
-/** Append verified earn event (positive or negative deltas allowed e.g. slot clear). Idempotent ids avoid double credit when passed same id. */
+/** Append verified earn event (positive or negative deltas allowed). Idempotent ids avoid double credit when passed same id. */
 export function appendHubLedgerEarn(args: {
   walletL1: string;
   seasonId: LedgerSeasonBucket;
   source: EarnSource;
   redeemableDelta: number;
-  leaderboardWeight: number;
   idempotencyKey: string;
   meta?: Record<string, unknown>;
 }): HubLedgerEntry | null {
   const wallet = (args.walletL1 ?? '').trim().toLowerCase();
   if (!wallet) return null;
   const rd = Math.floor(args.redeemableDelta);
-  const lb = Math.floor(args.leaderboardWeight);
-  if (rd === 0 && lb === 0) return null;
+  if (rd === 0) return null;
 
   const all = readHubLedgerEntries(wallet);
   const id = `earn:${args.idempotencyKey}`;
@@ -62,7 +56,7 @@ export function appendHubLedgerEarn(args: {
     kind: 'earn',
     source: args.source,
     redeemableDelta: rd,
-    leaderboardWeight: lb,
+    leaderboardWeight: 0,
     meta: args.meta,
   };
   const next = [entry, ...all].slice(0, 2000);
@@ -80,7 +74,7 @@ export { migrateLegacyCatalogRedemptionsOnce };
  */
 export function recordUnifiedCatalogRedeem(args: {
   walletKaspaL1: string;
-  seasonId: SeasonId;
+  seasonId?: LedgerSeasonBucket;
   costPoints: number;
   catalogItemId: string;
   quantity: number;
@@ -92,13 +86,14 @@ export function recordUnifiedCatalogRedeem(args: {
   const minecorePlan = Math.min(cost, minecoreBefore);
   const minecoreApplied = deductMinecoreRefinementPointsPersisted(walletMinecore, minecorePlan);
   const ledgerPortion = cost - minecoreApplied;
+  const seasonId = args.seasonId ?? currentLedgerSeasonBucket();
 
   const id = `redeem:${walletLedger}:${args.catalogItemId}:${args.quantity}:${Date.now()}`;
   const entry: HubLedgerEntry = {
     id,
     atMs: Date.now(),
     walletL1: walletLedger,
-    seasonId: args.seasonId,
+    seasonId,
     kind: 'redeem_spend',
     source: 'rewards_catalog',
     redeemableDelta: -ledgerPortion,
@@ -122,7 +117,7 @@ export function recordUnifiedCatalogRedeem(args: {
 /** @deprecated Prefer {@link recordUnifiedCatalogRedeem} so Minecore refinement stays in sync. */
 export function appendHubLedgerRedeemSpend(args: {
   walletL1: string;
-  seasonId: SeasonId;
+  seasonId?: LedgerSeasonBucket;
   /** Positive point cost (stored as negative redeemable delta). */
   costPoints: number;
   catalogItemId: string;
@@ -130,12 +125,13 @@ export function appendHubLedgerRedeemSpend(args: {
 }): HubLedgerEntry {
   const wallet = (args.walletL1 ?? '').trim().toLowerCase();
   const cost = Math.max(0, Math.floor(args.costPoints));
+  const seasonId = args.seasonId ?? currentLedgerSeasonBucket();
   const id = `redeem:${wallet}:${args.catalogItemId}:${args.quantity}:${Date.now()}`;
   const entry: HubLedgerEntry = {
     id,
     atMs: Date.now(),
     walletL1: wallet,
-    seasonId: args.seasonId,
+    seasonId,
     kind: 'redeem_spend',
     source: 'rewards_catalog',
     redeemableDelta: -cost,

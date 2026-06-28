@@ -1,12 +1,10 @@
-import type { SeasonId } from '@/lib/leaderboard/seasons';
+import type { LedgerSeasonBucket } from './ledger-season';
 
-export type LedgerSeasonBucket = SeasonId | 'legacy';
+export type { LedgerSeasonBucket } from './ledger-season';
 
 export type HubLedgerEntryKind = 'earn' | 'redeem_spend';
 
 export type EarnSource =
-  | 'chronicles_read'
-  | 'chronicles_slot'
   | 'minecore_note'
   | 'rewards_catalog'
   | 'legacy_import'
@@ -29,7 +27,7 @@ export type HubLedgerEntry = {
   source: EarnSource;
   /** Positive adds redeemable pool; negative subtracts (earns or spends). */
   redeemableDelta: number;
-  /** Seasonal contribution toward hub leaderboard rank. */
+  /** Legacy field; always 0 for new entries. Kept for existing localStorage blobs. */
   leaderboardWeight: number;
   meta?: Record<string, unknown>;
 };

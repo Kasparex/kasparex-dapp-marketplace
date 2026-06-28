@@ -173,7 +173,7 @@ export function NFTSidebar({
           <SidebarSection title="Links">
             <nav className="space-y-0.5">
               <SidebarNavItem
-                href="/chronicles/leaderboard#points-table"
+                href="/games/minecore?tab=workers"
                 label="NFT slot points"
                 icon={
                   <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">

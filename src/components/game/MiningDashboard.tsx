@@ -7,9 +7,9 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useDiamondMining } from '@/hooks/useDiamondMining';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
 import {
-  ChroniclesNftSlotSelector,
-  chroniclesNftRefToCollectionAndId,
-} from '@/components/chronicles/leaderboard/ChroniclesNftSlotSelector';
+  KasparexNftSlotSelector,
+  kasparexNftRefToCollectionAndId,
+} from '@/components/nft/KasparexNftSlotSelector';
 import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
@@ -419,7 +419,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             slot?.nftId != null && slot.collection ? nftRefKey(slot.collection, slot.nftId) : null;
           if (!slot || !copy) return null;
           return (
-            <ChroniclesNftSlotSelector
+            <KasparexNftSlotSelector
               isOpen={true}
               title={copy.title}
               description={copy.description}
@@ -435,7 +435,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
               footerNotice="Deployments save to Diamond Mining state in this browser. NFTs used in Minecore or Chronicles show as locked."
               onClose={() => setSelectedSlotIndex(null)}
               onSelect={(ref) => {
-                const p = chroniclesNftRefToCollectionAndId(ref);
+                const p = kasparexNftRefToCollectionAndId(ref);
                 if (!p) return;
                 deployNFT(selectedSlotIndex, p.tokenId, p.collection);
                 setSelectedSlotIndex(null);

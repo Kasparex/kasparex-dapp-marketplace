@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function ChroniclesLeaderboardPage() {
-  redirect('/leaderboard');
+export default function ChroniclesLeaderboardLegacyRedirect() {
+  redirect('/rewards');
 }
-

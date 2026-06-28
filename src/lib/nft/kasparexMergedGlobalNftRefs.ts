@@ -1,5 +1,4 @@
 import type { MiningSlot } from '@/lib/game/engine';
-import { getChroniclesNftUsageByRef } from '@/lib/chronicles/leaderboard/localState';
 
 export type GlobalNftUsageRow = {
   entityType: string;
@@ -13,9 +12,7 @@ export function nftRefKey(collection: string, tokenId: number): string {
   return `${collection}#${tokenId}`;
 }
 
-/**
- * Chronicles leaderboard placements plus Minecore worker-deck NFTs and optional Tycon mining slots.
- */
+/** Minecore worker-deck NFTs and optional Tycon mining slots. */
 export function buildGlobalNftRefsForMinecoreWorkers(props: {
   payerKaspa: string | undefined;
   minecoreNftSlots: MiningSlot[];
@@ -26,20 +23,6 @@ export function buildGlobalNftRefsForMinecoreWorkers(props: {
 } {
   const usageByRef: Record<string, GlobalNftUsageRow[]> = {};
   const inUseRefs = new Set<string>();
-
-  if (props.payerKaspa) {
-    const ch = getChroniclesNftUsageByRef(props.payerKaspa.trim());
-    for (const [ref, rows] of Object.entries(ch)) {
-      usageByRef[ref] = rows.map((r) => ({
-        entityType: r.entityType,
-        entityId: r.entityId,
-        slotIndex: r.slotIndex,
-        href: r.href,
-        label: r.label,
-      }));
-      if (rows.length > 0) inUseRefs.add(ref);
-    }
-  }
 
   props.minecoreNftSlots.forEach((s, idx) => {
     if (s.nftId == null || !s.collection) return;

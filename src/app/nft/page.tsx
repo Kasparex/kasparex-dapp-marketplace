@@ -50,14 +50,14 @@ function tabHeading(tab: NftListingTab): { eyebrow: string; title: string; descr
         eyebrow: 'Partners',
         title: 'Partner collections',
         description:
-          'Collaborations and ecosystem drops (e.g. KASGOTHS, KASZOMBIES). They count toward partner-tier leaderboard NFT slots and related perks.',
+          'Collaborations and ecosystem drops (e.g. KASGOTHS, KASZOMBIES) with rarity and trait tooling.',
       };
     case 'standard':
       return {
         eyebrow: 'Standard',
         title: 'Standard collections',
         description:
-          'Other verified KRC-721 collections can map to the standard tier for global leaderboard NFT slot scoring and future cross-app perks.',
+          'Other verified KRC-721 collections supported for wallet gallery and future cross-app perks.',
       };
     case 'modules':
       return {

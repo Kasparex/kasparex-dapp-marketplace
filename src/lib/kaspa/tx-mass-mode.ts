@@ -1,7 +1,7 @@
-export const CHRONICLES_LB_HIGH_MASS_MODE_KEY = 'chronicles-lb-high-mass-mode-v1';
+export const KASPA_TX_HIGH_MASS_MODE_KEY = 'kaspa-tx-high-mass-mode-v1';
 
-/** UI copy for leaderboard read-confirm high-mass toggle tooltips (no em dash). */
-export const CHRONICLES_HIGH_MASS_MODE_HELP =
+/** UI copy for high-mass retry toggle tooltips (no em dash). */
+export const KASPA_HIGH_MASS_MODE_HELP =
   "Use when the wallet shows 'Storage mass exceeds maximum'. Retries with larger KAS amounts so the wallet selects fewer inputs. If needed, compound in KasWare: Wallet > UTXO > Compound.";
 
 export function isStorageMassErrorMessage(msg: string): boolean {
@@ -23,7 +23,10 @@ export function retryKasCandidates(baseKas: number, highMassMode: boolean): numb
 export function readHighMassMode(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return localStorage.getItem(CHRONICLES_LB_HIGH_MASS_MODE_KEY) === '1';
+    return (
+      localStorage.getItem(KASPA_TX_HIGH_MASS_MODE_KEY) === '1' ||
+      localStorage.getItem('chronicles-lb-high-mass-mode-v1') === '1'
+    );
   } catch {
     return false;
   }
@@ -32,8 +35,7 @@ export function readHighMassMode(): boolean {
 export function writeHighMassMode(enabled: boolean) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(CHRONICLES_LB_HIGH_MASS_MODE_KEY, enabled ? '1' : '0');
-    window.dispatchEvent(new CustomEvent('chronicles-lb-local'));
+    localStorage.setItem(KASPA_TX_HIGH_MASS_MODE_KEY, enabled ? '1' : '0');
   } catch {
     // ignore
   }

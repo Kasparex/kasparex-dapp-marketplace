@@ -20,7 +20,7 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { useKpxIndexer } from '@/hooks/useKpxIndexer';
-import { isStorageMassErrorMessage } from '@/lib/chronicles/leaderboard/massMode';
+import { isStorageMassErrorMessage } from '@/lib/kaspa/tx-mass-mode';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';

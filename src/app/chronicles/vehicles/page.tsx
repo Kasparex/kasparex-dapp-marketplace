@@ -1,5 +1,6 @@
-import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { VehiclesListing } from '@/components/chronicles/VehiclesListing';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getAllVehicles } from '@/lib/chronicles/loaders';
 
 export default function ChroniclesVehiclesPage() {
@@ -7,13 +8,13 @@ export default function ChroniclesVehiclesPage() {
 
   return (
     <div>
-      <ChroniclesHeader />
-      <div className="mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Vehicles & tech</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          Craft, transport, and devices of Kaspaland.
-        </p>
-      </div>
+      <ChroniclesHaloHeader
+        kicker="Lore codex"
+        title="Vehicles & tech"
+        titleAccent="tech"
+        subtitle="Ships, craft, and technology from the Chronicles universe."
+      />
+      <DAppSectionHeader title="All vehicles & tech" className="mb-6" />
       <VehiclesListing initial={vehicles} />
     </div>
   );

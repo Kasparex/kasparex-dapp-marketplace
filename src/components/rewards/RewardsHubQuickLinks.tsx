@@ -8,32 +8,16 @@ const navBtnText = 'text-sm font-semibold tracking-tight';
 const quickActive =
   '!border-amber-500/40 !bg-amber-500/15 !text-amber-800 dark:!text-amber-300';
 
-/** Shared Rewards hub rail links (Rewards, Tiers, Leaderboard layouts). */
+/** Shared Rewards hub rail links (Rewards, Tiers, Calculator layouts). */
 export function RewardsHubQuickLinks() {
   const pathname = usePathname() ?? '';
 
-  const lb = pathname.startsWith('/leaderboard');
   const rw = pathname === '/rewards';
   const tr = pathname.startsWith('/tiers');
   const calc = pathname.startsWith('/rewards-calculator');
 
   return (
     <div className="mb-4 space-y-2 border-b border-zinc-200/70 px-3 pb-4 pt-3 dark:border-zinc-800/70">
-      <Link
-        href="/leaderboard"
-        className={`k-control-btn w-full justify-center gap-2${lb ? ` ${quickActive}` : ''}`}
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 21h8m-4 0v-4m6-14h2a2 2 0 012 2v1a6 6 0 01-6 6M6 3H4a2 2 0 00-2 2v1a6 6 0 006 6m10-9H6v5a6 6 0 006 6 6 6 0 006-6V3z"
-          />
-        </svg>
-        <span className={navBtnText}>Leaderboard</span>
-      </Link>
-
       <Link
         href="/rewards"
         className={`k-control-btn w-full justify-center gap-2${rw ? ` ${quickActive}` : ''}`}

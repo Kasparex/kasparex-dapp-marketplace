@@ -6,8 +6,6 @@ import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
-import { ChroniclesEntitySlots } from '@/components/chronicles/leaderboard/ChroniclesEntitySlots';
-import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import { getChapterBySlug } from '@/lib/chronicles/server';
 import { getAdjacentChapters, getAllChapterSlugs, getCharacterBySlug, getLocationBySlug } from '@/lib/chronicles/loaders';
 
@@ -105,10 +103,6 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
           <article className="pb-8 pt-10">
             <ChroniclesChapterAccessGate access={chapter.access}>
               <ChroniclesMarkdown markdown={chapter.bodyMarkdown} />
-              <div className="mt-10 space-y-6">
-                <ChroniclesEntitySlots entityType="chapter" entityId={chapter.slug} title="Chapter slots" />
-                <ChroniclesReadConfirmCard entityType="chapter" entityId={chapter.slug} />
-              </div>
             </ChroniclesChapterAccessGate>
           </article>
         </div>

@@ -16,8 +16,7 @@ import { isDiamondNFT as checkDiamondNFT } from '@/lib/nft/diamond-detection';
 import { NFTBuyWizard } from '@/components/rewards/NFTBuyWizard';
 import { NFT_MULTIPLIER, NFT_FEE_REDUCTION, DIAMOND_NFT_MULTIPLIER, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_MULTIPLIER, RAREST_NFT_FEE_REDUCTION } from '@/lib/rewards/types';
 import { NFT_POINTS } from '@/lib/nft/points';
-import { getChroniclesNftUsageByRef, getChroniclesStoredRarityForNftRef } from '@/lib/chronicles/leaderboard/localState';
-import { pointsForNftInSlot, type NftRarity } from '@/lib/leaderboard/nftPoints';
+import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { LazyImg } from '@/components/ui/LazyImg';
 
 function normKaspaAddr(a: string): string {
@@ -51,35 +50,13 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
     imageUrl: string | null;
   }>>(new Map());
   const [showBuyWizard, setShowBuyWizard] = useState(false);
-  const [chroniclesBump, setChroniclesBump] = useState(0);
   const [visibleCount, setVisibleCount] = useState(24);
 
   const l1Address = kaspaState.address;
   const hasL1Wallet = Boolean(kaspaState.isConnected && l1Address);
 
   const payerKaspa = useMemo(() => (l1Address ? normKaspaAddr(l1Address) : ''), [l1Address]);
-
-  useEffect(() => {
-    const onLb = () => setChroniclesBump((x) => x + 1);
-    window.addEventListener('chronicles-lb-local', onLb as EventListener);
-    return () => window.removeEventListener('chronicles-lb-local', onLb as EventListener);
-  }, []);
-
-  const usageByRef = useMemo(() => {
-    if (!payerKaspa) return {} as ReturnType<typeof getChroniclesNftUsageByRef>;
-    return getChroniclesNftUsageByRef(payerKaspa);
-  }, [payerKaspa, chroniclesBump]);
-
-  function slotPointsForNft(collection: string, tokenId: number): number {
-    const ref = `${collection}#${tokenId}`;
-    const stored = payerKaspa ? getChroniclesStoredRarityForNftRef(payerKaspa, ref) : undefined;
-    const rarity: NftRarity | undefined = stored;
-    return pointsForNftInSlot({
-      collection,
-      tokenId,
-      ...(rarity ? { rarity } : {}),
-    }).points;
-  }
+  const { usageByRef } = useKasparexGlobalNftUsage({ payerKaspa });
 
   const loadUserNFTs = async () => {
     if (!l1Address) {
@@ -513,7 +490,6 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
             const collection = collections[nft.collection];
             const nftRef = `${nft.collection}#${nft.tokenId}`;
             const slotUsages = usageByRef[nftRef] ?? [];
-            const slotPts = slotPointsForNft(nft.collection, nft.tokenId);
 
             return (
               <div
@@ -583,37 +559,20 @@ export function UserNFTsTab({ collectionId }: UserNFTsTabProps = {}) {
                       <span className="text-zinc-600 dark:text-zinc-400">Network:</span>
                       <span className="font-medium text-zinc-900 dark:text-zinc-100">{nft.network}</span>
                     </div>
-                    <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-1.5">
-                      <div className="flex justify-between gap-2">
-                        <span className="text-zinc-600 dark:text-zinc-400">Chronicles slot pts</span>
-                        <span className="font-bold text-[#017a84] dark:text-[#8ff1f8]">{slotPts}</span>
+                    {slotUsages.length > 0 ? (
+                      <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-700 space-y-1.5 text-xs">
+                        <p className="font-semibold text-emerald-700 dark:text-emerald-300">In game deck</p>
+                        <ul className="space-y-1">
+                          {slotUsages.map((u, i) => (
+                            <li key={`${u.href}-${u.slotIndex}-${i}`}>
+                              <Link href={u.href} className="text-[#02abb8] hover:underline font-medium break-all">
+                                {u.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      {slotUsages.length > 0 ? (
-                        <div className="text-xs space-y-1">
-                          <p className="font-semibold text-emerald-700 dark:text-emerald-300">In leaderboard slot</p>
-                          <ul className="space-y-1">
-                            {slotUsages.map((u, i) => (
-                              <li key={`${u.href}-${u.slotIndex}-${i}`}>
-                                <Link href={u.href} className="text-[#02abb8] hover:underline font-medium break-all">
-                                  {u.entityType} · slot {u.slotIndex}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Not placed in a Chronicles slot
-                          {payerKaspa ? '' : ' (connect Kaspa wallet to detect local placements)'}
-                        </p>
-                      )}
-                      <Link
-                        href="/chronicles/leaderboard#points-table"
-                        className="inline-block text-[11px] font-bold text-[#02abb8] hover:underline"
-                      >
-                        Points table →
-                      </Link>
-                    </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

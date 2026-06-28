@@ -276,8 +276,8 @@ export function UsageMonitor() {
                   sample rate and scaled by \(1 / sampleRate\). Use for trends, not billing-grade accuracy.
                 </li>
                 <li>
-                  - <span className="font-black text-zinc-800 dark:text-zinc-200">Buckets</span>: API calls are grouped (leaderboard, kaspa,
-                  updates, other) to keep storage cheap.
+                  - <span className="font-black text-zinc-800 dark:text-zinc-200">Buckets</span>: API calls are grouped (kaspa,
+                  updates, rewards, other) to keep storage cheap.
                 </li>
                 <li>
                   - <span className="font-black text-zinc-800 dark:text-zinc-200">Spikes</span>: last 5 minutes compared to baseline (previous
@@ -291,12 +291,13 @@ export function UsageMonitor() {
               <div className="text-lg font-black text-zinc-900 dark:text-zinc-100 mb-3">What to do during a spike</div>
               <ol className="space-y-2 text-base text-zinc-600 dark:text-zinc-400">
                 <li>
-                  <span className="font-black text-zinc-800 dark:text-zinc-200">1.</span> Identify which bucket spiked. If it’s{' '}
-                  <span className="font-mono">api.leaderboard.finalize</span>, treat it as urgent.
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">1.</span> Identify which bucket spiked. If it is{' '}
+                  <span className="font-mono">api.kaspa</span> or <span className="font-mono">api.rewards</span>, check upstream rate limits
+                  and recent deploys.
                 </li>
                 <li>
-                  <span className="font-black text-zinc-800 dark:text-zinc-200">2.</span> Confirm{' '}
-                  <span className="font-mono">CHRONICLES_LEADERBOARD_CRON_SECRET</span> is set in Vercel and that the endpoint is not public.
+                  <span className="font-black text-zinc-800 dark:text-zinc-200">2.</span> Confirm internal cron secrets are set in Vercel and
+                  that protected endpoints are not public.
                 </li>
                 <li>
                   <span className="font-black text-zinc-800 dark:text-zinc-200">3.</span> If traffic looks abusive, add Cloudflare rate limits /

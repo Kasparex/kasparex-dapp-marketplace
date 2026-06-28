@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
-import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -62,9 +62,10 @@ export function ChroniclesVaultDashboard() {
 
   return (
     <div className="pb-16">
-      <ChroniclesHeader
+      <ChroniclesHaloHeader
         kicker="Vault & unlocks"
         title="Vault & Unlocks"
+        titleAccent="Unlocks"
         subtitle="Unlock premium chapters, items, and future perks. Unlocks are verified on-chain and saved in this browser for your Kaspa address."
         showHaloAd
       />

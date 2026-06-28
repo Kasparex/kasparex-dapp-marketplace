@@ -9,7 +9,7 @@ import type { ParsedNFTMetadata, NFTMetadata, NFTTrait } from '@/lib/nft/metadat
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import { getCollectionById } from '@/lib/nft/collections';
 import { getBestGatewayUrl, fetchJSON } from '@/lib/ipfs/gateway';
-import { pointsForNftInSlot } from '@/lib/leaderboard/nftPoints';
+import { classifyNftSlotRarity, type NftSlotRarity } from '@/lib/nft/nft-slot-rarity';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
 import { LazyImg } from '@/components/ui/LazyImg';
 import { X } from 'lucide-react';
@@ -34,7 +34,7 @@ type SimpleNft = { collection: string; tokenId: number; buri?: string | null };
 const KREXPRIME_KASPACOM = 'https://www.kaspa.com/nft/collections/KREXPRIME';
 const PIXELKREX_KASPACOM = 'https://kaspa.com/nft/collections/PIXELKREX';
 type NftFilterTier = 'all' | 'diamond' | 'rarest' | 'partner-rare';
-type NftSortMode = 'default' | 'points-desc' | 'points-asc';
+type NftSortMode = 'default' | 'token-desc' | 'token-asc';
 
 function normAddr(a: string): string {
   try {
@@ -61,7 +61,6 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
         const k = `${nft.collection}-${nft.tokenId}`;
         if (metadataMap[k]) return { k, parsed: null as ParsedNFTMetadata | null };
 
-        // 1) Known/configured collections: use our cached metadata fetcher
         if (getCollectionById(nft.collection)) {
           try {
             const meta = await fetchNFTMetadata(nft.collection, nft.tokenId);
@@ -71,7 +70,6 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
           }
         }
 
-        // 2) Unknown collections: best-effort from Stream base URI
         const streamBase = (nft.buri ?? '').trim();
         const metaPath = streamBase ? streamMetaJsonPathFromBaseUri(streamBase, nft.tokenId) : null;
         if (!metaPath) return { k, parsed: null as ParsedNFTMetadata | null };
@@ -93,7 +91,6 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
         }
       });
 
-      // Batch + concurrency: keep UI responsive and let images appear progressively.
       const CONCURRENCY = 12;
       for (let i = 0; i < tasks.length; i += CONCURRENCY) {
         const slice = tasks.slice(i, i + CONCURRENCY);
@@ -119,7 +116,7 @@ function useNFTMetas(nfts: SimpleNft[], isOpen: boolean) {
   return metadataMap;
 }
 
-export function ChroniclesNftSlotSelector({
+export function KasparexNftSlotSelector({
   isOpen,
   title,
   description,
@@ -195,33 +192,37 @@ export function ChroniclesNftSlotSelector({
     setCollectionFilter('');
   }, [isOpen, payerKaspa]);
   const collectionOptions = useMemo(() => ['all', ...Array.from(new Set(stream.map((n) => n.collection)))], [stream]);
+  const metaMap = useNFTMetas(stream.slice(0, visibleCount + 48), isOpen);
+
   const filtered = useMemo(() => {
     const base = stream.filter((nft) => {
       if (collectionFilter && nft.collection !== collectionFilter) return false;
       if (tierFilter === 'all') return true;
-      const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
-      if (tierFilter === 'diamond') return scoring.rarity === 'diamond';
-      if (tierFilter === 'rarest') return scoring.rarity === 'rare';
+      const k = `${nft.collection}-${nft.tokenId}`;
+      const meta = metaMap[k] ?? null;
+      const rarity = classifyNftSlotRarity({ collection: nft.collection, tokenId: nft.tokenId, meta });
+      if (tierFilter === 'diamond') return rarity === 'diamond';
+      if (tierFilter === 'rarest') return rarity === 'rare';
       if (tierFilter === 'partner-rare') {
-        // Reserved for non-core collections with rare/rarest classes.
         const isCore = nft.collection === 'KREXPRIME' || nft.collection === 'PIXELKREX';
-        return !isCore && scoring.rarity === 'rare';
+        return !isCore && rarity === 'rare';
       }
       return true;
     });
     if (sortMode === 'default') return base;
-    const withPoints = base.map((nft) => ({ nft, points: pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId }).points }));
-    withPoints.sort((a, b) => {
-      if (sortMode === 'points-desc') return b.points - a.points || a.nft.tokenId - b.nft.tokenId;
-      return a.points - b.points || a.nft.tokenId - b.nft.tokenId;
+    const copy = base.slice();
+    copy.sort((a, b) => {
+      if (sortMode === 'token-desc') return b.tokenId - a.tokenId || a.collection.localeCompare(b.collection);
+      return a.tokenId - b.tokenId || a.collection.localeCompare(b.collection);
     });
-    return withPoints.map((x) => x.nft);
-  }, [stream, collectionFilter, tierFilter, sortMode]);
+    return copy;
+  }, [stream, collectionFilter, tierFilter, sortMode, metaMap]);
+
   useEffect(() => {
     setVisibleCount(36);
   }, [collectionFilter, tierFilter, sortMode]);
   const visibleNfts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
-  const metaMap = useNFTMetas(visibleNfts, isOpen);
+  const visibleMetaMap = useNFTMetas(visibleNfts, isOpen);
   const canLoadMore = visibleCount < filtered.length;
   useEffect(() => {
     if (!canLoadMore || !loadMoreRef.current) return;
@@ -259,7 +260,7 @@ export function ChroniclesNftSlotSelector({
                     onRemove();
                     onClose();
                   }}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-200 text-zinc-700 transition-colors hover:bg-rose-500/20 hover:text-rose-600 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-200 text-zinc-700 transition-colors hover:bg-rose-500/20 hover:text-rose-600 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-300"
                 >
                   <X className="h-4 w-4" strokeWidth={2.5} />
                 </button>
@@ -314,7 +315,7 @@ export function ChroniclesNftSlotSelector({
               <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">🛰️</div>
               <p className="font-semibold text-zinc-700 dark:text-zinc-300">No matching NFTs for this slot</p>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
-                Your wallet has NFTs, but none from the collections allowed for this role. Use a token from an allowed collection or assign a different NFT.
+                Your wallet has NFTs, but none from the collections allowed for this role.
               </p>
             </div>
           ) : (
@@ -349,8 +350,8 @@ export function ChroniclesNftSlotSelector({
                     allLabel="Default sort"
                     allValue={''}
                     options={[
-                      { value: 'points-desc', label: 'Points (high→low)' },
-                      { value: 'points-asc', label: 'Points (low→high)' },
+                      { value: 'token-desc', label: 'Token ID (high→low)' },
+                      { value: 'token-asc', label: 'Token ID (low→high)' },
                     ]}
                     minWidthClassName="min-w-[180px] !bg-zinc-100 dark:!bg-zinc-800/80 !border-zinc-300 dark:!border-zinc-600"
                   />
@@ -380,9 +381,9 @@ export function ChroniclesNftSlotSelector({
               {visibleNfts.map((nft) => {
                 const ref = `${nft.collection}#${nft.tokenId}`;
                 const k = `${nft.collection}-${nft.tokenId}`;
-                const meta = metaMap[k] ?? null;
+                const meta = visibleMetaMap[k] ?? null;
                 const imageUrl = getNFTImageUrl(meta);
-                const scoring = pointsForNftInSlot({ collection: nft.collection, tokenId: nft.tokenId });
+                const rarity: NftSlotRarity = classifyNftSlotRarity({ collection: nft.collection, tokenId: nft.tokenId, meta });
                 const inUse = inUseRefs.has(ref) && ref !== currentValue;
                 const equippedHere = Boolean(currentValue && ref === currentValue);
                 const rawUsage = usageByRef[ref] ?? [];
@@ -432,10 +433,7 @@ export function ChroniclesNftSlotSelector({
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
                         #{nft.tokenId} · {nft.collection}
-                        {scoring.rarity !== 'standard' ? ` · ${scoring.rarity.toUpperCase()}` : ''}
-                      </p>
-                      <p className="mt-0.5 text-xs font-extrabold text-amber-600 dark:text-amber-300">
-                        {scoring.points} pts
+                        {rarity !== 'standard' ? ` · ${rarity.toUpperCase()}` : ''}
                       </p>
                       {inUse && usage.length > 0 ? (
                         <div className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-300">
@@ -483,7 +481,7 @@ export function ChroniclesNftSlotSelector({
             <div className="text-xs text-zinc-500 dark:text-zinc-400">{footerNotice}</div>
           ) : (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Selecting an NFT here will initiate an on-chain slot update. You can change it anytime by opening this modal again.
+              Choose an NFT to deploy into this deck slot. You can change it anytime from the Workers panel.
             </p>
           )}
         </div>
@@ -492,7 +490,9 @@ export function ChroniclesNftSlotSelector({
   );
 }
 
-export function chroniclesNftRefToCollectionAndId(ref: string): { collection: string; tokenId: number } | null {
+export function kasparexNftRefToCollectionAndId(ref: string): { collection: string; tokenId: number } | null {
   return parseNftRef(ref);
 }
 
+/** @deprecated Use {@link kasparexNftRefToCollectionAndId} */
+export const chroniclesNftRefToCollectionAndId = kasparexNftRefToCollectionAndId;

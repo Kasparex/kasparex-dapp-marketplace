@@ -30,10 +30,10 @@ export const NFT_TOOLS_ROADMAP: NftToolsRoadmapItem[] = [
     status: 'planned',
   },
   {
-    id: 'leaderboard-bridge',
-    title: 'Deep leaderboard integration',
-    description: 'One-click jump from any held NFT to Chronicles slots, season progress, and points breakdown.',
-    status: 'in-progress',
+    id: 'hub-pts-bridge',
+    title: 'Hub PTS wallet view',
+    description: 'See redeemable PTS earned across vBlog, store, nodes, and catalog activity from your NFT gallery.',
+    status: 'planned',
   },
   {
     id: 'dapp-sdk-widgets',

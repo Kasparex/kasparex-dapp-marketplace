@@ -32,9 +32,12 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
           >
             Browse offers
           </a>
-          <Link href="/leaderboard" className="k-control-btn">
-            Leaderboard
-          </Link>
+          <a
+            href="#rewards-points"
+            className="k-control-btn"
+          >
+            Points policy
+          </a>
         </>
       }
       rightSlot={

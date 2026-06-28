@@ -51,8 +51,7 @@ export function NFTHaloHeader({
                 </span>
               </h1>
               <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed mb-8">
-                Rarity checks, trait analysis, and PFP building for premium collections, plus partner drops and
-                leaderboard context for the wider Kaspa NFT ecosystem.
+                Rarity checks, trait analysis, and PFP building for premium collections and partner drops across the Kaspa NFT ecosystem.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Link
@@ -67,8 +66,8 @@ export function NFTHaloHeader({
                 >
                   View modules
                 </Link>
-                <Link href="/chronicles/leaderboard#points-table" className="k-control-btn">
-                  NFT slot points
+                <Link href="/games/minecore?tab=workers" className="k-control-btn">
+                  Game NFT decks
                 </Link>
               </div>
             </>

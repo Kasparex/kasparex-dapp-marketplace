@@ -10,8 +10,7 @@ import { filterChaptersByTimeline, searchChapters } from '@/lib/chronicles/filte
 import { sortChaptersByNumber } from '@/lib/chronicles/sorting';
 import { ChronicleThumb } from './ChronicleFeaturedVisual';
 import { ChroniclesFilterDropdown } from './ChroniclesFilterDropdown';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { KxListingCard, KxListingCardBody } from '@/components/kx/KxListingCard';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -141,13 +140,9 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
       {view === 'card' && (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/chronicles/chapters/${c.slug}`}
-              className="group flex flex-col rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 overflow-hidden hover:border-cyan-500/35 hover:shadow-lg hover:shadow-cyan-500/5 transition-all"
-            >
+            <KxListingCard key={c.slug} href={`/chronicles/chapters/${c.slug}`} accent="chronicles">
               <ChronicleThumb imageUrl={c.featuredImageUrl} alt="" className="h-40 w-full shrink-0" />
-              <div className="p-5 sm:p-6">
+              <KxListingCardBody>
                 <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
                   <span className="text-sm font-mono text-zinc-400">Ch. {c.number}</span>
                   <div className="flex flex-wrap gap-1.5 justify-end">
@@ -162,13 +157,11 @@ export function ChaptersListing({ initialChapters }: { initialChapters: Chronicl
                   </div>
                 </div>
                 <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors mb-2">
-                  <Tooltip content={gameTooltipRich('Chapter', c.title)} side="top" align="start">
-                    <span className="block">{c.title}</span>
-                  </Tooltip>
+                  {c.title}
                 </h3>
                 <p className="text-base text-zinc-600 dark:text-zinc-400 line-clamp-3">{c.teaser}</p>
-              </div>
-            </Link>
+              </KxListingCardBody>
+            </KxListingCard>
           ))}
         </div>
       )}

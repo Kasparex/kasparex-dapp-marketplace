@@ -93,9 +93,6 @@ function getCurrentSectionTitle(pathname: string): string {
   ) {
     return 'Rewards';
   }
-  if (pathname.startsWith('/leaderboard')) {
-    return 'Leaderboard';
-  }
   if (pathname.startsWith('/rewards-calculator')) {
     return 'Rewards';
   }

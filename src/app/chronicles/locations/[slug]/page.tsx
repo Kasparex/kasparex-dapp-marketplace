@@ -5,7 +5,6 @@ import { ChroniclesMarkdown } from '@/components/chronicles/ChroniclesMarkdown';
 import { DiamondVeinsCallout } from '@/components/chronicles/DiamondVeinsCallout';
 import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeaturedVisual';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
-import { ChroniclesReadConfirmCard } from '@/components/chronicles/leaderboard/ChroniclesReadConfirmCard';
 import {
   getLocationBySlug,
   getAllLocationSlugs,
@@ -85,10 +84,6 @@ export default async function ChronicleLocationPage({ params }: PageProps) {
 
           <div className="mt-8">
             <ChroniclesMarkdown markdown={location.bodyMarkdown} />
-          </div>
-
-          <div className="mt-10">
-            <ChroniclesReadConfirmCard entityType="location" entityId={location.slug} />
           </div>
 
           {location.secretsMarkdown ? (

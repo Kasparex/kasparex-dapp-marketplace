@@ -32,7 +32,7 @@ export function readTyconSlotsFromStorage(): MiningSlot[] {
 }
 
 /**
- * Chronicles + Minecore worker deck + Diamond Mining (Tycon) slots.
+ * Minecore worker deck + Diamond Mining (Tycon) slots.
  * Omits `minecoreNftSlots` / `tyconSlots` to read the other game from localStorage (for cross-game lock UIs).
  */
 export function useKasparexGlobalNftUsage(opts: {
@@ -44,11 +44,9 @@ export function useKasparexGlobalNftUsage(opts: {
   useEffect(() => {
     const bump = () => setTick((t) => t + 1);
     window.addEventListener('kasparex-nft-usage', bump);
-    window.addEventListener('chronicles-lb-local', bump);
     window.addEventListener('storage', bump);
     return () => {
       window.removeEventListener('kasparex-nft-usage', bump);
-      window.removeEventListener('chronicles-lb-local', bump);
       window.removeEventListener('storage', bump);
     };
   }, []);

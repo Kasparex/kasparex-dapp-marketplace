@@ -142,11 +142,26 @@ export interface KaspaTxForVerification {
   transactionId?: string;
   id?: string;
   outputs?: KaspaTxOutput[];
+  /** @deprecated Prefer storageMass (Toccata rename of transaction storage mass). */
   mass?: number;
+  /** Post-Toccata field; same value as mass when APIs emit both for compatibility. */
+  storageMass?: number;
   blockHash?: string;
 }
 
 const KASPA_TX_API = process.env.KASPA_TX_API_URL || 'https://api.kaspa.org';
+
+function readStorageMassField(o: Record<string, unknown>): number | undefined {
+  const candidates = [o.storageMass, o.storage_mass, o.mass];
+  for (const value of candidates) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return undefined;
+}
 
 /** Normalize API tx response to our shape (supports multiple API formats) */
 function normalizeTxPayload(data: unknown): KaspaTxForVerification | null {
@@ -158,11 +173,13 @@ function normalizeTxPayload(data: unknown): KaspaTxForVerification | null {
     (o.verboseData as Record<string, unknown>)?.outputs ??
     (o.subnetworkData as Record<string, unknown>)?.outputs;
   if (!txId && !outputs) return null;
+  const storageMass = readStorageMassField(o);
   return {
     transactionId: txId,
     id: txId,
     outputs: Array.isArray(outputs) ? outputs : undefined,
-    mass: o.mass as number | undefined,
+    mass: storageMass,
+    storageMass,
     blockHash: o.blockHash as string | undefined,
   };
 }

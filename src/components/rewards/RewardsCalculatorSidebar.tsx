@@ -18,7 +18,7 @@ export function RewardsCalculatorSidebar() {
     <UnifiedSidebar
       storageKeyPrefix="rewards-calc"
       header={(onHide) => (
-        <SidebarHeader backHref="/leaderboard" backLabel="Back to Leaderboard" onHide={onHide} className="bg-white dark:bg-zinc-950" />
+        <SidebarHeader backHref="/rewards" backLabel="Back to Rewards" onHide={onHide} className="bg-white dark:bg-zinc-950" />
       )}
       defaultWidth={292}
     >

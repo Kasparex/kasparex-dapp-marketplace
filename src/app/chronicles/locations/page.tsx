@@ -1,5 +1,6 @@
-import { ChroniclesHeader } from '@/components/chronicles/ChroniclesHeader';
+import { ChroniclesHaloHeader } from '@/components/chronicles/ChroniclesHaloHeader';
 import { LocationsListing } from '@/components/chronicles/LocationsListing';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getAllLocations } from '@/lib/chronicles/loaders';
 
 export default function ChroniclesLocationsPage() {
@@ -7,13 +8,13 @@ export default function ChroniclesLocationsPage() {
 
   return (
     <div>
-      <ChroniclesHeader />
-      <div className="mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Locations</h2>
-        <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-          Kaspaland, Kasparex, and places between.
-        </p>
-      </div>
+      <ChroniclesHaloHeader
+        kicker="Lore codex"
+        title="Locations"
+        titleAccent="Locations"
+        subtitle="Places, regions, and landmarks across Kaspaland."
+      />
+      <DAppSectionHeader title="All locations" className="mb-6" />
       <LocationsListing initial={locations} />
     </div>
   );
