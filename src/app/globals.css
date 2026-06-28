@@ -193,7 +193,7 @@
 }
 .kx-listing-card[data-kx-accent="vblog"]:hover,
 .kx-listing-card[data-kx-accent="vblog"]:focus-visible {
-  border-color: rgb(8, 132, 164) !important; /* vBlog #0884a4 */
+  border-color: rgb(2, 171, 184) !important; /* vBlog cyan #02abb8 */
 }
 .kx-listing-card[data-kx-accent="magazines"]:hover,
 .kx-listing-card[data-kx-accent="magazines"]:focus-visible {

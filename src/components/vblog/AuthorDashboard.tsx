@@ -168,7 +168,7 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-                Personal <span className="text-[#0884a4]">Archive</span>
+                Personal <span className="text-[#02abb8]">Archive</span>
               </h3>
               <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
                 Delete fee: {pricing.deleteFee} KAS

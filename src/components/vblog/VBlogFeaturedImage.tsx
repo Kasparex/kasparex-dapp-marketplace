@@ -16,13 +16,13 @@ function VBlogFeaturedImagePlaceholder({
   if (variant === 'list') {
     return (
       <div
-        className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0884a4]/15 via-zinc-100 to-zinc-200 dark:from-[#0884a4]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
+        className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
       >
         <div className="text-center px-4">
-          <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#0884a4]/80 dark:text-[#4db8d4]/90">
+          <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#02abb8]/80 dark:text-[#66dfe8]/90">
             vBlog
           </div>
-          <svg className="mx-auto h-7 w-7 text-[#0884a4]/40 dark:text-[#4db8d4]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="mx-auto h-7 w-7 text-[#02abb8]/40 dark:text-[#66dfe8]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -38,7 +38,7 @@ function VBlogFeaturedImagePlaceholder({
   if (variant === 'hero') {
     return (
       <div
-        className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0884a4] via-teal-600 to-cyan-800 ${className}`.trim()}
+        className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#02abb8] via-cyan-600 to-teal-700 ${className}`.trim()}
       >
         <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         <div className="relative z-10 px-8 text-center">
@@ -51,7 +51,7 @@ function VBlogFeaturedImagePlaceholder({
 
   return (
     <div
-      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0884a4]/15 via-zinc-100 to-zinc-200 transition-transform duration-700 group-hover:scale-105 dark:from-[#0884a4]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
+      className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-[#02abb8]/15 via-zinc-100 to-zinc-200 transition-transform duration-700 group-hover:scale-105 dark:from-[#02abb8]/20 dark:via-zinc-900 dark:to-zinc-950 ${className}`.trim()}
     >
       <div className="px-6 text-center">
         <div className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">vBlog</div>

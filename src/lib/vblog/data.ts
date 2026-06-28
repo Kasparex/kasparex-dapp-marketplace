@@ -257,6 +257,7 @@ Stay tuned for more updates!`,
       articleId: 'ART-001',
       txHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
       status: 'on-chain-ready',
+      source: 'kasparex',
     },
     {
       id: 'article-2',
@@ -292,6 +293,7 @@ This approach provides:
       articleId: 'ART-002',
       txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       status: 'on-chain-ready',
+      source: 'community',
     },
   ];
 }

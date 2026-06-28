@@ -58,6 +58,8 @@ export interface VBlogArticle {
   updatedAt?: string; // ISO date string for last update
   linkedMagazineId?: string; // ID of the magazine this article is linked to
   linkedIssueNumber?: number; // Issue number within the magazine
+  /** Curated Kasparex content vs community submissions (inferred when omitted). */
+  source?: 'kasparex' | 'community';
   chunkTxHashes?: string[];
   commitTxHash?: string;
   contentHash?: string;

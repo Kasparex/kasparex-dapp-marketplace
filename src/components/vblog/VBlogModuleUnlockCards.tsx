@@ -118,7 +118,7 @@ export function VBlogModuleUnlockCards({
   return (
     <section className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-base font-black uppercase tracking-widest text-[#0884a4] dark:text-[#4db8d4]">{title}</p>
+        <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#4db8d4]">{title}</p>
         <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
           KREX {tier} | Combined discount {combinedDiscountPct}%
         </span>
@@ -183,9 +183,9 @@ export function VBlogModuleUnlockCards({
           return (
             <div
               key={offer.id}
-              className="rounded-2xl border border-[#0884a4]/35 dark:border-[#0884a4]/25 bg-white/95 dark:bg-zinc-900/70 overflow-hidden flex flex-col"
+              className="rounded-2xl border border-[#02abb8]/35 dark:border-[#02abb8]/25 bg-white/95 dark:bg-zinc-900/70 overflow-hidden flex flex-col"
             >
-              <div className="h-28 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#0884a4]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#0884a4]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+              <div className="h-28 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#02abb8]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#02abb8]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
                 {offer.featuredImage ? (
                   <img src={offer.featuredImage} alt={offer.title} className="w-full h-full object-cover" />
                 ) : (
@@ -222,7 +222,7 @@ export function VBlogModuleUnlockCards({
                   type="button"
                   disabled={isUnlocked || isUnlocking || !kaspaState.isConnected}
                   onClick={() => void handleUnlock(offer.id, offer.unlockPriceKas)}
-                  className="mt-3 k-control-btn !bg-[#0884a4] hover:!bg-[#066d87] !text-white !border-[#0884a4]/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="mt-3 k-control-btn !bg-[#02abb8] hover:!bg-[#019aa6] !text-white !border-[#02abb8]/30 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isUnlocked ? 'Unlocked' : isUnlocking ? 'Unlocking...' : `Unlock for ${effectiveKas} KAS`}
                 </button>
@@ -257,8 +257,8 @@ export function VBlogInlineModuleUnlockCard({
   const isUnlocked = kaspaState.address ? getAuthorUnlockedModules(kaspaState.address).includes(offer.id) : false;
 
   return (
-    <div className={`w-full max-w-[420px] rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden ${isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-[#0884a4]/40 dark:border-[#0884a4]/25'}`}>
-      <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#0884a4]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#0884a4]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+    <div className={`w-full max-w-[420px] rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden ${isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-[#02abb8]/40 dark:border-[#02abb8]/25'}`}>
+      <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#02abb8]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#02abb8]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
         {isUnlocked ? 'Module active' : 'Locked module'}
       </div>
       <div className="p-4">
@@ -267,7 +267,7 @@ export function VBlogInlineModuleUnlockCard({
         {!isUnlocked ? <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p> : <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">Unlocked for this wallet. You can now enable it in the editor.</p>}
         <button
           type="button"
-          className="mt-3 k-control-btn !bg-[#0884a4] hover:!bg-[#066d87] !text-white !border-[#0884a4]/30 w-full justify-center"
+          className="mt-3 k-control-btn !bg-[#02abb8] hover:!bg-[#019aa6] !text-white !border-[#02abb8]/30 w-full justify-center"
           disabled={isUnlocked || busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
           onClick={async () => {
             if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) return;

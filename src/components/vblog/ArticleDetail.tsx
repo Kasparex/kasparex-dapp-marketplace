@@ -248,7 +248,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
             <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">
               {article.category}
             </p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-6 leading-tight">
               {article.title}
             </h1>
             <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text">
@@ -305,7 +305,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-10 xl:gap-12">
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
         <div className="flex-1 min-w-0">
           <div
             id="article-main"
@@ -413,9 +413,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           </div>
         </div>
 
-        <div className="w-full min-w-0 shrink-0 lg:w-[320px] xl:w-[340px] lg:sticky lg:top-24 lg:self-start">
-          <ArticleSidebar article={article} />
-        </div>
+        <ArticleSidebar article={article} />
       </div>
 
       {/* Delete Confirmation Modal */}

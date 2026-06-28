@@ -1,85 +1,117 @@
 'use client';
 
+import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
+import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
-import Link from 'next/link';
 
 interface VBlogCardProps {
   article: VBlogArticle;
 }
 
+function statusVariant(article: VBlogArticle): 'emerald' | 'amber' | 'zinc' | 'cyan' {
+  if (article.status === 'published' || article.status === 'on-chain-ready' || article.status === 'verified') {
+    return 'emerald';
+  }
+  if (article.status === 'pending' || article.status === 'paying_chunks' || article.status === 'committing') {
+    return 'amber';
+  }
+  return 'zinc';
+}
+
+function statusLabel(article: VBlogArticle): string {
+  if (article.status === 'on-chain-ready') return 'Published';
+  if (article.status === 'verified') return 'Verified';
+  return article.status.replace(/_/g, ' ');
+}
+
+function ArticleIcon() {
+  return (
+    <svg
+      className="h-8 w-8 text-cyan-600 dark:text-cyan-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+      />
+    </svg>
+  );
+}
+
 export function VBlogCard({ article }: VBlogCardProps) {
   const excerpt = getArticleExcerpt(article, 90);
   const authorDisplay = formatAddress(article.author);
-  const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
   const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=my-articles`;
+  const source = getVBlogArticleSource(article);
+  const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
+  const hasImage = Boolean(article.featuredImage?.trim());
 
   return (
     <KxListingCard href={`/vblog/${article.slug}`} accent="vblog" className="h-full flex flex-col font-sans">
-      <KxListingCardMedia className="relative">
-
-          {/* Badges Overlay */}
-          <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
-            <span className="px-2.5 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-900 dark:text-zinc-100 text-[9px] font-black uppercase tracking-widest rounded-lg shadow-sm">
-              {article.category}
-            </span>
-            {isLinked && (
-              <span className="px-2.5 py-1 bg-[#0884a4] text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg flex items-center gap-1">
-                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                {article.linkedIssueNumber}
-              </span>
-            )}
-            {/* Status Badge */}
-            <span className={`px-2.5 py-1 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg ${article.status === 'published' || article.status === 'on-chain-ready'
-              ? 'bg-emerald-500'
-              : article.status === 'pending'
-                ? 'bg-amber-500'
-                : 'bg-zinc-500'
-              }`}>
-              {article.status === 'on-chain-ready' ? 'Published' : article.status}
-            </span>
-          </div>
-
+      <KxListingCardMedia aspectClass="aspect-[16/10]">
+        {hasImage ? (
           <VBlogFeaturedImage
             src={article.featuredImage}
             title={article.title}
             variant="card"
-            className="absolute inset-0 w-full h-full"
-            imgClassName="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full"
+            imgClassName="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-
+        ) : (
+          <div className={`flex h-full w-full items-center justify-center ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
+            <ArticleIcon />
+          </div>
+        )}
+        {source === 'kasparex' ? (
+          <KxBadge variant="cyan" className="absolute bottom-3 left-3">
+            Kasparex
+          </KxBadge>
+        ) : (
+          <KxBadge variant="zinc" className="absolute bottom-3 left-3">
+            Community
+          </KxBadge>
+        )}
+        {isLinked ? (
+          <KxBadge variant="violet-solid" className="absolute top-3 right-3 tracking-wider">
+            Mag #{article.linkedIssueNumber}
+          </KxBadge>
+        ) : null}
       </KxListingCardMedia>
 
-      <KxListingCardBody comfortable className="flex flex-col flex-1">
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2">
-            {article.title}
-          </h3>
-          <p className="kx-body-sm mb-6 line-clamp-3 flex-1">
-            {excerpt}
-          </p>
-
-          <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-5">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Author</span>
-              <Link
-                href={authorHubUrl}
-                className="text-sm font-semibold text-zinc-900 dark:text-zinc-200 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {authorDisplay}
-              </Link>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Published</span>
-              <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-200">{formatDate(article.publishDate)}</span>
-            </div>
+      <KxListingCardBody comfortable>
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-bold text-zinc-900 dark:text-white">{article.title}</h3>
+            <p className="text-xs font-medium text-zinc-500">{article.category}</p>
           </div>
+          <KxBadge variant={statusVariant(article)}>{statusLabel(article)}</KxBadge>
+        </div>
+
+        <p className="mb-4 line-clamp-2 kx-body-sm">{excerpt}</p>
+
+        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
+          <p className="text-xs text-zinc-500">
+            by{' '}
+            <Link
+              href={authorHubUrl}
+              className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {authorDisplay}
+            </Link>
+          </p>
+          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
+        </div>
       </KxListingCardBody>
     </KxListingCard>
   );
 }
-

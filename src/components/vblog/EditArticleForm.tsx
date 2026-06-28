@@ -476,7 +476,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
 
         <section className="space-y-4 pt-2">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-base font-black uppercase tracking-widest text-[#0884a4] dark:text-[#4db8d4]">Vault modules & unlocks</p>
+            <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules & unlocks</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Interactive modules with unlock + configure states</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

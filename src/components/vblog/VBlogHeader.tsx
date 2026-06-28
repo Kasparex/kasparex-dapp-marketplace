@@ -1,44 +1,59 @@
 'use client';
 
 import { AdSlider } from '@/components/ads/AdSlider';
+import { VBlogSourceSwitcher } from '@/components/vblog/VBlogSourceSwitcher';
 import { VBLOG_GRADIENT_TEXT } from '@/lib/vblog/theme';
+import type { VBlogSourceFilter } from '@/lib/vblog/source';
 
-export function VBlogHeader() {
+interface VBlogHeaderProps {
+  sourceFilter: VBlogSourceFilter;
+  onSourceFilterChange: (value: VBlogSourceFilter) => void;
+}
+
+export function VBlogHeader({ sourceFilter, onSourceFilterChange }: VBlogHeaderProps) {
   return (
-    <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-teal-50/50 to-zinc-100 dark:from-zinc-950 dark:via-[#0884a4]/10 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
-      {/* Background Glow */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#0884a4,transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#0a9fc4,transparent_50%)]" />
+    <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.12),transparent_70%)] rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-8 right-12 w-32 h-32 border border-cyan-500/20 rounded-2xl rotate-12" />
+        <div className="absolute bottom-12 right-1/4 w-24 h-24 border border-cyan-400/15 rounded-xl -rotate-6" />
       </div>
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-        <div className="min-w-0 max-w-4xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0884a4]/10 border border-[#0884a4]/25 text-[#0884a4] dark:text-[#4db8d4] text-xs font-bold uppercase tracking-widest mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4db8d4] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0884a4]"></span>
-          </span>
-          On-Chain Publishing
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-800 dark:text-cyan-200 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+            </span>
+            On-Chain Publishing
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
+            Kasparex <span className={VBLOG_GRADIENT_TEXT}>vBlog</span>
+          </h1>
+          <p className="kx-body max-w-xl leading-relaxed mb-8">
+            The decentralized voice of the Kaspa ecosystem. Every post is permanently linked to IPFS, ensuring your content is truly on-chain and community-driven.
+          </p>
+          <VBlogSourceSwitcher value={sourceFilter} onChange={onSourceFilterChange} />
         </div>
-
-        <h1 className="text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight tracking-tight">
-          Kasparex <span className={VBLOG_GRADIENT_TEXT}>vBlog</span>
-        </h1>
-
-        <p className="kx-body max-w-2xl mb-8">
-          The decentralized voice of the Kaspa ecosystem. Every post is permanently linked to IPFS, ensuring your content is truly on-chain and community-driven.
-        </p>
-
-        </div>
-        <div
-          id="ad-slot-vblog-halo"
-          className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px] scroll-mt-24"
-        >
-          <AdSlider slotId="HALO_VBLOG_RIGHT" />
+        <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
+          <div className="relative opacity-90 pointer-events-none">
+            <div className="w-48 h-56 rounded-2xl border-2 border-cyan-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
+            <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
+              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Article</span>
+            </div>
+          </div>
+          <div
+            id="ad-slot-vblog-halo"
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+          >
+            <AdSlider slotId="HALO_VBLOG_RIGHT" />
+          </div>
         </div>
       </div>
-
     </div>
   );
 }
