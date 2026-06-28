@@ -418,9 +418,11 @@ function limitSetupBadges(children: ReactNode, max = 3): ReactNode {
   return (
     <>
       {arr.slice(0, max)}
-      <KxBadge variant="zinc" className="px-1 text-[8px]" title="Additional bonuses; see row tooltip">
-        …
-      </KxBadge>
+      <span title="Additional bonuses; see row tooltip">
+        <KxBadge variant="zinc" className="px-1 text-[8px]">
+          …
+        </KxBadge>
+      </span>
     </>
   );
 }
