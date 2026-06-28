@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
-export default function VBlogDashboardPage() {
+function VBlogDashboardPageContent() {
   const { articles } = useVBlog();
   const searchParams = useSearchParams();
   const initialCreateIntent = searchParams.get('tab') === 'create' ? 1 : 0;
@@ -61,5 +61,23 @@ export default function VBlogDashboardPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function VBlogDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-8">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading dashboard…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <VBlogDashboardPageContent />
+    </Suspense>
   );
 }

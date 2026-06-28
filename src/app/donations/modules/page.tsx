@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAccount, useReadContracts } from 'wagmi';
@@ -24,7 +24,7 @@ const ROADMAP_ITEMS = [
   { title: 'Supporter roles', detail: 'Lightweight tiers - planned.' },
 ] as const;
 
-export default function CrowdKasModulesPage() {
+function CrowdKasModulesPageContent() {
   const searchParams = useSearchParams();
   const qCampaignId = searchParams.get('campaignId')?.trim() ?? '';
 
@@ -228,5 +228,23 @@ export default function CrowdKasModulesPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function CrowdKasModulesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-8">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading modules…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <CrowdKasModulesPageContent />
+    </Suspense>
   );
 }

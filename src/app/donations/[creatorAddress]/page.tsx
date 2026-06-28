@@ -1,7 +1,7 @@
 'use client';
 
+import { Suspense, useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { Header } from '@/components/Header';
@@ -21,7 +21,7 @@ import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { useQuery } from '@tanstack/react-query';
 
-export default function DonationCampaignPage() {
+function DonationCampaignPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const chainId = useChainId();
@@ -275,5 +275,23 @@ export default function DonationCampaignPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function DonationCampaignPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-8">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading campaign…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <DonationCampaignPageContent />
+    </Suspense>
   );
 }

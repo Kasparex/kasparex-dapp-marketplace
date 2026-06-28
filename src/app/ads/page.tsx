@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { Suspense, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AD_SLOTS } from '@/lib/ads/slots';
@@ -35,7 +35,7 @@ function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
   return sorted;
 }
 
-export default function AdsListingPage() {
+function AdsListingPageContent() {
   const { ads: allActive, refresh: refreshAds } = useAdsRegistryContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<AdsSortOption>('newest');
@@ -192,5 +192,13 @@ export default function AdsListingPage() {
         initialSlotIndex={wizardInitialSlotIndex}
       />
     </>
+  );
+}
+
+export default function AdsListingPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">Loading ads…</div>}>
+      <AdsListingPageContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -9,7 +9,7 @@ import type { DApp } from '@/lib/dapps';
 
 type Mode = 'build' | 'list';
 
-export default function DAppsEditorNewPage() {
+function DAppsEditorNewPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const modeParam = (searchParams?.get('mode') || '').toLowerCase();
@@ -107,6 +107,24 @@ export default function DAppsEditorNewPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function DAppsEditorNewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-8">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading editor…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <DAppsEditorNewPageContent />
+    </Suspense>
   );
 }
 

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CreateAdWizard } from '@/components/ads/CreateAdWizard';
 
-export default function AdsEditorNewPage() {
+function AdsEditorNewPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(true);
@@ -41,3 +41,20 @@ export default function AdsEditorNewPage() {
   );
 }
 
+export default function AdsEditorNewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-8">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading ad editor…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <AdsEditorNewPageContent />
+    </Suspense>
+  );
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CollectionCard } from '@/components/nft/CollectionCard';
 import { NFTPageShell } from '@/components/nft/NFTPageShell';
@@ -76,7 +76,7 @@ function tabHeading(tab: NftListingTab): { eyebrow: string; title: string; descr
   }
 }
 
-export default function NFTPage() {
+function NFTPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -315,5 +315,19 @@ export default function NFTPage() {
         </>
       )}
     </NFTPageShell>
+  );
+}
+
+export default function NFTPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading NFT hub…</p>
+        </div>
+      }
+    >
+      <NFTPageContent />
+    </Suspense>
   );
 }

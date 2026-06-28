@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
-export default function ProfileHubResolverPage() {
+function ProfileHubResolverPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
@@ -31,5 +31,23 @@ export default function ProfileHubResolverPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function ProfileHubResolverPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+          <Header />
+          <main className="flex flex-1 items-center justify-center p-6">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading profile…</p>
+          </main>
+          <Footer />
+        </div>
+      }
+    >
+      <ProfileHubResolverPageContent />
+    </Suspense>
   );
 }
