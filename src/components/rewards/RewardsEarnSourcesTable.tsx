@@ -62,6 +62,12 @@ const REDEEMABLE_ROWS = [
   },
   {
     scope: 'Redeem balance',
+    topic: 'Chronicles chapter quiz',
+    typical: String(HUB_EARN_POINTS.chroniclesQuizComplete),
+    notes: 'Pass the paid lore quiz on an official chapter after your entry Kaspa tx is verified.',
+  },
+  {
+    scope: 'Redeem balance',
     topic: 'Krex node enrollment',
     typical: String(HUB_EARN_POINTS.krexNodeEnrollmentOnce),
     notes: 'Verify node enrollment once in the Nodes flow when onboarding succeeds.',

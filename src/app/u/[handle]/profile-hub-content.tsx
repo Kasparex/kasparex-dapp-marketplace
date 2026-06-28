@@ -1729,7 +1729,7 @@ function ProfileHaloHeader({
                 </div>
               </div>
 
-              <p className="mt-4 text-sm sm:kx-body max-w-3xl leading-relaxed">
+              <p className="mt-4 kx-body max-w-3xl leading-relaxed">
                 {subtitle}
               </p>
             </div>

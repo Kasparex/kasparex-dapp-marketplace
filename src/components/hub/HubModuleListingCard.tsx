@@ -42,7 +42,7 @@ export function HubModuleListingCard({
         </div>
 
         <div className="mb-4 flex-grow min-h-0">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">{description}</p>
+          <p className="kx-body-sm line-clamp-3">{description}</p>
         </div>
 
         <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800">

@@ -26,7 +26,7 @@ export function DonationsHeader() {
               CrowdKAS
             </span>
           </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed mb-8">
+          <p className="kx-body max-w-2xl leading-relaxed mb-8">
             Crowdfund creators and projects in one place: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises (simulator).
           </p>
           <div className="flex flex-wrap items-center gap-3">

@@ -56,7 +56,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
               Revenue Tree Dashboard
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm sm:text-base">
+            <p className="kx-body">
               One tree per wallet • Activation at 100 KAS • Maintenance 1000 KAS/30d or 10M KREX + 100 KAS/30d
             </p>
           </div>

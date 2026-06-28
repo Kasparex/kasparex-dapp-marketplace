@@ -129,14 +129,14 @@ function SwapsContent() {
                 <div className="flex-shrink-0 w-10 h-10 bg-violet-500/10 rounded-full flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold">1</div>
                 <div>
                   <h3 className="font-bold text-zinc-900 dark:text-zinc-100 italic">Deep Liquidity</h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Aggregated from top DEXs on Kaspa to ensure you get the best price execution.</p>
+                  <p className="kx-body">Aggregated from top DEXs on Kaspa to ensure you get the best price execution.</p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <div className="flex-shrink-0 w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold">2</div>
                 <div>
                   <h3 className="font-bold text-zinc-900 dark:text-zinc-100 italic">Institutional Security</h3>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Audited smart contracts and non-custodial architecture keeps you in control.</p>
+                  <p className="kx-body">Audited smart contracts and non-custodial architecture keeps you in control.</p>
                 </div>
               </li>
             </ul>

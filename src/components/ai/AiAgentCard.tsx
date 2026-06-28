@@ -108,7 +108,7 @@ export function AiAgentCard({ agent }: { agent: AiAgent }) {
           <KxBadge variant={TOKEN_VARIANT[agent.token]}>{agent.token}</KxBadge>
         </div>
 
-        <p className="mb-4 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{agent.description}</p>
+        <p className="mb-4 line-clamp-2 kx-body-sm">{agent.description}</p>
 
         <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
           <p className="text-xs text-zinc-500">

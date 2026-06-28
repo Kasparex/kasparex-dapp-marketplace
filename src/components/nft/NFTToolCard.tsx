@@ -50,7 +50,7 @@ export function NFTToolCard({ item }: { item: NftToolsRoadmapItem }) {
           <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">{item.title}</h3>
           {statusBadge(item.status)}
         </div>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">{item.description}</p>
+        <p className="kx-body-sm flex-1 leading-relaxed">{item.description}</p>
         {item.eta ? (
           <p className="mt-3 text-xs font-bold text-zinc-500 dark:text-zinc-400">Target: {item.eta}</p>
         ) : null}

@@ -7,6 +7,7 @@ import { ChronicleFeaturedVisual } from '@/components/chronicles/ChronicleFeatur
 import { ChronicleCategoryKicker } from '@/components/chronicles/ChronicleCategoryKicker';
 import { ChronicleArticleAside } from '@/components/chronicles/ChronicleArticleAside';
 import { ChronicleChapterQuiz } from '@/components/chronicles/quiz/ChronicleChapterQuiz';
+import { ChronicleChapterHubPtsPanel } from '@/components/chronicles/ChronicleChapterHubPtsPanel';
 import { ChroniclesChapterAccessGate } from '@/components/chronicles/vault/ChroniclesChapterAccessGate';
 import { getChapterBySlug } from '@/lib/chronicles/server';
 import { officialChapterHasQuiz } from '@/lib/chronicles/quiz/questions';
@@ -121,7 +122,14 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <ChronicleArticleAside sections={asideSections} />
+        <ChronicleArticleAside
+          sections={asideSections}
+          topContent={
+            officialChapterHasQuiz(slug) ? (
+              <ChronicleChapterHubPtsPanel chapterSlug={slug} hasQuiz />
+            ) : undefined
+          }
+        />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between border-t border-zinc-200 dark:border-zinc-800 pt-10 mt-12">

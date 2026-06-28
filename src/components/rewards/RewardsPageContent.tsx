@@ -699,7 +699,7 @@ export function RewardsPageContent() {
 
       {hubTab === 'points' ? (
         <div id="rewards-points" className="scroll-mt-24 space-y-6">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
+          <p className="kx-body max-w-3xl leading-relaxed">
             One wallet-wide redeemable balance feeds the catalog. Use this list to see typical Hub pts from each program, then
             open History to audit every earn and redeem on this device.
           </p>

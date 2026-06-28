@@ -52,6 +52,8 @@ function friendlyEarnSource(source: string): string {
   const labels: Record<string, string> = {
     chronicles_read: 'Reading rewards',
     chronicles_slot: 'Collection rewards',
+    chronicles_quiz_complete: 'Chronicles chapter quiz',
+    chronicles_article_create: 'Chronicles article',
     minecore_note: 'Minecore refine',
     rewards_catalog: 'Rewards catalog',
     legacy_import: 'Imported balance',

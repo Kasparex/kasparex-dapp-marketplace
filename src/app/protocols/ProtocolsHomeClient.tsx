@@ -38,7 +38,7 @@ export function ProtocolsHomeContent() {
                       Protocols
                     </span>
                   </h1>
-                  <p className="mb-8 max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-lg">
+                  <p className="kx-body mb-8 max-w-xl leading-relaxed">
                     Pick a protocol family to open its hub: tools you can run today, HTTP APIs, use cases, and docs - starting with{' '}
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">kpx</span> on Kaspa.
                   </p>
@@ -77,7 +77,7 @@ export function ProtocolsHomeContent() {
 
             <div id="protocol-families" className="scroll-mt-24">
               <h2 className="mb-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Protocol families</h2>
-              <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mb-6 kx-body">
                 Each card opens a dedicated page for that protocol (tools, APIs, use cases, and documentation).
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

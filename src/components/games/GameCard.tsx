@@ -93,7 +93,7 @@ export function GameCard({ game }: GameCardProps) {
         </div>
 
         <div className="mb-3 flex-grow min-h-0">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
+          <p className="kx-body-sm line-clamp-3">
             {game.description}
           </p>
         </div>

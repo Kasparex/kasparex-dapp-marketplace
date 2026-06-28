@@ -10,7 +10,9 @@ import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxAlert } from '@/components/ui/KxAlert';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
-import { CHRONICLES_PANEL, CHRONICLES_PANEL_LABEL } from '@/lib/chronicles/typography';
+import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
+import { KxCategoryKicker } from '@/components/ui/KxCategoryKicker';
+import { refreshServerHubBalance } from '@/lib/rewards/serverHubBalanceCoordinator';
 import { CHRONICLE_QUIZ_ENTRY_FEE_KAS, CHRONICLE_QUIZ_QUESTION_COUNT } from '@/lib/chronicles/quiz/constants';
 import { pickRandomChapterQuizQuestions } from '@/lib/chronicles/quiz/questions';
 import type { ChronicleQuizQuestion } from '@/lib/chronicles/quiz/types';
@@ -118,6 +120,7 @@ export function ChronicleChapterQuiz({
       if (answers[q.id] === q.correctIndex) correct += 1;
     }
     const passed = correct === questions.length;
+    const total = questions.length;
     markQuizEntryUsed(state.address, chapterSlug);
 
     if (passed) {
@@ -127,12 +130,25 @@ export function ChronicleChapterQuiz({
         source: 'chronicles_quiz_complete',
         redeemableDelta: HUB_EARN_POINTS.chroniclesQuizComplete,
         idempotencyKey: `chronicles:quiz:${chapterSlug}:${txNorm}`,
-        meta: { chapterSlug, chapterTitle },
+        meta: { chapterSlug, chapterTitle, txHash: txNorm },
       });
       markChapterQuizCompleted(state.address, chapterSlug);
+      void fetch('/api/chronicles/quiz/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: state.address,
+          chapterSlug,
+          txHash: entry.txHash,
+          correct,
+          total,
+        }),
+      })
+        .then(() => refreshServerHubBalance())
+        .catch(() => refreshServerHubBalance());
     }
 
-    setResult({ correct, total: questions.length, passed });
+    setResult({ correct, total, passed });
     setPhase('result');
   };
 
@@ -140,11 +156,15 @@ export function ChronicleChapterQuiz({
   const answeredCount = questions.filter((q) => answers[q.id] != null).length;
 
   return (
-    <section className={`${CHRONICLES_PANEL} p-5 sm:p-6 mt-10 relative`} aria-labelledby="chapter-quiz-heading">
+    <section
+      id="chapter-quiz"
+      className={`${CHRONICLES_PANEL} scroll-mt-24 p-5 sm:p-6 mt-10 relative`}
+      aria-labelledby="chapter-quiz-heading"
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className={CHRONICLES_PANEL_LABEL}>Chapter quiz</p>
-          <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-2 mb-3">
+          <KxCategoryKicker className="!mb-7">Chapter quiz</KxCategoryKicker>
+          <h2 id="chapter-quiz-heading" className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-3">
             Test your lore knowledge
           </h2>
         </div>

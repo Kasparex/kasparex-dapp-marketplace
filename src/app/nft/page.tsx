@@ -192,7 +192,7 @@ export default function NFTPage() {
           <div className="mb-6">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-lime-400 mb-1">Wallet</p>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">My NFTs</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">NFTs held by your connected Kaspa address.</p>
+            <p className="kx-body">NFTs held by your connected Kaspa address.</p>
           </div>
           <UserNFTsTab />
         </section>
@@ -203,7 +203,7 @@ export default function NFTPage() {
               {heading.eyebrow}
             </p>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{heading.title}</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-3xl">{heading.description}</p>
+            <p className="kx-body max-w-3xl">{heading.description}</p>
             {listingTab !== 'standard' ? (
               <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
                 {resultCount} item{resultCount !== 1 ? 's' : ''}

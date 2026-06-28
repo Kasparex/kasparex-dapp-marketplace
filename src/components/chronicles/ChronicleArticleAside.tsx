@@ -12,11 +12,18 @@ export type AsideSection = {
   body?: ReactNode;
 };
 
-export function ChronicleArticleAside({ sections }: { sections: AsideSection[] }) {
+export function ChronicleArticleAside({
+  sections,
+  topContent,
+}: {
+  sections: AsideSection[];
+  topContent?: ReactNode;
+}) {
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-6 self-start">
+      {topContent}
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>
           <DAppSectionHeader title={sec.title} className="mb-3" />
