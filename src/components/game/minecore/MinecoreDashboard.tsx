@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
@@ -34,7 +35,8 @@ import { GameInteractionsPanel } from '@/components/games/panels/GameInteraction
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
-import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
+import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { CrewPlantFeaturesPanel } from '@/components/game/minecore/CrewPlantFeaturesPanel';
 import { MinecoreOwnedWorkersPanel } from '@/components/game/minecore/MinecoreOwnedAssetsPanel';
@@ -53,7 +55,17 @@ const TABS = [
   { id: 'workers', label: '4. Crew', icon: <IconWorkers /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
+  { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
+
+const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-400">
+      Loading comments…
+    </div>
+  ),
+});
 
 type TabId = (typeof TABS)[number]['id'];
 
@@ -277,6 +289,8 @@ export function MinecoreDashboard(_props: {
     ]
   );
 
+  const tabsWithComments = useGameCommentsTabs(TABS, 'minecore');
+
   const connections = (_props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
@@ -331,7 +345,7 @@ export function MinecoreDashboard(_props: {
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="flex flex-col space-y-6">
         <UnifiedGameLayout
-          tabs={TABS as any}
+          tabs={tabsWithComments as any}
           currentTab={tab}
           onTabChange={setTab}
           resources={resources}
@@ -754,6 +768,10 @@ export function MinecoreDashboard(_props: {
                 }
               />
             </div>
+          )}
+
+          {tab === 'comments' && (
+            <CommentsSection articleId={gameCommentsArticleId('minecore')} dappSectionHeader />
           )}
         </UnifiedGameLayout>
       </div>

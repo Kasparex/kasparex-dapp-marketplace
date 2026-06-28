@@ -25,6 +25,7 @@ import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconComments, IconOverview, IconPower, IconRewards, IconShop, IconWorkers } from '@/components/games/icons/TabIcons';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
+import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 
@@ -167,6 +168,8 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     }
   };
 
+  const tabsWithComments = useGameCommentsTabs(TABS, 'diamond-veins');
+
   return (
     <GameTooltipProvider>
       <div className="flex flex-col space-y-6">
@@ -177,7 +180,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
         )}
 
         <UnifiedGameLayout
-          tabs={TABS as any}
+          tabs={tabsWithComments as any}
           currentTab={tab}
           onTabChange={setTab}
           resources={[
@@ -345,15 +348,7 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             />
           )}
           {tab === 'comments' && (
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Share mining setups, traits, and strategies. Wallet connection required to post.
-                </p>
-              </div>
-              <CommentsSection articleId="game:diamond-veins" />
-            </div>
+            <CommentsSection articleId={gameCommentsArticleId('diamond-veins')} dappSectionHeader />
           )}
         </UnifiedGameLayout>
 

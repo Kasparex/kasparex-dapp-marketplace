@@ -21,6 +21,8 @@ import { GameOverviewSections } from '@/components/games/panels/GameOverviewSect
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { GameCommentsTabBadge, gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -88,15 +90,16 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
+  const commentsCount = useDAppCommentsCount(gameCommentsArticleId('precision-click'));
   const tabs = useMemo(
     () => [
       { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
       { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
       { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards />, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'comments' as const, label: 'Comments', icon: <IconComments />, rightAdornment: <GameCommentsTabBadge count={commentsCount} /> },
     ],
-    [boostersTip, boostersTone, rewardsTip, rewardsTone]
+    [boostersTip, boostersTone, commentsCount, rewardsTip, rewardsTone]
   );
 
   const openOverview = () => {
@@ -234,13 +237,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         )}
 
         {tab === 'comments' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Share PBs and strategies. Wallet required to post.</p>
-            </div>
-            <CommentsSection articleId="game:precision-click" />
-          </div>
+          <CommentsSection articleId={gameCommentsArticleId('precision-click')} dappSectionHeader />
         )}
 
         {tab === 'play' && (

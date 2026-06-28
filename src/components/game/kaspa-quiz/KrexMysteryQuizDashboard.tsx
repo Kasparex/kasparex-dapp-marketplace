@@ -20,6 +20,8 @@ import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { GameCommentsTabBadge, gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
@@ -222,15 +224,16 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
   const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
 
+  const commentsCount = useDAppCommentsCount(gameCommentsArticleId('kaspa-quiz'));
   const tabs = useMemo(
     () => [
       { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
       { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
       { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards />, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'comments' as const, label: 'Comments', icon: <IconComments />, rightAdornment: <GameCommentsTabBadge count={commentsCount} /> },
     ],
-    [boostersTip, boostersTone]
+    [boostersTip, boostersTone, commentsCount]
   );
 
   const openOverview = () => {
@@ -323,13 +326,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         )}
 
         {tab === 'comments' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Discuss lore, report errors, and propose new questions. Wallet required to post.</p>
-            </div>
-            <CommentsSection articleId="game:kaspa-quiz" />
-          </div>
+          <CommentsSection articleId={gameCommentsArticleId('kaspa-quiz')} dappSectionHeader />
         )}
 
         {tab === 'play' && (

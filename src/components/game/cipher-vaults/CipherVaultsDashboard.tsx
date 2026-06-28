@@ -21,6 +21,7 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
+import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -119,16 +120,22 @@ export function CipherVaultsDashboard({
     }
   };
 
+  const baseTabs = useMemo(
+    () => [
+      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
+      { id: 'vaults' as const, label: 'Vaults', icon: <IconVaults /> },
+      { id: 'redeem' as const, label: 'Redeem', icon: <IconRedeem /> },
+      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
+      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+    ],
+    [],
+  );
+  const tabs = useGameCommentsTabs(baseTabs, 'cipher-vaults');
+
   return (
     <TooltipProvider>
     <GamesWithSidebarLayout
-      tabs={[
-        { id: 'overview', label: 'Overview', icon: <IconOverview /> },
-        { id: 'vaults', label: 'Vaults', icon: <IconVaults /> },
-        { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
-        { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
-        { id: 'comments', label: 'Comments', icon: <IconComments /> },
-      ]}
+      tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
       main={
@@ -525,15 +532,7 @@ export function CipherVaultsDashboard({
         )}
 
         {tab === 'comments' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Community comments</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Discuss strategies, report bugs, and share vault seeds. Wallet connection required to post.
-              </p>
-            </div>
-            <CommentsSection articleId="game:cipher-vaults" />
-          </div>
+          <CommentsSection articleId={gameCommentsArticleId('cipher-vaults')} dappSectionHeader />
         )}
         </>
       }

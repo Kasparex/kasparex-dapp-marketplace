@@ -14,6 +14,10 @@ export function kxTabBtnClass(active: boolean, iconOnly = false) {
   return `k-tab-btn${iconOnly ? ' k-tab-btn-icon' : ''}${active ? ' k-tab-btn-active' : ''}`;
 }
 
+export function kxGamesTabBtnClass(active: boolean) {
+  return `k-tab-btn${active ? ' k-games-tab-btn-active' : ''}`;
+}
+
 export function KxTabStrip<T extends string>({
   value,
   onChange,

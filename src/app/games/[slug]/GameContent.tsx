@@ -7,6 +7,7 @@ import { IconOverview, IconRewards, IconShop, IconComments, IconBoosters } from 
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
@@ -85,6 +86,9 @@ export function GameContent({ game: baseGame }: { game: Game }) {
     return list;
   }, [hasBoosters, hasShop]);
 
+  const articleSlug = game.slug || game.id;
+  const tabsWithComments = useGameCommentsTabs(tabs as any, articleSlug);
+
   const shopItems = useMemo(() => {
     const items: any[] = [];
     if (game.shopItems) items.push(...game.shopItems);
@@ -123,7 +127,7 @@ export function GameContent({ game: baseGame }: { game: Game }) {
   return (
     <main className="min-w-0 flex-1 p-4 sm:p-6 lg:px-16 lg:py-12">
       <UnifiedGameLayout
-        tabs={tabs as any}
+        tabs={tabsWithComments as any}
         currentTab={tab}
         onTabChange={setTab}
         resources={resources}
@@ -208,7 +212,7 @@ export function GameContent({ game: baseGame }: { game: Game }) {
         )}
 
         {tab === 'comments' && (
-          <CommentsSection articleId={`game:${game.slug || game.id}`} />
+          <CommentsSection articleId={gameCommentsArticleId(articleSlug)} dappSectionHeader />
         )}
       </UnifiedGameLayout>
     </main>

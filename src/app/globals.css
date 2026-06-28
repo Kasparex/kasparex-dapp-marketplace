@@ -540,6 +540,11 @@
   @apply bg-cyan-500/10 text-cyan-900 dark:text-cyan-300;
 }
 
+/* Kasparex Games tab strip: emerald accent (dApps keep cyan via .k-tab-btn-active) */
+.k-games-tab-btn-active {
+  @apply bg-emerald-500/10 text-emerald-900 dark:text-emerald-300;
+}
+
 .k-tab-btn-icon {
   @apply px-3;
 }

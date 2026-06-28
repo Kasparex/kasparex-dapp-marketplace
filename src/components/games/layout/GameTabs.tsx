@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { kxTabBtnClass } from '@/components/ui/KxTabStrip';
+import { kxGamesTabBtnClass } from '@/components/ui/KxTabStrip';
 
 export type GameTab<T extends string = string> = {
   id: T;
@@ -149,7 +149,7 @@ export function GameTabs<T extends string>(props: {
             key={t.id}
             type="button"
             onClick={() => props.onChange(t.id)}
-            className={kxTabBtnClass(props.value === t.id)}
+            className={kxGamesTabBtnClass(props.value === t.id)}
           >
             <span className="pointer-events-none inline-flex items-center gap-2">
               {t.icon ? <span className="inline-flex h-4 w-4 items-center justify-center shrink-0">{t.icon}</span> : null}
