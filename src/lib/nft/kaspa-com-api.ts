@@ -62,6 +62,25 @@ export interface KaspaComCollectionRanks {
   ranks: Map<number, number>; // tokenId -> rank
 }
 
+export interface Krc721CollectionHolder {
+  /** Current KaspaCom API field */
+  owner?: string;
+  /** Legacy/alternate field names */
+  walletAddress?: string;
+  address?: string;
+  count?: number;
+  tokenIds?: Array<number | string>;
+  tokens?: Array<number | string>;
+  [key: string]: unknown;
+}
+
+export interface Krc721WalletToken {
+  ticker?: string;
+  tick?: string;
+  tokenId?: number | string;
+  [key: string]: unknown;
+}
+
 export interface Krc721Collection {
   ticker: string;
   totalSupply: number;
@@ -69,11 +88,7 @@ export interface Krc721Collection {
   totalMintedPercent: number;
   totalHolders: number;
   preMintedSupply: number;
-  holders: Array<{
-    walletAddress: string;
-    tokenIds: number[];
-    [key: string]: unknown;
-  }>;
+  holders: Array<Krc721CollectionHolder>;
   state?: string;
   metadata: {
     name?: string;
@@ -471,6 +486,132 @@ export async function fetchTradeStats(
     console.error(`Error fetching trade stats for ${ticker}:`, error);
     return null;
   }
+}
+
+function normalizeHolderAddress(addr: string): string {
+  if (!addr) return '';
+  return addr.replace(/^kaspa:/i, '').trim().toLowerCase();
+}
+
+function holderWalletAddress(holder: Krc721CollectionHolder): string {
+  const raw = holder.owner ?? holder.walletAddress ?? holder.address;
+  return typeof raw === 'string' ? raw : '';
+}
+
+function parseTokenIdsFromHolder(holder: Krc721CollectionHolder): number[] {
+  const raw = holder.tokenIds ?? holder.tokens ?? [];
+  if (!Array.isArray(raw)) return [];
+  const out: number[] = [];
+  for (const id of raw) {
+    const n = typeof id === 'number' ? id : parseInt(String(id), 10);
+    if (Number.isFinite(n) && !Number.isNaN(n)) out.push(n);
+  }
+  return out;
+}
+
+function parseWalletTokensPayload(data: unknown): Krc721WalletToken[] {
+  if (!data || typeof data !== 'object') return [];
+  const o = data as Record<string, unknown>;
+  const candidates = [o.tokens, o.items, o.result, o.nfts];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c as Krc721WalletToken[];
+  }
+  return [];
+}
+
+/**
+ * Fetch all KRC-721 tokens for a wallet via KaspaCom wallet endpoint.
+ */
+export async function fetchWalletNftsFromKaspaCom(address: string): Promise<Krc721WalletToken[]> {
+  const normalized = address.startsWith('kaspa:') ? address : `kaspa:${address}`;
+  const endpoint = `/krc721/wallet?address=${encodeURIComponent(normalized)}`;
+
+  try {
+    const url = getApiUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return parseWalletTokensPayload(data);
+  } catch (error) {
+    console.warn('[KaspaCom] Wallet NFT fetch failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch tokens owned by a wallet in one collection (best-effort; API support varies).
+ */
+export async function fetchTokensByOwnerFromKaspaCom(
+  ticker: string,
+  ownerAddress: string,
+  limit = 500,
+): Promise<Krc721Token[]> {
+  const owner = ownerAddress.startsWith('kaspa:') ? ownerAddress : `kaspa:${ownerAddress}`;
+  const bodies = [
+    { ticker: ticker.toUpperCase(), owner, limit },
+    { ticker: ticker.toUpperCase(), ownerAddress: owner, limit },
+  ];
+
+  for (const body of bodies) {
+    try {
+      const response = await postToApi('/krc721/tokens', body);
+      if (!response.ok) continue;
+      const data = (await response.json()) as FilterTokensResponse;
+      const owned = data.items.filter((item) => {
+        const itemOwner = (item as Krc721Token & { owner?: string }).owner;
+        if (!itemOwner) return false;
+        return normalizeHolderAddress(itemOwner) === normalizeHolderAddress(owner);
+      });
+      if (owned.length > 0) return owned;
+    } catch {
+      // try next body shape
+    }
+  }
+
+  try {
+    const url = getApiUrl(
+      `/krc721/tokens?owner=${encodeURIComponent(owner)}&ticker=${encodeURIComponent(ticker.toUpperCase())}&limit=${limit}`,
+    );
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as FilterTokensResponse | Krc721WalletToken[];
+    if (Array.isArray(data)) {
+      return data.map((t) => ({
+        tokenId: typeof t.tokenId === 'number' ? t.tokenId : parseInt(String(t.tokenId), 10),
+        ticker: String(t.ticker ?? t.tick ?? ticker).toUpperCase(),
+      }));
+    }
+    return data.items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Resolve token IDs for an address from KaspaCom collection holder data.
+ */
+export function getHolderTokenIdsForAddress(
+  collectionData: Krc721Collection,
+  ownerAddress: string,
+): number[] {
+  if (!collectionData.holders?.length) return [];
+  const search = normalizeHolderAddress(ownerAddress);
+  const holder = collectionData.holders.find((h) => {
+    const addr = holderWalletAddress(h);
+    return addr ? normalizeHolderAddress(addr) === search : false;
+  });
+  if (!holder) return [];
+  return parseTokenIdsFromHolder(holder);
 }
 
 /**

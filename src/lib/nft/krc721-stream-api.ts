@@ -7,12 +7,10 @@
  */
 
 import { resolveCollectionIdFromTick } from './collections';
+import { getKrc721IndexerBases } from './indexer-urls';
 
-function getApiUrl(endpoint: string): string {
-  if (typeof window !== 'undefined') {
-    return `/api/krc721-stream?endpoint=${encodeURIComponent(endpoint)}`;
-  }
-  return `https://mainnet.krc721.stream${endpoint}`;
+function getProxyUrl(endpoint: string): string {
+  return `/api/krc721-stream?endpoint=${encodeURIComponent(endpoint)}`;
 }
 
 export interface KRC721StreamToken {
@@ -43,23 +41,54 @@ function parseStreamTokens(data: KRC721StreamResponse): KRC721StreamToken[] {
 }
 
 async function fetchStreamPage(endpoint: string): Promise<KRC721StreamResponse> {
-  const url = getApiUrl(endpoint);
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store',
-    signal: AbortSignal.timeout(20000),
-  });
+  if (typeof window !== 'undefined') {
+    const url = getProxyUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(20000),
+    });
 
-  if (!response.ok) {
-    if (response.status === 404 || response.status === 400) {
-      return { message: 'empty', result: [] };
+    if (!response.ok) {
+      if (response.status === 404 || response.status === 400) {
+        return { message: 'empty', result: [] };
+      }
+      const errorText = await response.text();
+      throw new Error(`KRC721 Stream API error: ${response.status} ${response.statusText} ${errorText}`);
     }
-    const errorText = await response.text();
-    throw new Error(`KRC721 Stream API error: ${response.status} ${response.statusText} ${errorText}`);
+
+    return (await response.json()) as KRC721StreamResponse;
   }
 
-  return (await response.json()) as KRC721StreamResponse;
+  const bases = getKrc721IndexerBases();
+  let lastError = 'All KRC721 indexers failed';
+
+  for (const base of bases) {
+    try {
+      const url = `${base}${endpoint}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(20000),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404 || response.status === 400) {
+          return { message: 'empty', result: [] };
+        }
+        lastError = `KRC721 indexer ${base} error: ${response.status} ${response.statusText}`;
+        continue;
+      }
+
+      return (await response.json()) as KRC721StreamResponse;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : 'Unknown indexer error';
+    }
+  }
+
+  throw new Error(lastError);
 }
 
 /**
@@ -72,7 +101,7 @@ export async function fetchNFTsByAddress(address: string): Promise<KRC721StreamT
 
     const allTokens: KRC721StreamToken[] = [];
     let endpoint = baseEndpoint;
-    const maxPages = 5;
+    const maxPages = 10;
 
     for (let page = 0; page < maxPages; page += 1) {
       const data = await fetchStreamPage(endpoint);

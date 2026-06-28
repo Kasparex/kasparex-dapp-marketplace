@@ -12,7 +12,12 @@ import {
 import { isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { createPublicClient, http, type Address } from 'viem';
 import { kasplexL2Testnet } from '@/lib/wagmi';
-import { fetchCollectionByTicker } from './kaspa-com-api';
+import {
+  fetchCollectionByTicker,
+  fetchTokensByOwnerFromKaspaCom,
+  fetchWalletNftsFromKaspaCom,
+  getHolderTokenIdsForAddress,
+} from './kaspa-com-api';
 import { queryNFTsFromRegistry } from './registry-query';
 import { fetchNFTsByAddress } from './krc721-stream-api';
 
@@ -34,11 +39,6 @@ function normalizeQueryAddress(address: string): string | null {
   }
 }
 
-function normalizeHolderAddress(addr: string): string {
-  if (!addr) return '';
-  return addr.replace(/^kaspa:/i, '').trim().toLowerCase();
-}
-
 function parseTokenId(tokenId: string | number | undefined): number | null {
   if (tokenId === undefined || tokenId === null) return null;
   const tokenIdNum = typeof tokenId === 'number' ? tokenId : parseInt(String(tokenId), 10);
@@ -47,6 +47,17 @@ function parseTokenId(tokenId: string | number | undefined): number | null {
 
 function userNftKey(collection: string, tokenId: number): string {
   return `${collection}-${tokenId}`;
+}
+
+function toUserNft(collectionId: string, tokenId: number): UserNFT | null {
+  const collection = collections[collectionId];
+  if (!collection) return null;
+  return {
+    tokenId,
+    collection: collectionId,
+    collectionConfig: collection,
+    network: 'L1',
+  };
 }
 
 async function queryCollectionFromKaspaCom(
@@ -60,27 +71,24 @@ async function queryCollectionFromKaspaCom(
 
   try {
     const collectionData = await fetchCollectionByTicker(collectionId);
-    if (!collectionData?.holders?.length) return results;
+    if (!collectionData) return results;
 
-    const searchNormalized = normalizeHolderAddress(normalizedAddress);
-    const holder = collectionData.holders.find((h) => {
-      if (!h.walletAddress) return false;
-      return normalizeHolderAddress(h.walletAddress) === searchNormalized;
-    });
-
-    if (!holder?.tokenIds?.length) return results;
-
-    holder.tokenIds.forEach((tokenId) => {
-      const tokenIdNum = parseTokenId(tokenId);
-      if (tokenIdNum !== null) {
-        results.push({
-          tokenId: tokenIdNum,
-          collection: collectionId,
-          collectionConfig: collection,
-          network: 'L1',
-        });
+    const holderTokenIds = getHolderTokenIdsForAddress(collectionData, normalizedAddress);
+    if (holderTokenIds.length > 0) {
+      for (const tokenId of holderTokenIds) {
+        const item = toUserNft(collectionId, tokenId);
+        if (item) results.push(item);
       }
-    });
+      if (results.length > 0) return results;
+    }
+
+    const ownerTokens = await fetchTokensByOwnerFromKaspaCom(collectionId, normalizedAddress);
+    for (const token of ownerTokens) {
+      const tokenIdNum = parseTokenId(token.tokenId);
+      if (tokenIdNum === null) continue;
+      const item = toUserNft(collectionId, tokenIdNum);
+      if (item) results.push(item);
+    }
   } catch (error) {
     console.error(`Error querying L1 NFTs for ${collectionId}:`, error);
   }
@@ -88,9 +96,37 @@ async function queryCollectionFromKaspaCom(
   return results;
 }
 
+function streamTokensToUserNfts(
+  streamTokens: Array<{ tick?: string; tokenId?: string | number }>,
+  collectionIds: string[],
+): UserNFT[] {
+  const results: UserNFT[] = [];
+
+  for (const token of streamTokens) {
+    const collectionId = resolveCollectionIdFromTick(token.tick);
+    if (!collectionId || !collectionIds.includes(collectionId)) continue;
+
+    const tokenIdNum = parseTokenId(token.tokenId);
+    if (tokenIdNum === null) continue;
+
+    const item = toUserNft(collectionId, tokenIdNum);
+    if (item) results.push(item);
+  }
+
+  return results;
+}
+
+async function queryFromKaspaComWallet(
+  normalizedAddress: string,
+  collectionIds: string[],
+): Promise<UserNFT[]> {
+  const walletTokens = await fetchWalletNftsFromKaspaCom(normalizedAddress);
+  return streamTokensToUserNfts(walletTokens, collectionIds);
+}
+
 /**
  * Query NFTs from Kaspa L1 (KRC-721)
- * Uses KRC721 Stream API first, falls back to KaspaCom API per collection, then IPFS registry if available
+ * Uses KRC721 Stream API first, then KaspaCom wallet/owner endpoints, then per-collection holder data.
  */
 export async function queryL1NFTs(
   address: string,
@@ -116,35 +152,29 @@ export async function queryL1NFTs(
     }
   };
 
-  // KRC721 Stream API (paginated)
+  // 1) KRC721 Stream API (paginated, multi-indexer via proxy)
   try {
     const streamTokens = await fetchNFTsByAddress(normalizedAddress);
-    const streamResults: UserNFT[] = [];
-
-    for (const token of streamTokens) {
-      const collectionId = resolveCollectionIdFromTick(token.tick);
-      if (!collectionId || !collectionIds.includes(collectionId)) continue;
-
-      const collection = collections[collectionId];
-      const tokenIdNum = parseTokenId(token.tokenId);
-      if (!collection || tokenIdNum === null) continue;
-
-      streamResults.push({
-        tokenId: tokenIdNum,
-        collection: collectionId,
-        collectionConfig: collection,
-        network: 'L1',
-      });
-    }
-
-    if (streamResults.length > 0) {
-      addResults(streamResults);
+    if (streamTokens.length > 0) {
+      addResults(streamTokensToUserNfts(streamTokens, collectionIds));
     }
   } catch (error) {
-    console.warn('[NFT Query] KRC721 Stream API failed, trying KaspaCom API fallback:', error);
+    console.warn('[NFT Query] KRC721 Stream API failed:', error);
   }
 
-  // KaspaCom fallback for collections with no Stream hits
+  // 2) KaspaCom wallet endpoint (all collections in one call when available)
+  if (foundCollections.size === 0) {
+    try {
+      const walletResults = await queryFromKaspaComWallet(normalizedAddress, collectionIds);
+      if (walletResults.length > 0) {
+        addResults(walletResults);
+      }
+    } catch (error) {
+      console.warn('[NFT Query] KaspaCom wallet API failed:', error);
+    }
+  }
+
+  // 3) KaspaCom per-collection fallback
   const missingCollections =
     foundCollections.size === 0 ? collectionIds : collectionIds.filter((id) => !foundCollections.has(id));
 
@@ -156,7 +186,11 @@ export async function queryL1NFTs(
       const collectionConfig = collections[collectionId];
       if (collectionConfig?.registryCid) {
         try {
-          const registryNFTs = await queryNFTsFromRegistry(normalizedAddress, collectionConfig.registryCid, [collectionId]);
+          const registryNFTs = await queryNFTsFromRegistry(
+            normalizedAddress,
+            collectionConfig.registryCid,
+            [collectionId],
+          );
           addResults(registryNFTs);
         } catch (registryError) {
           console.warn(`[NFT Query] Registry fallback failed for ${collectionId}:`, registryError);

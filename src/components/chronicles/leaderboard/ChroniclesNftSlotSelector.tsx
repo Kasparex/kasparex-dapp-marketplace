@@ -3,11 +3,8 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
-import {
-  fetchNFTsByAddress,
-  streamMetaJsonPathFromBaseUri,
-  streamTokenBaseUri,
-} from '@/lib/nft/krc721-stream-api';
+import { queryL1NFTs } from '@/lib/nft/nft-query';
+import { streamMetaJsonPathFromBaseUri } from '@/lib/nft/krc721-stream-api';
 import type { ParsedNFTMetadata, NFTMetadata, NFTTrait } from '@/lib/nft/metadata';
 import { fetchNFTMetadata } from '@/lib/nft/metadata';
 import { getCollectionById } from '@/lib/nft/collections';
@@ -161,13 +158,13 @@ export function ChroniclesNftSlotSelector({
     const run = async () => {
       setIsLoading(true);
       try {
-        const tokens = await fetchNFTsByAddress(payerKaspa);
+        const userNfts = await queryL1NFTs(payerKaspa);
         if (cancelled) return;
-        const next = tokens
-          .map((t) => ({
-            collection: String(t.tick ?? '').toUpperCase().trim(),
-            tokenId: parseInt(String(t.tokenId), 10),
-            buri: streamTokenBaseUri(t),
+        const next = userNfts
+          .map((nft) => ({
+            collection: nft.collection.toUpperCase(),
+            tokenId: nft.tokenId,
+            buri: nft.collectionConfig.baseUri ?? null,
           }))
           .filter((t) => t.collection && Number.isFinite(t.tokenId));
         setRawNfts(next);
