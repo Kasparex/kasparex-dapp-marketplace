@@ -13,14 +13,14 @@ interface VBlogCardProps {
   article: VBlogArticle;
 }
 
-function statusVariant(article: VBlogArticle): 'emerald' | 'amber' | 'zinc' | 'cyan' {
+function statusVariant(article: VBlogArticle): 'emerald-solid' | 'amber-solid' | 'zinc-solid' | 'cyan-solid' {
   if (article.status === 'published' || article.status === 'on-chain-ready' || article.status === 'verified') {
-    return 'emerald';
+    return 'emerald-solid';
   }
   if (article.status === 'pending' || article.status === 'paying_chunks' || article.status === 'committing') {
-    return 'amber';
+    return 'amber-solid';
   }
-  return 'zinc';
+  return 'zinc-solid';
 }
 
 function statusLabel(article: VBlogArticle): string {
@@ -72,7 +72,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
           </div>
         )}
         <div className="absolute bottom-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
-          <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>
+          <KxBadge variant={source === 'kasparex' ? 'cyan-solid' : 'zinc-solid'}>
             {source === 'kasparex' ? 'Kasparex' : 'Community'}
           </KxBadge>
           <KxBadge variant={statusVariant(article)}>{statusLabel(article)}</KxBadge>
@@ -86,7 +86,7 @@ export function VBlogCard({ article }: VBlogCardProps) {
 
       <KxListingCardBody comfortable>
         <div className="mb-2 min-w-0">
-          <h3 className="truncate text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">{article.title}</h3>
+          <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">{article.title}</h3>
           <p className="text-xs font-medium text-zinc-500">{article.category}</p>
         </div>
 

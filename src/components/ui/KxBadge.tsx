@@ -12,7 +12,11 @@ export type KxBadgeVariant =
   | 'teal'
   | 'sky'
   | 'orange'
-  | 'indigo';
+  | 'indigo'
+  | 'cyan-solid'
+  | 'emerald-solid'
+  | 'amber-solid'
+  | 'zinc-solid';
 
 const VARIANT_CLASS: Record<KxBadgeVariant, string> = {
   cyan: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
@@ -26,6 +30,10 @@ const VARIANT_CLASS: Record<KxBadgeVariant, string> = {
   sky: 'bg-sky-500/15 text-sky-800 dark:text-sky-300',
   orange: 'bg-orange-500/15 text-orange-800 dark:text-orange-300',
   indigo: 'bg-indigo-500/15 text-indigo-800 dark:text-indigo-300',
+  'cyan-solid': 'bg-cyan-600 text-white shadow-sm dark:bg-cyan-500',
+  'emerald-solid': 'bg-emerald-600 text-white shadow-sm dark:bg-emerald-500',
+  'amber-solid': 'bg-amber-500 text-white shadow-sm dark:bg-amber-500',
+  'zinc-solid': 'bg-zinc-800 text-white shadow-sm dark:bg-zinc-600',
 };
 
 export function kxBadgeClassName(variant: KxBadgeVariant = 'cyan', className = ''): string {

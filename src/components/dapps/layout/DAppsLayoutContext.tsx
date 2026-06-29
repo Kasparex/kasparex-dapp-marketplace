@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
+import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 
 export type DAppsLayoutDensity = {
   rightPanelOpen: boolean;
@@ -21,6 +22,5 @@ export function useDAppsLayoutDensity(): DAppsLayoutDensity {
 /** Constrains tab content width when the right panel is hidden (matches Comments module margins). */
 export function DAppsMainContent({ children }: { children: ReactNode }) {
   const { rightPanelOpen } = useDAppsLayoutDensity();
-  if (rightPanelOpen) return <>{children}</>;
-  return <div className="mx-auto w-full max-w-4xl px-2 sm:px-4">{children}</div>;
+  return <SidePanelCollapsedContentWrap panelOpen={rightPanelOpen}>{children}</SidePanelCollapsedContentWrap>;
 }

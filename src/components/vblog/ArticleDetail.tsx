@@ -15,6 +15,7 @@ import { VBlogAuthorCard } from '@/components/vblog/ArticleSidebar';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
+import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
@@ -336,7 +337,9 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
         </div>
 
         <div className={`grid grid-cols-1 gap-8 xl:gap-12 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+          <div className={`min-w-0 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+            <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
+              <div className="flex min-w-0 flex-col space-y-6">
             {contentTab === 'article' ? (
               <div
                 id="article-main"
@@ -465,6 +468,8 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
                 <CommentsSection articleId={article.id} />
               </div>
             ) : null}
+              </div>
+            </SidePanelCollapsedContentWrap>
           </div>
 
           {rightOpen ? (

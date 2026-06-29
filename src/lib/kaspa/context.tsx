@@ -139,7 +139,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined' || userDisconnectedRef.current) return;
 
     const provider = state.provider;
-    if (!provider) return;
+    if (!provider || !state.isConnected) return;
 
     let cancelled = false;
 
@@ -150,6 +150,14 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
         const walletProvider = getWalletProvider(provider!);
         if (walletProvider) {
           try {
+            if (!walletProvider.isConnected()) {
+              if (!userDisconnectedRef.current) {
+                clearPersistedWalletState();
+                setState(DEFAULT_WALLET_STATE);
+              }
+              return;
+            }
+
             const address = await getKaspaAddress(provider!);
             if (cancelled) return;
             if (address) {
@@ -160,9 +168,16 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
                 provider: provider!,
                 error: null,
               }));
+            } else if (!userDisconnectedRef.current) {
+              clearPersistedWalletState();
+              setState(DEFAULT_WALLET_STATE);
             }
           } catch (error) {
             console.warn('Wallet session restore attempt failed:', error);
+            if (!userDisconnectedRef.current) {
+              clearPersistedWalletState();
+              setState(DEFAULT_WALLET_STATE);
+            }
           }
           return;
         }
@@ -176,7 +191,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [state.provider]);
+  }, [state.provider, state.isConnected]);
 
   // KasWare: `window.ethereum` can mirror Kaspa account changes; briefly suppress wagmi reinject.
   // Kastle: do not listen here - the same `ethereum` object can emit when switching L1 even when

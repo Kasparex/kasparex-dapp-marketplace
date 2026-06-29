@@ -14,7 +14,7 @@ import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { AdSlider } from '@/components/ads/AdSlider';
+import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 
 interface DAppActionsColumnProps {
   dapp: DApp;
@@ -192,7 +192,7 @@ export function DAppActionsColumn({ dapp, contractAddress }: DAppActionsColumnPr
         )}
       </div>
 
-      <AdSlider slotId="HALO_DAPPS_RIGHT" relaxHaloFrame />
+      <PanelAdSlider slotId="HALO_DAPPS_RIGHT" />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { AdSlider } from '@/components/ads/AdSlider';
+import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
 
 export type VBlogAsideLink = { href: string; label: string; sublabel?: string };
@@ -47,12 +47,7 @@ export function VBlogArticleAside({ sections }: { sections: VBlogAsideSection[] 
         </div>
       ))}
 
-      <div
-        id="ad-slot-vblog-article-aside"
-        className={`${CHRONICLES_PANEL} p-5 sm:p-6 flex items-center justify-center min-h-[200px] scroll-mt-24`}
-      >
-        <AdSlider slotId="VBLOG_ARTICLE_ASIDE_BOTTOM" relaxHaloFrame />
-      </div>
+      <PanelAdSlider slotId="VBLOG_ARTICLE_ASIDE_BOTTOM" id="ad-slot-vblog-article-aside" />
     </aside>
   );
 }

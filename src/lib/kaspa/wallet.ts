@@ -21,6 +21,7 @@ import {
   formatKaspaAddress as sdkFormatKaspaAddress,
 } from './sdk';
 import type { SIWKAuthResult } from './auth';
+import { isKasWareConnected } from './kasware';
 
 /**
  * List of supported wallet providers with metadata
@@ -147,18 +148,11 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
         console.log('KasWare isConnected check:', connected);
         return connected;
       }
-      // Fallback: try to verify connection by checking if requestAccounts would work
-      // For now, assume connected if method doesn't exist (some wallets don't have isConnected)
-      console.log('KasWare isConnected method not available, assuming connected');
-      return true;
+      return isKasWareConnected();
     },
     getAddress: async () => {
       if (typeof kasware.getAddress === 'function') {
         return await kasware.getAddress();
-      }
-      if (typeof kasware.requestAccounts === 'function') {
-        const accounts = await kasware.requestAccounts();
-        return accounts && accounts.length > 0 ? accounts[0] : null;
       }
       return null;
     },
