@@ -14,8 +14,8 @@ import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads
 import { ADS_BASE_CAROUSEL_INTERVAL_MS, getAdSlideIntervalMs } from '@/lib/ads/carouselTiming';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
-import { FEATURED_AD_SLOT_BADGE_LAYOUT, FEATURED_AD_SLOT_AURA_CLASS, FEATURED_AD_SLOT_FRAME_CLASS, FEATURED_AD_SLOT_HOST_CLASS } from '@/lib/ads/featuredAccent';
-import { FeaturedAdFireIcon } from '@/components/ads/FeaturedAdFireIcon';
+import { FEATURED_AD_SLOT_AURA_CLASS, FEATURED_AD_SLOT_FRAME_CLASS, FEATURED_AD_SLOT_HOST_CLASS } from '@/lib/ads/featuredAccent';
+import { FeaturedAdIcon } from '@/components/ads/FeaturedAdIcon';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -216,13 +216,17 @@ function FilledAdShell({
     ? FEATURED_AD_SLOT_FRAME_CLASS
     : 'border-2 border-zinc-400 dark:border-zinc-300 dark:border-zinc-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
 
+  const linkClass = featured
+    ? `${rounded} relative z-[1] block w-full min-h-0 flex-1 overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`
+    : `${frameClassName} ${rounded} relative isolate block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`;
+
   const linkEl = (
     <Link
       href={ad.link}
       target="_blank"
       rel="noopener noreferrer sponsored"
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
-      className={`${frameClassName} ${rounded} relative isolate block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`}
+      className={linkClass}
     >
       <span className={`absolute inset-0 z-0 overflow-hidden ${rounded}`}>
         <Image
@@ -235,15 +239,15 @@ function FilledAdShell({
         />
       </span>
       {featured ? (
-        <FeaturedAdFireIcon className={`${FEATURED_AD_SLOT_BADGE_LAYOUT}`} />
+        <FeaturedAdIcon className="absolute top-2 right-2 z-[35]" />
       ) : null}
     </Link>
   );
 
   const shell = featured ? (
-    <div className={`${FEATURED_AD_SLOT_HOST_CLASS} w-full ${rounded}`}>
+    <div className={`${FEATURED_AD_SLOT_HOST_CLASS} ${frameClassName} ${rounded}`}>
       <div className={`${FEATURED_AD_SLOT_AURA_CLASS} ${rounded}`} aria-hidden />
-      <div className="relative z-[1]">{linkEl}</div>
+      {linkEl}
     </div>
   ) : (
     linkEl

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { KASPPAREX_TOOLTIP_SURFACE_CLASS } from '@/components/ui/Tooltip';
+import { computeFloatingPlacement } from '@/lib/ui/floatingPosition';
 
 interface RewardTooltipProps {
   description: string;
@@ -12,54 +14,52 @@ interface RewardTooltipProps {
 
 export function RewardTooltip({ description, children, showTrailingIcon = true }: RewardTooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState({ x: 0, y: 0 });
+  const [placement, setPlacement] = useState({ left: 0, top: 0 });
+  const [ready, setReady] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  const updatePlacement = useCallback((x: number, y: number) => {
+    const el = tooltipRef.current;
+    if (!el || typeof window === 'undefined') return;
+
+    const rect = el.getBoundingClientRect();
+    const next = computeFloatingPlacement(
+      { x, y },
+      { width: rect.width, height: rect.height },
+      { width: window.innerWidth, height: window.innerHeight },
+    );
+    setPlacement(next);
+    setReady(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!showTooltip) {
+      setReady(false);
+      return;
+    }
+    updatePlacement(anchor.x, anchor.y);
+  }, [showTooltip, anchor, description, updatePlacement]);
 
   useEffect(() => {
     if (!showTooltip) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const padding = 16; // Padding from viewport edges
-      const tooltipWidth = 280; // Approximate tooltip width
-      const tooltipHeight = 80; // Approximate tooltip height
-      const offset = 12; // Offset from cursor
-
-      let left = e.clientX + offset;
-      let top = e.clientY + offset;
-
-      // Adjust horizontal position if tooltip would go off-screen
-      if (left + tooltipWidth > window.innerWidth - padding) {
-        left = e.clientX - tooltipWidth - offset;
-      }
-      if (left < padding) {
-        left = padding;
-      }
-
-      // Adjust vertical position if tooltip would go off-screen
-      if (top + tooltipHeight > window.innerHeight - padding) {
-        top = e.clientY - tooltipHeight - offset;
-      }
-      if (top < padding) {
-        top = padding;
-      }
-
-      setTooltipPosition({ top, left });
+      setAnchor({ x: e.clientX, y: e.clientY });
+      updatePlacement(e.clientX, e.clientY);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    handleMouseMove({ clientX: 0, clientY: 0 } as MouseEvent); // Initial position
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [showTooltip]);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [showTooltip, updatePlacement]);
 
   return (
     <>
       <div
-        ref={triggerRef}
-        onMouseEnter={() => setShowTooltip(true)}
+        onMouseEnter={(e) => {
+          setAnchor({ x: e.clientX, y: e.clientY });
+          setShowTooltip(true);
+        }}
         onMouseLeave={() => setShowTooltip(false)}
         className="inline-flex items-center gap-1 cursor-help"
       >
@@ -81,20 +81,20 @@ export function RewardTooltip({ description, children, showTrailingIcon = true }
         ) : null}
       </div>
 
-      {showTooltip && tooltipPosition && typeof window !== 'undefined' && createPortal(
+      {showTooltip && typeof window !== 'undefined' && createPortal(
         <div
           ref={tooltipRef}
-          className="fixed bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl z-[99999] p-3 pointer-events-none max-w-xs"
+          className={`${KASPPAREX_TOOLTIP_SURFACE_CLASS} pointer-events-none`}
           style={{
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
+            position: 'fixed',
+            top: placement.top,
+            left: placement.left,
+            visibility: ready ? 'visible' : 'hidden',
           }}
         >
-          <p className="kx-body text-zinc-700 dark:text-zinc-300">
-            {description}
-          </p>
+          <p className="kx-body text-zinc-700 dark:text-zinc-300">{description}</p>
         </div>,
-        document.body
+        document.body,
       )}
     </>
   );

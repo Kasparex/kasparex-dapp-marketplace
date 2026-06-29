@@ -17,9 +17,11 @@ export type FeaturedAdAccent = {
 export const FEATURED_AD_SLOT_FRAME_CLASS =
   'border-[2px] border-solid border-white/95 dark:border-zinc-100/90 box-border shadow-md shadow-black/25 dark:shadow-black/45';
 
-export const FEATURED_AD_SLOT_HOST_CLASS = 'kasparex-ad-slot-featured-host relative isolate w-full';
+export const FEATURED_AD_SLOT_HOST_CLASS =
+  'kasparex-ad-slot-featured-host relative isolate box-border overflow-visible flex flex-col';
 
-export const FEATURED_AD_SLOT_AURA_CLASS = 'kasparex-ad-slot-featured-aura pointer-events-none absolute -inset-[3px] -z-10';
+export const FEATURED_AD_SLOT_AURA_CLASS =
+  'kasparex-ad-slot-featured-aura pointer-events-none absolute -inset-[4px] z-0';
 
 export const FEATURED_AD_SLOT_OVERLAY_CLASS = '';
 

@@ -432,6 +432,7 @@
   .kasparex-ad-slot-featured-host {
     position: relative;
     isolation: isolate;
+    overflow: visible;
   }
 
   .kasparex-ad-slot-featured-aura {
