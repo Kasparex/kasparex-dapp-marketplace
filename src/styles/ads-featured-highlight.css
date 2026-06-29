@@ -415,3 +415,49 @@
       var(--kasparex-ad-accent-11-progress-to)
     );
   }
+
+  /** In-page ad slot: animated gradient aura outside the creative shell */
+  @keyframes kasparex-ad-slot-featured-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .kasparex-ad-slot-featured-host {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .kasparex-ad-slot-featured-aura {
+    border-radius: inherit;
+    z-index: 0;
+    background: linear-gradient(
+      120deg,
+      #fbbf24,
+      #f97316,
+      #ec4899,
+      #a855f7,
+      #22d3ee,
+      #fbbf24
+    );
+    background-size: 320% 320%;
+    animation: kasparex-ad-slot-featured-shimmer 6s ease infinite;
+    opacity: 0.92;
+    box-shadow:
+      0 0 16px rgba(251, 191, 36, 0.45),
+      0 0 32px rgba(249, 115, 22, 0.28),
+      0 0 48px rgba(236, 72, 153, 0.12);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kasparex-ad-slot-featured-aura {
+      animation: none;
+      background-size: 100% 100%;
+    }
+  }

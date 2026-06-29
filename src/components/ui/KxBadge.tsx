@@ -37,8 +37,8 @@ const VARIANT_CLASS: Record<KxBadgeVariant, string> = {
 };
 
 const SIZE_CLASS = {
-  default: 'rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-  sm: 'rounded-lg px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide',
+  default: 'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+  sm: 'inline-flex items-center gap-1 rounded-lg px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide',
 } as const;
 
 export function kxBadgeClassName(
@@ -53,12 +53,19 @@ export function KxBadge({
   variant = 'cyan',
   className = '',
   size = 'default',
+  icon,
   children,
 }: {
   variant?: KxBadgeVariant;
   className?: string;
   size?: 'default' | 'sm';
+  icon?: ReactNode;
   children: ReactNode;
 }) {
-  return <span className={kxBadgeClassName(variant, className, size)}>{children}</span>;
+  return (
+    <span className={kxBadgeClassName(variant, className, size)}>
+      {icon ? <span className="inline-flex shrink-0 opacity-90">{icon}</span> : null}
+      {children}
+    </span>
+  );
 }

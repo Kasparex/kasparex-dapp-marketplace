@@ -14,8 +14,8 @@ import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads
 import { ADS_BASE_CAROUSEL_INTERVAL_MS, getAdSlideIntervalMs } from '@/lib/ads/carouselTiming';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
-import { FEATURED_AD_SLOT_BADGE_LAYOUT, FEATURED_AD_SLOT_FRAME_CLASS, FEATURED_AD_SLOT_OVERLAY_CLASS } from '@/lib/ads/featuredAccent';
-import { KxBadge } from '@/components/ui/KxBadge';
+import { FEATURED_AD_SLOT_BADGE_LAYOUT, FEATURED_AD_SLOT_AURA_CLASS, FEATURED_AD_SLOT_FRAME_CLASS, FEATURED_AD_SLOT_HOST_CLASS } from '@/lib/ads/featuredAccent';
+import { FeaturedAdFireIcon } from '@/components/ads/FeaturedAdFireIcon';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -224,7 +224,6 @@ function FilledAdShell({
       aria-label={tip ? `${ad.title}. ${tip}` : ad.title}
       className={`${frameClassName} ${rounded} relative isolate block w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`}
     >
-      {/* Image stays in z-0 layer so featured chrome paints above the bitmap (Next/Image compositing). */}
       <span className={`absolute inset-0 z-0 overflow-hidden ${rounded}`}>
         <Image
           src={ad.imageUrl}
@@ -236,17 +235,19 @@ function FilledAdShell({
         />
       </span>
       {featured ? (
-        <div
-          className={`pointer-events-none absolute inset-0 z-[25] ${rounded} ${FEATURED_AD_SLOT_OVERLAY_CLASS}`}
-          aria-hidden
-        />
-      ) : null}
-      {featured ? (
-        <KxBadge variant="amber" size="sm" className={`${FEATURED_AD_SLOT_BADGE_LAYOUT} shadow-sm`}>
-          Featured
-        </KxBadge>
+        <FeaturedAdFireIcon className={`${FEATURED_AD_SLOT_BADGE_LAYOUT}`} />
       ) : null}
     </Link>
   );
-  return tip ? <Tooltip content={gameTooltipRich(ad.title, tip)}>{linkEl}</Tooltip> : linkEl;
+
+  const shell = featured ? (
+    <div className={`${FEATURED_AD_SLOT_HOST_CLASS} w-full ${rounded}`}>
+      <div className={`${FEATURED_AD_SLOT_AURA_CLASS} ${rounded}`} aria-hidden />
+      <div className="relative z-[1]">{linkEl}</div>
+    </div>
+  ) : (
+    linkEl
+  );
+
+  return tip ? <Tooltip content={gameTooltipRich(ad.title, tip)}>{shell}</Tooltip> : shell;
 }

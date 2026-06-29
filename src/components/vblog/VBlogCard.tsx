@@ -29,6 +29,14 @@ function statusLabel(article: VBlogArticle): string {
   return article.status.replace(/_/g, ' ');
 }
 
+function CategoryIcon() {
+  return (
+    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+    </svg>
+  );
+}
+
 function ArticleIcon() {
   return (
     <svg
@@ -71,26 +79,32 @@ export function VBlogCard({ article }: VBlogCardProps) {
             <ArticleIcon />
           </div>
         )}
-        <div className="absolute bottom-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1">
-          <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'} size="sm" className="shadow-sm">
-            {source === 'kasparex' ? 'Kasparex' : 'Community'}
-          </KxBadge>
-          <KxBadge variant={statusVariant(article)} size="sm" className="shadow-sm">{statusLabel(article)}</KxBadge>
-          {isLinked ? (
-            <KxBadge variant="violet" size="sm" className="tracking-wider shadow-sm">
-              Mag #{article.linkedIssueNumber}
-            </KxBadge>
-          ) : null}
-        </div>
       </KxListingCardMedia>
 
       <KxListingCardBody comfortable>
-        <div className="mb-2 min-w-0">
-          <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">{article.title}</h3>
-          <p className="text-xs font-medium text-zinc-500">{article.category}</p>
+        <div className="mb-3 min-w-0 space-y-2">
+          <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+            {article.title}
+          </h3>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <KxBadge variant="zinc" size="sm" icon={<CategoryIcon />} className="shadow-sm">
+              {article.category}
+            </KxBadge>
+            <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'} size="sm" className="shadow-sm">
+              {source === 'kasparex' ? 'Kasparex' : 'Community'}
+            </KxBadge>
+            <KxBadge variant={statusVariant(article)} size="sm" className="shadow-sm">
+              {statusLabel(article)}
+            </KxBadge>
+            {isLinked ? (
+              <KxBadge variant="violet" size="sm" className="tracking-wider shadow-sm">
+                Mag #{article.linkedIssueNumber}
+              </KxBadge>
+            ) : null}
+          </div>
         </div>
 
-        <p className="mb-4 line-clamp-2 text-base leading-relaxed text-zinc-600 dark:text-zinc-400">{excerpt}</p>
+        <p className="mb-4 line-clamp-2 text-[15px] leading-snug text-zinc-600 dark:text-zinc-400">{excerpt}</p>
 
         <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
           <p className="text-xs text-zinc-500">

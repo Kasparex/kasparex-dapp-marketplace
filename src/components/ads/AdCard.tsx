@@ -7,6 +7,7 @@ import { getSlotConfig } from '@/lib/ads/slots';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
+import { FeaturedAdFireIcon } from '@/components/ads/FeaturedAdFireIcon';
 
 interface AdCardProps {
   ad: AdEntry;
@@ -87,7 +88,9 @@ export function AdCard({ ad, onEdit, onDelete, embedded = false }: AdCardProps) 
           className={`pointer-events-none absolute inset-0 z-[25] rounded-t-xl ${accent.overlayClass}`}
           aria-hidden
         />
-        <span className={`${FEATURED_BADGE_LAYOUT} ${accent.badgeClass}`}>Featured</span>
+        <span className="pointer-events-none absolute top-2 right-2 z-[35]">
+          <FeaturedAdFireIcon />
+        </span>
       </>
     ) : null;
 

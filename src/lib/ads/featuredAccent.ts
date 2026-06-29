@@ -15,10 +15,13 @@ export type FeaturedAdAccent = {
 
 /** Unified featured styling for in-page ad slot placements (halos, rails, panels). */
 export const FEATURED_AD_SLOT_FRAME_CLASS =
-  'border-[3px] border-dashed border-amber-500 dark:border-amber-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
+  'border-[2px] border-solid border-white/95 dark:border-zinc-100/90 box-border shadow-md shadow-black/25 dark:shadow-black/45';
 
-export const FEATURED_AD_SLOT_OVERLAY_CLASS =
-  'shadow-[inset_0_0_48px_-18px_rgba(245,158,11,0.32)]';
+export const FEATURED_AD_SLOT_HOST_CLASS = 'kasparex-ad-slot-featured-host relative isolate w-full';
+
+export const FEATURED_AD_SLOT_AURA_CLASS = 'kasparex-ad-slot-featured-aura pointer-events-none absolute -inset-[3px] -z-10';
+
+export const FEATURED_AD_SLOT_OVERLAY_CLASS = '';
 
 /** Shared pill positioning for Featured chips in inventory cards (color from `badgeClass`). */
 export const FEATURED_BADGE_LAYOUT =

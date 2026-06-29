@@ -1,4 +1,4 @@
-import type { VBlogModulesConfig } from '@/lib/vblog/types';
+import type { VBlogArticle, VBlogModulesConfig } from '@/lib/vblog/types';
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
 export const VBLOG_CREATE_BASE_FEE_KAS = 10;
@@ -161,7 +161,23 @@ export function computeVBlogArticlePrice(
   };
 }
 
-export function toPricingDraft(article: Pick<VBlogArticle, 'title' | 'description' | 'content' | 'category' | 'tags' | 'featuredImage' | 'linkedMagazineId' | 'linkedIssueNumber' | 'author'>): VBlogPricingDraft {
+export function toPricingDraft(
+  article: Pick<
+    VBlogArticle,
+    | 'title'
+    | 'description'
+    | 'content'
+    | 'category'
+    | 'tags'
+    | 'featuredImage'
+    | 'linkedMagazineId'
+    | 'linkedIssueNumber'
+    | 'author'
+    | 'primaryLink'
+    | 'socialLinks'
+    | 'modules'
+  >,
+): VBlogPricingDraft {
   return {
     title: article.title,
     description: article.description,
@@ -172,5 +188,8 @@ export function toPricingDraft(article: Pick<VBlogArticle, 'title' | 'descriptio
     linkedMagazineId: article.linkedMagazineId,
     linkedIssueNumber: article.linkedIssueNumber,
     author: article.author,
+    primaryLink: article.primaryLink,
+    socialLinks: article.socialLinks,
+    modules: article.modules,
   };
 }
