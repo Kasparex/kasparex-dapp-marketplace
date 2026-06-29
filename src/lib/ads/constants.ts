@@ -24,7 +24,7 @@ export const ADS_EXTENDED_EXPOSURE_SECONDS = 5;
  * Native KAS bundled with the binding payload when the creative fee is settled in KREX (KRC-20).
  * Keeps an L1 output to the ads treasury for discovery alongside payload-bearing txs.
  */
-export const ADS_KREX_BINDING_FEE_KAS = 0.02;
+export const ADS_KREX_BINDING_FEE_KAS = 1;
 
 /** Optional hover promo line on ad creatives (stored in campaign metadata). */
 export const ADS_MAX_PROMO_TOOLTIP_CHARS = 60;

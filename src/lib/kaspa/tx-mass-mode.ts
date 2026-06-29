@@ -14,7 +14,7 @@ export function retryKasCandidates(baseKas: number, highMassMode: boolean): numb
   const unique: number[] = [];
   for (const x of ladder) {
     const v = Number.isFinite(x) ? Number(x.toFixed(8)) : 0;
-    if (v <= 0) continue;
+    if (v <= 0 || v < baseKas - 1e-9) continue;
     if (!unique.some((u) => Math.abs(u - v) < 1e-9)) unique.push(v);
   }
   return unique;

@@ -129,7 +129,7 @@ export function CreateAdWizard({
   const payLabel = formatPaymentLabel(paymentCurrency, priceKas);
   const formatPrice = (kas: number) => formatPaymentLabel(paymentCurrency, kas);
   const krexCheckoutHint =
-    'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a small KAS binding payment that carries your metadata on-chain. The KAS step may show 0 in KasWare. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
+    'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a 1 KAS binding payment that carries your metadata on-chain. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
 
   const treasuryAddress = getAdsTreasuryL1Address();
 
