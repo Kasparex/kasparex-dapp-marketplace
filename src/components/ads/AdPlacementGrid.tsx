@@ -14,7 +14,8 @@ import { AD_CAROUSEL_ARROW_NEXT, AD_CAROUSEL_ARROW_PREV } from '@/components/ads
 import { ADS_BASE_CAROUSEL_INTERVAL_MS, getAdSlideIntervalMs } from '@/lib/ads/carouselTiming';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
-import { FEATURED_BADGE_LAYOUT, featuredAccentForAd } from '@/lib/ads/featuredAccent';
+import { FEATURED_AD_SLOT_BADGE_LAYOUT, FEATURED_AD_SLOT_FRAME_CLASS, FEATURED_AD_SLOT_OVERLAY_CLASS } from '@/lib/ads/featuredAccent';
+import { KxBadge } from '@/components/ui/KxBadge';
 
 export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 
@@ -211,11 +212,9 @@ function FilledAdShell({
 }) {
   const tip = ad.promoTooltip?.trim();
   const featured = ad.featuredHighlight === true;
-  const accent = featured ? featuredAccentForAd(ad.id) : null;
-  const frameEdge =
-    featured && accent
-      ? accent.solidFrameClass
-      : 'border-2 border-zinc-400 dark:border-zinc-300 dark:border-zinc-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
+  const frameEdge = featured
+    ? FEATURED_AD_SLOT_FRAME_CLASS
+    : 'border-2 border-zinc-400 dark:border-zinc-300 dark:border-zinc-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
 
   const linkEl = (
     <Link
@@ -236,14 +235,16 @@ function FilledAdShell({
           unoptimized
         />
       </span>
-      {featured && accent ? (
+      {featured ? (
         <div
-          className={`pointer-events-none absolute inset-0 z-[25] ${rounded} ${accent.overlayClass}`}
+          className={`pointer-events-none absolute inset-0 z-[25] ${rounded} ${FEATURED_AD_SLOT_OVERLAY_CLASS}`}
           aria-hidden
         />
       ) : null}
-      {featured && accent ? (
-        <span className={`${FEATURED_BADGE_LAYOUT} ${accent.badgeClass}`}>Featured</span>
+      {featured ? (
+        <KxBadge variant="amber" size="sm" className={`${FEATURED_AD_SLOT_BADGE_LAYOUT} shadow-sm`}>
+          Featured
+        </KxBadge>
       ) : null}
     </Link>
   );

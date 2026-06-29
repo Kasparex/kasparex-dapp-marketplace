@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
@@ -19,17 +18,12 @@ import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 export default function VBlogPage() {
   const { articles, isLoading } = useVBlog();
   const pricing = useVBlogPricing();
-  const router = useRouter();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<VBlogSourceFilter>('all');
-
-  const openEditorDashboard = () => {
-    router.push('/vblog/editor/new');
-  };
 
   const filteredArticles = useMemo(() => {
     let filtered = [...articles];
@@ -98,7 +92,6 @@ export default function VBlogPage() {
             onCategoryChange={setSelectedCategory}
             onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
-            onCreateArticle={openEditorDashboard}
             activeView="explore"
           />
 

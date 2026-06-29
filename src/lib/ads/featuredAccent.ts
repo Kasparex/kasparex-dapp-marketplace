@@ -13,9 +13,19 @@ export type FeaturedAdAccent = {
   progressBarClass: string;
 };
 
-/** Shared pill styling for Featured chips (color comes from `badgeClass`). */
+/** Unified featured styling for in-page ad slot placements (halos, rails, panels). */
+export const FEATURED_AD_SLOT_FRAME_CLASS =
+  'border-[3px] border-dashed border-amber-500 dark:border-amber-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
+
+export const FEATURED_AD_SLOT_OVERLAY_CLASS =
+  'shadow-[inset_0_0_48px_-18px_rgba(245,158,11,0.32)]';
+
+/** Shared pill positioning for Featured chips in inventory cards (color from `badgeClass`). */
 export const FEATURED_BADGE_LAYOUT =
   'pointer-events-none absolute top-2 right-2 z-[35] rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide shadow-sm';
+
+/** Positioning wrapper when using `KxBadge` on in-page ad slots. */
+export const FEATURED_AD_SLOT_BADGE_LAYOUT = 'pointer-events-none absolute top-2 right-2 z-[35]';
 
 const ACCENTS: FeaturedAdAccent[] = [
   {

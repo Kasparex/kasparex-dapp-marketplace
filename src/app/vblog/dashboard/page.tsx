@@ -35,7 +35,6 @@ function VBlogDashboardPageContent() {
             onCategoryChange={setSelectedCategory}
             onTagToggle={(tag) => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
             onSearchChange={setSearchQuery}
-            onCreateArticle={() => setCreateIntentKey((x) => x + 1)}
             activeView="dashboard"
           />
 
