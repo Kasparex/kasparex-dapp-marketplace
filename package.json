@@ -63,7 +63,6 @@
     "react-dom": "19.1.1",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",
-    "react-quill": "^2.0.0",
     "reactflow": "^11.11.4",
     "viem": "^2.38.6",
     "wagmi": "^2.19.2"
@@ -86,8 +85,8 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
-    "chai": "^4.3.0",
     "autoprefixer": "^10.0.1",
+    "chai": "^4.3.0",
     "dotenv": "^17.2.3",
     "eslint": "^8",
     "eslint-config-next": "15.4.10",

@@ -1,16 +1,8 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useMemo } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { htmlToPlainText, normalizeQuillHtml } from '@/lib/richText/html';
-import 'react-quill/dist/quill.snow.css';
-
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-[120px] animate-pulse rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800" />
-  ),
-});
+import 'quill/dist/quill.snow.css';
 
 const TOOLBAR = [
   ['undo', 'redo'],
@@ -33,6 +25,8 @@ const FORMATS = [
   'list',
 ];
 
+type QuillInstance = InstanceType<(typeof import('quill'))['default']>;
+
 export interface KxRichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -53,52 +47,125 @@ export function KxRichTextEditor({
   maxLength,
 }: KxRichTextEditorProps) {
   const minHeight = Math.max(96, minRows * 26);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<QuillInstance | null>(null);
+  const onChangeRef = useRef(onChange);
+  const maxLengthRef = useRef(maxLength);
+  const valueRef = useRef(value);
+  const syncingRef = useRef(false);
+  const [ready, setReady] = useState(false);
 
-  const modules = useMemo(
-    () => ({
-      toolbar: {
-        container: TOOLBAR,
-        handlers: {
-          undo: function (this: { quill: { history: { undo: () => void } } }) {
-            this.quill.history.undo();
+  const placeholderRef = useRef(placeholder);
+
+  useLayoutEffect(() => {
+    onChangeRef.current = onChange;
+    maxLengthRef.current = maxLength;
+    valueRef.current = value;
+    placeholderRef.current = placeholder;
+  });
+
+  useEffect(() => {
+    let destroyed = false;
+
+    void (async () => {
+      const { default: Quill } = await import('quill');
+      if (destroyed || !containerRef.current) return;
+
+      const container = containerRef.current;
+      const editorEl = container.ownerDocument.createElement('div');
+      container.appendChild(editorEl);
+
+      const quill = new Quill(editorEl, {
+        theme: 'snow',
+        placeholder: placeholderRef.current,
+        readOnly: disabled,
+        modules: {
+          toolbar: {
+            container: TOOLBAR,
+            handlers: {
+              undo(this: { quill: QuillInstance }) {
+                this.quill.history.undo();
+              },
+              redo(this: { quill: QuillInstance }) {
+                this.quill.history.redo();
+              },
+            },
           },
-          redo: function (this: { quill: { history: { redo: () => void } } }) {
-            this.quill.history.redo();
+          history: {
+            delay: 400,
+            maxStack: 200,
+            userOnly: true,
           },
         },
-      },
-      history: {
-        delay: 400,
-        maxStack: 200,
-        userOnly: true,
-      },
-    }),
-    [],
-  );
+        formats: FORMATS,
+      });
 
-  const handleChange = (html: string) => {
-    const normalized = normalizeQuillHtml(html);
-    if (maxLength != null) {
-      const plainLen = htmlToPlainText(normalized).length;
-      if (plainLen > maxLength) return;
+      quillRef.current = quill;
+
+      if (valueRef.current) {
+        syncingRef.current = true;
+        quill.clipboard.dangerouslyPasteHTML(valueRef.current);
+        syncingRef.current = false;
+      }
+
+      quill.on('text-change', (_delta, _old, source) => {
+        if (syncingRef.current || source !== 'user') return;
+
+        const html = normalizeQuillHtml(quill.root.innerHTML);
+        if (maxLengthRef.current != null) {
+          const plainLen = htmlToPlainText(html).length;
+          if (plainLen > maxLengthRef.current) {
+            quill.history.undo();
+            return;
+          }
+        }
+
+        valueRef.current = html;
+        onChangeRef.current(html);
+      });
+
+      if (!destroyed) setReady(true);
+    })();
+
+    return () => {
+      destroyed = true;
+      quillRef.current = null;
+      if (containerRef.current) containerRef.current.innerHTML = '';
+      setReady(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    const quill = quillRef.current;
+    if (!quill || !ready) return;
+
+    const current = normalizeQuillHtml(quill.root.innerHTML);
+    if (value === current) return;
+
+    const selection = quill.getSelection();
+    syncingRef.current = true;
+    quill.clipboard.dangerouslyPasteHTML(value || '');
+    syncingRef.current = false;
+    valueRef.current = value;
+
+    if (selection) {
+      quill.setSelection(selection);
     }
-    onChange(normalized);
-  };
+  }, [value, ready]);
+
+  useEffect(() => {
+    quillRef.current?.enable(!disabled);
+  }, [disabled, ready]);
 
   return (
     <div
       className={`kx-quill-editor ${disabled ? 'pointer-events-none opacity-60' : ''} ${className}`.trim()}
       style={{ ['--kx-quill-min-height' as string]: `${minHeight}px` }}
     >
-      <ReactQuill
-        theme="snow"
-        value={value || ''}
-        onChange={handleChange}
-        modules={modules}
-        formats={FORMATS}
-        placeholder={placeholder}
-        readOnly={disabled}
-      />
+      {!ready ? (
+        <div className="min-h-[120px] animate-pulse rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800" />
+      ) : null}
+      <div ref={containerRef} className={ready ? '' : 'hidden'} />
     </div>
   );
 }
