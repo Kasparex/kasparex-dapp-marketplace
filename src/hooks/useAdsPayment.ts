@@ -2,15 +2,14 @@
 
 import { useCallback, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction, getWalletProvider } from '@/lib/kaspa/wallet';
+import { getWalletProvider } from '@/lib/kaspa/wallet';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { kasToKrexAmount } from '@/lib/store/currencies';
-import { getAdsTreasuryL1Address, kasToSompi } from '@/lib/ads/config';
-import { ADS_KREX_BINDING_FEE_KAS } from '@/lib/ads/constants';
+import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import { expectedPriceKrexFromTotalKas } from '@/lib/ads/adPriceValidation';
-import { buildAdsBindingPayloadHex, buildAdsBindingPlainNote } from '@/lib/ads/payloadHex';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { sendAdsMetadataBindingTx } from '@/lib/ads/sendBindingTx';
 import type { AdPaymentCurrency } from '@/lib/ads/metadata';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -69,8 +68,6 @@ export function useAdsPayment() {
       }
 
       const treasuryAddress = getAdsTreasuryL1Address();
-      const payloadHex = buildAdsBindingPayloadHex(metadataCid);
-      const plainNote = buildAdsBindingPlainNote(metadataCid);
       const provider = state.provider as KaspaWalletProvider;
 
       setIsProcessing(true);
@@ -86,36 +83,16 @@ export function useAdsPayment() {
             }
             krexPaymentTxHash = await transferKrex(provider, priceKrex, treasuryAddress);
           }
-          const bindingSompi = kasToSompi(ADS_KREX_BINDING_FEE_KAS);
-          const txRes = await sendKaspaTransaction(provider, {
-            to: treasuryAddress,
-            amount: String(bindingSompi),
-            note: plainNote,
-            payload: payloadHex,
-          });
-          if (txRes.status === 'failed' || !txRes.txHash) {
-            throw new Error(txRes.error ?? 'Binding transaction was rejected or failed');
-          }
-          const txHash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+          const txHash = await sendAdsMetadataBindingTx(provider, metadataCid);
           return { txHash, krexPaymentTxHash };
         }
 
-        const amountSompi = kasToSompi(priceKas);
-        const txRes = await sendKaspaTransaction(provider, {
-          to: treasuryAddress,
-          amount: String(amountSompi),
-          note: plainNote,
-          payload: payloadHex,
-        });
-        if (txRes.status === 'failed' || !txRes.txHash) {
-          throw new Error(txRes.error ?? 'Transaction was rejected or failed');
-        }
-        const txHash = extractKaspaTransactionId(txRes.txHash) ?? txRes.txHash;
+        const txHash = await sendAdsMetadataBindingTx(provider, metadataCid, priceKas);
         return { txHash };
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Ad payment failed';
+        const message = formatKaspaWalletError(err);
         setError(message);
-        throw err;
+        throw new Error(message);
       } finally {
         setIsProcessing(false);
       }

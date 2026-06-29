@@ -11,6 +11,7 @@ import {
   ADS_EXTENDED_EXPOSURE_KAS,
   ADS_EXTENDED_EXPOSURE_SECONDS,
   ADS_MAX_PROMO_TOOLTIP_CHARS,
+  ADS_KREX_BINDING_FEE_KAS,
 } from '@/lib/ads/constants';
 import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
 import { buildCampaignMetadataV1, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
@@ -41,6 +42,7 @@ import {
   transferKrexForAdsPayment,
   useAdsPayment,
 } from '@/hooks/useAdsPayment';
+import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
@@ -445,7 +447,7 @@ export function CreateAdWizard({
       }
       setVerifyNote(lastVerifyMessage);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Transaction failed');
+      setError(formatKaspaWalletError(e));
     } finally {
       setIsSubmitting(false);
     }
@@ -844,9 +846,17 @@ export function CreateAdWizard({
                   ariaLabel="Ad payment currency"
                 />
                 {paymentCurrency === 'KREX' ? (
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 leading-relaxed">
-                    KREX settlement includes a small KAS binding transaction that carries your campaign metadata.
-                  </p>
+                  <div className="mt-2 space-y-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p>
+                      KREX checkout uses <strong className="text-zinc-700 dark:text-zinc-300">two wallet confirmations</strong>:
+                      first the KREX campaign fee, then a small KAS binding payment ({ADS_KREX_BINDING_FEE_KAS} KAS minimum) that
+                      carries your campaign metadata CID on-chain.
+                    </p>
+                    <p>
+                      The KAS step may look like a very small or zero amount in KasWare. If you see &quot;Storage mass exceeds
+                      maximum&quot;, compound UTXOs in KasWare or enable High-mass mode under Protocols &gt; KPX Tools.
+                    </p>
+                  </div>
                 ) : null}
               </div>
 

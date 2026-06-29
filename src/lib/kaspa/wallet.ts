@@ -15,6 +15,7 @@ import type {
   KaspaTransactionResponse,
 } from './types';
 import { extractKaspaTransactionId } from './transactionId';
+import { formatKaspaWalletError } from './formatWalletError';
 import { 
   isValidKaspaAddress as sdkIsValidKaspaAddress,
   normalizeKaspaAddress as sdkNormalizeKaspaAddress,
@@ -708,7 +709,7 @@ export async function sendKaspaTransaction(
       status: 'pending',
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = formatKaspaWalletError(error);
     return {
       txHash: '',
       status: 'failed',
