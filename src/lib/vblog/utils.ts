@@ -1,4 +1,5 @@
 import { VBlogArticle } from './types';
+import { htmlToPlainText } from '@/lib/richText/html';
 
 /**
  * Generate a URL-friendly slug from a title
@@ -95,9 +96,9 @@ export function truncateText(text: string, maxLength: number): string {
  */
 export function getArticleExcerpt(article: VBlogArticle, maxLength: number = 150): string {
   if (article.description) {
-    return truncateText(article.description, maxLength);
+    return truncateText(htmlToPlainText(article.description), maxLength);
   }
-  return truncateText(article.content, maxLength);
+  return truncateText(htmlToPlainText(article.content), maxLength);
 }
 
 /**

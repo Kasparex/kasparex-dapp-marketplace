@@ -17,6 +17,7 @@ import { Avatar } from '@/components/Avatar';
 import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { renderRichContent } from '@/lib/richText/html';
 
 interface CommentsSectionProps {
   articleId: string;
@@ -277,9 +278,10 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                           </button>
                         )}
                       </div>
-                      <p className="text-base text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-                        {comment.content}
-                      </p>
+                      <div
+                        className="kx-prose prose prose-sm prose-zinc dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300"
+                        dangerouslySetInnerHTML={{ __html: renderRichContent(comment.content) }}
+                      />
                     </div>
                   );
                 })}

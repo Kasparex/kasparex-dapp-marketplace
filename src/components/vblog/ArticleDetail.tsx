@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
-import { formatAddress, formatDate, parseMarkdown } from '@/lib/vblog/utils';
+import { formatAddress, formatDate } from '@/lib/vblog/utils';
+import { renderRichContent } from '@/lib/richText/html';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
@@ -394,7 +395,7 @@ export function ArticleDetail({
                         if (!selection) return;
                         void navigator.clipboard.writeText(selection).catch(() => undefined);
                       }}
-                      dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
+                      dangerouslySetInnerHTML={{ __html: renderRichContent(article.content) }}
                     />
 
                     {article.modules?.premiumSectionEnabled ? (
@@ -408,7 +409,7 @@ export function ArticleDetail({
                             </button>
                           </div>
                         ) : (
-                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
+                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: renderRichContent(article.modules.premiumSectionContent ?? '') }} />
                         )}
                       </div>
                     ) : null}
@@ -433,7 +434,7 @@ export function ArticleDetail({
                         {!tipRevealEntitled ? (
                           <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
                         ) : (
-                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
+                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: renderRichContent(article.modules.tipToRevealContent ?? '') }} />
                         )}
                       </div>
                     ) : null}

@@ -1,66 +1,46 @@
 'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type TextareaHTMLAttributes,
-} from 'react';
-import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
+import { htmlToPlainText, normalizeQuillHtml } from '@/lib/richText/html';
+import 'react-quill/dist/quill.snow.css';
 
-type FormatAction =
-  | 'bold'
-  | 'italic'
-  | 'h2'
-  | 'h3'
-  | 'paragraph'
-  | 'divider'
-  | 'link'
-  | 'color';
+const ReactQuill = dynamic(() => import('react-quill'), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-[120px] animate-pulse rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800" />
+  ),
+});
 
-const COLOR_PRESETS = ['#02abb8', '#ef4444', '#f59e0b', '#22c55e', '#6366f1', '#a855f7', '#ffffff', '#18181b'];
+const TOOLBAR = [
+  ['undo', 'redo'],
+  [{ header: [2, 3, false] }],
+  ['bold', 'italic', 'underline'],
+  [{ color: [] }],
+  ['link', 'blockquote'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['clean'],
+] as (string | { header: (number | false)[] } | { list: string })[];
 
-function wrapSelection(text: string, start: number, end: number, before: string, after: string): { next: string; selStart: number; selEnd: number } {
-  const selected = text.slice(start, end);
-  const next = text.slice(0, start) + before + selected + after + text.slice(end);
-  const selStart = start + before.length;
-  const selEnd = selStart + selected.length;
-  return { next, selStart, selEnd };
-}
+const FORMATS = [
+  'header',
+  'bold',
+  'italic',
+  'underline',
+  'color',
+  'link',
+  'blockquote',
+  'list',
+];
 
-function prefixLines(text: string, start: number, end: number, prefix: string): { next: string; selStart: number; selEnd: number } {
-  const blockStart = text.lastIndexOf('\n', start - 1) + 1;
-  const blockEnd = end === start ? end : text.indexOf('\n', end);
-  const sliceEnd = blockEnd === -1 ? text.length : blockEnd;
-  const block = text.slice(blockStart, sliceEnd);
-  const lines = block.split('\n');
-  const prefixed = lines
-    .map((line) => {
-      const trimmed = line.replace(/^#{1,3}\s+/, '');
-      if (!trimmed.trim()) return line;
-      return `${prefix}${trimmed}`;
-    })
-    .join('\n');
-  const next = text.slice(0, blockStart) + prefixed + text.slice(sliceEnd);
-  return { next, selStart: blockStart, selEnd: blockStart + prefixed.length };
-}
-
-function stripHeadingPrefix(text: string, start: number, end: number): { next: string; selStart: number; selEnd: number } {
-  const blockStart = text.lastIndexOf('\n', start - 1) + 1;
-  const blockEnd = end === start ? end : text.indexOf('\n', end);
-  const sliceEnd = blockEnd === -1 ? text.length : blockEnd;
-  const block = text.slice(blockStart, sliceEnd);
-  const stripped = block.replace(/^#{1,3}\s+/gm, '');
-  const next = text.slice(0, blockStart) + stripped + text.slice(sliceEnd);
-  return { next, selStart: blockStart, selEnd: blockStart + stripped.length };
-}
-
-export interface KxRichTextEditorProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> {
+export interface KxRichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   minRows?: number;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+  maxLength?: number;
 }
 
 export function KxRichTextEditor({
@@ -70,219 +50,55 @@ export function KxRichTextEditor({
   minRows = 6,
   disabled,
   placeholder,
-  ...rest
+  maxLength,
 }: KxRichTextEditorProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const toolbarRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-  const [toolbarVisible, setToolbarVisible] = useState(false);
-  const [toolbarPos, setToolbarPos] = useState<CSSProperties>({ top: 0, left: 0 });
-  const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const minHeight = Math.max(96, minRows * 26);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: TOOLBAR,
+        handlers: {
+          undo: function (this: { quill: { history: { undo: () => void } } }) {
+            this.quill.history.undo();
+          },
+          redo: function (this: { quill: { history: { redo: () => void } } }) {
+            this.quill.history.redo();
+          },
+        },
+      },
+      history: {
+        delay: 400,
+        maxStack: 200,
+        userOnly: true,
+      },
+    }),
+    [],
+  );
 
-  const updateToolbarPosition = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el || disabled) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    if (start === end) {
-      setToolbarVisible(false);
-      setSelectionRange(null);
-      setShowColorPicker(false);
-      return;
+  const handleChange = (html: string) => {
+    const normalized = normalizeQuillHtml(html);
+    if (maxLength != null) {
+      const plainLen = htmlToPlainText(normalized).length;
+      if (plainLen > maxLength) return;
     }
-    setSelectionRange({ start, end });
-
-    const rect = el.getBoundingClientRect();
-    const lineHeight = parseInt(getComputedStyle(el).lineHeight, 10) || 24;
-    const textBefore = el.value.slice(0, end);
-    const lineIndex = textBefore.split('\n').length - 1;
-    const selectionTop = rect.top + Math.min(lineIndex * lineHeight, Math.max(el.clientHeight - lineHeight, 0));
-    const top = Math.max(8, selectionTop - 48);
-    const left = Math.min(Math.max(8, rect.left + 12), window.innerWidth - 280);
-
-    setToolbarPos({ top, left });
-    setToolbarVisible(true);
-  }, [disabled]);
-
-  useEffect(() => {
-    const onSelectionChange = () => {
-      const el = textareaRef.current;
-      if (!el || document.activeElement !== el) return;
-      updateToolbarPosition();
-    };
-
-    document.addEventListener('selectionchange', onSelectionChange);
-    return () => document.removeEventListener('selectionchange', onSelectionChange);
-  }, [updateToolbarPosition]);
-
-  useEffect(() => {
-    const onPointerDown = (e: PointerEvent) => {
-      const target = e.target as Node;
-      if (toolbarRef.current?.contains(target) || rootRef.current?.contains(target)) return;
-      setToolbarVisible(false);
-      setShowColorPicker(false);
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, []);
-
-  const applyFormat = (action: FormatAction, color?: string) => {
-    const el = textareaRef.current;
-    if (!el || disabled) return;
-    const start = selectionRange?.start ?? el.selectionStart;
-    const end = selectionRange?.end ?? el.selectionEnd;
-    let result = { next: value, selStart: start, selEnd: end };
-
-    switch (action) {
-      case 'bold':
-        result = wrapSelection(value, start, end, '**', '**');
-        break;
-      case 'italic':
-        result = wrapSelection(value, start, end, '*', '*');
-        break;
-      case 'h2':
-        result = prefixLines(value, start, end, '## ');
-        break;
-      case 'h3':
-        result = prefixLines(value, start, end, '### ');
-        break;
-      case 'paragraph':
-        result = stripHeadingPrefix(value, start, end);
-        break;
-      case 'divider': {
-        const insert = '\n\n---\n\n';
-        result = {
-          next: value.slice(0, end) + insert + value.slice(end),
-          selStart: end + insert.length,
-          selEnd: end + insert.length,
-        };
-        break;
-      }
-      case 'link': {
-        const selected = value.slice(start, end) || 'link text';
-        const url = window.prompt('Enter link URL', 'https://');
-        if (!url) return;
-        const linked = `[${selected}](${url})`;
-        result = {
-          next: value.slice(0, start) + linked + value.slice(end),
-          selStart: start,
-          selEnd: start + linked.length,
-        };
-        break;
-      }
-      case 'color': {
-        if (!color) return;
-        result = wrapSelection(value, start, end, `{color:${color}}`, '{/color}');
-        break;
-      }
-      default:
-        break;
-    }
-
-    onChange(result.next);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(result.selStart, result.selEnd);
-      setSelectionRange({ start: result.selStart, end: result.selEnd });
-      updateToolbarPosition();
-    });
-    setShowColorPicker(false);
+    onChange(normalized);
   };
 
-  const toolbarBtn =
-    'inline-flex h-8 min-w-[2rem] items-center justify-center rounded-lg px-2 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors disabled:opacity-40';
-
-  const toolbar =
-    toolbarVisible && selectionRange && mounted ? (
-      <div
-        ref={toolbarRef}
-        className="fixed z-[9999] flex flex-wrap items-center gap-0.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-1.5 py-1 shadow-xl"
-        style={toolbarPos}
-        role="toolbar"
-        aria-label="Text formatting"
-      >
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('bold')} title="Bold">
-          B
-        </button>
-        <button type="button" className={`${toolbarBtn} italic`} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('italic')} title="Italic">
-          I
-        </button>
-        <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h2')} title="Large heading">
-          L
-        </button>
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h3')} title="Medium heading">
-          M
-        </button>
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('paragraph')} title="Paragraph">
-          P
-        </button>
-        <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
-        <div className="relative">
-          <button
-            type="button"
-            className={toolbarBtn}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => setShowColorPicker((v) => !v)}
-            title="Text color"
-          >
-            <span className="inline-block h-3 w-3 rounded-full bg-gradient-to-br from-[#02abb8] to-violet-500" />
-          </button>
-          {showColorPicker ? (
-            <div className="absolute left-0 top-full mt-1 flex flex-wrap gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-2 shadow-lg w-[140px]">
-              {COLOR_PRESETS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className="h-6 w-6 rounded-md border border-zinc-200 dark:border-zinc-600"
-                  style={{ backgroundColor: c }}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyFormat('color', c)}
-                  title={c}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('link')} title="Link">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-        </button>
-        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('divider')} title="Divider">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
-          </svg>
-        </button>
-      </div>
-    ) : null;
-
   return (
-    <div ref={rootRef} className="relative">
-      {mounted && toolbar ? createPortal(toolbar, document.body) : null}
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onSelect={updateToolbarPosition}
-        onKeyUp={updateToolbarPosition}
-        onMouseUp={updateToolbarPosition}
-        onFocus={updateToolbarPosition}
-        disabled={disabled}
+    <div
+      className={`kx-quill-editor ${disabled ? 'pointer-events-none opacity-60' : ''} ${className}`.trim()}
+      style={{ ['--kx-quill-min-height' as string]: `${minHeight}px` }}
+    >
+      <ReactQuill
+        theme="snow"
+        value={value || ''}
+        onChange={handleChange}
+        modules={modules}
+        formats={FORMATS}
         placeholder={placeholder}
-        rows={minRows}
-        className={`k-textarea text-base leading-relaxed ${className}`.trim()}
-        {...rest}
+        readOnly={disabled}
       />
-      <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-        Highlight text to open the formatting toolbar (Bold, Italic, headings, links, and more).
-      </p>
     </div>
   );
 }

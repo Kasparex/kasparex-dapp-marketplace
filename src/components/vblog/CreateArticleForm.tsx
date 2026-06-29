@@ -14,6 +14,7 @@ import {
   getCharacterCount,
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
+import { htmlToPlainText, contentForRichEditor } from '@/lib/richText/html';
 import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
@@ -73,8 +74,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
   const [title, setTitle] = useState(article?.title ?? '');
-  const [description, setDescription] = useState(article?.description ?? '');
-  const [content, setContent] = useState(article?.content ?? '');
+  const [description, setDescription] = useState(() => contentForRichEditor(article?.description ?? ''));
+  const [content, setContent] = useState(() => contentForRichEditor(article?.content ?? ''));
   const [featuredImageSource, setFeaturedImageSource] = useState<'url' | 'file'>(article?.featuredImage ? 'url' : 'file');
   const [featuredImageUrl, setFeaturedImageUrl] = useState(article?.featuredImage ?? '');
   const [featuredImageCid, setFeaturedImageCid] = useState<string | null>(null);
@@ -92,12 +93,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(Boolean(article?.linkedMagazineId && article?.linkedIssueNumber));
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article?.modules?.premiumSectionEnabled));
-  const [premiumSectionContent, setPremiumSectionContent] = useState(article?.modules?.premiumSectionContent ?? '');
+  const [premiumSectionContent, setPremiumSectionContent] = useState(() => contentForRichEditor(article?.modules?.premiumSectionContent ?? ''));
   const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState(String(article?.modules?.premiumSectionPriceKas ?? 10));
   const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState(article?.modules?.premiumSectionPayoutAddress ?? '');
   const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article?.modules?.tipBoxEnabled));
   const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article?.modules?.tipToRevealEnabled));
-  const [tipToRevealContent, setTipToRevealContent] = useState(article?.modules?.tipToRevealContent ?? '');
+  const [tipToRevealContent, setTipToRevealContent] = useState(() => contentForRichEditor(article?.modules?.tipToRevealContent ?? ''));
   const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState(String(article?.modules?.tipToRevealThresholdKas ?? 25));
   const [premiumPollEnabled, setPremiumPollEnabled] = useState(Boolean(article?.modules?.premiumPollEnabled));
   const [pollQuestion, setPollQuestion] = useState(article?.modules?.premiumPoll?.question ?? '');
@@ -213,8 +214,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   useEffect(() => {
     if (!article) return;
     setTitle(article.title);
-    setDescription(article.description);
-    setContent(article.content);
+    setDescription(contentForRichEditor(article.description));
+    setContent(contentForRichEditor(article.content));
     setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
     setFeaturedImageUrl(article.featuredImage ?? '');
     setFeaturedImageCid(null);
@@ -229,46 +230,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setSocialLink3(article.socialLinks?.[2] ?? '');
     setMagazineIntegrationEnabled(Boolean(article.linkedMagazineId && article.linkedIssueNumber));
     setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
-    setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
+    setPremiumSectionContent(contentForRichEditor(article.modules?.premiumSectionContent ?? ''));
     setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
     setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
     setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
     setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
-    setTipToRevealContent(article.modules?.tipToRevealContent ?? '');
-    setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
-    setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
-    setPollQuestion(article.modules?.premiumPoll?.question ?? '');
-    setPollOptions((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
-    setReadingReceiptsEnabled(Boolean(article.modules?.readingReceiptsEnabled));
-    setSidebarShownByDefault(article.layoutPreferences?.sidebarShownByDefault ?? true);
-    setRightPanelShownByDefault(article.layoutPreferences?.rightPanelShownByDefault ?? true);
-  }, [article]);
-
-  useEffect(() => {
-    if (!article) return;
-    setTitle(article.title);
-    setDescription(article.description);
-    setContent(article.content);
-    setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
-    setFeaturedImageUrl(article.featuredImage ?? '');
-    setFeaturedImageCid(null);
-    setFeaturedImageName(null);
-    setCategory(article.category);
-    setTags(article.tags.join(', '));
-    setLinkedMagazineId(article.linkedMagazineId);
-    setLinkedIssueNumber(article.linkedIssueNumber);
-    setPrimaryLink(article.primaryLink ?? '');
-    setSocialLink1(article.socialLinks?.[0] ?? '');
-    setSocialLink2(article.socialLinks?.[1] ?? '');
-    setSocialLink3(article.socialLinks?.[2] ?? '');
-    setMagazineIntegrationEnabled(Boolean(article.linkedMagazineId && article.linkedIssueNumber));
-    setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
-    setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
-    setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
-    setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
-    setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
-    setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
-    setTipToRevealContent(article.modules?.tipToRevealContent ?? '');
+    setTipToRevealContent(contentForRichEditor(article.modules?.tipToRevealContent ?? ''));
     setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
     setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
     setPollQuestion(article.modules?.premiumPoll?.question ?? '');
@@ -319,7 +286,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       return;
     }
 
-    if (!description.trim()) {
+    if (!htmlToPlainText(description).trim()) {
       setError('Description is required');
       return;
     }
@@ -329,7 +296,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       return;
     }
 
-    if (!content.trim()) {
+    if (!htmlToPlainText(content).trim()) {
       setError('Content is required');
       return;
     }
@@ -345,7 +312,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     }
 
     if (premiumSectionEnabled) {
-      if (!premiumSectionContent.trim() || !premiumSectionPayoutAddress.trim()) {
+      if (!htmlToPlainText(premiumSectionContent).trim() || !premiumSectionPayoutAddress.trim()) {
         setError('Premium section needs content and payout wallet address.');
         return;
       }
@@ -355,7 +322,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         return;
       }
     }
-    if (tipToRevealEnabled && !tipToRevealContent.trim()) {
+    if (tipToRevealEnabled && !htmlToPlainText(tipToRevealContent).trim()) {
       setError('Tip-to-reveal bonus content is required when enabled.');
       return;
     }
@@ -512,11 +479,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             <span
               className={`text-xs ${
                 getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
+                  || htmlToPlainText(description).length > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
                   ? 'text-red-500'
                   : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
-              {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
+              {htmlToPlainText(description).length} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
           <KxRichTextEditor

@@ -864,3 +864,94 @@
 .kaspa .k-nodes-map .leaflet-popup-close-button:hover {
   color: rgb(143 241 248);
 }
+
+/* Quill rich text editor (KxRichTextEditor) */
+.kx-quill-editor .ql-toolbar.ql-snow {
+  border: 1px solid rgb(228 228 231);
+  border-bottom: none;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: rgb(250 250 250);
+  padding: 0.5rem;
+}
+
+.dark .kx-quill-editor .ql-toolbar.ql-snow {
+  border-color: rgb(63 63 70);
+  background: rgb(24 24 27);
+}
+
+.kx-quill-editor .ql-container.ql-snow {
+  border: 1px solid rgb(228 228 231);
+  border-radius: 0 0 0.75rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.dark .kx-quill-editor .ql-container.ql-snow {
+  border-color: rgb(63 63 70);
+  background: rgb(9 9 11);
+}
+
+.kx-quill-editor .ql-editor {
+  min-height: var(--kx-quill-min-height, 160px);
+  color: rgb(24 24 27);
+  line-height: 1.65;
+}
+
+.dark .kx-quill-editor .ql-editor {
+  color: rgb(244 244 245);
+}
+
+.kx-quill-editor .ql-editor.ql-blank::before {
+  color: rgb(113 113 122);
+  font-style: normal;
+}
+
+.kx-quill-editor .ql-snow .ql-stroke {
+  stroke: rgb(82 82 91);
+}
+
+.dark .kx-quill-editor .ql-snow .ql-stroke {
+  stroke: rgb(161 161 170);
+}
+
+.kx-quill-editor .ql-snow .ql-fill {
+  fill: rgb(82 82 91);
+}
+
+.dark .kx-quill-editor .ql-snow .ql-fill {
+  fill: rgb(161 161 170);
+}
+
+.kx-quill-editor .ql-snow .ql-picker-label {
+  color: rgb(82 82 91);
+}
+
+.dark .kx-quill-editor .ql-snow .ql-picker-label {
+  color: rgb(161 161 170);
+}
+
+.kx-quill-editor .ql-snow.ql-toolbar button:hover,
+.kx-quill-editor .ql-snow .ql-toolbar button:hover,
+.kx-quill-editor .ql-snow.ql-toolbar button.ql-active,
+.kx-quill-editor .ql-snow .ql-toolbar button.ql-active {
+  color: #02abb8;
+}
+
+.kx-quill-editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+.kx-quill-editor .ql-snow .ql-toolbar button:hover .ql-stroke,
+.kx-quill-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.kx-quill-editor .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: #02abb8;
+}
+
+.kx-quill-editor .ql-undo::before {
+  content: '↶';
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.kx-quill-editor .ql-redo::before {
+  content: '↷';
+  font-size: 16px;
+  font-weight: 700;
+}

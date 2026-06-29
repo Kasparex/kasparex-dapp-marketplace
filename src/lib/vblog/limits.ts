@@ -67,7 +67,8 @@ export function validateTitle(title: string, isPremium: boolean = false): { vali
 
 export function validateDescription(description: string, isPremium: boolean = false): { valid: boolean; error?: string } {
   const limits = isPremium ? CONTENT_LIMITS.premium.description : CONTENT_LIMITS.description;
-  const charCount = getCharacterCount(description);
+  const textContent = description.replace(/<[^>]*>/g, '');
+  const charCount = getCharacterCount(textContent);
   
   if (charCount < limits.min) {
     return { valid: false, error: `Description must be at least ${limits.min} characters` };
