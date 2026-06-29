@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type TextareaHTMLAttributes,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 type FormatAction =
   | 'bold'
@@ -71,21 +72,28 @@ export function KxRichTextEditor({
   placeholder,
   ...rest
 }: KxRichTextEditorProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const [toolbarVisible, setToolbarVisible] = useState(false);
   const [toolbarPos, setToolbarPos] = useState<CSSProperties>({ top: 0, left: 0 });
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const updateToolbarPosition = useCallback(() => {
     const el = textareaRef.current;
-    if (!el) return;
+    if (!el || disabled) return;
     const start = el.selectionStart;
     const end = el.selectionEnd;
     if (start === end) {
       setToolbarVisible(false);
       setSelectionRange(null);
+      setShowColorPicker(false);
       return;
     }
     setSelectionRange({ start, end });
@@ -93,30 +101,42 @@ export function KxRichTextEditor({
     const rect = el.getBoundingClientRect();
     const lineHeight = parseInt(getComputedStyle(el).lineHeight, 10) || 24;
     const textBefore = el.value.slice(0, end);
-    const lines = textBefore.split('\n');
-    const lineIndex = lines.length - 1;
-    const top = rect.top + window.scrollY + Math.min(lineIndex * lineHeight, el.clientHeight - 40) - 44;
-    const left = rect.left + window.scrollX + 12;
-    setToolbarPos({ top: Math.max(top, rect.top + window.scrollY - 48), left });
+    const lineIndex = textBefore.split('\n').length - 1;
+    const selectionTop = rect.top + Math.min(lineIndex * lineHeight, Math.max(el.clientHeight - lineHeight, 0));
+    const top = Math.max(8, selectionTop - 48);
+    const left = Math.min(Math.max(8, rect.left + 12), window.innerWidth - 280);
+
+    setToolbarPos({ top, left });
     setToolbarVisible(true);
-  }, []);
+  }, [disabled]);
 
   useEffect(() => {
-    const onDocMouseDown = (e: MouseEvent) => {
+    const onSelectionChange = () => {
+      const el = textareaRef.current;
+      if (!el || document.activeElement !== el) return;
+      updateToolbarPosition();
+    };
+
+    document.addEventListener('selectionchange', onSelectionChange);
+    return () => document.removeEventListener('selectionchange', onSelectionChange);
+  }, [updateToolbarPosition]);
+
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node;
-      if (toolbarRef.current?.contains(target) || textareaRef.current?.contains(target)) return;
+      if (toolbarRef.current?.contains(target) || rootRef.current?.contains(target)) return;
       setToolbarVisible(false);
       setShowColorPicker(false);
     };
-    document.addEventListener('mousedown', onDocMouseDown);
-    return () => document.removeEventListener('mousedown', onDocMouseDown);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, []);
 
   const applyFormat = (action: FormatAction, color?: string) => {
     const el = textareaRef.current;
     if (!el || disabled) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
+    const start = selectionRange?.start ?? el.selectionStart;
+    const end = selectionRange?.end ?? el.selectionEnd;
     let result = { next: value, selStart: start, selEnd: end };
 
     switch (action) {
@@ -169,6 +189,7 @@ export function KxRichTextEditor({
     requestAnimationFrame(() => {
       el.focus();
       el.setSelectionRange(result.selStart, result.selEnd);
+      setSelectionRange({ start: result.selStart, end: result.selEnd });
       updateToolbarPosition();
     });
     setShowColorPicker(false);
@@ -177,72 +198,74 @@ export function KxRichTextEditor({
   const toolbarBtn =
     'inline-flex h-8 min-w-[2rem] items-center justify-center rounded-lg px-2 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors disabled:opacity-40';
 
-  return (
-    <div className="relative">
-      {toolbarVisible && selectionRange ? (
-        <div
-          ref={toolbarRef}
-          className="fixed z-[100] flex flex-wrap items-center gap-0.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-1.5 py-1 shadow-lg"
-          style={toolbarPos}
-          role="toolbar"
-          aria-label="Text formatting"
-        >
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('bold')} title="Bold">
-            B
+  const toolbar =
+    toolbarVisible && selectionRange && mounted ? (
+      <div
+        ref={toolbarRef}
+        className="fixed z-[9999] flex flex-wrap items-center gap-0.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-1.5 py-1 shadow-xl"
+        style={toolbarPos}
+        role="toolbar"
+        aria-label="Text formatting"
+      >
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('bold')} title="Bold">
+          B
+        </button>
+        <button type="button" className={`${toolbarBtn} italic`} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('italic')} title="Italic">
+          I
+        </button>
+        <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h2')} title="Large heading">
+          L
+        </button>
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h3')} title="Medium heading">
+          M
+        </button>
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('paragraph')} title="Paragraph">
+          P
+        </button>
+        <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <div className="relative">
+          <button
+            type="button"
+            className={toolbarBtn}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setShowColorPicker((v) => !v)}
+            title="Text color"
+          >
+            <span className="inline-block h-3 w-3 rounded-full bg-gradient-to-br from-[#02abb8] to-violet-500" />
           </button>
-          <button type="button" className={`${toolbarBtn} italic`} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('italic')} title="Italic">
-            I
-          </button>
-          <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h2')} title="Large heading">
-            L
-          </button>
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('h3')} title="Medium heading">
-            M
-          </button>
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('paragraph')} title="Paragraph">
-            P
-          </button>
-          <span className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
-          <div className="relative">
-            <button
-              type="button"
-              className={toolbarBtn}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setShowColorPicker((v) => !v)}
-              title="Text color"
-            >
-              <span className="inline-block h-3 w-3 rounded-full bg-gradient-to-br from-[#02abb8] to-violet-500" />
-            </button>
-            {showColorPicker ? (
-              <div className="absolute left-0 top-full mt-1 flex flex-wrap gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-2 shadow-lg w-[140px]">
-                {COLOR_PRESETS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className="h-6 w-6 rounded-md border border-zinc-200 dark:border-zinc-600"
-                    style={{ backgroundColor: c }}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => applyFormat('color', c)}
-                    title={c}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('link')} title="Link">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </button>
-          <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('divider')} title="Divider">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
-            </svg>
-          </button>
+          {showColorPicker ? (
+            <div className="absolute left-0 top-full mt-1 flex flex-wrap gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-2 shadow-lg w-[140px]">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="h-6 w-6 rounded-md border border-zinc-200 dark:border-zinc-600"
+                  style={{ backgroundColor: c }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => applyFormat('color', c)}
+                  title={c}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('link')} title="Link">
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </button>
+        <button type="button" className={toolbarBtn} onMouseDown={(e) => e.preventDefault()} onClick={() => applyFormat('divider')} title="Divider">
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
+          </svg>
+        </button>
+      </div>
+    ) : null;
 
+  return (
+    <div ref={rootRef} className="relative">
+      {mounted && toolbar ? createPortal(toolbar, document.body) : null}
       <textarea
         ref={textareaRef}
         value={value}
@@ -250,12 +273,16 @@ export function KxRichTextEditor({
         onSelect={updateToolbarPosition}
         onKeyUp={updateToolbarPosition}
         onMouseUp={updateToolbarPosition}
+        onFocus={updateToolbarPosition}
         disabled={disabled}
         placeholder={placeholder}
         rows={minRows}
         className={`k-textarea text-base leading-relaxed ${className}`.trim()}
         {...rest}
       />
+      <p className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+        Highlight text to open the formatting toolbar (Bold, Italic, headings, links, and more).
+      </p>
     </div>
   );
 }

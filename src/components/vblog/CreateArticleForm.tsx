@@ -29,7 +29,9 @@ import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 
 interface CreateArticleFormProps {
-  onSubmit: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
+  onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
+  onUpdate?: (articleId: string, updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>) => Promise<void>;
+  article?: VBlogArticle;
   onCancel?: () => void;
 }
 
@@ -58,7 +60,8 @@ function moduleHasConfigFields(id: VBlogModuleId): boolean {
   return id === 'premium_section' || id === 'tip_to_reveal' || id === 'premium_poll';
 }
 
-export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps) {
+export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: CreateArticleFormProps) {
+  const isEditMode = Boolean(article);
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
   const pricing = useVBlogPricing();
@@ -69,39 +72,39 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [content, setContent] = useState('');
-  const [featuredImageSource, setFeaturedImageSource] = useState<'url' | 'file'>('file');
-  const [featuredImageUrl, setFeaturedImageUrl] = useState('');
+  const [title, setTitle] = useState(article?.title ?? '');
+  const [description, setDescription] = useState(article?.description ?? '');
+  const [content, setContent] = useState(article?.content ?? '');
+  const [featuredImageSource, setFeaturedImageSource] = useState<'url' | 'file'>(article?.featuredImage ? 'url' : 'file');
+  const [featuredImageUrl, setFeaturedImageUrl] = useState(article?.featuredImage ?? '');
   const [featuredImageCid, setFeaturedImageCid] = useState<string | null>(null);
   const [featuredImageName, setFeaturedImageName] = useState<string | null>(null);
-  const [category, setCategory] = useState(CATEGORIES[0]);
-  const [tags, setTags] = useState('');
-  const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>();
-  const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>();
-  const [primaryLink, setPrimaryLink] = useState('');
-  const [socialLink1, setSocialLink1] = useState('');
-  const [socialLink2, setSocialLink2] = useState('');
-  const [socialLink3, setSocialLink3] = useState('');
+  const [category, setCategory] = useState(article?.category ?? CATEGORIES[0]);
+  const [tags, setTags] = useState(article?.tags.join(', ') ?? '');
+  const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article?.linkedMagazineId);
+  const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article?.linkedIssueNumber);
+  const [primaryLink, setPrimaryLink] = useState(article?.primaryLink ?? '');
+  const [socialLink1, setSocialLink1] = useState(article?.socialLinks?.[0] ?? '');
+  const [socialLink2, setSocialLink2] = useState(article?.socialLinks?.[1] ?? '');
+  const [socialLink3, setSocialLink3] = useState(article?.socialLinks?.[2] ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
-  const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(false);
-  const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(false);
-  const [premiumSectionContent, setPremiumSectionContent] = useState('');
-  const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState('10');
-  const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState('');
-  const [tipBoxEnabled, setTipBoxEnabled] = useState(false);
-  const [tipToRevealEnabled, setTipToRevealEnabled] = useState(false);
-  const [tipToRevealContent, setTipToRevealContent] = useState('');
-  const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState('25');
-  const [premiumPollEnabled, setPremiumPollEnabled] = useState(false);
-  const [pollQuestion, setPollQuestion] = useState('');
-  const [pollOptions, setPollOptions] = useState('Option 1, Option 2');
-  const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(false);
-  const [sidebarShownByDefault, setSidebarShownByDefault] = useState(true);
-  const [rightPanelShownByDefault, setRightPanelShownByDefault] = useState(true);
+  const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(Boolean(article?.linkedMagazineId && article?.linkedIssueNumber));
+  const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article?.modules?.premiumSectionEnabled));
+  const [premiumSectionContent, setPremiumSectionContent] = useState(article?.modules?.premiumSectionContent ?? '');
+  const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState(String(article?.modules?.premiumSectionPriceKas ?? 10));
+  const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState(article?.modules?.premiumSectionPayoutAddress ?? '');
+  const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article?.modules?.tipBoxEnabled));
+  const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article?.modules?.tipToRevealEnabled));
+  const [tipToRevealContent, setTipToRevealContent] = useState(article?.modules?.tipToRevealContent ?? '');
+  const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState(String(article?.modules?.tipToRevealThresholdKas ?? 25));
+  const [premiumPollEnabled, setPremiumPollEnabled] = useState(Boolean(article?.modules?.premiumPollEnabled));
+  const [pollQuestion, setPollQuestion] = useState(article?.modules?.premiumPoll?.question ?? '');
+  const [pollOptions, setPollOptions] = useState((article?.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+  const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(Boolean(article?.modules?.readingReceiptsEnabled));
+  const [sidebarShownByDefault, setSidebarShownByDefault] = useState(article?.layoutPreferences?.sidebarShownByDefault ?? true);
+  const [rightPanelShownByDefault, setRightPanelShownByDefault] = useState(article?.layoutPreferences?.rightPanelShownByDefault ?? true);
 
   const resolvedFeaturedImage = useMemo(() => {
     if (featuredImageSource === 'url') return featuredImageUrl.trim();
@@ -141,7 +144,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     ],
   );
 
-  const createQuote = pricing.estimateQuote(
+  const formQuote = pricing.estimateQuote(
     {
       title,
       description,
@@ -151,17 +154,17 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       featuredImage: resolvedFeaturedImage,
       linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
       linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
-      author: walletAddress ?? undefined,
+      author: (isEditMode ? article?.author : walletAddress) ?? undefined,
       primaryLink: primaryLink.trim() || undefined,
       socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
       modules: modulesPayload,
       magazineIntegrationEnabled,
     },
-    'create',
+    isEditMode ? 'edit' : 'create',
   );
 
-  const fullBaseFee = getVBlogBaseFeeKas('create');
-  const discountKas = Math.max(0, fullBaseFee - createQuote.baseFeeKas);
+  const fullBaseFee = getVBlogBaseFeeKas(isEditMode ? 'edit' : 'create');
+  const discountKas = Math.max(0, fullBaseFee - formQuote.baseFeeKas);
   const discountPercent = fullBaseFee > 0 ? Math.round((discountKas / fullBaseFee) * 100) : 0;
 
   const formModuleOffers = useMemo(
@@ -206,6 +209,74 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         break;
     }
   };
+
+  useEffect(() => {
+    if (!article) return;
+    setTitle(article.title);
+    setDescription(article.description);
+    setContent(article.content);
+    setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
+    setFeaturedImageUrl(article.featuredImage ?? '');
+    setFeaturedImageCid(null);
+    setFeaturedImageName(null);
+    setCategory(article.category);
+    setTags(article.tags.join(', '));
+    setLinkedMagazineId(article.linkedMagazineId);
+    setLinkedIssueNumber(article.linkedIssueNumber);
+    setPrimaryLink(article.primaryLink ?? '');
+    setSocialLink1(article.socialLinks?.[0] ?? '');
+    setSocialLink2(article.socialLinks?.[1] ?? '');
+    setSocialLink3(article.socialLinks?.[2] ?? '');
+    setMagazineIntegrationEnabled(Boolean(article.linkedMagazineId && article.linkedIssueNumber));
+    setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
+    setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
+    setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
+    setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
+    setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
+    setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
+    setTipToRevealContent(article.modules?.tipToRevealContent ?? '');
+    setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
+    setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
+    setPollQuestion(article.modules?.premiumPoll?.question ?? '');
+    setPollOptions((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+    setReadingReceiptsEnabled(Boolean(article.modules?.readingReceiptsEnabled));
+    setSidebarShownByDefault(article.layoutPreferences?.sidebarShownByDefault ?? true);
+    setRightPanelShownByDefault(article.layoutPreferences?.rightPanelShownByDefault ?? true);
+  }, [article]);
+
+  useEffect(() => {
+    if (!article) return;
+    setTitle(article.title);
+    setDescription(article.description);
+    setContent(article.content);
+    setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
+    setFeaturedImageUrl(article.featuredImage ?? '');
+    setFeaturedImageCid(null);
+    setFeaturedImageName(null);
+    setCategory(article.category);
+    setTags(article.tags.join(', '));
+    setLinkedMagazineId(article.linkedMagazineId);
+    setLinkedIssueNumber(article.linkedIssueNumber);
+    setPrimaryLink(article.primaryLink ?? '');
+    setSocialLink1(article.socialLinks?.[0] ?? '');
+    setSocialLink2(article.socialLinks?.[1] ?? '');
+    setSocialLink3(article.socialLinks?.[2] ?? '');
+    setMagazineIntegrationEnabled(Boolean(article.linkedMagazineId && article.linkedIssueNumber));
+    setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
+    setPremiumSectionContent(article.modules?.premiumSectionContent ?? '');
+    setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
+    setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
+    setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
+    setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
+    setTipToRevealContent(article.modules?.tipToRevealContent ?? '');
+    setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
+    setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
+    setPollQuestion(article.modules?.premiumPoll?.question ?? '');
+    setPollOptions((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+    setReadingReceiptsEnabled(Boolean(article.modules?.readingReceiptsEnabled));
+    setSidebarShownByDefault(article.layoutPreferences?.sidebarShownByDefault ?? true);
+    setRightPanelShownByDefault(article.layoutPreferences?.rightPanelShownByDefault ?? true);
+  }, [article]);
 
   useEffect(() => {
     if (premiumSectionEnabled && kaspaState.address && !premiumSectionPayoutAddress.trim()) {
@@ -320,16 +391,15 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         .filter((tag) => tag.length > 0);
 
       if (!isWalletConnected || !walletAddress) {
-        setError('Wallet not connected. Please connect your wallet (Kaspa or EVM) to create an article.');
+        setError('Wallet not connected. Please connect your wallet (Kaspa or EVM) to publish.');
         setIsSubmitting(false);
         return;
       }
 
-      await onSubmit({
+      const payload = {
         title: title.trim(),
         description: description.trim(),
         content: content.trim(),
-        author: walletAddress,
         category,
         tags: tagsArray,
         featuredImage: resolvedFeaturedImage,
@@ -342,7 +412,20 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           sidebarShownByDefault,
           rightPanelShownByDefault,
         },
-      });
+      };
+
+      if (isEditMode && article && onUpdate) {
+        await onUpdate(article.id, payload);
+      } else if (onSubmit) {
+        await onSubmit({
+          ...payload,
+          author: walletAddress,
+        });
+      } else {
+        throw new Error('No submit handler configured');
+      }
+
+      if (isEditMode) return;
 
       setTitle('');
       setDescription('');
@@ -387,10 +470,10 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       <div className="flex flex-col space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
         <div>
           <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
-            Create New Article
+            {isEditMode ? 'Edit Article' : 'Create New Article'}
           </h3>
           <p className="kx-body mb-6">
-            Fill in the details below to create a new article. Estimated cost: {createQuote.totalKas} KAS ({createQuote.chunkCount} chunk{createQuote.chunkCount === 1 ? '' : 's'}, {createQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
+            {isEditMode ? 'Update your article details.' : 'Fill in the details below to create a new article.'} Estimated cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunk{formQuote.chunkCount === 1 ? '' : 's'}, {formQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
         </div>
 
@@ -595,26 +678,22 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             Control default reader layout when this article opens.
           </p>
           <div className="space-y-2">
-            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
-              <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Sidebar shown by default</span>
-              <input
-                type="checkbox"
-                checked={sidebarShownByDefault}
-                onChange={(e) => setSidebarShownByDefault(e.target.checked)}
-                disabled={isSubmitting}
-                className="h-4 w-4 rounded border-zinc-300 text-[#02abb8] focus:ring-[#02abb8]"
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
-              <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Right-side panel shown by default</span>
-              <input
-                type="checkbox"
-                checked={rightPanelShownByDefault}
-                onChange={(e) => setRightPanelShownByDefault(e.target.checked)}
-                disabled={isSubmitting}
-                className="h-4 w-4 rounded border-zinc-300 text-[#02abb8] focus:ring-[#02abb8]"
-              />
-            </label>
+            <KxInFormPremiumRow
+              title="Sidebar shown by default"
+              description="Readers see the left article navigation when they open this article."
+              priceLabel="Layout"
+              checked={sidebarShownByDefault}
+              disabled={isSubmitting}
+              onToggle={() => setSidebarShownByDefault(!sidebarShownByDefault)}
+            />
+            <KxInFormPremiumRow
+              title="Right-side panel shown by default"
+              description="Readers see the author and on-chain metadata panel on load."
+              priceLabel="Layout"
+              checked={rightPanelShownByDefault}
+              disabled={isSubmitting}
+              onToggle={() => setRightPanelShownByDefault(!rightPanelShownByDefault)}
+            />
           </div>
         </section>
 
@@ -648,30 +727,32 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       <aside className="xl:sticky xl:top-6 flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
         <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
         <div className="space-y-2 kx-body">
-          <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.baseFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.sizeFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.networkFeeBufferKas} KAS</span></div>
-          {createQuote.moduleLines.map((line) => (
+          <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
+          <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span></div>
+          <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span></div>
+          {formQuote.moduleLines.map((line) => (
             <div key={line.id} className="flex justify-between gap-2">
               <span className="truncate">{line.title}</span>
               <span className="font-bold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
             </div>
           ))}
-          {createQuote.modulesFeeKas > 0 ? (
+          {formQuote.modulesFeeKas > 0 ? (
             <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-2">
               <span>Modules subtotal</span>
-              <span className="font-bold text-[#02abb8]">{createQuote.modulesFeeKas} KAS</span>
+              <span className="font-bold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
             </div>
           ) : null}
-          <div className="flex justify-between"><span>Payload bytes</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.payloadBytes}</span></div>
-          <div className="flex justify-between"><span>Chunk estimate</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.chunkCount}</span></div>
+          <div className="flex justify-between"><span>Payload bytes</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span></div>
+          <div className="flex justify-between"><span>Chunk estimate</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span></div>
         </div>
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{createQuote.totalKas} KAS</p>
+          <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
         </div>
         <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-          One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.
+          {isEditMode
+            ? 'Updating sends one Kaspa L1 payment transaction and refreshes on-chain metadata.'
+            : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
         </div>
         {pricing.tier.hasKREXDiscount && (
           <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
@@ -692,7 +773,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           disabled={isSubmitting || isUploading}
           className="w-full px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Creating...' : 'Create Article'}
+          {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
         </button>
         <KxAlertRegion>
           {error ? (
