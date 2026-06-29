@@ -12,10 +12,17 @@ function pickString(value: unknown): string | null {
  * Normalize wallet / RPC errors into user-readable messages.
  */
 export function formatKaspaWalletError(err: unknown): string {
+  if (err instanceof SyntaxError) {
+    return 'Received an invalid or empty response from the server or wallet. Check KasWare for pending transactions, then retry.';
+  }
+
   if (err instanceof Error) {
     const direct = pickString(err.message);
     if (direct) {
       if (isStorageMassErrorMessage(direct)) return storageMassHelp();
+      if (direct.toLowerCase().includes('json')) {
+        return 'Received an invalid or empty response from the server or wallet. Check KasWare for pending transactions, then retry.';
+      }
       return direct;
     }
   }
@@ -50,6 +57,6 @@ export function formatKaspaWalletError(err: unknown): string {
 function storageMassHelp(): string {
   return (
     'Storage mass exceeds maximum. This often happens when your wallet has many small UTXOs (common after a KREX transfer). ' +
-    'Compound UTXOs in KasWare (Wallet > UTXO > Compound), enable High-mass mode under Protocols > KPX Tools, then retry.'
+    'Compound UTXOs in KasWare (Wallet > UTXO > Compound), then retry.'
   );
 }

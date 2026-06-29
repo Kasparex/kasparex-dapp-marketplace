@@ -3,6 +3,8 @@
  * Handles automatic pinning and file uploads to Pinata IPFS
  */
 
+import { readJsonResponse } from '@/lib/http/readJsonResponse';
+
 export interface PinataConfig {
   apiKey: string;
   apiSecret: string;
@@ -69,7 +71,7 @@ class PinataService {
         throw new Error(`Pinata upload failed: ${error}`);
       }
 
-      const data: PinataResponse = await response.json();
+      const data = await readJsonResponse<PinataResponse>(response);
       return {
         hash: data.IpfsHash,
         hashV0: data.IpfsHash, // Pinata returns CIDv1 by default
@@ -116,7 +118,7 @@ class PinataService {
         throw new Error(`Pinata JSON upload failed: ${error}`);
       }
 
-      const pinataData: PinataResponse = await response.json();
+      const pinataData = await readJsonResponse<PinataResponse>(response);
       return {
         hash: pinataData.IpfsHash,
         hashV0: pinataData.IpfsHash,

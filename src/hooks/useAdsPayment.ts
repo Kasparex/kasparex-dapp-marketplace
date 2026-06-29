@@ -11,6 +11,7 @@ import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import { expectedPriceKrexFromTotalKas } from '@/lib/ads/adPriceValidation';
 import { sendAdsMetadataBindingTx } from '@/lib/ads/sendBindingTx';
 import type { AdPaymentCurrency } from '@/lib/ads/metadata';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
@@ -32,13 +33,18 @@ async function transferKrex(
     amt: amountSmallest.toString(),
     to,
   };
-  return signKrc20Transfer(
+  const raw = await signKrc20Transfer(
     provider,
     JSON.stringify(inscribeJson),
     KRC20_TRANSFER_TYPE,
     to,
     KREX_PRIORITY_FEE_KAS,
   );
+  const txId = extractKaspaTransactionId(raw) ?? (typeof raw === 'string' ? raw.trim() : null);
+  if (!txId) {
+    throw new Error('KREX transfer did not return a transaction id. Check KasWare history and retry.');
+  }
+  return txId;
 }
 
 export function useAdsPayment() {

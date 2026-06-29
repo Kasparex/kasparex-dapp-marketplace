@@ -11,7 +11,6 @@ import {
   ADS_EXTENDED_EXPOSURE_KAS,
   ADS_EXTENDED_EXPOSURE_SECONDS,
   ADS_MAX_PROMO_TOOLTIP_CHARS,
-  ADS_KREX_BINDING_FEE_KAS,
 } from '@/lib/ads/constants';
 import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
 import { buildCampaignMetadataV1, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
@@ -31,6 +30,7 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
 import {
   STORE_PAYMENT_CURRENCIES,
@@ -43,6 +43,7 @@ import {
   useAdsPayment,
 } from '@/hooks/useAdsPayment';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
+import { readJsonResponse } from '@/lib/http/readJsonResponse';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
@@ -126,6 +127,9 @@ export function CreateAdWizard({
   const priceKas =
     discountedSlotKas > 0 ? Number((discountedSlotKas + premiumAddonKas).toFixed(8)) : 0;
   const payLabel = formatPaymentLabel(paymentCurrency, priceKas);
+  const formatPrice = (kas: number) => formatPaymentLabel(paymentCurrency, kas);
+  const krexCheckoutHint =
+    'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a small KAS binding payment that carries your metadata on-chain. The KAS step may show 0 in KasWare. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
 
   const treasuryAddress = getAdsTreasuryL1Address();
 
@@ -391,13 +395,17 @@ export function CreateAdWizard({
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
-      appendHubActivityEarn({
-        walletRaw: payerL1,
-        source: 'hub_ad_placement',
-        redeemableDelta: HUB_EARN_POINTS.hubAdPlacement,
-        idempotencyKey: `ads:bind:${hash}`,
-        meta: { slotId, slotIndex },
-      });
+      try {
+        appendHubActivityEarn({
+          walletRaw: payerL1,
+          source: 'hub_ad_placement',
+          redeemableDelta: HUB_EARN_POINTS.hubAdPlacement,
+          idempotencyKey: `ads:bind:${hash}`,
+          meta: { slotId, slotIndex },
+        });
+      } catch {
+        /* hub ledger is non-blocking */
+      }
 
       // Wallet work is done - show success immediately. Verification hits public REST (often lags after broadcast).
       setPhase('success');
@@ -416,7 +424,7 @@ export function CreateAdWizard({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ txHash: hash, metadataCid: cid }),
           });
-          const vj = (await vr.json()) as { ok?: boolean; error?: string };
+          const vj = await readJsonResponse<{ ok?: boolean; error?: string }>(vr);
           if (vj.ok) {
             verifyOk = true;
             lastVerifyMessage = null;
@@ -822,15 +830,15 @@ export function CreateAdWizard({
                 <KxInFormPremiumList>
                   <KxInFormPremiumRow
                     title="Featured highlight"
-                    description={`More visible placement with a colorful frame for the duration of the campaign. One-time ${ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.`}
-                    priceLabel={`+${ADS_FEATURED_HIGHLIGHT_KAS} KAS`}
+                    description={`More visible placement with a colorful frame for the duration of the campaign. One-time ${formatPrice(ADS_FEATURED_HIGHLIGHT_KAS)} - not per day.`}
+                    priceLabel={`+${formatPrice(ADS_FEATURED_HIGHLIGHT_KAS)}`}
                     checked={featuredHighlight}
                     onToggle={() => setFeaturedHighlight((v) => !v)}
                   />
                   <KxInFormPremiumRow
                     title="Extended exposure"
-                    description={`Your ad stays visible +${ADS_EXTENDED_EXPOSURE_SECONDS} seconds longer before the slider advances. One-time ${ADS_EXTENDED_EXPOSURE_KAS} KAS - not per day.`}
-                    priceLabel={`+${ADS_EXTENDED_EXPOSURE_KAS} KAS`}
+                    description={`Your ad stays visible +${ADS_EXTENDED_EXPOSURE_SECONDS} seconds longer before the slider advances. One-time ${formatPrice(ADS_EXTENDED_EXPOSURE_KAS)} - not per day.`}
+                    priceLabel={`+${formatPrice(ADS_EXTENDED_EXPOSURE_KAS)}`}
                     checked={extendedExposure}
                     onToggle={() => setExtendedExposure((v) => !v)}
                   />
@@ -838,50 +846,42 @@ export function CreateAdWizard({
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
-                <KxModalSectionTitle className="mb-2">Pay with</KxModalSectionTitle>
+                <div className="flex items-center gap-2 mb-2">
+                  <KxModalSectionTitle className="mb-0">Pay with</KxModalSectionTitle>
+                  {paymentCurrency === 'KREX' ? (
+                    <FieldHint text={krexCheckoutHint} ariaLabel="KREX checkout info" />
+                  ) : null}
+                </div>
                 <KxSegmentToggle
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
                   options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
                   ariaLabel="Ad payment currency"
                 />
-                {paymentCurrency === 'KREX' ? (
-                  <div className="mt-2 space-y-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    <p>
-                      KREX checkout uses <strong className="text-zinc-700 dark:text-zinc-300">two wallet confirmations</strong>:
-                      first the KREX campaign fee, then a small KAS binding payment ({ADS_KREX_BINDING_FEE_KAS} KAS minimum) that
-                      carries your campaign metadata CID on-chain.
-                    </p>
-                    <p>
-                      The KAS step may look like a very small or zero amount in KasWare. If you see &quot;Storage mass exceeds
-                      maximum&quot;, compound UTXOs in KasWare or enable High-mass mode under Protocols &gt; KPX Tools.
-                    </p>
-                  </div>
-                ) : null}
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/40 p-4 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
                 <KxModalSectionTitle className="mb-1">Summary</KxModalSectionTitle>
                 {krexDiscountPct > 0 && (
                   <p className="line-through opacity-70">
-                    Slot list: {basePriceKas} KAS ({durationDays} × {slotConfig?.pricePerDay ?? 0} KAS/day)
+                    Slot list: {formatPrice(basePriceKas)} ({durationDays} × {formatPrice(slotConfig?.pricePerDay ?? 0)}/day)
                   </p>
                 )}
                 <p>
-                  Slot after tier: <strong className="text-zinc-900 dark:text-zinc-100">{discountedSlotKas} KAS</strong>
+                  Slot after tier: <strong className="text-zinc-900 dark:text-zinc-100">{formatPrice(discountedSlotKas)}</strong>
                   {krexDiscountPct > 0 ? ` (${krexDiscountPct}% off · ${KREX_TIERS[krexTier]?.label ?? krexTier})` : ''}
                 </p>
                 {featuredHighlight && (
                   <p>
                     Featured add-on:{' '}
-                    <strong className="text-zinc-900 dark:text-zinc-100">+{ADS_FEATURED_HIGHLIGHT_KAS} KAS</strong>{' '}
+                    <strong className="text-zinc-900 dark:text-zinc-100">+{formatPrice(ADS_FEATURED_HIGHLIGHT_KAS)}</strong>{' '}
                     <span className="text-zinc-500">(one-time)</span>
                   </p>
                 )}
                 {extendedExposure && (
                   <p>
                     Extended exposure:{' '}
-                    <strong className="text-zinc-900 dark:text-zinc-100">+{ADS_EXTENDED_EXPOSURE_KAS} KAS</strong>{' '}
+                    <strong className="text-zinc-900 dark:text-zinc-100">+{formatPrice(ADS_EXTENDED_EXPOSURE_KAS)}</strong>{' '}
                     <span className="text-zinc-500">(+{ADS_EXTENDED_EXPOSURE_SECONDS}s, one-time)</span>
                   </p>
                 )}
