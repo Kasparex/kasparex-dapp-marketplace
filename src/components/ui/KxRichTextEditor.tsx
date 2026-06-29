@@ -20,7 +20,7 @@ const TOOLBAR = [
   ['link', 'blockquote'],
   [{ list: 'ordered' }, { list: 'bullet' }],
   ['clean'],
-] as (string | { header: (number | false)[] } | { list: string })[];
+];
 
 const FORMATS = [
   'header',
