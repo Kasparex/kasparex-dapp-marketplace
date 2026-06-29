@@ -4,7 +4,7 @@
 export function FeaturedAdIcon({ className = '' }: { className?: string }) {
   return (
     <svg
-      className={`pointer-events-none h-4 w-4 shrink-0 text-zinc-900 dark:text-zinc-100 ${className}`}
+      className={`pointer-events-none h-4 w-4 shrink-0 text-orange-500 dark:text-orange-400 ${className}`}
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-label="Featured placement"

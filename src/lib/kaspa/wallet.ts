@@ -679,11 +679,12 @@ export async function sendKaspaTransaction(
   transaction: KaspaTransactionRequest
 ): Promise<KaspaTransactionResponse> {
   const walletProvider = getWalletProvider(provider);
-  
-  if (!walletProvider || !walletProvider.isConnected()) {
-    throw new Error('Wallet is not connected');
+
+  if (!walletProvider) {
+    throw new Error('Wallet provider not available');
   }
 
+  // Do not gate on isConnected(): KasWare may return false while the session is still active.
   try {
     // Wallets expect a full kaspa: address prefix.
     // Some call sites pass an address without prefix, so normalize here centrally.

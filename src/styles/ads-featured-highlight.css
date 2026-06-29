@@ -450,10 +450,6 @@
     background-size: 320% 320%;
     animation: kasparex-ad-slot-featured-shimmer 6s ease infinite;
     opacity: 0.92;
-    box-shadow:
-      0 0 16px rgba(251, 191, 36, 0.45),
-      0 0 32px rgba(249, 115, 22, 0.28),
-      0 0 48px rgba(236, 72, 153, 0.12);
   }
 
   @media (prefers-reduced-motion: reduce) {

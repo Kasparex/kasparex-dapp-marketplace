@@ -16,7 +16,7 @@ import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
 import { buildCampaignMetadataV1, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
 import type { AdSlotId, AdFormat, AdEntry } from '@/lib/ads/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { detectKaspaWallets, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
+import { detectKaspaWallets, getKaspaAddress, getWalletProvider, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -102,14 +102,13 @@ export function CreateAdWizard({
 
   const [slotMenuOpen, setSlotMenuOpen] = useState(false);
 
-  const { state: kaspaState, connect: connectKaspa } = useKaspaWallet();
+  const { state: kaspaState, connect: connectKaspa, refresh: refreshKaspa } = useKaspaWallet();
   const { ads, refresh: registryRefresh } = useAdsRegistryContext();
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
   const { payAdCampaign, isProcessing: isPayProcessing } = useAdsPayment();
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
 
-  const l1Ready =
-    kaspaState.isConnected && Boolean(kaspaState.address) && Boolean(kaspaState.provider);
+  const l1Ready = Boolean(kaspaState.address) && Boolean(kaspaState.provider);
 
   const format: AdFormat = useMemo(
     () => (slotId ? defaultFormatForSlot(slotId) : 'square'),
@@ -288,7 +287,29 @@ export function CreateAdWizard({
   };
 
   const handlePay = async () => {
-    if (!l1Ready || !kaspaState.provider || !kaspaState.address) {
+    setError(null);
+
+    const provider = kaspaState.provider;
+    if (!provider) {
+      setError('Connect your Kaspa (L1) wallet to pay.');
+      return;
+    }
+    if (!getWalletProvider(provider)) {
+      setError('Wallet extension is not available. Refresh the page or reconnect your wallet.');
+      return;
+    }
+
+    await refreshKaspa();
+
+    let payerAddress = kaspaState.address;
+    try {
+      const liveAddress = await getKaspaAddress(provider);
+      if (liveAddress) payerAddress = liveAddress;
+    } catch {
+      /* use stored address if live lookup fails */
+    }
+
+    if (!payerAddress) {
       setError('Connect your Kaspa (L1) wallet to pay.');
       return;
     }
@@ -300,27 +321,35 @@ export function CreateAdWizard({
       setError('Fill in all details and pick an available slot.');
       return;
     }
+
+    const payCur: AdPaymentCurrency = paymentCurrency;
+    if (payCur === 'KREX') {
+      const priceKrex = adsPriceKrexFromKas(priceKas);
+      if (krexL1Balance + 1e-12 < priceKrex) {
+        setError(`Insufficient KREX on your L1 wallet (${krexL1Balance.toFixed(2)} available, ${priceKrex} required).`);
+        return;
+      }
+    }
+
     let payerL1: string;
     try {
-      payerL1 = normalizeKaspaAddress(kaspaState.address);
+      payerL1 = normalizeKaspaAddress(payerAddress);
     } catch {
       setError('Invalid Kaspa wallet address.');
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
     setVerifyNote(null);
     try {
       const image = await buildImageRef();
 
       let krexPaymentTxHash: string | undefined;
       let priceKrex: number | undefined;
-      const payCur: AdPaymentCurrency = paymentCurrency;
 
       if (payCur === 'KREX') {
         krexPaymentTxHash = await transferKrexForAdsPayment(
-          kaspaState.provider as KaspaWalletProvider,
+          provider as KaspaWalletProvider,
           priceKas,
           treasuryAddress,
         );
@@ -496,7 +525,7 @@ export function CreateAdWizard({
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4">
                 KREX balance across your connected wallets reduces the listed ad price (same tiers as Diamond Veins shop
-                discounts). Campaign payment is KAS only for now.
+                discounts). You can pay in KAS or KREX on the next step.
               </p>
               {installedKaspaWallets.length > 0 ? (
                 <div className="space-y-2">

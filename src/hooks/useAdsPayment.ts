@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
+import { sendKaspaTransaction, getWalletProvider } from '@/lib/kaspa/wallet';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { kasToKrexAmount } from '@/lib/store/currencies';
@@ -61,8 +61,11 @@ export function useAdsPayment() {
       /** When set, KREX transfer was already completed (metadata includes this hash). */
       krexPaymentTxHash?: string;
     }): Promise<{ txHash: string; krexPaymentTxHash?: string }> => {
-      if (!state.isConnected || !state.address || !state.provider) {
+      if (!state.provider || !state.address) {
         throw new Error('Connect your Kaspa (L1) wallet to pay.');
+      }
+      if (!getWalletProvider(state.provider)) {
+        throw new Error('Wallet extension is not available. Refresh the page or reconnect your wallet.');
       }
 
       const treasuryAddress = getAdsTreasuryL1Address();
@@ -117,7 +120,7 @@ export function useAdsPayment() {
         setIsProcessing(false);
       }
     },
-    [state.isConnected, state.address, state.provider, krexL1Balance],
+    [state.address, state.provider, krexL1Balance],
   );
 
   return { payAdCampaign, isProcessing, error, setError };
