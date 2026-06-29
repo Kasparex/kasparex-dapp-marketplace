@@ -21,7 +21,7 @@ export const FEATURED_AD_SLOT_HOST_CLASS =
   'kasparex-ad-slot-featured-host relative isolate box-border overflow-visible flex flex-col';
 
 export const FEATURED_AD_SLOT_AURA_CLASS =
-  'kasparex-ad-slot-featured-aura pointer-events-none absolute -inset-[4px] z-0';
+  'kasparex-ad-slot-featured-aura pointer-events-none absolute -inset-[2px] z-0';
 
 export const FEATURED_AD_SLOT_OVERLAY_CLASS = '';
 

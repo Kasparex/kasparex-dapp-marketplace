@@ -22,14 +22,14 @@ export type AdPlacementVariant = 'halo' | 'footer' | 'sidebar';
 /** One outer frame per slide: aspect + padding inside the dashed/solid shell */
 function frameForVariant(v: AdPlacementVariant, relaxHaloFrame?: boolean): string {
   if (v === 'footer') {
-    return 'aspect-[32/11] min-h-[120px] max-h-[152px] w-full min-w-0 max-w-full p-2 sm:p-3';
+    return 'aspect-[32/11] min-h-[120px] max-h-[152px] w-full min-w-0 max-w-full p-0.5 sm:p-1';
   }
   if (v === 'sidebar')
-    return 'aspect-[3/2] min-h-[112px] min-w-0 w-full max-w-full p-2 sm:p-3';
+    return 'aspect-[3/2] min-h-[112px] min-w-0 w-full max-w-full p-0.5 sm:p-1';
   if (relaxHaloFrame) {
-    return 'aspect-square min-h-[188px] min-w-0 w-full max-w-full p-2 sm:p-3';
+    return 'aspect-square min-h-[188px] min-w-0 w-full max-w-full p-0.5 sm:p-1';
   }
-  return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-3 sm:p-4';
+  return 'aspect-square min-w-0 max-w-[220px] mx-auto w-full p-1 sm:p-1.5';
 }
 
 const CAROUSEL_INTERVAL_MS = ADS_BASE_CAROUSEL_INTERVAL_MS;

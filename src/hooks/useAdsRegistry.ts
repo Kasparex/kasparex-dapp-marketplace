@@ -3,10 +3,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AdEntry } from '@/lib/ads/types';
 
+function mergeAdList(prev: AdEntry[], entry: AdEntry): AdEntry[] {
+  const idx = prev.findIndex((a) => a.id === entry.id);
+  if (idx >= 0) {
+    const next = [...prev];
+    next[idx] = entry;
+    return next;
+  }
+  return [...prev, entry];
+}
+
 export function useAdsRegistry() {
   const [ads, setAds] = useState<AdEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const upsertAd = useCallback((entry: AdEntry) => {
+    setAds((prev) => mergeAdList(prev, entry));
+  }, []);
 
   const refresh = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = Boolean(opts?.silent);
@@ -36,5 +50,5 @@ export function useAdsRegistry() {
     refresh();
   }, [refresh]);
 
-  return { ads, loading, error, refresh };
+  return { ads, loading, error, refresh, upsertAd };
 }

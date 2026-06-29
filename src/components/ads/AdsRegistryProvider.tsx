@@ -9,6 +9,7 @@ type AdsRegistryCtx = {
   loading: boolean;
   error: string | null;
   refresh: (opts?: { silent?: boolean }) => Promise<void>;
+  upsertAd: (entry: AdEntry) => void;
 };
 
 const AdsRegistryContext = createContext<AdsRegistryCtx | null>(null);

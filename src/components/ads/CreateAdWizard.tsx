@@ -13,7 +13,7 @@ import {
   ADS_MAX_PROMO_TOOLTIP_CHARS,
 } from '@/lib/ads/constants';
 import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
-import { buildCampaignMetadataV1, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
+import { buildCampaignMetadataV1, resolveAdImageUrl, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
 import type { AdSlotId, AdFormat, AdEntry } from '@/lib/ads/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { detectKaspaWallets, getKaspaAddress, getWalletProvider, KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
@@ -44,6 +44,7 @@ import {
 } from '@/hooks/useAdsPayment';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { readJsonResponse } from '@/lib/http/readJsonResponse';
+import { exposureBonusSecondsFromPremium } from '@/lib/ads/carouselTiming';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
@@ -106,7 +107,7 @@ export function CreateAdWizard({
   const [slotMenuOpen, setSlotMenuOpen] = useState(false);
 
   const { state: kaspaState, connect: connectKaspa, refresh: refreshKaspa } = useKaspaWallet();
-  const { ads, refresh: registryRefresh } = useAdsRegistryContext();
+  const { ads, refresh: registryRefresh, upsertAd } = useAdsRegistryContext();
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
   const { payAdCampaign, isProcessing: isPayProcessing } = useAdsPayment();
   const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
@@ -238,11 +239,13 @@ export function CreateAdWizard({
         const sync = lastPaymentSyncRef.current;
         if (sync && i % 3 === 0) {
           try {
-            await fetch('/api/ads/verify', {
+            const vr = await fetch('/api/ads/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ txHash: sync.txHash, metadataCid: sync.metadataCid }),
             });
+            const vj = await readJsonResponse<{ ok?: boolean; entry?: AdEntry }>(vr);
+            if (vj.ok && vj.entry) upsertAd(vj.entry);
           } catch {
             /* ignore */
           }
@@ -256,7 +259,7 @@ export function CreateAdWizard({
     return () => {
       cancelled = true;
     };
-  }, [syncAdsAfterPayment, registryRefresh]);
+  }, [syncAdsAfterPayment, registryRefresh, upsertAd]);
 
   useEffect(() => {
     if (imageSource !== 'file' || !imageFile) {
@@ -395,6 +398,24 @@ export function CreateAdWizard({
       setTxHash(hash);
       lastPaymentSyncRef.current = { txHash: hash, metadataCid: cid };
 
+      upsertAd({
+        id: `${hash}-${cid}`,
+        slotId,
+        slotIndex,
+        featuredHighlight: featuredHighlight || undefined,
+        exposureBonusSeconds: exposureBonusSecondsFromPremium(extendedExposure) ?? undefined,
+        format,
+        imageUrl: resolveAdImageUrl(image),
+        link: link.trim(),
+        title: title.trim(),
+        promoTooltip: promoTooltipTrimmed || undefined,
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString(),
+        payerL1,
+        metadataCid: cid,
+        txId: hash,
+      });
+
       try {
         appendHubActivityEarn({
           walletRaw: payerL1,
@@ -416,7 +437,7 @@ export function CreateAdWizard({
 
       let verifyOk = false;
       let lastVerifyMessage: string | null = null;
-      const maxVerifyAttempts = 5;
+      const maxVerifyAttempts = 8;
       for (let attempt = 0; attempt < maxVerifyAttempts; attempt++) {
         try {
           const vr = await fetch('/api/ads/verify', {
@@ -424,10 +445,11 @@ export function CreateAdWizard({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ txHash: hash, metadataCid: cid }),
           });
-          const vj = await readJsonResponse<{ ok?: boolean; error?: string }>(vr);
+          const vj = await readJsonResponse<{ ok?: boolean; error?: string; entry?: AdEntry }>(vr);
           if (vj.ok) {
             verifyOk = true;
             lastVerifyMessage = null;
+            if (vj.entry) upsertAd(vj.entry);
             break;
           }
           const msg = (vj.error ?? '').toLowerCase();
