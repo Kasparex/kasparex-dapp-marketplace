@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782775160-2cb93af",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix formatting and update README content (by Kasparex)",
+      "date": "2026-06-30T01:19:05+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782633467-70085a7",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix NFT wallet detection fallbacks when KRC721 Stream is unavailable. (by Kasparex)",
