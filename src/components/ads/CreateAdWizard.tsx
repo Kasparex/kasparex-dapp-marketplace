@@ -41,6 +41,7 @@ import {
   useAdsPayment,
 } from '@/hooks/useAdsPayment';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
+import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 
 function resolveInitialSlotId(initial: AdSlotId | null | undefined, adsList: AdEntry[]): AdSlotId | null {
   const normalized =
@@ -426,12 +427,24 @@ export function CreateAdWizard({
     setConnectBusy(true);
     setError(null);
     try {
-      await connectKaspa(provider);
+      await connectKaspa(provider, {
+        enableSIWK: true,
+        siwkParams: {
+          domain: typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com',
+          statement: 'Welcome to Kasparex!',
+          appName: 'Kasparex',
+        },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Connection failed');
     } finally {
       setConnectBusy(false);
     }
+  };
+
+  const walletLogoProvider = (id: KaspaWalletProvider): L1WalletProviderId | null => {
+    if (id === 'kasware' || id === 'kastle') return id;
+    return null;
   };
 
   const installedKaspaWallets = typeof window !== 'undefined' ? detectKaspaWallets() : [];
@@ -494,8 +507,12 @@ export function CreateAdWizard({
                       onClick={() => void handleWalletConnect(w.id)}
                       className="w-full text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8]/60 hover:bg-[#02abb8]/5 transition-colors disabled:opacity-50"
                     >
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100">Connect {w.name}</span>
-                      <span className="text-xs text-zinc-500 block mt-0.5">Detected in this browser</span>
+                      {walletLogoProvider(w.id) ? (
+                        <L1WalletConnectLabel provider={walletLogoProvider(w.id)!} label={`Connect ${w.name}`} />
+                      ) : (
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">Connect {w.name}</span>
+                      )}
+                      <span className="text-xs text-zinc-500 block mt-1.5">Detected in this browser</span>
                     </button>
                   ))}
                 </div>

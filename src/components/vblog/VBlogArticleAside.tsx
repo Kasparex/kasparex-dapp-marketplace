@@ -47,7 +47,7 @@ export function VBlogArticleAside({ sections }: { sections: VBlogAsideSection[] 
         </div>
       ))}
 
-      <PanelAdSlider slotId="VBLOG_ARTICLE_ASIDE_BOTTOM" id="ad-slot-vblog-article-aside" />
+      <PanelAdSlider slotId="HALO_VBLOG_RIGHT" id="ad-slot-vblog-article-aside" />
     </aside>
   );
 }

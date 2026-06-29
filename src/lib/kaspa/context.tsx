@@ -150,15 +150,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
         const walletProvider = getWalletProvider(provider!);
         if (walletProvider) {
           try {
-            if (!walletProvider.isConnected()) {
-              if (!userDisconnectedRef.current) {
-                clearPersistedWalletState();
-                setState(DEFAULT_WALLET_STATE);
-              }
-              return;
-            }
-
-            const address = await getKaspaAddress(provider!);
+            const address = await getKaspaAddress(provider!, { sessionRestore: true });
             if (cancelled) return;
             if (address) {
               setState((prev) => ({
@@ -168,16 +160,9 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
                 provider: provider!,
                 error: null,
               }));
-            } else if (!userDisconnectedRef.current) {
-              clearPersistedWalletState();
-              setState(DEFAULT_WALLET_STATE);
             }
           } catch (error) {
             console.warn('Wallet session restore attempt failed:', error);
-            if (!userDisconnectedRef.current) {
-              clearPersistedWalletState();
-              setState(DEFAULT_WALLET_STATE);
-            }
           }
           return;
         }
@@ -242,7 +227,7 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       if (accounts.length === 0) {
         emptyAccountsTimerRef.current = setTimeout(async () => {
           try {
-            const currentAddress = await getKaspaAddress(state.provider!);
+            const currentAddress = await getKaspaAddress(state.provider!, { sessionRestore: true });
             if (currentAddress) {
               setState((prev) => ({
                 ...prev,

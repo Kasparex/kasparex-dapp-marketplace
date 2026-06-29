@@ -586,12 +586,17 @@ export async function disconnectKaspaWallet(
  * Get current connected address
  */
 export async function getKaspaAddress(
-  provider: KaspaWalletProvider
+  provider: KaspaWalletProvider,
+  options?: { sessionRestore?: boolean },
 ): Promise<string | null> {
   try {
     const walletProvider = getWalletProvider(provider);
-    
-    if (!walletProvider || !walletProvider.isConnected()) {
+
+    if (!walletProvider) {
+      return null;
+    }
+
+    if (!options?.sessionRestore && !walletProvider.isConnected()) {
       return null;
     }
 
