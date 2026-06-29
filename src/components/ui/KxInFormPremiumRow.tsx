@@ -2,9 +2,6 @@
 
 import type { ReactNode } from 'react';
 
-export const KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS =
-  'shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white bg-gradient-to-r from-amber-600 to-orange-500 shadow-md shadow-amber-900/20 hover:from-amber-700 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none';
-
 export function KxInFormPremiumRow({
   title,
   description,

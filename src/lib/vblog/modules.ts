@@ -1,4 +1,4 @@
-import { VBlogModuleId } from '@/lib/vblog/types';
+import { VBlogModuleId, VBlogModulesConfig } from '@/lib/vblog/types';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { NFTStatus } from '@/lib/rewards/types';
 import {
@@ -118,6 +118,54 @@ export function getVBlogModuleEffectivePriceKas(
   const discount = getVBlogModuleCombinedDiscountPercent(tier, nft);
   const factor = 1 - discount / 100;
   return Math.max(0.01, Math.round(baseKas * factor * 100) / 100);
+}
+
+export type VBlogModuleAddonLine = {
+  id: VBlogModuleId;
+  title: string;
+  kas: number;
+};
+
+export function getEnabledVBlogModuleIds(
+  modules?: VBlogModulesConfig,
+  magazineIntegrationEnabled?: boolean,
+): VBlogModuleId[] {
+  const ids: VBlogModuleId[] = [];
+  if (modules?.premiumSectionEnabled) ids.push('premium_section');
+  if (modules?.tipBoxEnabled) ids.push('tip_box');
+  if (modules?.tipToRevealEnabled) ids.push('tip_to_reveal');
+  if (modules?.premiumPollEnabled) ids.push('premium_poll');
+  if (modules?.readingReceiptsEnabled) ids.push('reading_receipts_badges');
+  if (magazineIntegrationEnabled) ids.push('magazine_integration');
+  return ids;
+}
+
+export function computeVBlogModuleAddonKas(
+  modules: VBlogModulesConfig | undefined,
+  magazineIntegrationEnabled: boolean,
+  tier: KREXTier,
+  nft: NFTStatus | null | undefined,
+): { totalKas: number; lines: VBlogModuleAddonLine[] } {
+  const enabledIds = getEnabledVBlogModuleIds(modules, magazineIntegrationEnabled);
+  const lines: VBlogModuleAddonLine[] = enabledIds.map((id) => {
+    const offer = VBLOG_MODULE_OFFERS.find((x) => x.id === id);
+    const base = offer?.unlockPriceKas ?? 0;
+    return {
+      id,
+      title: offer?.title ?? id,
+      kas: getVBlogModuleEffectivePriceKas(base, tier, nft),
+    };
+  });
+  const totalKas = Math.round(lines.reduce((sum, line) => sum + line.kas, 0) * 100) / 100;
+  return { totalKas, lines };
+}
+
+export function activateAuthorModules(wallet: string, moduleIds: VBlogModuleId[]): VBlogModuleId[] {
+  let unlocked = getAuthorUnlockedModules(wallet);
+  for (const id of moduleIds) {
+    unlocked = unlockAuthorModule(wallet, id);
+  }
+  return unlocked;
 }
 
 function safeParse<T>(value: string | null, fallback: T): T {

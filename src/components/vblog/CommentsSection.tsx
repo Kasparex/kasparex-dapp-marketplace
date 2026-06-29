@@ -12,6 +12,7 @@ import { CommentCreditInfo } from './CommentCreditInfo';
 import { CommentCreditsModal } from './CommentCreditsModal';
 import { CommentsInfoModal } from './CommentsInfoModal';
 import { Alert } from '@/components/Alert';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Avatar } from '@/components/Avatar';
 import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -337,20 +338,6 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                     className="k-textarea"
                     disabled={isSubmitting}
                   />
-                  {error && (
-                    <div className="mt-2">
-                      <Alert type="error" compact onDismiss={() => setError(null)}>
-                        {error}
-                      </Alert>
-                    </div>
-                  )}
-                  {success && (
-                    <div className="mt-2">
-                      <Alert type="success" compact>
-                        Comment added successfully!
-                      </Alert>
-                    </div>
-                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="kx-body">
@@ -369,11 +356,25 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                     {isSubmitting ? 'Submitting...' : hasCredits() ? 'Submit Comment' : 'Purchase Credits'}
                   </button>
                 </div>
+                <KxAlertRegion>
+                  {error ? (
+                    <Alert type="error" compact onDismiss={() => setError(null)} region>
+                      {error}
+                    </Alert>
+                  ) : null}
+                  {success ? (
+                    <Alert type="success" compact region>
+                      Comment added successfully!
+                    </Alert>
+                  ) : null}
+                </KxAlertRegion>
               </form>
             ) : (
-              <Alert type="info" title="Wallet Required">
-                Connect your wallet (Kaspa or EVM) to add a comment
-              </Alert>
+              <KxAlertRegion>
+                <Alert type="info" title="Wallet Required" region>
+                  Connect your wallet (Kaspa or EVM) to add a comment
+                </Alert>
+              </KxAlertRegion>
             )}
           </>
         )}

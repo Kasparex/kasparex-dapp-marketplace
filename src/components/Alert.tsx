@@ -15,6 +15,8 @@ interface AlertProps {
     onClick: () => void;
   };
   compact?: boolean;
+  /** When true, omits extra vertical margin for use inside KxAlertRegion at container bottom. */
+  region?: boolean;
 }
 
 const alertConfig = {
@@ -105,13 +107,14 @@ const alertConfig = {
   },
 };
 
-export function Alert({ type, title, children, className = '', onDismiss, action, compact = false }: AlertProps) {
+export function Alert({ type, title, children, className = '', onDismiss, action, compact = false, region = false }: AlertProps) {
   const config = alertConfig[type];
   const iconSize = compact ? 'w-8 h-8' : 'w-10 h-10';
   const padding = compact ? 'p-3' : 'p-4';
+  const regionClass = region ? 'shadow-md shadow-black/5 dark:shadow-black/20' : '';
 
   return (
-    <div className={`${config.bg} ${padding} rounded-lg flex items-start gap-3 ${className}`}>
+    <div className={`${config.bg} ${padding} rounded-lg flex items-start gap-3 ${regionClass} ${className}`}>
       <div className={`${iconSize} ${config.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
         {compact ? config.compactIcon : config.icon}
       </div>

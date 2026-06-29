@@ -37,6 +37,7 @@ import { getRestTransactionById } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { activateAuthorModules, getEnabledVBlogModuleIds } from '@/lib/vblog/modules';
 
 /**
  * Hook for managing vBlog data
@@ -195,6 +196,7 @@ export function useVBlog() {
       modules: articleData.modules,
     }, 'create');
     const contentHash = fnv1aHex(canonicalPayload);
+    const magazineIntegrationEnabled = Boolean(articleData.linkedMagazineId && articleData.linkedIssueNumber);
     const quote = pricing.estimateQuote({
       title: articleData.title,
       description: articleData.description,
@@ -208,6 +210,7 @@ export function useVBlog() {
       primaryLink: articleData.primaryLink,
       socialLinks: articleData.socialLinks,
       modules: articleData.modules,
+      magazineIntegrationEnabled,
     }, 'create');
     const bundle = await sendVBlogTxBundle({
       articleId,
@@ -233,6 +236,10 @@ export function useVBlog() {
         totalKas: quote.totalKas,
       },
     });
+    const enabledModuleIds = getEnabledVBlogModuleIds(articleData.modules, magazineIntegrationEnabled);
+    if (kaspaState.address && enabledModuleIds.length > 0) {
+      activateAuthorModules(kaspaState.address, enabledModuleIds);
+    }
     if (!bundle.verified) {
       console.warn('Article created with pending verification:', bundle.lastError);
     } else if (bundle.commitTxHash && articleData.author) {
@@ -246,7 +253,7 @@ export function useVBlog() {
     }
     loadArticles(); // Reload articles
     return newArticle;
-  }, [loadArticles, pricing, sendVBlogTxBundle]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address]);
 
   /**
    * Update an existing article

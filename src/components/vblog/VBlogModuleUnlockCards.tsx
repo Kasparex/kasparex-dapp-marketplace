@@ -22,7 +22,7 @@ import { utf8ToHex } from '@/lib/vblog/payloadHex';
 import type { VBlogModuleId } from '@/lib/vblog/types';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
-import { KxInFormPremiumList, KxInFormPremiumRow, KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS } from '@/components/ui/KxInFormPremiumRow';
+import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 
 interface VBlogModuleUnlockCardsProps {
   title?: string;
@@ -195,7 +195,7 @@ export function VBlogModuleUnlockCards({
                     type="button"
                     disabled={isUnlocking || !kaspaState.isConnected}
                     onClick={() => void handleUnlock(offer.id, offer.unlockPriceKas)}
-                    className={KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS}
+                    className="k-control-btn !py-1.5 !px-3 !text-[11px] shrink-0 !border-[#02abb8]/35 !text-[#02abb8] hover:!bg-[#02abb8]/10 disabled:opacity-60"
                   >
                     {isUnlocking ? 'Unlocking...' : `Unlock${hasDiscount ? ` (${offer.unlockPriceKas} KAS)` : ''}`}
                   </button>
@@ -259,7 +259,7 @@ export function VBlogInlineModuleUnlockCard({
       trailing={
         <button
           type="button"
-          className={KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS}
+          className="k-control-btn !py-1.5 !px-3 !text-[11px] shrink-0 !border-[#02abb8]/35 !text-[#02abb8] hover:!bg-[#02abb8]/10"
           disabled={busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
           onClick={async () => {
             if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) return;

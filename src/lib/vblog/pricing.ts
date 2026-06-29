@@ -1,4 +1,7 @@
 import type { VBlogArticle, VBlogModulesConfig } from '@/lib/vblog/types';
+import type { KREXTier } from '@/lib/rewards/types';
+import type { NFTStatus } from '@/lib/rewards/types';
+import { computeVBlogModuleAddonKas, type VBlogModuleAddonLine } from '@/lib/vblog/modules';
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
 export const VBLOG_CREATE_BASE_FEE_KAS = 10;
@@ -22,6 +25,7 @@ export interface VBlogPricingDraft {
   primaryLink?: string;
   socialLinks?: string[];
   modules?: VBlogModulesConfig;
+  magazineIntegrationEnabled?: boolean;
 }
 
 function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string, unknown> | null {
@@ -62,6 +66,8 @@ export interface VBlogPriceQuote {
   baseFeeKas: number;
   sizeFeeKas: number;
   networkFeeBufferKas: number;
+  modulesFeeKas: number;
+  moduleLines: VBlogModuleAddonLine[];
   totalKas: number;
 }
 
@@ -141,7 +147,8 @@ export function fnv1aHex(text: string): string {
 export function computeVBlogArticlePrice(
   draft: VBlogPricingDraft,
   action: VBlogAction,
-  discountPercent: number = 0
+  discountPercent: number = 0,
+  modulePricing?: { tier: KREXTier; nft: NFTStatus | null | undefined },
 ): VBlogPriceQuote {
   const payload = buildCanonicalArticlePayload(draft, action);
   const { payloadBytes, chunkCount } = computeArticleChunkPlan(payload);
@@ -149,7 +156,15 @@ export function computeVBlogArticlePrice(
   const baseFeeKas = getVBlogBaseFeeKas(action) * (1 - discount);
   const sizeFeeKas = chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS;
   const networkFeeBufferKas = Math.max(0.05, chunkCount * 0.01);
-  const totalKas = round2(baseFeeKas + sizeFeeKas + networkFeeBufferKas);
+  const moduleAddon = modulePricing
+    ? computeVBlogModuleAddonKas(
+        draft.modules,
+        draft.magazineIntegrationEnabled === true,
+        modulePricing.tier,
+        modulePricing.nft,
+      )
+    : { totalKas: 0, lines: [] as VBlogModuleAddonLine[] };
+  const totalKas = round2(baseFeeKas + sizeFeeKas + networkFeeBufferKas + moduleAddon.totalKas);
   return {
     action,
     payloadBytes,
@@ -157,6 +172,8 @@ export function computeVBlogArticlePrice(
     baseFeeKas: round2(baseFeeKas),
     sizeFeeKas: round2(sizeFeeKas),
     networkFeeBufferKas: round2(networkFeeBufferKas),
+    modulesFeeKas: round2(moduleAddon.totalKas),
+    moduleLines: moduleAddon.lines,
     totalKas,
   };
 }

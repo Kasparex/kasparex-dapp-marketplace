@@ -40,7 +40,7 @@ export function VBlogModuleConfigFields({
   if (moduleId === 'premium_section') {
     return (
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3 space-y-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Premium section setup</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-[#02abb8] dark:text-[#66dfe8]">Premium section setup</p>
         <textarea
           value={premiumSectionContent ?? ''}
           onChange={(e) => onPremiumSectionContentChange?.(e.target.value)}

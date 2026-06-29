@@ -444,6 +444,14 @@
   @apply space-y-2 mb-6;
 }
 
+.kx-alert-region {
+  @apply sticky bottom-0 z-20;
+  background: linear-gradient(to top, rgb(255 255 255 / 0.98) 70%, rgb(255 255 255 / 0));
+}
+.dark .kx-alert-region {
+  background: linear-gradient(to top, rgb(24 24 27 / 0.98) 70%, rgb(24 24 27 / 0));
+}
+
 /* Premium Sidebar Components - icon and title MUST stay on same line everywhere */
 .k-sidebar-item {
   @apply w-full relative flex flex-row items-center h-10 px-2 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap flex-nowrap;

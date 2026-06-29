@@ -18,23 +18,13 @@ import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
-import {
-  getAuthorUnlockedModules,
-  getVBlogModuleEffectivePriceKas,
-  unlockAuthorModule,
-  VBLOG_MODULE_OFFERS,
-} from '@/lib/vblog/modules';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { kasToSompi } from '@/lib/ads/config';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
-import { utf8ToHex } from '@/lib/vblog/payloadHex';
+import { getVBlogModuleEffectivePriceKas, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
-import { KxInFormPremiumList, KxInFormPremiumRow, KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS } from '@/components/ui/KxInFormPremiumRow';
+import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 
 interface CreateArticleFormProps {
@@ -60,7 +50,12 @@ const FORM_MODULE_IDS: VBlogModuleId[] = [
   'tip_to_reveal',
   'premium_poll',
   'reading_receipts_badges',
+  'magazine_integration',
 ];
+
+function moduleHasConfigFields(id: VBlogModuleId): boolean {
+  return id === 'premium_section' || id === 'tip_to_reveal' || id === 'premium_poll';
+}
 
 export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps) {
   const { state: kaspaState } = useKaspaWallet();
@@ -91,8 +86,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
-  const [unlockedModules, setUnlockedModules] = useState<string[]>([]);
-  const [unlockingModuleId, setUnlockingModuleId] = useState<string | null>(null);
+  const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(false);
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(false);
   const [premiumSectionContent, setPremiumSectionContent] = useState('');
   const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState('10');
@@ -111,19 +105,8 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     return featuredImageCid ? getBestGatewayUrl(featuredImageCid) : '';
   }, [featuredImageSource, featuredImageUrl, featuredImageCid]);
 
-  const createQuote = pricing.estimateQuote({
-    title,
-    description,
-    content,
-    category,
-    tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-    featuredImage: resolvedFeaturedImage,
-    linkedMagazineId,
-    linkedIssueNumber,
-    author: walletAddress ?? undefined,
-    primaryLink: primaryLink.trim() || undefined,
-    socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
-    modules: {
+  const modulesPayload = useMemo(
+    () => ({
       premiumSectionEnabled,
       premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
       premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
@@ -138,8 +121,42 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
         : undefined,
       readingReceiptsEnabled,
+    }),
+    [
+      premiumSectionEnabled,
+      premiumSectionContent,
+      premiumSectionPriceKas,
+      premiumSectionPayoutAddress,
+      tipBoxEnabled,
+      tipToRevealEnabled,
+      tipToRevealContent,
+      tipToRevealThresholdKas,
+      premiumPollEnabled,
+      pollQuestion,
+      pollOptions,
+      readingReceiptsEnabled,
+    ],
+  );
+
+  const createQuote = pricing.estimateQuote(
+    {
+      title,
+      description,
+      content,
+      category,
+      tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+      featuredImage: resolvedFeaturedImage,
+      linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
+      linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
+      author: walletAddress ?? undefined,
+      primaryLink: primaryLink.trim() || undefined,
+      socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
+      modules: modulesPayload,
+      magazineIntegrationEnabled,
     },
-  }, 'create');
+    'create',
+  );
+
   const fullBaseFee = getVBlogBaseFeeKas('create');
   const discountKas = Math.max(0, fullBaseFee - createQuote.baseFeeKas);
   const discountPercent = fullBaseFee > 0 ? Math.round((discountKas / fullBaseFee) * 100) : 0;
@@ -155,7 +172,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     tip_to_reveal: tipToRevealEnabled,
     premium_poll: premiumPollEnabled,
     reading_receipts_badges: readingReceiptsEnabled,
-    magazine_integration: Boolean(linkedMagazineId && linkedIssueNumber),
+    magazine_integration: magazineIntegrationEnabled,
   };
 
   const setModuleEnabled = (moduleId: VBlogModuleId, next: boolean) => {
@@ -175,18 +192,17 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       case 'reading_receipts_badges':
         setReadingReceiptsEnabled(next);
         break;
+      case 'magazine_integration':
+        setMagazineIntegrationEnabled(next);
+        if (!next) {
+          setLinkedMagazineId(undefined);
+          setLinkedIssueNumber(undefined);
+        }
+        break;
       default:
         break;
     }
   };
-
-  useEffect(() => {
-    if (!kaspaState.address) {
-      setUnlockedModules([]);
-      return;
-    }
-    setUnlockedModules(getAuthorUnlockedModules(kaspaState.address));
-  }, [kaspaState.address]);
 
   useEffect(() => {
     if (premiumSectionEnabled && kaspaState.address && !premiumSectionPayoutAddress.trim()) {
@@ -213,33 +229,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setError('Failed to upload featured image to IPFS');
     }
     e.target.value = '';
-  };
-
-  const handleModuleUnlock = async (moduleId: VBlogModuleId, basePriceKas: number) => {
-    if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
-    const effectiveKas = getVBlogModuleEffectivePriceKas(basePriceKas, tier, nftStatus);
-    setUnlockingModuleId(moduleId);
-    try {
-      const note = `kvb1:module_unlock:${moduleId}:${Date.now()}`;
-      const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: getVBlogTreasuryL1Address(),
-        amount: String(kasToSompi(effectiveKas)),
-        note,
-        payload: utf8ToHex(note),
-      });
-      if (tx.status === 'failed' || !tx.txHash) {
-        throw new Error(tx.error ?? 'Unlock transaction failed');
-      }
-      const txHash = extractKaspaTransactionId(tx.txHash) ?? tx.txHash;
-      console.info('[vblog-module-unlock]', moduleId, txHash);
-      const nextUnlocked = unlockAuthorModule(kaspaState.address, moduleId);
-      setUnlockedModules(nextUnlocked);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : 'Module unlock failed');
-    } finally {
-      setUnlockingModuleId(null);
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -310,6 +299,10 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         return;
       }
     }
+    if (magazineIntegrationEnabled && (!linkedMagazineId || !linkedIssueNumber)) {
+      setError('Magazine integration requires a target magazine and issue number.');
+      return;
+    }
 
     void handleConfirm();
   };
@@ -337,26 +330,11 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         category,
         tags: tagsArray,
         featuredImage: resolvedFeaturedImage,
-        linkedMagazineId,
-        linkedIssueNumber,
+        linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
+        linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
         primaryLink: primaryLink.trim() || undefined,
         socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
-        modules: {
-          premiumSectionEnabled,
-          premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
-          premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
-          premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
-          tipBoxEnabled,
-          tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
-          tipToRevealEnabled,
-          tipToRevealContent: tipToRevealEnabled ? tipToRevealContent.trim() : undefined,
-          tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
-          premiumPollEnabled,
-          premiumPoll: premiumPollEnabled
-            ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
-            : undefined,
-          readingReceiptsEnabled,
-        },
+        modules: modulesPayload,
       });
 
       setTitle('');
@@ -372,6 +350,9 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setSocialLink1('');
       setSocialLink2('');
       setSocialLink3('');
+      setMagazineIntegrationEnabled(false);
+      setLinkedMagazineId(undefined);
+      setLinkedIssueNumber(undefined);
       setPremiumSectionEnabled(false);
       setPremiumSectionContent('');
       setPremiumSectionPriceKas('10');
@@ -394,7 +375,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <div className="space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+      <div className="flex flex-col space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
         <div>
           <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
             Create New Article
@@ -402,18 +383,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           <p className="kx-body mb-6">
             Fill in the details below to create a new article. Estimated cost: {createQuote.totalKas} KAS ({createQuote.chunkCount} chunk{createQuote.chunkCount === 1 ? '' : 's'}, {createQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
-          {pricing.tier.hasNFTPerks && (
-            <Alert type="success" compact className="mb-4">
-              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
-            </Alert>
-          )}
         </div>
-
-        {error && (
-          <Alert type="error" title="Error" onDismiss={() => setError(null)}>
-            <p>{error}</p>
-          </Alert>
-        )}
 
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -530,7 +500,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               options={CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
             />
           </div>
-
           <div>
             <label className="k-label">Tags (comma-separated)</label>
             <input
@@ -555,73 +524,40 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           </div>
         </div>
 
-        <VBlogMagazineIntegration
-          linkedMagazineId={linkedMagazineId}
-          linkedIssueNumber={linkedIssueNumber}
-          onChange={(magId, issueNum) => {
-            setLinkedMagazineId(magId);
-            setLinkedIssueNumber(issueNum);
-          }}
-          disabled={isSubmitting}
-          locked={!unlockedModules.includes('magazine_integration')}
-          unlockPriceLabel={`${getVBlogModuleEffectivePriceKas(
-            VBLOG_MODULE_OFFERS.find((o) => o.id === 'magazine_integration')?.unlockPriceKas ?? 0,
-            tier,
-            nftStatus,
-          )} KAS`}
-          isUnlocking={unlockingModuleId === 'magazine_integration'}
-          onUnlock={() =>
-            void handleModuleUnlock(
-              'magazine_integration',
-              VBLOG_MODULE_OFFERS.find((o) => o.id === 'magazine_integration')?.unlockPriceKas ?? 0,
-            )
-          }
-        />
-
         <section className="space-y-3 pt-2">
           <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Unlock modules once per wallet, then toggle them on for this article.
+            Optional premium features. Toggle modules on to add them to your total. They activate when you pay and publish.
           </p>
           <KxInFormPremiumList>
             {formModuleOffers.map((offer) => {
-              const isUnlocked = unlockedModules.includes(offer.id);
-              const isUnlocking = unlockingModuleId === offer.id;
-              const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
               const enabled = moduleEnabledMap[offer.id];
-
-              if (!isUnlocked) {
-                return (
-                  <KxInFormPremiumRow
-                    key={offer.id}
-                    title={offer.title}
-                    description={offer.description}
-                    priceLabel={`+${effectiveKas} KAS`}
-                    trailing={
-                      <button
-                        type="button"
-                        disabled={isUnlocking || !kaspaState.isConnected || isSubmitting}
-                        onClick={() => void handleModuleUnlock(offer.id, offer.unlockPriceKas)}
-                        className={KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS}
-                      >
-                        {isUnlocking ? 'Unlocking...' : 'Unlock'}
-                      </button>
-                    }
-                  />
-                );
-              }
-
+              const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
               return (
                 <div key={offer.id} className="space-y-2">
                   <KxInFormPremiumRow
                     title={offer.title}
                     description={offer.description}
-                    priceLabel="Included"
+                    priceLabel={`+${effectiveKas} KAS`}
                     checked={enabled}
                     disabled={isSubmitting}
                     onToggle={() => setModuleEnabled(offer.id, !enabled)}
                   />
-                  {enabled ? (
+                  {enabled && offer.id === 'magazine_integration' ? (
+                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3">
+                      <VBlogMagazineIntegration
+                        embedded
+                        linkedMagazineId={linkedMagazineId}
+                        linkedIssueNumber={linkedIssueNumber}
+                        onChange={(magId, issueNum) => {
+                          setLinkedMagazineId(magId);
+                          setLinkedIssueNumber(issueNum);
+                        }}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  ) : null}
+                  {enabled && moduleHasConfigFields(offer.id) ? (
                     <VBlogModuleConfigFields
                       moduleId={offer.id}
                       disabled={isSubmitting}
@@ -659,13 +595,39 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             </button>
           )}
         </div>
+
+        <KxAlertRegion>
+          {pricing.tier.hasNFTPerks ? (
+            <Alert type="success" compact region>
+              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
+            </Alert>
+          ) : null}
+          {error ? (
+            <Alert type="error" title="Error" onDismiss={() => setError(null)} compact region>
+              <p>{error}</p>
+            </Alert>
+          ) : null}
+        </KxAlertRegion>
       </div>
-      <aside className="xl:sticky xl:top-6 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
+
+      <aside className="xl:sticky xl:top-6 flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
         <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
         <div className="space-y-2 kx-body">
           <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.baseFeeKas} KAS</span></div>
           <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.sizeFeeKas} KAS</span></div>
           <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.networkFeeBufferKas} KAS</span></div>
+          {createQuote.moduleLines.map((line) => (
+            <div key={line.id} className="flex justify-between gap-2">
+              <span className="truncate">{line.title}</span>
+              <span className="font-bold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
+            </div>
+          ))}
+          {createQuote.modulesFeeKas > 0 ? (
+            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-2">
+              <span>Modules subtotal</span>
+              <span className="font-bold text-[#02abb8]">{createQuote.modulesFeeKas} KAS</span>
+            </div>
+          ) : null}
           <div className="flex justify-between"><span>Payload bytes</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.payloadBytes}</span></div>
           <div className="flex justify-between"><span>Chunk estimate</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{createQuote.chunkCount}</span></div>
         </div>
@@ -673,8 +635,8 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
           <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{createQuote.totalKas} KAS</p>
         </div>
-        <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-800 dark:text-amber-300">
-          One Kaspa L1 payment will be requested. Ensure your wallet has enough KAS for fee + network cost.
+        <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+          One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.
         </div>
         {pricing.tier.hasKREXDiscount && (
           <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
@@ -697,6 +659,13 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         >
           {isSubmitting ? 'Creating...' : 'Create Article'}
         </button>
+        <KxAlertRegion>
+          {error ? (
+            <Alert type="error" compact onDismiss={() => setError(null)} region>
+              <p>{error}</p>
+            </Alert>
+          ) : null}
+        </KxAlertRegion>
       </aside>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </form>

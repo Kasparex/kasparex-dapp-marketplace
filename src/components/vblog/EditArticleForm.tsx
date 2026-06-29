@@ -11,6 +11,7 @@ import {
   CONTENT_LIMITS,
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
@@ -319,18 +320,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           <p className="kx-body mb-6">
             Update your article details. Estimated cost: {updateQuote.totalKas} KAS ({updateQuote.chunkCount} chunk{updateQuote.chunkCount === 1 ? '' : 's'}, {updateQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
           </p>
-          {pricing.tier.hasNFTPerks && (
-            <Alert type="success" compact className="mb-4">
-              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
-            </Alert>
-          )}
         </div>
-
-        {error && (
-          <Alert type="error" title="Error" onDismiss={() => setError(null)}>
-            <p>{error}</p>
-          </Alert>
-        )}
 
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -471,7 +461,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
           disabled={isSubmitting || !unlockedModules.includes('magazine_integration')}
         />
         {!unlockedModules.includes('magazine_integration') && (
-          <p className="text-xs text-amber-700 dark:text-amber-300">Unlock the Magazine Integration module to enable article-to-issue linking.</p>
+          <p className="text-xs text-[#02abb8] dark:text-[#66dfe8]">Unlock the Magazine Integration module to enable article-to-issue linking.</p>
         )}
 
         <section className="space-y-4 pt-2">
@@ -499,7 +489,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
                       <span className="k-switch-thumb" />
                     </button>
                   ) : (
-                    <span className="text-[10px] uppercase tracking-widest font-black text-amber-600 dark:text-amber-300">Locked</span>
+                    <span className="text-[10px] uppercase tracking-widest font-black text-[#02abb8] dark:text-[#66dfe8]">Locked</span>
                   )}
                 </div>
                 {module.unlocked ? module.fields : (
@@ -541,6 +531,19 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             </button>
           )}
         </div>
+
+        <KxAlertRegion>
+          {pricing.tier.hasNFTPerks ? (
+            <Alert type="success" compact region>
+              <p>NFT Perks Active: Increased text limits enabled ({pricing.tier.nftCollections.join(', ')})</p>
+            </Alert>
+          ) : null}
+          {error ? (
+            <Alert type="error" title="Error" onDismiss={() => setError(null)} compact region>
+              <p>{error}</p>
+            </Alert>
+          ) : null}
+        </KxAlertRegion>
         </div>
         <aside className="xl:sticky xl:top-6 bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
           <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
@@ -555,7 +558,7 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
             <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
             <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{updateQuote.totalKas} KAS</p>
           </div>
-          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-800 dark:text-amber-300">
+          <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
             Updating sends one Kaspa L1 payment transaction and refreshes on-chain metadata.
           </div>
           {pricing.tier.hasKREXDiscount && (

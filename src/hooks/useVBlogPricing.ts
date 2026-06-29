@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { computeVBlogArticlePrice, VBLOG_DELETE_BASE_FEE_KAS, type VBlogAction, type VBlogPriceQuote, type VBlogPricingDraft } from '@/lib/vblog/pricing';
 const KREX_DISCOUNT_THRESHOLD = 10_000_000; // 10M KREX
 const KREXPRIME_NFT_COLLECTION = 'KREXPRIME';
@@ -58,7 +59,8 @@ export function useVBlogPricing() {
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
   // Get real KREX balance from hook
-  const { balance: krexBalance } = useKREXBalance();
+  const { balance: krexBalance, tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
   const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
   const discountPercent = hasKREXDiscount ? 80 : 0;
 
@@ -73,7 +75,7 @@ export function useVBlogPricing() {
       hasNFTPerks: false,
       nftCollections: [],
     },
-    estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
+    estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
   });
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export function useVBlogPricing() {
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
+              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
             };
           });
           return;
@@ -154,7 +156,10 @@ export function useVBlogPricing() {
                     nftCollections: nftHoldings,
                   },
                   estimateQuote: (draft, action) =>
-                    computeVBlogArticlePrice(draft, action, hasKREXDiscountInner ? 80 : 0),
+                    computeVBlogArticlePrice(draft, action, hasKREXDiscountInner ? 80 : 0, {
+                      tier: krexTier,
+                      nft: nftStatus,
+                    }),
                 };
               });
             }
@@ -179,7 +184,7 @@ export function useVBlogPricing() {
                     nftCollections: [],
                   },
                   estimateQuote: (draft, action) =>
-                    computeVBlogArticlePrice(draft, action, 0),
+                    computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
                 };
               });
             }
@@ -204,7 +209,7 @@ export function useVBlogPricing() {
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0),
+              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
             };
           });
         }
@@ -219,7 +224,7 @@ export function useVBlogPricing() {
         clearTimeout(timeoutId);
       }
     };
-  }, [walletAddress, isWalletConnected, krexBalance, discountPercent]);
+  }, [walletAddress, isWalletConnected, krexBalance, discountPercent, krexTier, nftStatus]);
 
   return pricingInfo;
 }

@@ -2,6 +2,7 @@
 
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { Alert } from '@/components/Alert';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 
 export function PricingTable() {
   const pricing = useVBlogPricing();
@@ -11,18 +12,6 @@ export function PricingTable() {
       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
         vBlog Pricing & Benefits
       </h3>
-      
-      {pricing.tier.hasKREXDiscount && (
-        <Alert type="success" compact className="mb-4">
-          You qualify for KREX holder discounts! (10M+ KREX)
-        </Alert>
-      )}
-      
-      {pricing.tier.hasNFTPerks && (
-        <Alert type="info" compact className="mb-4">
-          NFT Perks Active: {pricing.tier.nftCollections.join(', ')} - Increased text limits enabled
-        </Alert>
-      )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -81,6 +70,19 @@ export function PricingTable() {
           NFT perks (KREXPRIME, PIXELKREX) provide increased content limits regardless of KREX balance.
         </p>
       </div>
+
+      <KxAlertRegion>
+        {pricing.tier.hasKREXDiscount ? (
+          <Alert type="success" compact region>
+            You qualify for KREX holder discounts! (10M+ KREX)
+          </Alert>
+        ) : null}
+        {pricing.tier.hasNFTPerks ? (
+          <Alert type="info" compact region>
+            NFT Perks Active: {pricing.tier.nftCollections.join(', ')} - Increased text limits enabled
+          </Alert>
+        ) : null}
+      </KxAlertRegion>
     </div>
   );
 }
