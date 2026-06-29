@@ -1,7 +1,6 @@
 import type { AdEntry } from './types';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
-
-const ADS_START_SLACK_MS = 5 * 60 * 1000;
+import { ADS_START_SLACK_MS } from '@/lib/ads/adActiveWindow';
 
 /** Legacy rail slot merged into Games Halo for display and capacity. */
 function slotIdsMatchingPlacement(slotId: string): string[] {

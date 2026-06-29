@@ -235,10 +235,10 @@ export function CreateAdWizard({
     let cancelled = false;
     const run = async () => {
       await registryRefresh({ silent: true });
-      for (let i = 0; i < 48 && !cancelled; i++) {
+      for (let i = 0; i < 12 && !cancelled; i++) {
         if (cancelled) return;
         const sync = lastPaymentSyncRef.current;
-        if (sync && i % 3 === 0) {
+        if (sync && i % 2 === 0) {
           try {
             const vr = await fetch('/api/ads/verify', {
               method: 'POST',
@@ -246,14 +246,19 @@ export function CreateAdWizard({
               body: JSON.stringify({ txHash: sync.txHash, metadataCid: sync.metadataCid }),
             });
             const vj = await readJsonResponse<{ ok?: boolean; entry?: AdEntry }>(vr);
-            if (vj.ok && vj.entry) upsertAd(vj.entry);
+            if (vj.ok && vj.entry) {
+              upsertAd(vj.entry);
+              break;
+            }
           } catch {
             /* ignore */
           }
         }
-        await new Promise((r) => setTimeout(r, 2500));
+        if (i === 0 || i % 3 === 0) {
+          await registryRefresh({ silent: true });
+        }
         if (cancelled) return;
-        await registryRefresh({ silent: true });
+        await new Promise((r) => setTimeout(r, 8000));
       }
     };
     void run();
@@ -915,8 +920,7 @@ export function CreateAdWizard({
                 </p>
                 {paymentCurrency === 'KREX' ? (
                   <p className="text-zinc-500 dark:text-zinc-500">
-                    Token checkout uses a second wallet step: about {ADS_KREX_BINDING_FEE_KAS} KAS plus network
-                    fee for on-chain metadata binding (not included in the total above).
+                    +{ADS_KREX_BINDING_FEE_KAS} KAS binding fee in the second wallet step (plus network fee).
                   </p>
                 ) : null}
               </div>

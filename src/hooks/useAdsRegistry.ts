@@ -2,49 +2,69 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { AdEntry } from '@/lib/ads/types';
+import { mergeActiveAdEntries } from '@/lib/ads/adActiveWindow';
+import { readPersistedActiveAds, writePersistedActiveAds } from '@/lib/ads/clientAdsPersistence';
 
 function mergeAdList(prev: AdEntry[], entry: AdEntry): AdEntry[] {
-  const idx = prev.findIndex((a) => a.id === entry.id);
-  if (idx >= 0) {
-    const next = [...prev];
-    next[idx] = entry;
-    return next;
-  }
-  return [...prev, entry];
+  return mergeActiveAdEntries([entry], prev);
 }
 
 export function useAdsRegistry() {
-  const [ads, setAds] = useState<AdEntry[]>([]);
+  const [ads, setAds] = useState<AdEntry[]>(() => readPersistedActiveAds());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const upsertAd = useCallback((entry: AdEntry) => {
-    setAds((prev) => mergeAdList(prev, entry));
+  const commitAds = useCallback((next: AdEntry[]) => {
+    writePersistedActiveAds(next);
+    setAds(next);
   }, []);
 
-  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
-    const silent = Boolean(opts?.silent);
-    if (!silent) setLoading(true);
-    try {
-      if (process.env.NEXT_PUBLIC_ADS_USE_MOCK === '1') {
-        const { getAllActiveAds } = await import('@/lib/ads/mockAds');
-        setAds(getAllActiveAds());
-      } else {
-        const r = await fetch(`/api/ads/active?_=${Date.now()}`, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-        });
-        const j = (await r.json()) as { ads?: AdEntry[] };
-        setAds(Array.isArray(j.ads) ? j.ads : []);
+  const upsertAd = useCallback(
+    (entry: AdEntry) => {
+      setAds((prev) => {
+        const next = mergeAdList(prev, entry);
+        writePersistedActiveAds(next);
+        return next;
+      });
+    },
+    [],
+  );
+
+  const refresh = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const silent = Boolean(opts?.silent);
+      if (!silent) setLoading(true);
+      try {
+        if (process.env.NEXT_PUBLIC_ADS_USE_MOCK === '1') {
+          const { getAllActiveAds } = await import('@/lib/ads/mockAds');
+          commitAds(getAllActiveAds());
+        } else {
+          const r = await fetch(`/api/ads/active?_=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+          });
+          const j = (await r.json()) as { ads?: AdEntry[] };
+          const serverAds = Array.isArray(j.ads) ? j.ads : [];
+          setAds((prev) => {
+            const next = mergeActiveAdEntries(serverAds, prev);
+            writePersistedActiveAds(next);
+            return next;
+          });
+        }
+        setError(null);
+      } catch (e) {
+        if (!silent) setError(e instanceof Error ? e.message : 'Failed to load ads');
+        if (!silent) {
+          const persisted = readPersistedActiveAds();
+          if (persisted.length > 0) setAds(persisted);
+          else setAds([]);
+        }
+      } finally {
+        if (!silent) setLoading(false);
       }
-      setError(null);
-    } catch (e) {
-      if (!silent) setError(e instanceof Error ? e.message : 'Failed to load ads');
-      if (!silent) setAds([]);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+    },
+    [commitAds],
+  );
 
   useEffect(() => {
     refresh();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { verifyAdRegistration } from '@/lib/ads/chainRegistry';
+import { registerVerifiedAd } from '@/lib/ads/verifiedAdsRegistry';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 export async function POST(request: NextRequest) {
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.error ?? 'Verification failed' }, { status: 400 });
     }
+    if (result.entry) registerVerifiedAd(result.entry);
     revalidateTag('ads-active');
     revalidatePath('/api/ads/active');
     return NextResponse.json({ ok: true, entry: result.entry });

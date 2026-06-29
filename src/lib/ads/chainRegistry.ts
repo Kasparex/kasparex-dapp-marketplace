@@ -28,7 +28,10 @@ import { expectedKrexAmtSmallestFromHuman, verifyKrexTreasuryTransfer } from '@/
 import { payerAddressesFromTx } from '@/lib/ads/payerFromTx';
 import type { AdEntry } from '@/lib/ads/types';
 
-const TREASURY_TX_SCAN_PAGES = 5;
+const TREASURY_TX_SCAN_PAGES = 2;
+const METADATA_FETCH_CONCURRENCY = 16;
+
+type AdEconMode = 'listing' | 'strict';
 
 /** Kaspa REST returns `payload` as hex of on-chain bytes. KasWare often puts ASCII hex of the binding on-chain, so we peel 1–3 hex layers. */
 function peelHexPayloadLayers(raw: string): string {
@@ -166,13 +169,13 @@ async function treasuryTransactionsForScan(treasury: string): Promise<KaspaRestT
   return merged;
 }
 
-async function payerAddressesResolved(tx: KaspaRestTransaction): Promise<Set<string>> {
-  let payers = payerAddressesFromTx(tx);
-  if (payers.size > 0) return payers;
+async function payerAddressesResolved(tx: KaspaRestTransaction, mode: AdEconMode): Promise<Set<string>> {
+  const payers = payerAddressesFromTx(tx);
+  if (payers.size > 0 || mode === 'listing') return payers;
   const txId = tx.transaction_id ?? tx.transactionId;
   if (!txId) return payers;
   const rich = await getRestTransactionById(txId, { maxAttempts: 2, delayMs: 250 });
-  if (rich) payers = payerAddressesFromTx(rich);
+  if (rich) return payerAddressesFromTx(rich);
   return payers;
 }
 
@@ -180,15 +183,13 @@ async function fetchMetadataJson(cid: string): Promise<unknown | null> {
   const clean = cid.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
   const gateways = [
     `https://dweb.link/ipfs/${clean}`,
-    `https://w3s.link/ipfs/${clean}`,
     `https://cloudflare-ipfs.com/ipfs/${clean}`,
-    `https://ipfs.io/ipfs/${clean}`,
     `https://gateway.pinata.cloud/ipfs/${clean}`,
   ];
   for (const url of gateways) {
     try {
       const res = await fetch(url, {
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(5000),
         headers: { Accept: 'application/json' },
       });
       if (!res.ok) continue;
@@ -198,6 +199,26 @@ async function fetchMetadataJson(cid: string): Promise<unknown | null> {
     }
   }
   return null;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R | null>,
+): Promise<R[]> {
+  const results: R[] = [];
+  let index = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (index < items.length) {
+      const i = index++;
+      const item = items[i];
+      if (item === undefined) continue;
+      const value = await fn(item);
+      if (value != null) results.push(value);
+    }
+  });
+  await Promise.all(workers);
+  return results;
 }
 
 function txTimeMs(tx: KaspaRestTransaction): number {
@@ -240,6 +261,7 @@ async function verifyAdEconomics(
   slotBaseKas: number,
   treasuryPrefixed: string,
   payerPrefixed: string,
+  mode: AdEconMode,
 ): Promise<boolean> {
   const currency = meta.paymentCurrency ?? 'KAS';
   const premium = premiumOptionsFromMeta(meta);
@@ -249,8 +271,10 @@ async function verifyAdEconomics(
   if (!isValidAdKrexBindingKasPaid(paidSompi)) return false;
   if (!meta.priceKrex || !meta.krexPaymentTxHash) return false;
   if (!isValidAdKrexPriceMeta(meta.priceKas, meta.priceKrex, slotBaseKas, premium)) return false;
+  if (mode === 'listing') return true;
+
   const minAmt = expectedKrexAmtSmallestFromHuman(meta.priceKrex);
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     const ok = await verifyKrexTreasuryTransfer({
       payerAddress: payerPrefixed,
       treasuryAddress: treasuryPrefixed,
@@ -258,7 +282,7 @@ async function verifyAdEconomics(
       minAmtSmallest: minAmt,
     });
     if (ok) return true;
-    if (attempt < 3) await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    if (attempt < 1) await new Promise((r) => setTimeout(r, 1200));
   }
   return false;
 }
@@ -277,52 +301,69 @@ export async function buildActiveAdsFromChain(): Promise<AdEntry[]> {
 
   const txs = await treasuryTransactionsForScan(treasury);
   const now = Date.now();
-  const seen = new Set<string>();
-  const entries: AdEntry[] = [];
+  const metadataCache = new Map<string, unknown | null>();
 
-  for (const tx of txs) {
-    const txId = tx.transaction_id ?? tx.transactionId;
-    if (!txId) continue;
-    const cid = extractCidFromPayload(getTxPayload(tx) ?? null);
-    if (!cid) continue;
-    const paid = sumOutputsToTreasury(tx, treasuryNorm);
-    if (paid <= 0) continue;
-
+  async function metadataForCid(cid: string): Promise<unknown | null> {
+    if (metadataCache.has(cid)) return metadataCache.get(cid) ?? null;
     const raw = await fetchMetadataJson(cid);
+    metadataCache.set(cid, raw);
+    return raw;
+  }
+
+  const candidates = txs.filter((tx) => {
+    const txId = tx.transaction_id ?? tx.transactionId;
+    if (!txId) return false;
+    const cid = extractCidFromPayload(getTxPayload(tx) ?? null);
+    if (!cid) return false;
+    return sumOutputsToTreasury(tx, treasuryNorm) > 0;
+  });
+
+  const entries = await mapWithConcurrency(candidates, METADATA_FETCH_CONCURRENCY, async (tx) => {
+    const txId = tx.transaction_id ?? tx.transactionId;
+    if (!txId) return null;
+    const cid = extractCidFromPayload(getTxPayload(tx) ?? null);
+    if (!cid) return null;
+    const paid = sumOutputsToTreasury(tx, treasuryNorm);
+    if (paid <= 0) return null;
+
+    const raw = await metadataForCid(cid);
     const meta = parseAdMetadataJson(raw);
-    if (!meta) continue;
+    if (!meta) return null;
 
     const slotCfg = getSlotConfig(meta.slotId);
-    if (!slotCfg) continue;
+    if (!slotCfg) return null;
     const baseKas = priceKasForDays(slotCfg, meta.days);
 
-    const payers = await payerAddressesResolved(tx);
     let payerNorm: string;
     try {
       payerNorm = normalizeKaspaAddress(meta.payerL1);
     } catch {
-      continue;
+      return null;
     }
-    if (!payers.has(payerNorm)) continue;
 
-    const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm);
-    if (!econOk) continue;
+    const payers = payerAddressesFromTx(tx);
+    if (payers.size > 0 && !payers.has(payerNorm)) return null;
+
+    const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm, 'listing');
+    if (!econOk) return null;
 
     const startMs = txTimeMs(tx);
     const endMs = startMs + meta.days * 24 * 60 * 60 * 1000;
-    if (now > endMs) continue;
-    // Allow a few minutes of skew (indexer block time vs server clock; newly accepted txs).
-    if (now < startMs - 5 * 60 * 1000) continue;
+    if (now > endMs) return null;
+    if (now < startMs - 5 * 60 * 1000) return null;
 
-    const entry = campaignToAdEntry(meta, txId, cid, startMs);
+    return campaignToAdEntry(meta, txId, cid, startMs);
+  });
 
-    const dedupe = txId;
+  const seen = new Set<string>();
+  const unique: AdEntry[] = [];
+  for (const entry of entries) {
+    const dedupe = entry.txId ?? entry.id;
     if (seen.has(dedupe)) continue;
     seen.add(dedupe);
-    entries.push(entry);
+    unique.push(entry);
   }
-
-  return entries;
+  return unique;
 }
 
 export interface VerifyAdRegistrationBody {
@@ -367,13 +408,13 @@ export async function verifyAdRegistration(body: VerifyAdRegistrationBody): Prom
   }
   const baseKas = priceKasForDays(slotCfg, meta.days);
 
-  const payers = await payerAddressesResolved(tx);
+  const payers = await payerAddressesResolved(tx, 'strict');
   const payerNorm = normalizeKaspaAddress(meta.payerL1);
-  if (!payers.has(payerNorm)) {
+  if (payers.size > 0 && !payers.has(payerNorm)) {
     return { ok: false, error: 'Payer does not match transaction inputs' };
   }
 
-  const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm);
+  const econOk = await verifyAdEconomics(meta, paid, baseKas, treasury, payerNorm, 'strict');
   if (!econOk) {
     return {
       ok: false,
