@@ -524,26 +524,28 @@ export async function connectKaspaWallet(
     // Normalize address using SDK (ensure kaspa: prefix)
     const normalizedAddress = sdkNormalizeKaspaAddress(address);
 
-    // SIWK authentication (enabled by default)
+    // SIWK authentication (required when enabled)
     let siwkAuth: SIWKAuthResult | undefined;
-    if (options?.enableSIWK !== false) { // Default to true unless explicitly disabled
+    if (options?.enableSIWK !== false) {
       try {
         const { signInWithKaspa } = await import('./auth');
         const domain = options?.siwkParams?.domain || (typeof window !== 'undefined' ? window.location.hostname : 'kasparex.com');
         const appName = options?.siwkParams?.appName || 'Kasparex dApps';
-        
+
         siwkAuth = await signInWithKaspa(provider, {
           domain,
           address: normalizedAddress,
           statement: options?.siwkParams?.statement || `Welcome to ${appName}!`,
         });
       } catch (siwkError) {
-        // If SIWK fails, we can either:
-        // 1. Fail the connection (strict mode)
-        // 2. Continue without SIWK (permissive mode - current behavior)
-        // Using permissive mode to not break existing flows
-        console.warn('SIWK authentication failed, continuing with connection:', siwkError);
-        // Don't fail the connection if SIWK fails, just log a warning
+        try {
+          await disconnectKaspaWallet(provider);
+        } catch {
+          /* ignore disconnect errors */
+        }
+        const message =
+          siwkError instanceof Error ? siwkError.message : 'Sign-in with Kaspa failed';
+        throw new Error(message);
       }
     }
 
@@ -655,11 +657,12 @@ export async function signKaspaMessage(
   message: string
 ): Promise<string> {
   const walletProvider = getWalletProvider(provider);
-  
-  if (!walletProvider || !walletProvider.isConnected()) {
-    throw new Error('Wallet is not connected');
+
+  if (!walletProvider) {
+    throw new Error('Wallet provider not available');
   }
 
+  // Do not gate on isConnected(): KasWare may return false right after requestAccounts().
   try {
     return await walletProvider.signMessage(message);
   } catch (error) {

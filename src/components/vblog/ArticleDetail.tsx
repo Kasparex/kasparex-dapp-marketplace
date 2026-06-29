@@ -14,6 +14,7 @@ import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { VBlogAuthorCard } from '@/components/vblog/ArticleSidebar';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
+import { IconArticle, IconAuthor, IconComments, IconModules } from '@/components/dapps/icons/DAppTabIcons';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
@@ -41,10 +42,10 @@ interface ArticleDetailProps {
 type ArticleContentTab = 'article' | 'author' | 'modules' | 'comments';
 
 const ARTICLE_TABS: readonly DAppTab<ArticleContentTab>[] = [
-  { id: 'article', label: 'Article' },
-  { id: 'author', label: 'Author' },
-  { id: 'modules', label: 'Modules' },
-  { id: 'comments', label: 'Comments' },
+  { id: 'article', label: 'Article', icon: <IconArticle /> },
+  { id: 'author', label: 'Author', icon: <IconAuthor /> },
+  { id: 'modules', label: 'Modules', icon: <IconModules /> },
+  { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ];
 
 export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {

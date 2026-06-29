@@ -13,14 +13,14 @@ interface VBlogCardProps {
   article: VBlogArticle;
 }
 
-function statusVariant(article: VBlogArticle): 'emerald-solid' | 'amber-solid' | 'zinc-solid' | 'cyan-solid' {
+function statusVariant(article: VBlogArticle): 'emerald' | 'amber' | 'zinc' | 'cyan' {
   if (article.status === 'published' || article.status === 'on-chain-ready' || article.status === 'verified') {
-    return 'emerald-solid';
+    return 'emerald';
   }
   if (article.status === 'pending' || article.status === 'paying_chunks' || article.status === 'committing') {
-    return 'amber-solid';
+    return 'amber';
   }
-  return 'zinc-solid';
+  return 'zinc';
 }
 
 function statusLabel(article: VBlogArticle): string {
@@ -71,13 +71,13 @@ export function VBlogCard({ article }: VBlogCardProps) {
             <ArticleIcon />
           </div>
         )}
-        <div className="absolute bottom-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5">
-          <KxBadge variant={source === 'kasparex' ? 'cyan-solid' : 'zinc-solid'}>
+        <div className="absolute bottom-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1">
+          <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'} size="sm" className="shadow-sm">
             {source === 'kasparex' ? 'Kasparex' : 'Community'}
           </KxBadge>
-          <KxBadge variant={statusVariant(article)}>{statusLabel(article)}</KxBadge>
+          <KxBadge variant={statusVariant(article)} size="sm" className="shadow-sm">{statusLabel(article)}</KxBadge>
           {isLinked ? (
-            <KxBadge variant="violet-solid" className="tracking-wider">
+            <KxBadge variant="violet" size="sm" className="tracking-wider shadow-sm">
               Mag #{article.linkedIssueNumber}
             </KxBadge>
           ) : null}

@@ -305,6 +305,11 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       if (!newState.isConnected || !newState.address) {
         throw new Error(newState.error || 'Connection failed');
       }
+
+      if (enableSIWK && !newState.siwkAuth) {
+        await disconnectKaspaWallet(provider);
+        throw new Error('Wallet sign-in was not completed. Approve the message signature in your wallet to connect.');
+      }
       
       // Verify wallet is actually connected (but don't fail if method doesn't exist)
       const walletProvider = getWalletProvider(provider);
