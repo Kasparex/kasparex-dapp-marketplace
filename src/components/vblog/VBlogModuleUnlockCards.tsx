@@ -22,6 +22,7 @@ import { utf8ToHex } from '@/lib/vblog/payloadHex';
 import type { VBlogModuleId } from '@/lib/vblog/types';
 import { FilterBar } from '@/components/FilterBar';
 import { ChroniclesFilterDropdown } from '@/components/chronicles/ChroniclesFilterDropdown';
+import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 
 interface VBlogModuleUnlockCardsProps {
   title?: string;
@@ -174,63 +175,51 @@ export function VBlogModuleUnlockCards({
         </FilterBar>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <KxInFormPremiumList>
         {visibleCards.map((offer) => {
           const isUnlocked = unlocked.includes(offer.id);
           const isUnlocking = unlockingModuleId === offer.id;
           const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
           const hasDiscount = effectiveKas < offer.unlockPriceKas;
           return (
-            <div
+            <KxInFormPremiumRow
               key={offer.id}
-              className="rounded-2xl border border-[#02abb8]/35 dark:border-[#02abb8]/25 bg-white/95 dark:bg-zinc-900/70 overflow-hidden flex flex-col"
-            >
-              <div className="h-28 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#02abb8]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#02abb8]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
-                {offer.featuredImage ? (
-                  <img src={offer.featuredImage} alt={offer.title} className="w-full h-full object-cover" />
+              title={offer.title}
+              description={offer.description}
+              priceLabel={isUnlocked ? 'Unlocked' : `${effectiveKas} KAS`}
+              trailing={
+                isUnlocked ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 shrink-0">Active</span>
                 ) : (
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest">
-                    <svg className="w-5 h-5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>Featured visual</span>
-                  </div>
-                )}
-              </div>
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-base font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
-                  {isUnlocked ? <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Unlocked</span> : null}
-                </div>
-                <p className="mt-1 kx-body flex-1">{offer.description}</p>
-                <div className="mt-3">
-                  <div className="flex items-end gap-2">
-                    <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">{effectiveKas} KAS</span>
-                    {hasDiscount ? (
-                      <span className="text-xs font-mono text-zinc-400 line-through">{offer.unlockPriceKas} KAS</span>
-                    ) : null}
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-[11px]">
-                    {krexDiscountPct > 0 ? <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold">KREX -{krexDiscountPct}%</span> : null}
-                    {nftDiscountPct > 0 ? <span className="px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 font-bold">NFT -{nftDiscountPct}%</span> : null}
-                    {krexDiscountPct === 0 && nftDiscountPct === 0 ? (
-                      <span className="text-zinc-500 dark:text-zinc-400 font-semibold">No holder discounts on this wallet</span>
-                    ) : null}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={isUnlocked || isUnlocking || !kaspaState.isConnected}
-                  onClick={() => void handleUnlock(offer.id, offer.unlockPriceKas)}
-                  className="mt-3 k-control-btn !bg-[#02abb8] hover:!bg-[#019aa6] !text-white !border-[#02abb8]/30 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isUnlocked ? 'Unlocked' : isUnlocking ? 'Unlocking...' : `Unlock for ${effectiveKas} KAS`}
-                </button>
-              </div>
-            </div>
+                  <button
+                    type="button"
+                    disabled={isUnlocking || !kaspaState.isConnected}
+                    onClick={() => void handleUnlock(offer.id, offer.unlockPriceKas)}
+                    className="k-control-btn !py-1.5 !px-3 !text-[11px] shrink-0 disabled:opacity-60"
+                  >
+                    {isUnlocking ? 'Unlocking...' : `Unlock${hasDiscount ? ` (${offer.unlockPriceKas} KAS)` : ''}`}
+                  </button>
+                )
+              }
+            />
           );
         })}
-      </div>
+      </KxInFormPremiumList>
+
+      {(krexDiscountPct > 0 || nftDiscountPct > 0) && (
+        <div className="flex flex-wrap gap-2 text-[11px]">
+          {krexDiscountPct > 0 ? (
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold">
+              KREX -{krexDiscountPct}%
+            </span>
+          ) : null}
+          {nftDiscountPct > 0 ? (
+            <span className="px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 font-bold">
+              NFT -{nftDiscountPct}%
+            </span>
+          ) : null}
+        </div>
+      )}
 
       {!kaspaState.isConnected ? (
         <p className="text-sm text-amber-700 dark:text-amber-300">Connect Kaspa wallet to unlock modules.</p>
@@ -256,19 +245,22 @@ export function VBlogInlineModuleUnlockCard({
   const payKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
   const isUnlocked = kaspaState.address ? getAuthorUnlockedModules(kaspaState.address).includes(offer.id) : false;
 
+  if (isUnlocked) {
+    return (
+      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-300">Unlocked for this wallet.</p>
+    );
+  }
+
   return (
-    <div className={`w-full max-w-[420px] rounded-2xl border bg-white/95 dark:bg-zinc-900/80 overflow-hidden ${isUnlocked ? 'border-emerald-400/40 dark:border-emerald-500/30' : 'border-[#02abb8]/40 dark:border-[#02abb8]/25'}`}>
-      <div className="h-20 bg-gradient-to-br from-zinc-100 via-zinc-50 to-[#02abb8]/10 dark:from-zinc-900 dark:via-zinc-950 dark:to-[#02abb8]/15 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-        {isUnlocked ? 'Module active' : 'Locked module'}
-      </div>
-      <div className="p-4">
-        <p className="text-sm font-black text-zinc-900 dark:text-zinc-100">{offer.title}</p>
-        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{offer.description}</p>
-        {!isUnlocked ? <p className="mt-2 text-sm font-black text-zinc-900 dark:text-zinc-100">{payKas} KAS</p> : <p className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">Unlocked for this wallet. You can now enable it in the editor.</p>}
+    <KxInFormPremiumRow
+      title={offer.title}
+      description={offer.description}
+      priceLabel={`${payKas} KAS`}
+      trailing={
         <button
           type="button"
-          className="mt-3 k-control-btn !bg-[#02abb8] hover:!bg-[#019aa6] !text-white !border-[#02abb8]/30 w-full justify-center"
-          disabled={isUnlocked || busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
+          className="k-control-btn !py-1.5 !px-3 !text-[11px] shrink-0"
+          disabled={busy || !kaspaState.isConnected || !kaspaState.address || !kaspaState.provider}
           onClick={async () => {
             if (!kaspaState.isConnected || !kaspaState.address || !kaspaState.provider) return;
             setBusy(true);
@@ -290,10 +282,9 @@ export function VBlogInlineModuleUnlockCard({
             }
           }}
         >
-          {isUnlocked ? 'Module active' : busy ? 'Unlocking...' : `Unlock ${offer.title}`}
+          {busy ? 'Unlocking...' : 'Unlock'}
         </button>
-      </div>
-    </div>
+      }
+    />
   );
 }
-

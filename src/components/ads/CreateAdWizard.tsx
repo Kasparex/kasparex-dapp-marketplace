@@ -29,6 +29,7 @@ import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creat
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
 import {
   STORE_PAYMENT_CURRENCIES,
@@ -787,62 +788,22 @@ export function CreateAdWizard({
 
               <div>
                 <KxModalSectionTitle>Premium (L1)</KxModalSectionTitle>
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Featured highlight</p>
-                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
-                        More visible placement with a colorful frame for the duration of the campaign. One-time{' '}
-                        {ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.
-                      </p>
-                    </div>
-                    <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">
-                      +{ADS_FEATURED_HIGHLIGHT_KAS} KAS
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={featuredHighlight}
-                      onClick={() => setFeaturedHighlight((v) => !v)}
-                      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-                        featuredHighlight ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                          featuredHighlight ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Extended exposure</p>
-                      <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">
-                        Your ad stays visible +{ADS_EXTENDED_EXPOSURE_SECONDS} seconds longer before the slider
-                        advances. One-time {ADS_EXTENDED_EXPOSURE_KAS} KAS - not per day.
-                      </p>
-                    </div>
-                    <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">
-                      +{ADS_EXTENDED_EXPOSURE_KAS} KAS
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={extendedExposure}
-                      onClick={() => setExtendedExposure((v) => !v)}
-                      className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-                        extendedExposure ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                          extendedExposure ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
+                <KxInFormPremiumList>
+                  <KxInFormPremiumRow
+                    title="Featured highlight"
+                    description={`More visible placement with a colorful frame for the duration of the campaign. One-time ${ADS_FEATURED_HIGHLIGHT_KAS} KAS - not per day.`}
+                    priceLabel={`+${ADS_FEATURED_HIGHLIGHT_KAS} KAS`}
+                    checked={featuredHighlight}
+                    onToggle={() => setFeaturedHighlight((v) => !v)}
+                  />
+                  <KxInFormPremiumRow
+                    title="Extended exposure"
+                    description={`Your ad stays visible +${ADS_EXTENDED_EXPOSURE_SECONDS} seconds longer before the slider advances. One-time ${ADS_EXTENDED_EXPOSURE_KAS} KAS - not per day.`}
+                    priceLabel={`+${ADS_EXTENDED_EXPOSURE_KAS} KAS`}
+                    checked={extendedExposure}
+                    onToggle={() => setExtendedExposure((v) => !v)}
+                  />
+                </KxInFormPremiumList>
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
