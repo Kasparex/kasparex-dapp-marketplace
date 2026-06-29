@@ -10,6 +10,7 @@ import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
+import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 
 interface PageProps {
   params: Promise<{
@@ -32,15 +33,18 @@ export async function generateMetadata({ params }: PageProps) {
   const dapp = getDAppBySlug(placeholderDApps, slug);
 
   if (!dapp) {
-    return {
+    return buildHubOpenGraphMetadata({
       title: 'dApp Not Found - Kasparex dApps',
-    };
+      path: `/dapps/${slug}`,
+    });
   }
 
-  return {
+  return buildHubOpenGraphMetadata({
     title: `${dapp.name} - Kasparex dApps`,
     description: dapp.description || dapp.utility,
-  };
+    image: dapp.featuredImage || dapp.image || dapp.logoImage,
+    path: `/dapps/${slug}`,
+  });
 }
 
 export default async function DAppPage({ params }: PageProps) {

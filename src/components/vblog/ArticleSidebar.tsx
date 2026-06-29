@@ -6,6 +6,7 @@ import { formatAddress } from '@/lib/vblog/utils';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { Avatar } from '@/components/Avatar';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
 
 function getSocialMeta(href: string) {
@@ -48,6 +49,27 @@ function MetadataRow({ label, value, mono = false }: { label: string; value: Rea
         {value}
       </dd>
     </div>
+  );
+}
+
+function CopyableMonoValue({ value, copyLabel, href }: { value: string; copyLabel: string; href?: string }) {
+  if (!value) return null;
+  return (
+    <span className="inline-flex items-start gap-1.5 max-w-full">
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-[12px] leading-relaxed text-[#02abb8] hover:underline break-all"
+        >
+          {value}
+        </a>
+      ) : (
+        <span className="font-mono text-[12px] leading-relaxed break-all">{value}</span>
+      )}
+      <KxCopyIconButton value={value} label={copyLabel} className="shrink-0 mt-0.5" />
+    </span>
   );
 }
 
@@ -107,14 +129,35 @@ export function VBlogAuthorCard({ article, compact = false }: { article: VBlogAr
 
 interface ArticleSidebarProps {
   article: VBlogArticle;
+  tipBoxEnabled?: boolean;
+  tipPresets?: number[];
+  customTipKas?: string;
+  onCustomTipChange?: (value: string) => void;
+  onTip?: (amount: number) => void;
+  isProcessingAction?: boolean;
+  isWalletConnected?: boolean;
 }
 
-export function ArticleSidebar({ article }: ArticleSidebarProps) {
+export function ArticleSidebar({
+  article,
+  tipBoxEnabled = false,
+  tipPresets = [10, 50, 100],
+  customTipKas = '25',
+  onCustomTipChange,
+  onTip,
+  isProcessingAction = false,
+  isWalletConnected = false,
+}: ArticleSidebarProps) {
   const source = getVBlogArticleSource(article);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorDisplay = formatAddress(article.author);
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
   const links = [article.primaryLink, ...(article.socialLinks ?? [])].filter(Boolean) as string[];
+  const payloadBytes = article.pricingSnapshot?.payloadBytes;
+  const chunkCount = article.pricingSnapshot?.chunkCount ?? article.chunkTxHashes?.length;
+  const txExplorerUrl = article.txHash
+    ? `https://explorer.kaspa.org/transactions/${article.txHash.replace(/^0x/, '')}`
+    : undefined;
 
   const sections: VBlogAsideSection[] = [
     {
@@ -160,6 +203,38 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
               </div>
             </div>
           ) : null}
+          {tipBoxEnabled ? (
+            <div id="article-tip-box" className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#02abb8] mb-3">Support the author</p>
+              <div className="flex flex-wrap gap-2">
+                {tipPresets.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    disabled={isProcessingAction || !isWalletConnected}
+                    onClick={() => onTip?.(amount)}
+                    className="k-control-btn text-xs"
+                  >
+                    Tip {amount} KAS
+                  </button>
+                ))}
+                <input
+                  value={customTipKas}
+                  onChange={(e) => onCustomTipChange?.(e.target.value)}
+                  className="k-input max-w-[120px] text-sm"
+                  aria-label="Custom tip amount in KAS"
+                />
+                <button
+                  type="button"
+                  disabled={isProcessingAction || !isWalletConnected}
+                  onClick={() => onTip?.(Number(customTipKas) || 1)}
+                  className="k-control-btn text-xs"
+                >
+                  Custom tip
+                </button>
+              </div>
+            </div>
+          ) : null}
         </>
       ),
     },
@@ -168,9 +243,31 @@ export function ArticleSidebar({ article }: ArticleSidebarProps) {
       rawBody: true as const,
       body: (
         <dl className="space-y-3">
-          <MetadataRow label="Article CID (IPFS)" value={article.cid || 'Not yet published'} mono />
-          {article.txHash ? <MetadataRow label="Creation transaction" value={article.txHash} mono /> : null}
+          <MetadataRow
+            label="Article CID (IPFS)"
+            value={
+              article.cid ? (
+                <CopyableMonoValue value={article.cid} copyLabel="Copy IPFS CID" />
+              ) : (
+                'Not yet published'
+              )
+            }
+            mono
+          />
+          {article.txHash ? (
+            <MetadataRow
+              label="Creation transaction"
+              value={<CopyableMonoValue value={article.txHash} copyLabel="Copy transaction hash" href={txExplorerUrl} />}
+              mono
+            />
+          ) : null}
           {article.articleId ? <MetadataRow label="Article ID" value={article.articleId} mono /> : null}
+          {payloadBytes != null ? (
+            <MetadataRow label="Payload used" value={`${payloadBytes.toLocaleString()} bytes`} />
+          ) : null}
+          {chunkCount != null && chunkCount > 0 ? (
+            <MetadataRow label="Chunks used" value={String(chunkCount)} />
+          ) : null}
           <MetadataRow label="Source" value={<KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>{source}</KxBadge>} />
           <MetadataRow label="Network" value="Kaspa Mainnet" />
           <MetadataRow label="Status" value={article.status.replace(/_/g, ' ')} />

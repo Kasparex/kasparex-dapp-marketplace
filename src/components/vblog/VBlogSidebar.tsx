@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
@@ -19,7 +20,9 @@ interface VBlogSidebarProps {
   onTagToggle: (tag: string) => void;
   onSearchChange: (query: string) => void;
   activeView?: 'explore' | 'dashboard' | 'vault' | 'article';
-  articleNavItems?: Array<{ id: string; label: string; icon?: ReactNode }>;
+  articleNavItems?: Array<{ id: string; label: string; icon?: ReactNode; count?: number | string }>;
+  onArticleNavClick?: (itemId: string) => void;
+  defaultHidden?: boolean;
 }
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
@@ -180,6 +183,8 @@ export function VBlogSidebar({
   onSearchChange,
   activeView = 'explore',
   articleNavItems = [],
+  onArticleNavClick,
+  defaultHidden = false,
 }: VBlogSidebarProps) {
   const categories = Array.from(new Set(articles.map((a) => a.category))).sort();
   const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
@@ -206,9 +211,21 @@ export function VBlogSidebar({
 
   const dashboardActive = activeView === 'dashboard';
   const vaultActive = activeView === 'vault';
+  const [articleSidebarHidden, setArticleSidebarHidden] = useState(defaultHidden);
+
+  useEffect(() => {
+    if (activeView === 'article') {
+      setArticleSidebarHidden(defaultHidden);
+    }
+  }, [activeView, defaultHidden]);
 
   return (
-    <UnifiedSidebar storageKeyPrefix="vblog" header={header}>
+    <UnifiedSidebar
+      storageKeyPrefix="vblog"
+      header={header}
+      isHidden={activeView === 'article' ? articleSidebarHidden : undefined}
+      onHiddenChange={activeView === 'article' ? setArticleSidebarHidden : undefined}
+    >
       <div className="mb-6 space-y-2">
         <Link
           href="/vblog/dashboard"
@@ -240,8 +257,22 @@ export function VBlogSidebar({
             {articleNavItems.map((item) => (
               <SidebarNavItem
                 key={item.id}
-                href={`#${item.id}`}
+                href={onArticleNavClick ? undefined : `#${item.id}`}
+                onClick={
+                  onArticleNavClick
+                    ? () => onArticleNavClick(item.id)
+                    : undefined
+                }
+                onLinkClick={
+                  onArticleNavClick
+                    ? (e) => {
+                        e.preventDefault();
+                        onArticleNavClick(item.id);
+                      }
+                    : undefined
+                }
                 label={item.label}
+                count={item.count}
                 icon={
                   item.icon ?? (
                     <svg className="w-4 h-4 k-sidebar-icon text-zinc-800 dark:text-zinc-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">

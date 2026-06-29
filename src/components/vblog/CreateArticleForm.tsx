@@ -23,6 +23,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
@@ -99,6 +100,8 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState('Option 1, Option 2');
   const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(false);
+  const [sidebarShownByDefault, setSidebarShownByDefault] = useState(true);
+  const [rightPanelShownByDefault, setRightPanelShownByDefault] = useState(true);
 
   const resolvedFeaturedImage = useMemo(() => {
     if (featuredImageSource === 'url') return featuredImageUrl.trim();
@@ -335,6 +338,10 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         primaryLink: primaryLink.trim() || undefined,
         socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
         modules: modulesPayload,
+        layoutPreferences: {
+          sidebarShownByDefault,
+          rightPanelShownByDefault,
+        },
       });
 
       setTitle('');
@@ -365,6 +372,8 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setPollQuestion('');
       setPollOptions('Option 1, Option 2');
       setReadingReceiptsEnabled(false);
+      setSidebarShownByDefault(true);
+      setRightPanelShownByDefault(true);
     } catch (err) {
       console.error('Error creating article:', err);
       setError(err instanceof Error ? err.message : 'Failed to create article. Please try again.');
@@ -427,14 +436,12 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
-          <textarea
+          <KxRichTextEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder="Enter a brief description of the article"
-            rows={3}
+            minRows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
-            className="k-textarea min-h-[96px] text-base"
-            required
             disabled={isSubmitting}
           />
         </div>
@@ -445,14 +452,13 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               Main Content <span className="text-red-500">*</span>
             </label>
           </div>
-          <textarea
+          <KxRichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
             placeholder="Write your article content here..."
+            minRows={14}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
-            rows={14}
-            className="k-textarea text-base leading-relaxed"
           />
         </div>
 
@@ -581,6 +587,35 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               );
             })}
           </KxInFormPremiumList>
+        </section>
+
+        <section className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+          <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Advanced options</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Control default reader layout when this article opens.
+          </p>
+          <div className="space-y-2">
+            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
+              <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Sidebar shown by default</span>
+              <input
+                type="checkbox"
+                checked={sidebarShownByDefault}
+                onChange={(e) => setSidebarShownByDefault(e.target.checked)}
+                disabled={isSubmitting}
+                className="h-4 w-4 rounded border-zinc-300 text-[#02abb8] focus:ring-[#02abb8]"
+              />
+            </label>
+            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
+              <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Right-side panel shown by default</span>
+              <input
+                type="checkbox"
+                checked={rightPanelShownByDefault}
+                onChange={(e) => setRightPanelShownByDefault(e.target.checked)}
+                disabled={isSubmitting}
+                className="h-4 w-4 rounded border-zinc-300 text-[#02abb8] focus:ring-[#02abb8]"
+              />
+            </label>
+          </div>
         </section>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">

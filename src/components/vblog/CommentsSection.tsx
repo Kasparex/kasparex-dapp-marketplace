@@ -16,6 +16,7 @@ import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Avatar } from '@/components/Avatar';
 import { NetworkInfoMessage } from '@/components/NetworkInfoMessage';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 
 interface CommentsSectionProps {
   articleId: string;
@@ -329,13 +330,11 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
                   <label htmlFor="comment" className="k-label text-base">
                     Add a Comment
                   </label>
-                  <textarea
-                    id="comment"
+                  <KxRichTextEditor
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={setNewComment}
                     placeholder="Write your comment here..."
-                    rows={4}
-                    className="k-textarea"
+                    minRows={4}
                     disabled={isSubmitting}
                   />
                 </div>

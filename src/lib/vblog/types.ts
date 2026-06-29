@@ -74,6 +74,11 @@ export interface VBlogArticle {
   primaryLink?: string;
   socialLinks?: string[];
   modules?: VBlogModulesConfig;
+  /** Author layout preferences for article readers. */
+  layoutPreferences?: {
+    sidebarShownByDefault?: boolean;
+    rightPanelShownByDefault?: boolean;
+  };
 }
 
 export interface VBlogComment {

@@ -6,14 +6,16 @@ import 'leaflet/dist/leaflet.css';
 import { Providers } from "@/components/Providers";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { BackToTop } from "@/components/BackToTop";
+import { buildHubOpenGraphMetadata } from "@/lib/metadata/hubSocialPreview";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildHubOpenGraphMetadata({
   title: "Kasparex dApps - Kaspa dApp Marketplace",
   description:
     "Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.",
-};
+  path: "/",
+});
 
 export default function RootLayout({
   children,

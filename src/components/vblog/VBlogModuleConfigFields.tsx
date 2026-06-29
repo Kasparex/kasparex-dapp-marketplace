@@ -1,6 +1,7 @@
 'use client';
 
 import type { VBlogModuleId } from '@/lib/vblog/types';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 
 export function VBlogModuleConfigFields({
   moduleId,
@@ -41,11 +42,10 @@ export function VBlogModuleConfigFields({
     return (
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3 space-y-3">
         <p className="text-xs font-bold uppercase tracking-wider text-[#02abb8] dark:text-[#66dfe8]">Premium section setup</p>
-        <textarea
+        <KxRichTextEditor
           value={premiumSectionContent ?? ''}
-          onChange={(e) => onPremiumSectionContentChange?.(e.target.value)}
-          rows={4}
-          className="k-textarea min-h-[96px]"
+          onChange={(v) => onPremiumSectionContentChange?.(v)}
+          minRows={4}
           placeholder="Premium section content (Markdown supported)"
           disabled={disabled}
         />
@@ -73,11 +73,10 @@ export function VBlogModuleConfigFields({
     return (
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3 space-y-3">
         <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tip-to-reveal setup</p>
-        <textarea
+        <KxRichTextEditor
           value={tipToRevealContent ?? ''}
-          onChange={(e) => onTipToRevealContentChange?.(e.target.value)}
-          rows={3}
-          className="k-textarea min-h-[80px]"
+          onChange={(v) => onTipToRevealContentChange?.(v)}
+          minRows={3}
           placeholder="Hidden bonus content (Markdown supported)"
           disabled={disabled}
         />

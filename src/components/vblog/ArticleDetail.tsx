@@ -13,6 +13,7 @@ import { ArticleSidebar } from './ArticleSidebar';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { VBlogAuthorCard } from '@/components/vblog/ArticleSidebar';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
+import { AuthorArticlesTab } from '@/components/vblog/AuthorArticlesTab';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { IconArticle, IconAuthor, IconComments, IconModules } from '@/components/dapps/icons/DAppTabIcons';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
@@ -34,25 +35,39 @@ import {
   saveReadingReceipt,
 } from '@/lib/vblog/modules';
 
+export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
+
 interface ArticleDetailProps {
   article: VBlogArticle;
+  allArticles?: VBlogArticle[];
   onEdit?: (article: VBlogArticle) => void;
+  contentTab?: ArticleContentTab;
+  onContentTabChange?: (tab: ArticleContentTab) => void;
 }
 
-type ArticleContentTab = 'article' | 'author' | 'modules' | 'comments';
+function AuthorPostsIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+    </svg>
+  );
+}
 
-const ARTICLE_TABS: readonly DAppTab<ArticleContentTab>[] = [
-  { id: 'article', label: 'Article', icon: <IconArticle /> },
-  { id: 'author', label: 'Author', icon: <IconAuthor /> },
-  { id: 'modules', label: 'Modules', icon: <IconModules /> },
-  { id: 'comments', label: 'Comments', icon: <IconComments /> },
-];
-
-export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
+export function ArticleDetail({
+  article,
+  allArticles = [],
+  onEdit,
+  contentTab: controlledTab,
+  onContentTabChange,
+}: ArticleDetailProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
-  const { deleteExistingArticle } = useVBlog();
+  const { deleteExistingArticle, getArticleComments } = useVBlog();
   const router = useRouter();
+  const [internalTab, setInternalTab] = useState<ArticleContentTab>('article');
+  const contentTab = controlledTab ?? internalTab;
+  const setContentTab = onContentTabChange ?? setInternalTab;
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [customTipKas, setCustomTipKas] = useState('25');
@@ -60,10 +75,12 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [selectedPollOption, setSelectedPollOption] = useState(0);
-  const [contentTab, setContentTab] = useState<ArticleContentTab>('article');
-  const [rightOpen, setRightOpen] = useVBlogRightPanelOpen(true);
 
-  // Check if current user is the author
+  const rightPanelDefault = article.layoutPreferences?.rightPanelShownByDefault ?? true;
+  const [rightOpen, setRightOpen] = useVBlogRightPanelOpen(true, rightPanelDefault);
+
+  const commentCount = useMemo(() => getArticleComments(article.id).length, [article.id, getArticleComments, refreshTick]);
+
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isAuthor = walletAddress && (
     article.author.toLowerCase() === walletAddress.toLowerCase() ||
@@ -71,7 +88,6 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
     (kaspaState.address && article.author.toLowerCase() === kaspaState.address.toLowerCase())
   );
 
-  // Format author address (last 5 digits)
   const authorDisplay = formatAddress(article.author);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
@@ -81,6 +97,23 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
   const pollVotes = useMemo(() => getPollVotes(article.id), [article.id, refreshTick]);
   const receiptBadge = walletAddress ? getReceiptStreakAndBadge(walletAddress) : { streak: 0, badge: 'No badge' };
   const pollTotalVotes = pollVotes.length;
+
+  const articleTabs: readonly DAppTab<ArticleContentTab>[] = [
+    { id: 'article', label: 'Article', icon: <IconArticle /> },
+    { id: 'author', label: 'Author', icon: <IconAuthor /> },
+    { id: 'author-posts', label: 'More from Author', icon: <AuthorPostsIcon /> },
+    { id: 'modules', label: 'Modules', icon: <IconModules /> },
+    {
+      id: 'comments',
+      label: 'Comments',
+      icon: <IconComments />,
+      rightAdornment: commentCount > 0 ? (
+        <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-[#02abb8]/15 px-1.5 py-0.5 text-[10px] font-black text-[#02abb8]">
+          {commentCount}
+        </span>
+      ) : null,
+    },
+  ];
 
   const performSplitPayment = async (moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box', totalKas: number) => {
     if (!walletAddress || !kaspaState.provider || !kaspaState.isConnected || !kaspaState.address) {
@@ -213,7 +246,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
       const note = `kvb1:receipt:${article.id}:${walletAddress}:${Date.now()}`;
       const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
         to: getVBlogTreasuryL1Address(),
-        amount: String(kasToSompi(0.01)),
+        amount: String(kasToSompi(1)),
         note,
         payload: utf8ToHex(note),
       });
@@ -326,7 +359,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
       <div className="flex w-full min-w-0 flex-col gap-6">
         <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div className="min-w-0 flex-1">
-            <DAppTabs tabs={ARTICLE_TABS} value={contentTab} onChange={setContentTab} />
+            <DAppTabs tabs={articleTabs} value={contentTab} onChange={setContentTab} />
           </div>
           <div className="flex shrink-0 justify-end sm:items-center">
             <DAppSidePanelToggle
@@ -341,147 +374,145 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
           <div className={`min-w-0 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
             <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
               <div className="flex min-w-0 flex-col space-y-6">
-            {contentTab === 'article' ? (
-              <div
-                id="article-main"
-                className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
+                {actionError ? (
+                  <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
+                ) : null}
+
+                {contentTab === 'article' ? (
+                  <div className="space-y-8">
+                    <div
+                      id="article-main"
+                      className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
               prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
               prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-5
               prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
               prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
               prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
               prose-img:rounded-2xl select-text cursor-text"
-                onClick={(e) => {
-                  const selection = window.getSelection()?.toString().trim();
-                  if (!selection) return;
-                  void navigator.clipboard.writeText(selection).catch(() => undefined);
-                }}
-                dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
-              />
-            ) : null}
+                      onClick={(e) => {
+                        const selection = window.getSelection()?.toString().trim();
+                        if (!selection) return;
+                        void navigator.clipboard.writeText(selection).catch(() => undefined);
+                      }}
+                      dangerouslySetInnerHTML={{ __html: parseMarkdown(article.content) }}
+                    />
 
-            {contentTab === 'author' ? (
-              <div id="article-author">
-                <VBlogAuthorCard article={article} />
-              </div>
-            ) : null}
-
-            {contentTab === 'modules' ? (
-              <div id="article-modules" className="space-y-6">
-                {actionError ? (
-                  <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
+                    {article.modules?.premiumSectionEnabled ? (
+                      <div id="article-premium" className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
+                        {!premiumUnlockEntitled ? (
+                          <div className="mt-3 space-y-3">
+                            <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
+                            <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
+                              {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 ) : null}
 
-                {article.modules?.premiumSectionEnabled ? (
-                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
-                    {!premiumUnlockEntitled ? (
-                      <div className="mt-3 space-y-3">
-                        <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
-                        <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
-                          {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
+                {contentTab === 'author' ? (
+                  <div id="article-author">
+                    <VBlogAuthorCard article={article} />
+                  </div>
+                ) : null}
+
+                {contentTab === 'author-posts' ? (
+                  <AuthorArticlesTab article={article} allArticles={allArticles} />
+                ) : null}
+
+                {contentTab === 'modules' ? (
+                  <div id="article-modules" className="space-y-6">
+                    {article.modules?.tipToRevealEnabled ? (
+                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
+                        {!tipRevealEntitled ? (
+                          <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
+                        ) : (
+                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
+                        )}
+                      </div>
+                    ) : null}
+
+                    {article.modules?.premiumPollEnabled && premiumUnlockEntitled ? (
+                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
+                        <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
+                        <div className="mt-3 space-y-2">
+                          {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
+                            const votes = pollVotes.filter((x) => x.optionIndex === index).length;
+                            const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
+                            return (
+                              <label key={option} className="flex items-center justify-between gap-3 text-sm">
+                                <span className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    checked={selectedPollOption === index}
+                                    onChange={() => setSelectedPollOption(index)}
+                                    disabled={!canVotePoll}
+                                  />
+                                  {option}
+                                </span>
+                                <span className="text-zinc-500">{votes} ({pct}%)</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
+                          {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
                         </button>
                       </div>
-                    ) : (
-                      <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.premiumSectionContent ?? '') }} />
-                    )}
-                  </div>
-                ) : null}
+                    ) : null}
 
-                {article.modules?.tipBoxEnabled ? (
-                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Support the author</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {(article.modules.tipBox?.presets ?? [10, 50, 100]).map((amount) => (
-                        <button key={amount} disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(amount)} className="k-control-btn">
-                          Tip {amount} KAS
+                    {article.modules?.readingReceiptsEnabled ? (
+                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
+                        <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
+                        <p className="mt-1 text-xs text-zinc-500">On-chain receipt cost: 1 KAS</p>
+                        <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
+                          Record on-chain reading receipt
                         </button>
-                      ))}
-                      <input value={customTipKas} onChange={(e) => setCustomTipKas(e.target.value)} className="k-input max-w-[140px]" />
-                      <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(Number(customTipKas) || 1)} className="k-control-btn">Custom tip</button>
-                    </div>
+                      </div>
+                    ) : null}
+
+                    {!article.modules?.tipToRevealEnabled &&
+                    !article.modules?.premiumPollEnabled &&
+                    !article.modules?.readingReceiptsEnabled ? (
+                      <p className="kx-body text-zinc-500">No modules are enabled for this article.</p>
+                    ) : null}
                   </div>
                 ) : null}
 
-                {article.modules?.tipToRevealEnabled ? (
-                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
-                    {!tipRevealEntitled ? (
-                      <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
-                    ) : (
-                      <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: parseMarkdown(article.modules.tipToRevealContent ?? '') }} />
-                    )}
+                {contentTab === 'comments' ? (
+                  <div id="article-comments">
+                    <CommentsSection articleId={article.id} />
                   </div>
                 ) : null}
-
-                {article.modules?.premiumPollEnabled && premiumUnlockEntitled ? (
-                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
-                    <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
-                    <div className="mt-3 space-y-2">
-                      {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
-                        const votes = pollVotes.filter((x) => x.optionIndex === index).length;
-                        const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
-                        return (
-                          <label key={option} className="flex items-center justify-between gap-3 text-sm">
-                            <span className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                checked={selectedPollOption === index}
-                                onChange={() => setSelectedPollOption(index)}
-                                disabled={!canVotePoll}
-                              />
-                              {option}
-                            </span>
-                            <span className="text-zinc-500">{votes} ({pct}%)</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
-                      {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
-                    </button>
-                  </div>
-                ) : null}
-
-                {article.modules?.readingReceiptsEnabled ? (
-                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
-                    <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
-                    <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
-                      Record on-chain reading receipt
-                    </button>
-                  </div>
-                ) : null}
-
-                {!article.modules?.premiumSectionEnabled &&
-                !article.modules?.tipBoxEnabled &&
-                !article.modules?.tipToRevealEnabled &&
-                !article.modules?.premiumPollEnabled &&
-                !article.modules?.readingReceiptsEnabled ? (
-                  <p className="kx-body text-zinc-500">No modules are enabled for this article.</p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {contentTab === 'comments' ? (
-              <div id="article-comments">
-                <CommentsSection articleId={article.id} />
-              </div>
-            ) : null}
               </div>
             </SidePanelCollapsedContentWrap>
           </div>
 
           {rightOpen ? (
             <div className="min-w-0 lg:col-span-5">
-              <ArticleSidebar article={article} />
+              <ArticleSidebar
+                article={article}
+                tipBoxEnabled={Boolean(article.modules?.tipBoxEnabled)}
+                tipPresets={article.modules?.tipBox?.presets ?? [10, 50, 100]}
+                customTipKas={customTipKas}
+                onCustomTipChange={setCustomTipKas}
+                onTip={(amount) => void handleTip(amount)}
+                isProcessingAction={isProcessingAction}
+                isWalletConnected={kaspaState.isConnected}
+              />
             </div>
           ) : null}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowDeleteConfirm(false)} />

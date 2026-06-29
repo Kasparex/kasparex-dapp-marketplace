@@ -118,6 +118,9 @@ export function parseMarkdown(markdown: string): string {
     .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-3">$1</h2>')
     .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-4 mb-2">$1</h3>')
 
+    // Colored text
+    .replace(/\{color:([^}]+)\}(.*?)\{\/color\}/g, '<span style="color:$1">$2</span>')
+
     // Bold & Italic
     .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')

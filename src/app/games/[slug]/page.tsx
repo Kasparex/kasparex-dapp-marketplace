@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { getGameBySlugFromRegistry, getSlugRoutedGames } from '@/lib/games/registry';
 import { GameContent } from './GameContent';
+import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 
 interface PageProps {
   params: Promise<{
@@ -20,15 +21,18 @@ export async function generateMetadata({ params }: PageProps) {
   const game = getGameBySlugFromRegistry(slug);
 
   if (!game) {
-    return {
+    return buildHubOpenGraphMetadata({
       title: 'Game Not Found - Kasparex Games',
-    };
+      path: `/games/${slug}`,
+    });
   }
 
-  return {
+  return buildHubOpenGraphMetadata({
     title: `${game.name} - Kasparex Games`,
     description: game.description,
-  };
+    image: game.image,
+    path: `/games/${slug}`,
+  });
 }
 
 export default async function GamePage({ params }: PageProps) {

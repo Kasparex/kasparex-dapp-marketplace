@@ -12,6 +12,7 @@ import {
 } from '@/lib/vblog/limits';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
@@ -358,14 +359,12 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
-          <textarea
+          <KxRichTextEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder="Enter a brief description of the article"
-            rows={3}
+            minRows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
-            className="k-textarea min-h-[96px] text-base"
-            required
             disabled={isSubmitting}
           />
         </div>
@@ -376,14 +375,13 @@ export function EditArticleForm({ article, onSubmit, onCancel }: EditArticleForm
               Main Content <span className="text-red-500">*</span>
             </label>
           </div>
-          <textarea
+          <KxRichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
             placeholder="Write your article content here..."
+            minRows={14}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.content.max : CONTENT_LIMITS.content.max}
             disabled={isSubmitting}
-            rows={14}
-            className="k-textarea text-base leading-relaxed"
           />
         </div>
 

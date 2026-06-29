@@ -4,10 +4,20 @@ import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'kasparex-vblog-right-panel-open';
 
-export function useVBlogRightPanelOpen(initial = true): [boolean, (next: boolean) => void] {
-  const [open, setOpenState] = useState(initial);
+export function useVBlogRightPanelOpen(
+  initial = true,
+  articleOverride?: boolean,
+): [boolean, (next: boolean) => void] {
+  const resolvedInitial = articleOverride ?? initial;
+  const [open, setOpenState] = useState(resolvedInitial);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    if (articleOverride !== undefined) {
+      setOpenState(articleOverride);
+      setHydrated(true);
+      return;
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw === '0') setOpenState(false);
@@ -15,7 +25,8 @@ export function useVBlogRightPanelOpen(initial = true): [boolean, (next: boolean
     } catch {
       /* ignore */
     }
-  }, []);
+    setHydrated(true);
+  }, [articleOverride]);
 
   const setOpen = useCallback((next: boolean) => {
     setOpenState(next);
@@ -26,5 +37,5 @@ export function useVBlogRightPanelOpen(initial = true): [boolean, (next: boolean
     }
   }, []);
 
-  return [open, setOpen];
+  return [hydrated ? open : resolvedInitial, setOpen];
 }

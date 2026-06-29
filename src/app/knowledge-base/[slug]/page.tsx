@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
 import { getArticleBySlug, knowledgeBaseArticles } from '@/lib/knowledgeBase';
 import Link from 'next/link';
+import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 
 interface PageProps {
   params: Promise<{
@@ -23,15 +24,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = getArticleBySlug(slug);
 
   if (!article) {
-    return {
-      title: 'Article Not Found',
-    };
+    return buildHubOpenGraphMetadata({
+      title: 'Article Not Found - Kasparex Knowledge Base',
+      path: `/knowledge-base/${slug}`,
+    });
   }
 
-  return {
-    title: `${article.title} · Knowledge Base`,
+  return buildHubOpenGraphMetadata({
+    title: `${article.title} - Kasparex Knowledge Base`,
     description: article.description,
-  };
+    path: `/knowledge-base/${slug}`,
+    type: 'article',
+  });
 }
 
 // Article content mapping

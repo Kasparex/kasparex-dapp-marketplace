@@ -10,6 +10,7 @@ import { TokenLandingPage } from '@/components/tokens/TokenLandingPage';
 import { getTokenBySlug, getAllTokens } from '@/lib/tokens/registry';
 import { loadTokenWithMetadata } from '@/lib/tokens/metadata';
 import { generateDAppSlug } from '@/lib/utils';
+import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 
 interface PageProps {
   params: Promise<{
@@ -32,15 +33,18 @@ export async function generateMetadata({ params }: PageProps) {
   const token = getTokenBySlug(slug);
 
   if (!token) {
-    return {
+    return buildHubOpenGraphMetadata({
       title: 'Token Not Found - Kasparex Tokens',
-    };
+      path: `/tokens/${slug}`,
+    });
   }
 
-  return {
+  return buildHubOpenGraphMetadata({
     title: `${token.name} (${token.symbol}) - Kasparex Tokens`,
     description: token.shortDescription || token.description,
-  };
+    image: token.logo || token.logoCid,
+    path: `/tokens/${slug}`,
+  });
 }
 
 export default async function TokenPage({ params }: PageProps) {
