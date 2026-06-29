@@ -34,7 +34,8 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
-import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxInFormPremiumList, KxInFormPremiumRow, KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS } from '@/components/ui/KxInFormPremiumRow';
+import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 
 interface CreateArticleFormProps {
   onSubmit: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -81,7 +82,6 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [featuredImageName, setFeaturedImageName] = useState<string | null>(null);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [tags, setTags] = useState('');
-  const [cid, setCid] = useState('');
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>();
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>();
   const [primaryLink, setPrimaryLink] = useState('');
@@ -94,9 +94,16 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
   const [unlockedModules, setUnlockedModules] = useState<string[]>([]);
   const [unlockingModuleId, setUnlockingModuleId] = useState<string | null>(null);
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(false);
+  const [premiumSectionContent, setPremiumSectionContent] = useState('');
+  const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState('10');
+  const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState('');
   const [tipBoxEnabled, setTipBoxEnabled] = useState(false);
   const [tipToRevealEnabled, setTipToRevealEnabled] = useState(false);
+  const [tipToRevealContent, setTipToRevealContent] = useState('');
+  const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState('25');
   const [premiumPollEnabled, setPremiumPollEnabled] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState('Option 1, Option 2');
   const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(false);
 
   const resolvedFeaturedImage = useMemo(() => {
@@ -114,6 +121,24 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     linkedMagazineId,
     linkedIssueNumber,
     author: walletAddress ?? undefined,
+    primaryLink: primaryLink.trim() || undefined,
+    socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
+    modules: {
+      premiumSectionEnabled,
+      premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
+      premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
+      premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
+      tipBoxEnabled,
+      tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
+      tipToRevealEnabled,
+      tipToRevealContent: tipToRevealEnabled ? tipToRevealContent.trim() : undefined,
+      tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
+      premiumPollEnabled,
+      premiumPoll: premiumPollEnabled
+        ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
+        : undefined,
+      readingReceiptsEnabled,
+    },
   }, 'create');
   const fullBaseFee = getVBlogBaseFeeKas('create');
   const discountKas = Math.max(0, fullBaseFee - createQuote.baseFeeKas);
@@ -162,6 +187,12 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
     }
     setUnlockedModules(getAuthorUnlockedModules(kaspaState.address));
   }, [kaspaState.address]);
+
+  useEffect(() => {
+    if (premiumSectionEnabled && kaspaState.address && !premiumSectionPayoutAddress.trim()) {
+      setPremiumSectionPayoutAddress(kaspaState.address);
+    }
+  }, [premiumSectionEnabled, kaspaState.address, premiumSectionPayoutAddress]);
 
   const uploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -250,6 +281,36 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       return;
     }
 
+    if (premiumSectionEnabled) {
+      if (!premiumSectionContent.trim() || !premiumSectionPayoutAddress.trim()) {
+        setError('Premium section needs content and payout wallet address.');
+        return;
+      }
+      const price = Number(premiumSectionPriceKas);
+      if (!Number.isFinite(price) || price <= 0) {
+        setError('Premium section unlock price must be greater than 0 KAS.');
+        return;
+      }
+    }
+    if (tipToRevealEnabled && !tipToRevealContent.trim()) {
+      setError('Tip-to-reveal bonus content is required when enabled.');
+      return;
+    }
+    if (tipToRevealEnabled) {
+      const threshold = Number(tipToRevealThresholdKas);
+      if (!Number.isFinite(threshold) || threshold <= 0) {
+        setError('Tip-to-reveal threshold must be greater than 0 KAS.');
+        return;
+      }
+    }
+    if (premiumPollEnabled) {
+      const options = pollOptions.split(',').map((x) => x.trim()).filter(Boolean);
+      if (!pollQuestion.trim() || options.length < 2) {
+        setError('Premium poll requires a question and at least 2 options.');
+        return;
+      }
+    }
+
     void handleConfirm();
   };
 
@@ -282,10 +343,18 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
         socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
         modules: {
           premiumSectionEnabled,
+          premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
+          premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
+          premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
           tipBoxEnabled,
           tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
           tipToRevealEnabled,
+          tipToRevealContent: tipToRevealEnabled ? tipToRevealContent.trim() : undefined,
+          tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
           premiumPollEnabled,
+          premiumPoll: premiumPollEnabled
+            ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
+            : undefined,
           readingReceiptsEnabled,
         },
       });
@@ -299,15 +368,21 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
       setFeaturedImageSource('file');
       setCategory(CATEGORIES[0]);
       setTags('');
-      setCid('');
       setPrimaryLink('');
       setSocialLink1('');
       setSocialLink2('');
       setSocialLink3('');
       setPremiumSectionEnabled(false);
+      setPremiumSectionContent('');
+      setPremiumSectionPriceKas('10');
+      setPremiumSectionPayoutAddress('');
       setTipBoxEnabled(false);
       setTipToRevealEnabled(false);
+      setTipToRevealContent('');
+      setTipToRevealThresholdKas('25');
       setPremiumPollEnabled(false);
+      setPollQuestion('');
+      setPollOptions('Option 1, Option 2');
       setReadingReceiptsEnabled(false);
     } catch (err) {
       console.error('Error creating article:', err);
@@ -451,6 +526,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               disabled={isSubmitting}
+              ariaLabel="Article category"
               options={CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
             />
           </div>
@@ -486,11 +562,21 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
             setLinkedMagazineId(magId);
             setLinkedIssueNumber(issueNum);
           }}
-          disabled={isSubmitting || !unlockedModules.includes('magazine_integration')}
+          disabled={isSubmitting}
+          locked={!unlockedModules.includes('magazine_integration')}
+          unlockPriceLabel={`${getVBlogModuleEffectivePriceKas(
+            VBLOG_MODULE_OFFERS.find((o) => o.id === 'magazine_integration')?.unlockPriceKas ?? 0,
+            tier,
+            nftStatus,
+          )} KAS`}
+          isUnlocking={unlockingModuleId === 'magazine_integration'}
+          onUnlock={() =>
+            void handleModuleUnlock(
+              'magazine_integration',
+              VBLOG_MODULE_OFFERS.find((o) => o.id === 'magazine_integration')?.unlockPriceKas ?? 0,
+            )
+          }
         />
-        {!unlockedModules.includes('magazine_integration') && (
-          <p className="text-xs text-amber-700 dark:text-amber-300">Unlock the Magazine Integration module to enable article-to-issue linking.</p>
-        )}
 
         <section className="space-y-3 pt-2">
           <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
@@ -516,7 +602,7 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
                         type="button"
                         disabled={isUnlocking || !kaspaState.isConnected || isSubmitting}
                         onClick={() => void handleModuleUnlock(offer.id, offer.unlockPriceKas)}
-                        className="k-control-btn !py-1.5 !px-3 !text-[11px] shrink-0 disabled:opacity-60"
+                        className={KX_IN_FORM_PREMIUM_UNLOCK_BTN_CLASS}
                       >
                         {isUnlocking ? 'Unlocking...' : 'Unlock'}
                       </button>
@@ -526,34 +612,40 @@ export function CreateArticleForm({ onSubmit, onCancel }: CreateArticleFormProps
               }
 
               return (
-                <KxInFormPremiumRow
-                  key={offer.id}
-                  title={offer.title}
-                  description={offer.description}
-                  priceLabel="Included"
-                  checked={enabled}
-                  disabled={isSubmitting}
-                  onToggle={() => setModuleEnabled(offer.id, !enabled)}
-                />
+                <div key={offer.id} className="space-y-2">
+                  <KxInFormPremiumRow
+                    title={offer.title}
+                    description={offer.description}
+                    priceLabel="Included"
+                    checked={enabled}
+                    disabled={isSubmitting}
+                    onToggle={() => setModuleEnabled(offer.id, !enabled)}
+                  />
+                  {enabled ? (
+                    <VBlogModuleConfigFields
+                      moduleId={offer.id}
+                      disabled={isSubmitting}
+                      premiumSectionContent={premiumSectionContent}
+                      onPremiumSectionContentChange={setPremiumSectionContent}
+                      premiumSectionPriceKas={premiumSectionPriceKas}
+                      onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
+                      premiumSectionPayoutAddress={premiumSectionPayoutAddress}
+                      onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
+                      tipToRevealContent={tipToRevealContent}
+                      onTipToRevealContentChange={setTipToRevealContent}
+                      tipToRevealThresholdKas={tipToRevealThresholdKas}
+                      onTipToRevealThresholdKasChange={setTipToRevealThresholdKas}
+                      pollQuestion={pollQuestion}
+                      onPollQuestionChange={setPollQuestion}
+                      pollOptions={pollOptions}
+                      onPollOptionsChange={setPollOptions}
+                    />
+                  ) : null}
+                </div>
               );
             })}
           </KxInFormPremiumList>
         </section>
-
-        <div>
-          <label className="k-label">Content CID (optional)</label>
-          <input
-            type="text"
-            value={cid}
-            onChange={(e) => setCid(e.target.value)}
-            placeholder="Paste the content CID or reference hash"
-            className="k-input font-mono"
-            disabled={isSubmitting}
-          />
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-            If you&apos;ve already uploaded your content to IPFS or another decentralized storage, paste the CID here.
-          </p>
-        </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
           {onCancel && (

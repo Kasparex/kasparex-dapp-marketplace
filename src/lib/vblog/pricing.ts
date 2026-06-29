@@ -1,4 +1,4 @@
-import type { VBlogArticle } from '@/lib/vblog/types';
+import type { VBlogModulesConfig } from '@/lib/vblog/types';
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
 export const VBLOG_CREATE_BASE_FEE_KAS = 10;
@@ -19,6 +19,40 @@ export interface VBlogPricingDraft {
   linkedMagazineId?: string;
   linkedIssueNumber?: number;
   author?: string;
+  primaryLink?: string;
+  socialLinks?: string[];
+  modules?: VBlogModulesConfig;
+}
+
+function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string, unknown> | null {
+  if (!modules) return null;
+  const out: Record<string, unknown> = {};
+  if (modules.premiumSectionEnabled) {
+    out.premiumSectionEnabled = true;
+    out.premiumSectionContent = (modules.premiumSectionContent ?? '').trim();
+    out.premiumSectionPriceKas = modules.premiumSectionPriceKas ?? 0;
+    out.premiumSectionPayoutAddress = (modules.premiumSectionPayoutAddress ?? '').trim();
+  }
+  if (modules.tipBoxEnabled) {
+    out.tipBoxEnabled = true;
+    out.tipBox = modules.tipBox ?? { presets: [10, 50, 100], allowCustom: true };
+  }
+  if (modules.tipToRevealEnabled) {
+    out.tipToRevealEnabled = true;
+    out.tipToRevealContent = (modules.tipToRevealContent ?? '').trim();
+    out.tipToRevealThresholdKas = modules.tipToRevealThresholdKas ?? 0;
+  }
+  if (modules.premiumPollEnabled) {
+    out.premiumPollEnabled = true;
+    out.premiumPoll = {
+      question: (modules.premiumPoll?.question ?? '').trim(),
+      options: (modules.premiumPoll?.options ?? []).map((o) => o.trim()).filter(Boolean),
+    };
+  }
+  if (modules.readingReceiptsEnabled) {
+    out.readingReceiptsEnabled = true;
+  }
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 export interface VBlogPriceQuote {
@@ -69,6 +103,9 @@ export function buildCanonicalArticlePayload(draft: VBlogPricingDraft, action: V
     linkedMagazineId: (draft.linkedMagazineId ?? '').trim(),
     linkedIssueNumber: draft.linkedIssueNumber ?? null,
     author: (draft.author ?? '').trim(),
+    primaryLink: (draft.primaryLink ?? '').trim(),
+    socialLinks: (draft.socialLinks ?? []).map((l) => l.trim()).filter(Boolean),
+    modules: normalizeModulesForPayload(draft.modules),
   };
   return deterministicStringify(canonical);
 }

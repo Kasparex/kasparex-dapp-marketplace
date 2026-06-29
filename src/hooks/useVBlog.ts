@@ -180,7 +180,20 @@ export function useVBlog() {
     articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>
   ): Promise<VBlogArticle> => {
     const articleId = `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const canonicalPayload = buildCanonicalArticlePayload(articleData, 'create');
+    const canonicalPayload = buildCanonicalArticlePayload({
+      title: articleData.title,
+      description: articleData.description,
+      content: articleData.content,
+      category: articleData.category,
+      tags: articleData.tags,
+      featuredImage: articleData.featuredImage,
+      linkedMagazineId: articleData.linkedMagazineId,
+      linkedIssueNumber: articleData.linkedIssueNumber,
+      author: articleData.author,
+      primaryLink: articleData.primaryLink,
+      socialLinks: articleData.socialLinks,
+      modules: articleData.modules,
+    }, 'create');
     const contentHash = fnv1aHex(canonicalPayload);
     const quote = pricing.estimateQuote({
       title: articleData.title,
@@ -192,6 +205,9 @@ export function useVBlog() {
       linkedMagazineId: articleData.linkedMagazineId,
       linkedIssueNumber: articleData.linkedIssueNumber,
       author: articleData.author,
+      primaryLink: articleData.primaryLink,
+      socialLinks: articleData.socialLinks,
+      modules: articleData.modules,
     }, 'create');
     const bundle = await sendVBlogTxBundle({
       articleId,
@@ -285,6 +301,9 @@ export function useVBlog() {
       linkedMagazineId: merged.linkedMagazineId,
       linkedIssueNumber: merged.linkedIssueNumber,
       author: canonicalAuthor,
+      primaryLink: merged.primaryLink,
+      socialLinks: merged.socialLinks,
+      modules: merged.modules,
     }, 'edit');
     const contentHash = fnv1aHex(canonicalPayload);
     const quote = pricing.estimateQuote({
@@ -297,6 +316,9 @@ export function useVBlog() {
       linkedMagazineId: merged.linkedMagazineId,
       linkedIssueNumber: merged.linkedIssueNumber,
       author: canonicalAuthor,
+      primaryLink: merged.primaryLink,
+      socialLinks: merged.socialLinks,
+      modules: merged.modules,
     }, 'edit');
     const chainArticleId = existing.articleId ?? `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const bundle = await sendVBlogTxBundle({

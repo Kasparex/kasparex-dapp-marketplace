@@ -392,7 +392,7 @@ export function ArticleDetail({ article, onEdit }: ArticleDetailProps) {
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
                     <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Support the author</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {[10, 50, 100].map((amount) => (
+                      {(article.modules.tipBox?.presets ?? [10, 50, 100]).map((amount) => (
                         <button key={amount} disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleTip(amount)} className="k-control-btn">
                           Tip {amount} KAS
                         </button>
