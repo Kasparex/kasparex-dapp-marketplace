@@ -214,7 +214,7 @@ function FilledAdShell({
   const featured = ad.featuredHighlight === true;
   const frameEdge = featured
     ? FEATURED_AD_SLOT_FRAME_CLASS
-    : 'border-2 border-zinc-400 dark:border-zinc-300 dark:border-zinc-400 box-border shadow-md shadow-black/20 dark:shadow-black/40';
+    : 'border border-dotted border-zinc-300/45 dark:border-zinc-600/45 box-border';
 
   const linkClass = featured
     ? `${rounded} relative z-[1] block w-full min-h-0 flex-1 overflow-hidden bg-zinc-100 dark:bg-zinc-900 ${frameEdge}`

@@ -11,6 +11,7 @@ import {
   ADS_EXTENDED_EXPOSURE_KAS,
   ADS_EXTENDED_EXPOSURE_SECONDS,
   ADS_MAX_PROMO_TOOLTIP_CHARS,
+  ADS_KREX_BINDING_FEE_KAS,
 } from '@/lib/ads/constants';
 import { adPremiumAddonKas } from '@/lib/ads/premiumAddons';
 import { buildCampaignMetadataV1, resolveAdImageUrl, type AdImageRef, type AdPaymentCurrency } from '@/lib/ads/metadata';
@@ -868,12 +869,14 @@ export function CreateAdWizard({
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <KxModalSectionTitle className="mb-0">Pay with</KxModalSectionTitle>
-                  {paymentCurrency === 'KREX' ? (
-                    <FieldHint text={krexCheckoutHint} ariaLabel="KREX checkout info" />
-                  ) : null}
-                </div>
+                <KxModalSectionTitle className="mb-2 [&_p]:items-center">
+                  <span className="inline-flex items-center gap-1.5">
+                    Pay with
+                    {paymentCurrency === 'KREX' ? (
+                      <FieldHint text={krexCheckoutHint} ariaLabel="KREX checkout info" />
+                    ) : null}
+                  </span>
+                </KxModalSectionTitle>
                 <KxSegmentToggle
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
@@ -910,6 +913,12 @@ export function CreateAdWizard({
                 <p className="text-base font-bold text-[#02abb8] dark:text-[#02abb8] pt-1 border-t border-zinc-200 dark:border-zinc-600 mt-2 tabular-nums">
                   Total: {payLabel}
                 </p>
+                {paymentCurrency === 'KREX' ? (
+                  <p className="text-zinc-500 dark:text-zinc-500">
+                    Token checkout uses a second wallet step: about {ADS_KREX_BINDING_FEE_KAS} KAS plus network
+                    fee for on-chain metadata binding (not included in the total above).
+                  </p>
+                ) : null}
               </div>
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3 text-xs">
