@@ -359,7 +359,6 @@ export function useVBlog() {
         totalKas: quote.totalKas,
       },
     });
-    const magazineIntegrationEnabled = Boolean(merged.linkedMagazineId && merged.linkedIssueNumber);
     const newlyEnabledModuleIds = getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled).filter(
       (id) => !previouslyPaidModuleIds.includes(id),
     );
