@@ -23,7 +23,8 @@ type TabId = 'create' | 'claim' | 'about';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
-  const { openVouchers, loading, error, createVoucher, claimVoucher, refresh } = useCovenantVoucher();
+  const { openVouchers, loading, error, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
+    useCovenantVoucher();
   const [tab, setTab] = useState<TabId>('create');
   const [amountKas, setAmountKas] = useState('0.1');
   const [memo, setMemo] = useState('');
@@ -76,6 +77,8 @@ export function CovenantVoucherWidget() {
       <CovenantHeader
         title="Covenant Voucher"
         subtitle="Send KAS as a digital gift card. Lock the amount, share a secret code with the recipient, and they can redeem it before it expires."
+        runtimeMode={runtimeMode}
+        effectiveMode={effectiveMode}
       />
 
       <CovenantTabs

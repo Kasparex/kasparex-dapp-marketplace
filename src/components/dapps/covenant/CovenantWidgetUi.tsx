@@ -1,6 +1,8 @@
 'use client';
 
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { covenantRuntimeBadge } from '@/lib/programmability/runtime-label';
+import type { CovenantRuntimeMode } from '@/lib/covenant/types';
 
 export const covenantInputClass =
   'w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40 focus:border-[#02abb8]/60';
@@ -28,17 +30,61 @@ export function CovenantWidgetShell({ children }: { children: React.ReactNode })
   );
 }
 
-export function CovenantHeader({ title, subtitle }: { title: string; subtitle: string }) {
+export function CovenantHeader({
+  title,
+  subtitle,
+  runtimeMode,
+  effectiveMode,
+}: {
+  title: string;
+  subtitle: string;
+  runtimeMode?: CovenantRuntimeMode | string;
+  effectiveMode?: CovenantRuntimeMode | string;
+}) {
+  const badge = covenantRuntimeBadge(
+    (effectiveMode ?? runtimeMode ?? 'simulator') as CovenantRuntimeMode
+  );
+
   return (
     <header className="text-center space-y-2">
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-      <p className="kx-body max-w-lg mx-auto">
-        {subtitle}
-      </p>
-      <p className="text-xs text-amber-600 dark:text-amber-400">
-        Prototype mode: simulator on your device until Kaspa covenant wallets go live.
-      </p>
+      <p className="kx-body max-w-lg mx-auto">{subtitle}</p>
+      <CovenantRuntimeBadge
+        label={badge.label}
+        tone={badge.tone}
+        description={badge.description}
+        configuredMode={runtimeMode}
+      />
     </header>
+  );
+}
+
+export function CovenantRuntimeBadge({
+  label,
+  tone,
+  description,
+  configuredMode,
+}: {
+  label: string;
+  tone: 'simulator' | 'l1' | 'hybrid';
+  description: string;
+  configuredMode?: CovenantRuntimeMode | string;
+}) {
+  const toneClass =
+    tone === 'l1'
+      ? 'text-emerald-700 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
+      : tone === 'hybrid'
+        ? 'text-amber-700 dark:text-amber-400 border-amber-500/40 bg-amber-500/10'
+        : 'text-amber-700 dark:text-amber-400 border-amber-500/40 bg-amber-500/10';
+
+  return (
+    <div className={`inline-flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs ${toneClass}`}>
+      <span className="font-semibold uppercase tracking-wide">{label}</span>
+      <span>{description}</span>
+      {configuredMode && configuredMode !== label.toLowerCase().replace(' ', '') ? (
+        <span className="opacity-80">Configured: {configuredMode}</span>
+      ) : null}
+    </div>
   );
 }
 

@@ -33,8 +33,8 @@ export const AI_ROADMAP_STEPS: AiRoadmapStep[] = [
     phase: '03',
     title: 'L1 covenant and script hooks',
     description:
-      'Settlement, escrow, and governance bindings when native Kaspa L1 programmability ships post-Toccata.',
-    status: 'planned',
-    statusLabel: 'Planned',
+      'Settlement, escrow, and governance bindings via src/lib/programmability and covenant runtimes (Toccata live on mainnet).',
+    status: 'layout',
+    statusLabel: 'In progress',
   },
 ];

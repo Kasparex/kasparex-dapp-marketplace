@@ -31,7 +31,8 @@ function defaultUnlock(days: number) {
 
 export function CovenantMilestoneWidget() {
   const { state } = useKaspaWallet();
-  const { deals, loading, error, createDeal, claimStep, refresh } = useCovenantMilestone();
+  const { deals, loading, error, createDeal, claimStep, refresh, runtimeMode, effectiveMode } =
+    useCovenantMilestone();
   const [tab, setTab] = useState<TabId>('create');
   const [beneficiary, setBeneficiary] = useState('');
   const [totalKas, setTotalKas] = useState('1');
@@ -76,6 +77,8 @@ export function CovenantMilestoneWidget() {
       <CovenantHeader
         title="Covenant Milestone"
         subtitle="Pay someone in steps. Lock the full amount up front, then release each part on the dates you set."
+        runtimeMode={runtimeMode}
+        effectiveMode={effectiveMode}
       />
 
       <CovenantTabs

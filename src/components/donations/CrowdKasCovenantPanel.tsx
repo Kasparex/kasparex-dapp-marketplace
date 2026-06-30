@@ -24,7 +24,7 @@ export type CrowdKasCovenantPanelProps = {
 
 export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create' }: CrowdKasCovenantPanelProps) {
   const { state } = useKaspaWallet();
-  const { error, createCampaign } = useCovenantCrowdfund();
+  const { error, createCampaign, runtimeMode, effectiveMode } = useCovenantCrowdfund();
   const [tab, setTab] = useState<TabId>(defaultTab);
   const [title, setTitle] = useState('');
   const [memo, setMemo] = useState('');
@@ -59,7 +59,10 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
           L1 covenant campaign
         </p>
         <p className="kx-body">
-          Same CrowdKAS experience as L2 campaigns, powered by Kaspa L1 covenant rules (simulator on this device for now).
+          CrowdKAS on Kaspa L1 covenants. Hybrid Hub: use this L1 path or L2 CrowdKAS modules from the main donations hub.
+        </p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+          Runtime: {effectiveMode ?? runtimeMode}
         </p>
       </div>
 

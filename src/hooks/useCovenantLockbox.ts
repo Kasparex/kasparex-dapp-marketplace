@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import {
-  COVENANT_LAB_CONFIG,
-  buildLockboxCommitNote,
   getCovenantRuntime,
+  getActiveCovenantRuntimeMode,
   type CovenantVault,
   type CovenantVaultKind,
 } from '@/lib/covenant';
@@ -18,6 +15,7 @@ interface UseCovenantLockboxReturn {
   isLoading: boolean;
   error: string | null;
   runtimeMode: string;
+  effectiveMode: string;
   refreshVaults: () => Promise<void>;
   createVault: (args: {
     kind: CovenantVaultKind;
@@ -40,6 +38,13 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
   const [error, setError] = useState<string | null>(null);
 
   const runtime = getCovenantRuntime();
+
+  const walletCtx = useCallback(() => {
+    if (!isConnected || !address || !provider) {
+      throw new Error('Connect your Kaspa wallet first');
+    }
+    return { provider: provider as KaspaWalletProvider, userAddress: address };
+  }, [address, isConnected, provider]);
 
   const refreshVaults = useCallback(async () => {
     if (!address) {
@@ -70,61 +75,25 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       memo: string;
       unlockAt: Date | null;
     }) => {
-      if (!isConnected || !address || !provider) {
-        throw new Error('Connect your Kaspa wallet first');
-      }
       if (args.amountKas <= 0) throw new Error('Amount must be positive');
 
       const amountSompi = String(Math.round(args.amountKas * 100_000_000));
       const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
 
-      const draftId = `draft_${Date.now()}`;
-      let lockTxHash: string | undefined;
-
-      const treasury = COVENANT_LAB_CONFIG.treasuryAddress;
-      if (treasury) {
-        const note = buildLockboxCommitNote({
-          vaultId: draftId,
-          kind: args.kind,
-          beneficiary: args.beneficiary,
-          amountSompi,
-        });
-        const sent = await sendKaspaTransaction(provider as KaspaWalletProvider, {
-          to: treasury,
-          amount: amountSompi,
-          note,
-        });
-        if (sent.status === 'failed' || !sent.txHash) {
-          throw new Error(sent.error || 'KAS lock payment failed');
-        }
-        lockTxHash = extractKaspaTransactionId(sent.txHash) ?? sent.txHash;
-
-        void fetch('/api/rewards/l1/record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            txHash: lockTxHash,
-            userAddress: address,
-            dappId: 'covenant-lab',
-            actionType: 'covenant-lock',
-            actionValue: args.amountKas,
-            network: 'L1',
-          }),
-        }).catch(() => {});
-      }
-
       setIsLoading(true);
       setError(null);
       try {
-        const vault = await runtime.createVault({
-          kind: args.kind,
-          depositor: address,
-          beneficiary: args.beneficiary,
-          amountSompi,
-          memo: args.memo,
-          unlockAt: unlockAtMs,
-          lockTxHash,
-        });
+        const vault = await runtime.createVault(
+          {
+            kind: args.kind,
+            depositor: walletCtx().userAddress,
+            beneficiary: args.beneficiary,
+            amountSompi,
+            memo: args.memo,
+            unlockAt: unlockAtMs,
+          },
+          walletCtx()
+        );
         await refreshVaults();
         return vault;
       } catch (err) {
@@ -135,18 +104,15 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [address, isConnected, provider, refreshVaults, runtime]
+    [refreshVaults, runtime, walletCtx]
   );
 
   const claimVault = useCallback(
     async (vaultId: string) => {
-      if (!isConnected || !address) {
-        throw new Error('Connect your Kaspa wallet first');
-      }
       setIsLoading(true);
       setError(null);
       try {
-        const vault = await runtime.claimVault(vaultId, address);
+        const vault = await runtime.claimVault(vaultId, walletCtx().userAddress, walletCtx());
         await refreshVaults();
         return vault;
       } catch (err) {
@@ -157,14 +123,15 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [address, isConnected, refreshVaults, runtime]
+    [refreshVaults, runtime, walletCtx]
   );
 
   return {
     vaults,
     isLoading,
     error,
-    runtimeMode: runtime.mode,
+    runtimeMode: getActiveCovenantRuntimeMode(),
+    effectiveMode: runtime.effectiveMode,
     refreshVaults,
     createVault,
     claimVault,

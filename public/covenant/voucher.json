@@ -1,0 +1,33 @@
+{
+  "template": "voucher",
+  "contract": "KasparexVoucher",
+  "silverscriptVersion": "^0.1.0",
+  "sourceFile": "voucher.sil",
+  "compiledAt": "2026-06-30T20:57:28.910Z",
+  "scriptHex": "5379a878876952795279ac69b9cb51a1697575757551",
+  "compilerVersion": "0.1.0",
+  "abi": [
+    {
+      "name": "__covenant_entrypoint_auth_redeem",
+      "inputs": [
+        {
+          "name": "preimage",
+          "type_name": "byte[]"
+        },
+        {
+          "name": "claimer_sig",
+          "type_name": "sig"
+        },
+        {
+          "name": "claimer_pk",
+          "type_name": "pubkey"
+        },
+        {
+          "name": "secret_hash",
+          "type_name": "byte[32]"
+        }
+      ]
+    }
+  ],
+  "note": "Compiled with silverc (C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\.tools\\silverscript\\target\\release\\silverc.exe)"
+}

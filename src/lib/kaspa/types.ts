@@ -66,6 +66,10 @@ export interface KaspaWalletProviderInterface {
   signMessage(message: string): Promise<string>;
   /** Send a transaction */
   sendTransaction(transaction: any): Promise<string>;
+  /** Toccata covenant tx (optional, wallet-provided). */
+  sendCovenantTransaction?(request: CovenantTxRequest): Promise<CovenantTxResult>;
+  /** Report tx v1 / covenant support (optional). */
+  getCovenantCapabilities?(): Promise<CovenantCapabilities>;
   /** Listen for account changes */
   on(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
   /** Remove event listener */
@@ -99,6 +103,16 @@ export interface KaspaAddress {
   /** Display format (truncated) */
   display: string;
 }
+
+import type {
+  CovenantCapabilities as ProgrammabilityCovenantCapabilities,
+  CovenantTxRequest as ProgrammabilityCovenantTxRequest,
+  CovenantTxResult as ProgrammabilityCovenantTxResult,
+} from '@/lib/programmability/types';
+
+export type CovenantTxRequest = ProgrammabilityCovenantTxRequest;
+export type CovenantTxResult = ProgrammabilityCovenantTxResult;
+export type CovenantCapabilities = ProgrammabilityCovenantCapabilities;
 
 /**
  * Kaspa transaction request

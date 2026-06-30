@@ -1,0 +1,29 @@
+{
+  "template": "milestone",
+  "contract": "KasparexMilestone",
+  "silverscriptVersion": "^0.1.0",
+  "sourceFile": "milestone.sil",
+  "compiledAt": "2026-06-30T20:57:28.678Z",
+  "scriptHex": "080000000000000000537976527951939c6953795379ac69b9cb519c697658cd01087c7eb976c976014d9459937cbc7eaa02000001aa7e01207e7c7e01877eb900ccc38769007a757575757551",
+  "compilerVersion": "0.1.0",
+  "abi": [
+    {
+      "name": "__covenant_entrypoint_auth_release_next",
+      "inputs": [
+        {
+          "name": "step_index",
+          "type_name": "int"
+        },
+        {
+          "name": "beneficiary_sig",
+          "type_name": "sig"
+        },
+        {
+          "name": "beneficiary_pk",
+          "type_name": "pubkey"
+        }
+      ]
+    }
+  ],
+  "note": "Compiled with silverc (C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\.tools\\silverscript\\target\\release\\silverc.exe)"
+}

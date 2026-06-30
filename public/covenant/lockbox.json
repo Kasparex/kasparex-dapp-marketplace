@@ -1,0 +1,25 @@
+{
+  "template": "lockbox",
+  "contract": "KasparexLockbox",
+  "silverscriptVersion": "^0.1.0",
+  "sourceFile": "lockbox.sil",
+  "compiledAt": "2026-06-30T20:57:28.465Z",
+  "scriptHex": "080000000000000000b9cb7854795479ac697600a06376b06800527951a169527978827c7558969c69005379009451a1697654799f637652797858957658937f58cd01087c7eb976c976017f9459937cbc7eaa02000001aa7e01207e7c7e01877eb95279ccc387697651937b757768007a75007a75007a75007a7575757551",
+  "compilerVersion": "0.1.0",
+  "abi": [
+    {
+      "name": "__covenant_entrypoint_auth_claim",
+      "inputs": [
+        {
+          "name": "beneficiary_sig",
+          "type_name": "sig"
+        },
+        {
+          "name": "beneficiary",
+          "type_name": "pubkey"
+        }
+      ]
+    }
+  ],
+  "note": "Compiled with silverc (C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\.tools\\silverscript\\target\\release\\silverc.exe)"
+}

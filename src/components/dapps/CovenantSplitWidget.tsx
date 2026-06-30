@@ -52,7 +52,8 @@ function newRow(): RecipientRow {
 
 export function CovenantSplitWidget() {
   const { state: kaspaState } = useKaspaWallet();
-  const { splits, isLoading, error, createSplit, claimShare, refreshSplits } = useCovenantSplit();
+  const { splits, isLoading, error, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
+    useCovenantSplit();
 
   const [tab, setTab] = useState<TabId>('create');
   const [rows, setRows] = useState<RecipientRow[]>([
@@ -139,6 +140,8 @@ export function CovenantSplitWidget() {
       <CovenantHeader
         title="Covenant Split"
         subtitle="Send one KAS payment to several people at once. Set the total, choose each share, and everyone claims their part independently."
+        runtimeMode={runtimeMode}
+        effectiveMode={effectiveMode}
       />
 
       <CovenantTabs

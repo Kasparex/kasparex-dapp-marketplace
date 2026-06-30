@@ -131,22 +131,42 @@ export async function getBalanceInKas(address: string): Promise<number> {
   return sompisToKas(balanceInSompis);
 }
 
+/** KIP-20 covenant binding on a REST transaction output. */
+export interface KaspaCovenantBinding {
+  authorizing_input?: number;
+  authorizingInput?: number;
+  covenant_id?: string;
+  covenantId?: string;
+}
+
 /** Minimal tx shape for L1 verification: at least one output to an address with amount (sompis) */
 export interface KaspaTxOutput {
   amount?: number | string;
   scriptPublicKey?: { address?: string };
   address?: string;
+  covenant?: KaspaCovenantBinding;
+}
+
+export interface KaspaTxInput {
+  compute_budget?: number;
+  computeBudget?: number;
+  previous_outpoint_hash?: string;
+  previousOutpointHash?: string;
+  previous_outpoint_index?: number;
+  previousOutpointIndex?: number;
 }
 
 export interface KaspaTxForVerification {
   transactionId?: string;
   id?: string;
   outputs?: KaspaTxOutput[];
+  inputs?: KaspaTxInput[];
   /** @deprecated Prefer storageMass (Toccata rename of transaction storage mass). */
   mass?: number;
   /** Post-Toccata field; same value as mass when APIs emit both for compatibility. */
   storageMass?: number;
   blockHash?: string;
+  version?: number;
 }
 
 const KASPA_TX_API = process.env.KASPA_TX_API_URL || 'https://api.kaspa.org';
@@ -172,16 +192,38 @@ function normalizeTxPayload(data: unknown): KaspaTxForVerification | null {
     (o.outputs as KaspaTxOutput[] | undefined) ??
     (o.verboseData as Record<string, unknown>)?.outputs ??
     (o.subnetworkData as Record<string, unknown>)?.outputs;
+  const inputs =
+    (o.inputs as KaspaTxInput[] | undefined) ??
+    (o.verboseData as Record<string, unknown>)?.inputs;
   if (!txId && !outputs) return null;
   const storageMass = readStorageMassField(o);
   return {
     transactionId: txId,
     id: txId,
     outputs: Array.isArray(outputs) ? outputs : undefined,
+    inputs: Array.isArray(inputs) ? inputs : undefined,
     mass: storageMass,
     storageMass,
     blockHash: o.blockHash as string | undefined,
+    version: typeof o.version === 'number' ? o.version : undefined,
   };
+}
+
+/** Normalize covenant id from REST output or UTXO entry fields. */
+export function readCovenantIdField(
+  o: Record<string, unknown> | null | undefined
+): string | undefined {
+  if (!o) return undefined;
+  const raw = (o.covenant_id ?? o.covenantId) as string | undefined;
+  if (typeof raw === 'string' && /^[0-9a-fA-F]{64}$/.test(raw)) {
+    return raw.toLowerCase();
+  }
+  const binding = o.covenant as KaspaCovenantBinding | undefined;
+  const fromBinding = binding?.covenant_id ?? binding?.covenantId;
+  if (typeof fromBinding === 'string' && /^[0-9a-fA-F]{64}$/.test(fromBinding)) {
+    return fromBinding.toLowerCase();
+  }
+  return undefined;
 }
 
 /**

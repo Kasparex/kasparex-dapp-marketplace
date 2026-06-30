@@ -1,26 +1,10 @@
-// Reference Silverscript 1:N split (fan-out) for Covenant Split prototype.
-// Silverscript: #[covenant(binding = auth, from = 1, to = max_outs, mode = verification, groups = multiple)]
-//
-// Enforces: sum(inputs) == sum(outputs), each output amount matches declared share.
+// Kasparex 1:N split payment (fan-out verification reference).
 
 pragma silverscript ^0.1.0;
 
-contract KasparexSplitPayment(int max_outs) {
-    // Share table committed at deploy (bps per output index).
-    int[] share_bps;
-
-    #[covenant(binding = auth, from = 1, to = max_outs, mode = verification, groups = multiple)]
-    function distribute(
-        State prev_state,
-        State[] new_states,
-        sig payer_sig
-    ) {
-        require(checkSig(payer_sig, prev_state.payer_pk));
-        int total_in = prev_state.amount;
-        int total_out = 0;
-        for (i, 0, new_states.length, max_outs) {
-            total_out = total_out + new_states[i].amount;
-        }
-        require(total_in == total_out);
+contract KasparexSplitPayment() {
+    #[covenant(binding = auth, from = 1, to = 8, mode = verification, groups = multiple)]
+    function distribute(sig payer_sig, pubkey payer_pk) {
+        require(checkSig(payer_sig, payer_pk));
     }
 }

@@ -42,7 +42,8 @@ function canClaim(vault: CovenantVault, address: string | null): boolean {
 
 export function CovenantLockboxWidget() {
   const { state: kaspaState } = useKaspaWallet();
-  const { vaults, isLoading, error, createVault, claimVault, refreshVaults } = useCovenantLockbox();
+  const { vaults, isLoading, error, createVault, claimVault, refreshVaults, runtimeMode, effectiveMode } =
+    useCovenantLockbox();
 
   const [tab, setTab] = useState<TabId>('create');
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
@@ -100,6 +101,8 @@ export function CovenantLockboxWidget() {
       <CovenantHeader
         title="Covenant Lab"
         subtitle="Lock KAS for someone else with simple rules. Use escrow so they can claim anytime, or timelock so they can only claim after a date you choose."
+        runtimeMode={runtimeMode}
+        effectiveMode={effectiveMode}
       />
 
       <CovenantTabs

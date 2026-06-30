@@ -4,10 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
-  buildVoucherCommitNote,
-  getVoucherSimulator,
+  getVoucherRuntime,
+  getActiveCovenantRuntimeMode,
   kasToSompiString,
-  payCovenantTreasury,
   randomHex,
   sha256Hex,
   type VoucherLock,
@@ -15,18 +14,28 @@ import {
 
 export function useCovenantVoucher() {
   const { state } = useKaspaWallet();
-  const sim = getVoucherSimulator();
+  const runtime = getVoucherRuntime();
   const [vouchers, setVouchers] = useState<VoucherLock[]>([]);
   const [openVouchers, setOpenVouchers] = useState<VoucherLock[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const walletCtx = useCallback(() => {
+    if (!state.isConnected || !state.address || !state.provider) {
+      throw new Error('Connect wallet first');
+    }
+    return {
+      provider: state.provider as KaspaWalletProvider,
+      userAddress: state.address,
+    };
+  }, [state.address, state.isConnected, state.provider]);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      setOpenVouchers(await sim.listOpen());
+      setOpenVouchers(await runtime.listOpen());
       if (state.address) {
-        setVouchers(await sim.listForAddress(state.address));
+        setVouchers(await runtime.listForAddress(state.address));
       } else {
         setVouchers([]);
       }
@@ -35,7 +44,7 @@ export function useCovenantVoucher() {
     } finally {
       setLoading(false);
     }
-  }, [sim, state.address]);
+  }, [runtime, state.address]);
 
   useEffect(() => {
     void refresh();
@@ -43,45 +52,42 @@ export function useCovenantVoucher() {
 
   const createVoucher = useCallback(
     async (args: { amountKas: number; memo: string; expiresAt: Date }) => {
-      if (!state.isConnected || !state.address || !state.provider) {
-        throw new Error('Connect wallet first');
-      }
       const secret = `kpx-${randomHex(16)}`;
       const secretHash = await sha256Hex(secret);
-      const amountSompi = kasToSompiString(args.amountKas);
-      const draftId = `draft_${Date.now()}`;
-      const lockTxHash = await payCovenantTreasury({
-        provider: state.provider as KaspaWalletProvider,
-        userAddress: state.address,
-        amountSompi,
-        note: buildVoucherCommitNote({ voucherId: draftId, amountSompi, secretHash }),
-        dappId: 'covenant-voucher',
-        actionType: 'covenant-voucher-lock',
-        amountKas: args.amountKas,
-      });
-      const voucher = await sim.create({
-        creator: state.address,
-        amountSompi,
-        secretHash,
-        memo: args.memo,
-        expiresAt: args.expiresAt.getTime(),
-        lockTxHash,
-      });
+      const voucher = await runtime.create(
+        {
+          creator: walletCtx().userAddress,
+          amountSompi: kasToSompiString(args.amountKas),
+          secretHash,
+          memo: args.memo,
+          expiresAt: args.expiresAt.getTime(),
+        },
+        walletCtx()
+      );
       await refresh();
       return { voucher, secret };
     },
-    [refresh, sim, state.address, state.isConnected, state.provider]
+    [refresh, runtime, walletCtx]
   );
 
   const claimVoucher = useCallback(
     async (voucherId: string, secret: string) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      const v = await sim.claim(voucherId, secret, state.address);
+      const v = await runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx());
       await refresh();
       return v;
     },
-    [refresh, sim, state.address]
+    [refresh, runtime, walletCtx]
   );
 
-  return { vouchers, openVouchers, loading, error, refresh, createVoucher, claimVoucher };
+  return {
+    vouchers,
+    openVouchers,
+    loading,
+    error,
+    runtimeMode: getActiveCovenantRuntimeMode(),
+    effectiveMode: runtime.effectiveMode,
+    refresh,
+    createVoucher,
+    claimVoucher,
+  };
 }

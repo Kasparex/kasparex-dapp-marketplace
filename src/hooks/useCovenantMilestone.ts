@@ -4,32 +4,41 @@ import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
-  buildMilestoneCommitNote,
-  getMilestoneSimulator,
+  getMilestoneRuntime,
+  getActiveCovenantRuntimeMode,
   kasToSompiString,
-  payCovenantTreasury,
   type MilestoneDeal,
   type MilestoneInput,
 } from '@/lib/covenant';
 
 export function useCovenantMilestone() {
   const { state } = useKaspaWallet();
-  const sim = getMilestoneSimulator();
+  const runtime = getMilestoneRuntime();
   const [deals, setDeals] = useState<MilestoneDeal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const walletCtx = useCallback(() => {
+    if (!state.isConnected || !state.address || !state.provider) {
+      throw new Error('Connect wallet first');
+    }
+    return {
+      provider: state.provider as KaspaWalletProvider,
+      userAddress: state.address,
+    };
+  }, [state.address, state.isConnected, state.provider]);
 
   const refresh = useCallback(async () => {
     if (!state.address) return setDeals([]);
     setLoading(true);
     try {
-      setDeals(await sim.listForAddress(state.address));
+      setDeals(await runtime.listForAddress(state.address));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Load failed');
     } finally {
       setLoading(false);
     }
-  }, [sim, state.address]);
+  }, [runtime, state.address]);
 
   useEffect(() => {
     void refresh();
@@ -42,47 +51,44 @@ export function useCovenantMilestone() {
       memo: string;
       milestones: MilestoneInput[];
     }) => {
-      if (!state.isConnected || !state.address || !state.provider) {
-        throw new Error('Connect wallet first');
-      }
-      const totalSompi = kasToSompiString(args.totalKas);
-      const draftId = `draft_${Date.now()}`;
-      const lockTxHash = await payCovenantTreasury({
-        provider: state.provider as KaspaWalletProvider,
-        userAddress: state.address,
-        amountSompi: totalSompi,
-        note: buildMilestoneCommitNote({
-          dealId: draftId,
-          totalSompi,
+      const deal = await runtime.create(
+        {
+          depositor: walletCtx().userAddress,
           beneficiary: args.beneficiary,
-        }),
-        dappId: 'covenant-milestone',
-        actionType: 'covenant-milestone-lock',
-        amountKas: args.totalKas,
-      });
-      const deal = await sim.create({
-        depositor: state.address,
-        beneficiary: args.beneficiary,
-        totalSompi,
-        memo: args.memo,
-        milestones: args.milestones,
-        lockTxHash,
-      });
+          totalSompi: kasToSompiString(args.totalKas),
+          memo: args.memo,
+          milestones: args.milestones,
+        },
+        walletCtx()
+      );
       await refresh();
       return deal;
     },
-    [refresh, sim, state.address, state.isConnected, state.provider]
+    [refresh, runtime, walletCtx]
   );
 
   const claimStep = useCallback(
     async (dealId: string, stepId: string) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      const deal = await sim.claimMilestone(dealId, stepId, state.address);
+      const deal = await runtime.claimMilestone(
+        dealId,
+        stepId,
+        walletCtx().userAddress,
+        walletCtx()
+      );
       await refresh();
       return deal;
     },
-    [refresh, sim, state.address]
+    [refresh, runtime, walletCtx]
   );
 
-  return { deals, loading, error, refresh, createDeal, claimStep };
+  return {
+    deals,
+    loading,
+    error,
+    runtimeMode: getActiveCovenantRuntimeMode(),
+    effectiveMode: runtime.effectiveMode,
+    refresh,
+    createDeal,
+    claimStep,
+  };
 }

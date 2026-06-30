@@ -3,6 +3,10 @@
  */
 
 import { COVENANT_LAB_CONFIG } from './config';
+import type { CovenantWalletContext } from './context';
+import { requireCovenantContext } from './context';
+import { buildSplitCommitNote } from './payload';
+import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type {
   CreateSplitParams,
@@ -68,6 +72,9 @@ function validateRecipients(recipients: SplitRecipientInput[]): void {
 }
 
 class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
+  readonly mode = 'simulator' as const;
+  readonly effectiveMode = 'simulator' as const;
+
   private splits: Map<string, SplitPayment> = new Map();
 
   constructor() {
@@ -94,7 +101,11 @@ class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
     );
   }
 
-  async createSplit(params: CreateSplitParams): Promise<SplitPayment> {
+  async createSplit(
+    params: CreateSplitParams,
+    ctx: CovenantWalletContext
+  ): Promise<SplitPayment> {
+    requireCovenantContext(ctx);
     const total = BigInt(params.totalSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
     if (total < min) {
@@ -110,6 +121,23 @@ class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
 
     const id = `split_${Date.now()}_${randomHex(4)}`;
     const covenantId = `cov_split_${id.slice(-12)}_${randomHex(6)}`;
+
+    let lockTxHash = params.lockTxHash;
+    if (useLegacyTreasuryBinding(this.mode)) {
+      lockTxHash = await maybePayLegacyTreasury({
+        ctx,
+        amountSompi: params.totalSompi,
+        note: buildSplitCommitNote({
+          splitId: id,
+          totalSompi: params.totalSompi,
+          recipients: params.recipients,
+        }),
+        dappId: 'covenant-split',
+        actionType: 'covenant-split',
+        amountKas: Number(total) / 1e8,
+        useLegacy: true,
+      });
+    }
 
     const recipients: SplitRecipient[] = params.recipients.map((r, i) => ({
       id: `rcp_${i}_${randomHex(3)}`,
@@ -129,7 +157,7 @@ class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
       memo: params.memo.trim(),
       recipients,
       createdAt: Date.now(),
-      lockTxHash: params.lockTxHash,
+      lockTxHash,
     };
 
     this.splits.set(id, split);
@@ -137,7 +165,12 @@ class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
     return split;
   }
 
-  async claimShare(splitId: string, recipientId: string, claimer: string): Promise<SplitPayment> {
+  async claimShare(
+    splitId: string,
+    recipientId: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<SplitPayment> {
     const split = this.splits.get(splitId);
     if (!split) throw new Error('Split payment not found');
     if (split.status === 'completed') throw new Error('Split already fully claimed');

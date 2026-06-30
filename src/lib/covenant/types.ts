@@ -8,11 +8,16 @@ export type CovenantVaultKind = 'escrow' | 'timelock';
 export type CovenantVaultStatus = 'locked' | 'claimed';
 
 /** How the runtime executes covenant logic. */
-export type CovenantRuntimeMode = 'simulator' | 'silverscript' | 'vprogs';
+export type CovenantRuntimeMode = 'simulator' | 'silverscript' | 'hybrid';
+
+export interface CovenantUtxoRef {
+  txId: string;
+  index: number;
+}
 
 export interface CovenantVault {
   id: string;
-  /** Simulated KIP-20 covenant lineage id (hex). */
+  /** KIP-20 covenant lineage id (hex). */
   covenantId: string;
   kind: CovenantVaultKind;
   status: CovenantVaultStatus;
@@ -28,10 +33,12 @@ export interface CovenantVault {
   unlockAt: number | null;
   createdAt: number;
   claimedAt: number | null;
-  /** L1 tx that funded the lock (demo treasury send). */
+  /** L1 tx that funded the lock. */
   lockTxHash?: string;
-  /** Simulated covenant transition tx on claim. */
+  /** L1 tx on claim. */
   claimTxHash?: string;
+  /** Live covenant UTXO outpoint (silverscript mode). */
+  utxo?: CovenantUtxoRef;
 }
 
 export interface CreateVaultParams {

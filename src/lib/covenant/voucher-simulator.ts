@@ -1,4 +1,9 @@
 import { COVENANT_LAB_CONFIG } from './config';
+import type { CovenantWalletContext } from './context';
+import { requireCovenantContext } from './context';
+import { buildVoucherCommitNote } from './payload';
+import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
+import type { VoucherRuntime } from './voucher-runtime';
 import type { CreateVoucherParams, VoucherLock } from './voucher-types';
 import { loadMap, randomHex, randomId, saveMap, sha256Hex } from './utils';
 
@@ -10,14 +15,18 @@ function effectiveStatus(v: VoucherLock): VoucherLock['status'] {
   return 'open';
 }
 
-class VoucherSimulator {
+class VoucherSimulator implements VoucherRuntime {
+  readonly mode = 'simulator' as const;
+  readonly effectiveMode = 'simulator' as const;
+
   private vouchers = loadMap<VoucherLock>(STORAGE());
 
   private persist(): void {
     saveMap(STORAGE(), this.vouchers);
   }
 
-  async create(params: CreateVoucherParams): Promise<VoucherLock> {
+  async create(params: CreateVoucherParams, ctx: CovenantWalletContext): Promise<VoucherLock> {
+    requireCovenantContext(ctx);
     const amount = BigInt(params.amountSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
     if (amount < min) throw new Error(`Minimum voucher is ${Number(min) / 1e8} KAS`);
@@ -27,6 +36,23 @@ class VoucherSimulator {
     }
 
     const id = randomId('vch');
+    let lockTxHash = params.lockTxHash;
+    if (useLegacyTreasuryBinding(this.mode)) {
+      lockTxHash = await maybePayLegacyTreasury({
+        ctx,
+        amountSompi: params.amountSompi,
+        note: buildVoucherCommitNote({
+          voucherId: id,
+          amountSompi: params.amountSompi,
+          secretHash: params.secretHash,
+        }),
+        dappId: 'covenant-voucher',
+        actionType: 'covenant-voucher-lock',
+        amountKas: Number(amount) / 1e8,
+        useLegacy: true,
+      });
+    }
+
     const voucher: VoucherLock = {
       id,
       covenantId: `cov_vch_${randomHex(10)}`,
@@ -37,7 +63,7 @@ class VoucherSimulator {
       memo: params.memo.trim(),
       expiresAt: params.expiresAt,
       createdAt: Date.now(),
-      lockTxHash: params.lockTxHash,
+      lockTxHash,
       claimedBy: null,
       claimedAt: null,
     };
@@ -46,7 +72,12 @@ class VoucherSimulator {
     return voucher;
   }
 
-  async claim(voucherId: string, secret: string, claimer: string): Promise<VoucherLock> {
+  async claim(
+    voucherId: string,
+    secret: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<VoucherLock> {
     const voucher = this.vouchers.get(voucherId);
     if (!voucher) throw new Error('Voucher not found');
     const status = effectiveStatus(voucher);

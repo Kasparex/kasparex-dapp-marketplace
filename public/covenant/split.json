@@ -1,0 +1,25 @@
+{
+  "template": "split",
+  "contract": "KasparexSplitPayment",
+  "silverscriptVersion": "^0.1.0",
+  "sourceFile": "split-payment.sil",
+  "compiledAt": "2026-06-30T20:57:28.546Z",
+  "scriptHex": "7878ac69b9cb58a169757551",
+  "compilerVersion": "0.1.0",
+  "abi": [
+    {
+      "name": "__covenant_entrypoint_auth_distribute",
+      "inputs": [
+        {
+          "name": "payer_sig",
+          "type_name": "sig"
+        },
+        {
+          "name": "payer_pk",
+          "type_name": "pubkey"
+        }
+      ]
+    }
+  ],
+  "note": "Compiled with silverc (C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\.tools\\silverscript\\target\\release\\silverc.exe)"
+}

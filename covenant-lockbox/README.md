@@ -20,12 +20,16 @@ The Hub simulator mirrors this state machine in `src/lib/covenant/simulator.ts`.
 
 ## Future wiring
 
-1. Compile with `silverc lockbox.sil`.
-2. Implement `SilverscriptCovenantRuntime` in `src/lib/covenant/silverscript-runtime.ts`.
-3. Set `COVENANT_LAB_CONFIG.runtimeMode = 'silverscript'`.
-4. Build txs with WASM SDK v2.x (`covenant`, `computeBudget`, `storageMass`).
+1. Compile with `silverc lockbox.sil` or `npm run covenant:compile`.
+2. Runtime: `src/lib/covenant/silverscript-runtime.ts` (registered in `resolver.ts`).
+3. Set `NEXT_PUBLIC_COVENANT_RUNTIME=silverscript` or `hybrid`.
+4. Wallets expose `sendCovenantTransaction` (tx v1: `covenant`, `computeBudget`, `storageMass`).
 
-See [KCC20 book](https://kaspanet.github.io/silverscript/kcc20-book/) for fungible token patterns; this lockbox is simpler (native KAS only).
+## Quine reference (educational)
+
+`quine.sil` documents the [KaspaKii](https://x.com/KaspaKii/status/2071995662867066890) self-replicating covenant pattern: singleton transition that preserves state and **covenant ID** across generations. Use for internal tx-builder validation, not as a Hub product.
+
+See [KCC20 book](https://kaspanet.github.io/silverscript/kcc20-book/) for fungible token patterns; lockbox is native KAS only.
 
 ## Split payments
 

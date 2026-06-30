@@ -1,4 +1,9 @@
 import { COVENANT_LAB_CONFIG } from './config';
+import type { CovenantWalletContext } from './context';
+import { requireCovenantContext } from './context';
+import { buildCrowdfundPledgeNote } from './payload';
+import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
+import type { CrowdfundRuntime } from './crowdfund-runtime';
 import type {
   CreateCrowdfundParams,
   CrowdfundCampaign,
@@ -22,7 +27,10 @@ function resolveStatus(campaign: CrowdfundCampaign): CrowdfundCampaign['status']
   return raised >= goal ? 'succeeded' : 'failed';
 }
 
-class CrowdfundSimulator {
+class CrowdfundSimulator implements CrowdfundRuntime {
+  readonly mode = 'simulator' as const;
+  readonly effectiveMode = 'simulator' as const;
+
   private campaigns = loadMap<CrowdfundCampaign>(STORAGE());
 
   private persist(): void {
@@ -56,7 +64,34 @@ class CrowdfundSimulator {
     return campaign;
   }
 
-  async pledge(params: PledgeParams): Promise<CrowdfundCampaign> {
+  async pledge(
+    campaignId: string,
+    backer: string,
+    amountSompi: string,
+    ctx: CovenantWalletContext
+  ): Promise<CrowdfundCampaign> {
+    requireCovenantContext(ctx);
+    let txHash: string | undefined;
+    if (useLegacyTreasuryBinding(this.mode)) {
+      txHash = await maybePayLegacyTreasury({
+        ctx,
+        amountSompi,
+        note: buildCrowdfundPledgeNote({ campaignId, amountSompi }),
+        dappId: 'covenant-crowdfund',
+        actionType: 'covenant-crowdfund-pledge',
+        amountKas: Number(BigInt(amountSompi)) / 1e8,
+        useLegacy: true,
+      });
+    }
+    return this.pledgeInternal({
+      campaignId,
+      backer,
+      amountSompi,
+      txHash,
+    });
+  }
+
+  private async pledgeInternal(params: PledgeParams): Promise<CrowdfundCampaign> {
     const campaign = this.campaigns.get(params.campaignId);
     if (!campaign) throw new Error('Campaign not found');
     if (Date.now() >= campaign.deadline) throw new Error('Funding period ended');
@@ -85,7 +120,11 @@ class CrowdfundSimulator {
     return updated;
   }
 
-  async claimByCreator(campaignId: string, claimer: string): Promise<CrowdfundCampaign> {
+  async claimByCreator(
+    campaignId: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<CrowdfundCampaign> {
     let campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
     if (normalizeAddr(claimer) !== normalizeAddr(campaign.creator)) {
@@ -103,7 +142,12 @@ class CrowdfundSimulator {
     return updated;
   }
 
-  async refundPledge(campaignId: string, pledgeId: string, claimer: string): Promise<CrowdfundCampaign> {
+  async refundPledge(
+    campaignId: string,
+    pledgeId: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<CrowdfundCampaign> {
     let campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
     campaign = { ...campaign, status: resolveStatus(campaign) };

@@ -1,0 +1,12 @@
+// Educational reference: self-replicating singleton covenant (KaspaKii quine pattern).
+// Every spend must recreate an identical successor UTXO with the same covenant ID lineage.
+// Not a Hub product. Used to validate tx builder and covenant ID continuity in tests.
+
+pragma silverscript ^0.1.0;
+
+contract KaspaQuineReference() {
+    #[covenant(binding = auth, from = 1, to = 1, mode = transition)]
+    function reproduce(State prev_state) : (State) {
+        return prev_state;
+    }
+}

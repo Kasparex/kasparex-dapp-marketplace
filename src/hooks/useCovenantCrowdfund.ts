@@ -4,27 +4,36 @@ import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
-  buildCrowdfundPledgeNote,
-  getCrowdfundSimulator,
+  getCrowdfundRuntime,
+  getActiveCovenantRuntimeMode,
   kasToSompiString,
-  payCovenantTreasury,
   type CrowdfundCampaign,
 } from '@/lib/covenant';
 
 export function useCovenantCrowdfund() {
   const { state } = useKaspaWallet();
-  const sim = getCrowdfundSimulator();
+  const runtime = getCrowdfundRuntime();
   const [campaigns, setCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [allCampaigns, setAllCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const walletCtx = useCallback(() => {
+    if (!state.isConnected || !state.address || !state.provider) {
+      throw new Error('Connect wallet first');
+    }
+    return {
+      provider: state.provider as KaspaWalletProvider,
+      userAddress: state.address,
+    };
+  }, [state.address, state.isConnected, state.provider]);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      setAllCampaigns(await sim.listAll());
+      setAllCampaigns(await runtime.listAll());
       if (state.address) {
-        setCampaigns(await sim.listForAddress(state.address));
+        setCampaigns(await runtime.listForAddress(state.address));
       } else {
         setCampaigns([]);
       }
@@ -33,7 +42,7 @@ export function useCovenantCrowdfund() {
     } finally {
       setLoading(false);
     }
-  }, [sim, state.address]);
+  }, [runtime, state.address]);
 
   useEffect(() => {
     void refresh();
@@ -42,7 +51,7 @@ export function useCovenantCrowdfund() {
   const createCampaign = useCallback(
     async (args: { title: string; memo: string; goalKas: number; deadline: Date }) => {
       if (!state.address) throw new Error('Connect wallet first');
-      const campaign = await sim.create({
+      const campaign = await runtime.create({
         creator: state.address,
         title: args.title,
         memo: args.memo,
@@ -52,54 +61,48 @@ export function useCovenantCrowdfund() {
       await refresh();
       return campaign;
     },
-    [refresh, sim, state.address]
+    [refresh, runtime, state.address]
   );
 
   const pledge = useCallback(
     async (campaignId: string, amountKas: number) => {
-      if (!state.isConnected || !state.address || !state.provider) {
-        throw new Error('Connect wallet first');
-      }
-      const amountSompi = kasToSompiString(amountKas);
-      const txHash = await payCovenantTreasury({
-        provider: state.provider as KaspaWalletProvider,
-        userAddress: state.address,
-        amountSompi,
-        note: buildCrowdfundPledgeNote({ campaignId, amountSompi }),
-        dappId: 'covenant-crowdfund',
-        actionType: 'covenant-crowdfund-pledge',
-        amountKas,
-      });
-      const c = await sim.pledge({
+      const c = await runtime.pledge(
         campaignId,
-        backer: state.address,
-        amountSompi,
-        txHash,
-      });
+        walletCtx().userAddress,
+        kasToSompiString(amountKas),
+        walletCtx()
+      );
       await refresh();
       return c;
     },
-    [refresh, sim, state.address, state.isConnected, state.provider]
+    [refresh, runtime, walletCtx]
   );
 
   const claimFunds = useCallback(
     async (campaignId: string) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      const c = await sim.claimByCreator(campaignId, state.address);
+      const c = await runtime.claimByCreator(
+        campaignId,
+        walletCtx().userAddress,
+        walletCtx()
+      );
       await refresh();
       return c;
     },
-    [refresh, sim, state.address]
+    [refresh, runtime, walletCtx]
   );
 
   const refund = useCallback(
     async (campaignId: string, pledgeId: string) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      const c = await sim.refundPledge(campaignId, pledgeId, state.address);
+      const c = await runtime.refundPledge(
+        campaignId,
+        pledgeId,
+        walletCtx().userAddress,
+        walletCtx()
+      );
       await refresh();
       return c;
     },
-    [refresh, sim, state.address]
+    [refresh, runtime, walletCtx]
   );
 
   return {
@@ -107,6 +110,8 @@ export function useCovenantCrowdfund() {
     allCampaigns,
     loading,
     error,
+    runtimeMode: getActiveCovenantRuntimeMode(),
+    effectiveMode: runtime.effectiveMode,
     refresh,
     createCampaign,
     pledge,

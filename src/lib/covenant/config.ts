@@ -1,6 +1,14 @@
-import type { CovenantLabConfig } from './types';
+import type { CovenantLabConfig, CovenantRuntimeMode } from './types';
 
 const MIN_LOCK_KAS = 0.05;
+
+function readRuntimeMode(): CovenantRuntimeMode {
+  const raw = process.env.NEXT_PUBLIC_COVENANT_RUNTIME?.trim().toLowerCase();
+  if (raw === 'silverscript' || raw === 'hybrid' || raw === 'simulator') {
+    return raw;
+  }
+  return 'simulator';
+}
 
 export const COVENANT_LAB_CONFIG: CovenantLabConfig = {
   minLockSompi: String(Math.round(MIN_LOCK_KAS * 100_000_000)),
@@ -14,5 +22,5 @@ export const COVENANT_LAB_CONFIG: CovenantLabConfig = {
     process.env.NEXT_PUBLIC_COVENANT_LAB_TREASURY?.trim() ||
     process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS?.trim() ||
     '',
-  runtimeMode: 'simulator',
+  runtimeMode: readRuntimeMode(),
 };

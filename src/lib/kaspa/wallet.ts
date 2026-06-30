@@ -13,6 +13,9 @@ import type {
   KaspaAddress,
   KaspaTransactionRequest,
   KaspaTransactionResponse,
+  CovenantTxRequest,
+  CovenantTxResult,
+  CovenantCapabilities,
 } from './types';
 import { extractKaspaTransactionId } from './transactionId';
 import { formatKaspaWalletError } from './formatWalletError';
@@ -138,6 +141,59 @@ interface ExtendedWalletProviderInterface extends KaspaWalletProviderInterface {
   getBalance?: () => Promise<string | number | { balance: string | number } | null>;
 }
 
+function normalizeCovenantTxResult(raw: unknown): CovenantTxResult {
+  if (typeof raw === 'string') {
+    const txHash = extractKaspaTransactionId(raw) ?? raw;
+    return { txHash, status: 'pending' };
+  }
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>;
+    const txHash =
+      extractKaspaTransactionId(
+        (o.txHash ?? o.txId ?? o.transactionId ?? o.hash) as string | undefined
+      ) ?? '';
+    const status =
+      o.status === 'failed' || o.status === 'confirmed' || o.status === 'pending'
+        ? o.status
+        : txHash
+          ? 'pending'
+          : 'failed';
+    const outpointRaw = o.outpoint as Record<string, unknown> | undefined;
+    const outpoint =
+      outpointRaw && typeof outpointRaw.txId === 'string'
+        ? {
+            txId: outpointRaw.txId,
+            index: Number(outpointRaw.index ?? 0),
+          }
+        : undefined;
+    const covenantId =
+      typeof o.covenantId === 'string'
+        ? o.covenantId
+        : typeof o.covenant_id === 'string'
+          ? o.covenant_id
+          : undefined;
+    return {
+      txHash,
+      status,
+      error: typeof o.error === 'string' ? o.error : undefined,
+      outpoint,
+      covenantId,
+    };
+  }
+  return {
+    txHash: '',
+    status: 'failed',
+    error: 'Wallet returned an invalid covenant transaction response',
+  };
+}
+
+/** Public alias for programmability capability checks. */
+export function getWalletProviderInterface(
+  provider: KaspaWalletProvider
+): KaspaWalletProviderInterface | null {
+  return getWalletProvider(provider);
+}
+
 /**
  * Create adapter for KasWare wallet to match SDK interface
  */
@@ -226,6 +282,14 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
     };
   } else {
     console.log('KasWare getBalance() method not available');
+  }
+
+  if (typeof kasware.sendCovenantTransaction === 'function') {
+    adapter.sendCovenantTransaction = async (request) =>
+      normalizeCovenantTxResult(await kasware.sendCovenantTransaction(request));
+  }
+  if (typeof kasware.getCovenantCapabilities === 'function') {
+    adapter.getCovenantCapabilities = async () => kasware.getCovenantCapabilities();
   }
 
   return adapter;
@@ -330,6 +394,14 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
 
   if (typeof kastle.getBalance === 'function') {
     adapter.getBalance = async () => await kastle.getBalance();
+  }
+
+  if (typeof kastle.sendCovenantTransaction === 'function') {
+    adapter.sendCovenantTransaction = async (request) =>
+      normalizeCovenantTxResult(await kastle.sendCovenantTransaction(request));
+  }
+  if (typeof kastle.getCovenantCapabilities === 'function') {
+    adapter.getCovenantCapabilities = async () => kastle.getCovenantCapabilities();
   }
 
   return adapter;
@@ -669,6 +741,54 @@ export async function signKaspaMessage(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Failed to sign message: ${errorMessage}`);
+  }
+}
+
+/**
+ * Send a covenant (tx v1) transaction via Kaspa wallet when supported.
+ */
+export async function sendCovenantTransaction(
+  provider: KaspaWalletProvider,
+  request: CovenantTxRequest
+): Promise<CovenantTxResult> {
+  const walletProvider = getWalletProvider(provider);
+  if (!walletProvider?.sendCovenantTransaction) {
+    return {
+      txHash: '',
+      status: 'failed',
+      error: 'Wallet does not expose sendCovenantTransaction',
+    };
+  }
+  try {
+    return await walletProvider.sendCovenantTransaction(request);
+  } catch (error) {
+    return {
+      txHash: '',
+      status: 'failed',
+      error: formatKaspaWalletError(error),
+    };
+  }
+}
+
+/**
+ * Query wallet Toccata / covenant capabilities when exposed.
+ */
+export async function getWalletCovenantCapabilities(
+  provider: KaspaWalletProvider
+): Promise<CovenantCapabilities> {
+  const walletProvider = getWalletProvider(provider);
+  if (!walletProvider?.getCovenantCapabilities) {
+    const canSend = Boolean(walletProvider?.sendCovenantTransaction);
+    return {
+      txV1: canSend,
+      covenantBindings: canSend,
+      canSendCovenantTx: canSend,
+    };
+  }
+  try {
+    return await walletProvider.getCovenantCapabilities();
+  } catch {
+    return { txV1: false, covenantBindings: false, canSendCovenantTx: false };
   }
 }
 

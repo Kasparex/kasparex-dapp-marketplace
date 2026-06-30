@@ -3,12 +3,17 @@
  */
 
 import { COVENANT_LAB_CONFIG } from './config';
+import type { CovenantWalletContext } from './context';
+import { requireCovenantContext } from './context';
+import { buildLockboxCommitNote } from './payload';
+import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
 import type { CovenantRuntime } from './runtime';
 import type {
   CovenantVault,
   CreateVaultParams,
   VaultListFilter,
 } from './types';
+import { normalizeAddr, randomHex } from './utils';
 
 function normalizeAddr(addr: string): string {
   return addr.trim().toLowerCase().replace(/^kaspa:/i, '');
@@ -30,6 +35,7 @@ function makeCovenantId(vaultId: string): string {
 
 class CovenantSimulatorRuntime implements CovenantRuntime {
   readonly mode = 'simulator' as const;
+  readonly effectiveMode = 'simulator' as const;
 
   private vaults: Map<string, CovenantVault> = new Map();
 
@@ -57,7 +63,11 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     );
   }
 
-  async createVault(params: CreateVaultParams): Promise<CovenantVault> {
+  async createVault(
+    params: CreateVaultParams,
+    ctx: CovenantWalletContext
+  ): Promise<CovenantVault> {
+    requireCovenantContext(ctx);
     const amount = BigInt(params.amountSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
     if (amount < min) {
@@ -79,6 +89,25 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     }
 
     const id = `vault_${Date.now()}_${randomHex(4)}`;
+    let lockTxHash = params.lockTxHash;
+
+    if (useLegacyTreasuryBinding(this.mode)) {
+      lockTxHash = await maybePayLegacyTreasury({
+        ctx,
+        amountSompi: params.amountSompi,
+        note: buildLockboxCommitNote({
+          vaultId: id,
+          kind: params.kind,
+          beneficiary: params.beneficiary,
+          amountSompi: params.amountSompi,
+        }),
+        dappId: 'covenant-lab',
+        actionType: 'covenant-lock',
+        amountKas: Number(BigInt(params.amountSompi)) / 1e8,
+        useLegacy: true,
+      });
+    }
+
     const vault: CovenantVault = {
       id,
       covenantId: makeCovenantId(id),
@@ -91,7 +120,7 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),
       claimedAt: null,
-      lockTxHash: params.lockTxHash,
+      lockTxHash,
     };
 
     this.vaults.set(id, vault);
@@ -99,7 +128,11 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     return vault;
   }
 
-  async claimVault(vaultId: string, claimer: string): Promise<CovenantVault> {
+  async claimVault(
+    vaultId: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<CovenantVault> {
     const vault = this.vaults.get(vaultId);
     if (!vault) throw new Error('Vault not found');
     if (vault.status === 'claimed') throw new Error('Vault already claimed');

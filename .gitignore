@@ -23,6 +23,9 @@ tsconfig.tsbuildinfo
 .next/
 out/
 
+# Local tooling (silverc build tree)
+.tools/
+
 # Environment variables (contains sensitive data like private keys)
 .env
 .env.local

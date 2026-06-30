@@ -1,4 +1,9 @@
 import { COVENANT_LAB_CONFIG } from './config';
+import type { CovenantWalletContext } from './context';
+import { requireCovenantContext } from './context';
+import { buildMilestoneCommitNote } from './payload';
+import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
+import type { MilestoneRuntime } from './milestone-runtime';
 import type { CreateMilestoneParams, MilestoneDeal, MilestoneStep } from './milestone-types';
 import {
   allocateBps,
@@ -11,14 +16,18 @@ import {
 
 const STORAGE = () => COVENANT_LAB_CONFIG.milestoneStorageKey;
 
-class MilestoneSimulator {
+class MilestoneSimulator implements MilestoneRuntime {
+  readonly mode = 'simulator' as const;
+  readonly effectiveMode = 'simulator' as const;
+
   private deals = loadMap<MilestoneDeal>(STORAGE());
 
   private persist(): void {
     saveMap(STORAGE(), this.deals);
   }
 
-  async create(params: CreateMilestoneParams): Promise<MilestoneDeal> {
+  async create(params: CreateMilestoneParams, ctx: CovenantWalletContext): Promise<MilestoneDeal> {
+    requireCovenantContext(ctx);
     const total = BigInt(params.totalSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
     if (total < min) throw new Error(`Minimum total is ${Number(min) / 1e8} KAS`);
@@ -40,6 +49,23 @@ class MilestoneSimulator {
 
     const amounts = allocateBps(total, params.milestones.map((m) => m.shareBps));
     const id = randomId('ms');
+    let lockTxHash = params.lockTxHash;
+    if (useLegacyTreasuryBinding(this.mode)) {
+      lockTxHash = await maybePayLegacyTreasury({
+        ctx,
+        amountSompi: params.totalSompi,
+        note: buildMilestoneCommitNote({
+          dealId: id,
+          totalSompi: params.totalSompi,
+          beneficiary: params.beneficiary,
+        }),
+        dappId: 'covenant-milestone',
+        actionType: 'covenant-milestone-lock',
+        amountKas: Number(total) / 1e8,
+        useLegacy: true,
+      });
+    }
+
     const milestones: MilestoneStep[] = params.milestones.map((m, i) => ({
       id: `step_${i}_${randomHex(3)}`,
       label: m.label.trim() || `Milestone ${i + 1}`,
@@ -60,14 +86,19 @@ class MilestoneSimulator {
       memo: params.memo.trim(),
       milestones,
       createdAt: Date.now(),
-      lockTxHash: params.lockTxHash,
+      lockTxHash,
     };
     this.deals.set(id, deal);
     this.persist();
     return deal;
   }
 
-  async claimMilestone(dealId: string, stepId: string, claimer: string): Promise<MilestoneDeal> {
+  async claimMilestone(
+    dealId: string,
+    stepId: string,
+    claimer: string,
+    _ctx: CovenantWalletContext
+  ): Promise<MilestoneDeal> {
     const deal = this.deals.get(dealId);
     if (!deal) throw new Error('Deal not found');
     if (normalizeAddr(claimer) !== normalizeAddr(deal.beneficiary)) {

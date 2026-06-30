@@ -25,7 +25,7 @@ type TabId = 'browse' | 'create' | 'about';
 
 export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
-  const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh } =
+  const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
     useCovenantCrowdfund();
   const [tab, setTab] = useState<TabId>('browse');
   const [title, setTitle] = useState('');
@@ -65,6 +65,8 @@ export function CovenantCrowdfundWidget() {
       <CovenantHeader
         title="Covenant Crowdfund"
         subtitle="Raise KAS for a project with a clear goal and deadline. If you hit the goal, the creator gets the funds. If not, backers can get their money back."
+        runtimeMode={runtimeMode}
+        effectiveMode={effectiveMode}
       />
 
       <CovenantTabs

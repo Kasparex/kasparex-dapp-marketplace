@@ -1,26 +1,20 @@
-// Reference Silverscript sketch for Covenant Lab (Hub lockbox prototype).
-// Requires Toccata (KIP-17, KIP-20). Validate on TN12 before mainnet.
-//
-// Maps to Hub types: CovenantVaultKind escrow | timelock
+// Kasparex Covenant Lab lockbox (escrow / timelock).
 
 pragma silverscript ^0.1.0;
 
-contract KasparexLockbox(
-    byte[32] beneficiaryPk,
-    int unlockTime,
-    int lockedAmount
-) {
-    byte[32] beneficiary = beneficiaryPk;
-    int amount = lockedAmount;
-    int unlock_at = unlockTime;
+contract KasparexLockbox() {
+    int unlock_at = 0;
 
-    #[covenant(binding = auth, from = 1, to = 1, mode = transition)]
-    function claim(State prev_state, sig beneficiary_sig) : (State[]) {
+    #[covenant.singleton(mode = transition, termination = allowed)]
+    function claim(
+        State prev_state,
+        sig beneficiary_sig,
+        pubkey beneficiary
+    ) : (State[]) {
         require(checkSig(beneficiary_sig, beneficiary));
-        if (unlock_at > 0) {
-            require(tx.time >= unlock_at);
+        if (prev_state.unlock_at > 0) {
+            require(tx.time >= prev_state.unlock_at);
         }
-        // Terminate covenant: return empty = release KAS to outputs without continuation
         return [];
     }
 }

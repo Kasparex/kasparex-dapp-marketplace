@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
-import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import {
-  COVENANT_LAB_CONFIG,
-  buildSplitCommitNote,
   getSplitPaymentRuntime,
+  getActiveCovenantRuntimeMode,
   type SplitPayment,
   type SplitRecipientInput,
 } from '@/lib/covenant';
@@ -17,6 +14,8 @@ interface UseCovenantSplitReturn {
   splits: SplitPayment[];
   isLoading: boolean;
   error: string | null;
+  runtimeMode: string;
+  effectiveMode: string;
   refreshSplits: () => Promise<void>;
   createSplit: (args: {
     totalKas: number;
@@ -37,6 +36,13 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
   const [error, setError] = useState<string | null>(null);
 
   const runtime = getSplitPaymentRuntime();
+
+  const walletCtx = useCallback(() => {
+    if (!isConnected || !address || !provider) {
+      throw new Error('Connect your Kaspa wallet first');
+    }
+    return { provider: provider as KaspaWalletProvider, userAddress: address };
+  }, [address, isConnected, provider]);
 
   const refreshSplits = useCallback(async () => {
     if (!address) {
@@ -61,56 +67,22 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
 
   const createSplit = useCallback(
     async (args: { totalKas: number; memo: string; recipients: SplitRecipientInput[] }) => {
-      if (!isConnected || !address || !provider) {
-        throw new Error('Connect your Kaspa wallet first');
-      }
       if (args.totalKas <= 0) throw new Error('Total must be positive');
 
       const totalSompi = String(Math.round(args.totalKas * 100_000_000));
-      const draftId = `draft_${Date.now()}`;
-      let lockTxHash: string | undefined;
-
-      const treasury = COVENANT_LAB_CONFIG.treasuryAddress;
-      if (treasury) {
-        const note = buildSplitCommitNote({
-          splitId: draftId,
-          totalSompi,
-          recipients: args.recipients,
-        });
-        const sent = await sendKaspaTransaction(provider as KaspaWalletProvider, {
-          to: treasury,
-          amount: totalSompi,
-          note,
-        });
-        if (sent.status === 'failed' || !sent.txHash) {
-          throw new Error(sent.error || 'KAS split payment failed');
-        }
-        lockTxHash = extractKaspaTransactionId(sent.txHash) ?? sent.txHash;
-
-        void fetch('/api/rewards/l1/record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            txHash: lockTxHash,
-            userAddress: address,
-            dappId: 'covenant-split',
-            actionType: 'covenant-split',
-            actionValue: args.totalKas,
-            network: 'L1',
-          }),
-        }).catch(() => {});
-      }
 
       setIsLoading(true);
       setError(null);
       try {
-        const split = await runtime.createSplit({
-          depositor: address,
-          totalSompi,
-          memo: args.memo,
-          recipients: args.recipients,
-          lockTxHash,
-        });
+        const split = await runtime.createSplit(
+          {
+            depositor: walletCtx().userAddress,
+            totalSompi,
+            memo: args.memo,
+            recipients: args.recipients,
+          },
+          walletCtx()
+        );
         await refreshSplits();
         return split;
       } catch (err) {
@@ -121,18 +93,20 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         setIsLoading(false);
       }
     },
-    [address, isConnected, provider, refreshSplits, runtime]
+    [refreshSplits, runtime, walletCtx]
   );
 
   const claimShare = useCallback(
     async (splitId: string, recipientId: string) => {
-      if (!isConnected || !address) {
-        throw new Error('Connect your Kaspa wallet first');
-      }
       setIsLoading(true);
       setError(null);
       try {
-        const split = await runtime.claimShare(splitId, recipientId, address);
+        const split = await runtime.claimShare(
+          splitId,
+          recipientId,
+          walletCtx().userAddress,
+          walletCtx()
+        );
         await refreshSplits();
         return split;
       } catch (err) {
@@ -143,13 +117,15 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         setIsLoading(false);
       }
     },
-    [address, isConnected, refreshSplits, runtime]
+    [refreshSplits, runtime, walletCtx]
   );
 
   return {
     splits,
     isLoading,
     error,
+    runtimeMode: getActiveCovenantRuntimeMode(),
+    effectiveMode: runtime.effectiveMode,
     refreshSplits,
     createSplit,
     claimShare,

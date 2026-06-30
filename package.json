@@ -40,6 +40,7 @@
     "upload:traits:dry": "tsx scripts/upload-trait-images-to-ipfs.ts --dry-run",
     "rename:hats": "node scripts/rename-hat-files-auto.js",
     "docs:minecore-pdf": "node scripts/generate-minecore-spec-pdf.mjs",
+    "covenant:compile": "node scripts/compile-covenant-artifacts.mjs",
     "worker:dev": "cd workers && npm run dev",
     "worker:deploy": "cd workers && npm run deploy",
     "worker:deploy:production": "cd workers && npm run deploy:production"

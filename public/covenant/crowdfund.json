@@ -1,0 +1,29 @@
+{
+  "template": "crowdfund",
+  "contract": "KasparexCrowdfund",
+  "silverscriptVersion": "^0.1.0",
+  "sourceFile": "crowdfund.sil",
+  "compiledAt": "2026-06-30T20:57:28.800Z",
+  "scriptHex": "6b6c76009c6375b9cf7600d1b99c6976d051a169785379a26976d258a169007a757575516776519c6375b9cf00d1b99e6951677500696868",
+  "compilerVersion": "0.1.0",
+  "abi": [
+    {
+      "name": "__leader_verify_goal",
+      "inputs": [
+        {
+          "name": "goal_sompi",
+          "type_name": "int"
+        },
+        {
+          "name": "raised_sompi",
+          "type_name": "int"
+        }
+      ]
+    },
+    {
+      "name": "__delegate_verify_goal",
+      "inputs": []
+    }
+  ],
+  "note": "Compiled with silverc (C:\\Users\\Marcin\\Documents\\KASPA\\KREX\\DAPPS\\kasparex-connect-wallet\\.tools\\silverscript\\target\\release\\silverc.exe)"
+}
