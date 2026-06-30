@@ -99,27 +99,6 @@ function CreatorPerksTooltipContent() {
   );
 }
 
-function CreatorPerksInfoButton() {
-  return (
-    <Tooltip content={<CreatorPerksTooltipContent />}>
-      <button
-        type="button"
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:text-[#02abb8] hover:bg-[#02abb8]/10 transition-colors"
-        aria-label="View KREX discount tiers"
-      >
-        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </button>
-    </Tooltip>
-  );
-}
-
 export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: string }) {
   const pricing = useVBlogPricing();
   const { balance: krexBalance } = useKREXBalance();
@@ -147,41 +126,40 @@ export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: st
   return (
     <>
       <TooltipProvider>
-        <aside
-          className={`w-full rounded-xl border p-3.5 shadow-lg ${ui.panel} ${className}`.trim()}
-          aria-label="Creator perks"
-        >
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-1.5 min-w-0">
+        <Tooltip content={<CreatorPerksTooltipContent />}>
+          <aside
+            className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
+            aria-label="Creator perks. Hover for KREX tier details."
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
               <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8]">
                 Creator perks
               </p>
-              <CreatorPerksInfoButton />
+              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
+                {ui.label}
+              </span>
             </div>
-            <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
-              {ui.label}
-            </span>
-          </div>
-          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
-            Hold KREX. Pay Less. Earn More.
-          </h2>
-          <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
-            <li>
-              <span className={ui.accent}>•</span> Up to {discountPercent || 80}% off publish fees (10M+ KREX)
-            </li>
-          </ul>
-          <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
-            <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
-            {ui.statusText}
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsKrexWizardOpen(true)}
-            className="mt-2.5 w-full k-control-btn !py-2 !text-sm !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]"
-          >
-            Buy KREX
-          </button>
-        </aside>
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
+              Hold KREX. Pay Less. Earn More.
+            </h2>
+            <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+              <li>
+                <span className={ui.accent}>•</span> Up to {discountPercent || 80}% off publish fees (10M+ KREX)
+              </li>
+            </ul>
+            <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
+              <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
+              {ui.statusText}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
+              className="mt-2.5 w-full k-control-btn !py-2 !text-sm !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]"
+            >
+              Buy KREX
+            </button>
+          </aside>
+        </Tooltip>
       </TooltipProvider>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </>

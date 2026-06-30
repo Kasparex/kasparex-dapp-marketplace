@@ -438,6 +438,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+      <div className="flex flex-col gap-4 min-w-0">
       <div className="flex flex-col space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
         <div>
           <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
@@ -585,71 +586,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           </div>
         </div>
 
-        <section className="space-y-3 pt-2">
-          <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Optional premium features. Toggle modules on to add them to your total. They activate when you pay and publish.
-          </p>
-          <div className="space-y-3">
-            {formModuleOffers.map((offer) => {
-              const enabled = moduleEnabledMap[offer.id];
-              const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
-              const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
-              return (
-                <div
-                  key={offer.id}
-                  className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm"
-                >
-                  <KxInFormPremiumRow
-                    flat
-                    title={offer.title}
-                    description={offer.description}
-                    priceLabel={alreadyPaid ? 'Paid' : `+${effectiveKas} KAS`}
-                    checked={enabled}
-                    disabled={isSubmitting}
-                    onToggle={() => setModuleEnabled(offer.id, !enabled)}
-                  />
-                  {enabled && offer.id === 'magazine_integration' ? (
-                    <div className="pt-3 mt-3 border-t border-zinc-200 dark:border-zinc-700">
-                      <VBlogMagazineIntegration
-                        embedded
-                        linkedMagazineId={linkedMagazineId}
-                        linkedIssueNumber={linkedIssueNumber}
-                        onChange={(magId, issueNum) => {
-                          setLinkedMagazineId(magId);
-                          setLinkedIssueNumber(issueNum);
-                        }}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  ) : null}
-                  {enabled && moduleHasConfigFields(offer.id) ? (
-                    <VBlogModuleConfigFields
-                      bare
-                      moduleId={offer.id}
-                      disabled={isSubmitting}
-                      premiumSectionContent={premiumSectionContent}
-                      onPremiumSectionContentChange={setPremiumSectionContent}
-                      premiumSectionPriceKas={premiumSectionPriceKas}
-                      onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
-                      premiumSectionPayoutAddress={premiumSectionPayoutAddress}
-                      onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
-                      tipToRevealContent={tipToRevealContent}
-                      onTipToRevealContentChange={setTipToRevealContent}
-                      tipToRevealThresholdKas={tipToRevealThresholdKas}
-                      onTipToRevealThresholdKasChange={setTipToRevealThresholdKas}
-                      pollQuestion={pollQuestion}
-                      onPollQuestionChange={setPollQuestion}
-                      pollOptions={pollOptions}
-                      onPollOptionsChange={setPollOptions}
-                    />
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
         <section className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
           <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Advanced options</p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -698,6 +634,72 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </Alert>
           ) : null}
         </KxAlertRegion>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Optional premium features. Toggle modules on to add them to your total. They activate when you pay and publish.
+          </p>
+        </div>
+        {formModuleOffers.map((offer) => {
+          const enabled = moduleEnabledMap[offer.id];
+          const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
+          const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
+          return (
+            <div
+              key={offer.id}
+              className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm"
+            >
+              <KxInFormPremiumRow
+                flat
+                title={offer.title}
+                description={offer.description}
+                priceLabel={alreadyPaid ? 'Paid' : `+${effectiveKas} KAS`}
+                checked={enabled}
+                disabled={isSubmitting}
+                onToggle={() => setModuleEnabled(offer.id, !enabled)}
+              />
+              {enabled && offer.id === 'magazine_integration' ? (
+                <div className="pt-3 mt-3 border-t border-zinc-200 dark:border-zinc-700">
+                  <VBlogMagazineIntegration
+                    embedded
+                    linkedMagazineId={linkedMagazineId}
+                    linkedIssueNumber={linkedIssueNumber}
+                    onChange={(magId, issueNum) => {
+                      setLinkedMagazineId(magId);
+                      setLinkedIssueNumber(issueNum);
+                    }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              ) : null}
+              {enabled && moduleHasConfigFields(offer.id) ? (
+                <VBlogModuleConfigFields
+                  bare
+                  moduleId={offer.id}
+                  disabled={isSubmitting}
+                  premiumSectionContent={premiumSectionContent}
+                  onPremiumSectionContentChange={setPremiumSectionContent}
+                  premiumSectionPriceKas={premiumSectionPriceKas}
+                  onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
+                  premiumSectionPayoutAddress={premiumSectionPayoutAddress}
+                  onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
+                  tipToRevealContent={tipToRevealContent}
+                  onTipToRevealContentChange={setTipToRevealContent}
+                  tipToRevealThresholdKas={tipToRevealThresholdKas}
+                  onTipToRevealThresholdKasChange={setTipToRevealThresholdKas}
+                  pollQuestion={pollQuestion}
+                  onPollQuestionChange={setPollQuestion}
+                  pollOptions={pollOptions}
+                  onPollOptionsChange={setPollOptions}
+                />
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
       </div>
 
       <div className="flex flex-col gap-4 xl:sticky xl:top-6">
