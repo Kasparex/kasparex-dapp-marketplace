@@ -96,10 +96,8 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
           <VBlogSidebar
             articles={articles}
             selectedCategory={null}
-            selectedTags={[]}
             searchQuery=""
             onCategoryChange={() => {}}
-            onTagToggle={() => {}}
             onSearchChange={() => {}}
             activeView="article"
             defaultHidden={sidebarDefaultHidden}

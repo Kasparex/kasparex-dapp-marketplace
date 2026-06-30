@@ -7,22 +7,26 @@ import { VBlogArticle } from '@/lib/vblog/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
-import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { getVBlogCategoriesFromArticles } from '@/lib/vblog/categories';
 
+export type VBlogDashboardNavTarget = {
+  section: 'create' | 'pricing' | 'archive';
+  category?: string | null;
+};
+
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
   selectedCategory: string | null;
-  selectedTags: string[];
   searchQuery: string;
   onCategoryChange: (category: string | null) => void;
-  onTagToggle: (tag: string) => void;
   onSearchChange: (query: string) => void;
   activeView?: 'explore' | 'dashboard' | 'vault' | 'article';
   articleNavItems?: Array<{ id: string; label: string; icon?: ReactNode; count?: number | string }>;
   onArticleNavClick?: (itemId: string) => void;
+  onDashboardNav?: (target: VBlogDashboardNavTarget) => void;
+  dashboardAuthorArticles?: VBlogArticle[];
   defaultHidden?: boolean;
 }
 
@@ -174,21 +178,33 @@ function VBlogCategoryIcon({ id, className = '' }: { id: string | null; classNam
 
 const ALL_ID = '__all__';
 
+const DASHBOARD_SECTIONS: Array<{ id: VBlogDashboardNavTarget['section']; label: string; anchor: string }> = [
+  { id: 'create', label: 'Create article', anchor: 'vblog-dashboard-create' },
+  { id: 'pricing', label: 'Fees & rewards', anchor: 'vblog-dashboard-pricing' },
+  { id: 'archive', label: 'Personal archive', anchor: 'vblog-dashboard-archive' },
+];
+
+function scrollToAnchor(anchorId: string) {
+  if (typeof window === 'undefined') return;
+  window.requestAnimationFrame(() => {
+    document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
 export function VBlogSidebar({
   articles,
   selectedCategory,
-  selectedTags,
   searchQuery,
   onCategoryChange,
-  onTagToggle,
   onSearchChange,
   activeView = 'explore',
   articleNavItems = [],
   onArticleNavClick,
+  onDashboardNav,
+  dashboardAuthorArticles = [],
   defaultHidden = false,
 }: VBlogSidebarProps) {
   const categories = getVBlogCategoriesFromArticles(articles);
-  const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
 
   const categoryItems = [
     { id: ALL_ID, label: 'All Articles', count: articles.length, icon: <VBlogCategoryIcon id={null} /> },
@@ -200,8 +216,39 @@ export function VBlogSidebar({
     })),
   ];
 
+  const dashboardArchiveCategoryItems = [
+    {
+      id: ALL_ID,
+      label: 'All articles',
+      count: dashboardAuthorArticles.length,
+      icon: <VBlogCategoryIcon id={null} />,
+    },
+    ...Array.from(new Set(dashboardAuthorArticles.map((article) => article.category)))
+      .sort((a, b) => a.localeCompare(b))
+      .map((category) => ({
+        id: category,
+        label: category,
+        count: dashboardAuthorArticles.filter((article) => article.category === category).length,
+        icon: <VBlogCategoryIcon id={category} />,
+      })),
+  ];
+
   const handleCategorySelect = (id: string) => {
+    if (activeView === 'dashboard') {
+      if (id === ALL_ID) {
+        onDashboardNav?.({ section: 'archive', category: null });
+      } else {
+        onDashboardNav?.({ section: 'archive', category: id });
+      }
+      scrollToAnchor('vblog-dashboard-archive');
+      return;
+    }
     onCategoryChange(id === ALL_ID ? null : id);
+  };
+
+  const handleDashboardSectionNav = (section: VBlogDashboardNavTarget['section'], anchor: string) => {
+    onDashboardNav?.({ section, category: section === 'archive' ? selectedCategory : null });
+    scrollToAnchor(anchor);
   };
 
   const backHref = activeView === 'article' ? '/vblog' : activeView === 'explore' ? '/hub' : '/vblog';
@@ -285,6 +332,33 @@ export function VBlogSidebar({
             ))}
           </nav>
         </SidebarSection>
+      ) : activeView === 'dashboard' ? (
+        <>
+          <SidebarSection title="Page sections">
+            <nav className="space-y-0.5">
+              {DASHBOARD_SECTIONS.map((item) => (
+                <SidebarNavItem
+                  key={item.id}
+                  href={`#${item.anchor}`}
+                  onLinkClick={(e) => {
+                    e.preventDefault();
+                    handleDashboardSectionNav(item.id, item.anchor);
+                  }}
+                  label={item.label}
+                  icon={<VBlogCategoryIcon id={item.id === 'archive' ? 'guide' : item.id === 'pricing' ? 'product' : 'tutorial'} />}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
+          <SidebarCategories
+            title="Archive categories"
+            items={dashboardArchiveCategoryItems}
+            selectedIds={selectedCategory == null ? ALL_ID : selectedCategory}
+            onSelect={handleCategorySelect}
+            multi={false}
+            collapsedItemCount={5}
+          />
+        </>
       ) : (
         <>
           <SidebarCategories
@@ -295,14 +369,12 @@ export function VBlogSidebar({
             multi={false}
             collapsedItemCount={5}
           />
-          {allTags.length > 0 && <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />}
-          {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
+          {(selectedCategory !== null || searchQuery) && (
             <button
               type="button"
               onClick={() => {
                 onCategoryChange(null);
                 onSearchChange('');
-                selectedTags.forEach((tag) => onTagToggle(tag));
               }}
               className="w-full mt-4 k-control-btn"
             >

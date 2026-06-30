@@ -27,10 +27,8 @@ export default function VBlogVaultPage() {
           <VBlogSidebar
             articles={articles}
             selectedCategory={null}
-            selectedTags={[]}
             searchQuery=""
             onCategoryChange={() => {}}
-            onTagToggle={() => {}}
             onSearchChange={() => {}}
             activeView="vault"
           />

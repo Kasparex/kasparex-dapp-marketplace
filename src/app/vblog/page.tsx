@@ -6,13 +6,20 @@ import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogArticleGrid } from '@/components/vblog/VBlogArticleGrid';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
-import { VBlogSortFilters, type VBlogSortOption } from '@/components/vblog/VBlogSortFilters';
+import { VBlogListingFiltersBar } from '@/components/vblog/VBlogSortFilters';
 import { VBlogPricingStrip } from '@/components/vblog/VBlogPricingStrip';
 import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { FilterBar } from '@/components/FilterBar';
-import { matchesVBlogSourceFilter, type VBlogSourceFilter } from '@/lib/vblog/source';
+import type { VBlogSourceFilter } from '@/lib/vblog/source';
+import { getVBlogCategoriesFromArticles } from '@/lib/vblog/categories';
+import {
+  filterVBlogArticles,
+  getVBlogTagsFromArticles,
+  type VBlogMagazineFilter,
+  type VBlogSortOption,
+} from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 
 export default function VBlogPage() {
@@ -24,50 +31,23 @@ export default function VBlogPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<VBlogSourceFilter>('all');
+  const [magazineFilter, setMagazineFilter] = useState<VBlogMagazineFilter>('all');
 
-  const filteredArticles = useMemo(() => {
-    let filtered = [...articles];
+  const categories = useMemo(() => getVBlogCategoriesFromArticles(articles), [articles]);
+  const allTags = useMemo(() => getVBlogTagsFromArticles(articles), [articles]);
 
-    filtered = filtered.filter((article) => matchesVBlogSourceFilter(article, sourceFilter));
-
-    if (selectedCategory) {
-      filtered = filtered.filter((article) => article.category === selectedCategory);
-    }
-
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((article) => selectedTags.some((tag) => article.tags.includes(tag)));
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (article) =>
-          article.title.toLowerCase().includes(query) ||
-          article.description.toLowerCase().includes(query) ||
-          article.content.toLowerCase().includes(query) ||
-          article.category.toLowerCase().includes(query) ||
-          article.tags.some((tag) => tag.toLowerCase().includes(query)),
-      );
-    }
-
-    filtered.sort((a, b) => {
-      if (sortBy === 'newest') {
-        return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();
-      }
-      if (sortBy === 'oldest') {
-        return new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime();
-      }
-      if (sortBy === 'alphabetical-az') {
-        return a.title.localeCompare(b.title);
-      }
-      if (sortBy === 'alphabetical-za') {
-        return b.title.localeCompare(a.title);
-      }
-      return 0;
-    });
-
-    return filtered;
-  }, [articles, selectedCategory, selectedTags, searchQuery, sortBy, sourceFilter]);
+  const filteredArticles = useMemo(
+    () =>
+      filterVBlogArticles(articles, {
+        source: sourceFilter,
+        category: selectedCategory,
+        tags: selectedTags,
+        magazine: magazineFilter,
+        searchQuery,
+        sortBy,
+      }),
+    [articles, sourceFilter, selectedCategory, selectedTags, magazineFilter, searchQuery, sortBy],
+  );
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -78,6 +58,8 @@ export default function VBlogPage() {
     setSelectedTags([]);
     setSearchQuery('');
     setSourceFilter('all');
+    setMagazineFilter('all');
+    setSortBy('newest');
   };
 
   return (
@@ -89,10 +71,8 @@ export default function VBlogPage() {
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
-            selectedTags={selectedTags}
             searchQuery={searchQuery}
             onCategoryChange={setSelectedCategory}
-            onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
             activeView="explore"
           />
@@ -114,8 +94,23 @@ export default function VBlogPage() {
                 <FilterBar
                   search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search articles...' }}
                   onReset={handleResetFilters}
+                  flexWrap
                 >
-                  <VBlogSortFilters sortBy={sortBy} onSortChange={setSortBy} />
+                  <VBlogListingFiltersBar
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    sourceFilter={sourceFilter}
+                    onSourceFilterChange={setSourceFilter}
+                    categoryFilter={selectedCategory}
+                    onCategoryFilterChange={setSelectedCategory}
+                    categories={categories}
+                    magazineFilter={magazineFilter}
+                    onMagazineFilterChange={setMagazineFilter}
+                    tags={allTags}
+                    selectedTags={selectedTags}
+                    onTagToggle={handleTagToggle}
+                    onTagsClear={() => setSelectedTags([])}
+                  />
                 </FilterBar>
 
                 {selectedTags.length > 0 ? (
@@ -135,13 +130,6 @@ export default function VBlogPage() {
                         #{tag} ×
                       </button>
                     ))}
-                    <button
-                      type="button"
-                      onClick={handleResetFilters}
-                      className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-bold underline underline-offset-4 decoration-2"
-                    >
-                      Clear
-                    </button>
                   </div>
                 ) : null}
               </div>

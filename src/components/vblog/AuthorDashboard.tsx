@@ -11,13 +11,23 @@ import { ArticleList } from './ArticleList';
 import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import type { VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
   editArticleId?: string | null;
+  navTarget?: VBlogDashboardNavTarget | null;
+  onNavTargetHandled?: () => void;
+  archiveCategoryFilter?: string | null;
 }
 
-export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDashboardProps) {
+export function AuthorDashboard({
+  createIntentKey = 0,
+  editArticleId,
+  navTarget = null,
+  onNavTargetHandled,
+  archiveCategoryFilter = null,
+}: AuthorDashboardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
 
@@ -45,7 +55,35 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
     }
   }, [articles, editArticleId]);
 
+  useEffect(() => {
+    if (!navTarget) return;
+
+    if (navTarget.section === 'create' || navTarget.section === 'pricing') {
+      setActiveTab('create');
+      setEditingArticle(null);
+    } else if (navTarget.section === 'archive') {
+      setActiveTab('my-articles');
+      setEditingArticle(null);
+    }
+
+    const anchorId =
+      navTarget.section === 'pricing'
+        ? 'vblog-dashboard-pricing'
+        : navTarget.section === 'archive'
+          ? 'vblog-dashboard-archive'
+          : 'vblog-dashboard-create';
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      onNavTargetHandled?.();
+    });
+  }, [navTarget, onNavTargetHandled]);
+
   const authorArticles = walletAddress ? getAuthorArticles(walletAddress) : [];
+  const filteredAuthorArticles =
+    archiveCategoryFilter == null
+      ? authorArticles
+      : authorArticles.filter((article) => article.category === archiveCategoryFilter);
 
   const handleCreateArticle = async (articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => {
     // TODO: Get author from wallet connection
@@ -110,6 +148,7 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
 
   return (
     <div className="space-y-8">
+      <div id="vblog-dashboard-create" className="scroll-mt-24" />
       {/* Navigation Tabs */}
       <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
         <button
@@ -139,7 +178,11 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
       </div>
 
       {/* Pricing and Benefits Section */}
-      {activeTab === 'create' && <AuthorPricing />}
+      {activeTab === 'create' ? (
+        <div id="vblog-dashboard-pricing" className="scroll-mt-24">
+          <AuthorPricing />
+        </div>
+      ) : null}
 
       {/* Success Message Area */}
       {successMessage && (
@@ -165,16 +208,21 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
             )}
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div id="vblog-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
                 Personal <span className="text-[#02abb8]">Archive</span>
+                {archiveCategoryFilter ? (
+                  <span className="ml-2 text-sm font-semibold normal-case tracking-normal text-zinc-500">
+                    / {archiveCategoryFilter}
+                  </span>
+                ) : null}
               </h3>
               <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
                 Delete fee: {pricing.deleteFee} KAS
               </p>
             </div>
-            <ArticleList articles={authorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
+            <ArticleList articles={filteredAuthorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
           </div>
         )}
       </div>

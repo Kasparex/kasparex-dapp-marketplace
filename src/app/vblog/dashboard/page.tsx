@@ -1,25 +1,42 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
-import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
+import { VBlogSidebar, type VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useAccount } from 'wagmi';
 
 function VBlogDashboardPageContent() {
-  const { articles } = useVBlog();
+  const { articles, getAuthorArticles } = useVBlog();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress } = useAccount();
   const searchParams = useSearchParams();
   const initialCreateIntent = searchParams.get('tab') === 'create' ? 1 : 0;
   const [createIntentKey, setCreateIntentKey] = useState(initialCreateIntent);
   const editArticleId = searchParams.get('edit');
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [navTarget, setNavTarget] = useState<VBlogDashboardNavTarget | null>(null);
+
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const authorArticles = useMemo(
+    () => (walletAddress ? getAuthorArticles(walletAddress) : []),
+    [getAuthorArticles, walletAddress, articles],
+  );
+
+  const handleDashboardNav = (target: VBlogDashboardNavTarget) => {
+    setNavTarget({ ...target, category: target.category ?? null });
+    if (target.section === 'archive') {
+      setSelectedCategory(target.category ?? null);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -30,12 +47,12 @@ function VBlogDashboardPageContent() {
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
-            selectedTags={selectedTags}
             searchQuery={searchQuery}
             onCategoryChange={setSelectedCategory}
-            onTagToggle={(tag) => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
             onSearchChange={setSearchQuery}
             activeView="dashboard"
+            onDashboardNav={handleDashboardNav}
+            dashboardAuthorArticles={authorArticles}
           />
 
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
@@ -51,7 +68,13 @@ function VBlogDashboardPageContent() {
               </div>
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
-                <AuthorDashboard createIntentKey={createIntentKey} editArticleId={editArticleId} />
+                <AuthorDashboard
+                  createIntentKey={createIntentKey}
+                  editArticleId={editArticleId}
+                  navTarget={navTarget}
+                  onNavTargetHandled={() => setNavTarget(null)}
+                  archiveCategoryFilter={selectedCategory}
+                />
               </HubWalletGateShell>
             </div>
           </div>
