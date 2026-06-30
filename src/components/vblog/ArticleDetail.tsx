@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate } from '@/lib/vblog/utils';
-import { renderRichContent } from '@/lib/richText/html';
+import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useVBlog } from '@/hooks/useVBlog';
@@ -386,21 +386,15 @@ export function ArticleDetail({
 
                 {contentTab === 'article' ? (
                   <div className="space-y-8">
-                    <div
+                    <KxRichTextContent
                       id="article-main"
-                      className="kx-prose prose prose-zinc dark:prose-invert max-w-none 
-              prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-headings:font-black prose-headings:tracking-tight
-              prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:text-lg prose-p:mb-5
-              prose-a:text-[#02abb8] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-strong:font-black
-              prose-blockquote:border-l-[#02abb8] prose-blockquote:bg-[#02abb8]/5 prose-blockquote:rounded-2xl prose-blockquote:px-6 prose-blockquote:py-4 prose-blockquote:font-medium prose-blockquote:italic
-              prose-img:rounded-2xl select-text cursor-text"
+                      html={article.content}
+                      className="cursor-text"
                       onClick={(e) => {
                         const selection = window.getSelection()?.toString().trim();
                         if (!selection) return;
                         void navigator.clipboard.writeText(selection).catch(() => undefined);
                       }}
-                      dangerouslySetInnerHTML={{ __html: renderRichContent(article.content) }}
                     />
 
                     {article.modules?.premiumSectionEnabled ? (
@@ -414,7 +408,7 @@ export function ArticleDetail({
                             </button>
                           </div>
                         ) : (
-                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: renderRichContent(article.modules.premiumSectionContent ?? '') }} />
+                          <KxRichTextContent html={article.modules.premiumSectionContent ?? ''} className="mt-3" />
                         )}
                       </div>
                     ) : null}
@@ -439,7 +433,7 @@ export function ArticleDetail({
                         {!tipRevealEntitled ? (
                           <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
                         ) : (
-                          <div className="mt-3 kx-prose prose prose-zinc dark:prose-invert max-w-none prose-p:text-lg" dangerouslySetInnerHTML={{ __html: renderRichContent(article.modules.tipToRevealContent ?? '') }} />
+                          <KxRichTextContent html={article.modules.tipToRevealContent ?? ''} className="mt-3" />
                         )}
                       </div>
                     ) : null}

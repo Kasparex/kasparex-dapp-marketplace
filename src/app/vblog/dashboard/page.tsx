@@ -51,7 +51,7 @@ function VBlogDashboardPageContent() {
                     Manage your decentralized vBlog publications
                   </p>
                 </div>
-                <VBlogDashboardBenefitsPanel layout="vertical" />
+                <VBlogDashboardBenefitsPanel layout="vertical-split" />
               </div>
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>

@@ -115,9 +115,9 @@ export function parseMarkdown(markdown: string): string {
     .replace(/>/g, '&gt;')
 
     // Headers
-    .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-3">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-4 mb-2">$1</h3>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
 
     // Colored text
     .replace(/\{color:([^}]+)\}(.*?)\{\/color\}/g, '<span style="color:$1">$2</span>')
@@ -130,21 +130,21 @@ export function parseMarkdown(markdown: string): string {
     .replace(/_(.*?)_/g, '<em>$1</em>')
 
     // Blockquotes
-    .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-zinc-300 dark:border-zinc-700 pl-4 py-2 italic my-4 text-zinc-600 dark:text-zinc-400">$1</blockquote>')
+    .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
 
     // Links
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-[#02abb8] hover:underline" target="_blank">$1</a>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
 
     // Horizontal rule
-    .replace(/^\s*[-*_]{3,}\s*$/gm, '<hr class="my-8 border-zinc-200 dark:border-zinc-800" />')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '<hr />')
 
     // Lists
-    .replace(/^\s*[\-\*] (.*$)/gim, '<li class="ml-4">$1</li>')
-    .replace(/(<li.*<\/li>)/gms, '<ul class="list-disc space-y-2 my-4">$1</ul>')
+    .replace(/^\s*[\-\*] (.*$)/gim, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>')
 
     // Line breaks / Paragraphs
-    .replace(/\n\n/g, '</p><p class="mb-4">')
+    .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br />');
 
-  return `<p class="mb-4">${html}</p>`;
+  return `<p>${html}</p>`;
 }
