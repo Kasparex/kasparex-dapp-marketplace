@@ -27,7 +27,7 @@ export function PricingTable() {
             <tr className="border-b border-zinc-200 dark:border-zinc-800">
               <td className="py-3 px-4 text-zinc-700 dark:text-zinc-300 font-medium">Create Article</td>
               <td className="py-3 px-4 text-zinc-900 dark:text-zinc-100">10 KAS base + size fees</td>
-              <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-medium">Discount on base fee</td>
+              <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-medium">Discount on total fee</td>
               <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">
                 <ul className="list-disc list-inside space-y-1">
                   <li>Title: 100 chars (150 for NFT holders)</li>
@@ -39,7 +39,7 @@ export function PricingTable() {
             <tr className="border-b border-zinc-200 dark:border-zinc-800">
               <td className="py-3 px-4 text-zinc-700 dark:text-zinc-300 font-medium">Edit Article</td>
               <td className="py-3 px-4 text-zinc-900 dark:text-zinc-100">2 KAS base + size fees</td>
-              <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-medium">Discount on base fee</td>
+              <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-medium">Discount on total fee</td>
               <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">
                 Update existing articles with new content
               </td>

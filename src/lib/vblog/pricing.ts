@@ -70,6 +70,8 @@ export interface VBlogPriceQuote {
   networkFeeBufferKas: number;
   modulesFeeKas: number;
   moduleLines: VBlogModuleAddonLine[];
+  subtotalKas: number;
+  discountKas: number;
   totalKas: number;
 }
 
@@ -155,7 +157,7 @@ export function computeVBlogArticlePrice(
   const payload = buildCanonicalArticlePayload(draft, action);
   const { payloadBytes, chunkCount } = computeArticleChunkPlan(payload);
   const discount = Math.min(Math.max(discountPercent, 0), 90) / 100;
-  const baseFeeKas = getVBlogBaseFeeKas(action) * (1 - discount);
+  const baseFeeKas = getVBlogBaseFeeKas(action);
   const sizeFeeKas = chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS;
   const networkFeeBufferKas = Math.max(0.05, chunkCount * 0.01);
   const moduleAddon = modulePricing
@@ -167,7 +169,9 @@ export function computeVBlogArticlePrice(
         draft.excludeModuleIds ?? [],
       )
     : { totalKas: 0, lines: [] as VBlogModuleAddonLine[] };
-  const totalKas = round2(baseFeeKas + sizeFeeKas + networkFeeBufferKas + moduleAddon.totalKas);
+  const subtotalKas = baseFeeKas + sizeFeeKas + networkFeeBufferKas + moduleAddon.totalKas;
+  const totalKas = round2(subtotalKas * (1 - discount));
+  const discountKas = round2(subtotalKas - totalKas);
   return {
     action,
     payloadBytes,
@@ -177,6 +181,8 @@ export function computeVBlogArticlePrice(
     networkFeeBufferKas: round2(networkFeeBufferKas),
     modulesFeeKas: round2(moduleAddon.totalKas),
     moduleLines: moduleAddon.lines,
+    subtotalKas: round2(subtotalKas),
+    discountKas,
     totalKas,
   };
 }

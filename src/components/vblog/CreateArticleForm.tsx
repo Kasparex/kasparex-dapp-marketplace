@@ -18,7 +18,6 @@ import { htmlToPlainText, contentForRichEditor } from '@/lib/richText/html';
 import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
-import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -64,7 +63,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
   const [title, setTitle] = useState(article?.title ?? '');
-  const [description, setDescription] = useState(() => contentForRichEditor(article?.description ?? ''));
+  const [description, setDescription] = useState(() => htmlToPlainText(article?.description ?? '') || (article?.description ?? ''));
   const [content, setContent] = useState(() => contentForRichEditor(article?.content ?? ''));
   const [featuredImageSource, setFeaturedImageSource] = useState<'url' | 'file'>(article?.featuredImage ? 'url' : 'file');
   const [featuredImageUrl, setFeaturedImageUrl] = useState(article?.featuredImage ?? '');
@@ -160,9 +159,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     isEditMode ? 'edit' : 'create',
   );
 
-  const fullBaseFee = getVBlogBaseFeeKas(isEditMode ? 'edit' : 'create');
-  const discountKas = Math.max(0, fullBaseFee - formQuote.baseFeeKas);
-  const discountPercent = fullBaseFee > 0 ? Math.round((discountKas / fullBaseFee) * 100) : 0;
+  const discountKas = formQuote.discountKas;
+  const discountPercent =
+    formQuote.subtotalKas > 0 ? Math.round((discountKas / formQuote.subtotalKas) * 100) : 0;
 
   const formModuleOffers = useMemo(
     () => VBLOG_MODULE_OFFERS.filter((offer) => FORM_MODULE_IDS.includes(offer.id)),
@@ -210,7 +209,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   useEffect(() => {
     if (!article) return;
     setTitle(article.title);
-    setDescription(contentForRichEditor(article.description));
+    setDescription(htmlToPlainText(article.description) || article.description);
     setContent(contentForRichEditor(article.content));
     setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
     setFeaturedImageUrl(article.featuredImage ?? '');
@@ -282,7 +281,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       return;
     }
 
-    if (!htmlToPlainText(description).trim()) {
+    if (!description.trim()) {
       setError('Description is required');
       return;
     }
@@ -483,20 +482,21 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             <span
               className={`text-xs ${
                 getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
-                  || htmlToPlainText(description).length > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
                   ? 'text-red-500'
                   : 'text-zinc-500 dark:text-zinc-400'
               }`}
             >
-              {htmlToPlainText(description).length} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
+              {getCharacterCount(description)} / {pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
             </span>
           </div>
-          <KxRichTextEditor
+          <textarea
             value={description}
-            onChange={setDescription}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter a brief description of the article"
-            minRows={3}
             maxLength={pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max}
+            rows={3}
+            className="k-input text-base w-full resize-y min-h-[4.5rem]"
+            required
             disabled={isSubmitting}
           />
         </div>
@@ -698,24 +698,30 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
       <aside className="xl:sticky xl:top-6 flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
         <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
-        <div className="space-y-2 kx-body">
-          <div className="flex justify-between"><span>Base fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Size fee</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span></div>
-          <div className="flex justify-between"><span>Network buffer</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span></div>
+        <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
+          <div className="flex justify-between"><span>Size fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span></div>
+          <div className="flex justify-between"><span>Network buffer</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span></div>
           {formQuote.moduleLines.map((line) => (
             <div key={line.id} className="flex justify-between gap-2">
               <span className="truncate">{line.title}</span>
-              <span className="font-bold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
             </div>
           ))}
           {formQuote.modulesFeeKas > 0 ? (
-            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-2">
+            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
               <span>Modules subtotal</span>
-              <span className="font-bold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
+              <span className="font-semibold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
             </div>
           ) : null}
-          <div className="flex justify-between"><span>Payload bytes</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span></div>
-          <div className="flex justify-between"><span>Chunk estimate</span><span className="font-bold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span></div>
+          {formQuote.discountKas > 0 ? (
+            <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
+              <span>Subtotal</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.subtotalKas} KAS</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between"><span>Payload bytes</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span></div>
+          <div className="flex justify-between"><span>Chunk estimate</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span></div>
         </div>
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
           <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
@@ -728,7 +734,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
         {pricing.tier.hasKREXDiscount && (
           <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-            KREX discount: -{discountKas.toFixed(2)} KAS ({discountPercent}% off base fee).
+            KREX discount: -{discountKas.toFixed(2)} KAS ({discountPercent}% off total).
           </div>
         )}
         {!pricing.tier.hasKREXDiscount && (

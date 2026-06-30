@@ -904,7 +904,7 @@
 .kx-quill-content,
 .kx-quill-editor .ql-editor {
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.38;
   color: rgb(24 24 27);
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -951,12 +951,13 @@
 
 .kx-quill-content p,
 .kx-quill-editor .ql-editor p {
-  margin: 0 0 0.65em;
+  margin: 0 0 0.45em;
 }
 
 .kx-quill-content p:has(> br:only-child),
 .kx-quill-editor .ql-editor p:has(> br:only-child) {
-  margin-bottom: 0.2em;
+  margin-bottom: 0.08em;
+  line-height: 1.2;
 }
 
 .kx-quill-content a,

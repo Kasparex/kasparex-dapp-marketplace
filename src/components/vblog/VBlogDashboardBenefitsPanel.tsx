@@ -5,7 +5,6 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
 type KrexPerkVisualTier = 'none' | 'starter' | 'builder' | 'vip';
@@ -88,7 +87,7 @@ function CreatorPerksTooltipContent() {
           </tr>
           <tr>
             <td className="py-0.5 pr-2">10M+</td>
-            <td className="py-0.5">Up to 80% off base fees</td>
+            <td className="py-0.5">Up to 80% off total fees</td>
           </tr>
         </tbody>
       </table>
@@ -105,7 +104,6 @@ export function VBlogDashboardBenefitsPanel() {
   const { balance: krexBalance } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
 
-  const fullBaseFee = getVBlogBaseFeeKas('create');
   const sampleQuote = pricing.estimateQuote(
     {
       title: 'Sample',
@@ -117,7 +115,10 @@ export function VBlogDashboardBenefitsPanel() {
     },
     'create',
   );
-  const discountPercent = fullBaseFee > 0 ? Math.round(((fullBaseFee - sampleQuote.baseFeeKas) / fullBaseFee) * 100) : 0;
+  const discountPercent =
+    sampleQuote.subtotalKas > 0
+      ? Math.round((sampleQuote.discountKas / sampleQuote.subtotalKas) * 100)
+      : 0;
 
   const visualTier = getKrexPerkVisualTier(krexBalance);
   const ui = TIER_UI[visualTier];
@@ -130,12 +131,18 @@ export function VBlogDashboardBenefitsPanel() {
             className={`w-full xl:w-[280px] shrink-0 rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel}`}
             aria-label="Creator perks. Hover for KREX tier details."
           >
-            <div className="flex items-center justify-end gap-2 mb-2">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8]">
+                Creator perks
+              </p>
               <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
                 {ui.label}
               </span>
             </div>
-            <ul className="space-y-1 text-xs text-zinc-700 dark:text-zinc-300">
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
+              Hold KREX. Pay Less. Earn More.
+            </h2>
+            <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
               <li>
                 <span className={ui.accent}>•</span> Up to {discountPercent || 80}% off publish fees (10M+ KREX)
               </li>
@@ -143,14 +150,14 @@ export function VBlogDashboardBenefitsPanel() {
                 <span className={ui.accent}>•</span> +{HUB_EARN_POINTS.vblogArticleCreate} pts publish / +{HUB_EARN_POINTS.vblogArticleUpdate} update
               </li>
             </ul>
-            <div className={`mt-2 rounded-lg border px-2.5 py-2 text-[11px] leading-snug ${ui.status}`}>
+            <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
               <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
               {ui.statusText}
             </div>
             <button
               type="button"
               onClick={() => setIsKrexWizardOpen(true)}
-              className="mt-2.5 w-full k-control-btn !py-2 !text-xs !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]"
+              className="mt-2.5 w-full k-control-btn !py-2 !text-sm !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]"
             >
               Buy KREX
             </button>
