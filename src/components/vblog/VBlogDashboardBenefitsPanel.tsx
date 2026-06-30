@@ -5,14 +5,17 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { computeEarnedHubPoints, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
-type KrexPerkVisualTier = 'none' | 'starter' | 'builder' | 'vip';
+type KrexPerkVisualTier = 'none' | 'starter' | 'builder' | 'pro' | 'vip';
 
 function getKrexPerkVisualTier(balance: number): KrexPerkVisualTier {
-  if (balance <= 0) return 'none';
-  if (balance < 1_000_000) return 'starter';
-  if (balance < 10_000_000) return 'builder';
+  if (balance < 1_000_000) return 'none';
+  if (balance < 10_000_000) return 'starter';
+  if (balance < 50_000_000) return 'builder';
+  if (balance < 100_000_000) return 'pro';
   return 'vip';
 }
 
@@ -21,38 +24,47 @@ const TIER_UI: Record<
   { label: string; panel: string; status: string; statusText: string; accent: string; badge: string }
 > = {
   none: {
-    label: 'No KREX',
+    label: 'No tier',
     panel:
       'border-zinc-300/80 bg-gradient-to-br from-zinc-100 via-white to-zinc-200/80 dark:border-zinc-500/35 dark:from-zinc-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-zinc-300/80 bg-zinc-100 text-zinc-700 dark:border-zinc-500/30 dark:bg-zinc-500/10 dark:text-zinc-300',
-    statusText: 'Hold KREX to unlock fee discounts and creator perks.',
+    statusText: 'Hold 1M+ KREX to unlock fee discounts and Hub Points.',
     accent: 'text-zinc-500 dark:text-zinc-400',
     badge: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700/60 dark:text-zinc-200',
   },
   starter: {
-    label: 'Starter',
+    label: 'Tier 1',
     panel:
       'border-orange-300/80 bg-gradient-to-br from-orange-50 via-white to-orange-100/70 dark:border-orange-400/35 dark:from-orange-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-orange-300/80 bg-orange-50 text-orange-900 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-100',
-    statusText: 'Under 1M KREX. Stack more to climb perk tiers.',
+    statusText: '1M+ KREX. 2% off fees and 1x Hub Points on earn actions.',
     accent: 'text-orange-600 dark:text-orange-400',
     badge: 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200',
   },
   builder: {
-    label: 'Builder',
+    label: 'Tier 2',
     panel:
       'border-yellow-300/80 bg-gradient-to-br from-yellow-50 via-white to-amber-100/70 dark:border-yellow-400/35 dark:from-yellow-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-yellow-300/80 bg-yellow-50 text-yellow-900 dark:border-yellow-400/30 dark:bg-yellow-500/10 dark:text-yellow-100',
-    statusText: '1M+ KREX. You are building toward the 10M discount tier.',
+    statusText: '10M+ KREX. 5% off fees and 2x Hub Points.',
     accent: 'text-yellow-700 dark:text-yellow-400',
     badge: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-200',
   },
+  pro: {
+    label: 'Tier 3',
+    panel:
+      'border-teal-300/80 bg-gradient-to-br from-teal-50 via-white to-cyan-100/70 dark:border-teal-400/35 dark:from-teal-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
+    status: 'border-teal-300/80 bg-teal-50 text-teal-900 dark:border-teal-400/30 dark:bg-teal-500/10 dark:text-teal-100',
+    statusText: '50M+ KREX. 50% off fees and 3x Hub Points.',
+    accent: 'text-teal-700 dark:text-teal-400',
+    badge: 'bg-teal-100 text-teal-900 dark:bg-teal-500/20 dark:text-teal-200',
+  },
   vip: {
-    label: 'VIP',
+    label: 'Tier 4',
     panel:
       'border-emerald-300/80 bg-gradient-to-br from-emerald-50 via-white to-teal-100/70 dark:border-emerald-400/35 dark:from-emerald-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-emerald-300/80 bg-emerald-50 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-100',
-    statusText: '10M+ KREX. Your vBlog fee discount is active.',
+    statusText: '100M+ KREX. 80% off fees and 4x Hub Points.',
     accent: 'text-emerald-700 dark:text-emerald-400',
     badge: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200',
   },
@@ -66,62 +78,68 @@ function formatKrexMillions(balance: number): string {
 }
 
 function CreatorPerksTooltipContent() {
+  const publishBase = HUB_EARN_POINTS.vblogArticleCreate;
+  const updateBase = HUB_EARN_POINTS.vblogArticleUpdate;
+
   return (
-    <div className="space-y-2 text-left max-w-xs">
-      <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX creator perks</p>
+    <div className="space-y-2 text-left max-w-sm">
+      <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX tier perks</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-zinc-300/80 dark:border-zinc-600">
             <th className="pb-1 pr-2 text-left font-semibold">KREX held</th>
-            <th className="pb-1 text-left font-semibold">vBlog fee discount</th>
+            <th className="pb-1 pr-2 text-left font-semibold">Fee discount</th>
+            <th className="pb-1 text-left font-semibold">Hub Points</th>
           </tr>
         </thead>
         <tbody className="text-zinc-700 dark:text-zinc-300">
-          <tr>
-            <td className="py-0.5 pr-2">0</td>
-            <td className="py-0.5">Standard fees</td>
-          </tr>
-          <tr>
-            <td className="py-0.5 pr-2">1M+</td>
-            <td className="py-0.5">Builder tier perks</td>
-          </tr>
-          <tr>
-            <td className="py-0.5 pr-2">10M+</td>
-            <td className="py-0.5">Up to 80% off total fees</td>
-          </tr>
+          {KREX_TIER_PERKS_ROWS.map((row) => (
+            <tr key={row.tier}>
+              <td className="py-0.5 pr-2">{row.thresholdLabel}</td>
+              <td className="py-0.5 pr-2">
+                {row.feeDiscountPercent > 0 ? `${row.feeDiscountPercent}% off` : 'None'}
+              </td>
+              <td className="py-0.5">
+                {row.pointsMultiplier > 0 ? `${row.pointsMultiplier}x` : 'None'}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
-      <ul className="list-disc space-y-0.5 pl-4 text-xs text-zinc-700 dark:text-zinc-300">
-        <li>Publish: +{HUB_EARN_POINTS.vblogArticleCreate} Hub Points</li>
-        <li>Update: +{HUB_EARN_POINTS.vblogArticleUpdate} Hub Points</li>
-      </ul>
+      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+        vBlog examples at your tier (base × multiplier): publish{' '}
+        {KREX_TIER_PERKS_ROWS.map((row) => {
+          const pts = computeEarnedHubPoints(publishBase, row.tier);
+          return `${row.thresholdLabel.replace(' KREX', '')} +${pts}`;
+        }).join(' · ')}{' '}
+        pts; update{' '}
+        {KREX_TIER_PERKS_ROWS.filter((r) => r.pointsMultiplier > 0)
+          .map((row) => `+${computeEarnedHubPoints(updateBase, row.tier)} at ${row.thresholdLabel}`)
+          .join(', ')}
+        .
+      </p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        Full tables on{' '}
+        <a href="/tiers" className="text-[#02abb8] underline">
+          /Tiers
+        </a>
+        .
+      </p>
     </div>
   );
 }
 
 export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: string }) {
   const pricing = useVBlogPricing();
-  const { balance: krexBalance } = useKREXBalance();
+  const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
 
-  const sampleQuote = pricing.estimateQuote(
-    {
-      title: 'Sample',
-      description: 'Sample article',
-      content: 'Sample content for pricing preview.',
-      category: 'News',
-      tags: [],
-      featuredImage: 'https://example.com/image.jpg',
-    },
-    'create',
-  );
-  const discountPercent =
-    sampleQuote.subtotalKas > 0
-      ? Math.round((sampleQuote.discountKas / sampleQuote.subtotalKas) * 100)
-      : 0;
+  const discountPercent = pricing.tier.krexDiscountPercent;
+  const publishPts = computeEarnedHubPoints(HUB_EARN_POINTS.vblogArticleCreate, tier);
 
   const visualTier = getKrexPerkVisualTier(krexBalance);
   const ui = TIER_UI[visualTier];
+  const tierLabel = KREX_TIERS[tier].label;
 
   return (
     <>
@@ -144,7 +162,16 @@ export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: st
             </h2>
             <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
               <li>
-                <span className={ui.accent}>•</span> Up to {discountPercent || 80}% off publish fees (10M+ KREX)
+                <span className={ui.accent}>•</span>{' '}
+                {discountPercent > 0
+                  ? `${discountPercent}% off vBlog fees (${tierLabel})`
+                  : 'Stack 1M+ KREX for 2% off fees'}
+              </li>
+              <li>
+                <span className={ui.accent}>•</span>{' '}
+                {publishPts > 0
+                  ? `Publish earns +${publishPts} Hub Points at your tier`
+                  : 'Hub Points unlock at 1M+ KREX (1x multiplier)'}
               </li>
             </ul>
             <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>

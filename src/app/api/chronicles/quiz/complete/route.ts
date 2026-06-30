@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { postWorkerPtsIngest } from '@/lib/kasparex/worker-pts-ingest-server';
+import { resolveHubEarnDeltaForKaspaWallet } from '@/lib/krex/tier-from-wallet';
 import { verifyChronicleQuizEntryTx } from '@/lib/chronicles/quiz/verifyQuizEntryTx';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { getAllChapterSlugs } from '@/lib/chronicles/loaders';
@@ -40,27 +41,40 @@ export async function POST(request: NextRequest) {
 
     let ptsIngest: 'ok' | 'skipped' | 'failed' = 'skipped';
     let ptsIngestError: string | undefined;
+    const { delta: earnedPoints, tier } = await resolveHubEarnDeltaForKaspaWallet(
+      HUB_EARN_POINTS.chroniclesQuizComplete,
+      wallet,
+    );
 
     if (process.env.PTS_INGEST_SECRET?.trim()) {
       const idempotency_key = `chronicles:quiz:${chapterSlug}:${txHash}`;
-      const ptsRes = await postWorkerPtsIngest({
-        wallet,
-        delta_pts: HUB_EARN_POINTS.chroniclesQuizComplete,
-        source: 'chronicles_quiz_complete',
-        idempotency_key,
-        meta: { chapterSlug, txHash, correct, total },
-      });
-      if (!ptsRes.ok) {
-        ptsIngest = 'failed';
-        ptsIngestError = ptsRes.error;
-      } else {
-        ptsIngest = 'ok';
+      if (earnedPoints > 0) {
+        const ptsRes = await postWorkerPtsIngest({
+          wallet,
+          delta_pts: earnedPoints,
+          source: 'chronicles_quiz_complete',
+          idempotency_key,
+          meta: {
+            chapterSlug,
+            txHash,
+            correct,
+            total,
+            basePoints: HUB_EARN_POINTS.chroniclesQuizComplete,
+            krexTier: tier,
+          },
+        });
+        if (!ptsRes.ok) {
+          ptsIngest = 'failed';
+          ptsIngestError = ptsRes.error;
+        } else {
+          ptsIngest = 'ok';
+        }
       }
     }
 
     return NextResponse.json({
       ok: true,
-      points: HUB_EARN_POINTS.chroniclesQuizComplete,
+      points: earnedPoints,
       ptsIngest,
       ...(ptsIngestError ? { ptsIngestError } : {}),
     });

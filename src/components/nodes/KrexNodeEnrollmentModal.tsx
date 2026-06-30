@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError, apiClient } from '@/lib/api/client';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
@@ -109,6 +110,7 @@ export function KrexNodeEnrollmentModal(props: {
   embedded?: boolean;
 }) {
   const { state: kaspa, connect } = useKaspaWallet();
+  const { balance: krexBalance } = useKREXBalance();
   const isClient = typeof window !== 'undefined';
 
   const [step, setStep] = useState<Step>('connect');
@@ -460,6 +462,7 @@ export function KrexNodeEnrollmentModal(props: {
         walletRaw: kaspa.address,
         source: 'krex_node_operator',
         redeemableDelta: HUB_EARN_POINTS.krexNodeEnrollmentOnce,
+        krexBalance,
         idempotencyKey: `krex_node:enroll:${r.node_id}`,
         meta: { node_id: r.node_id },
       });

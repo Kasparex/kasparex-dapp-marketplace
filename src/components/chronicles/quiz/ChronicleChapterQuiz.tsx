@@ -44,7 +44,7 @@ export function ChronicleChapterQuiz({
 }) {
   const { state } = useKaspaWallet();
   const { isUnlocked } = useChroniclesEntitlements(state.address);
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
 
@@ -129,6 +129,7 @@ export function ChronicleChapterQuiz({
         walletRaw: state.address,
         source: 'chronicles_quiz_complete',
         redeemableDelta: HUB_EARN_POINTS.chroniclesQuizComplete,
+        krexBalance,
         idempotencyKey: `chronicles:quiz:${chapterSlug}:${txNorm}`,
         meta: { chapterSlug, chapterTitle, txHash: txNorm },
       });

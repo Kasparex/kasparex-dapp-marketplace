@@ -19,6 +19,7 @@ import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import type { Address } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { DONATION_CATEGORIES, isDonationCategory, normalizeTags } from '@/lib/donations/categories';
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
@@ -55,6 +56,7 @@ export default function DonationsStudioPage() {
   const writeEscrowV2Address = getContractAddress(chainId, 'DonationEscrowV2');
   const currentChain = chainId ? getChainById(chainId) : null;
   const { state: kaspaState } = useKaspaWallet();
+  const { balance: krexBalance } = useKREXBalance();
 
   const onRequiredChain = chainId === VDONATIONS_CHAIN_ID;
   const hasEscrowConfigured = Boolean(igraEscrowAddress);
@@ -348,6 +350,7 @@ export default function DonationsStudioPage() {
           walletRaw: kaspaState.address,
           source: 'crowdkas_campaign_create',
           redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+          krexBalance,
           idempotencyKey: `crowdkas:create:v2:${hash}`,
           meta: { escrow: 'v2' },
         });
@@ -410,6 +413,7 @@ export default function DonationsStudioPage() {
           walletRaw: l1Address,
           source: 'crowdkas_campaign_create',
           redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+          krexBalance,
           idempotencyKey: `crowdkas:create:v1:${hash}`,
           meta: { escrow: 'v1' },
         });

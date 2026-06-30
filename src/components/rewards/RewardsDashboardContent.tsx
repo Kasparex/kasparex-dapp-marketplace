@@ -204,8 +204,8 @@ export function RewardsDashboardContent({
                 const baseFee = 1.0;
                 const krexTierConfig = KREX_TIERS[krexTier];
                 let fee = baseFee;
-                if (krexBalance > 0) {
-                  fee = Math.max(0, fee - krexTierConfig.feeReduction);
+                if (krexBalance >= KREX_TIERS.Tier1.minKREX) {
+                  fee = Math.max(0, baseFee * (1 - krexTierConfig.feeDiscountPercent / 100));
                 }
                 const hasAnyNFT = !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
                   (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some(v => v)));

@@ -56,7 +56,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const { state } = useKaspaWallet();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
   const { upload, isUploading } = useIPFSUpload();
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
   const [kind, setKind] = useState<ChroniclesContentKind>('chapter');
@@ -155,6 +155,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           walletRaw: state.address,
           source: 'chronicles_article_create',
           redeemableDelta: HUB_EARN_POINTS.chroniclesArticleCreate,
+          krexBalance,
           idempotencyKey: `chronicles:article:${txNorm}`,
           meta: { title: title.trim() },
         });

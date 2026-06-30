@@ -12,6 +12,7 @@ import { STORE_PAYMENT_CURRENCIES } from '@/lib/store/currencies';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
@@ -28,6 +29,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const isEdit = Boolean(product);
   const router = useRouter();
   const { state } = useKaspaWallet();
+  const { balance: krexBalance } = useKREXBalance();
   const { upload, isUploading } = useIPFSUpload();
 
   const [formData, setFormData] = useState({
@@ -168,6 +170,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           walletRaw: state.address,
           source: 'store_product_list',
           redeemableDelta: HUB_EARN_POINTS.storeProductList,
+          krexBalance,
           idempotencyKey: `store:product:${txNorm}`,
           meta: { productId: productResult.product.id },
         });

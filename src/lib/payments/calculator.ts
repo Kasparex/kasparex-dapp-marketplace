@@ -72,9 +72,9 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   const baseFee = (dapp.id === 'vdonations' || dapp.slug === 'vdonations') ? 10.0 : 1.0;
   let feePercent = baseFee;
   
-  // Apply tier-based fee reduction (Tier0 has 0 reduction)
-  if (krexBalance > 0) {
-    feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
+  // Apply tier-based fee discount (1M+ KREX)
+  if (krexBalance >= KREX_TIERS.Tier1.minKREX) {
+    feePercent = Math.max(0, feePercent * (1 - tierConfig.feeDiscountPercent / 100));
   }
   
   // Apply NFT fee reductions (stack with tier reduction)

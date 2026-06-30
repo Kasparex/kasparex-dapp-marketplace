@@ -7,10 +7,15 @@ export type KREXTier = 'Tier0' | 'Tier1' | 'Tier2' | 'Tier3' | 'Tier4';
 export interface KREXTierConfig {
   tier: KREXTier;
   minKREX: number;
+  /** GRID reward multiplier (informational / calculator). */
   multiplier: number;
-  feeReduction: number; // Fee reduction from base fee (in percentage points, e.g., 0.1 = -0.1%)
+  /** Percent off fees (vBlog, vault, directory, etc.). */
+  feeDiscountPercent: number;
+  /** @deprecated Use feeDiscountPercent; kept for legacy UI that reads feeReduction. */
+  feeReduction: number;
   /** @deprecated No cost reduction; kept for backward compatibility, always 0 */
   costReduction: number;
+  /** Hub Points multiplier (0 = no hub points earned). */
   pointsMultiplier: number;
   label: string;
   description: string;
@@ -91,27 +96,30 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     tier: 'Tier0',
     minKREX: 0,
     multiplier: 0,
+    feeDiscountPercent: 0,
     feeReduction: 0,
     costReduction: 0,
     pointsMultiplier: 0,
     label: 'Tier 0',
-    description: '0 KREX',
+    description: '< 1M KREX',
   },
   Tier1: {
     tier: 'Tier1',
-    minKREX: 1,
+    minKREX: 1_000_000,
     multiplier: 1,
-    feeReduction: 0.1,
+    feeDiscountPercent: 2,
+    feeReduction: 2,
     costReduction: 0,
     pointsMultiplier: 1,
     label: 'Tier 1',
-    description: '≥ 1 KREX',
+    description: '≥ 1M KREX',
   },
   Tier2: {
     tier: 'Tier2',
     minKREX: 10_000_000,
     multiplier: 2,
-    feeReduction: 0.2,
+    feeDiscountPercent: 5,
+    feeReduction: 5,
     costReduction: 0,
     pointsMultiplier: 2,
     label: 'Tier 2',
@@ -120,20 +128,22 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
   Tier3: {
     tier: 'Tier3',
     minKREX: 50_000_000,
-    multiplier: 5,
-    feeReduction: 0.3,
+    multiplier: 3,
+    feeDiscountPercent: 50,
+    feeReduction: 50,
     costReduction: 0,
-    pointsMultiplier: 5,
+    pointsMultiplier: 3,
     label: 'Tier 3',
     description: '≥ 50M KREX',
   },
   Tier4: {
     tier: 'Tier4',
     minKREX: 100_000_000,
-    multiplier: 10,
-    feeReduction: 0.5,
+    multiplier: 4,
+    feeDiscountPercent: 80,
+    feeReduction: 80,
     costReduction: 0,
-    pointsMultiplier: 10,
+    pointsMultiplier: 4,
     label: 'Tier 4',
     description: '≥ 100M KREX',
   },

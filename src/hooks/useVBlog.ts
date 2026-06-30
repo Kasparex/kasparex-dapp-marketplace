@@ -19,6 +19,7 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { kasToSompi } from '@/lib/ads/config';
 import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import {
   buildCanonicalArticlePayload,
   fnv1aHex,
@@ -47,6 +48,7 @@ export function useVBlog() {
   const [isLoading, setIsLoading] = useState(true);
   const { state: kaspaState } = useKaspaWallet();
   const pricing = useVBlogPricing();
+  const { balance: krexBalance } = useKREXBalance();
 
   const loadArticles = useCallback(() => {
     setIsLoading(true);
@@ -247,13 +249,14 @@ export function useVBlog() {
         walletRaw: articleData.author,
         source: 'vblog_article_create',
         redeemableDelta: HUB_EARN_POINTS.vblogArticleCreate,
+        krexBalance,
         idempotencyKey: `vba:create:${bundle.commitTxHash}`,
         meta: { articleId, contentHash },
       });
     }
     loadArticles(); // Reload articles
     return newArticle;
-  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, krexBalance]);
 
   /**
    * Update an existing article
@@ -375,13 +378,14 @@ export function useVBlog() {
         walletRaw: canonicalAuthor,
         source: 'vblog_article_update',
         redeemableDelta: HUB_EARN_POINTS.vblogArticleUpdate,
+        krexBalance,
         idempotencyKey: `vba:update:${bundle.commitTxHash}`,
         meta: { articleId: chainArticleId, contentHash },
       });
     }
     loadArticles(); // Reload articles
     return updated;
-  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, krexBalance]);
 
   /**
    * Get comments for an article

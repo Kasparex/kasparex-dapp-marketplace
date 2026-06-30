@@ -19,6 +19,7 @@ import { NODES_DASH_CARD, NODES_TAB_STACK } from './nodesTabLayout';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { fetchNodeEpochReward } from '@/lib/nodes/operatorApi';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -135,6 +136,7 @@ export function NodesDashboardContent() {
   const searchParams = useSearchParams();
 
   const { state: kaspa } = useKaspaWallet();
+  const { balance: krexBalance } = useKREXBalance();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -173,6 +175,7 @@ export function NodesDashboardContent() {
             walletRaw: addr,
             source: 'krex_node_operator',
             redeemableDelta: HUB_EARN_POINTS.krexNodeOperatorDaily,
+            krexBalance,
             idempotencyKey: `krex_node:epoch:${n.node_id}:${epoch}`,
             meta: { final_grid: fg, node_id: n.node_id },
           });

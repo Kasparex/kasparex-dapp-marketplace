@@ -150,7 +150,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const { state } = useKaspaWallet();
   const { upload, isUploading } = useIPFSUpload();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
   const [name, setName] = useState(listing?.name ?? '');
@@ -408,6 +408,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           walletRaw: state.address,
           source: 'dapp_directory_list',
           redeemableDelta: HUB_EARN_POINTS.dappDirectoryList,
+          krexBalance,
           idempotencyKey: `dapps:listing:${txNorm}`,
           meta: { name: name.trim() },
         });

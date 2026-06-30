@@ -5,12 +5,22 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { computeVBlogArticlePrice, VBLOG_DELETE_BASE_FEE_KAS, type VBlogAction, type VBlogPriceQuote, type VBlogPricingDraft } from '@/lib/vblog/pricing';
-const KREX_DISCOUNT_THRESHOLD = 10_000_000; // 10M KREX
+import {
+  computeVBlogArticlePrice,
+  VBLOG_DELETE_BASE_FEE_KAS,
+  type VBlogAction,
+  type VBlogPriceQuote,
+  type VBlogPricingDraft,
+} from '@/lib/vblog/pricing';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import type { KREXTier } from '@/lib/rewards/types';
+
 const KREXPRIME_NFT_COLLECTION = 'KREXPRIME';
 const PIXELKREX_NFT_COLLECTION = 'PIXELKREX';
 
 interface UserTier {
+  krexTier: KREXTier;
+  krexDiscountPercent: number;
   hasKREXDiscount: boolean;
   hasNFTPerks: boolean;
   nftCollections: string[];
@@ -25,32 +35,20 @@ interface PricingInfo {
   estimateQuote: (draft: VBlogPricingDraft, action: VBlogAction) => VBlogPriceQuote;
 }
 
-/**
- * Mock function to check NFT holdings
- * TODO: Replace with actual NFT checking logic
- */
 async function checkNFTHoldings(walletAddress: string | null): Promise<string[]> {
   if (!walletAddress || typeof window === 'undefined') return [];
 
-  // Mock: Check localStorage for NFT holdings
-  // In production, this would query the NFT contracts
   try {
     const stored = localStorage.getItem(`nft_holdings_${walletAddress.toLowerCase()}`);
     if (stored) {
       return JSON.parse(stored);
     }
-
-    // For testing, return empty array
     return [];
   } catch {
     return [];
   }
 }
 
-
-/**
- * Hook to get vBlog pricing based on user's holdings
- */
 export function useVBlogPricing() {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
@@ -58,46 +56,50 @@ export function useVBlogPricing() {
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
-  // Get real KREX balance from hook
   const { balance: krexBalance, tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
-  const hasKREXDiscount = krexBalance >= KREX_DISCOUNT_THRESHOLD;
-  const discountPercent = hasKREXDiscount ? 80 : 0;
+  const krexDiscountPercent = krexTierDiscountPercent(krexTier);
 
-  // Initialize with default values - always return a stable object
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 10.41,
     editFee: 2.41,
     deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
     isPremium: false,
     tier: {
+      krexTier: 'Tier0',
+      krexDiscountPercent: 0,
       hasKREXDiscount: false,
       hasNFTPerks: false,
       nftCollections: [],
     },
-    estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
+    estimateQuote: (draft, action) =>
+      computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
   });
 
   useEffect(() => {
-    // Only run on client side
     if (typeof window === 'undefined') {
       return;
     }
 
-    // Use a flag to prevent state updates if component unmounts
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
 
     const loadPricing = async () => {
       try {
+        const discountPct = krexTierDiscountPercent(krexTier);
+
         if (!walletAddress) {
-          // CRITICAL: Only update state if it's different to prevent infinite loops
-          // Check if current state is already the default before setting
-          setPricingInfo(prev => {
-            if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
-              !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
-              prev.tier.nftCollections.length === 0) {
-              return prev; // Already at default, don't update
+          setPricingInfo((prev) => {
+            if (
+              prev.createFee === 10.41 &&
+              prev.editFee === 2.41 &&
+              prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS &&
+              !prev.isPremium &&
+              !prev.tier.hasKREXDiscount &&
+              !prev.tier.hasNFTPerks &&
+              prev.tier.nftCollections.length === 0
+            ) {
+              return prev;
             }
             return {
               createFee: 10.41,
@@ -105,44 +107,56 @@ export function useVBlogPricing() {
               deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
               isPremium: false,
               tier: {
+                krexTier: 'Tier0',
+                krexDiscountPercent: 0,
                 hasKREXDiscount: false,
                 hasNFTPerks: false,
                 nftCollections: [],
               },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
+              estimateQuote: (draft, action) =>
+                computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
             };
           });
           return;
         }
 
-        // Use setTimeout to defer async operations and prevent hook order issues
         timeoutId = setTimeout(async () => {
           try {
             const nftHoldings = await checkNFTHoldings(walletAddress).catch(() => [] as string[]);
 
             if (!isMounted) return;
 
-            // Use KREX balance from hook (available in closure)
-            const hasKREXDiscountInner = krexBalance >= KREX_DISCOUNT_THRESHOLD;
             const hasKREXPRIME = nftHoldings.includes(KREXPRIME_NFT_COLLECTION);
             const hasPIXELKREX = nftHoldings.includes(PIXELKREX_NFT_COLLECTION);
             const hasNFTPerks = hasKREXPRIME || hasPIXELKREX;
-            const createQuote = computeVBlogArticlePrice({ title: '', description: '', content: '' }, 'create', hasKREXDiscountInner ? 80 : 0);
-            const editQuote = computeVBlogArticlePrice({ title: '', description: '', content: '' }, 'edit', hasKREXDiscountInner ? 80 : 0);
+            const createQuote = computeVBlogArticlePrice(
+              { title: '', description: '', content: '' },
+              'create',
+              discountPct,
+            );
+            const editQuote = computeVBlogArticlePrice(
+              { title: '', description: '', content: '' },
+              'edit',
+              discountPct,
+            );
 
             if (isMounted) {
-              // CRITICAL: Only update if values actually changed to prevent infinite loops
-              setPricingInfo(prev => {
+              setPricingInfo((prev) => {
                 const newCreateFee = createQuote.totalKas;
                 const newEditFee = editQuote.totalKas;
+                const hasDiscount = discountPct > 0;
 
-                if (prev.createFee === newCreateFee &&
+                if (
+                  prev.createFee === newCreateFee &&
                   prev.editFee === newEditFee &&
                   prev.isPremium === hasNFTPerks &&
-                  prev.tier.hasKREXDiscount === hasKREXDiscountInner &&
+                  prev.tier.hasKREXDiscount === hasDiscount &&
+                  prev.tier.krexDiscountPercent === discountPct &&
+                  prev.tier.krexTier === krexTier &&
                   prev.tier.hasNFTPerks === hasNFTPerks &&
-                  JSON.stringify(prev.tier.nftCollections.sort()) === JSON.stringify(nftHoldings.sort())) {
-                  return prev; // No changes, don't update
+                  JSON.stringify(prev.tier.nftCollections.sort()) === JSON.stringify(nftHoldings.sort())
+                ) {
+                  return prev;
                 }
 
                 return {
@@ -151,12 +165,14 @@ export function useVBlogPricing() {
                   deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
                   isPremium: hasNFTPerks,
                   tier: {
-                    hasKREXDiscount: hasKREXDiscountInner,
+                    krexTier,
+                    krexDiscountPercent: discountPct,
+                    hasKREXDiscount: hasDiscount,
                     hasNFTPerks,
                     nftCollections: nftHoldings,
                   },
                   estimateQuote: (draft, action) =>
-                    computeVBlogArticlePrice(draft, action, hasKREXDiscountInner ? 80 : 0, {
+                    computeVBlogArticlePrice(draft, action, discountPct, {
                       tier: krexTier,
                       nft: nftStatus,
                     }),
@@ -164,54 +180,14 @@ export function useVBlogPricing() {
               });
             }
           } catch (error) {
-            // Silently fail and use default pricing
             if (isMounted) {
               console.error('Error loading pricing info:', error);
-              setPricingInfo(prev => {
-                if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
-                  !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
-                  prev.tier.nftCollections.length === 0) {
-                  return prev; // Already at default
-                }
-                return {
-                  createFee: 10.41,
-                  editFee: 2.41,
-                  deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
-                  isPremium: false,
-                  tier: {
-                    hasKREXDiscount: false,
-                    hasNFTPerks: false,
-                    nftCollections: [],
-                  },
-                  estimateQuote: (draft, action) =>
-                    computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
-                };
-              });
             }
           }
         }, 0);
       } catch (error) {
-        // Ultimate fallback
         if (isMounted) {
-          setPricingInfo(prev => {
-            if (prev.createFee === 10.41 && prev.editFee === 2.41 && prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS && !prev.isPremium &&
-              !prev.tier.hasKREXDiscount && !prev.tier.hasNFTPerks &&
-              prev.tier.nftCollections.length === 0) {
-              return prev; // Already at default
-            }
-            return {
-              createFee: 10.41,
-              editFee: 2.41,
-              deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
-              isPremium: false,
-              tier: {
-                hasKREXDiscount: false,
-                hasNFTPerks: false,
-                nftCollections: [],
-              },
-              estimateQuote: (draft, action) => computeVBlogArticlePrice(draft, action, 0, { tier: krexTier, nft: nftStatus }),
-            };
-          });
+          console.error('Error loading pricing info:', error);
         }
       }
     };
@@ -224,8 +200,7 @@ export function useVBlogPricing() {
         clearTimeout(timeoutId);
       }
     };
-  }, [walletAddress, isWalletConnected, krexBalance, discountPercent, krexTier, nftStatus]);
+  }, [walletAddress, isWalletConnected, krexBalance, krexTier, krexDiscountPercent, nftStatus]);
 
   return pricingInfo;
 }
-

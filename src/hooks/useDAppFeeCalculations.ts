@@ -37,8 +37,8 @@ export function useDAppFeeCalculations(dapp: DApp, contractAddress?: string) {
   const feeCalc = useMemo(() => {
     const baseFee = 1.0;
     let feePercent = baseFee;
-    if (krexBalance > 0) {
-      feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
+    if (krexBalance >= KREX_TIERS.Tier1.minKREX) {
+      feePercent = Math.max(0, feePercent * (1 - tierConfig.feeDiscountPercent / 100));
     }
 
     const hasAnyNFT = !!(

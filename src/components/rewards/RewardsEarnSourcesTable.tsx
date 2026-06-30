@@ -125,7 +125,12 @@ export function RewardsEarnSourcesTable() {
         </tbody>
       </table>
       <div className={RX_HISTORY_FOOTER_NOTE}>
-        Policy constants evolve over time. Spending in Catalog (offers or token pools) lands in{' '}
+        Typical weights are base Hub Points before your KREX tier multiplier (0 below 1M KREX; 1x at 1M+; up to 4x at
+        100M+). See{' '}
+        <Link href="/tiers" className="text-[#02abb8] hover:underline font-medium">
+          /Tiers
+        </Link>{' '}
+        for the full table. Spending in Catalog (offers or token pools) lands in{' '}
         <Link href="/rewards#rewards-history" className="text-[#02abb8] hover:underline font-medium">
           History
         </Link>

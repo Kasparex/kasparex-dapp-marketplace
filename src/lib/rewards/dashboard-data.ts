@@ -57,14 +57,14 @@ export function getAllKREXTierRewards(): RewardItem[] {
     description: tier.tier === 'Tier0' ? 'No KREX held' : `Hold at least ${formatLargeNumber(tier.minKREX)} KREX tokens`,
     requirement: tier.tier === 'Tier0' ? 'No KREX' : `≥ ${formatLargeNumber(tier.minKREX)} KREX`,
     multiplier: tier.multiplier,
-    feeReduction: tier.feeReduction,
+    feeReduction: tier.feeDiscountPercent,
     points: undefined,
     benefits: tier.tier === 'Tier0'
-      ? ['No perks']
+      ? ['No fee discount', 'No Hub Points multiplier']
       : [
-          `${tier.multiplier}x reward multiplier`,
-          `-${tier.feeReduction}% fee reduction`,
-          `${tier.pointsMultiplier}x points multiplier`,
+          `${tier.feeDiscountPercent}% off fees`,
+          `${tier.pointsMultiplier > 0 ? `${tier.pointsMultiplier}x` : 'No'} Hub Points multiplier`,
+          `${tier.multiplier > 0 ? `${tier.multiplier}x` : 'No'} GRID multiplier (calculator)`,
         ],
     isUnlocked: false, // Will be set by getUserRewardStatus
     userStatus: undefined,

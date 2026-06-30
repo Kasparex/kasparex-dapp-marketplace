@@ -26,6 +26,7 @@ import {
 } from '@/lib/magazines/data';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 interface EditorBlock {
   id: string;
@@ -38,6 +39,7 @@ const MAGAZINE_TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
 export function MagazineEditor() {
   const { state: kaspa } = useKaspaWallet();
+  const { balance: krexBalance } = useKREXBalance();
   const { uploadJSON, isUploading } = useIPFSUpload();
 
   const [title, setTitle] = useState('New Magazine Issue');
@@ -239,6 +241,7 @@ export function MagazineEditor() {
         walletRaw: payer,
         source: 'magazine_issue_publish',
         redeemableDelta: HUB_EARN_POINTS.magazineIssuePublish,
+        krexBalance,
         idempotencyKey: `mag:publish:${txHash}`,
         meta: { cid, slug: mag.slug, issueNumber, magazineId: mag.id },
       });

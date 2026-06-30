@@ -1,16 +1,9 @@
 import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { VAULT_MAX_COMBINED_DISCOUNT_PERCENT } from '@/lib/chronicles/vault/constants';
 
-const KREX_DISCOUNT_PCT: Record<KREXTier, number> = {
-  Tier0: 0,
-  Tier1: 2,
-  Tier2: 5,
-  Tier3: 9,
-  Tier4: 14,
-};
-
 export function krexTierDiscountPercent(tier: KREXTier): number {
-  return KREX_DISCOUNT_PCT[tier] ?? 0;
+  return KREX_TIERS[tier]?.feeDiscountPercent ?? 0;
 }
 
 export function chroniclesNftTierDiscountPercent(nft: NFTStatus | null | undefined): number {

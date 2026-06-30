@@ -3,6 +3,7 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { verifyVBlogArticleTxBundle } from '@/lib/vblog/verifyArticleTx';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { postWorkerPtsIngest } from '@/lib/kasparex/worker-pts-ingest-server';
+import { resolveHubEarnDeltaForKaspaWallet } from '@/lib/krex/tier-from-wallet';
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,24 +52,29 @@ export async function POST(request: NextRequest) {
     let ptsIngestError: string | undefined;
     if (ingestSecret) {
       try {
-        const delta =
+        const basePoints =
           op === 'edit' ? HUB_EARN_POINTS.vblogArticleUpdate : HUB_EARN_POINTS.vblogArticleCreate;
+        const { delta, tier } = await resolveHubEarnDeltaForKaspaWallet(basePoints, payerAddress);
         const idempotency_key =
           op === 'edit' ? `vba:update:${commitTxHash}` : `vba:create:${commitTxHash}`;
         const source = op === 'edit' ? 'vblog_article_update' : 'vblog_article_create';
-        const ptsRes = await postWorkerPtsIngest({
-          wallet: payerAddress,
-          delta_pts: delta,
-          source,
-          idempotency_key,
-          meta: { articleId, commitTxHash, op },
-        });
-        if (!ptsRes.ok) {
-          ptsIngest = 'failed';
-          ptsIngestError = ptsRes.error;
-          console.error('[vblog/verify] worker pts ingest failed', ptsRes.status, ptsRes.error);
+        if (delta > 0) {
+          const ptsRes = await postWorkerPtsIngest({
+            wallet: payerAddress,
+            delta_pts: delta,
+            source,
+            idempotency_key,
+            meta: { articleId, commitTxHash, op, basePoints, krexTier: tier },
+          });
+          if (!ptsRes.ok) {
+            ptsIngest = 'failed';
+            ptsIngestError = ptsRes.error;
+            console.error('[vblog/verify] worker pts ingest failed', ptsRes.status, ptsRes.error);
+          } else {
+            ptsIngest = 'ok';
+          }
         } else {
-          ptsIngest = 'ok';
+          ptsIngest = 'skipped';
         }
       } catch (e) {
         ptsIngest = 'failed';

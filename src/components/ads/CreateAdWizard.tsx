@@ -111,7 +111,7 @@ export function CreateAdWizard({
   const { ads, refresh: registryRefresh, upsertAd } = useAdsRegistryContext();
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
   const { payAdCampaign, isProcessing: isPayProcessing } = useAdsPayment();
-  const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance, l1Balance: krexL1Balance } = useKREXBalance();
 
   const l1Ready = Boolean(kaspaState.address) && Boolean(kaspaState.provider);
 
@@ -427,6 +427,7 @@ export function CreateAdWizard({
           walletRaw: payerL1,
           source: 'hub_ad_placement',
           redeemableDelta: HUB_EARN_POINTS.hubAdPlacement,
+          krexBalance,
           idempotencyKey: `ads:bind:${hash}`,
           meta: { slotId, slotIndex },
         });

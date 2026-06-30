@@ -96,9 +96,7 @@ export function calculateRewards(
   const finalXP = baseXP * pointsMultiplier;
 
   const baseFee = inputs.feeSettings.baseFeePercent;
-  let feePercent = baseFee;
-
-  feePercent = Math.max(0, feePercent - tierConfig.feeReduction);
+  let feePercent = baseFee * (1 - tierConfig.feeDiscountPercent / 100);
 
   if (hasRarestNFT) {
     feePercent = 0;

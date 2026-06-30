@@ -84,7 +84,7 @@ function savePersistedMinecore(key: string, state: MinecoreState) {
 
 export function useMinecore() {
   const { state: walletState } = useKaspaWallet();
-  const { tier: krexTier, l1Balance: krexL1Balance } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance, l1Balance: krexL1Balance } = useKREXBalance();
 
   const walletAddr = walletState.address?.trim() ?? '';
 
@@ -374,6 +374,7 @@ export function useMinecore() {
         walletRaw: walletState.address,
         source: 'dapp_l1_interaction',
         redeemableDelta: HUB_EARN_POINTS.dappL1Interaction,
+        krexBalance,
         idempotencyKey: `l1:minecore:${params.skuId}:${params.purchaseType}:${txNorm}`,
         meta: { skuId: params.skuId, purchaseType: params.purchaseType },
       });
@@ -446,6 +447,7 @@ export function useMinecore() {
           walletRaw: walletState.address,
           source: 'dapp_l1_interaction',
           redeemableDelta: HUB_EARN_POINTS.dappL1Interaction,
+          krexBalance,
           idempotencyKey: `l1:minecore:krex:${meta.skuId}:${txNorm}`,
           meta: { skuId: meta.skuId, purchaseType: meta.recordActionType },
         });
