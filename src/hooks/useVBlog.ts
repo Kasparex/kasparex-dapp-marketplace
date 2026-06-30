@@ -313,6 +313,11 @@ export function useVBlog() {
       modules: merged.modules,
     }, 'edit');
     const contentHash = fnv1aHex(canonicalPayload);
+    const magazineIntegrationEnabled = Boolean(merged.linkedMagazineId && merged.linkedIssueNumber);
+    const previouslyPaidModuleIds = getEnabledVBlogModuleIds(
+      existing.modules,
+      Boolean(existing.linkedMagazineId && existing.linkedIssueNumber),
+    );
     const quote = pricing.estimateQuote({
       title: merged.title,
       description: merged.description,
@@ -326,6 +331,8 @@ export function useVBlog() {
       primaryLink: merged.primaryLink,
       socialLinks: merged.socialLinks,
       modules: merged.modules,
+      magazineIntegrationEnabled,
+      excludeModuleIds: previouslyPaidModuleIds,
     }, 'edit');
     const chainArticleId = existing.articleId ?? `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const bundle = await sendVBlogTxBundle({
@@ -352,6 +359,13 @@ export function useVBlog() {
         totalKas: quote.totalKas,
       },
     });
+    const magazineIntegrationEnabled = Boolean(merged.linkedMagazineId && merged.linkedIssueNumber);
+    const newlyEnabledModuleIds = getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled).filter(
+      (id) => !previouslyPaidModuleIds.includes(id),
+    );
+    if (kaspaState.address && newlyEnabledModuleIds.length > 0) {
+      activateAuthorModules(kaspaState.address, newlyEnabledModuleIds);
+    }
     if (bundle.verified && bundle.commitTxHash) {
       appendHubActivityEarn({
         walletRaw: canonicalAuthor,

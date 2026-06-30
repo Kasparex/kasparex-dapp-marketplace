@@ -85,9 +85,6 @@ export function VBlogCategoryField({ authorAddress, value, onChange, disabled }:
         </button>
       </div>
       {customError ? <p className="text-xs text-red-500 dark:text-red-400">{customError}</p> : null}
-      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-        Custom categories appear in filters and search across vBlog.
-      </p>
     </div>
   );
 }

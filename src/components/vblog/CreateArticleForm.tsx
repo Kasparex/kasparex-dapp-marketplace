@@ -19,7 +19,8 @@ import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
-import { getVBlogModuleEffectivePriceKas, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
+import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
+import type { VBlogModuleId } from '@/lib/vblog/types';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
@@ -135,6 +136,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     ],
   );
 
+  const originalPaidModuleIds = useMemo((): VBlogModuleId[] => {
+    if (!article) return [];
+    return getEnabledVBlogModuleIds(
+      article.modules,
+      Boolean(article.linkedMagazineId && article.linkedIssueNumber),
+    );
+  }, [article]);
+
   const formQuote = pricing.estimateQuote(
     {
       title,
@@ -150,6 +159,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
       modules: modulesPayload,
       magazineIntegrationEnabled,
+      excludeModuleIds: isEditMode ? originalPaidModuleIds : undefined,
     },
     isEditMode ? 'edit' : 'create',
   );
@@ -586,13 +596,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           <KxInFormPremiumList>
             {formModuleOffers.map((offer) => {
               const enabled = moduleEnabledMap[offer.id];
+              const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
               const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
               return (
                 <div key={offer.id} className="space-y-2">
                   <KxInFormPremiumRow
                     title={offer.title}
                     description={offer.description}
-                    priceLabel={`+${effectiveKas} KAS`}
+                    priceLabel={alreadyPaid ? 'Paid' : `+${effectiveKas} KAS`}
                     checked={enabled}
                     disabled={isSubmitting}
                     onToggle={() => setModuleEnabled(offer.id, !enabled)}

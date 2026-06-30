@@ -1,4 +1,4 @@
-import type { VBlogArticle, VBlogModulesConfig } from '@/lib/vblog/types';
+import type { VBlogArticle, VBlogModuleId, VBlogModulesConfig } from '@/lib/vblog/types';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { computeVBlogModuleAddonKas, type VBlogModuleAddonLine } from '@/lib/vblog/modules';
@@ -26,6 +26,8 @@ export interface VBlogPricingDraft {
   socialLinks?: string[];
   modules?: VBlogModulesConfig;
   magazineIntegrationEnabled?: boolean;
+  /** Module IDs already paid on a prior publish (excluded from edit pricing). */
+  excludeModuleIds?: VBlogModuleId[];
 }
 
 function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string, unknown> | null {
@@ -162,6 +164,7 @@ export function computeVBlogArticlePrice(
         draft.magazineIntegrationEnabled === true,
         modulePricing.tier,
         modulePricing.nft,
+        draft.excludeModuleIds ?? [],
       )
     : { totalKas: 0, lines: [] as VBlogModuleAddonLine[] };
   const totalKas = round2(baseFeeKas + sizeFeeKas + networkFeeBufferKas + moduleAddon.totalKas);

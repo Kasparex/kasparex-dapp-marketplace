@@ -145,8 +145,12 @@ export function computeVBlogModuleAddonKas(
   magazineIntegrationEnabled: boolean,
   tier: KREXTier,
   nft: NFTStatus | null | undefined,
+  excludeModuleIds: VBlogModuleId[] = [],
 ): { totalKas: number; lines: VBlogModuleAddonLine[] } {
-  const enabledIds = getEnabledVBlogModuleIds(modules, magazineIntegrationEnabled);
+  const exclude = new Set(excludeModuleIds);
+  const enabledIds = getEnabledVBlogModuleIds(modules, magazineIntegrationEnabled).filter(
+    (id) => !exclude.has(id),
+  );
   const lines: VBlogModuleAddonLine[] = enabledIds.map((id) => {
     const offer = VBLOG_MODULE_OFFERS.find((x) => x.id === id);
     const base = offer?.unlockPriceKas ?? 0;
