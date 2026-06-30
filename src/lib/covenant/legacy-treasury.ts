@@ -28,6 +28,6 @@ export async function maybePayLegacyTreasury(args: {
   });
 }
 
-export function useLegacyTreasuryBinding(mode: string): boolean {
+export function shouldUseLegacyTreasury(mode: string): boolean {
   return mode === 'simulator' && Boolean(COVENANT_LAB_CONFIG.treasuryAddress);
 }

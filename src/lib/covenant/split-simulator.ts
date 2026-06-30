@@ -6,7 +6,7 @@ import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
 import { buildSplitCommitNote } from './payload';
-import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
+import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type {
   CreateSplitParams,
@@ -123,7 +123,7 @@ class SplitPaymentSimulatorRuntime implements SplitPaymentRuntime {
     const covenantId = `cov_split_${id.slice(-12)}_${randomHex(6)}`;
 
     let lockTxHash = params.lockTxHash;
-    if (useLegacyTreasuryBinding(this.mode)) {
+    if (shouldUseLegacyTreasury(this.mode)) {
       lockTxHash = await maybePayLegacyTreasury({
         ctx,
         amountSompi: params.totalSompi,

@@ -1,0 +1,19 @@
+---
+description: Silverscript / L1 covenant design checklist from official docs
+globs: covenant-lockbox/**,src/lib/covenant/**,src/lib/programmability/**,docs/*COVENANT*,docs/*TOCCATA*
+alwaysApply: false
+---
+
+# Silverscript / L1 covenant design checklist
+
+Before building or changing Kaspa L1 covenant flows in this repo, confirm these points (from Silverscript docs):
+
+1. **Prefer Silverscript** unless raw script is explicitly required.
+2. **Classify the transition**: 1:1, 1:N, N:M, leader/delegate, or multi-contract.
+3. **Validate successor outputs**, not only spent inputs.
+4. **Use covenant IDs for lineage**, but do not treat them as a substitute for transition validation.
+5. **Keep on-chain state small** enough for script limits and transaction mass.
+6. **Use template-aware helpers** when reading or validating foreign contract state.
+7. **Avoid a single global mutable UTXO** as the only coordination point unless the app can tolerate that bottleneck.
+
+Do not name plain helpers with a `use*` prefix unless they are real React hooks (ESLint `react-hooks/rules-of-hooks`).

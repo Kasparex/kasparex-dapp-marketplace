@@ -6,7 +6,7 @@ import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
 import { buildLockboxCommitNote } from './payload';
-import { maybePayLegacyTreasury, useLegacyTreasuryBinding } from './legacy-treasury';
+import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { CovenantRuntime } from './runtime';
 import type {
   CovenantVault,
@@ -91,7 +91,7 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     const id = `vault_${Date.now()}_${randomHex(4)}`;
     let lockTxHash = params.lockTxHash;
 
-    if (useLegacyTreasuryBinding(this.mode)) {
+    if (shouldUseLegacyTreasury(this.mode)) {
       lockTxHash = await maybePayLegacyTreasury({
         ctx,
         amountSompi: params.amountSompi,
