@@ -1,10 +1,9 @@
-import { CHAIN_IDS } from '@/lib/wagmi';
-
+/** L2 chain logos keyed by chain id (avoids importing wagmi.ts and circular init). */
 export const L2_CHAIN_LOGOS: Partial<Record<number, string>> = {
-  [CHAIN_IDS.KASPLEX_L2_MAINNET]: '/img/logos/kasplex.png',
-  [CHAIN_IDS.KASPLEX_L2_TESTNET]: '/img/logos/kasplex.png',
-  [CHAIN_IDS.IGRA_GALLEON_TESTNET]: '/img/logos/igra.png',
-  [CHAIN_IDS.IGRA_MAINNET]: '/img/logos/igra.png',
+  202555: '/img/logos/kasplex.png',
+  167012: '/img/logos/kasplex.png',
+  38836: '/img/logos/igra.png',
+  38833: '/img/logos/igra.png',
 };
 
 export function getL2ChainLogoSrc(chainId: number): string | undefined {

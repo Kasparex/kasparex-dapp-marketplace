@@ -6,8 +6,8 @@ import { defineChain, type Chain } from 'viem';
 import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
 import { L2_CHAIN_LOGOS } from '@/lib/chains/logos';
 
-function withRainbowKitChainIcon(chain: Chain, chainId: number): RainbowKitChain {
-  const iconUrl = L2_CHAIN_LOGOS[chainId];
+function withRainbowKitChainIcon(chain: Chain): RainbowKitChain {
+  const iconUrl = L2_CHAIN_LOGOS[chain.id];
   if (!iconUrl) return chain;
   return { ...chain, iconUrl, iconBackground: '#18181b' };
 }
@@ -249,10 +249,10 @@ if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectPr
 }
 
 const wagmiChains = [
-  withRainbowKitChainIcon(kasplexL2Mainnet, CHAIN_IDS.KASPLEX_L2_MAINNET),
-  withRainbowKitChainIcon(kasplexL2Testnet, CHAIN_IDS.KASPLEX_L2_TESTNET),
-  withRainbowKitChainIcon(igraGalleonTestnet, CHAIN_IDS.IGRA_GALLEON_TESTNET),
-  withRainbowKitChainIcon(igraMainnet, CHAIN_IDS.IGRA_MAINNET),
+  withRainbowKitChainIcon(kasplexL2Mainnet),
+  withRainbowKitChainIcon(kasplexL2Testnet),
+  withRainbowKitChainIcon(igraGalleonTestnet),
+  withRainbowKitChainIcon(igraMainnet),
 ] as const;
 
 const { connectors: rainbowKitConnectors } = getDefaultWallets({
