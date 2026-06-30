@@ -19,8 +19,7 @@ import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
-import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
-import type { VBlogModuleId } from '@/lib/vblog/types';
+import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
@@ -138,10 +137,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
   const originalPaidModuleIds = useMemo((): VBlogModuleId[] => {
     if (!article) return [];
-    return getEnabledVBlogModuleIds(
-      article.modules,
-      Boolean(article.linkedMagazineId && article.linkedIssueNumber),
-    );
+    return getArticlePaidModuleIds(article);
   }, [article]);
 
   const formQuote = pricing.estimateQuote(

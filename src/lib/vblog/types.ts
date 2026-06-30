@@ -74,6 +74,8 @@ export interface VBlogArticle {
   primaryLink?: string;
   socialLinks?: string[];
   modules?: VBlogModulesConfig;
+  /** Module IDs paid/unlocked for this article (not shared across articles). */
+  paidModuleIds?: VBlogModuleId[];
   /** Author layout preferences for article readers. */
   layoutPreferences?: {
     sidebarShownByDefault?: boolean;

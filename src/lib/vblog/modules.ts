@@ -164,6 +164,19 @@ export function computeVBlogModuleAddonKas(
   return { totalKas, lines };
 }
 
+export function getArticlePaidModuleIds(article: {
+  paidModuleIds?: VBlogModuleId[];
+  modules?: VBlogModulesConfig;
+  linkedMagazineId?: string;
+  linkedIssueNumber?: number;
+}): VBlogModuleId[] {
+  if (article.paidModuleIds?.length) return article.paidModuleIds;
+  return getEnabledVBlogModuleIds(
+    article.modules,
+    Boolean(article.linkedMagazineId && article.linkedIssueNumber),
+  );
+}
+
 export function activateAuthorModules(wallet: string, moduleIds: VBlogModuleId[]): VBlogModuleId[] {
   let unlocked = getAuthorUnlockedModules(wallet);
   for (const id of moduleIds) {

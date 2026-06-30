@@ -37,7 +37,7 @@ import { getRestTransactionById } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { activateAuthorModules, getEnabledVBlogModuleIds } from '@/lib/vblog/modules';
+import { getEnabledVBlogModuleIds, getArticlePaidModuleIds } from '@/lib/vblog/modules';
 
 /**
  * Hook for managing vBlog data
@@ -220,26 +220,26 @@ export function useVBlog() {
       totalKas: quote.totalKas,
       contentHash,
     });
-    const newArticle = createArticle(articleData, {
-      articleId,
-      txHash: bundle.commitTxHash,
-      status: bundle.verified ? 'verified' : 'verification_pending',
-      chunkTxHashes: bundle.chunkTxHashes,
-      commitTxHash: bundle.commitTxHash,
-      contentHash,
-      pricingSnapshot: {
-        payloadBytes: quote.payloadBytes,
-        chunkCount: quote.chunkCount,
-        baseFeeKas: quote.baseFeeKas,
-        sizeFeeKas: quote.sizeFeeKas,
-        networkFeeBufferKas: quote.networkFeeBufferKas,
-        totalKas: quote.totalKas,
-      },
-    });
     const enabledModuleIds = getEnabledVBlogModuleIds(articleData.modules, magazineIntegrationEnabled);
-    if (kaspaState.address && enabledModuleIds.length > 0) {
-      activateAuthorModules(kaspaState.address, enabledModuleIds);
-    }
+    const newArticle = createArticle(
+      { ...articleData, paidModuleIds: enabledModuleIds },
+      {
+        articleId,
+        txHash: bundle.commitTxHash,
+        status: bundle.verified ? 'verified' : 'verification_pending',
+        chunkTxHashes: bundle.chunkTxHashes,
+        commitTxHash: bundle.commitTxHash,
+        contentHash,
+        pricingSnapshot: {
+          payloadBytes: quote.payloadBytes,
+          chunkCount: quote.chunkCount,
+          baseFeeKas: quote.baseFeeKas,
+          sizeFeeKas: quote.sizeFeeKas,
+          networkFeeBufferKas: quote.networkFeeBufferKas,
+          totalKas: quote.totalKas,
+        },
+      },
+    );
     if (!bundle.verified) {
       console.warn('Article created with pending verification:', bundle.lastError);
     } else if (bundle.commitTxHash && articleData.author) {
@@ -314,10 +314,7 @@ export function useVBlog() {
     }, 'edit');
     const contentHash = fnv1aHex(canonicalPayload);
     const magazineIntegrationEnabled = Boolean(merged.linkedMagazineId && merged.linkedIssueNumber);
-    const previouslyPaidModuleIds = getEnabledVBlogModuleIds(
-      existing.modules,
-      Boolean(existing.linkedMagazineId && existing.linkedIssueNumber),
-    );
+    const previouslyPaidModuleIds = getArticlePaidModuleIds(existing);
     const quote = pricing.estimateQuote({
       title: merged.title,
       description: merged.description,
@@ -343,28 +340,36 @@ export function useVBlog() {
       totalKas: quote.totalKas,
       contentHash,
     });
-    const updated = updateArticle(articleId, updates, {
-      articleId: chainArticleId,
-      txHash: bundle.commitTxHash,
-      status: bundle.verified ? 'verified' : 'verification_pending',
-      chunkTxHashes: bundle.chunkTxHashes,
-      commitTxHash: bundle.commitTxHash,
-      contentHash,
-      pricingSnapshot: {
-        payloadBytes: quote.payloadBytes,
-        chunkCount: quote.chunkCount,
-        baseFeeKas: quote.baseFeeKas,
-        sizeFeeKas: quote.sizeFeeKas,
-        networkFeeBufferKas: quote.networkFeeBufferKas,
-        totalKas: quote.totalKas,
+    const updated = updateArticle(
+      articleId,
+      {
+        ...updates,
+        paidModuleIds: [
+          ...new Set([
+            ...previouslyPaidModuleIds,
+            ...getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled).filter(
+              (id) => !previouslyPaidModuleIds.includes(id),
+            ),
+          ]),
+        ],
       },
-    });
-    const newlyEnabledModuleIds = getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled).filter(
-      (id) => !previouslyPaidModuleIds.includes(id),
+      {
+        articleId: chainArticleId,
+        txHash: bundle.commitTxHash,
+        status: bundle.verified ? 'verified' : 'verification_pending',
+        chunkTxHashes: bundle.chunkTxHashes,
+        commitTxHash: bundle.commitTxHash,
+        contentHash,
+        pricingSnapshot: {
+          payloadBytes: quote.payloadBytes,
+          chunkCount: quote.chunkCount,
+          baseFeeKas: quote.baseFeeKas,
+          sizeFeeKas: quote.sizeFeeKas,
+          networkFeeBufferKas: quote.networkFeeBufferKas,
+          totalKas: quote.totalKas,
+        },
+      },
     );
-    if (kaspaState.address && newlyEnabledModuleIds.length > 0) {
-      activateAuthorModules(kaspaState.address, newlyEnabledModuleIds);
-    }
     if (bundle.verified && bundle.commitTxHash) {
       appendHubActivityEarn({
         walletRaw: canonicalAuthor,
