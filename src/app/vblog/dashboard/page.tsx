@@ -42,7 +42,7 @@ function VBlogDashboardPageContent() {
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
             <div className="max-w-6xl mx-auto">
               <div className="mb-8 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Author dashboard</p>
                   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
                     Creator <span className="text-[#02abb8]">Center</span>
@@ -51,7 +51,7 @@ function VBlogDashboardPageContent() {
                     Manage your decentralized vBlog publications
                   </p>
                 </div>
-                <VBlogDashboardBenefitsPanel />
+                <VBlogDashboardBenefitsPanel layout="vertical" />
               </div>
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>

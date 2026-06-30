@@ -18,6 +18,7 @@ import { AuthorArticlesTab } from '@/components/vblog/AuthorArticlesTab';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { IconArticle, IconAuthor, IconComments, IconModules } from '@/components/dapps/icons/DAppTabIcons';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
+import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
@@ -76,6 +77,7 @@ export function ArticleDetail({
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [selectedPollOption, setSelectedPollOption] = useState(0);
+  const [featuredLightboxOpen, setFeaturedLightboxOpen] = useState(false);
 
   const rightPanelDefault = article.layoutPreferences?.rightPanelShownByDefault ?? true;
   const [rightOpen, setRightOpen] = useVBlogRightPanelOpen(true, rightPanelDefault);
@@ -90,6 +92,7 @@ export function ArticleDetail({
   );
 
   const authorDisplay = formatAddress(article.author);
+  const featuredImageSrc = article.featuredImage?.trim() ?? '';
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
   const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
@@ -330,7 +333,9 @@ export function ArticleDetail({
               src={article.featuredImage}
               title={article.title}
               variant="hero"
+              className="absolute inset-0 h-full w-full"
               imgClassName="absolute inset-0 w-full h-full object-cover"
+              onImageClick={featuredImageSrc ? () => setFeaturedLightboxOpen(true) : undefined}
             />
           </div>
         </div>
@@ -538,6 +543,15 @@ export function ArticleDetail({
           </div>
         </div>
       )}
+
+      {featuredLightboxOpen && featuredImageSrc ? (
+        <DirectoryGalleryLightbox
+          images={[{ url: featuredImageSrc, alt: article.title }]}
+          index={0}
+          onClose={() => setFeaturedLightboxOpen(false)}
+          onNavigate={() => {}}
+        />
+      ) : null}
     </article>
   );
 }

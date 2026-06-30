@@ -10,6 +10,7 @@ import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { getVBlogCategoriesFromArticles } from '@/lib/vblog/categories';
 
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
@@ -186,7 +187,7 @@ export function VBlogSidebar({
   onArticleNavClick,
   defaultHidden = false,
 }: VBlogSidebarProps) {
-  const categories = Array.from(new Set(articles.map((a) => a.category))).sort();
+  const categories = getVBlogCategoriesFromArticles(articles);
   const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
 
   const categoryItems = [

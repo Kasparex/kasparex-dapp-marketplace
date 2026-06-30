@@ -44,7 +44,9 @@ export default function VBlogPage() {
         (article) =>
           article.title.toLowerCase().includes(query) ||
           article.description.toLowerCase().includes(query) ||
-          article.content.toLowerCase().includes(query),
+          article.content.toLowerCase().includes(query) ||
+          article.category.toLowerCase().includes(query) ||
+          article.tags.some((tag) => tag.toLowerCase().includes(query)),
       );
     }
 

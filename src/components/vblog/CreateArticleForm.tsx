@@ -22,12 +22,14 @@ import { getVBlogBaseFeeKas } from '@/lib/vblog/pricing';
 import { getVBlogModuleEffectivePriceKas, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
+import { VBlogCategoryField } from './VBlogCategoryField';
+import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
+import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 
 interface CreateArticleFormProps {
   onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -35,18 +37,6 @@ interface CreateArticleFormProps {
   article?: VBlogArticle;
   onCancel?: () => void;
 }
-
-const CATEGORIES = [
-  'Introduction',
-  'Technical',
-  'Tutorial',
-  'News',
-  'Opinion',
-  'Review',
-  'Other',
-];
-
-const FEATURED_IMAGE_MAX_SIZE_MB = 5;
 
 const FORM_MODULE_IDS: VBlogModuleId[] = [
   'premium_section',
@@ -80,7 +70,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [featuredImageUrl, setFeaturedImageUrl] = useState(article?.featuredImage ?? '');
   const [featuredImageCid, setFeaturedImageCid] = useState<string | null>(null);
   const [featuredImageName, setFeaturedImageName] = useState<string | null>(null);
-  const [category, setCategory] = useState(article?.category ?? CATEGORIES[0]);
+  const [category, setCategory] = useState(article?.category ?? DEFAULT_VBLOG_CATEGORIES[0]);
   const [tags, setTags] = useState(article?.tags.join(', ') ?? '');
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article?.linkedMagazineId);
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article?.linkedIssueNumber);
@@ -254,9 +244,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const uploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const maxSize = FEATURED_IMAGE_MAX_SIZE_MB * 1024 * 1024;
+    const maxSize = IPFS_MAX_UPLOAD_MB * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`Featured image must be under ${FEATURED_IMAGE_MAX_SIZE_MB}MB`);
+      setError(`Featured image must be under ${IPFS_MAX_UPLOAD_MB}MB`);
       e.target.value = '';
       return;
     }
@@ -363,6 +353,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         return;
       }
 
+      if (isCustomCategory(category)) {
+        try {
+          addAuthorCustomCategory(walletAddress, category);
+        } catch {
+          /* category already stored or invalid */
+        }
+      }
+
       const payload = {
         title: title.trim(),
         description: description.trim(),
@@ -401,7 +399,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setFeaturedImageCid(null);
       setFeaturedImageName(null);
       setFeaturedImageSource('file');
-      setCategory(CATEGORIES[0]);
+      setCategory(DEFAULT_VBLOG_CATEGORIES[0]);
       setTags('');
       setPrimaryLink('');
       setSocialLink1('');
@@ -540,7 +538,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
               setFeaturedImageName(null);
             }}
             onFileChange={uploadFeaturedImage}
-            uploadHint={`PNG, JPG, or WebP under ${FEATURED_IMAGE_MAX_SIZE_MB} MB`}
+            uploadHint={`PNG, JPG, or WebP under ${IPFS_MAX_UPLOAD_MB} MB`}
             isUploading={isUploading}
             inputClassName="k-input"
           />
@@ -549,12 +547,11 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="k-label">Category</label>
-            <KxFormSelect
+            <VBlogCategoryField
+              authorAddress={walletAddress}
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={setCategory}
               disabled={isSubmitting}
-              ariaLabel="Article category"
-              options={CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
             />
           </div>
           <div>

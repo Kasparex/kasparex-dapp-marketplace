@@ -68,12 +68,14 @@ export function VBlogFeaturedImage({
   variant = 'card',
   className = '',
   imgClassName = '',
+  onImageClick,
 }: {
   src?: string | null;
   title: string;
   variant?: VBlogFeaturedImageVariant;
   className?: string;
   imgClassName?: string;
+  onImageClick?: () => void;
 }) {
   const [broken, setBroken] = useState(false);
   const trimmed = src?.trim();
@@ -83,7 +85,7 @@ export function VBlogFeaturedImage({
     return <VBlogFeaturedImagePlaceholder title={title} variant={variant} className={className} />;
   }
 
-  return (
+  const image = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={trimmed}
@@ -91,5 +93,18 @@ export function VBlogFeaturedImage({
       className={imgClassName || className}
       onError={() => setBroken(true)}
     />
+  );
+
+  if (!onImageClick) return image;
+
+  return (
+    <button
+      type="button"
+      onClick={onImageClick}
+      className={`block h-full w-full cursor-zoom-in border-0 bg-transparent p-0 text-left ${className}`.trim()}
+      aria-label={`View full size image for ${title}`}
+    >
+      {image}
+    </button>
   );
 }

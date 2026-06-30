@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { getIPFSClient } from './client';
+import { IPFS_MAX_UPLOAD_BYTES, IPFS_MAX_UPLOAD_MB } from './limits';
 import { fetchJSON, fetchFile } from './gateway';
 
 export interface UseIPFSUploadResult {
@@ -33,6 +34,10 @@ export function useIPFSUpload(): UseIPFSUploadResult {
     setError(null);
 
     try {
+      if (file.size > IPFS_MAX_UPLOAD_BYTES) {
+        throw new Error(`File size must be no more than ${IPFS_MAX_UPLOAD_MB} MB`);
+      }
+
       const client = getIPFSClient();
       const uploadedHash = await client.uploadFile(file, {
         pin: options.pin !== false,

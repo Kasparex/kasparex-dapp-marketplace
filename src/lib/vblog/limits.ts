@@ -2,6 +2,8 @@
  * vBlog content limits and validation
  */
 
+import { IPFS_MAX_UPLOAD_BYTES, IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
+
 export const CONTENT_LIMITS = {
   // Standard limits
   title: {
@@ -34,12 +36,12 @@ export const CONTENT_LIMITS = {
 } as const;
 
 export const FILE_LIMITS = {
-  maxSize: 5 * 1024 * 1024, // 5 MB
+  maxSize: IPFS_MAX_UPLOAD_BYTES,
   allowedTypes: ['.txt', '.md', '.json', '.html'],
 } as const;
 
 export const IMAGE_LIMITS = {
-  maxSize: 5 * 1024 * 1024, // 5 MB
+  maxSize: IPFS_MAX_UPLOAD_BYTES,
   allowedTypes: ['.jpg', '.jpeg', '.png'],
   allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
 } as const;
@@ -96,7 +98,7 @@ export function validateContent(content: string, isPremium: boolean = false): { 
 
 export function validateFile(file: File): { valid: boolean; error?: string } {
   if (file.size > FILE_LIMITS.maxSize) {
-    return { valid: false, error: `File size must be no more than ${FILE_LIMITS.maxSize / (1024 * 1024)} MB` };
+    return { valid: false, error: `File size must be no more than ${IPFS_MAX_UPLOAD_MB} MB` };
   }
   
   const lastDot = file.name.lastIndexOf('.');
@@ -114,7 +116,7 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
 
 export function validateImage(file: File): { valid: boolean; error?: string } {
   if (file.size > IMAGE_LIMITS.maxSize) {
-    return { valid: false, error: `Image size must be no more than ${IMAGE_LIMITS.maxSize / (1024 * 1024)} MB` };
+    return { valid: false, error: `Image size must be no more than ${IPFS_MAX_UPLOAD_MB} MB` };
   }
   
   // Check MIME type first (more reliable)
