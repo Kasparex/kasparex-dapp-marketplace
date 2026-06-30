@@ -15,20 +15,6 @@ import type {
 } from './types';
 import { normalizeAddr, randomHex } from './utils';
 
-function normalizeAddr(addr: string): string {
-  return addr.trim().toLowerCase().replace(/^kaspa:/i, '');
-}
-
-function randomHex(bytes: number): string {
-  const arr = new Uint8Array(bytes);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(arr);
-  } else {
-    for (let i = 0; i < bytes; i++) arr[i] = Math.floor(Math.random() * 256);
-  }
-  return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 function makeCovenantId(vaultId: string): string {
   return `cov_${vaultId.slice(0, 8)}_${randomHex(8)}`;
 }
