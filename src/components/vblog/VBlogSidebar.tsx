@@ -7,20 +7,23 @@ import { VBlogArticle } from '@/lib/vblog/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { getVBlogCategoriesFromArticles } from '@/lib/vblog/categories';
 
 export type VBlogDashboardNavTarget = {
-  section: 'create' | 'pricing' | 'archive';
+  section: 'create' | 'pricing' | 'modules' | 'archive';
   category?: string | null;
 };
 
 interface VBlogSidebarProps {
   articles: VBlogArticle[];
   selectedCategory: string | null;
+  selectedTags?: string[];
   searchQuery: string;
   onCategoryChange: (category: string | null) => void;
+  onTagToggle?: (tag: string) => void;
   onSearchChange: (query: string) => void;
   activeView?: 'explore' | 'dashboard' | 'vault' | 'article';
   articleNavItems?: Array<{ id: string; label: string; icon?: ReactNode; count?: number | string }>;
@@ -181,6 +184,7 @@ const ALL_ID = '__all__';
 const DASHBOARD_SECTIONS: Array<{ id: VBlogDashboardNavTarget['section']; label: string; anchor: string }> = [
   { id: 'create', label: 'Create article', anchor: 'vblog-dashboard-create' },
   { id: 'pricing', label: 'Fees & rewards', anchor: 'vblog-dashboard-pricing' },
+  { id: 'modules', label: 'Premium modules', anchor: 'vblog-dashboard-modules' },
   { id: 'archive', label: 'Personal archive', anchor: 'vblog-dashboard-archive' },
 ];
 
@@ -194,8 +198,10 @@ function scrollToAnchor(anchorId: string) {
 export function VBlogSidebar({
   articles,
   selectedCategory,
+  selectedTags = [],
   searchQuery,
   onCategoryChange,
+  onTagToggle,
   onSearchChange,
   activeView = 'explore',
   articleNavItems = [],
@@ -205,6 +211,7 @@ export function VBlogSidebar({
   defaultHidden = false,
 }: VBlogSidebarProps) {
   const categories = getVBlogCategoriesFromArticles(articles);
+  const allTags = Array.from(new Set(articles.flatMap((a) => a.tags))).sort();
 
   const categoryItems = [
     { id: ALL_ID, label: 'All Articles', count: articles.length, icon: <VBlogCategoryIcon id={null} /> },
@@ -345,7 +352,7 @@ export function VBlogSidebar({
                     handleDashboardSectionNav(item.id, item.anchor);
                   }}
                   label={item.label}
-                  icon={<VBlogCategoryIcon id={item.id === 'archive' ? 'guide' : item.id === 'pricing' ? 'product' : 'tutorial'} />}
+                  icon={<VBlogCategoryIcon id={item.id === 'archive' ? 'guide' : item.id === 'pricing' ? 'product' : item.id === 'modules' ? 'subscription' : 'tutorial'} />}
                 />
               ))}
             </nav>
@@ -369,12 +376,18 @@ export function VBlogSidebar({
             multi={false}
             collapsedItemCount={5}
           />
-          {(selectedCategory !== null || searchQuery) && (
+          {allTags.length > 0 && onTagToggle ? (
+            <SidebarTags title="Tags" tags={allTags} selectedTags={selectedTags} onToggle={onTagToggle} />
+          ) : null}
+          {(selectedCategory !== null || selectedTags.length > 0 || searchQuery) && (
             <button
               type="button"
               onClick={() => {
                 onCategoryChange(null);
                 onSearchChange('');
+                if (onTagToggle) {
+                  selectedTags.forEach((tag) => onTagToggle(tag));
+                }
               }}
               className="w-full mt-4 k-control-btn"
             >

@@ -13,10 +13,8 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { FilterBar } from '@/components/FilterBar';
 import type { VBlogSourceFilter } from '@/lib/vblog/source';
-import { getVBlogCategoriesFromArticles } from '@/lib/vblog/categories';
 import {
   filterVBlogArticles,
-  getVBlogTagsFromArticles,
   type VBlogMagazineFilter,
   type VBlogSortOption,
 } from '@/lib/vblog/listing';
@@ -32,9 +30,6 @@ export default function VBlogPage() {
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<VBlogSourceFilter>('all');
   const [magazineFilter, setMagazineFilter] = useState<VBlogMagazineFilter>('all');
-
-  const categories = useMemo(() => getVBlogCategoriesFromArticles(articles), [articles]);
-  const allTags = useMemo(() => getVBlogTagsFromArticles(articles), [articles]);
 
   const filteredArticles = useMemo(
     () =>
@@ -71,8 +66,10 @@ export default function VBlogPage() {
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
+            selectedTags={selectedTags}
             searchQuery={searchQuery}
             onCategoryChange={setSelectedCategory}
+            onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
             activeView="explore"
           />
@@ -101,15 +98,8 @@ export default function VBlogPage() {
                     onSortChange={setSortBy}
                     sourceFilter={sourceFilter}
                     onSourceFilterChange={setSourceFilter}
-                    categoryFilter={selectedCategory}
-                    onCategoryFilterChange={setSelectedCategory}
-                    categories={categories}
                     magazineFilter={magazineFilter}
                     onMagazineFilterChange={setMagazineFilter}
-                    tags={allTags}
-                    selectedTags={selectedTags}
-                    onTagToggle={handleTagToggle}
-                    onTagsClear={() => setSelectedTags([])}
                   />
                 </FilterBar>
 

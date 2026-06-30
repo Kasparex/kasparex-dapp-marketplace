@@ -636,7 +636,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </KxAlertRegion>
       </div>
 
-      <div className="space-y-3">
+      <div id="vblog-dashboard-modules" className="scroll-mt-24 space-y-3">
         <div>
           <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">

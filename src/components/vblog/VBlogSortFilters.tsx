@@ -19,27 +19,13 @@ interface VBlogFilterDropdownProps<T extends string> {
   minWidth?: string;
 }
 
-interface VBlogTagFilterDropdownProps {
-  tags: string[];
-  selectedTags: string[];
-  onToggle: (tag: string) => void;
-  onClear: () => void;
-}
-
 interface VBlogListingFiltersBarProps {
   sortBy: VBlogSortOption;
   onSortChange: (sort: VBlogSortOption) => void;
   sourceFilter: VBlogSourceFilter;
   onSourceFilterChange: (value: VBlogSourceFilter) => void;
-  categoryFilter: string | null;
-  onCategoryFilterChange: (category: string | null) => void;
-  categories: string[];
   magazineFilter: VBlogMagazineFilter;
   onMagazineFilterChange: (value: VBlogMagazineFilter) => void;
-  tags: string[];
-  selectedTags: string[];
-  onTagToggle: (tag: string) => void;
-  onTagsClear: () => void;
 }
 
 const SORT_OPTIONS: { value: VBlogSortOption; label: string }[] = [
@@ -185,45 +171,6 @@ function VBlogFilterDropdown<T extends string>({
   );
 }
 
-function VBlogTagFilterDropdown({ tags, selectedTags, onToggle, onClear }: VBlogTagFilterDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const ref = useClickOutside(isOpen, () => setIsOpen(false));
-  const label =
-    selectedTags.length === 0
-      ? 'All tags'
-      : selectedTags.length === 1
-        ? `#${selectedTags[0]}`
-        : `${selectedTags.length} tags`;
-
-  if (tags.length === 0) return null;
-
-  return (
-    <div className="relative flex-shrink-0 overflow-visible" ref={ref}>
-      <FilterDropdownButton label={label} isOpen={isOpen} onClick={() => setIsOpen((open) => !open)} active={selectedTags.length > 0} />
-      {isOpen ? (
-        <FilterDropdownMenu>
-          {selectedTags.length > 0 ? (
-            <FilterDropdownOption active={false} onClick={onClear}>
-              Clear tags
-            </FilterDropdownOption>
-          ) : null}
-          {tags.map((tag) => {
-            const active = selectedTags.includes(tag);
-            return (
-              <FilterDropdownOption key={tag} active={active} onClick={() => onToggle(tag)}>
-                <span className="flex items-center justify-between gap-3">
-                  <span>#{tag}</span>
-                  {active ? <span className="text-[10px] uppercase tracking-wide">On</span> : null}
-                </span>
-              </FilterDropdownOption>
-            );
-          })}
-        </FilterDropdownMenu>
-      ) : null}
-    </div>
-  );
-}
-
 export function VBlogSortFilters({ sortBy, onSortChange }: VBlogSortFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useClickOutside(isOpen, () => setIsOpen(false));
@@ -257,21 +204,9 @@ export function VBlogListingFiltersBar({
   onSortChange,
   sourceFilter,
   onSourceFilterChange,
-  categoryFilter,
-  onCategoryFilterChange,
-  categories,
   magazineFilter,
   onMagazineFilterChange,
-  tags,
-  selectedTags,
-  onTagToggle,
-  onTagsClear,
 }: VBlogListingFiltersBarProps) {
-  const categoryOptions = [
-    { value: '__all__', label: 'All categories' },
-    ...categories.map((category) => ({ value: category, label: category })),
-  ];
-
   return (
     <div className="flex flex-wrap items-center gap-2">
       <VBlogFilterDropdown
@@ -281,20 +216,12 @@ export function VBlogListingFiltersBar({
         onChange={onSourceFilterChange}
       />
       <VBlogFilterDropdown
-        label="Category"
-        value={categoryFilter ?? '__all__'}
-        options={categoryOptions}
-        onChange={(value) => onCategoryFilterChange(value === '__all__' ? null : value)}
-        minWidth="150px"
-      />
-      <VBlogFilterDropdown
         label="Magazine"
         value={magazineFilter}
         options={MAGAZINE_OPTIONS}
         onChange={onMagazineFilterChange}
         minWidth="150px"
       />
-      <VBlogTagFilterDropdown tags={tags} selectedTags={selectedTags} onToggle={onTagToggle} onClear={onTagsClear} />
       <VBlogSortFilters sortBy={sortBy} onSortChange={onSortChange} />
     </div>
   );

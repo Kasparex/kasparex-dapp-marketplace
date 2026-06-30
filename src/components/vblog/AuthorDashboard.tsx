@@ -58,7 +58,7 @@ export function AuthorDashboard({
   useEffect(() => {
     if (!navTarget) return;
 
-    if (navTarget.section === 'create' || navTarget.section === 'pricing') {
+    if (navTarget.section === 'create' || navTarget.section === 'pricing' || navTarget.section === 'modules') {
       setActiveTab('create');
       setEditingArticle(null);
     } else if (navTarget.section === 'archive') {
@@ -69,9 +69,11 @@ export function AuthorDashboard({
     const anchorId =
       navTarget.section === 'pricing'
         ? 'vblog-dashboard-pricing'
-        : navTarget.section === 'archive'
-          ? 'vblog-dashboard-archive'
-          : 'vblog-dashboard-create';
+        : navTarget.section === 'modules'
+          ? 'vblog-dashboard-modules'
+          : navTarget.section === 'archive'
+            ? 'vblog-dashboard-archive'
+            : 'vblog-dashboard-create';
 
     window.requestAnimationFrame(() => {
       document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
