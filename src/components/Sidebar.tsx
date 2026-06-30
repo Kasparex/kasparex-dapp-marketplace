@@ -8,6 +8,8 @@ import { StatusIndicatorDot, getStatusTypeFromString } from './dapps/StatusIndic
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarCategories } from './sidebar/SidebarCategories';
+import { L2ChainLogo } from '@/components/wallet/L2ChainLogo';
+import { CHAIN_IDS } from '@/lib/wagmi';
 
 interface SidebarProps {
   categories: Category[];
@@ -54,6 +56,27 @@ function CategoryIcon({ id, className = '' }: { id: string; className?: string }
     case 'payment': return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>;
     default: return <svg {...iconProps}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>;
   }
+}
+
+const NETWORK_CHAIN_IDS: Record<string, number | undefined> = {
+  'Kasplex Mainnet': CHAIN_IDS.KASPLEX_L2_MAINNET,
+  'Kasplex Testnet': CHAIN_IDS.KASPLEX_L2_TESTNET,
+  'Igra Testnet': CHAIN_IDS.IGRA_GALLEON_TESTNET,
+  'Igra Mainnet': CHAIN_IDS.IGRA_MAINNET,
+};
+
+function networkIcon(label: string) {
+  const chainId = NETWORK_CHAIN_IDS[label];
+  if (chainId != null) {
+    return <L2ChainLogo chainId={chainId} size={18} />;
+  }
+  if (label === 'vProgs') {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src="/img/logos/kaspa.png" alt="" width={18} height={18} className="rounded-md object-cover" aria-hidden />
+    );
+  }
+  return <GlobeIcon />;
 }
 
 const GlobeIcon = () => (
@@ -118,7 +141,7 @@ export function Sidebar({
     return {
       id: value,
       label: opt.label,
-      icon: <GlobeIcon />,
+      icon: opt.label === 'All' ? <GlobeIcon /> : networkIcon(opt.label),
     };
   });
 

@@ -1,9 +1,16 @@
 'use client';
 
-import { getDefaultWallets } from '@rainbow-me/rainbowkit';
+import { getDefaultWallets, type Chain as RainbowKitChain } from '@rainbow-me/rainbowkit';
 import { createConfig, http } from 'wagmi';
 import { defineChain, type Chain } from 'viem';
 import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
+import { L2_CHAIN_LOGOS } from '@/lib/chains/logos';
+
+function withRainbowKitChainIcon(chain: Chain, chainId: number): RainbowKitChain {
+  const iconUrl = L2_CHAIN_LOGOS[chainId];
+  if (!iconUrl) return chain;
+  return { ...chain, iconUrl, iconBackground: '#18181b' };
+}
 
 /**
  * Kasplex L2 Mainnet Chain Configuration
@@ -242,10 +249,10 @@ if (typeof window !== 'undefined' && (!walletConnectProjectId || walletConnectPr
 }
 
 const wagmiChains = [
-  kasplexL2Mainnet,
-  kasplexL2Testnet,
-  igraGalleonTestnet,
-  igraMainnet,
+  withRainbowKitChainIcon(kasplexL2Mainnet, CHAIN_IDS.KASPLEX_L2_MAINNET),
+  withRainbowKitChainIcon(kasplexL2Testnet, CHAIN_IDS.KASPLEX_L2_TESTNET),
+  withRainbowKitChainIcon(igraGalleonTestnet, CHAIN_IDS.IGRA_GALLEON_TESTNET),
+  withRainbowKitChainIcon(igraMainnet, CHAIN_IDS.IGRA_MAINNET),
 ] as const;
 
 const { connectors: rainbowKitConnectors } = getDefaultWallets({

@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AuthorDashboard } from '@/components/vblog/AuthorDashboard';
-import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
+import { VBlogDashboardHubPointsPanel } from '@/components/vblog/VBlogDashboardHubPointsPanel';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
@@ -51,7 +51,7 @@ function VBlogDashboardPageContent() {
                     Manage your decentralized vBlog publications
                   </p>
                 </div>
-                <VBlogDashboardBenefitsPanel />
+                <VBlogDashboardHubPointsPanel />
               </div>
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>

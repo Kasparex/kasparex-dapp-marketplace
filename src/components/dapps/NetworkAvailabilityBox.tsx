@@ -10,6 +10,7 @@ import { getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { getChainById } from '@/lib/wagmi';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { CHAIN_IDS } from '@/lib/wagmi';
+import { L2ChainConnectLabel } from '@/components/wallet/L2ChainLogo';
 
 interface NetworkAvailabilityBoxProps {
   dapp: DApp;
@@ -93,20 +94,26 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
               aria-label="Switch network"
             >
               <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
-                  />
-                </svg>
-                <span className="text-xs">{chain?.name || 'Switch Network'}</span>
+                {chain ? (
+                  <L2ChainConnectLabel chainId={chain.id} chainName={chain.name} label={chain.name} logoSize={16} />
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+                      />
+                    </svg>
+                    <span className="text-xs">Switch Network</span>
+                  </>
+                )}
               </div>
               <svg
                 className="w-4 h-4"
@@ -188,14 +195,24 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
                     Available Networks:
                   </p>
                   <ul className="space-y-2">
-                    {supportedNetworks.map((network, index) => (
+                    {supportedNetworks.map((network, index) => {
+                      const chainForNetwork = supportedChainIds
+                        .map((id) => getChainById(id))
+                        .find((c) => c?.name === network);
+                      return (
                       <li key={index} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <svg className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm text-zinc-900 dark:text-zinc-100 font-medium">{network}</span>
+                        <L2ChainConnectLabel
+                          chainId={chainForNetwork?.id}
+                          chainName={network}
+                          label={network}
+                          logoSize={20}
+                        />
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 </div>
               )}

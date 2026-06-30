@@ -14,7 +14,7 @@ export function KxInFormPremiumRow({
 }: {
   title: string;
   description: string;
-  priceLabel: string;
+  priceLabel?: string;
   checked?: boolean;
   onToggle?: () => void;
   disabled?: boolean;
@@ -29,7 +29,9 @@ export function KxInFormPremiumRow({
         <p className="font-bold text-base text-zinc-900 dark:text-zinc-100">{title}</p>
         <p className="text-sm leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</p>
       </div>
-      <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">{priceLabel}</span>
+      {priceLabel ? (
+        <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">{priceLabel}</span>
+      ) : null}
       {trailing ?? (
         <button
           type="button"

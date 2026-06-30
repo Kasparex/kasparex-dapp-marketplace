@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useChainId, useSwitchChain } from 'wagmi';
 import { CHAIN_IDS, isChainSupported } from '@/lib/wagmi';
 import { isVProgsNetwork } from '@/lib/contracts/factory';
+import { L2ChainConnectLabel } from '@/components/wallet/L2ChainLogo';
 
 export interface NetworkSelectorProps {
   className?: string;
@@ -127,8 +128,8 @@ export function NetworkSelector({ className = '' }: NetworkSelectorProps) {
                       : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span>{network.name}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <L2ChainConnectLabel chainId={network.id} chainName={network.name} label={network.name} logoSize={20} />
                     <span
                       className={`px-2 py-0.5 text-xs rounded ${
                         network.isVProgs

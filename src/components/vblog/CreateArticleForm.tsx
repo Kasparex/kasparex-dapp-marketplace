@@ -27,6 +27,7 @@ import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFor
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
+import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 
@@ -653,7 +654,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             <KxInFormPremiumRow
               title="Sidebar shown by default"
               description="Readers see the left article navigation when they open this article."
-              priceLabel="Layout"
               checked={sidebarShownByDefault}
               disabled={isSubmitting}
               onToggle={() => setSidebarShownByDefault(!sidebarShownByDefault)}
@@ -661,7 +661,6 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             <KxInFormPremiumRow
               title="Right-side panel shown by default"
               description="Readers see the author and on-chain metadata panel on load."
-              priceLabel="Layout"
               checked={rightPanelShownByDefault}
               disabled={isSubmitting}
               onToggle={() => setRightPanelShownByDefault(!rightPanelShownByDefault)}
@@ -697,6 +696,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       </div>
 
       <aside className="xl:sticky xl:top-6 flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
+        <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
+          <VBlogDashboardBenefitsPanel embedded />
+        </div>
         <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
         <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
