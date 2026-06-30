@@ -125,8 +125,7 @@ export function RewardsEarnSourcesTable() {
         </tbody>
       </table>
       <div className={RX_HISTORY_FOOTER_NOTE}>
-        Typical weights are base Hub Points before your KREX tier multiplier (0 below 1M KREX; 1x at 1M+; up to 4x at
-        100M+). See{' '}
+        Typical weights are base Hub Points; your KREX tier multiplies them (base below 1M KREX; up to 4x at 100M+). See{' '}
         <Link href="/tiers" className="text-[#02abb8] hover:underline font-medium">
           /Tiers
         </Link>{' '}

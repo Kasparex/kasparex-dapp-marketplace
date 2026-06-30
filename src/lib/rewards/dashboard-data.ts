@@ -60,7 +60,7 @@ export function getAllKREXTierRewards(): RewardItem[] {
     feeReduction: tier.feeDiscountPercent,
     points: undefined,
     benefits: tier.tier === 'Tier0'
-      ? ['No fee discount', 'No Hub Points multiplier']
+      ? ['No fee discount', 'Base Hub Points on earn actions']
       : [
           `${tier.feeDiscountPercent}% off fees`,
           `${tier.pointsMultiplier > 0 ? `${tier.pointsMultiplier}x` : 'No'} Hub Points multiplier`,

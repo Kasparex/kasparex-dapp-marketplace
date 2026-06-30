@@ -99,7 +99,7 @@ export const KREX_TIERS: Record<KREXTier, KREXTierConfig> = {
     feeDiscountPercent: 0,
     feeReduction: 0,
     costReduction: 0,
-    pointsMultiplier: 0,
+    pointsMultiplier: 1,
     label: 'Tier 0',
     description: '< 1M KREX',
   },

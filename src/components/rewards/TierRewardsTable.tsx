@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREXBuyWizard } from './KREXBuyWizard';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -124,7 +125,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
           </div>
         );
       case 'pointsMultiplier':
-        return tier.pointsMultiplier > 0 ? `${tier.pointsMultiplier}x` : 'None';
+        return formatHubPointsTierLabel(tier.tier);
       case 'tierBadge':
         return true; // All tiers have badges now
       case 'benefit1':

@@ -5,7 +5,7 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { computeEarnedHubPoints, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
+import { computeEarnedHubPoints, formatHubPointsTierLabel, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
@@ -28,7 +28,7 @@ const TIER_UI: Record<
     panel:
       'border-zinc-300/80 bg-gradient-to-br from-zinc-100 via-white to-zinc-200/80 dark:border-zinc-500/35 dark:from-zinc-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-zinc-300/80 bg-zinc-100 text-zinc-700 dark:border-zinc-500/30 dark:bg-zinc-500/10 dark:text-zinc-300',
-    statusText: 'Hold 1M+ KREX to unlock fee discounts and Hub Points.',
+    statusText: 'Base Hub Points on earn actions. Hold 1M+ KREX for fee discounts and multipliers.',
     accent: 'text-zinc-500 dark:text-zinc-400',
     badge: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700/60 dark:text-zinc-200',
   },
@@ -78,9 +78,6 @@ function formatKrexMillions(balance: number): string {
 }
 
 function CreatorPerksTooltipContent() {
-  const publishBase = HUB_EARN_POINTS.vblogArticleCreate;
-  const updateBase = HUB_EARN_POINTS.vblogArticleUpdate;
-
   return (
     <div className="space-y-2 text-left max-w-sm">
       <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX tier perks</p>
@@ -99,32 +96,11 @@ function CreatorPerksTooltipContent() {
               <td className="py-0.5 pr-2">
                 {row.feeDiscountPercent > 0 ? `${row.feeDiscountPercent}% off` : 'None'}
               </td>
-              <td className="py-0.5">
-                {row.pointsMultiplier > 0 ? `${row.pointsMultiplier}x` : 'None'}
-              </td>
+              <td className="py-0.5">{formatHubPointsTierLabel(row.tier)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-zinc-600 dark:text-zinc-400">
-        vBlog examples at your tier (base × multiplier): publish{' '}
-        {KREX_TIER_PERKS_ROWS.map((row) => {
-          const pts = computeEarnedHubPoints(publishBase, row.tier);
-          return `${row.thresholdLabel.replace(' KREX', '')} +${pts}`;
-        }).join(' · ')}{' '}
-        pts; update{' '}
-        {KREX_TIER_PERKS_ROWS.filter((r) => r.pointsMultiplier > 0)
-          .map((row) => `+${computeEarnedHubPoints(updateBase, row.tier)} at ${row.thresholdLabel}`)
-          .join(', ')}
-        .
-      </p>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Full tables on{' '}
-        <a href="/tiers" className="text-[#02abb8] underline">
-          /Tiers
-        </a>
-        .
-      </p>
     </div>
   );
 }
@@ -168,10 +144,8 @@ export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: st
                   : 'Stack 1M+ KREX for 2% off fees'}
               </li>
               <li>
-                <span className={ui.accent}>•</span>{' '}
-                {publishPts > 0
-                  ? `Publish earns +${publishPts} Hub Points at your tier`
-                  : 'Hub Points unlock at 1M+ KREX (1x multiplier)'}
+                <span className={ui.accent}>•</span> Publish earns +{publishPts} Hub Points at your tier
+                {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
               </li>
             </ul>
             <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
