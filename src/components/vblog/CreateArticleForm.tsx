@@ -23,7 +23,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
-import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
@@ -590,14 +590,18 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Optional premium features. Toggle modules on to add them to your total. They activate when you pay and publish.
           </p>
-          <KxInFormPremiumList>
+          <div className="space-y-3">
             {formModuleOffers.map((offer) => {
               const enabled = moduleEnabledMap[offer.id];
               const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
               const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
               return (
-                <div key={offer.id} className="space-y-2">
+                <div
+                  key={offer.id}
+                  className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm"
+                >
                   <KxInFormPremiumRow
+                    flat
                     title={offer.title}
                     description={offer.description}
                     priceLabel={alreadyPaid ? 'Paid' : `+${effectiveKas} KAS`}
@@ -606,7 +610,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                     onToggle={() => setModuleEnabled(offer.id, !enabled)}
                   />
                   {enabled && offer.id === 'magazine_integration' ? (
-                    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3">
+                    <div className="pt-3 mt-3 border-t border-zinc-200 dark:border-zinc-700">
                       <VBlogMagazineIntegration
                         embedded
                         linkedMagazineId={linkedMagazineId}
@@ -621,6 +625,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                   ) : null}
                   {enabled && moduleHasConfigFields(offer.id) ? (
                     <VBlogModuleConfigFields
+                      bare
                       moduleId={offer.id}
                       disabled={isSubmitting}
                       premiumSectionContent={premiumSectionContent}
@@ -642,7 +647,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                 </div>
               );
             })}
-          </KxInFormPremiumList>
+          </div>
         </section>
 
         <section className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
@@ -695,10 +700,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </KxAlertRegion>
       </div>
 
-      <aside className="xl:sticky xl:top-6 flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
-        <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
-          <VBlogDashboardBenefitsPanel embedded />
-        </div>
+      <div className="flex flex-col gap-4 xl:sticky xl:top-6">
+        <VBlogDashboardBenefitsPanel />
+        <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
         <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
         <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
@@ -762,7 +766,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </Alert>
           ) : null}
         </KxAlertRegion>
-      </aside>
+        </aside>
+      </div>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </form>
   );

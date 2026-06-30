@@ -139,7 +139,7 @@ export function AuthorDashboard({ createIntentKey = 0, editArticleId }: AuthorDa
       </div>
 
       {/* Pricing and Benefits Section */}
-      {activeTab === 'create' && !editingArticle && <AuthorPricing />}
+      {activeTab === 'create' && <AuthorPricing />}
 
       {/* Success Message Area */}
       {successMessage && (
