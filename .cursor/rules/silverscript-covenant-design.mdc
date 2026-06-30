@@ -1,12 +1,14 @@
 ---
-description: Silverscript / L1 covenant design checklist from official docs
+description: Silverscript / L1 covenant design checklist (see also toccata-agent-brief.mdc)
 globs: covenant-lockbox/**,src/lib/covenant/**,src/lib/programmability/**,docs/*COVENANT*,docs/*TOCCATA*
 alwaysApply: false
 ---
 
 # Silverscript / L1 covenant design checklist
 
-Before building or changing Kaspa L1 covenant flows in this repo, confirm these points (from Silverscript docs):
+Full Toccata agent brief: `.cursor/rules/toccata-agent-brief.mdc` ([Kaspa Docs](https://docs.kaspa.org/toccata/agent-brief)).
+
+Before building or changing Kaspa L1 covenant flows in this repo, confirm:
 
 1. **Prefer Silverscript** unless raw script is explicitly required.
 2. **Classify the transition**: 1:1, 1:N, N:M, leader/delegate, or multi-contract.

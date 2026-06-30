@@ -87,9 +87,6 @@ export function VBlogCard({ article }: VBlogCardProps) {
             {article.title}
           </h3>
           <div className="flex flex-wrap items-center gap-1.5">
-            <KxBadge variant="zinc" size="sm" icon={<CategoryIcon />} className="shadow-sm">
-              {article.category}
-            </KxBadge>
             <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'} size="sm" className="shadow-sm">
               {source === 'kasparex' ? 'Kasparex' : 'Community'}
             </KxBadge>
@@ -106,18 +103,23 @@ export function VBlogCard({ article }: VBlogCardProps) {
 
         <p className="mb-4 line-clamp-2 text-[15px] leading-snug text-zinc-600 dark:text-zinc-400">{excerpt}</p>
 
-        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">
-            by{' '}
-            <Link
-              href={authorHubUrl}
-              className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {authorDisplay}
-            </Link>
-          </p>
-          <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
+        <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <KxBadge variant="zinc" size="sm" icon={<CategoryIcon />} className="shrink-0 shadow-sm">
+              {article.category}
+            </KxBadge>
+            <p className="min-w-0 text-xs text-zinc-500">
+              by{' '}
+              <Link
+                href={authorHubUrl}
+                className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {authorDisplay}
+              </Link>
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
         </div>
       </KxListingCardBody>
     </KxListingCard>
