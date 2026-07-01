@@ -4,7 +4,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
 
-export type VBlogAsideLink = { href: string; label: string; sublabel?: string };
+export type VBlogAsideLink = { href: string; label: string; sublabel?: string; openInNewTab?: boolean };
 
 export type VBlogAsideSection = {
   title: string;
@@ -35,6 +35,8 @@ export function VBlogArticleAside({ sections }: { sections: VBlogAsideSection[] 
                 <li key={`${l.href}-${l.label}`}>
                   <Link
                     href={l.href}
+                    target={l.openInNewTab ? '_blank' : undefined}
+                    rel={l.openInNewTab ? 'noopener noreferrer' : undefined}
                     className="text-base font-semibold text-zinc-800 dark:text-zinc-200 hover:text-[#02abb8] transition-colors leading-relaxed"
                   >
                     {l.label}

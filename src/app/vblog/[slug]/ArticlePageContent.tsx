@@ -144,7 +144,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
                       </p>
                     </div>
                   </div>
-                  <Link href={magazineIssueHref} className="k-control-btn shrink-0">
+                  <Link href={magazineIssueHref} target="_blank" rel="noopener noreferrer" className="k-control-btn shrink-0">
                     View Magazine
                   </Link>
                 </div>

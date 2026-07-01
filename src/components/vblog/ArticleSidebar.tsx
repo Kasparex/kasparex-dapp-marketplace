@@ -312,6 +312,7 @@ export function ArticleSidebar({
           href: getMagazineIssueHref(article.linkedMagazineId, article.linkedIssueNumber),
           label: getMagazineIssueLinkLabel(article.linkedMagazineId, article.linkedIssueNumber),
           sublabel: 'View magazine issue or catalog',
+          openInNewTab: true,
         },
       ],
     });

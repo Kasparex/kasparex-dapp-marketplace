@@ -48,9 +48,8 @@ export function AuthorPricing() {
           title="Edit / Update"
           feeKas={editFee}
           tier={tier}
-          note="Free for text and metadata changes. Pay only when adding new premium modules or expanding payload size."
         />
-        <FeeCard title="Delete Fee" feeKas={deleteFee} basePoints={0} tier={tier} />
+        <FeeCard title="Delete Fee" feeKas={deleteFee} tier={tier} />
       </div>
     </div>
   );

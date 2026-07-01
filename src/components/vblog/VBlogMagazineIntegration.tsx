@@ -24,7 +24,7 @@ function buildMagazineIntegrationGuide(args: {
   const issueHref = magazine ? getMagazineIssueHref(magazine.id, issueNumber) : null;
 
   const nextSteps =
-    'After you publish, your article appears in the magazine editor submission queue for this issue. The editor reviews linked articles, adds accepted ones to the issue, then publishes. You are not charged again for edits unless you add new paid modules or grow the article payload.';
+    'After you publish, your article appears in the magazine editor submission queue for this issue. The editor reviews linked articles, adds accepted ones to the issue, then publishes.';
 
   if (!magazine) {
     return {
@@ -170,12 +170,17 @@ export function VBlogMagazineIntegration({
             </div>
           </div>
 
-          <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 space-y-2">
+          <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 space-y-1.5">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">What happens next</p>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">{guide.nextSteps}</p>
-            <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">{guide.earningsHint}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">{guide.nextSteps}</p>
+            <p className="text-sm text-emerald-700 dark:text-emerald-400 leading-snug font-medium">{guide.earningsHint}</p>
             {guide.issueHref ? (
-              <Link href={guide.issueHref} className="inline-block text-xs font-bold text-[#02abb8] hover:underline">
+              <Link
+                href={guide.issueHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-sm font-bold text-[#02abb8] hover:underline"
+              >
                 View magazine {publishedIssue ? 'issue' : 'page'}
               </Link>
             ) : null}
