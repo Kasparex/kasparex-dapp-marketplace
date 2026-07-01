@@ -27,6 +27,7 @@ const FORMATS = [
 
 const FLOATING_TOOLBAR_Z = 999999;
 const TOOLBAR_GAP = 8;
+const MAX_TOOLBAR_WIDTH = 640;
 
 type QuillInstance = InstanceType<(typeof import('quill'))['default']>;
 
@@ -79,8 +80,10 @@ function setupFloatingToolbar(
   let overflowOpen = false;
   let repositionRaf = 0;
 
-  const getControls = () =>
-    Array.from(mainRow.querySelectorAll<HTMLElement>(':scope > *'));
+  const getControls = () => [
+    ...Array.from(mainRow.querySelectorAll<HTMLElement>(':scope > *')),
+    ...Array.from(overflowMenu.querySelectorAll<HTMLElement>(':scope > *')),
+  ];
 
   const closeOverflow = () => {
     overflowOpen = false;
@@ -94,10 +97,10 @@ function setupFloatingToolbar(
     moreBtn.setAttribute('aria-expanded', 'true');
   };
 
-  const updateOverflow = () => {
+  const updateOverflow = (maxToolbarWidth: number) => {
     const controls = getControls();
     for (const control of controls) {
-      if (control.parentElement === overflowMenu) {
+      if (control.parentElement !== mainRow) {
         mainRow.appendChild(control);
       }
       control.hidden = false;
@@ -107,32 +110,37 @@ function setupFloatingToolbar(
     overflowMenu.replaceChildren();
     closeOverflow();
 
-    const availableWidth = toolbarInner.clientWidth;
-    if (availableWidth <= 0) return;
+    if (controls.length === 0) return;
+
+    const controlWidths = controls.map((control) => control.getBoundingClientRect().width);
+    const controlsWidth = controlWidths.reduce((sum, width) => sum + width, 0);
+    const panelStyle = window.getComputedStyle(toolbarEl);
+    const panelPadding =
+      parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight);
 
     moreBtn.hidden = false;
-    const moreWidth = moreBtn.offsetWidth || 32;
+    const moreWidth = moreBtn.getBoundingClientRect().width;
     moreBtn.hidden = true;
 
-    let usedWidth = 0;
-    const hidden: HTMLElement[] = [];
-
-    for (const control of controls) {
-      const width = control.offsetWidth;
-      const needsMore = hidden.length > 0 || usedWidth + width + moreWidth > availableWidth;
-      if (needsMore) {
-        hidden.push(control);
-      } else {
-        usedWidth += width;
-      }
-    }
-
-    if (hidden.length === 0) {
+    if (controlsWidth + panelPadding <= maxToolbarWidth) {
       moreBtn.hidden = true;
       return;
     }
 
     moreBtn.hidden = false;
+    const maxRowWidth = maxToolbarWidth - panelPadding - moreWidth;
+    let usedWidth = 0;
+    const hidden: HTMLElement[] = [];
+
+    for (let index = 0; index < controls.length; index += 1) {
+      const width = controlWidths[index];
+      if (hidden.length > 0 || usedWidth + width > maxRowWidth) {
+        hidden.push(controls[index]);
+      } else {
+        usedWidth += width;
+      }
+    }
+
     for (const control of hidden) {
       overflowMenu.appendChild(control);
     }
@@ -154,9 +162,16 @@ function setupFloatingToolbar(
     }
 
     const editorRect = quill.root.getBoundingClientRect();
-    floatingHost.hidden = false;
+    const maxToolbarWidth = Math.min(
+      editorRect.width,
+      window.innerWidth - TOOLBAR_GAP * 2,
+      MAX_TOOLBAR_WIDTH,
+    );
 
-    updateOverflow();
+    floatingHost.hidden = false;
+    floatingHost.style.maxWidth = `${maxToolbarWidth}px`;
+
+    updateOverflow(maxToolbarWidth);
 
     const hostWidth = floatingHost.offsetWidth;
     const hostHeight = floatingHost.offsetHeight;

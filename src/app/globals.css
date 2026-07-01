@@ -870,6 +870,7 @@
   position: fixed;
   transform: translate(-50%, -100%);
   pointer-events: auto;
+  width: max-content;
   max-width: min(calc(100vw - 16px), 640px);
 }
 
@@ -896,20 +897,15 @@
 }
 
 .kx-quill-editor .kx-quill-toolbar-inner {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0;
-  width: 100%;
-  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .kx-quill-editor .kx-quill-toolbar-main {
-  display: flex;
+  display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
-  min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
 }
 
 .kx-quill-editor .kx-quill-toolbar-main > * {
