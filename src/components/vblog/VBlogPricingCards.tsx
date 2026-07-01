@@ -57,7 +57,6 @@ export function VBlogPricingCards({
         feeKas={editFee}
         basePoints={HUB_EARN_POINTS.vblogArticleUpdate}
         tier={tier}
-        note="From 1 KAS base + modules or growth"
       />
       <VBlogFeeCard title="Delete Fee" feeKas={deleteFee} tier={tier} />
     </div>

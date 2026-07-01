@@ -975,15 +975,9 @@
 .kx-quill-editor .ql-editor {
   min-height: var(--kx-quill-min-height, 160px);
   background: transparent;
-  font-size: 1.0625rem;
-  line-height: 1.55;
-  color: rgb(24 24 27);
+  @apply text-lg text-zinc-600 dark:text-zinc-400 leading-8;
   word-wrap: break-word;
   overflow-wrap: break-word;
-}
-
-.dark .kx-quill-editor .ql-editor {
-  color: rgb(244 244 245);
 }
 
 .kx-quill-editor .ql-editor.ql-blank::before {
@@ -991,17 +985,11 @@
   font-style: normal;
 }
 
-/* Shared Quill typography: editor + published article body */
+/* Shared Quill typography: editor + published article body (matches .kx-body / article excerpt) */
 .kx-quill-content {
-  font-size: 1rem;
-  line-height: 1.38;
-  color: rgb(24 24 27);
+  @apply text-lg text-zinc-600 dark:text-zinc-400 leading-8;
   word-wrap: break-word;
   overflow-wrap: break-word;
-}
-
-.dark .kx-quill-content {
-  color: rgb(244 244 245);
 }
 
 .kx-quill-content > *:first-child,
@@ -1040,7 +1028,7 @@
 
 .kx-quill-content p,
 .kx-quill-editor .ql-editor p {
-  margin: 0 0 0.45em;
+  @apply mb-6;
 }
 
 .kx-quill-content p:has(> br:only-child),
@@ -1116,6 +1104,7 @@
 
 .kx-quill-content li,
 .kx-quill-editor .ql-editor li {
+  @apply leading-8;
   margin: 0 0 0.15em;
   padding-left: 0.25em;
 }

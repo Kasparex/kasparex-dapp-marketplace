@@ -46,8 +46,8 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
               {article.description}
             </p>
 
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-8">
+            <div className="grid w-full gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div className="flex min-w-0 flex-wrap items-center gap-8">
                 <div className="flex items-center gap-3">
                   <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                   <div className="flex flex-col">
@@ -64,7 +64,9 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
                 </div>
               </div>
 
-              <VBlogArticleBadges article={article} includeCategory className="justify-end" />
+              <div className="flex w-full justify-end sm:w-auto sm:justify-self-end">
+                <VBlogArticleBadges article={article} includeCategory className="justify-end" />
+              </div>
             </div>
           </div>
 
