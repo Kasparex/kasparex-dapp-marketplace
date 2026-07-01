@@ -25,7 +25,6 @@ const FORMATS = [
   'list',
 ];
 
-const FLOATING_TOOLBAR_Z = 999999;
 const TOOLBAR_GAP = 8;
 
 type QuillInstance = InstanceType<(typeof import('quill'))['default']>;
@@ -44,50 +43,54 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function setupFloatingToolbar(
-  quill: QuillInstance,
-  toolbarEl: HTMLElement,
-  floatingHost: HTMLElement,
-) {
-  floatingHost.append(toolbarEl);
+function setupFloatingToolbar(quill: QuillInstance, toolbarEl: HTMLElement) {
+  toolbarEl.classList.add('kx-quill-floating-toolbar');
+  toolbarEl.style.zIndex = '999999';
+  document.body.appendChild(toolbarEl);
 
   let repositionRaf = 0;
+
+  const hideToolbar = () => {
+    toolbarEl.classList.remove('is-visible');
+  };
 
   const positionToolbar = () => {
     const range = quill.getSelection();
     if (!range) {
-      floatingHost.hidden = true;
+      hideToolbar();
       return;
     }
 
     const bounds = quill.getBounds(range.index, range.length);
     if (!bounds) {
-      floatingHost.hidden = true;
+      hideToolbar();
       return;
     }
 
-    floatingHost.hidden = false;
+    toolbarEl.classList.add('is-visible');
 
     const editorRect = quill.root.getBoundingClientRect();
     const anchorX = editorRect.left + bounds.left + bounds.width / 2;
     const top = editorRect.top + bounds.top + bounds.height + TOOLBAR_GAP;
-    const hostWidth = floatingHost.offsetWidth || toolbarEl.offsetWidth;
+    const toolbarWidth = toolbarEl.offsetWidth;
     const left = clamp(
       anchorX,
-      TOOLBAR_GAP + hostWidth / 2,
-      window.innerWidth - TOOLBAR_GAP - hostWidth / 2,
+      TOOLBAR_GAP + toolbarWidth / 2,
+      window.innerWidth - TOOLBAR_GAP - toolbarWidth / 2,
     );
 
-    floatingHost.style.left = `${left}px`;
-    floatingHost.style.top = `${top}px`;
+    toolbarEl.style.left = `${left}px`;
+    toolbarEl.style.top = `${top}px`;
   };
 
   const scheduleReposition = () => {
     cancelAnimationFrame(repositionRaf);
-    repositionRaf = requestAnimationFrame(() => {
-      requestAnimationFrame(positionToolbar);
-    });
+    repositionRaf = requestAnimationFrame(positionToolbar);
   };
+
+  toolbarEl.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
 
   quill.on('selection-change', scheduleReposition);
   quill.on('text-change', scheduleReposition);
@@ -105,6 +108,7 @@ function setupFloatingToolbar(
     window.removeEventListener('scroll', scheduleReposition, true);
     window.removeEventListener('resize', scheduleReposition);
     resizeObserver.disconnect();
+    toolbarEl.remove();
   };
 }
 
@@ -119,7 +123,6 @@ export function KxRichTextEditor({
 }: KxRichTextEditorProps) {
   const minHeight = Math.max(96, minRows * 26);
   const containerRef = useRef<HTMLDivElement>(null);
-  const floatingToolbarRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<QuillInstance | null>(null);
   const onChangeRef = useRef(onChange);
   const maxLengthRef = useRef(maxLength);
@@ -142,15 +145,11 @@ export function KxRichTextEditor({
 
     void (async () => {
       const { default: Quill } = await import('quill');
-      if (destroyed || !containerRef.current || !floatingToolbarRef.current) return;
+      if (destroyed || !containerRef.current) return;
 
       const container = containerRef.current;
-      const floatingHost = floatingToolbarRef.current;
       const editorEl = container.ownerDocument.createElement('div');
       container.appendChild(editorEl);
-
-      const toolbarEl = container.ownerDocument.createElement('div');
-      toolbarEl.className = 'ql-toolbar ql-snow kx-quill-floating-toolbar-panel';
 
       const quill = new Quill(editorEl, {
         theme: 'snow',
@@ -158,7 +157,7 @@ export function KxRichTextEditor({
         readOnly: disabled,
         modules: {
           toolbar: {
-            container: toolbarEl,
+            container: TOOLBAR,
             handlers: {
               undo(this: { quill: QuillInstance }) {
                 this.quill.history.undo();
@@ -178,7 +177,11 @@ export function KxRichTextEditor({
       });
 
       quillRef.current = quill;
-      cleanupFloatingToolbar = setupFloatingToolbar(quill, toolbarEl, floatingHost);
+
+      const toolbarEl = container.querySelector<HTMLElement>('.ql-toolbar');
+      if (toolbarEl) {
+        cleanupFloatingToolbar = setupFloatingToolbar(quill, toolbarEl);
+      }
 
       if (valueRef.current) {
         syncingRef.current = true;
@@ -210,7 +213,6 @@ export function KxRichTextEditor({
       cleanupFloatingToolbar?.();
       quillRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
-      if (floatingToolbarRef.current) floatingToolbarRef.current.innerHTML = '';
       setReady(false);
     };
   }, []);
@@ -245,12 +247,6 @@ export function KxRichTextEditor({
       {!ready ? (
         <div className="min-h-[120px] animate-pulse rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800" />
       ) : null}
-      <div
-        ref={floatingToolbarRef}
-        className="kx-quill-floating-toolbar-host"
-        hidden
-        style={{ zIndex: FLOATING_TOOLBAR_Z }}
-      />
       <div ref={containerRef} className={ready ? '' : 'hidden'} />
     </div>
   );
