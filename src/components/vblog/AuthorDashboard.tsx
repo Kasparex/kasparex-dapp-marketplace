@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -37,6 +38,7 @@ export function AuthorDashboard({
 
   const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles, articles } = useVBlog();
   const pricing = useVBlogPricing();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -109,10 +111,14 @@ export function AuthorDashboard({
   };
 
   const handleUpdateArticle = async (articleId: string, updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>) => {
-    await updateExistingArticle(articleId, updates);
+    const updated = await updateExistingArticle(articleId, updates);
     loadArticles();
-    setSuccessMessage('Article updated successfully!');
     setEditingArticle(null);
+    if (updated?.slug) {
+      router.push(`/vblog/${encodeURIComponent(updated.slug)}`);
+      return;
+    }
+    setSuccessMessage('Article updated successfully!');
     setTimeout(() => {
       setSuccessMessage(null);
     }, 2000);

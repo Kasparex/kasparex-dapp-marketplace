@@ -47,6 +47,7 @@ export function AuthorPricing() {
         <FeeCard
           title="Edit / Update"
           feeKas={editFee}
+          basePoints={HUB_EARN_POINTS.vblogArticleUpdate}
           tier={tier}
         />
         <FeeCard title="Delete Fee" feeKas={deleteFee} tier={tier} />

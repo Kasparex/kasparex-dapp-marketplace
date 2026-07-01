@@ -392,9 +392,21 @@ export function useVBlog() {
         },
       },
     );
+    if (!bundle.verified) {
+      console.warn('Article updated with pending verification:', bundle.lastError);
+    } else if (bundle.commitTxHash && canonicalAuthor) {
+      appendHubActivityEarn({
+        walletRaw: canonicalAuthor,
+        source: 'vblog_article_update',
+        redeemableDelta: HUB_EARN_POINTS.vblogArticleUpdate,
+        krexBalance,
+        idempotencyKey: `vba:update:${bundle.commitTxHash}`,
+        meta: { articleId: chainArticleId, contentHash },
+      });
+    }
     loadArticles();
     return updated;
-  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, kaspaState.isConnected, kaspaState.provider]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, kaspaState.isConnected, kaspaState.provider, krexBalance]);
 
   /**
    * Get comments for an article

@@ -879,16 +879,59 @@
   background: rgb(24 24 27);
 }
 
-.kx-quill-editor .ql-container.ql-snow {
+.kx-quill-editor .ql-container.ql-snow,
+.kx-quill-editor .ql-container.ql-bubble {
   border: 1px solid rgb(228 228 231);
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-family: inherit;
 }
 
-.dark .kx-quill-editor .ql-container.ql-snow {
+.dark .kx-quill-editor .ql-container.ql-snow,
+.dark .kx-quill-editor .ql-container.ql-bubble {
   border-color: rgb(63 63 70);
   background: rgb(9 9 11);
+}
+
+.kx-quill-editor--floating .ql-container.ql-bubble {
+  border-radius: 0.75rem;
+}
+
+.kx-quill-editor--floating .ql-bubble .ql-tooltip {
+  background-color: rgb(24 24 27);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.25);
+  z-index: 60;
+}
+
+.dark .kx-quill-editor--floating .ql-bubble .ql-tooltip {
+  background-color: rgb(39 39 42);
+  border: 1px solid rgb(63 63 70);
+}
+
+.kx-quill-editor--floating .ql-bubble .ql-tooltip:not(.ql-flip) .ql-tooltip-arrow {
+  border-bottom-color: rgb(24 24 27);
+}
+
+.dark .kx-quill-editor--floating .ql-bubble .ql-tooltip:not(.ql-flip) .ql-tooltip-arrow {
+  border-bottom-color: rgb(39 39 42);
+}
+
+.kx-quill-editor--floating .ql-bubble .ql-tooltip.ql-flip .ql-tooltip-arrow {
+  border-top-color: rgb(24 24 27);
+}
+
+.dark .kx-quill-editor--floating .ql-bubble .ql-tooltip.ql-flip .ql-tooltip-arrow {
+  border-top-color: rgb(39 39 42);
+}
+
+.kx-quill-editor--floating .ql-bubble .ql-picker-options {
+  background-color: rgb(39 39 42);
+  border-radius: 0.5rem;
+}
+
+.kx-quill-editor .ql-container.ql-snow {
+  border-radius: 0 0 0.75rem 0.75rem;
 }
 
 .kx-quill-editor .ql-editor {
