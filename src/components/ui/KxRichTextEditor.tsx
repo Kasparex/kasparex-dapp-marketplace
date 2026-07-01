@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { htmlToPlainText, normalizeQuillHtml } from '@/lib/richText/html';
-import { insertDivider, mountFloatingToolbarPortal, registerKxQuillExtras } from '@/lib/richText/quillSetup';
+import { mountFloatingToolbarPortal } from '@/lib/richText/quillSetup';
 import 'quill/dist/quill.bubble.css';
 
 const TOOLBAR = [
@@ -12,7 +12,6 @@ const TOOLBAR = [
   [{ color: [] }],
   ['link', 'blockquote'],
   [{ list: 'ordered' }, { list: 'bullet' }],
-  ['divider-solid', 'divider-dashed', 'divider-dotted'],
   ['clean'],
 ];
 
@@ -25,7 +24,6 @@ const FORMATS = [
   'link',
   'blockquote',
   'list',
-  'divider',
 ];
 
 type QuillInstance = InstanceType<(typeof import('quill'))['default']>;
@@ -80,8 +78,6 @@ export function KxRichTextEditor({
       const { default: Quill } = await import('quill');
       if (destroyed || !containerRef.current) return;
 
-      registerKxQuillExtras(Quill);
-
       const container = containerRef.current;
       const editorEl = container.ownerDocument.createElement('div');
       container.appendChild(editorEl);
@@ -99,15 +95,6 @@ export function KxRichTextEditor({
               },
               redo(this: { quill: QuillInstance }) {
                 this.quill.history.redo();
-              },
-              'divider-solid'(this: { quill: QuillInstance }) {
-                insertDivider(this.quill, 'solid');
-              },
-              'divider-dashed'(this: { quill: QuillInstance }) {
-                insertDivider(this.quill, 'dashed');
-              },
-              'divider-dotted'(this: { quill: QuillInstance }) {
-                insertDivider(this.quill, 'dotted');
               },
             },
           },
@@ -194,7 +181,7 @@ export function KxRichTextEditor({
       <div ref={containerRef} className={ready ? '' : 'hidden'} />
       {floatingToolbar && ready ? (
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Select text to open the formatting toolbar above your selection. Divider buttons insert solid, dashed, or dotted lines.
+          Select text to open the formatting toolbar above your selection.
         </p>
       ) : null}
     </div>
