@@ -10,6 +10,8 @@ import { HubSocialMeta } from '@/components/metadata/HubSocialMeta';
 import { useVBlog } from '@/hooks/useVBlog';
 import { notFound } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getMagazineIssueHref } from '@/lib/magazines/routes';
+import { getMagazineById } from '@/lib/magazines/data';
 import type { VBlogArticle } from '@/lib/vblog/types';
 
 interface ArticlePageContentProps {
@@ -80,6 +82,11 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
   }
 
   const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
+  const linkedMagazine = isLinked && article.linkedMagazineId ? getMagazineById(article.linkedMagazineId) : null;
+  const magazineIssueHref =
+    isLinked && article.linkedMagazineId && article.linkedIssueNumber
+      ? getMagazineIssueHref(article.linkedMagazineId, article.linkedIssueNumber)
+      : '/magazines';
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
@@ -132,12 +139,12 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Syndicated Content</h4>
-                      <p className="text-xs text-zinc-500 font-bold">This article is featured in Kasparex Magazine Issue #{article.linkedIssueNumber}</p>
+                      <p className="text-xs text-zinc-500 font-bold">
+                        Linked to {linkedMagazine?.name ?? 'Kasparex Magazine'} Issue #{article.linkedIssueNumber}
+                      </p>
                     </div>
                   </div>
-                  <Link
-                    href={`/magazines/issue/${article.linkedMagazineId}/${article.linkedIssueNumber}`}
-                    className="k-control-btn shrink-0"
+                  <Link href={magazineIssueHref} className="k-control-btn shrink-0">
                   >
                     View Magazine
                   </Link>

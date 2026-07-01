@@ -16,11 +16,14 @@ export function VBlogPricingStrip({ createFee, editFee }: VBlogPricingStripProps
           {createFee} KAS
         </span>
       </div>
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-        <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Edit/Update Fee</span>
-        <span className="text-base font-black" style={{ color: VBLOG_ACCENT }}>
-          {editFee} KAS
-        </span>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Edit / Update</span>
+          <span className="text-base font-black" style={{ color: VBLOG_ACCENT }}>
+            {editFee <= 0 ? 'Free' : `${editFee} KAS`}
+          </span>
+        </div>
+        <span className="text-[10px] text-zinc-500">Modules or larger payload only</span>
       </div>
       <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
         <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider">On-Chain Publication</span>

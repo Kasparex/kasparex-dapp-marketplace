@@ -33,6 +33,12 @@ export function getMagazineBySlug(slug: string): Magazine | null {
     return magazines.find(m => m.slug === slug) || null;
 }
 
+/** Lookup by internal magazine id (e.g. mag-kaspa-insider). */
+export function getMagazineById(id: string): Magazine | null {
+    const magazines = getAllMagazines();
+    return magazines.find((m) => m.id === id) || null;
+}
+
 /**
  * Get magazines by owner address
  */

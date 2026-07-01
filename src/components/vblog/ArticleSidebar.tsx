@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { VBlogArticle } from '@/lib/vblog/types';
+import type { VBlogArticle } from '@/lib/vblog/types';
+import { getMagazineIssueHref, getMagazineIssueLinkLabel } from '@/lib/magazines/routes';
 import { formatAddress } from '@/lib/vblog/utils';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { Avatar } from '@/components/Avatar';
@@ -308,9 +309,9 @@ export function ArticleSidebar({
       title: 'Magazine link',
       links: [
         {
-          href: `/magazines/issue/${article.linkedMagazineId}/${article.linkedIssueNumber}`,
-          label: `Issue #${article.linkedIssueNumber}`,
-          sublabel: 'View syndicated magazine issue',
+          href: getMagazineIssueHref(article.linkedMagazineId, article.linkedIssueNumber),
+          label: getMagazineIssueLinkLabel(article.linkedMagazineId, article.linkedIssueNumber),
+          sublabel: 'View magazine issue or catalog',
         },
       ],
     });

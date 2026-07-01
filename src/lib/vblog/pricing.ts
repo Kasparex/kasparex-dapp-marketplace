@@ -6,7 +6,7 @@ import { computeVBlogModuleAddonKas, type VBlogModuleAddonLine } from '@/lib/vbl
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
 export const VBLOG_CREATE_BASE_FEE_KAS = 10;
-export const VBLOG_EDIT_BASE_FEE_KAS = 2;
+export const VBLOG_EDIT_BASE_FEE_KAS = 0;
 export const VBLOG_DELETE_BASE_FEE_KAS = 0.1;
 export const VBLOG_PER_CHUNK_KAS = 0.35;
 export const VBLOG_PER_KB_KAS = 0.2;
@@ -29,6 +29,8 @@ export interface VBlogPricingDraft {
   magazineIntegrationEnabled?: boolean;
   /** Module IDs already paid on a prior publish (excluded from edit pricing). */
   excludeModuleIds?: VBlogModuleId[];
+  /** Prior on-chain payload size (edit charges only for growth above this). */
+  priorPricingSnapshot?: { payloadBytes: number; chunkCount: number };
 }
 
 function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string, unknown> | null {
@@ -84,8 +86,22 @@ export interface VBlogPriceQuote {
 }
 
 export function getVBlogBaseFeeKas(action: VBlogAction): number {
-  if (action === 'edit') return VBLOG_EDIT_BASE_FEE_KAS;
+  if (action === 'edit') return 0;
   return VBLOG_CREATE_BASE_FEE_KAS;
+}
+
+function computeEditSizeFeeKas(args: {
+  payloadBytes: number;
+  chunkCount: number;
+  prior?: { payloadBytes: number; chunkCount: number };
+}): { sizeFeeKas: number; billableBytes: number; billableChunks: number } {
+  const priorBytes = args.prior?.payloadBytes ?? 0;
+  const priorChunks = args.prior?.chunkCount ?? 0;
+  const billableBytes = Math.max(0, args.payloadBytes - priorBytes);
+  const billableChunks = Math.max(0, args.chunkCount - priorChunks);
+  const sizeFeeKas =
+    billableChunks * VBLOG_PER_CHUNK_KAS + (billableBytes / 1024) * VBLOG_PER_KB_KAS;
+  return { sizeFeeKas, billableBytes, billableChunks };
 }
 
 function round2(value: number): number {
@@ -166,8 +182,19 @@ export function computeVBlogArticlePrice(
   const { payloadBytes, chunkCount } = computeArticleChunkPlan(payload);
   const discount = Math.min(Math.max(discountPercent, 0), 90) / 100;
   const baseFeeKas = getVBlogBaseFeeKas(action);
-  const sizeFeeKas = chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS;
-  const networkFeeBufferKas = Math.max(0.05, chunkCount * 0.01);
+  const sizeBreakdown =
+    action === 'edit'
+      ? computeEditSizeFeeKas({
+          payloadBytes,
+          chunkCount,
+          prior: draft.priorPricingSnapshot,
+        })
+      : {
+          sizeFeeKas: chunkCount * VBLOG_PER_CHUNK_KAS + (payloadBytes / 1024) * VBLOG_PER_KB_KAS,
+          billableBytes: payloadBytes,
+          billableChunks: chunkCount,
+        };
+  const sizeFeeKas = sizeBreakdown.sizeFeeKas;
   const moduleAddon = modulePricing
     ? computeVBlogModuleAddonKas(
         draft.modules,
@@ -177,6 +204,12 @@ export function computeVBlogArticlePrice(
         draft.excludeModuleIds ?? [],
       )
     : { totalKas: 0, lines: [] as VBlogModuleAddonLine[] };
+  const networkFeeBufferKas =
+    action === 'edit'
+      ? sizeFeeKas > 0 || moduleAddon.totalKas > 0
+        ? Math.max(0.05, Math.max(sizeBreakdown.billableChunks, 1) * 0.01)
+        : 0
+      : Math.max(0.05, chunkCount * 0.01);
   const subtotalKas = baseFeeKas + sizeFeeKas + networkFeeBufferKas + moduleAddon.totalKas;
   const totalKas = round2(subtotalKas * (1 - discount));
   const discountKas = round2(subtotalKas - totalKas);

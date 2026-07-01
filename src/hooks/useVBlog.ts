@@ -318,6 +318,13 @@ export function useVBlog() {
     const contentHash = fnv1aHex(canonicalPayload);
     const magazineIntegrationEnabled = Boolean(merged.linkedMagazineId && merged.linkedIssueNumber);
     const previouslyPaidModuleIds = getArticlePaidModuleIds(existing);
+    const priorPricingSnapshot =
+      existing.pricingSnapshot?.payloadBytes != null && existing.pricingSnapshot?.chunkCount != null
+        ? {
+            payloadBytes: existing.pricingSnapshot.payloadBytes,
+            chunkCount: existing.pricingSnapshot.chunkCount,
+          }
+        : undefined;
     const quote = pricing.estimateQuote({
       title: merged.title,
       description: merged.description,
@@ -333,7 +340,26 @@ export function useVBlog() {
       modules: merged.modules,
       magazineIntegrationEnabled,
       excludeModuleIds: previouslyPaidModuleIds,
+      priorPricingSnapshot,
     }, 'edit');
+
+    const enabledModuleIds = getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled);
+    const nextPaidModuleIds = [
+      ...new Set([
+        ...previouslyPaidModuleIds,
+        ...enabledModuleIds.filter((id) => !previouslyPaidModuleIds.includes(id)),
+      ]),
+    ];
+
+    if (quote.totalKas <= 0) {
+      const updated = updateArticle(articleId, {
+        ...updates,
+        paidModuleIds: nextPaidModuleIds,
+      });
+      loadArticles();
+      return updated;
+    }
+
     const chainArticleId = existing.articleId ?? `vba-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const bundle = await sendVBlogTxBundle({
       articleId: chainArticleId,
@@ -347,14 +373,7 @@ export function useVBlog() {
       articleId,
       {
         ...updates,
-        paidModuleIds: [
-          ...new Set([
-            ...previouslyPaidModuleIds,
-            ...getEnabledVBlogModuleIds(merged.modules, magazineIntegrationEnabled).filter(
-              (id) => !previouslyPaidModuleIds.includes(id),
-            ),
-          ]),
-        ],
+        paidModuleIds: nextPaidModuleIds,
       },
       {
         articleId: chainArticleId,
@@ -373,19 +392,9 @@ export function useVBlog() {
         },
       },
     );
-    if (bundle.verified && bundle.commitTxHash) {
-      appendHubActivityEarn({
-        walletRaw: canonicalAuthor,
-        source: 'vblog_article_update',
-        redeemableDelta: HUB_EARN_POINTS.vblogArticleUpdate,
-        krexBalance,
-        idempotencyKey: `vba:update:${bundle.commitTxHash}`,
-        meta: { articleId: chainArticleId, contentHash },
-      });
-    }
-    loadArticles(); // Reload articles
+    loadArticles();
     return updated;
-  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, krexBalance]);
+  }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, kaspaState.isConnected, kaspaState.provider]);
 
   /**
    * Get comments for an article

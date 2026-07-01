@@ -86,7 +86,7 @@ export const VBLOG_MODULE_OFFERS: VBlogModuleOffer[] = [
   {
     id: 'magazine_integration',
     title: 'Magazine Integration',
-    description: 'Link articles to Magazine issues and enable contributor syndication paths.',
+    description: 'Submit this article to a magazine issue. Editors curate submissions and assign revenue shares when the issue sells.',
     unlockPriceKas: 18,
     featuredImage: '',
   },

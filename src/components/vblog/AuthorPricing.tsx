@@ -11,19 +11,22 @@ function FeeCard({
   feeKas,
   basePoints,
   tier,
+  note,
 }: {
   title: string;
   feeKas: number;
-  basePoints: number;
+  basePoints?: number;
   tier: KREXTier;
+  note?: string;
 }) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
       <div className="flex items-start justify-between gap-3">
         <span className="text-zinc-500 text-[10px] font-black uppercase tracking-wider pt-0.5">{title}</span>
-        <p className="text-base font-black text-[#02abb8] tabular-nums">{feeKas} KAS</p>
+        <p className="text-base font-black text-[#02abb8] tabular-nums">{feeKas <= 0 ? 'Free' : `${feeKas} KAS`}</p>
       </div>
-      <HubPointsEarnRow basePoints={basePoints} tier={tier} />
+      {note ? <p className="text-[10px] text-zinc-500 leading-relaxed">{note}</p> : null}
+      {basePoints && basePoints > 0 ? <HubPointsEarnRow basePoints={basePoints} tier={tier} /> : null}
     </div>
   );
 }
@@ -42,10 +45,10 @@ export function AuthorPricing() {
           tier={tier}
         />
         <FeeCard
-          title="Edit Fee"
+          title="Edit / Update"
           feeKas={editFee}
-          basePoints={HUB_EARN_POINTS.vblogArticleUpdate}
           tier={tier}
+          note="Free for text and metadata changes. Pay only when adding new premium modules or expanding payload size."
         />
         <FeeCard title="Delete Fee" feeKas={deleteFee} basePoints={0} tier={tier} />
       </div>

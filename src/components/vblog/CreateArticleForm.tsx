@@ -179,6 +179,13 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       modules: modulesPayload,
       magazineIntegrationEnabled,
       excludeModuleIds: isEditMode ? originalPaidModuleIds : undefined,
+      priorPricingSnapshot:
+        isEditMode && article?.pricingSnapshot?.payloadBytes != null && article?.pricingSnapshot?.chunkCount != null
+          ? {
+              payloadBytes: article.pricingSnapshot.payloadBytes,
+              chunkCount: article.pricingSnapshot.chunkCount,
+            }
+          : undefined,
     },
     isEditMode ? 'edit' : 'create',
   );
@@ -483,7 +490,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
               {isEditMode ? 'Edit Article' : 'Create New Article'}
             </h3>
             <p className="kx-body">
-              {isEditMode ? 'Update your article details.' : 'Fill in the details below to create a new article.'} Estimated cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunk{formQuote.chunkCount === 1 ? '' : 's'}, {formQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
+              {isEditMode
+                ? `Updates are free unless you add new paid modules or grow the article beyond its last published size. Estimated cost: ${formQuote.totalKas} KAS.`
+                : `Fill in the details below to create a new article. Estimated cost: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunk${formQuote.chunkCount === 1 ? '' : 's'}, ${formQuote.payloadBytes} bytes)${pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.`}
             </p>
           </div>
 
@@ -818,7 +827,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
         <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
           {isEditMode
-            ? 'Updating sends one Kaspa L1 payment transaction and refreshes on-chain metadata.'
+            ? formQuote.totalKas <= 0
+              ? 'No payment needed for this update. Changes save locally right away.'
+              : 'This update adds new paid modules or extra payload. One Kaspa L1 payment refreshes on-chain metadata.'
             : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
         </div>
         {pricing.tier.hasKREXDiscount && (

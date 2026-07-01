@@ -62,7 +62,7 @@ export function useVBlogPricing() {
 
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 10.41,
-    editFee: 2.41,
+    editFee: 0,
     deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
     isPremium: false,
     tier: {
@@ -103,7 +103,7 @@ export function useVBlogPricing() {
             }
             return {
               createFee: 10.41,
-              editFee: 2.41,
+              editFee: 0,
               deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
               isPremium: false,
               tier: {

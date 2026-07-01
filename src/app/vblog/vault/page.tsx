@@ -72,7 +72,10 @@ export default function VBlogVaultPage() {
                   </div>
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
                     <p className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Edit article</p>
-                    <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{pricing.editFee} KAS</p>
+                    <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">
+                      {pricing.editFee <= 0 ? 'Free' : `${pricing.editFee} KAS`}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Modules or payload growth only</p>
                   </div>
                 </div>
               </div>

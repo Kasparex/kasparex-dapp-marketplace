@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAllMagazines, getIssuesForMagazine } from '@/lib/magazines/data';
+import { getMagazineIssueHref } from '@/lib/magazines/routes';
 import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
+import Link from 'next/link';
 
 interface VBlogMagazineIntegrationProps {
   linkedMagazineId?: string;
@@ -11,6 +13,47 @@ interface VBlogMagazineIntegrationProps {
   onChange: (magazineId?: string, issueNumber?: number) => void;
   disabled?: boolean;
   embedded?: boolean;
+}
+
+function buildMagazineIntegrationGuide(args: {
+  magazine: Magazine | null;
+  issueNumber: number;
+  publishedIssue: MagazineIssue | null;
+}): { nextSteps: string; earningsHint: string; issueHref: string | null } {
+  const { magazine, issueNumber, publishedIssue } = args;
+  const issueHref = magazine ? getMagazineIssueHref(magazine.id, issueNumber) : null;
+
+  const nextSteps =
+    'After you publish, your article appears in the magazine editor submission queue for this issue. The editor reviews linked articles, adds accepted ones to the issue, then publishes. You are not charged again for edits unless you add new paid modules or grow the article payload.';
+
+  if (!magazine) {
+    return {
+      nextSteps,
+      earningsHint:
+        'If your article is accepted, you can earn a contributor share from each issue sale. The editor sets shares when the issue is published (often 20% to 95% of the issue price).',
+      issueHref: null,
+    };
+  }
+
+  if (!publishedIssue) {
+    return {
+      nextSteps,
+      earningsHint: `Issue #${issueNumber} is not published yet. If accepted, you may receive a vBlog Author share from future sales. Editors typically assign 20% to 95% of the issue price per contributor row.`,
+      issueHref,
+    };
+  }
+
+  const contributor =
+    publishedIssue.contributors.find((c) => c.role === 'vBlog Author') ??
+    publishedIssue.contributors.find((c) => c.role === 'Author' || c.role === 'Writer');
+  const sharePct = contributor?.sharePercentage ?? 30;
+  const examplePerSale = ((publishedIssue.priceKAS * sharePct) / 100).toFixed(2);
+
+  return {
+    nextSteps,
+    earningsHint: `Published Issue #${issueNumber} is priced at ${publishedIssue.priceKAS} KAS. With a ${sharePct}% contributor share, you could earn about ${examplePerSale} KAS per sale if your article is included.`,
+    issueHref,
+  };
 }
 
 export function VBlogMagazineIntegration({
@@ -41,6 +84,26 @@ export function VBlogMagazineIntegration({
       setIssues([]);
     }
   }, [selectedMagId]);
+
+  const selectedMagazine = useMemo(
+    () => magazines.find((m) => m.id === selectedMagId) ?? null,
+    [magazines, selectedMagId],
+  );
+
+  const publishedIssue = useMemo(
+    () => issues.find((i) => i.issueNumber === selectedIssueNum) ?? null,
+    [issues, selectedIssueNum],
+  );
+
+  const guide = useMemo(
+    () =>
+      buildMagazineIntegrationGuide({
+        magazine: selectedMagazine,
+        issueNumber: selectedIssueNum,
+        publishedIssue,
+      }),
+    [selectedMagazine, selectedIssueNum, publishedIssue],
+  );
 
   const handleMagChange = (id: string) => {
     setSelectedMagId(id);
@@ -91,13 +154,31 @@ export function VBlogMagazineIntegration({
           />
         </div>
       </div>
+
       {selectedMagId && selectedIssueNum > 0 ? (
-        <div className="p-3 bg-[#02abb8]/10 rounded-xl border border-[#02abb8]/25">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#02abb8] dark:text-[#66dfe8]">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Article linked to magazine
+        <div className="space-y-3">
+          <div className="p-3 bg-[#02abb8]/10 rounded-xl border border-[#02abb8]/25">
+            <div className="flex items-center gap-2 text-sm font-bold text-[#02abb8] dark:text-[#66dfe8]">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Article linked to magazine
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">What happens next</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">{guide.nextSteps}</p>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">{guide.earningsHint}</p>
+            {guide.issueHref ? (
+              <Link href={guide.issueHref} className="inline-block text-xs font-bold text-[#02abb8] hover:underline">
+                View magazine {publishedIssue ? 'issue' : 'page'}
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -113,7 +194,12 @@ export function VBlogMagazineIntegration({
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-[#02abb8]/10 flex items-center justify-center">
           <svg className="w-4 h-4 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
           </svg>
         </div>
         <h4 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
@@ -121,7 +207,7 @@ export function VBlogMagazineIntegration({
         </h4>
       </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-        Connect this article to a curated magazine issue. This assigns you as a contributor and enables automated revenue-sharing from magazine sales.
+        Submit this article to a Kasparex Magazine issue. The editor curates submissions and sets revenue shares when the issue is published.
       </p>
       {fields}
     </div>
