@@ -28,7 +28,7 @@ export function registerKxQuillExtras(QuillCtor: QuillConstructor) {
   const BlockEmbed = QuillCtor.import('blots/block/embed') as {
     new (): { domNode: HTMLElement };
     create(value?: unknown): HTMLElement;
-    scope: import('parchment').Scope;
+    scope: unknown;
   };
 
   class DividerBlot extends BlockEmbed {
@@ -54,7 +54,10 @@ export function registerKxQuillExtras(QuillCtor: QuillConstructor) {
     }
   }
 
-  QuillCtor.register(DividerBlot);
+  QuillCtor.register(
+    { [`formats/${DividerBlot.blotName}`]: DividerBlot as Record<string, unknown> },
+    true,
+  );
 }
 
 export function insertDivider(quill: QuillInstance, style: DividerStyle) {
