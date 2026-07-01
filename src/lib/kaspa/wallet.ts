@@ -133,25 +133,6 @@ async function invokeKastleSend(
 }
 
 /**
- * Verify the wallet extension responds before attempting a spend.
- */
-export async function assertKaspaWalletReady(provider: KaspaWalletProvider): Promise<void> {
-  const walletProvider = getWalletProvider(provider);
-  if (!walletProvider) {
-    throw new Error('Wallet extension not detected. Refresh the page and reconnect your wallet.');
-  }
-
-  try {
-    const address = await withWalletCallTimeout(walletProvider.getAddress(), 'Wallet connection check');
-    if (!address) {
-      throw new Error('Wallet is locked or disconnected. Open your wallet extension and try again.');
-    }
-  } catch (error) {
-    throw new Error(formatKaspaWalletError(error));
-  }
-}
-
-/**
  * List of supported wallet providers with metadata
  */
 export const KASPA_WALLET_PROVIDERS: Record<KaspaWalletProvider, Omit<KaspaWalletProviderInfo, 'isInstalled'>> = {
@@ -333,7 +314,15 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
     },
     getAddress: async () => {
       if (typeof kasware.getAddress === 'function') {
-        return await kasware.getAddress();
+        const addr = await kasware.getAddress();
+        if (addr) return addr;
+      }
+      // KasWare may return null from getAddress() while sendKaspa still works after requestAccounts().
+      if (typeof kasware.requestAccounts === 'function') {
+        const accounts = await kasware.requestAccounts();
+        if (Array.isArray(accounts) && accounts.length > 0) {
+          return accounts[0];
+        }
       }
       return null;
     },
@@ -898,10 +887,8 @@ export async function sendKaspaTransaction(
     };
   }
 
-  // Do not gate on isConnected(): KasWare may return false while the session is still active.
+  // Do not gate on isConnected() or getAddress(): KasWare may return false/null while send still works.
   try {
-    await assertKaspaWalletReady(provider);
-
     const normalizedTx = {
       ...transaction,
       to: sdkNormalizeKaspaAddress(transaction.to),
