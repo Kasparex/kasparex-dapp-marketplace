@@ -5,6 +5,10 @@
 export const HUB_EARN_POINTS = {
   vblogArticleCreate: 120,
   vblogArticleUpdate: 40,
+  vblogPremiumUnlock: 50,
+  vblogTip: 30,
+  vblogPollVote: 20,
+  vblogReadingReceipt: 15,
   storeProductList: 100,
   dappDirectoryList: 100,
   hubAdPlacement: 80,

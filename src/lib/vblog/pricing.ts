@@ -39,6 +39,8 @@ function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string
     out.premiumSectionContent = (modules.premiumSectionContent ?? '').trim();
     out.premiumSectionPriceKas = modules.premiumSectionPriceKas ?? 0;
     out.premiumSectionPayoutAddress = (modules.premiumSectionPayoutAddress ?? '').trim();
+    const split = (modules.premiumSectionSplitAddresses ?? []).map((a) => a.trim()).filter(Boolean);
+    if (split.length) out.premiumSectionSplitAddresses = split;
   }
   if (modules.tipBoxEnabled) {
     out.tipBoxEnabled = true;

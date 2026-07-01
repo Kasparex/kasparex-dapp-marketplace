@@ -1,6 +1,8 @@
 'use client';
 
 import type { VBlogPollVote } from '@/lib/vblog/modules';
+import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
+import type { KREXTier } from '@/lib/rewards/types';
 
 type VBlogPremiumPollProps = {
   question: string;
@@ -13,6 +15,8 @@ type VBlogPremiumPollProps = {
   hasVoted: boolean;
   userVoteIndex?: number;
   premiumUnlocked: boolean;
+  hubPointsBase?: number;
+  tier?: KREXTier;
   isProcessing?: boolean;
 };
 
@@ -28,6 +32,8 @@ export function VBlogPremiumPoll({
   userVoteIndex,
   premiumUnlocked,
   isProcessing = false,
+  hubPointsBase = 0,
+  tier = 'Tier0',
 }: VBlogPremiumPollProps) {
   const totalVotes = votes.length;
   const showResults = hasVoted;
@@ -131,14 +137,19 @@ export function VBlogPremiumPoll({
           </div>
 
           {canVote ? (
-            <button
-              type="button"
-              disabled={isProcessing || selectedOption < 0 || selectedOption >= options.length}
-              onClick={onSubmitVote}
-              className="mt-5 k-control-btn w-full sm:w-auto min-w-[10rem]"
-            >
-              {isProcessing ? 'Submitting...' : 'Submit vote'}
-            </button>
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
+              <button
+                type="button"
+                disabled={isProcessing || selectedOption < 0 || selectedOption >= options.length}
+                onClick={onSubmitVote}
+                className="k-control-btn w-full sm:w-auto min-w-[10rem]"
+              >
+                {isProcessing ? 'Submitting...' : 'Submit vote'}
+              </button>
+              {hubPointsBase > 0 ? (
+                <HubPointsEarnRow label="Earn:" basePoints={hubPointsBase} tier={tier} className="sm:justify-start" />
+              ) : null}
+            </div>
           ) : hasVoted ? (
             <p className="mt-4 text-sm font-medium text-[#02abb8] dark:text-[#66dfe8]">
               Thanks for voting. Results update as more readers participate.

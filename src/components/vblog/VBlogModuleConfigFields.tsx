@@ -12,6 +12,8 @@ export function VBlogModuleConfigFields({
   onPremiumSectionPriceKasChange,
   premiumSectionPayoutAddress,
   onPremiumSectionPayoutAddressChange,
+  premiumSectionSplitAddresses,
+  onPremiumSectionSplitAddressesChange,
   tipToRevealContent,
   onTipToRevealContentChange,
   tipToRevealThresholdKas,
@@ -30,6 +32,8 @@ export function VBlogModuleConfigFields({
   onPremiumSectionPriceKasChange?: (v: string) => void;
   premiumSectionPayoutAddress?: string;
   onPremiumSectionPayoutAddressChange?: (v: string) => void;
+  premiumSectionSplitAddresses?: string[];
+  onPremiumSectionSplitAddressesChange?: (v: string[]) => void;
   tipToRevealContent?: string;
   onTipToRevealContentChange?: (v: string) => void;
   tipToRevealThresholdKas?: string;
@@ -68,9 +72,31 @@ export function VBlogModuleConfigFields({
             className="k-input"
             value={premiumSectionPayoutAddress ?? ''}
             onChange={(e) => onPremiumSectionPayoutAddressChange?.(e.target.value)}
-            placeholder="Payout Kaspa address"
+            placeholder="Primary payout Kaspa address"
             disabled={disabled}
           />
+        </div>
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            Optional split wallets (up to 2 more)
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Author share is split evenly across valid wallets. Covenant-based routing will automate this soon.
+          </p>
+          {(premiumSectionSplitAddresses ?? ['', '']).map((addr, index) => (
+            <input
+              key={index}
+              className="k-input"
+              value={addr}
+              onChange={(e) => {
+                const next = [...(premiumSectionSplitAddresses ?? ['', ''])];
+                next[index] = e.target.value;
+                onPremiumSectionSplitAddressesChange?.(next);
+              }}
+              placeholder={`Split wallet ${index + 2} (optional)`}
+              disabled={disabled}
+            />
+          ))}
         </div>
       </div>
     );

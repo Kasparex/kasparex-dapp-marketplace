@@ -92,6 +92,10 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [premiumSectionContent, setPremiumSectionContent] = useState(() => contentForRichEditor(article?.modules?.premiumSectionContent ?? ''));
   const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState(String(article?.modules?.premiumSectionPriceKas ?? 10));
   const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState(article?.modules?.premiumSectionPayoutAddress ?? '');
+  const [premiumSectionSplitAddresses, setPremiumSectionSplitAddresses] = useState<string[]>(() => {
+    const saved = article?.modules?.premiumSectionSplitAddresses ?? [];
+    return saved.length >= 2 ? saved.slice(0, 2) : [...saved, '', ''].slice(0, 2);
+  });
   const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article?.modules?.tipBoxEnabled));
   const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article?.modules?.tipToRevealEnabled));
   const [tipToRevealContent, setTipToRevealContent] = useState(() => contentForRichEditor(article?.modules?.tipToRevealContent ?? ''));
@@ -119,6 +123,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
       premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
       premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
+      premiumSectionSplitAddresses: premiumSectionEnabled
+        ? premiumSectionSplitAddresses.map((a) => a.trim()).filter(Boolean).slice(0, 2)
+        : undefined,
       tipBoxEnabled,
       tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
       tipToRevealEnabled,
@@ -243,6 +250,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setPremiumSectionContent(contentForRichEditor(article.modules?.premiumSectionContent ?? ''));
     setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
     setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
+    const splitSaved = article.modules?.premiumSectionSplitAddresses ?? [];
+    setPremiumSectionSplitAddresses(splitSaved.length >= 2 ? splitSaved.slice(0, 2) : [...splitSaved, '', ''].slice(0, 2));
     setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
     setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
     setTipToRevealContent(contentForRichEditor(article.modules?.tipToRevealContent ?? ''));
@@ -559,6 +568,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                 onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
                 premiumSectionPayoutAddress={premiumSectionPayoutAddress}
                 onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
+                premiumSectionSplitAddresses={premiumSectionSplitAddresses}
+                onPremiumSectionSplitAddressesChange={setPremiumSectionSplitAddresses}
               />
             ) : null}
           </div>
@@ -743,6 +754,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                   onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
                   premiumSectionPayoutAddress={premiumSectionPayoutAddress}
                   onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
+                  premiumSectionSplitAddresses={premiumSectionSplitAddresses}
+                  onPremiumSectionSplitAddressesChange={setPremiumSectionSplitAddresses}
                   tipToRevealContent={tipToRevealContent}
                   onTipToRevealContentChange={setTipToRevealContent}
                   tipToRevealThresholdKas={tipToRevealThresholdKas}

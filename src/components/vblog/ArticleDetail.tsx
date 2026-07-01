@@ -22,11 +22,19 @@ import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLig
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
 import { getVBlogPlatformFeeBps, getVBlogTreasuryL1Address } from '@/lib/vblog/config';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { kasToSompi } from '@/lib/ads/config';
 import { buildVBlogPremiumUnlockPayloadHex, buildVBlogPremiumUnlockPlainNote, utf8ToHex } from '@/lib/vblog/payloadHex';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
+import { resolvePremiumPayoutAddresses, splitAuthorKasEvenly } from '@/lib/vblog/paymentSplit';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import type { EarnSource } from '@/lib/rewards/hub-ledger-types';
 import {
   getPollVotes,
   getPollVoteForWallet,
@@ -39,6 +47,7 @@ import {
 } from '@/lib/vblog/modules';
 import { VBlogPremiumSectionGate } from '@/components/vblog/VBlogPremiumSectionGate';
 import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
+import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
 
@@ -67,6 +76,8 @@ export function ArticleDetail({
 }: ArticleDetailProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
+  const { tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
   const { deleteExistingArticle, getArticleComments } = useVBlog();
   const router = useRouter();
   const [internalTab, setInternalTab] = useState<ArticleContentTab>('article');
@@ -98,13 +109,42 @@ export function ArticleDetail({
   const featuredImageSrc = article.featuredImage?.trim() ?? '';
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
-  const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
-  const tipRevealEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'tip_to_reveal_unlock') : false;
+  const premiumUnlockEntitled = useMemo(() => {
+    const wallets = [walletAddress, kaspaState.address].filter(Boolean) as string[];
+    return wallets.some((w) => hasReaderEntitlement(w, article.id, 'premium_unlock'));
+  }, [walletAddress, kaspaState.address, article.id, refreshTick]);
+  const tipRevealEntitled = useMemo(() => {
+    const wallets = [walletAddress, kaspaState.address].filter(Boolean) as string[];
+    return wallets.some((w) => hasReaderEntitlement(w, article.id, 'tip_to_reveal_unlock'));
+  }, [walletAddress, kaspaState.address, article.id, refreshTick]);
   const canVotePoll = walletAddress ? premiumUnlockEntitled && !hasPollVote(article.id, walletAddress) : false;
   const hasVotedPoll = walletAddress ? hasPollVote(article.id, walletAddress) : false;
   const userPollVote = walletAddress ? getPollVoteForWallet(article.id, walletAddress) : undefined;
   const pollVotes = useMemo(() => getPollVotes(article.id), [article.id, refreshTick]);
   const receiptBadge = walletAddress ? getReceiptStreakAndBadge(walletAddress) : { streak: 0, badge: 'No badge' };
+
+  const premiumListKas = Number(article.modules?.premiumSectionPriceKas ?? 0);
+  const premiumPricing = useMemo(
+    () => computeVBlogReaderPaymentSplit(premiumListKas, krexTier, nftStatus),
+    [premiumListKas, krexTier, nftStatus],
+  );
+
+  const creditReaderEarn = (
+    source: EarnSource,
+    basePoints: number,
+    idempotencyKey: string,
+    meta?: Record<string, unknown>,
+  ) => {
+    if (!kaspaState.address) return;
+    appendHubActivityEarn({
+      walletRaw: kaspaState.address,
+      source,
+      redeemableDelta: basePoints,
+      idempotencyKey,
+      krexTier,
+      meta,
+    });
+  };
 
   const articleTabs: readonly DAppTab<ArticleContentTab>[] = [
     { id: 'article', label: 'Article', icon: <IconArticle /> },
@@ -123,80 +163,104 @@ export function ArticleDetail({
     },
   ];
 
-  const performSplitPayment = async (moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box', totalKas: number) => {
-    if (!walletAddress || !kaspaState.provider || !kaspaState.isConnected || !kaspaState.address) {
+  const performSplitPayment = async (
+    moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box',
+    listKas: number,
+  ) => {
+    if (!kaspaState.provider || !kaspaState.isConnected || !kaspaState.address) {
       throw new Error('Kaspa wallet required');
     }
-    const bps = getVBlogPlatformFeeBps();
-    const platformKas = Math.max(0.01, Math.round((totalKas * bps) / 100) / 100);
-    const authorKas = Math.max(0.01, Math.round((totalKas - platformKas) * 100) / 100);
-    const payoutAddress = article.modules?.premiumSectionPayoutAddress || article.author;
+    const payerAddress = normalizeKaspaAddress(kaspaState.address);
+    const payment = computeVBlogReaderPaymentSplit(listKas, krexTier, nftStatus, getVBlogPlatformFeeBps());
+    const payoutPrimary =
+      moduleId === 'premium_unlock'
+        ? article.modules?.premiumSectionPayoutAddress || article.author
+        : article.author;
+    const payoutRecipients = resolvePremiumPayoutAddresses(
+      payoutPrimary,
+      moduleId === 'premium_unlock' ? article.modules?.premiumSectionSplitAddresses : undefined,
+    );
+    if (payoutRecipients.length === 0) {
+      throw new Error('Author payout address is invalid');
+    }
+    const authorSplits = splitAuthorKasEvenly(payment.authorKas, payoutRecipients);
     const note = buildVBlogPremiumUnlockPlainNote({
       articleId: article.id,
       moduleId,
-      payerAddress: walletAddress,
-      amountKas: totalKas,
+      payerAddress,
+      amountKas: payment.totalKas,
     });
     const payload = buildVBlogPremiumUnlockPayloadHex({
       articleId: article.id,
       moduleId,
-      payerAddress: walletAddress,
-      amountKas: totalKas,
+      payerAddress,
+      amountKas: payment.totalKas,
     });
 
-    const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-      to: payoutAddress,
-      amount: String(kasToSompi(authorKas)),
-      note,
-      payload,
-    });
-    if (authorTx.status === 'failed' || !authorTx.txHash) {
-      throw new Error(authorTx.error ?? 'Author payout transaction failed');
+    const authorTxHashes: string[] = [];
+    for (const split of authorSplits) {
+      const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        to: split.address,
+        amount: String(kasToSompi(split.kas)),
+        note,
+        payload,
+      });
+      if (authorTx.status === 'failed' || !authorTx.txHash) {
+        throw new Error(authorTx.error ?? 'Author payout transaction failed');
+      }
+      authorTxHashes.push(extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash);
     }
+
     const platformTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
       to: getVBlogTreasuryL1Address(),
-      amount: String(kasToSompi(platformKas)),
+      amount: String(kasToSompi(payment.platformKas)),
       note: `${note}:fee`,
       payload,
     });
     if (platformTx.status === 'failed' || !platformTx.txHash) {
       throw new Error(platformTx.error ?? 'Platform fee transaction failed');
     }
-    const authorTxHash = extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash;
     const platformTxHash = extractKaspaTransactionId(platformTx.txHash) ?? platformTx.txHash;
+
     const verifyRes = await fetch('/api/vblog/modules/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        payerAddress: walletAddress,
+        payerAddress,
         articleId: article.id,
         moduleId,
-        expectedAuthorAddress: payoutAddress,
-        expectedAuthorKas: authorKas,
-        expectedPlatformKas: platformKas,
-        authorTxHash,
+        expectedAuthorAddress: payoutRecipients[0],
+        expectedAuthorKas: payment.authorKas,
+        expectedPlatformKas: payment.platformKas,
+        authorTxHashes,
+        authorRecipientAddresses: payoutRecipients,
         platformTxHash,
       }),
     });
-    const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string };
+    const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string; points?: number };
     if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
-    return { authorTxHash, platformTxHash };
+    return { authorTxHashes, platformTxHash, payment, payerAddress };
   };
 
   const handlePremiumUnlock = async () => {
     try {
       setActionError(null);
       setIsProcessingAction(true);
-      const totalKas = Number(article.modules?.premiumSectionPriceKas ?? 0);
-      const txs = await performSplitPayment('premium_unlock', totalKas);
-      if (!walletAddress) return;
+      const txs = await performSplitPayment('premium_unlock', premiumListKas);
+      const walletKey = txs.payerAddress;
       saveReaderEntitlement({
-        wallet: walletAddress,
+        wallet: walletKey,
         articleId: article.id,
         moduleId: 'premium_unlock',
-        txHashes: [txs.authorTxHash, txs.platformTxHash],
+        txHashes: [...txs.authorTxHashes, txs.platformTxHash],
         createdAt: new Date().toISOString(),
       });
+      creditReaderEarn(
+        'vblog_premium_unlock',
+        HUB_EARN_POINTS.vblogPremiumUnlock,
+        `vbu:premium:${txs.authorTxHashes[0]}`,
+        { articleId: article.id },
+      );
       setRefreshTick((x) => x + 1);
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Unlock failed');
@@ -210,23 +274,27 @@ export function ArticleDetail({
       setActionError(null);
       setIsProcessingAction(true);
       const txs = await performSplitPayment('tip_box', amountKas);
-      if (!walletAddress) return;
+      const walletKey = txs.payerAddress;
       saveReaderEntitlement({
-        wallet: walletAddress,
+        wallet: walletKey,
         articleId: article.id,
         moduleId: 'tip_box',
-        txHashes: [txs.authorTxHash, txs.platformTxHash],
+        txHashes: [...txs.authorTxHashes, txs.platformTxHash],
         createdAt: new Date().toISOString(),
       });
       if (article.modules?.tipToRevealEnabled && amountKas >= Number(article.modules.tipToRevealThresholdKas ?? 0)) {
         saveReaderEntitlement({
-          wallet: walletAddress,
+          wallet: walletKey,
           articleId: article.id,
           moduleId: 'tip_to_reveal_unlock',
-          txHashes: [txs.authorTxHash, txs.platformTxHash],
+          txHashes: [...txs.authorTxHashes, txs.platformTxHash],
           createdAt: new Date().toISOString(),
         });
       }
+      creditReaderEarn('vblog_tip', HUB_EARN_POINTS.vblogTip, `vbu:tip:${txs.authorTxHashes[0]}`, {
+        articleId: article.id,
+        amountKas,
+      });
       setRefreshTick((x) => x + 1);
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Tip failed');
@@ -243,15 +311,22 @@ export function ArticleDetail({
       optionIndex: selectedPollOption,
       votedAt: new Date().toISOString(),
     });
+    if (kaspaState.address) {
+      creditReaderEarn('vblog_poll_vote', HUB_EARN_POINTS.vblogPollVote, `vbu:poll:${article.id}:${kaspaState.address}`, {
+        articleId: article.id,
+        optionIndex: selectedPollOption,
+      });
+    }
     setRefreshTick((x) => x + 1);
   };
 
   const handleReadingReceipt = async () => {
-    if (!walletAddress || !kaspaState.provider || !kaspaState.isConnected) return;
+    if (!kaspaState.address || !kaspaState.provider || !kaspaState.isConnected) return;
     try {
       setActionError(null);
       setIsProcessingAction(true);
-      const note = `kvb1:receipt:${article.id}:${walletAddress}:${Date.now()}`;
+      const payerAddress = normalizeKaspaAddress(kaspaState.address);
+      const note = `kvb1:receipt:${article.id}:${payerAddress}:${Date.now()}`;
       const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
         to: getVBlogTreasuryL1Address(),
         amount: String(kasToSompi(1)),
@@ -264,9 +339,12 @@ export function ArticleDetail({
       const txHash = extractKaspaTransactionId(tx.txHash) ?? tx.txHash;
       saveReadingReceipt({
         articleId: article.id,
-        wallet: walletAddress,
+        wallet: payerAddress,
         txHash,
         createdAt: new Date().toISOString(),
+      });
+      creditReaderEarn('vblog_reading_receipt', HUB_EARN_POINTS.vblogReadingReceipt, `vbu:receipt:${txHash}`, {
+        articleId: article.id,
       });
       setRefreshTick((x) => x + 1);
     } catch (e) {
@@ -405,7 +483,11 @@ export function ArticleDetail({
                       <VBlogPremiumSectionGate
                         unlocked={premiumUnlockEntitled}
                         previewHtml={article.modules.premiumSectionContent ?? ''}
-                        priceKas={Number(article.modules.premiumSectionPriceKas ?? 0)}
+                        listPriceKas={premiumPricing.listKas}
+                        effectivePriceKas={premiumPricing.totalKas}
+                        discountPercent={premiumPricing.discountPercent}
+                        hubPointsBase={HUB_EARN_POINTS.vblogPremiumUnlock}
+                        tier={krexTier}
                         isProcessing={isProcessingAction}
                         isWalletConnected={kaspaState.isConnected}
                         onUnlock={() => void handlePremiumUnlock()}
@@ -450,6 +532,8 @@ export function ArticleDetail({
                         userVoteIndex={userPollVote?.optionIndex}
                         premiumUnlocked={premiumUnlockEntitled}
                         isProcessing={isProcessingAction}
+                        hubPointsBase={HUB_EARN_POINTS.vblogPollVote}
+                        tier={krexTier}
                       />
                     ) : null}
 
@@ -458,9 +542,16 @@ export function ArticleDetail({
                         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
                         <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
                         <p className="mt-1 text-xs text-zinc-500">On-chain receipt cost: 1 KAS</p>
-                        <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handleReadingReceipt} className="mt-3 k-control-btn">
-                          Record on-chain reading receipt
-                        </button>
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                          <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={() => void handleReadingReceipt()} className="k-control-btn">
+                            Record on-chain reading receipt
+                          </button>
+                          <HubPointsEarnRow
+                            label="Earn:"
+                            basePoints={HUB_EARN_POINTS.vblogReadingReceipt}
+                            tier={krexTier}
+                          />
+                        </div>
                       </div>
                     ) : null}
 

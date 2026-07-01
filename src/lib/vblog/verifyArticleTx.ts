@@ -2,7 +2,7 @@ import { kasToSompi } from '@/lib/ads/config';
 import { getRestTransactionById, type KaspaRestTransaction, type KaspaRestTxOutput } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { getVBlogTreasuryL1Address } from '@/lib/vblog/config';
-import { buildVBlogCommitPlainNote, computeVBlogRootHash } from '@/lib/vblog/payloadHex';
+import { buildVBlogCommitPlainNote, computeVBlogRootHash, VBLOG_PAYLOAD_PREFIX } from '@/lib/vblog/payloadHex';
 
 type VerifyInput = {
   articleId: string;
@@ -31,13 +31,13 @@ function outputAddress(o: KaspaRestTxOutput): string | undefined {
   );
 }
 
-function txPaysTreasurySompi(tx: KaspaRestTransaction, treasury: string): number {
+function txPaysAddressSompi(tx: KaspaRestTransaction, targetNorm: string): number {
   let paid = 0;
   for (const o of tx.outputs ?? []) {
     const addr = outputAddress(o);
     if (!addr) continue;
     try {
-      if (normalizeKaspaAddress(addr) !== treasury) continue;
+      if (normalizeKaspaAddress(addr) !== targetNorm) continue;
     } catch {
       continue;
     }
@@ -47,18 +47,69 @@ function txPaysTreasurySompi(tx: KaspaRestTransaction, treasury: string): number
   return paid;
 }
 
+/** @deprecated Use txPaysAddressSompi */
+function txPaysTreasurySompi(tx: KaspaRestTransaction, targetNorm: string): number {
+  return txPaysAddressSompi(tx, targetNorm);
+}
+
+function payerAddressVariants(payerNorm: string): string[] {
+  const trimmed = payerNorm.trim();
+  const lower = trimmed.toLowerCase();
+  const withoutPrefix = lower.replace(/^kaspa:/, '');
+  return [...new Set([trimmed, lower, `kaspa:${withoutPrefix}`, withoutPrefix].filter(Boolean))];
+}
+
 function txHasPayerInput(tx: KaspaRestTransaction, payer: string): boolean {
   const inputs = tx.inputs ?? [];
-  if (inputs.length === 0) return true;
+  if (inputs.length === 0) return false;
+  let payerNorm: string;
+  try {
+    payerNorm = normalizeKaspaAddress(payer);
+  } catch {
+    return false;
+  }
+  const variants = new Set(payerAddressVariants(payerNorm).map((v) => v.toLowerCase()));
   return inputs.some((input) => {
-    const a = input.previous_outpoint_address ?? input.previousOutpointAddress;
-    if (!a) return false;
+    const raw =
+      input.previous_outpoint_address ??
+      input.previousOutpointAddress ??
+      (input as { signature_script?: { address?: string } }).signature_script?.address;
+    if (!raw) return false;
     try {
-      return normalizeKaspaAddress(a) === payer;
+      const norm = normalizeKaspaAddress(String(raw)).toLowerCase();
+      return variants.has(norm) || variants.has(norm.replace(/^kaspa:/, ''));
     } catch {
-      return false;
+      const lower = String(raw).trim().toLowerCase();
+      return variants.has(lower) || variants.has(lower.replace(/^kaspa:/, ''));
     }
   });
+}
+
+/** Article commit/chunk txs: indexer may omit input addresses briefly. */
+function txHasPayerInputRelaxed(tx: KaspaRestTransaction, payer: string): boolean {
+  const inputs = tx.inputs ?? [];
+  if (inputs.length === 0) return true;
+  return txHasPayerInput(tx, payer);
+}
+
+function txModuleReaderNoteMatches(
+  tx: KaspaRestTransaction,
+  args: { articleId: string; moduleId: string; payerNorm: string },
+): boolean {
+  const text = txPayload(tx);
+  if (!text.includes(`${VBLOG_PAYLOAD_PREFIX}reader:`)) return false;
+  if (!text.includes(`:${args.articleId}:${args.moduleId}:`)) return false;
+  return payerAddressVariants(args.payerNorm).some((p) => text.includes(`:${args.moduleId}:${p}:`));
+}
+
+function txAffirmsModulePayer(
+  tx: KaspaRestTransaction,
+  payerNorm: string,
+  articleId: string,
+  moduleId: string,
+): boolean {
+  if (txHasPayerInput(tx, payerNorm)) return true;
+  return txModuleReaderNoteMatches(tx, { articleId, moduleId, payerNorm });
 }
 
 function peelHexPayload(payload: string | null | undefined): string {
@@ -116,7 +167,7 @@ export async function verifyVBlogArticleTxBundle(input: VerifyInput): Promise<Ve
   if (!txPayload(commitTx).startsWith(expectedCommit)) {
     return { ok: false, error: 'Commit payload mismatch' };
   }
-  if (!txHasPayerInput(commitTx, payerNorm)) {
+  if (!txHasPayerInputRelaxed(commitTx, payerNorm)) {
     return { ok: false, error: 'Commit transaction payer mismatch' };
   }
   paidSompi += txPaysTreasurySompi(commitTx, treasuryNorm);
@@ -135,34 +186,70 @@ type VerifyModulePaymentInput = {
   expectedAuthorAddress: string;
   expectedAuthorKas: number;
   expectedPlatformKas: number;
-  authorTxHash: string;
+  authorTxHashes: string[];
+  authorRecipientAddresses?: string[];
   platformTxHash: string;
 };
 
+function sumPaidToRecipientSet(tx: KaspaRestTransaction, recipients: Set<string>): number {
+  let paid = 0;
+  for (const o of tx.outputs ?? []) {
+    const addr = outputAddress(o);
+    if (!addr) continue;
+    try {
+      const norm = normalizeKaspaAddress(addr);
+      if (!recipients.has(norm)) continue;
+    } catch {
+      continue;
+    }
+    const amt = typeof o.amount === 'string' ? parseInt(o.amount, 10) : Number(o.amount ?? 0);
+    if (!Number.isNaN(amt) && amt > 0) paid += amt;
+  }
+  return paid;
+}
+
 export async function verifyVBlogModulePaymentSplit(input: VerifyModulePaymentInput): Promise<VerifyResult> {
   let payerNorm: string;
-  let authorNorm: string;
   let treasuryNorm: string;
+  const recipientNorms = new Set<string>();
   try {
     payerNorm = normalizeKaspaAddress(input.payerAddress);
-    authorNorm = normalizeKaspaAddress(input.expectedAuthorAddress);
     treasuryNorm = normalizeKaspaAddress(getVBlogTreasuryL1Address());
+    const recipients = input.authorRecipientAddresses?.length
+      ? input.authorRecipientAddresses
+      : [input.expectedAuthorAddress];
+    for (const addr of recipients) {
+      recipientNorms.add(normalizeKaspaAddress(addr));
+    }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Invalid address' };
   }
 
-  const authorTx = await getRestTransactionById(input.authorTxHash, { maxAttempts: 6, delayMs: 1200 });
+  const authorHashes = input.authorTxHashes.filter(Boolean);
+  if (authorHashes.length === 0 || !input.platformTxHash) {
+    return { ok: false, error: 'Missing payment transaction hashes' };
+  }
+
+  let paidAuthorSompi = 0;
+  for (const hash of authorHashes) {
+    const authorTx = await getRestTransactionById(hash, { maxAttempts: 6, delayMs: 1200 });
+    if (!authorTx) return { ok: false, error: 'Payment transaction not found yet' };
+    if (!txAffirmsModulePayer(authorTx, payerNorm, input.articleId, input.moduleId)) {
+      return { ok: false, error: 'Payer mismatch in payment split' };
+    }
+    paidAuthorSompi += sumPaidToRecipientSet(authorTx, recipientNorms);
+  }
+
   const platformTx = await getRestTransactionById(input.platformTxHash, { maxAttempts: 6, delayMs: 1200 });
-  if (!authorTx || !platformTx) return { ok: false, error: 'Payment transaction not found yet' };
-  if (!txHasPayerInput(authorTx, payerNorm) || !txHasPayerInput(platformTx, payerNorm)) {
+  if (!platformTx) return { ok: false, error: 'Payment transaction not found yet' };
+  if (!txAffirmsModulePayer(platformTx, payerNorm, input.articleId, input.moduleId)) {
     return { ok: false, error: 'Payer mismatch in payment split' };
   }
 
   const authorMin = kasToSompi(input.expectedAuthorKas);
   const platformMin = kasToSompi(input.expectedPlatformKas);
-  const paidAuthor = txPaysTreasurySompi(authorTx, authorNorm);
-  const paidPlatform = txPaysTreasurySompi(platformTx, treasuryNorm);
-  if (paidAuthor < authorMin) return { ok: false, error: 'Author payout underpaid' };
+  const paidPlatform = txPaysAddressSompi(platformTx, treasuryNorm);
+  if (paidAuthorSompi < authorMin) return { ok: false, error: 'Author payout underpaid' };
   if (paidPlatform < platformMin) return { ok: false, error: 'Platform fee underpaid' };
 
   return { ok: true };

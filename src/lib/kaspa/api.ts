@@ -335,7 +335,7 @@ export async function getRestTransactionById(
 ): Promise<KaspaRestTransaction | null> {
   const hash = txId.replace(/^0x/, '').toLowerCase();
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
-  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
+  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=full';
   const urls = [
     `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
     `${KASPA_REST_BASE}/v1/transactions/${hash}?${query}`,

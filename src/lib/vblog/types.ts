@@ -21,6 +21,8 @@ export interface VBlogModulesConfig {
   premiumSectionContent?: string;
   premiumSectionPriceKas?: number;
   premiumSectionPayoutAddress?: string;
+  /** Optional additional payout wallets (max 3 total with primary). Covenant routing later. */
+  premiumSectionSplitAddresses?: string[];
   tipBoxEnabled?: boolean;
   tipBox?: VBlogTipBoxConfig;
   tipToRevealEnabled?: boolean;
