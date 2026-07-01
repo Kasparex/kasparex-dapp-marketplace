@@ -105,7 +105,13 @@ function CreatorPerksTooltipContent() {
   );
 }
 
-export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: string }) {
+export function VBlogDashboardBenefitsPanel({
+  className = '',
+  variant = 'panel',
+}: {
+  className?: string;
+  variant?: 'panel' | 'compact';
+}) {
   const pricing = useVBlogPricing();
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
@@ -116,6 +122,59 @@ export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: st
   const visualTier = getKrexPerkVisualTier(krexBalance);
   const ui = TIER_UI[visualTier];
   const tierLabel = KREX_TIERS[tier].label;
+
+  const buyKrexButtonClass =
+    'shrink-0 k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]';
+
+  if (variant === 'compact') {
+    const feePerk =
+      discountPercent > 0 ? `${discountPercent}% off fees` : 'Hold 1M+ KREX for fee discounts';
+    const pointsPerk =
+      tier !== 'Tier0'
+        ? `+${publishPts} Hub Points (${formatHubPointsTierLabel(tier)})`
+        : `+${publishPts} Hub Points`;
+
+    return (
+      <>
+        <TooltipProvider>
+          <aside
+            className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
+            aria-label="Perks and benefits. Hover for KREX tier details."
+          >
+            <Tooltip content={<CreatorPerksTooltipContent />}>
+              <div className="flex items-center gap-1.5 min-w-0 cursor-help">
+                <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
+                  Perks &amp; Benefits
+                </span>
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}
+                >
+                  {ui.label}
+                </span>
+                <span className="hidden md:inline text-[11px] leading-none text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
+                  {feePerk}
+                </span>
+                <span className="hidden lg:inline text-[11px] leading-none text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                  {pointsPerk}
+                </span>
+                <span className={`hidden sm:inline text-[11px] leading-none font-semibold whitespace-nowrap ${ui.accent}`}>
+                  {formatKrexMillions(krexBalance)} KREX
+                </span>
+              </div>
+            </Tooltip>
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
+              className={`${buyKrexButtonClass} !py-1 !px-2.5 !text-[11px] !font-bold`}
+            >
+              Buy KREX
+            </button>
+          </aside>
+        </TooltipProvider>
+        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -155,7 +214,7 @@ export function VBlogDashboardBenefitsPanel({ className = '' }: { className?: st
             <button
               type="button"
               onClick={() => setIsKrexWizardOpen(true)}
-              className="mt-2.5 w-full k-control-btn !py-2 !text-sm !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]"
+              className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
             >
               Buy KREX
             </button>

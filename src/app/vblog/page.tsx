@@ -9,6 +9,7 @@ import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { VBlogListingFiltersBar } from '@/components/vblog/VBlogSortFilters';
 import { VBlogPricingStrip } from '@/components/vblog/VBlogPricingStrip';
 import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
+import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { FilterBar } from '@/components/FilterBar';
@@ -80,11 +81,14 @@ export default function VBlogPage() {
 
               <div id="content" className="scroll-mt-4" />
 
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">Available articles</h2>
-                <p className="kx-body">
-                  {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
-                </p>
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">Available articles</h2>
+                  <p className="kx-body">
+                    {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
+                  </p>
+                </div>
+                <VBlogDashboardBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
               </div>
 
               <div className="flex flex-col gap-4 mb-6">
