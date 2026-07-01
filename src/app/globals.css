@@ -1068,13 +1068,14 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
 
 .kx-quill-content p,
 .kx-quill-editor .ql-editor p {
-  @apply mb-6;
+  margin: 0;
 }
 
+/* Quill empty lines (<p><br></p>): keep cursor height without extra block gap. */
 .kx-quill-content p:has(> br:only-child),
 .kx-quill-editor .ql-editor p:has(> br:only-child) {
-  margin-bottom: 0.08em;
-  line-height: 1.2;
+  margin: 0;
+  line-height: inherit;
 }
 
 .kx-quill-content a,
