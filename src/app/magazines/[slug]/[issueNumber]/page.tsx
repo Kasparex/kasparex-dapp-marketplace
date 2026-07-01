@@ -17,6 +17,9 @@ import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { magazineIssueGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubAccess } from '@/hooks/useHubAccess';
+import { useIssueManifest } from '@/hooks/useIssueManifest';
+import { IssueReader } from '@/components/magazines/IssueReader';
+import { DownloadIssuePdfButton } from '@/components/magazines/DownloadIssuePdfButton';
 
 export default function IssueDetailPage() {
     const { slug, issueNumber } = useParams();
@@ -27,6 +30,9 @@ export default function IssueDetailPage() {
     const [issues, setIssues] = useState<MagazineIssue[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showReader, setShowReader] = useState(false);
+
+    const { composedSections, isLoading: manifestLoading, usingFallback } = useIssueManifest(issue);
 
     // Rewards Hooks
     const { balance: krexBalance, tier: krexTier } = useKREXBalance();
@@ -89,8 +95,8 @@ export default function IssueDetailPage() {
 
         markIssueAsPurchased(issue.id);
         setIssue({ ...issue, isPurchased: true });
+        setShowReader(true);
         setIsProcessing(false);
-        alert(`Successfully purchased ${issue.title}!`);
     };
 
     if (isLoading || !magazine || !issue) {
@@ -239,9 +245,23 @@ export default function IssueDetailPage() {
                                     </button>
 
                                     {issue.isPurchased && (
-                                        <button className="w-full mt-4 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-lg hover:opacity-90 transition-all">
-                                            Read Online
-                                        </button>
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowReader((v) => !v)}
+                                                className="w-full mt-4 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-black text-lg hover:opacity-90 transition-all"
+                                            >
+                                                {showReader ? 'Hide reader' : 'Read online'}
+                                            </button>
+                                            <DownloadIssuePdfButton
+                                                className="mt-4"
+                                                magazineName={magazine.name}
+                                                issueNumber={issue.issueNumber}
+                                                issueTitle={issue.title}
+                                                sections={composedSections}
+                                                disabled={manifestLoading || composedSections.length === 0}
+                                            />
+                                        </>
                                     )}
                                 </div>
                                 </HubWalletGateShell>
@@ -272,6 +292,23 @@ export default function IssueDetailPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {issue.isPurchased && showReader ? (
+                            <div className="mb-16">
+                                {manifestLoading ? (
+                                    <div className="flex justify-center py-16">
+                                        <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                ) : (
+                                    <IssueReader
+                                        magazine={magazine}
+                                        issue={issue}
+                                        sections={composedSections}
+                                        usingFallback={usingFallback}
+                                    />
+                                )}
+                            </div>
+                        ) : null}
 
                         {/* Discussion */}
                         <div className="pt-12 border-t border-zinc-200 dark:border-zinc-800">

@@ -2,6 +2,7 @@
 
 import { VBlogArticle, VBlogComment } from './types';
 import { generateArticleSlug, generateMockCID, generateMockTxHash, generateMockArticleId } from './utils';
+import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 
 const STORAGE_KEYS = {
   articles: 'vblog_articles',
@@ -96,6 +97,10 @@ export function createArticle(
 
   articles.unshift(newArticle); // Add to beginning
   saveArticles(articles);
+
+  if (newArticle.linkedMagazineId && newArticle.linkedIssueNumber) {
+    registerMagazineSubmission(newArticle.id);
+  }
   
   return newArticle;
 }
@@ -140,6 +145,10 @@ export function updateArticle(
 
   articles[index] = updatedArticle;
   saveArticles(articles);
+
+  if (updatedArticle.linkedMagazineId && updatedArticle.linkedIssueNumber) {
+    registerMagazineSubmission(updatedArticle.id);
+  }
   
   return updatedArticle;
 }

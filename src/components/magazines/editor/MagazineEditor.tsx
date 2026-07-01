@@ -24,6 +24,11 @@ import {
   nextIssueNumberForMagazine,
   buildMagazineStubForSlug,
 } from '@/lib/magazines/data';
+import { blocksToSections, buildManifestV2Payload } from '@/lib/magazines/manifest';
+import {
+  VBlogSubmissionsPanel,
+  vblogSectionsFromSlugs,
+} from '@/components/magazines/editor/VBlogSubmissionsPanel';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -56,6 +61,7 @@ export function MagazineEditor() {
     { address: '', role: 'Author', sharePercentage: 95 },
   ]);
   const [publishNote, setPublishNote] = useState<string | null>(null);
+  const [includedVblogSlugs, setIncludedVblogSlugs] = useState<string[]>([]);
 
   const myMagazines = useMemo(() => {
     if (!kaspa.isConnected || !kaspa.address) return [];
@@ -143,6 +149,17 @@ export function MagazineEditor() {
     return buildMagazineStubForSlug({ slug: stubSlug, displayName: name || slug || 'Magazine', ownerNorm });
   }, [kaspa.address, existingMagazineId, magazineDisplayName, magazineSlug, myMagazines]);
 
+  const targetMagazine = useMemo(() => resolveMagazineHeading(), [resolveMagazineHeading]);
+  const targetIssueNumber = targetMagazine ? nextIssueNumberForMagazine(targetMagazine.id) : null;
+
+  const addVblogArticle = (article: { slug: string }) => {
+    setIncludedVblogSlugs((prev) => (prev.includes(article.slug) ? prev : [...prev, article.slug]));
+  };
+
+  const removeVblogSlug = (slug: string) => {
+    setIncludedVblogSlugs((prev) => prev.filter((s) => s !== slug));
+  };
+
   const handlePublish = async () => {
     setPublishNote(null);
     if (totalShare !== 100) {
@@ -181,8 +198,7 @@ export function MagazineEditor() {
         .join(' ')
         .slice(0, 280) || title;
 
-    const payloadJson = {
-      version: 1,
+    const payloadJson = buildManifestV2Payload({
       magazineId: mag.id,
       magazineSlug: mag.slug,
       issueNumber,
@@ -190,10 +206,12 @@ export function MagazineEditor() {
       priceKAS: price,
       treasurySplitPct: treasurySplit,
       contributors,
-      blocks,
+      sections: [
+        ...vblogSectionsFromSlugs(includedVblogSlugs),
+        ...blocksToSections(blocks),
+      ],
       authoredBy: payer,
-      publishedAt: new Date().toISOString(),
-    };
+    });
 
     try {
       const cid = await uploadJSON(payloadJson as unknown as Record<string, unknown>);
@@ -247,6 +265,7 @@ export function MagazineEditor() {
       });
 
       setPublishNote(`Published. Issue bound on-chain (${txHash.slice(0, 12)}…). Redeemable points update on your Rewards hub.`);
+      setIncludedVblogSlugs([]);
     } catch (e) {
       setPublishNote(e instanceof Error ? e.message : 'Publishing failed.');
     }
@@ -301,6 +320,20 @@ export function MagazineEditor() {
         </div>
 
         <div className="space-y-4">
+          {includedVblogSlugs.length > 0 ? (
+            <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+              <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">vBlog articles in issue</div>
+              {includedVblogSlugs.map((slug) => (
+                <div key={slug} className="flex items-center justify-between gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <span className="truncate">{slug}</span>
+                  <button type="button" onClick={() => removeVblogSlug(slug)} className="text-red-500 text-[10px] hover:underline shrink-0">
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           {blocks.map((block) => (
             <div
               key={block.id}
@@ -383,6 +416,14 @@ export function MagazineEditor() {
             ) : null}
           </div>
         </div>
+
+        <VBlogSubmissionsPanel
+          magazineId={targetMagazine?.id ?? null}
+          issueNumber={targetIssueNumber}
+          includedSlugs={includedVblogSlugs}
+          onAddArticle={addVblogArticle}
+          onRemoveSlug={removeVblogSlug}
+        />
 
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Pricing & Access</h3>

@@ -16,7 +16,7 @@ import {
 } from '@/lib/vblog/limits';
 import { htmlToPlainText, contentForRichEditor } from '@/lib/richText/html';
 import { Alert } from '@/components/Alert';
-import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
+import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
@@ -422,6 +422,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
       if (isEditMode && article && onUpdate) {
         await onUpdate(article.id, payload);
+        if (magazineIntegrationEnabled && linkedMagazineId && linkedIssueNumber) {
+          registerMagazineSubmission(article.id);
+        }
       } else if (onSubmit) {
         await onSubmit({
           ...payload,
