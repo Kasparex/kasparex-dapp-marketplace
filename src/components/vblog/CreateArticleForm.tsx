@@ -31,7 +31,7 @@ import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
 import { cleanPollOptions, defaultPollOptions } from '@/components/vblog/VBlogPollOptionsEditor';
-import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRows } from '@/lib/vblog/paymentSplit';
+import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRows, DEFAULT_PAYOUT_SPLIT_ROWS } from '@/lib/vblog/paymentSplit';
 import type { PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
@@ -450,7 +450,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setPremiumSectionEnabled(false);
       setPremiumSectionContent('');
       setPremiumSectionPriceKas('10');
-      setPremiumSectionPayoutAddress('');
+      setPremiumPayoutSplitRows(DEFAULT_PAYOUT_SPLIT_ROWS());
       setTipBoxEnabled(false);
       setTipToRevealEnabled(false);
       setTipToRevealContent('');
