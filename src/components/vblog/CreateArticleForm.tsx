@@ -17,6 +17,7 @@ import {
 import { htmlToPlainText, contentForRichEditor } from '@/lib/richText/html';
 import { Alert } from '@/components/Alert';
 import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
+import { ArticlePreviewModal } from './ArticlePreviewModal';
 import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
@@ -90,6 +91,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [magazineIntegrationEnabled, setMagazineIntegrationEnabled] = useState(Boolean(article?.linkedMagazineId && article?.linkedIssueNumber));
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article?.modules?.premiumSectionEnabled));
   const [premiumSectionContent, setPremiumSectionContent] = useState(() => contentForRichEditor(article?.modules?.premiumSectionContent ?? ''));
@@ -193,6 +195,54 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const discountKas = formQuote.discountKas;
   const discountPercent =
     formQuote.subtotalKas > 0 ? Math.round((discountKas / formQuote.subtotalKas) * 100) : 0;
+
+  const tagsArray = useMemo(
+    () => tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+    [tags],
+  );
+
+  const previewArticle = useMemo((): VBlogArticle => {
+    const author = walletAddress ?? article?.author ?? 'preview';
+    return {
+      id: article?.id ?? 'preview',
+      slug: article?.slug ?? 'preview',
+      title: title.trim() || 'Untitled article',
+      description: description.trim() || 'No description yet.',
+      content: content.trim() || '<p>No content yet.</p>',
+      author,
+      publishDate: article?.publishDate ?? new Date().toISOString(),
+      category: category || DEFAULT_VBLOG_CATEGORIES[0],
+      tags: tagsArray,
+      featuredImage: resolvedFeaturedImage || undefined,
+      status: article?.status ?? 'draft',
+      linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
+      linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
+      primaryLink: primaryLink.trim() || undefined,
+      socialLinks: resolvedSocialLinks,
+      modules: modulesPayload,
+      layoutPreferences: {
+        sidebarShownByDefault,
+        rightPanelShownByDefault,
+      },
+    };
+  }, [
+    walletAddress,
+    article,
+    title,
+    description,
+    content,
+    category,
+    tagsArray,
+    resolvedFeaturedImage,
+    magazineIntegrationEnabled,
+    linkedMagazineId,
+    linkedIssueNumber,
+    primaryLink,
+    resolvedSocialLinks,
+    modulesPayload,
+    sidebarShownByDefault,
+    rightPanelShownByDefault,
+  ]);
 
   const formModuleOffers = useMemo(
     () => VBLOG_MODULE_OFFERS.filter((offer) => FORM_MODULE_IDS.includes(offer.id) && offer.id !== 'premium_section'),
@@ -851,6 +901,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         >
           {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
         </button>
+        <button
+          type="button"
+          onClick={() => setIsPreviewOpen(true)}
+          disabled={isSubmitting}
+          className="w-full px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Preview Article
+        </button>
         <KxAlertRegion>
           {error ? (
             <Alert type="error" compact onDismiss={() => setError(null)} region>
@@ -861,6 +919,11 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </aside>
       </div>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+      <ArticlePreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        article={previewArticle}
+      />
     </form>
   );
 }
