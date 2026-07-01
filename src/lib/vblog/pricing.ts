@@ -6,7 +6,7 @@ import { computeVBlogModuleAddonKas, type VBlogModuleAddonLine } from '@/lib/vbl
 
 export const VBLOG_CHUNK_SIZE_BYTES = 180;
 export const VBLOG_CREATE_BASE_FEE_KAS = 10;
-export const VBLOG_EDIT_BASE_FEE_KAS = 0;
+export const VBLOG_EDIT_BASE_FEE_KAS = 1;
 export const VBLOG_DELETE_BASE_FEE_KAS = 0.1;
 export const VBLOG_PER_CHUNK_KAS = 0.35;
 export const VBLOG_PER_KB_KAS = 0.2;
@@ -86,7 +86,7 @@ export interface VBlogPriceQuote {
 }
 
 export function getVBlogBaseFeeKas(action: VBlogAction): number {
-  if (action === 'edit') return 0;
+  if (action === 'edit') return VBLOG_EDIT_BASE_FEE_KAS;
   return VBLOG_CREATE_BASE_FEE_KAS;
 }
 

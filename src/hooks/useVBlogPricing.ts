@@ -62,7 +62,7 @@ export function useVBlogPricing() {
 
   const [pricingInfo, setPricingInfo] = useState<PricingInfo>({
     createFee: 10.41,
-    editFee: 0,
+    editFee: 1,
     deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
     isPremium: false,
     tier: {
@@ -92,7 +92,7 @@ export function useVBlogPricing() {
           setPricingInfo((prev) => {
             if (
               prev.createFee === 10.41 &&
-              prev.editFee === 2.41 &&
+              prev.editFee === 1 &&
               prev.deleteFee === VBLOG_DELETE_BASE_FEE_KAS &&
               !prev.isPremium &&
               !prev.tier.hasKREXDiscount &&
@@ -103,7 +103,7 @@ export function useVBlogPricing() {
             }
             return {
               createFee: 10.41,
-              editFee: 0,
+              editFee: 1,
               deleteFee: VBLOG_DELETE_BASE_FEE_KAS,
               isPremium: false,
               tier: {

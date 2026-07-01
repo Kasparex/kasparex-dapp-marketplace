@@ -491,7 +491,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </h3>
             <p className="kx-body">
               {isEditMode
-                ? `Updates are free unless you add new paid modules or grow the article beyond its last published size. Estimated cost: ${formQuote.totalKas} KAS.`
+                ? `Updates commit on-chain from 1 KAS. Extra charges apply only for new modules or larger payload. Estimated cost: ${formQuote.totalKas} KAS.`
                 : `Fill in the details below to create a new article. Estimated cost: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunk${formQuote.chunkCount === 1 ? '' : 's'}, ${formQuote.payloadBytes} bytes)${pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.`}
             </p>
           </div>
@@ -827,9 +827,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
         <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
           {isEditMode
-            ? formQuote.totalKas <= 0
-              ? 'No payment needed for this update. Changes save locally right away.'
-              : 'This update adds new paid modules or extra payload. One Kaspa L1 payment refreshes on-chain metadata.'
+            ? 'One Kaspa L1 payment refreshes on-chain metadata. Module and payload growth add to the 1 KAS base fee.'
             : 'One Kaspa L1 payment covers the article and any enabled modules. Ensure your wallet has enough KAS.'}
         </div>
         {pricing.tier.hasKREXDiscount && (
