@@ -608,7 +608,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={config} reconnectOnMount={false}>
+      <WagmiProvider config={config} reconnectOnMount>
         <EvmSubdomainReconnectHint />
         <BalanceVisibilityProvider>
           <ToasterProvider>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 
 /** Local ack: treat as "seen" when user opens /rewards */
@@ -14,7 +15,7 @@ function ackKey(addrNorm: string): string {
 
 export function HeaderRewardsPointsLink() {
   const pathname = usePathname();
-  const { address: addr, totalRedeemable, lines, minecoreRefinement, ledgerNetRedeemable } = useRedeemablePointsBreakdown();
+  const { address: addr, totalRedeemable } = useRedeemablePointsBreakdown();
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -52,48 +53,37 @@ export function HeaderRewardsPointsLink() {
     setTick((n) => n + 1);
   }
 
-  const tip =
-    addr && lines.length > 0
-      ? `Redeemable ${totalRedeemable.toLocaleString()} pts · ${lines.map((l) => `${l.label}: ${l.points.toLocaleString()}`).join(' · ')}`
-      : 'Connect Kaspa to track redeemable pts across Kasparex Hub.';
-
   return (
     <div className="flex items-center gap-2 flex-shrink-0 sm:gap-3">
       {addr ? (
-        <span
-          className="tabular-nums text-sm sm:text-[15px] font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[5ch] text-right tracking-tight"
-          title={tip}
-        >
+        <span className="tabular-nums text-sm sm:text-[15px] font-medium text-zinc-900 dark:text-zinc-100 min-w-[4ch] sm:min-w-[5ch] text-right tracking-tight">
           {totalRedeemable.toLocaleString()}
         </span>
       ) : null}
-      <Link
-        href="/rewards"
-        onClick={acknowledge}
-        className="relative p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-        aria-label="Rewards"
-        title={
-          addr
-            ? `${totalRedeemable.toLocaleString()} redeemable pts · Gameplay ${minecoreRefinement.toLocaleString()} · Rewards wallet ${ledgerNetRedeemable.toLocaleString()}`
-            : 'Rewards'
-        }
-      >
-        <svg
-          className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
+      <Tooltip content="Rewards & Tiers">
+        <Link
+          href="/rewards"
+          onClick={acknowledge}
+          className="relative p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+          aria-label="Rewards & Tiers"
         >
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg>
-        {hasNewPoints ? (
-          <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-[#02abb8] border-2 border-white dark:border-zinc-950" />
-        ) : null}
-      </Link>
+          <svg
+            className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+          {hasNewPoints ? (
+            <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-[#02abb8] border-2 border-white dark:border-zinc-950" />
+          ) : null}
+        </Link>
+      </Tooltip>
     </div>
   );
 }

@@ -38,12 +38,12 @@ function AdminLink() {
   }
 
   return (
-    <Link
-      href="/admin"
-      className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0 relative"
-      aria-label="Admin Dashboard"
-      title="Admin Dashboard"
-    >
+    <Tooltip content="Admin dashboard">
+      <Link
+        href="/admin"
+        className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0 relative"
+        aria-label="Admin dashboard"
+      >
       <svg
         className="h-5 w-5 text-[#02abb8]"
         fill="none"
@@ -59,6 +59,7 @@ function AdminLink() {
       </svg>
       <span className="absolute top-0 right-0 h-2 w-2 bg-[#02abb8] rounded-full"></span>
     </Link>
+    </Tooltip>
   );
 }
 
@@ -358,11 +359,11 @@ export function Header() {
       <div className="flex h-16 items-center justify-between w-full">
         {/* Left side: Logo and Title - no padding, flush to left */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 lg:pl-6">
-          <Tooltip content={gameTooltipRich('Hub home', 'Open the Kasparex dApps marketplace (Hub home).')} side="bottom" align="start">
+          <Tooltip content={gameTooltipRich('Kasparex Hub', 'Explore dApps, games, rewards, and more.')} side="bottom" align="start">
             <Link
-              href="/dapps"
+              href="/"
               className="flex items-center gap-2 sm:gap-3"
-              aria-label="Kasparex: dApps marketplace home"
+              aria-label="Kasparex Hub home"
             >
               {!logoError ? (
                 <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
@@ -501,17 +502,17 @@ export function Header() {
         <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <HeaderRewardsPointsLink />
           <AdminLink />
-          <Link
-            href="/updates"
-            onClick={() => {
-              // Mark updates as viewed
-              localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
-              setHasNewUpdates(false);
-            }}
-            className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label="View updates timeline"
-            title="Development Timeline"
-          >
+          <Tooltip content="What's new">
+            <Link
+              href="/updates"
+              onClick={() => {
+                // Mark updates as viewed
+                localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
+                setHasNewUpdates(false);
+              }}
+              className="relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+              aria-label="What's new"
+            >
             <svg
               className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
               fill="none"
@@ -529,12 +530,13 @@ export function Header() {
               <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950"></span>
             )}
           </Link>
-          <button
-            onClick={toggleBalanceVisibility}
-            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
-            aria-label={isBalanceVisible ? 'Hide balances and KNS' : 'Show balances and KNS'}
-            title={isBalanceVisible ? 'Hide wallet balances and KNS names' : 'Show wallet balances and KNS names'}
-          >
+          </Tooltip>
+          <Tooltip content={isBalanceVisible ? 'Hide balances' : 'Show balances'}>
+            <button
+              onClick={toggleBalanceVisibility}
+              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+              aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
+            >
             {isBalanceVisible ? (
               <svg
                 className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
@@ -571,11 +573,13 @@ export function Header() {
               </svg>
             )}
           </button>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 kaspa:hover:bg-[#231F20]/50 transition-colors flex-shrink-0"
-            aria-label="Toggle theme"
-          >
+          </Tooltip>
+          <Tooltip content={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 kaspa:hover:bg-[#231F20]/50 transition-colors flex-shrink-0"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
             {theme === 'dark' ? (
               <svg
                 className="h-5 w-5 text-zinc-600 dark:text-zinc-400 kaspa:text-[#70C7BA]"
@@ -620,6 +624,7 @@ export function Header() {
               </svg>
             )}
           </button>
+          </Tooltip>
           <div className="flex-shrink-0">
             <KaspaL1WalletButton />
           </div>

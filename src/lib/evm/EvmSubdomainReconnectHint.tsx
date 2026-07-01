@@ -2,7 +2,7 @@
 
 /**
  * Stores a minimal EVM connector id in a host-scoped cookie for potential cross-subdomain UX.
- * Automatic reconnect on load is disabled to avoid wallet prompts on refresh/navigation.
+ * Wagmi reconnectOnMount restores the last EVM session on refresh when the wallet allows it.
  */
 
 import { useEffect } from 'react';

@@ -22,5 +22,5 @@ export default async function Home({
   searchParams: Promise<HomeSearchParams>;
 }) {
   const sp = await searchParams;
-  redirect(`/dapps${buildDappsQuery(sp)}`);
+  redirect(`/hub${buildDappsQuery(sp)}`);
 }

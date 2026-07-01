@@ -39,6 +39,7 @@ import { WalletFooterRow } from '@/components/wallet-dropdown/WalletFooterRow';
 import { BRIDGE_URLS, getAddressExplorerUrl, getNetworkBridgeUrl, getUiNativeSymbol, shortenAddress } from '@/lib/walletUi';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { disconnectWagmiWallet } from '@/lib/evm/disconnectWagmi';
 
 export function EVMWalletButton() {
   const { address, isConnected } = useAccount();
@@ -165,6 +166,7 @@ export function EVMWalletButton() {
 
     const handleDisconnect = () => {
       disconnect();
+      void disconnectWagmiWallet({ blockReconnect: true });
       setIsDropdownOpen(false);
     };
 

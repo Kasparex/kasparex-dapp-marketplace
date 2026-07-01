@@ -16,10 +16,6 @@ import {
   onKaspaAccountChange,
   getWalletProvider,
 } from './wallet';
-import {
-  disconnectWagmiWallet,
-  scheduleDisconnectWagmiWalletBursts,
-} from '@/lib/evm/disconnectWagmi';
 import { isSIWKExpired } from './auth';
 
 interface KaspaWalletContextType {
@@ -114,11 +110,6 @@ function clearPersistedWalletState() {
  * Kaspa Wallet Provider Component
  */
 export function KaspaWalletProvider({ children }: { children: ReactNode }) {
-  /**
-   * KasWare-only: after a Kaspa account switch, `window.ethereum` may emit `accountsChanged`
-   * and wagmi can re-attach. While this timestamp is in the future, we run disconnect bursts.
-   */
-  const suppressEvmReconnectUntilRef = useRef(0);
   const userDisconnectedRef = useRef(false);
   const emptyAccountsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -178,35 +169,6 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     };
   }, [state.provider, state.isConnected]);
 
-  // KasWare: `window.ethereum` can mirror Kaspa account changes; briefly suppress wagmi reinject.
-  // Kastle: do not listen here - the same `ethereum` object can emit when switching L1 even when
-  // EVM is connected via WalletConnect / MetaMask, and disconnecting would drop that unrelated session.
-  // Kastle EVM isolation is handled by wagmi MIPD rdns reservation (`kastleMipdBlock.ts`).
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!state.isConnected || !state.provider) return;
-    if (state.provider !== 'kasware') return;
-
-    const ethereum = (window as unknown as {
-      ethereum?: {
-        on?: (event: string, handler: (...args: unknown[]) => void) => void;
-        removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
-      };
-    }).ethereum;
-    if (!ethereum?.on) return;
-
-    const onEthAccountsChanged = () => {
-      if (Date.now() < suppressEvmReconnectUntilRef.current) {
-        scheduleDisconnectWagmiWalletBursts();
-      }
-    };
-
-    ethereum.on('accountsChanged', onEthAccountsChanged);
-    return () => {
-      ethereum.removeListener?.('accountsChanged', onEthAccountsChanged);
-    };
-  }, [state.isConnected, state.provider]);
-
   // Set up account change listener
   useEffect(() => {
     if (!state.isConnected || !state.provider) {
@@ -214,11 +176,6 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
     }
 
     const cleanup = onKaspaAccountChange(state.provider, async (accounts) => {
-      if (accounts.length > 0 && state.provider === 'kasware') {
-        suppressEvmReconnectUntilRef.current = Date.now() + 1500;
-        scheduleDisconnectWagmiWalletBursts();
-      }
-
       if (emptyAccountsTimerRef.current) {
         clearTimeout(emptyAccountsTimerRef.current);
         emptyAccountsTimerRef.current = null;
@@ -241,7 +198,6 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
             // fall through to disconnect
           }
           if (userDisconnectedRef.current) return;
-          await disconnectWagmiWallet();
           clearPersistedWalletState();
           setState({
             isConnected: false,
@@ -327,8 +283,6 @@ export function KaspaWalletProvider({ children }: { children: ReactNode }) {
       
       setState(newState);
       userDisconnectedRef.current = false;
-      // L1 Kaspa connect is independent from EVM; avoid auto-pairing an EVM wallet.
-      await disconnectWagmiWallet();
       console.log('Wallet state updated successfully:', { 
         isConnected: newState.isConnected, 
         address: newState.address, 

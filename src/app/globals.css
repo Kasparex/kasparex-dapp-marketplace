@@ -975,9 +975,15 @@
 .kx-quill-editor .ql-editor {
   min-height: var(--kx-quill-min-height, 160px);
   background: transparent;
-  @apply text-lg text-zinc-600 dark:text-zinc-400 leading-8;
+  font-size: 1.125rem;
+  line-height: 2rem;
+  color: rgb(82 82 91);
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.dark .kx-quill-editor .ql-editor {
+  color: rgb(161 161 170);
 }
 
 .kx-quill-editor .ql-editor.ql-blank::before {
@@ -986,10 +992,44 @@
 }
 
 /* Shared Quill typography: editor + published article body (matches .kx-body / article excerpt) */
-.kx-quill-content {
-  @apply text-lg text-zinc-600 dark:text-zinc-400 leading-8;
+.kx-quill-content,
+.kx-quill-editor .ql-editor {
+  font-size: 1.125rem;
+  line-height: 2rem;
+  color: rgb(82 82 91);
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.dark .kx-quill-content,
+.dark .kx-quill-editor .ql-editor {
+  color: rgb(161 161 170);
+}
+
+.dark .kx-quill-content :where(h1, h2, h3),
+.dark .kx-quill-editor .ql-editor :where(h1, h2, h3) {
+  color: rgb(244 244 245);
+}
+
+/* Quill may persist light inline colors from dark-mode editing; reset in light theme. */
+html:not(.dark) .kx-quill-content,
+html:not(.dark) .kx-quill-editor .ql-editor {
+  color: rgb(82 82 91) !important;
+}
+
+html:not(.dark) .kx-quill-content :where(h1, h2, h3),
+html:not(.dark) .kx-quill-editor .ql-editor :where(h1, h2, h3) {
+  color: rgb(24 24 27) !important;
+}
+
+html:not(.dark) .kx-quill-content :where(p, li, span, em, strong, u),
+html:not(.dark) .kx-quill-editor .ql-editor :where(p, li, span, em, strong, u) {
+  color: inherit;
+}
+
+html:not(.dark) .kx-quill-content a,
+html:not(.dark) .kx-quill-editor .ql-editor a {
+  color: #02abb8 !important;
 }
 
 .kx-quill-content > *:first-child,

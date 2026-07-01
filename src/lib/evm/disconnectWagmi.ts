@@ -33,23 +33,24 @@ async function disconnectAllConnections(): Promise<void> {
   }
 }
 
-/** Clears wagmi / RainbowKit EVM sessions and blocks instant reinject reconnect. */
-export async function disconnectWagmiWallet(): Promise<void> {
+/** Clears wagmi / RainbowKit EVM sessions. */
+export async function disconnectWagmiWallet(options?: { blockReconnect?: boolean }): Promise<void> {
   try {
     await disconnectAllConnections();
   } catch {
     // Not connected or connector already torn down
   }
-  try {
-    await persistInjectedDisconnectShims();
-  } catch {
-    // Storage unavailable
+  if (options?.blockReconnect) {
+    try {
+      await persistInjectedDisconnectShims();
+    } catch {
+      // Storage unavailable
+    }
   }
 }
 
 /**
- * After Kaspa L1 account switches, wagmi may reconnect on the same EIP-1193 provider.
- * Run disconnect a few times across task boundaries so it wins the race.
+ * @deprecated L1 and L2 wallets are independent; do not call from Kaspa L1 flows.
  */
 export function scheduleDisconnectWagmiWalletBursts(): void {
   const run = () => {
