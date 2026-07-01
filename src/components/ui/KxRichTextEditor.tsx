@@ -2,8 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { htmlToPlainText, normalizeQuillHtml } from '@/lib/richText/html';
-import { mountFloatingToolbarPortal } from '@/lib/richText/quillSetup';
-import 'quill/dist/quill.bubble.css';
+import 'quill/dist/quill.snow.css';
 
 const TOOLBAR = [
   ['undo', 'redo'],
@@ -36,8 +35,6 @@ export interface KxRichTextEditorProps {
   placeholder?: string;
   className?: string;
   maxLength?: number;
-  /** When true (default), formatting toolbar floats above the current text selection. */
-  floatingToolbar?: boolean;
 }
 
 export function KxRichTextEditor({
@@ -48,7 +45,6 @@ export function KxRichTextEditor({
   disabled,
   placeholder,
   maxLength,
-  floatingToolbar = true,
 }: KxRichTextEditorProps) {
   const minHeight = Math.max(96, minRows * 26);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -57,18 +53,15 @@ export function KxRichTextEditor({
   const maxLengthRef = useRef(maxLength);
   const valueRef = useRef(value);
   const syncingRef = useRef(false);
-  const cleanupToolbarRef = useRef<(() => void) | null>(null);
   const [ready, setReady] = useState(false);
 
   const placeholderRef = useRef(placeholder);
-  const floatingToolbarRef = useRef(floatingToolbar);
 
   useLayoutEffect(() => {
     onChangeRef.current = onChange;
     maxLengthRef.current = maxLength;
     valueRef.current = value;
     placeholderRef.current = placeholder;
-    floatingToolbarRef.current = floatingToolbar;
   });
 
   useEffect(() => {
@@ -83,7 +76,7 @@ export function KxRichTextEditor({
       container.appendChild(editorEl);
 
       const quill = new Quill(editorEl, {
-        theme: floatingToolbarRef.current ? 'bubble' : 'snow',
+        theme: 'snow',
         placeholder: placeholderRef.current,
         readOnly: disabled,
         modules: {
@@ -108,10 +101,6 @@ export function KxRichTextEditor({
       });
 
       quillRef.current = quill;
-
-      if (floatingToolbarRef.current) {
-        cleanupToolbarRef.current = mountFloatingToolbarPortal(quill, editorEl);
-      }
 
       if (valueRef.current) {
         syncingRef.current = true;
@@ -140,8 +129,6 @@ export function KxRichTextEditor({
 
     return () => {
       destroyed = true;
-      cleanupToolbarRef.current?.();
-      cleanupToolbarRef.current = null;
       quillRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
       setReady(false);
@@ -172,18 +159,13 @@ export function KxRichTextEditor({
 
   return (
     <div
-      className={`kx-quill-editor ${floatingToolbar ? 'kx-quill-editor--floating' : 'kx-quill-editor--fixed'} ${disabled ? 'pointer-events-none opacity-60' : ''} ${className}`.trim()}
+      className={`kx-quill-editor ${disabled ? 'pointer-events-none opacity-60' : ''} ${className}`.trim()}
       style={{ ['--kx-quill-min-height' as string]: `${minHeight}px` }}
     >
       {!ready ? (
         <div className="min-h-[120px] animate-pulse rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800" />
       ) : null}
       <div ref={containerRef} className={ready ? '' : 'hidden'} />
-      {floatingToolbar && ready ? (
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Select text to open the formatting toolbar above your selection.
-        </p>
-      ) : null}
     </div>
   );
 }
