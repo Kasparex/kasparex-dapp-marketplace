@@ -953,15 +953,28 @@
   border-radius: 0.75rem;
   font-size: 1rem;
   font-family: inherit;
+  background: rgb(255 255 255);
 }
 
 .dark .kx-quill-editor .ql-container.ql-snow {
-  border-color: rgb(63 63 70);
-  background: rgb(9 9 11);
+  border-color: rgb(39 39 42);
+  background: rgb(0 0 0 / 0.3);
+}
+
+.kx-quill-editor:focus-within .ql-container.ql-snow {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #02abb8;
+  background: rgb(255 255 255);
+}
+
+.dark .kx-quill-editor:focus-within .ql-container.ql-snow {
+  background: rgb(24 24 27 / 0.6);
 }
 
 .kx-quill-editor .ql-editor {
   min-height: var(--kx-quill-min-height, 160px);
+  background: transparent;
 }
 
 .kx-quill-editor .ql-editor.ql-blank::before {

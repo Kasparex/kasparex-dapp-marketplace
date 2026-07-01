@@ -135,7 +135,7 @@ export default function VBlogPage() {
                 <VBlogArticleGrid articles={filteredArticles} />
               )}
 
-              <VBlogPricingStrip createFee={pricing.createFee} editFee={pricing.editFee} />
+              <VBlogPricingStrip createFee={pricing.createFee} editFee={pricing.editFee} deleteFee={pricing.deleteFee} />
 
               <div className="mt-10 mb-16">
                 <VBlogRewardsSection />

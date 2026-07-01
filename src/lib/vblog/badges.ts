@@ -1,5 +1,4 @@
 import type { KxBadgeVariant } from '@/components/ui/KxBadge';
-import { chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import type { VBlogArticle } from '@/lib/vblog/types';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 
@@ -23,6 +22,6 @@ export function vblogStatusLabel(article: VBlogArticle): string {
   return article.status.replace(/_/g, ' ');
 }
 
-export function vblogCategoryBadgeVariant(category: string): KxBadgeVariant {
-  return chronicleTagBadgeVariant(category);
+export function vblogCategoryBadgeVariant(_category: string): KxBadgeVariant {
+  return 'zinc';
 }
