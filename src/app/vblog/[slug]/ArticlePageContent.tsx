@@ -145,7 +145,6 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
                     </div>
                   </div>
                   <Link href={magazineIssueHref} className="k-control-btn shrink-0">
-                  >
                     View Magazine
                   </Link>
                 </div>
