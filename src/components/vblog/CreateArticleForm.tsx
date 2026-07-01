@@ -437,7 +437,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setTipToRevealThresholdKas('25');
       setPremiumPollEnabled(false);
       setPollQuestion('');
-      setPollOptions('Option 1, Option 2');
+      setPollOptions(defaultPollOptions());
       setReadingReceiptsEnabled(false);
       setSidebarShownByDefault(true);
       setRightPanelShownByDefault(true);
