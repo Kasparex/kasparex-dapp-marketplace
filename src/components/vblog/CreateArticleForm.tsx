@@ -16,6 +16,7 @@ import {
 } from '@/lib/vblog/limits';
 import { htmlToPlainText, contentForRichEditor } from '@/lib/richText/html';
 import { Alert } from '@/components/Alert';
+import { VBlogMagazineIntegration } from './VBlogMagazineIntegration';
 import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';

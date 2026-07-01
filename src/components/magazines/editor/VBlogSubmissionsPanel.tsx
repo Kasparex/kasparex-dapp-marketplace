@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { getVBlogSubmissionsForIssue, setSubmissionStatus } from '@/lib/magazines/submissions';
 import type { MagazineSection } from '@/lib/magazines/manifest';
 import type { VBlogArticle } from '@/lib/vblog/types';
@@ -22,10 +22,9 @@ export function VBlogSubmissionsPanel({
 }: VBlogSubmissionsPanelProps) {
   const [refreshTick, setRefreshTick] = useState(0);
 
-  const submissions = useMemo(() => {
-    if (!magazineId || !issueNumber) return [];
-    return getVBlogSubmissionsForIssue(magazineId, issueNumber);
-  }, [magazineId, issueNumber, includedSlugs, refreshTick]);
+  const submissions =
+    !magazineId || !issueNumber ? [] : getVBlogSubmissionsForIssue(magazineId, issueNumber);
+  void refreshTick;
 
   if (!magazineId || !issueNumber) {
     return (
