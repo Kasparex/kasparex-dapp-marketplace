@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { KxFormSelect } from '@/components/ui/KxFormSelect';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import {
   addAuthorCustomCategory,
   getCategoryOptionsForAuthor,
@@ -79,7 +80,7 @@ export function VBlogCategoryField({ authorAddress, value, onChange, disabled }:
           type="button"
           onClick={handleAddCustom}
           disabled={disabled || !normalizeCategoryName(customInput)}
-          className="k-control-btn shrink-0 !py-2 !text-xs whitespace-nowrap"
+          className={`${KX_FORM_ADD_BTN_CLASS} shrink-0 whitespace-nowrap`}
         >
           Add category
         </button>

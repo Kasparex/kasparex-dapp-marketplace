@@ -41,7 +41,7 @@ const CHAIN_OPTIONS = DIRECTORY_LISTING_CHAINS.map((chain) => ({
   label: chain,
 }));
 
-type LinkRow = { label: string; url: string };
+import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 
 function parseTags(raw: string): string[] {
   return raw
@@ -72,71 +72,11 @@ function ImageSourceToggle({
   );
 }
 
-function cleanLinks(rows: LinkRow[]): DirectoryLink[] {
+function cleanLinks(rows: KxLinkRow[]): DirectoryLink[] {
   return rows
     .map((r) => ({ label: r.label.trim(), url: r.url.trim() }))
     .filter((r) => r.label && r.url)
     .slice(0, 8);
-}
-
-function LinkRowsEditor({
-  label,
-  rows,
-  onChange,
-  addLabel,
-}: {
-  label: string;
-  rows: LinkRow[];
-  onChange: (rows: LinkRow[]) => void;
-  addLabel: string;
-}) {
-  return (
-    <div className="k-form-group">
-      <label className="k-label">{label}</label>
-      <div className="space-y-3">
-        {rows.map((row, index) => (
-          <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_1.5fr_auto] gap-2">
-            <input
-              type="text"
-              className="k-input"
-              value={row.label}
-              placeholder="Label"
-              onChange={(e) => {
-                const next = [...rows];
-                next[index] = { ...next[index], label: e.target.value };
-                onChange(next);
-              }}
-            />
-            <input
-              type="url"
-              className="k-input"
-              value={row.url}
-              placeholder="https://"
-              onChange={(e) => {
-                const next = [...rows];
-                next[index] = { ...next[index], url: e.target.value };
-                onChange(next);
-              }}
-            />
-            <button
-              type="button"
-              className="k-control-btn text-xs"
-              onClick={() => onChange(rows.filter((_, i) => i !== index))}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="k-control-btn text-xs !border-cyan-500/30 !text-cyan-800 dark:!text-cyan-300"
-          onClick={() => onChange([...rows, { label: '', url: '' }])}
-        >
-          {addLabel}
-        </button>
-      </div>
-    </div>
-  );
 }
 
 type DAppListingFormProps = {
@@ -167,13 +107,13 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [chains, setChains] = useState<string[]>(listing?.supportedChains ?? []);
   const [networkLayer, setNetworkLayer] = useState<NetworkLayer>(listing?.networkLayer ?? 'L1');
   const [websiteUrl, setWebsiteUrl] = useState(listing?.websiteUrl ?? '');
-  const [socialLinks, setSocialLinks] = useState<LinkRow[]>(
+  const [socialLinks, setSocialLinks] = useState<KxLinkRow[]>(
     listing?.socialLinks.length ? listing.socialLinks : [{ label: '', url: '' }],
   );
-  const [documentationLinks, setDocumentationLinks] = useState<LinkRow[]>(
+  const [documentationLinks, setDocumentationLinks] = useState<KxLinkRow[]>(
     listing?.documentationLinks.length ? listing.documentationLinks : [{ label: '', url: '' }],
   );
-  const [actionButtons, setActionButtons] = useState<LinkRow[]>(
+  const [actionButtons, setActionButtons] = useState<KxLinkRow[]>(
     listing?.actionButtons.length ? listing.actionButtons : [{ label: '', url: '' }],
   );
   const [featureImageCid, setFeatureImageCid] = useState<string | null>(listing?.featureImageCid ?? null);
@@ -194,7 +134,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const [gallerySource, setGallerySource] = useState<'url' | 'file'>(() =>
     listing?.galleryUrls?.length ? 'url' : 'file',
   );
-  const [optionalFileLinks, setOptionalFileLinks] = useState<LinkRow[]>(
+  const [optionalFileLinks, setOptionalFileLinks] = useState<KxLinkRow[]>(
     listing?.optionalFileUrls?.length ? listing.optionalFileUrls : [{ label: '', url: '' }],
   );
   const [contactX, setContactX] = useState(listing?.contactX ?? listing?.contactEmail ?? '');
@@ -611,19 +551,19 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             />
           </div>
 
-          <LinkRowsEditor
+          <KxLinkRowsEditor
             label="Social links"
             rows={socialLinks}
             onChange={setSocialLinks}
             addLabel="Add social link"
           />
-          <LinkRowsEditor
+          <KxLinkRowsEditor
             label="Documentation links"
             rows={documentationLinks}
             onChange={setDocumentationLinks}
             addLabel="Add documentation link"
           />
-          <LinkRowsEditor
+          <KxLinkRowsEditor
             label="Action buttons"
             rows={actionButtons}
             onChange={setActionButtons}
@@ -744,7 +684,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </div>
           </div>
 
-          <LinkRowsEditor
+          <KxLinkRowsEditor
             label="Optional files (URL links only)"
             rows={optionalFileLinks}
             onChange={setOptionalFileLinks}

@@ -8,6 +8,8 @@ import { Avatar } from '@/components/Avatar';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
+import { vBlogSocialLinkUrl } from '@/lib/vblog/socialLinks';
+import type { VBlogSocialLink } from '@/lib/vblog/types';
 
 function getSocialMeta(href: string) {
   const normalized = href.toLowerCase();
@@ -39,6 +41,20 @@ function getSocialMeta(href: string) {
     label: 'Link',
     icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />,
   };
+}
+
+function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
+  const entries: Array<{ href: string; label: string }> = [];
+  if (article.primaryLink?.trim()) {
+    entries.push({ href: article.primaryLink.trim(), label: 'Primary' });
+  }
+  for (const link of article.socialLinks ?? []) {
+    const href = vBlogSocialLinkUrl(link as VBlogSocialLink | string);
+    if (!href) continue;
+    const customLabel = typeof link === 'string' ? '' : (link.label ?? '').trim();
+    entries.push({ href, label: customLabel || getSocialMeta(href).label });
+  }
+  return entries;
 }
 
 function MetadataRow({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
@@ -78,7 +94,7 @@ export function VBlogAuthorCard({ article, compact = false }: { article: VBlogAr
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
   const source = getVBlogArticleSource(article);
-  const links = [article.primaryLink, ...(article.socialLinks ?? [])].filter(Boolean) as string[];
+  const linkEntries = getArticleLinkEntries(article);
 
   return (
     <div className={`rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
@@ -99,19 +115,19 @@ export function VBlogAuthorCard({ article, compact = false }: { article: VBlogAr
         </div>
       </div>
 
-      {links.length > 0 ? (
+      {linkEntries.length > 0 ? (
         <div className="mt-5 pt-5 border-t border-zinc-100 dark:border-zinc-800">
           <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500 mb-3">Social & links</p>
           <div className="flex flex-wrap gap-2">
-            {links.slice(0, 6).map((href, index) => {
-              const meta = getSocialMeta(href);
+            {linkEntries.slice(0, 6).map((entry, index) => {
+              const meta = getSocialMeta(entry.href);
               return (
                 <a
-                  key={`${href}-${index}`}
-                  href={href}
+                  key={`${entry.href}-${index}`}
+                  href={entry.href}
                   target="_blank"
                   rel="noreferrer"
-                  title={meta.label}
+                  title={entry.label}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] hover:border-[#02abb8]/40 transition-colors"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -152,7 +168,7 @@ export function ArticleSidebar({
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorDisplay = formatAddress(article.author);
   const authorProfileUrl = `/u/${encodeURIComponent(article.author)}?tab=creator-content&type=articles`;
-  const links = [article.primaryLink, ...(article.socialLinks ?? [])].filter(Boolean) as string[];
+  const linkEntries = getArticleLinkEntries(article);
   const payloadBytes = article.pricingSnapshot?.payloadBytes;
   const chunkCount = article.pricingSnapshot?.chunkCount ?? article.chunkTxHashes?.length;
   const txExplorerUrl = article.txHash
@@ -179,19 +195,19 @@ export function ArticleSidebar({
               </Link>
             </div>
           </div>
-          {links.length > 0 ? (
+          {linkEntries.length > 0 ? (
             <div className="pt-1">
               <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500 mb-2">Social</p>
               <div className="flex flex-wrap gap-2">
-                {links.slice(0, 5).map((href, index) => {
-                  const meta = getSocialMeta(href);
+                {linkEntries.slice(0, 5).map((entry, index) => {
+                  const meta = getSocialMeta(entry.href);
                   return (
                     <a
-                      key={`${href}-${index}`}
-                      href={href}
+                      key={`${entry.href}-${index}`}
+                      href={entry.href}
                       target="_blank"
                       rel="noreferrer"
-                      title={meta.label}
+                      title={entry.label}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] hover:border-[#02abb8]/40 transition-colors"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

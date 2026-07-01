@@ -31,6 +31,11 @@ export interface VBlogModulesConfig {
   readingReceiptsEnabled?: boolean;
 }
 
+export interface VBlogSocialLink {
+  label?: string;
+  url: string;
+}
+
 export interface VBlogArticle {
   id: string;
   slug: string;
@@ -72,7 +77,7 @@ export interface VBlogArticle {
     totalKas: number;
   };
   primaryLink?: string;
-  socialLinks?: string[];
+  socialLinks?: VBlogSocialLink[];
   modules?: VBlogModulesConfig;
   /** Module IDs paid/unlocked for this article (not shared across articles). */
   paidModuleIds?: VBlogModuleId[];

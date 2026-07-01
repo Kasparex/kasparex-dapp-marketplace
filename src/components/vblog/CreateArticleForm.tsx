@@ -29,7 +29,14 @@ import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
 import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
+import { cleanVBlogSocialLinks, vBlogSocialLinksToRows } from '@/lib/vblog/socialLinks';
+import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
+
+const FORM_PANEL_CLASS =
+  'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
+const FORM_SECTION_HEADING_CLASS =
+  'text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]';
 
 interface CreateArticleFormProps {
   onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -75,9 +82,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [linkedMagazineId, setLinkedMagazineId] = useState<string | undefined>(article?.linkedMagazineId);
   const [linkedIssueNumber, setLinkedIssueNumber] = useState<number | undefined>(article?.linkedIssueNumber);
   const [primaryLink, setPrimaryLink] = useState(article?.primaryLink ?? '');
-  const [socialLink1, setSocialLink1] = useState(article?.socialLinks?.[0] ?? '');
-  const [socialLink2, setSocialLink2] = useState(article?.socialLinks?.[1] ?? '');
-  const [socialLink3, setSocialLink3] = useState(article?.socialLinks?.[2] ?? '');
+  const [socialLinks, setSocialLinks] = useState<KxLinkRow[]>(() => vBlogSocialLinksToRows(article?.socialLinks));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
@@ -101,6 +106,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     if (featuredImageSource === 'url') return featuredImageUrl.trim();
     return featuredImageCid ? getBestGatewayUrl(featuredImageCid) : '';
   }, [featuredImageSource, featuredImageUrl, featuredImageCid]);
+
+  const resolvedSocialLinks = useMemo(() => cleanVBlogSocialLinks(socialLinks), [socialLinks]);
 
   const modulesPayload = useMemo(
     () => ({
@@ -152,7 +159,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
       author: (isEditMode ? article?.author : walletAddress) ?? undefined,
       primaryLink: primaryLink.trim() || undefined,
-      socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
+      socialLinks: resolvedSocialLinks,
       modules: modulesPayload,
       magazineIntegrationEnabled,
       excludeModuleIds: isEditMode ? originalPaidModuleIds : undefined,
@@ -221,9 +228,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setLinkedMagazineId(article.linkedMagazineId);
     setLinkedIssueNumber(article.linkedIssueNumber);
     setPrimaryLink(article.primaryLink ?? '');
-    setSocialLink1(article.socialLinks?.[0] ?? '');
-    setSocialLink2(article.socialLinks?.[1] ?? '');
-    setSocialLink3(article.socialLinks?.[2] ?? '');
+    setSocialLinks(vBlogSocialLinksToRows(article.socialLinks));
     setMagazineIntegrationEnabled(Boolean(article.linkedMagazineId && article.linkedIssueNumber));
     setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
     setPremiumSectionContent(contentForRichEditor(article.modules?.premiumSectionContent ?? ''));
@@ -377,7 +382,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         linkedMagazineId: magazineIntegrationEnabled ? linkedMagazineId : undefined,
         linkedIssueNumber: magazineIntegrationEnabled ? linkedIssueNumber : undefined,
         primaryLink: primaryLink.trim() || undefined,
-        socialLinks: [socialLink1, socialLink2, socialLink3].map((x) => x.trim()).filter(Boolean),
+        socialLinks: resolvedSocialLinks,
         modules: modulesPayload,
         layoutPreferences: {
           sidebarShownByDefault,
@@ -408,9 +413,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setCategory(DEFAULT_VBLOG_CATEGORIES[0]);
       setTags('');
       setPrimaryLink('');
-      setSocialLink1('');
-      setSocialLink2('');
-      setSocialLink3('');
+      setSocialLinks([{ label: '', url: '' }]);
       setMagazineIntegrationEnabled(false);
       setLinkedMagazineId(undefined);
       setLinkedIssueNumber(undefined);
@@ -438,16 +441,17 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <div className="flex flex-col gap-4 min-w-0">
-      <div className="flex flex-col space-y-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
-        <div>
-          <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
-            {isEditMode ? 'Edit Article' : 'Create New Article'}
-          </h3>
-          <p className="kx-body mb-6">
-            {isEditMode ? 'Update your article details.' : 'Fill in the details below to create a new article.'} Estimated cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunk{formQuote.chunkCount === 1 ? '' : 's'}, {formQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
-          </p>
-        </div>
+      <div className="flex flex-col gap-6 min-w-0">
+        <div className={`${FORM_PANEL_CLASS} space-y-6`}>
+          <div>
+            <p className={`${FORM_SECTION_HEADING_CLASS} mb-3`}>Main content</p>
+            <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
+              {isEditMode ? 'Edit Article' : 'Create New Article'}
+            </h3>
+            <p className="kx-body">
+              {isEditMode ? 'Update your article details.' : 'Fill in the details below to create a new article.'} Estimated cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunk{formQuote.chunkCount === 1 ? '' : 's'}, {formQuote.payloadBytes} bytes){pricing.tier.hasKREXDiscount ? ' (KREX holder discount)' : ''}.
+            </p>
+          </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -578,38 +582,18 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         <div className="space-y-2">
           <label className="k-label">Main promotion link (optional)</label>
           <input className="k-input" value={primaryLink} onChange={(e) => setPrimaryLink(e.target.value)} placeholder="https://yourwebsite.com" disabled={isSubmitting} />
-          <label className="k-label">Social links (up to 3)</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input className="k-input" value={socialLink1} onChange={(e) => setSocialLink1(e.target.value)} placeholder="https://x.com/..." disabled={isSubmitting} />
-            <input className="k-input" value={socialLink2} onChange={(e) => setSocialLink2(e.target.value)} placeholder="https://instagram.com/..." disabled={isSubmitting} />
-            <input className="k-input" value={socialLink3} onChange={(e) => setSocialLink3(e.target.value)} placeholder="https://youtube.com/..." disabled={isSubmitting} />
-          </div>
         </div>
 
-        <section className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
-          <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Advanced options</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Control default reader layout when this article opens.
-          </p>
-          <div className="space-y-2">
-            <KxInFormPremiumRow
-              title="Sidebar shown by default"
-              description="Readers see the left article navigation when they open this article."
-              checked={sidebarShownByDefault}
-              disabled={isSubmitting}
-              onToggle={() => setSidebarShownByDefault(!sidebarShownByDefault)}
-            />
-            <KxInFormPremiumRow
-              title="Right-side panel shown by default"
-              description="Readers see the author and on-chain metadata panel on load."
-              checked={rightPanelShownByDefault}
-              disabled={isSubmitting}
-              onToggle={() => setRightPanelShownByDefault(!rightPanelShownByDefault)}
-            />
-          </div>
-        </section>
+        <KxLinkRowsEditor
+          label="Social links (up to 5)"
+          rows={socialLinks}
+          onChange={setSocialLinks}
+          addLabel="Add social link"
+          maxRows={5}
+          disabled={isSubmitting}
+        />
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center justify-end gap-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
           {onCancel && (
             <button
               type="button"
@@ -634,15 +618,46 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </Alert>
           ) : null}
         </KxAlertRegion>
-      </div>
-
-      <div id="vblog-dashboard-modules" className="scroll-mt-24 space-y-3">
-        <div>
-          <p className="text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">Vault modules</p>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Optional premium features. Toggle modules on to add them to your total. They activate when you pay and publish.
-          </p>
         </div>
+
+        <div className={`${FORM_PANEL_CLASS} space-y-4`}>
+          <div>
+            <p className={FORM_SECTION_HEADING_CLASS}>Advanced options</p>
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Control default reader layout when this article opens.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <KxInFormPremiumRow
+              title="Sidebar shown by default"
+              description="Readers see the left article navigation when they open this article."
+              checked={sidebarShownByDefault}
+              disabled={isSubmitting}
+              onToggle={() => setSidebarShownByDefault(!sidebarShownByDefault)}
+            />
+            <KxInFormPremiumRow
+              title="Right-side panel shown by default"
+              description="Readers see the author and on-chain metadata panel on load."
+              checked={rightPanelShownByDefault}
+              disabled={isSubmitting}
+              onToggle={() => setRightPanelShownByDefault(!rightPanelShownByDefault)}
+            />
+          </div>
+        </div>
+
+        <div
+          id="vblog-dashboard-modules"
+          className={`${FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}
+        >
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <p className={FORM_SECTION_HEADING_CLASS}>Vault modules</p>
+            <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+              Optional premium features
+            </h4>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Toggle modules on to add them to your total. They activate when you pay and publish.
+            </p>
+          </div>
         {formModuleOffers.map((offer) => {
           const enabled = moduleEnabledMap[offer.id];
           const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
@@ -699,7 +714,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </div>
           );
         })}
-      </div>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 xl:sticky xl:top-6">

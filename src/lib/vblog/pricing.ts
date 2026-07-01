@@ -1,4 +1,5 @@
-import type { VBlogArticle, VBlogModuleId, VBlogModulesConfig } from '@/lib/vblog/types';
+import type { VBlogArticle, VBlogModuleId, VBlogModulesConfig, VBlogSocialLink } from '@/lib/vblog/types';
+import { socialLinksForPricingPayload } from '@/lib/vblog/socialLinks';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { NFTStatus } from '@/lib/rewards/types';
 import { computeVBlogModuleAddonKas, type VBlogModuleAddonLine } from '@/lib/vblog/modules';
@@ -23,7 +24,7 @@ export interface VBlogPricingDraft {
   linkedIssueNumber?: number;
   author?: string;
   primaryLink?: string;
-  socialLinks?: string[];
+  socialLinks?: VBlogSocialLink[];
   modules?: VBlogModulesConfig;
   magazineIntegrationEnabled?: boolean;
   /** Module IDs already paid on a prior publish (excluded from edit pricing). */
@@ -114,7 +115,7 @@ export function buildCanonicalArticlePayload(draft: VBlogPricingDraft, action: V
     linkedIssueNumber: draft.linkedIssueNumber ?? null,
     author: (draft.author ?? '').trim(),
     primaryLink: (draft.primaryLink ?? '').trim(),
-    socialLinks: (draft.socialLinks ?? []).map((l) => l.trim()).filter(Boolean),
+    socialLinks: socialLinksForPricingPayload(draft.socialLinks),
     modules: normalizeModulesForPayload(draft.modules),
   };
   return deterministicStringify(canonical);
