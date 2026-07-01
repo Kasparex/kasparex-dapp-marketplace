@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1782943192-a4750ff",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Add files via upload (by Kasparex)",
+      "date": "2026-07-01T23:59:40+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1782775160-2cb93af",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix formatting and update README content (by Kasparex)",
