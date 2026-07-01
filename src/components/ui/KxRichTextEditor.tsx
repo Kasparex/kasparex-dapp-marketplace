@@ -27,7 +27,6 @@ const FORMATS = [
 
 const FLOATING_TOOLBAR_Z = 999999;
 const TOOLBAR_GAP = 8;
-const MAX_TOOLBAR_WIDTH = 640;
 
 type QuillInstance = InstanceType<(typeof import('quill'))['default']>;
 
@@ -50,141 +49,29 @@ function setupFloatingToolbar(
   toolbarEl: HTMLElement,
   floatingHost: HTMLElement,
 ) {
-  const mainRow = document.createElement('div');
-  mainRow.className = 'kx-quill-toolbar-main';
-
-  const moreBtn = document.createElement('button');
-  moreBtn.type = 'button';
-  moreBtn.className = 'kx-quill-toolbar-more';
-  moreBtn.setAttribute('aria-label', 'More formatting options');
-  moreBtn.setAttribute('aria-haspopup', 'true');
-  moreBtn.setAttribute('aria-expanded', 'false');
-  moreBtn.hidden = true;
-
-  const overflowMenu = document.createElement('div');
-  overflowMenu.className = 'kx-quill-toolbar-overflow';
-  overflowMenu.hidden = true;
-  overflowMenu.setAttribute('role', 'menu');
-
-  const toolbarInner = document.createElement('div');
-  toolbarInner.className = 'kx-quill-toolbar-inner';
-
-  while (toolbarEl.firstChild) {
-    mainRow.appendChild(toolbarEl.firstChild);
-  }
-
-  toolbarInner.append(mainRow, moreBtn, overflowMenu);
-  toolbarEl.append(toolbarInner);
   floatingHost.append(toolbarEl);
 
-  let overflowOpen = false;
   let repositionRaf = 0;
-
-  const getControls = () => [
-    ...Array.from(mainRow.querySelectorAll<HTMLElement>(':scope > *')),
-    ...Array.from(overflowMenu.querySelectorAll<HTMLElement>(':scope > *')),
-  ];
-
-  const closeOverflow = () => {
-    overflowOpen = false;
-    overflowMenu.hidden = true;
-    moreBtn.setAttribute('aria-expanded', 'false');
-  };
-
-  const openOverflow = () => {
-    overflowOpen = true;
-    overflowMenu.hidden = false;
-    moreBtn.setAttribute('aria-expanded', 'true');
-  };
-
-  const updateOverflow = (maxToolbarWidth: number) => {
-    const controls = getControls();
-    for (const control of controls) {
-      if (control.parentElement !== mainRow) {
-        mainRow.appendChild(control);
-      }
-      control.hidden = false;
-      control.style.removeProperty('display');
-    }
-
-    overflowMenu.replaceChildren();
-    closeOverflow();
-
-    if (controls.length === 0) return;
-
-    const controlWidths = controls.map((control) => control.getBoundingClientRect().width);
-    const controlsWidth = controlWidths.reduce((sum, width) => sum + width, 0);
-    const panelStyle = window.getComputedStyle(toolbarEl);
-    const panelPadding =
-      parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight);
-
-    moreBtn.hidden = false;
-    const moreWidth = moreBtn.getBoundingClientRect().width;
-    moreBtn.hidden = true;
-
-    if (controlsWidth + panelPadding <= maxToolbarWidth) {
-      moreBtn.hidden = true;
-      return;
-    }
-
-    moreBtn.hidden = false;
-    const maxRowWidth = maxToolbarWidth - panelPadding - moreWidth;
-    let usedWidth = 0;
-    const hidden: HTMLElement[] = [];
-
-    for (let index = 0; index < controls.length; index += 1) {
-      const width = controlWidths[index];
-      if (hidden.length > 0 || usedWidth + width > maxRowWidth) {
-        hidden.push(controls[index]);
-      } else {
-        usedWidth += width;
-      }
-    }
-
-    for (const control of hidden) {
-      overflowMenu.appendChild(control);
-    }
-  };
 
   const positionToolbar = () => {
     const range = quill.getSelection();
     if (!range) {
       floatingHost.hidden = true;
-      closeOverflow();
       return;
     }
 
     const bounds = quill.getBounds(range.index, range.length);
     if (!bounds) {
       floatingHost.hidden = true;
-      closeOverflow();
       return;
     }
 
-    const editorRect = quill.root.getBoundingClientRect();
-    const maxToolbarWidth = Math.min(
-      editorRect.width,
-      window.innerWidth - TOOLBAR_GAP * 2,
-      MAX_TOOLBAR_WIDTH,
-    );
-
     floatingHost.hidden = false;
-    floatingHost.style.maxWidth = `${maxToolbarWidth}px`;
 
-    updateOverflow(maxToolbarWidth);
-
-    const hostWidth = floatingHost.offsetWidth;
-    const hostHeight = floatingHost.offsetHeight;
-
+    const editorRect = quill.root.getBoundingClientRect();
     const anchorX = editorRect.left + bounds.left + bounds.width / 2;
-    let top = editorRect.top + bounds.top - TOOLBAR_GAP;
-    let placeBelow = false;
-
-    if (top - hostHeight < TOOLBAR_GAP) {
-      top = editorRect.top + bounds.top + bounds.height + TOOLBAR_GAP;
-      placeBelow = true;
-    }
-
+    const top = editorRect.top + bounds.top + bounds.height + TOOLBAR_GAP;
+    const hostWidth = floatingHost.offsetWidth || toolbarEl.offsetWidth;
     const left = clamp(
       anchorX,
       TOOLBAR_GAP + hostWidth / 2,
@@ -193,35 +80,14 @@ function setupFloatingToolbar(
 
     floatingHost.style.left = `${left}px`;
     floatingHost.style.top = `${top}px`;
-    floatingHost.dataset.placement = placeBelow ? 'below' : 'above';
   };
 
   const scheduleReposition = () => {
     cancelAnimationFrame(repositionRaf);
-    repositionRaf = requestAnimationFrame(positionToolbar);
+    repositionRaf = requestAnimationFrame(() => {
+      requestAnimationFrame(positionToolbar);
+    });
   };
-
-  moreBtn.addEventListener('mousedown', (event) => {
-    event.preventDefault();
-  });
-
-  moreBtn.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (overflowOpen) {
-      closeOverflow();
-    } else {
-      openOverflow();
-    }
-  });
-
-  document.addEventListener('mousedown', (event) => {
-    if (!overflowOpen) return;
-    const target = event.target;
-    if (!(target instanceof Node)) return;
-    if (floatingHost.contains(target)) return;
-    closeOverflow();
-  });
 
   quill.on('selection-change', scheduleReposition);
   quill.on('text-change', scheduleReposition);
@@ -231,7 +97,6 @@ function setupFloatingToolbar(
 
   const resizeObserver = new ResizeObserver(scheduleReposition);
   resizeObserver.observe(quill.root);
-  resizeObserver.observe(toolbarInner);
 
   scheduleReposition();
 
@@ -240,7 +105,6 @@ function setupFloatingToolbar(
     window.removeEventListener('scroll', scheduleReposition, true);
     window.removeEventListener('resize', scheduleReposition);
     resizeObserver.disconnect();
-    closeOverflow();
   };
 }
 
