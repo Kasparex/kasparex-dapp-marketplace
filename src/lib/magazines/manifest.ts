@@ -67,7 +67,7 @@ export function normalizeManifest(raw: unknown): MagazineIssueManifest | null {
     return obj as unknown as MagazineIssueManifestV1;
   }
   if (Array.isArray(obj.blocks)) {
-    return { ...(obj as MagazineIssueManifestV1), version: 1 };
+    return { ...(obj as unknown as MagazineIssueManifestV1), version: 1 };
   }
   return null;
 }
