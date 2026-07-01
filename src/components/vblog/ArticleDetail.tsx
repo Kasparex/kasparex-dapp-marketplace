@@ -29,6 +29,7 @@ import { buildVBlogPremiumUnlockPayloadHex, buildVBlogPremiumUnlockPlainNote, ut
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import {
   getPollVotes,
+  getPollVoteForWallet,
   getReceiptStreakAndBadge,
   hasPollVote,
   hasReaderEntitlement,
@@ -36,6 +37,8 @@ import {
   saveReaderEntitlement,
   saveReadingReceipt,
 } from '@/lib/vblog/modules';
+import { VBlogPremiumSectionGate } from '@/components/vblog/VBlogPremiumSectionGate';
+import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
 
@@ -98,9 +101,10 @@ export function ArticleDetail({
   const premiumUnlockEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'premium_unlock') : false;
   const tipRevealEntitled = walletAddress ? hasReaderEntitlement(walletAddress, article.id, 'tip_to_reveal_unlock') : false;
   const canVotePoll = walletAddress ? premiumUnlockEntitled && !hasPollVote(article.id, walletAddress) : false;
+  const hasVotedPoll = walletAddress ? hasPollVote(article.id, walletAddress) : false;
+  const userPollVote = walletAddress ? getPollVoteForWallet(article.id, walletAddress) : undefined;
   const pollVotes = useMemo(() => getPollVotes(article.id), [article.id, refreshTick]);
   const receiptBadge = walletAddress ? getReceiptStreakAndBadge(walletAddress) : { streak: 0, badge: 'No badge' };
-  const pollTotalVotes = pollVotes.length;
 
   const articleTabs: readonly DAppTab<ArticleContentTab>[] = [
     { id: 'article', label: 'Article', icon: <IconArticle /> },
@@ -398,18 +402,14 @@ export function ArticleDetail({
                     />
 
                     {article.modules?.premiumSectionEnabled ? (
-                      <div id="article-premium" className="space-y-4">
-                        {!premiumUnlockEntitled ? (
-                          <div className="space-y-3">
-                            <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
-                            <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
-                              {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
-                            </button>
-                          </div>
-                        ) : (
-                          <KxRichTextContent html={article.modules.premiumSectionContent ?? ''} />
-                        )}
-                      </div>
+                      <VBlogPremiumSectionGate
+                        unlocked={premiumUnlockEntitled}
+                        previewHtml={article.modules.premiumSectionContent ?? ''}
+                        priceKas={Number(article.modules.premiumSectionPriceKas ?? 0)}
+                        isProcessing={isProcessingAction}
+                        isWalletConnected={kaspaState.isConnected}
+                        onUnlock={() => void handlePremiumUnlock()}
+                      />
                     ) : null}
                   </div>
                 ) : null}
@@ -437,34 +437,20 @@ export function ArticleDetail({
                       </div>
                     ) : null}
 
-                    {article.modules?.premiumPollEnabled && premiumUnlockEntitled ? (
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium poll</p>
-                        <p className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{article.modules.premiumPoll?.question}</p>
-                        <div className="mt-3 space-y-2">
-                          {(article.modules.premiumPoll?.options ?? []).map((option, index) => {
-                            const votes = pollVotes.filter((x) => x.optionIndex === index).length;
-                            const pct = pollTotalVotes > 0 ? Math.round((votes / pollTotalVotes) * 100) : 0;
-                            return (
-                              <label key={option} className="flex items-center justify-between gap-3 text-sm">
-                                <span className="flex items-center gap-2">
-                                  <input
-                                    type="radio"
-                                    checked={selectedPollOption === index}
-                                    onChange={() => setSelectedPollOption(index)}
-                                    disabled={!canVotePoll}
-                                  />
-                                  {option}
-                                </span>
-                                <span className="text-zinc-500">{votes} ({pct}%)</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                        <button disabled={!canVotePoll} onClick={handlePollVote} className="mt-4 k-control-btn">
-                          {canVotePoll ? 'Submit vote' : 'Vote submitted or premium unlock required'}
-                        </button>
-                      </div>
+                    {article.modules?.premiumPollEnabled ? (
+                      <VBlogPremiumPoll
+                        question={article.modules.premiumPoll?.question ?? ''}
+                        options={article.modules.premiumPoll?.options ?? []}
+                        votes={pollVotes}
+                        selectedOption={selectedPollOption}
+                        onSelectOption={setSelectedPollOption}
+                        onSubmitVote={() => void handlePollVote()}
+                        canVote={canVotePoll}
+                        hasVoted={hasVotedPoll}
+                        userVoteIndex={userPollVote?.optionIndex}
+                        premiumUnlocked={premiumUnlockEntitled}
+                        isProcessing={isProcessingAction}
+                      />
                     ) : null}
 
                     {article.modules?.readingReceiptsEnabled ? (

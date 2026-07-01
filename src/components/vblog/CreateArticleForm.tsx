@@ -30,6 +30,7 @@ import { VBlogCategoryField } from './VBlogCategoryField';
 import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
+import { cleanPollOptions, defaultPollOptions } from '@/components/vblog/VBlogPollOptionsEditor';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 
@@ -97,7 +98,10 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState(String(article?.modules?.tipToRevealThresholdKas ?? 25));
   const [premiumPollEnabled, setPremiumPollEnabled] = useState(Boolean(article?.modules?.premiumPollEnabled));
   const [pollQuestion, setPollQuestion] = useState(article?.modules?.premiumPoll?.question ?? '');
-  const [pollOptions, setPollOptions] = useState((article?.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+  const [pollOptions, setPollOptions] = useState<string[]>(() => {
+    const saved = article?.modules?.premiumPoll?.options;
+    return saved?.length ? [...saved] : defaultPollOptions();
+  });
   const [readingReceiptsEnabled, setReadingReceiptsEnabled] = useState(Boolean(article?.modules?.readingReceiptsEnabled));
   const [sidebarShownByDefault, setSidebarShownByDefault] = useState(article?.layoutPreferences?.sidebarShownByDefault ?? true);
   const [rightPanelShownByDefault, setRightPanelShownByDefault] = useState(article?.layoutPreferences?.rightPanelShownByDefault ?? true);
@@ -122,7 +126,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
       premiumPollEnabled,
       premiumPoll: premiumPollEnabled
-        ? { question: pollQuestion.trim(), options: pollOptions.split(',').map((x) => x.trim()).filter(Boolean) }
+        ? { question: pollQuestion.trim(), options: cleanPollOptions(pollOptions) }
         : undefined,
       readingReceiptsEnabled,
     }),
@@ -245,7 +249,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
     setPremiumPollEnabled(Boolean(article.modules?.premiumPollEnabled));
     setPollQuestion(article.modules?.premiumPoll?.question ?? '');
-    setPollOptions((article.modules?.premiumPoll?.options ?? ['Option 1', 'Option 2']).join(', '));
+    const savedOptions = article.modules?.premiumPoll?.options;
+    setPollOptions(savedOptions?.length ? [...savedOptions] : defaultPollOptions());
     setReadingReceiptsEnabled(Boolean(article.modules?.readingReceiptsEnabled));
     setSidebarShownByDefault(article.layoutPreferences?.sidebarShownByDefault ?? true);
     setRightPanelShownByDefault(article.layoutPreferences?.rightPanelShownByDefault ?? true);
@@ -340,7 +345,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       }
     }
     if (premiumPollEnabled) {
-      const options = pollOptions.split(',').map((x) => x.trim()).filter(Boolean);
+      const options = cleanPollOptions(pollOptions);
       if (!pollQuestion.trim() || options.length < 2) {
         setError('Premium poll requires a question and at least 2 options.');
         return;

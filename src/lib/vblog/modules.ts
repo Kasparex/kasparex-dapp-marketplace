@@ -257,6 +257,12 @@ export function hasPollVote(articleId: string, wallet: string): boolean {
   return votes.some((x) => x.articleId === articleId && x.wallet.toLowerCase() === wallet.toLowerCase());
 }
 
+export function getPollVoteForWallet(articleId: string, wallet: string): VBlogPollVote | undefined {
+  if (!wallet || typeof window === 'undefined') return undefined;
+  const votes = safeParse<VBlogPollVote[]>(localStorage.getItem(STORAGE_KEYS.pollVotes), []);
+  return votes.find((x) => x.articleId === articleId && x.wallet.toLowerCase() === wallet.toLowerCase());
+}
+
 export function saveReadingReceipt(receipt: VBlogReadingReceipt): void {
   if (typeof window === 'undefined') return;
   const all = safeParse<VBlogReadingReceipt[]>(localStorage.getItem(STORAGE_KEYS.readingReceipts), []);

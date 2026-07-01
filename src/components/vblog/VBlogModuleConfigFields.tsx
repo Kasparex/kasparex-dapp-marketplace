@@ -2,6 +2,7 @@
 
 import type { VBlogModuleId } from '@/lib/vblog/types';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { VBlogPollOptionsEditor } from './VBlogPollOptionsEditor';
 
 export function VBlogModuleConfigFields({
   moduleId,
@@ -35,8 +36,8 @@ export function VBlogModuleConfigFields({
   onTipToRevealThresholdKasChange?: (v: string) => void;
   pollQuestion?: string;
   onPollQuestionChange?: (v: string) => void;
-  pollOptions?: string;
-  onPollOptionsChange?: (v: string) => void;
+  pollOptions?: string[];
+  onPollOptionsChange?: (v: string[]) => void;
   disabled?: boolean;
   bare?: boolean;
 }) {
@@ -108,11 +109,9 @@ export function VBlogModuleConfigFields({
           placeholder="Poll question"
           disabled={disabled}
         />
-        <input
-          className="k-input"
-          value={pollOptions ?? ''}
-          onChange={(e) => onPollOptionsChange?.(e.target.value)}
-          placeholder="Options, comma-separated"
+        <VBlogPollOptionsEditor
+          options={pollOptions ?? ['Option 1', 'Option 2']}
+          onChange={(next) => onPollOptionsChange?.(next)}
           disabled={disabled}
         />
       </div>
