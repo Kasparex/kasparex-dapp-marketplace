@@ -3,7 +3,16 @@
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import type { KREXTier } from '@/lib/rewards/types';
 
-/** Standard Hub Points earn label (⚡ +N pts) used across the Hub. */
+/** Standard Hub lightning icon used for points labels across the Hub. */
+export function HubPointsLightningIcon({ className = 'h-3.5 w-3.5 shrink-0' }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" />
+    </svg>
+  );
+}
+
+/** Standard Hub Points earn label (+N pts) used across the Hub. */
 export function HubPointsEarnBadge({
   basePoints,
   tier,
@@ -11,10 +20,8 @@ export function HubPointsEarnBadge({
   className = '',
   size = 'sm',
 }: {
-  /** Base points before KREX tier multiplier. */
   basePoints?: number;
   tier?: KREXTier;
-  /** Precomputed points (skips tier math when set). */
   points?: number;
   className?: string;
   size?: 'sm' | 'md';
@@ -24,25 +31,21 @@ export function HubPointsEarnBadge({
     (basePoints != null && tier != null ? computeEarnedHubPoints(basePoints, tier) : 0);
   if (earned <= 0) return null;
 
-  const sizeClass =
-    size === 'md'
-      ? 'text-sm gap-1.5'
-      : 'text-xs gap-1';
+  const sizeClass = size === 'md' ? 'text-sm gap-1.5' : 'text-xs gap-1';
+  const iconClass = size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5';
 
   return (
     <span
       className={`inline-flex items-center font-bold text-emerald-600 dark:text-emerald-400 tabular-nums ${sizeClass} ${className}`.trim()}
     >
-      <span aria-hidden className={size === 'md' ? 'text-base' : 'text-sm'}>
-        ⚡
-      </span>
+      <HubPointsLightningIcon className={`${iconClass} shrink-0`} />
       +{earned} pts
     </span>
   );
 }
 
 export function HubPointsEarnRow({
-  label = 'You will get:',
+  label = 'Earn:',
   basePoints,
   tier,
   points,

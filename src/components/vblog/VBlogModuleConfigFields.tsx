@@ -4,16 +4,83 @@ import type { VBlogModuleId } from '@/lib/vblog/types';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { VBlogPollOptionsEditor } from './VBlogPollOptionsEditor';
 
+export type PayoutSplitRow = { address: string; sharePercent: string };
+
+export function VBlogPayoutSplitsEditor({
+  rows,
+  onChange,
+  disabled = false,
+}: {
+  rows: PayoutSplitRow[];
+  onChange: (rows: PayoutSplitRow[]) => void;
+  disabled?: boolean;
+}) {
+  const filled = rows.filter((r) => r.address.trim());
+  const totalPercent = filled.reduce((s, r) => s + (Number(r.sharePercent) || 0), 0);
+  const totalLabel = filled.length > 0 ? `${Math.round(totalPercent * 100) / 100}%` : '0%';
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          Payout split (up to 3 wallets)
+        </p>
+        <span
+          className={`text-[10px] font-bold tabular-nums ${
+            Math.abs(totalPercent - 100) < 0.01 && filled.length > 0
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-amber-600 dark:text-amber-400'
+          }`}
+        >
+          Total: {totalLabel}
+        </span>
+      </div>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        Set wallet addresses and percentages. Shares must total 100%. Covenant routing will automate this soon.
+      </p>
+      {rows.map((row, index) => (
+        <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_5.5rem] gap-2">
+          <input
+            className="k-input"
+            value={row.address}
+            onChange={(e) => {
+              const next = [...rows];
+              next[index] = { ...next[index], address: e.target.value };
+              onChange(next);
+            }}
+            placeholder={index === 0 ? 'Primary payout Kaspa address' : `Split wallet ${index + 1} (optional)`}
+            disabled={disabled}
+          />
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={0.01}
+            className="k-input tabular-nums"
+            value={row.sharePercent}
+            onChange={(e) => {
+              const next = [...rows];
+              next[index] = { ...next[index], sharePercent: e.target.value };
+              onChange(next);
+            }}
+            placeholder="%"
+            disabled={disabled}
+            aria-label={`Wallet ${index + 1} share percent`}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function VBlogModuleConfigFields({
   moduleId,
   premiumSectionContent,
   onPremiumSectionContentChange,
   premiumSectionPriceKas,
   onPremiumSectionPriceKasChange,
-  premiumSectionPayoutAddress,
-  onPremiumSectionPayoutAddressChange,
-  premiumSectionSplitAddresses,
-  onPremiumSectionSplitAddressesChange,
+  premiumPayoutSplitRows,
+  onPremiumPayoutSplitRowsChange,
   tipToRevealContent,
   onTipToRevealContentChange,
   tipToRevealThresholdKas,
@@ -30,10 +97,8 @@ export function VBlogModuleConfigFields({
   onPremiumSectionContentChange?: (v: string) => void;
   premiumSectionPriceKas?: string;
   onPremiumSectionPriceKasChange?: (v: string) => void;
-  premiumSectionPayoutAddress?: string;
-  onPremiumSectionPayoutAddressChange?: (v: string) => void;
-  premiumSectionSplitAddresses?: string[];
-  onPremiumSectionSplitAddressesChange?: (v: string[]) => void;
+  premiumPayoutSplitRows?: PayoutSplitRow[];
+  onPremiumPayoutSplitRowsChange?: (rows: PayoutSplitRow[]) => void;
   tipToRevealContent?: string;
   onTipToRevealContentChange?: (v: string) => void;
   tipToRevealThresholdKas?: string;
@@ -60,44 +125,18 @@ export function VBlogModuleConfigFields({
           placeholder="Premium section content (Markdown supported)"
           disabled={disabled}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input
-            className="k-input"
-            value={premiumSectionPriceKas ?? ''}
-            onChange={(e) => onPremiumSectionPriceKasChange?.(e.target.value)}
-            placeholder="Reader unlock price (KAS)"
-            disabled={disabled}
-          />
-          <input
-            className="k-input"
-            value={premiumSectionPayoutAddress ?? ''}
-            onChange={(e) => onPremiumSectionPayoutAddressChange?.(e.target.value)}
-            placeholder="Primary payout Kaspa address"
-            disabled={disabled}
-          />
-        </div>
-        <div className="space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Optional split wallets (up to 2 more)
-          </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Author share is split evenly across valid wallets. Covenant-based routing will automate this soon.
-          </p>
-          {(premiumSectionSplitAddresses ?? ['', '']).map((addr, index) => (
-            <input
-              key={index}
-              className="k-input"
-              value={addr}
-              onChange={(e) => {
-                const next = [...(premiumSectionSplitAddresses ?? ['', ''])];
-                next[index] = e.target.value;
-                onPremiumSectionSplitAddressesChange?.(next);
-              }}
-              placeholder={`Split wallet ${index + 2} (optional)`}
-              disabled={disabled}
-            />
-          ))}
-        </div>
+        <input
+          className="k-input"
+          value={premiumSectionPriceKas ?? ''}
+          onChange={(e) => onPremiumSectionPriceKasChange?.(e.target.value)}
+          placeholder="Reader unlock price (KAS)"
+          disabled={disabled}
+        />
+        <VBlogPayoutSplitsEditor
+          rows={premiumPayoutSplitRows ?? [{ address: '', sharePercent: '100' }, { address: '', sharePercent: '' }, { address: '', sharePercent: '' }]}
+          onChange={(next) => onPremiumPayoutSplitRowsChange?.(next)}
+          disabled={disabled}
+        />
       </div>
     );
   }

@@ -31,6 +31,8 @@ import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
 import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
 import { cleanPollOptions, defaultPollOptions } from '@/components/vblog/VBlogPollOptionsEditor';
+import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRows } from '@/lib/vblog/paymentSplit';
+import type { PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 
@@ -91,11 +93,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   const [premiumSectionEnabled, setPremiumSectionEnabled] = useState(Boolean(article?.modules?.premiumSectionEnabled));
   const [premiumSectionContent, setPremiumSectionContent] = useState(() => contentForRichEditor(article?.modules?.premiumSectionContent ?? ''));
   const [premiumSectionPriceKas, setPremiumSectionPriceKas] = useState(String(article?.modules?.premiumSectionPriceKas ?? 10));
-  const [premiumSectionPayoutAddress, setPremiumSectionPayoutAddress] = useState(article?.modules?.premiumSectionPayoutAddress ?? '');
-  const [premiumSectionSplitAddresses, setPremiumSectionSplitAddresses] = useState<string[]>(() => {
-    const saved = article?.modules?.premiumSectionSplitAddresses ?? [];
-    return saved.length >= 2 ? saved.slice(0, 2) : [...saved, '', ''].slice(0, 2);
-  });
+  const [premiumPayoutSplitRows, setPremiumPayoutSplitRows] = useState<PayoutSplitRow[]>(() =>
+    payoutSplitRowsFromModules(article?.modules),
+  );
   const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article?.modules?.tipBoxEnabled));
   const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article?.modules?.tipToRevealEnabled));
   const [tipToRevealContent, setTipToRevealContent] = useState(() => contentForRichEditor(article?.modules?.tipToRevealContent ?? ''));
@@ -117,15 +117,18 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
   const resolvedSocialLinks = useMemo(() => cleanVBlogSocialLinks(socialLinks), [socialLinks]);
 
+  const resolvedPremiumPayoutSplits = useMemo(
+    () => cleanPayoutSplitRows(premiumPayoutSplitRows),
+    [premiumPayoutSplitRows],
+  );
+
   const modulesPayload = useMemo(
     () => ({
       premiumSectionEnabled,
       premiumSectionContent: premiumSectionEnabled ? premiumSectionContent.trim() : undefined,
       premiumSectionPriceKas: premiumSectionEnabled ? Number(premiumSectionPriceKas) : undefined,
-      premiumSectionPayoutAddress: premiumSectionEnabled ? premiumSectionPayoutAddress.trim() : undefined,
-      premiumSectionSplitAddresses: premiumSectionEnabled
-        ? premiumSectionSplitAddresses.map((a) => a.trim()).filter(Boolean).slice(0, 2)
-        : undefined,
+      premiumSectionPayoutAddress: premiumSectionEnabled ? resolvedPremiumPayoutSplits[0]?.address : undefined,
+      premiumSectionPayoutSplits: premiumSectionEnabled ? resolvedPremiumPayoutSplits : undefined,
       tipBoxEnabled,
       tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
       tipToRevealEnabled,
@@ -141,7 +144,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       premiumSectionEnabled,
       premiumSectionContent,
       premiumSectionPriceKas,
-      premiumSectionPayoutAddress,
+      resolvedPremiumPayoutSplits,
+      premiumPayoutSplitRows,
       tipBoxEnabled,
       tipToRevealEnabled,
       tipToRevealContent,
@@ -249,9 +253,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setPremiumSectionEnabled(Boolean(article.modules?.premiumSectionEnabled));
     setPremiumSectionContent(contentForRichEditor(article.modules?.premiumSectionContent ?? ''));
     setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
-    setPremiumSectionPayoutAddress(article.modules?.premiumSectionPayoutAddress ?? '');
-    const splitSaved = article.modules?.premiumSectionSplitAddresses ?? [];
-    setPremiumSectionSplitAddresses(splitSaved.length >= 2 ? splitSaved.slice(0, 2) : [...splitSaved, '', ''].slice(0, 2));
+    setPremiumPayoutSplitRows(payoutSplitRowsFromModules(article.modules));
     setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
     setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
     setTipToRevealContent(contentForRichEditor(article.modules?.tipToRevealContent ?? ''));
@@ -266,10 +268,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
   }, [article]);
 
   useEffect(() => {
-    if (premiumSectionEnabled && kaspaState.address && !premiumSectionPayoutAddress.trim()) {
-      setPremiumSectionPayoutAddress(kaspaState.address);
-    }
-  }, [premiumSectionEnabled, kaspaState.address, premiumSectionPayoutAddress]);
+    if (!premiumSectionEnabled || !kaspaState.address) return;
+    setPremiumPayoutSplitRows((rows) => {
+      if (rows[0]?.address.trim()) return rows;
+      const next = [...rows];
+      next[0] = { ...next[0], address: kaspaState.address ?? '', sharePercent: next[0]?.sharePercent || '100' };
+      return next;
+    });
+  }, [premiumSectionEnabled, kaspaState.address]);
 
   const uploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -332,8 +338,13 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     }
 
     if (premiumSectionEnabled) {
-      if (!htmlToPlainText(premiumSectionContent).trim() || !premiumSectionPayoutAddress.trim()) {
-        setError('Premium section needs content and payout wallet address.');
+      if (!htmlToPlainText(premiumSectionContent).trim()) {
+        setError('Premium section needs content.');
+        return;
+      }
+      const splitErr = validatePayoutSplitRows(resolvedPremiumPayoutSplits);
+      if (splitErr) {
+        setError(splitErr);
         return;
       }
       const price = Number(premiumSectionPriceKas);
@@ -566,10 +577,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                 onPremiumSectionContentChange={setPremiumSectionContent}
                 premiumSectionPriceKas={premiumSectionPriceKas}
                 onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
-                premiumSectionPayoutAddress={premiumSectionPayoutAddress}
-                onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
-                premiumSectionSplitAddresses={premiumSectionSplitAddresses}
-                onPremiumSectionSplitAddressesChange={setPremiumSectionSplitAddresses}
+                premiumPayoutSplitRows={premiumPayoutSplitRows}
+                onPremiumPayoutSplitRowsChange={setPremiumPayoutSplitRows}
               />
             ) : null}
           </div>
@@ -752,10 +761,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                   onPremiumSectionContentChange={setPremiumSectionContent}
                   premiumSectionPriceKas={premiumSectionPriceKas}
                   onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
-                  premiumSectionPayoutAddress={premiumSectionPayoutAddress}
-                  onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
-                  premiumSectionSplitAddresses={premiumSectionSplitAddresses}
-                  onPremiumSectionSplitAddressesChange={setPremiumSectionSplitAddresses}
+                  premiumPayoutSplitRows={premiumPayoutSplitRows}
+                  onPremiumPayoutSplitRowsChange={setPremiumPayoutSplitRows}
                   tipToRevealContent={tipToRevealContent}
                   onTipToRevealContentChange={setTipToRevealContent}
                   tipToRevealThresholdKas={tipToRevealThresholdKas}

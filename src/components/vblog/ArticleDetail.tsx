@@ -29,7 +29,7 @@ import { kasToSompi } from '@/lib/ads/config';
 import { buildVBlogPremiumUnlockPayloadHex, buildVBlogPremiumUnlockPlainNote, utf8ToHex } from '@/lib/vblog/payloadHex';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
-import { resolvePremiumPayoutAddresses, splitAuthorKasEvenly } from '@/lib/vblog/paymentSplit';
+import { resolvePremiumPayoutSplits, splitAuthorKasByPercent } from '@/lib/vblog/paymentSplit';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -172,18 +172,14 @@ export function ArticleDetail({
     }
     const payerAddress = normalizeKaspaAddress(kaspaState.address);
     const payment = computeVBlogReaderPaymentSplit(listKas, krexTier, nftStatus, getVBlogPlatformFeeBps());
-    const payoutPrimary =
+    const payoutSplits =
       moduleId === 'premium_unlock'
-        ? article.modules?.premiumSectionPayoutAddress || article.author
-        : article.author;
-    const payoutRecipients = resolvePremiumPayoutAddresses(
-      payoutPrimary,
-      moduleId === 'premium_unlock' ? article.modules?.premiumSectionSplitAddresses : undefined,
-    );
-    if (payoutRecipients.length === 0) {
+        ? resolvePremiumPayoutSplits(article.modules, article.author)
+        : resolvePremiumPayoutSplits({ premiumSectionPayoutSplits: [{ address: article.author, sharePercent: 100 }] }, article.author);
+    if (payoutSplits.length === 0) {
       throw new Error('Author payout address is invalid');
     }
-    const authorSplits = splitAuthorKasEvenly(payment.authorKas, payoutRecipients);
+    const authorSplits = splitAuthorKasByPercent(payment.authorKas, payoutSplits);
     const note = buildVBlogPremiumUnlockPlainNote({
       articleId: article.id,
       moduleId,
@@ -229,11 +225,11 @@ export function ArticleDetail({
         payerAddress,
         articleId: article.id,
         moduleId,
-        expectedAuthorAddress: payoutRecipients[0],
+        expectedAuthorAddress: payoutSplits[0].address,
         expectedAuthorKas: payment.authorKas,
         expectedPlatformKas: payment.platformKas,
         authorTxHashes,
-        authorRecipientAddresses: payoutRecipients,
+        authorRecipientAddresses: payoutSplits.map((s) => s.address),
         platformTxHash,
       }),
     });
@@ -311,12 +307,6 @@ export function ArticleDetail({
       optionIndex: selectedPollOption,
       votedAt: new Date().toISOString(),
     });
-    if (kaspaState.address) {
-      creditReaderEarn('vblog_poll_vote', HUB_EARN_POINTS.vblogPollVote, `vbu:poll:${article.id}:${kaspaState.address}`, {
-        articleId: article.id,
-        optionIndex: selectedPollOption,
-      });
-    }
     setRefreshTick((x) => x + 1);
   };
 
@@ -532,8 +522,6 @@ export function ArticleDetail({
                         userVoteIndex={userPollVote?.optionIndex}
                         premiumUnlocked={premiumUnlockEntitled}
                         isProcessing={isProcessingAction}
-                        hubPointsBase={HUB_EARN_POINTS.vblogPollVote}
-                        tier={krexTier}
                       />
                     ) : null}
 
@@ -583,6 +571,8 @@ export function ArticleDetail({
                 onTip={(amount) => void handleTip(amount)}
                 isProcessingAction={isProcessingAction}
                 isWalletConnected={kaspaState.isConnected}
+                tipHubPointsBase={HUB_EARN_POINTS.vblogTip}
+                tipHubPointsTier={krexTier}
               />
             </div>
           ) : null}

@@ -16,13 +16,20 @@ export interface VBlogPremiumPollConfig {
   options: string[];
 }
 
+export interface VBlogPayoutSplit {
+  address: string;
+  sharePercent: number;
+}
+
 export interface VBlogModulesConfig {
   premiumSectionEnabled?: boolean;
   premiumSectionContent?: string;
   premiumSectionPriceKas?: number;
   premiumSectionPayoutAddress?: string;
-  /** Optional additional payout wallets (max 3 total with primary). Covenant routing later. */
+  /** @deprecated Use premiumSectionPayoutSplits */
   premiumSectionSplitAddresses?: string[];
+  /** Up to 3 wallets with share percentages (must total 100). */
+  premiumSectionPayoutSplits?: VBlogPayoutSplit[];
   tipBoxEnabled?: boolean;
   tipBox?: VBlogTipBoxConfig;
   tipToRevealEnabled?: boolean;

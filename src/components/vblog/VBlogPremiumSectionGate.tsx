@@ -4,7 +4,7 @@ import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import type { KREXTier } from '@/lib/rewards/types';
 
-const PREMIUM_FRAME_CLASS =
+const PREMIUM_PREVIEW_FRAME_CLASS =
   'rounded-xl border-2 border-dashed border-[#02abb8]/40 dark:border-[#66dfe8]/35 bg-[#02abb8]/[0.03] dark:bg-[#02abb8]/[0.06]';
 
 type VBlogPremiumSectionGateProps = {
@@ -34,7 +34,7 @@ export function VBlogPremiumSectionGate({
 }: VBlogPremiumSectionGateProps) {
   if (unlocked) {
     return (
-      <div id="article-premium" className={`space-y-4 p-4 sm:p-5 ${PREMIUM_FRAME_CLASS}`}>
+      <div id="article-premium" className="space-y-4">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">
           Premium Content
         </p>
@@ -46,10 +46,10 @@ export function VBlogPremiumSectionGate({
   return (
     <div
       id="article-premium"
-      className={`relative overflow-hidden min-h-[14rem] max-h-[70vh] ${PREMIUM_FRAME_CLASS}`}
+      className={`relative min-h-[22rem] sm:min-h-[24rem] ${PREMIUM_PREVIEW_FRAME_CLASS}`}
     >
       <div
-        className="pointer-events-none select-none overflow-hidden max-h-[70vh] min-h-[14rem] blur-sm opacity-40 p-4 sm:p-5"
+        className="pointer-events-none select-none overflow-hidden min-h-[22rem] sm:min-h-[24rem] blur-sm opacity-40 px-4 sm:px-5 py-6 sm:py-8"
         aria-hidden
       >
         <KxRichTextContent
@@ -97,13 +97,13 @@ function PremiumUnlockOverlay({
       type="button"
       onClick={onUnlock}
       disabled={isProcessing}
-      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 p-6 sm:p-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center cursor-pointer border-0 rounded-xl disabled:cursor-wait"
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-10 py-10 sm:py-14 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center cursor-pointer border-0 rounded-xl disabled:cursor-wait overflow-y-auto"
       aria-label={`Unlock premium content for ${effectivePriceKas} KAS`}
     >
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-[#02abb8] dark:text-[#66dfe8]">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-[#02abb8] dark:text-[#66dfe8] shrink-0">
         Premium Content
       </p>
-      <div className="space-y-1">
+      <div className="space-y-1 shrink-0">
         {hasDiscount ? (
           <p className="text-xs text-zinc-500 line-through tabular-nums">{listPriceKas} KAS</p>
         ) : null}
@@ -116,19 +116,19 @@ function PremiumUnlockOverlay({
           </p>
         ) : null}
       </div>
-      <p className="text-sm sm:text-base font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-sm">
+      <p className="text-sm sm:text-base font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-sm shrink-0">
         Unlock to keep reading. Your payment goes directly to the author.
       </p>
-      <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
+      <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed shrink-0">
         Support independent writing on Kaspa. One unlock, full access.
       </p>
       {hubPointsBase > 0 ? (
-        <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
-          <span className="font-semibold uppercase tracking-wide">You will get:</span>
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400 shrink-0">
+          <span className="font-semibold uppercase tracking-wide">Earn:</span>
           <HubPointsEarnBadge basePoints={hubPointsBase} tier={tier} size="md" />
         </div>
       ) : null}
-      <span className="k-control-btn text-sm font-bold uppercase tracking-wide pointer-events-none mt-1">
+      <span className="k-control-btn text-sm font-bold uppercase tracking-wide pointer-events-none mt-1 shrink-0">
         {isProcessing ? 'Processing...' : isWalletConnected ? 'Unlock now' : 'Connect wallet to unlock'}
       </span>
     </button>

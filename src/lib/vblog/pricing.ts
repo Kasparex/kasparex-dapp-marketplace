@@ -39,8 +39,13 @@ function normalizeModulesForPayload(modules?: VBlogModulesConfig): Record<string
     out.premiumSectionContent = (modules.premiumSectionContent ?? '').trim();
     out.premiumSectionPriceKas = modules.premiumSectionPriceKas ?? 0;
     out.premiumSectionPayoutAddress = (modules.premiumSectionPayoutAddress ?? '').trim();
-    const split = (modules.premiumSectionSplitAddresses ?? []).map((a) => a.trim()).filter(Boolean);
-    if (split.length) out.premiumSectionSplitAddresses = split;
+    const splits = modules.premiumSectionPayoutSplits?.filter((s) => s.address?.trim());
+    if (splits?.length) {
+      out.premiumSectionPayoutSplits = splits.map((s) => ({
+        address: s.address.trim(),
+        sharePercent: s.sharePercent,
+      }));
+    }
   }
   if (modules.tipBoxEnabled) {
     out.tipBoxEnabled = true;

@@ -10,6 +10,8 @@ import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
 import { vBlogSocialLinkUrl } from '@/lib/vblog/socialLinks';
 import type { VBlogSocialLink } from '@/lib/vblog/types';
+import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
+import type { KREXTier } from '@/lib/rewards/types';
 
 function getSocialMeta(href: string) {
   const normalized = href.toLowerCase();
@@ -152,6 +154,8 @@ interface ArticleSidebarProps {
   onTip?: (amount: number) => void;
   isProcessingAction?: boolean;
   isWalletConnected?: boolean;
+  tipHubPointsBase?: number;
+  tipHubPointsTier?: KREXTier;
 }
 
 export function ArticleSidebar({
@@ -163,6 +167,8 @@ export function ArticleSidebar({
   onTip,
   isProcessingAction = false,
   isWalletConnected = false,
+  tipHubPointsBase = 0,
+  tipHubPointsTier = 'Tier0',
 }: ArticleSidebarProps) {
   const source = getVBlogArticleSource(article);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
@@ -221,7 +227,12 @@ export function ArticleSidebar({
           ) : null}
           {tipBoxEnabled ? (
             <div id="article-tip-box" className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#02abb8] mb-3">Support the author</p>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#02abb8]">Support the author</p>
+                {tipHubPointsBase > 0 ? (
+                  <HubPointsEarnRow label="Earn:" basePoints={tipHubPointsBase} tier={tipHubPointsTier} />
+                ) : null}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {tipPresets.map((amount) => (
                   <button
