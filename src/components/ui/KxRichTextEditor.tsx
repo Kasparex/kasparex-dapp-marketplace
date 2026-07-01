@@ -6,7 +6,7 @@ import 'quill/dist/quill.snow.css';
 
 const TOOLBAR = [
   ['undo', 'redo'],
-  [{ header: [2, 3, false] }],
+  [{ header: [1, 2, 3, false] }],
   ['bold', 'italic', 'underline'],
   [{ color: [] }],
   ['link', 'blockquote'],

@@ -6,12 +6,11 @@ import { useState, type MouseEvent } from 'react';
 import { useAccount } from 'wagmi';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
-import { vblogCategoryBadgeVariant } from '@/lib/vblog/badges';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { KxBadge } from '@/components/ui/KxBadge';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
-import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
+import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
 
@@ -21,7 +20,7 @@ interface VBlogCardProps {
 
 function CategoryIcon() {
   return (
-    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
     </svg>
   );
@@ -104,6 +103,14 @@ export function VBlogCard({ article }: VBlogCardProps) {
           </div>
         )}
 
+        <div
+          className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-1rem)]"
+          onClick={stopCardNavigation}
+          onMouseDown={stopCardNavigation}
+        >
+          <VBlogArticleMetaBadges article={article} />
+        </div>
+
         {isAuthor ? (
           <div
             className="absolute top-2 right-2 z-20 flex items-center gap-1.5"
@@ -158,31 +165,28 @@ export function VBlogCard({ article }: VBlogCardProps) {
       </KxListingCardMedia>
 
       <KxListingCardBody comfortable>
-        <div className="mb-3 min-w-0 space-y-2">
+        <div className="mb-2 min-w-0">
           <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
             {article.title}
           </h3>
-          <VBlogArticleBadges article={article} />
+          <p className="mt-1.5 min-w-0 text-xs text-zinc-500">
+            by{' '}
+            <Link
+              href={authorHubUrl}
+              className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {authorDisplay}
+            </Link>
+          </p>
         </div>
 
-        <p className="mb-4 line-clamp-2 text-[15px] leading-snug text-zinc-600 dark:text-zinc-400">{excerpt}</p>
+        <p className="mb-4 line-clamp-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">{excerpt}</p>
 
-        <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <KxBadge variant={vblogCategoryBadgeVariant(article.category)} icon={<CategoryIcon />} className="shrink-0">
-              {article.category}
-            </KxBadge>
-            <p className="min-w-0 text-xs text-zinc-500">
-              by{' '}
-              <Link
-                href={authorHubUrl}
-                className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {authorDisplay}
-              </Link>
-            </p>
-          </div>
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+          <KxListingCategoryChip icon={<CategoryIcon />} className="shrink-0">
+            {article.category}
+          </KxListingCategoryChip>
           <span className="shrink-0 text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
         </div>
       </KxListingCardBody>

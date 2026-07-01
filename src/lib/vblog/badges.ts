@@ -21,7 +21,3 @@ export function vblogStatusLabel(article: VBlogArticle): string {
   if (article.status === 'verified') return 'Verified';
   return article.status.replace(/_/g, ' ');
 }
-
-export function vblogCategoryBadgeVariant(_category: string): KxBadgeVariant {
-  return 'zinc';
-}

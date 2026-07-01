@@ -421,11 +421,11 @@
 
 /* Standardized Form Styling - Kasparex Ecosystem */
 .k-input {
-  @apply w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
+  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
 }
 
 .k-textarea {
-  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
+  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
 }
 
 .k-select {
@@ -975,6 +975,15 @@
 .kx-quill-editor .ql-editor {
   min-height: var(--kx-quill-min-height, 160px);
   background: transparent;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: rgb(24 24 27);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.dark .kx-quill-editor .ql-editor {
+  color: rgb(244 244 245);
 }
 
 .kx-quill-editor .ql-editor.ql-blank::before {
@@ -983,8 +992,7 @@
 }
 
 /* Shared Quill typography: editor + published article body */
-.kx-quill-content,
-.kx-quill-editor .ql-editor {
+.kx-quill-content {
   font-size: 1rem;
   line-height: 1.38;
   color: rgb(24 24 27);
@@ -992,8 +1000,7 @@
   overflow-wrap: break-word;
 }
 
-.dark .kx-quill-content,
-.dark .kx-quill-editor .ql-editor {
+.dark .kx-quill-content {
   color: rgb(244 244 245);
 }
 
