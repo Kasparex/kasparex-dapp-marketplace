@@ -398,17 +398,16 @@ export function ArticleDetail({
                     />
 
                     {article.modules?.premiumSectionEnabled ? (
-                      <div id="article-premium" className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Premium section</p>
+                      <div id="article-premium" className="space-y-4">
                         {!premiumUnlockEntitled ? (
-                          <div className="mt-3 space-y-3">
+                          <div className="space-y-3">
                             <p className="kx-body">Unlock this section for {article.modules.premiumSectionPriceKas} KAS.</p>
                             <button disabled={isProcessingAction || !kaspaState.isConnected} onClick={handlePremiumUnlock} className="k-control-btn">
                               {isProcessingAction ? 'Processing...' : 'Unlock premium content'}
                             </button>
                           </div>
                         ) : (
-                          <KxRichTextContent html={article.modules.premiumSectionContent ?? ''} className="mt-3" />
+                          <KxRichTextContent html={article.modules.premiumSectionContent ?? ''} />
                         )}
                       </div>
                     ) : null}

@@ -12,6 +12,7 @@ type KxLinkRowsEditorProps = {
   onChange: (rows: KxLinkRow[]) => void;
   addLabel: string;
   maxRows?: number;
+  labelMaxLength?: number;
   disabled?: boolean;
 };
 
@@ -21,6 +22,7 @@ export function KxLinkRowsEditor({
   onChange,
   addLabel,
   maxRows,
+  labelMaxLength,
   disabled = false,
 }: KxLinkRowsEditorProps) {
   const atMax = maxRows != null && rows.length >= maxRows;
@@ -36,6 +38,7 @@ export function KxLinkRowsEditor({
               className="k-input"
               value={row.label}
               placeholder="Label"
+              maxLength={labelMaxLength}
               disabled={disabled}
               onChange={(e) => {
                 const next = [...rows];
@@ -73,9 +76,6 @@ export function KxLinkRowsEditor({
         >
           {addLabel}
         </button>
-        {maxRows != null ? (
-          <p className="text-xs text-zinc-500 dark:text-zinc-500">Up to {maxRows} links.</p>
-        ) : null}
       </div>
     </div>
   );

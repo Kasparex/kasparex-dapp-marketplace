@@ -29,7 +29,7 @@ import { VBlogModuleConfigFields } from './VBlogModuleConfigFields';
 import { VBlogCategoryField } from './VBlogCategoryField';
 import { VBlogDashboardBenefitsPanel } from './VBlogDashboardBenefitsPanel';
 import { DEFAULT_VBLOG_CATEGORIES, addAuthorCustomCategory, isCustomCategory } from '@/lib/vblog/categories';
-import { cleanVBlogSocialLinks, vBlogSocialLinksToRows } from '@/lib/vblog/socialLinks';
+import { cleanVBlogSocialLinks, vBlogSocialLinksToRows, VBLOG_SOCIAL_LABEL_MAX } from '@/lib/vblog/socialLinks';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 
@@ -172,7 +172,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     formQuote.subtotalKas > 0 ? Math.round((discountKas / formQuote.subtotalKas) * 100) : 0;
 
   const formModuleOffers = useMemo(
-    () => VBLOG_MODULE_OFFERS.filter((offer) => FORM_MODULE_IDS.includes(offer.id)),
+    () => VBLOG_MODULE_OFFERS.filter((offer) => FORM_MODULE_IDS.includes(offer.id) && offer.id !== 'premium_section'),
+    [],
+  );
+
+  const premiumSectionOffer = useMemo(
+    () => VBLOG_MODULE_OFFERS.find((offer) => offer.id === 'premium_section'),
     [],
   );
 
@@ -523,6 +528,37 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           />
         </div>
 
+        {premiumSectionOffer ? (
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm">
+            <KxInFormPremiumRow
+              flat
+              title={premiumSectionOffer.title}
+              description={premiumSectionOffer.description}
+              priceLabel={
+                isEditMode && originalPaidModuleIds.includes('premium_section')
+                  ? 'Paid'
+                  : `+${getVBlogModuleEffectivePriceKas(premiumSectionOffer.unlockPriceKas, tier, nftStatus)} KAS`
+              }
+              checked={premiumSectionEnabled}
+              disabled={isSubmitting}
+              onToggle={() => setModuleEnabled('premium_section', !premiumSectionEnabled)}
+            />
+            {premiumSectionEnabled ? (
+              <VBlogModuleConfigFields
+                bare
+                moduleId="premium_section"
+                disabled={isSubmitting}
+                premiumSectionContent={premiumSectionContent}
+                onPremiumSectionContentChange={setPremiumSectionContent}
+                premiumSectionPriceKas={premiumSectionPriceKas}
+                onPremiumSectionPriceKasChange={setPremiumSectionPriceKas}
+                premiumSectionPayoutAddress={premiumSectionPayoutAddress}
+                onPremiumSectionPayoutAddressChange={setPremiumSectionPayoutAddress}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="k-form-group !mb-0">
           <label className="k-label">
             Featured image <span className="text-red-500">*</span>
@@ -580,7 +616,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
 
         <div className="space-y-2">
-          <label className="k-label">Main promotion link (optional)</label>
+          <label className="k-label">Website</label>
           <input className="k-input" value={primaryLink} onChange={(e) => setPrimaryLink(e.target.value)} placeholder="https://yourwebsite.com" disabled={isSubmitting} />
         </div>
 
@@ -590,6 +626,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           onChange={setSocialLinks}
           addLabel="Add social link"
           maxRows={5}
+          labelMaxLength={VBLOG_SOCIAL_LABEL_MAX}
           disabled={isSubmitting}
         />
 
@@ -649,8 +686,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           id="vblog-dashboard-modules"
           className={`${FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}
         >
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <p className={FORM_SECTION_HEADING_CLASS}>Vault modules</p>
+          <div className="space-y-2">
+            <p className={FORM_SECTION_HEADING_CLASS}>Premium modules</p>
             <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               Optional premium features
             </h4>

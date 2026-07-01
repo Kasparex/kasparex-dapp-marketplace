@@ -10,10 +10,12 @@ export function vBlogSocialLinksToRows(links?: VBlogSocialLink[] | string[]): VB
   });
 }
 
+export const VBLOG_SOCIAL_LABEL_MAX = 20;
+
 export function cleanVBlogSocialLinks(rows: VBlogSocialLinkRow[], max = 5): VBlogSocialLink[] {
   return rows
     .map((row) => ({
-      label: row.label.trim() || undefined,
+      label: row.label.trim().slice(0, VBLOG_SOCIAL_LABEL_MAX) || undefined,
       url: row.url.trim(),
     }))
     .filter((row) => row.url)
@@ -36,7 +38,7 @@ export function normalizeVBlogSocialLinks(raw: unknown): VBlogSocialLink[] {
         const o = entry as { label?: string; url?: string };
         const url = String(o.url ?? '').trim();
         if (!url) return null;
-        const label = String(o.label ?? '').trim();
+        const label = String(o.label ?? '').trim().slice(0, VBLOG_SOCIAL_LABEL_MAX);
         return label ? { label, url } : { url };
       }
       return null;
@@ -48,7 +50,7 @@ export function socialLinksForPricingPayload(links?: VBlogSocialLink[]): unknown
   return (links ?? []).map((link) => {
     const url = link.url.trim();
     if (!url) return null;
-    const label = (link.label ?? '').trim();
+    const label = (link.label ?? '').trim().slice(0, VBLOG_SOCIAL_LABEL_MAX);
     return label ? { label, url } : { url };
   }).filter(Boolean);
 }
