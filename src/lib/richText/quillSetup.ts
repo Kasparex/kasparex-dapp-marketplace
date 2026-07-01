@@ -28,12 +28,15 @@ export function registerKxQuillExtras(QuillCtor: QuillConstructor) {
   const BlockEmbed = QuillCtor.import('blots/block/embed') as {
     new (): { domNode: HTMLElement };
     create(value?: unknown): HTMLElement;
+    scope: import('parchment').Scope;
   };
 
   class DividerBlot extends BlockEmbed {
     static blotName = 'divider';
 
     static tagName = 'HR';
+
+    static scope = BlockEmbed.scope;
 
     static create(value: DividerStyle) {
       const node = super.create() as HTMLElement;
