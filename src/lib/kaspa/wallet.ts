@@ -74,25 +74,24 @@ function buildKasSendOptions(transaction: KaspaTransactionRequest): Record<strin
   return options;
 }
 
-async function invokeKasWareSend(kasware: Record<string, unknown>, transaction: KaspaTransactionRequest): Promise<unknown> {
+async function invokeKasWareSend(
+  kasware: Record<string, unknown>,
+  transaction: KaspaTransactionRequest,
+): Promise<string> {
   const toAddress = sdkNormalizeKaspaAddress(transaction.to);
   const sompi = parseSompiAmount(transaction.amount);
   const options = buildKasSendOptions(transaction);
 
   if (typeof kasware.sendKaspa === 'function') {
     return withWalletCallTimeout(
-      (kasware.sendKaspa as (to: string, amount: number, opts: Record<string, unknown>) => Promise<unknown>)(
-        toAddress,
-        sompi,
-        options,
-      ),
+      kasware.sendKaspa(toAddress, sompi, options) as Promise<string>,
       'KAS transfer',
     );
   }
 
   if (typeof kasware.sendTransaction === 'function') {
     return withWalletCallTimeout(
-      (kasware.sendTransaction as (tx: KaspaTransactionRequest) => Promise<unknown>)({
+      (kasware.sendTransaction as (tx: KaspaTransactionRequest) => Promise<string>)({
         ...transaction,
         to: toAddress,
         amount: String(sompi),
@@ -104,25 +103,24 @@ async function invokeKasWareSend(kasware: Record<string, unknown>, transaction: 
   throw new Error('KasWare sendKaspa is not available. Update your KasWare extension.');
 }
 
-async function invokeKastleSend(kastle: Record<string, unknown>, transaction: KaspaTransactionRequest): Promise<unknown> {
+async function invokeKastleSend(
+  kastle: Record<string, unknown>,
+  transaction: KaspaTransactionRequest,
+): Promise<string> {
   const toAddress = sdkNormalizeKaspaAddress(transaction.to);
   const sompi = parseSompiAmount(transaction.amount);
   const options = buildKasSendOptions(transaction);
 
   if (typeof kastle.sendKaspa === 'function') {
     return withWalletCallTimeout(
-      (kastle.sendKaspa as (to: string, amount: number, opts: Record<string, unknown>) => Promise<unknown>)(
-        toAddress,
-        sompi,
-        options,
-      ),
+      kastle.sendKaspa(toAddress, sompi, options) as Promise<string>,
       'KAS transfer',
     );
   }
 
   if (typeof kastle.request === 'function') {
     return withWalletCallTimeout(
-      (kastle.request as (method: string, params?: unknown) => Promise<unknown>)('kas:send_kaspa', {
+      (kastle.request as (method: string, params?: unknown) => Promise<string>)('kas:send_kaspa', {
         to: toAddress,
         amount: sompi,
         ...options,
