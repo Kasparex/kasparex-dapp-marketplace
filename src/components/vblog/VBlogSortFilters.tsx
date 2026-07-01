@@ -89,7 +89,7 @@ function FilterDropdownButton({
     <button
       type="button"
       onClick={onClick}
-      className={`k-control-btn min-w-[140px] ${active ? '!border-[#02abb8]/40 !text-[#02abb8]' : ''}`}
+      className={`k-control-btn min-w-[170px] ${active ? '!border-[#02abb8]/40 !text-[#02abb8]' : ''}`}
     >
       <span className="truncate">{label}</span>
       <svg className={`w-4 h-4 ml-auto shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +136,7 @@ function VBlogFilterDropdown<T extends string>({
   value,
   options,
   onChange,
-  minWidth = '140px',
+  minWidth = '170px',
 }: VBlogFilterDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useClickOutside(isOpen, () => setIsOpen(false));
@@ -177,7 +177,7 @@ export function VBlogSortFilters({ sortBy, onSortChange }: VBlogSortFiltersProps
   const currentLabel = SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label || 'Sort by...';
 
   return (
-    <div className="relative flex-shrink-0 overflow-visible" ref={ref}>
+    <div className="relative flex-shrink-0 overflow-visible min-w-[170px]" ref={ref}>
       <FilterDropdownButton label={currentLabel} isOpen={isOpen} onClick={() => setIsOpen((open) => !open)} />
       {isOpen ? (
         <FilterDropdownMenu>
@@ -208,21 +208,22 @@ export function VBlogListingFiltersBar({
   onMagazineFilterChange,
 }: VBlogListingFiltersBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
       <VBlogFilterDropdown
         label="Source"
         value={sourceFilter}
         options={SOURCE_OPTIONS}
         onChange={onSourceFilterChange}
+        minWidth="170px"
       />
       <VBlogFilterDropdown
         label="Magazine"
         value={magazineFilter}
         options={MAGAZINE_OPTIONS}
         onChange={onMagazineFilterChange}
-        minWidth="150px"
+        minWidth="170px"
       />
       <VBlogSortFilters sortBy={sortBy} onSortChange={onSortChange} />
-    </div>
+    </>
   );
 }

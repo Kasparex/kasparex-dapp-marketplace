@@ -1,32 +1,22 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, type MouseEvent } from 'react';
+import { useAccount } from 'wagmi';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
-import { getVBlogArticleSource } from '@/lib/vblog/source';
+import { vblogCategoryBadgeVariant } from '@/lib/vblog/badges';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
+import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
+import { useKaspaWallet } from '@/lib/kaspa/context';
+import { useVBlog } from '@/hooks/useVBlog';
 
 interface VBlogCardProps {
   article: VBlogArticle;
-}
-
-function statusVariant(article: VBlogArticle): 'emerald' | 'amber' | 'zinc' | 'cyan' {
-  if (article.status === 'published' || article.status === 'on-chain-ready' || article.status === 'verified') {
-    return 'emerald';
-  }
-  if (article.status === 'pending' || article.status === 'paying_chunks' || article.status === 'committing') {
-    return 'amber';
-  }
-  return 'zinc';
-}
-
-function statusLabel(article: VBlogArticle): string {
-  if (article.status === 'on-chain-ready') return 'Published';
-  if (article.status === 'verified') return 'Verified';
-  return article.status.replace(/_/g, ' ');
 }
 
 function CategoryIcon() {
@@ -55,13 +45,47 @@ function ArticleIcon() {
   );
 }
 
+function stopCardNavigation(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 export function VBlogCard({ article }: VBlogCardProps) {
+  const router = useRouter();
+  const { state: kaspaState } = useKaspaWallet();
+  const { address: evmAddress } = useAccount();
+  const { deleteExistingArticle } = useVBlog();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const excerpt = getArticleExcerpt(article, 90);
   const authorDisplay = formatAddress(article.author);
   const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=my-articles`;
-  const source = getVBlogArticleSource(article);
-  const isLinked = article.linkedMagazineId && article.linkedIssueNumber;
   const hasImage = Boolean(article.featuredImage?.trim());
+
+  const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const isAuthor = Boolean(
+    walletAddress &&
+      (article.author.toLowerCase() === walletAddress.toLowerCase() ||
+        article.author.toLowerCase() === `evm:${evmAddress?.toLowerCase()}` ||
+        (kaspaState.address && article.author.toLowerCase() === kaspaState.address.toLowerCase())),
+  );
+
+  const handleEdit = () => {
+    router.push(`/vblog/dashboard?edit=${article.id}`);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteExistingArticle(article.id);
+      setConfirmDelete(false);
+    } catch (error) {
+      console.error('Error deleting article:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <KxListingCard href={`/vblog/${article.slug}`} accent="vblog" className="h-full flex flex-col font-sans">
@@ -79,6 +103,58 @@ export function VBlogCard({ article }: VBlogCardProps) {
             <ArticleIcon />
           </div>
         )}
+
+        {isAuthor ? (
+          <div
+            className="absolute top-2 right-2 z-20 flex items-center gap-1.5"
+            onClick={stopCardNavigation}
+            onMouseDown={stopCardNavigation}
+          >
+            {confirmDelete ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isDeleting ? '...' : 'Delete'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={isDeleting}
+                  className="rounded-lg border border-zinc-200 bg-white/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-zinc-700 backdrop-blur-md dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleEdit}
+                  aria-label="Edit article"
+                  className="rounded-lg border border-zinc-200 bg-white/90 p-1.5 text-zinc-900 backdrop-blur-md transition-all hover:scale-105 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-100"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  aria-label="Delete article"
+                  className="rounded-lg bg-red-500 p-1.5 text-white transition-all hover:scale-105"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+        ) : null}
       </KxListingCardMedia>
 
       <KxListingCardBody comfortable>
@@ -86,26 +162,14 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
             {article.title}
           </h3>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'} size="sm" className="shadow-sm">
-              {source === 'kasparex' ? 'Kasparex' : 'Community'}
-            </KxBadge>
-            <KxBadge variant={statusVariant(article)} size="sm" className="shadow-sm">
-              {statusLabel(article)}
-            </KxBadge>
-            {isLinked ? (
-              <KxBadge variant="violet" size="sm" className="tracking-wider shadow-sm">
-                Mag #{article.linkedIssueNumber}
-              </KxBadge>
-            ) : null}
-          </div>
+          <VBlogArticleBadges article={article} />
         </div>
 
         <p className="mb-4 line-clamp-2 text-[15px] leading-snug text-zinc-600 dark:text-zinc-400">{excerpt}</p>
 
         <div className="flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <KxBadge variant="zinc" size="sm" icon={<CategoryIcon />} className="shrink-0 shadow-sm">
+            <KxBadge variant={vblogCategoryBadgeVariant(article.category)} icon={<CategoryIcon />} className="shrink-0">
               {article.category}
             </KxBadge>
             <p className="min-w-0 text-xs text-zinc-500">

@@ -12,6 +12,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { computeVBlogReaderPaymentSplit } from '@/lib/vblog/readerPricing';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
 
 interface ArticlePublicPreviewProps {
   article: VBlogArticle;
@@ -38,9 +39,6 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
 
         <div className="relative flex flex-col lg:flex-row min-h-[320px]">
           <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] mb-4">
-              {article.category}
-            </p>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-6 leading-tight">
               {article.title}
             </h1>
@@ -48,21 +46,25 @@ export function ArticlePublicPreview({ article }: ArticlePublicPreviewProps) {
               {article.description}
             </p>
 
-            <div className="flex flex-wrap items-center gap-8">
-              <div className="flex items-center gap-3">
-                <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
+                    <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
+                      {authorDisplay}
+                    </Link>
+                  </div>
+                </div>
+
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
-                  <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
-                    {authorDisplay}
-                  </Link>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
+                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
                 </div>
               </div>
 
-              <div className="flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
-                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
-              </div>
+              <VBlogArticleBadges article={article} includeCategory className="justify-end" />
             </div>
           </div>
 

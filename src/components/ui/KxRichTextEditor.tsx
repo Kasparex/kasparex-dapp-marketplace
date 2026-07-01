@@ -56,7 +56,7 @@ function setupFloatingToolbar(quill: QuillInstance, toolbarEl: HTMLElement) {
 
   const positionToolbar = () => {
     const range = quill.getSelection();
-    if (!range) {
+    if (!range || range.length === 0) {
       hideToolbar();
       return;
     }
