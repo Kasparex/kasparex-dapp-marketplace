@@ -27,6 +27,132 @@ import {
 import type { SIWKAuthResult } from './auth';
 import { isKasWareConnected } from './kasware';
 
+const WALLET_RPC_TIMEOUT_MS = 90_000;
+
+function withWalletCallTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(
+        new Error(
+          `${label} timed out. Your wallet may be waiting for approval or the RPC connection may be down. Open your wallet extension and retry.`,
+        ),
+      );
+    }, WALLET_RPC_TIMEOUT_MS);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+function parseSompiAmount(amount: string | number): number {
+  const sompi = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+  if (!Number.isFinite(sompi) || sompi <= 0) {
+    throw new Error('Invalid transaction amount');
+  }
+  return sompi;
+}
+
+function buildKasSendOptions(transaction: KaspaTransactionRequest): Record<string, unknown> {
+  const options: Record<string, unknown> = {};
+  if (transaction.fee != null && transaction.fee !== '' && transaction.fee !== '0') {
+    options.priorityFee =
+      typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
+  }
+  if (transaction.note != null && transaction.note !== '') {
+    options.note = transaction.note;
+  }
+  if (transaction.payload != null && transaction.payload !== '') {
+    options.payload = transaction.payload;
+  }
+  return options;
+}
+
+async function invokeKasWareSend(kasware: Record<string, unknown>, transaction: KaspaTransactionRequest): Promise<unknown> {
+  const toAddress = sdkNormalizeKaspaAddress(transaction.to);
+  const sompi = parseSompiAmount(transaction.amount);
+  const options = buildKasSendOptions(transaction);
+
+  if (typeof kasware.sendKaspa === 'function') {
+    return withWalletCallTimeout(
+      (kasware.sendKaspa as (to: string, amount: number, opts: Record<string, unknown>) => Promise<unknown>)(
+        toAddress,
+        sompi,
+        options,
+      ),
+      'KAS transfer',
+    );
+  }
+
+  if (typeof kasware.sendTransaction === 'function') {
+    return withWalletCallTimeout(
+      (kasware.sendTransaction as (tx: KaspaTransactionRequest) => Promise<unknown>)({
+        ...transaction,
+        to: toAddress,
+        amount: String(sompi),
+      }),
+      'KAS transfer',
+    );
+  }
+
+  throw new Error('KasWare sendKaspa is not available. Update your KasWare extension.');
+}
+
+async function invokeKastleSend(kastle: Record<string, unknown>, transaction: KaspaTransactionRequest): Promise<unknown> {
+  const toAddress = sdkNormalizeKaspaAddress(transaction.to);
+  const sompi = parseSompiAmount(transaction.amount);
+  const options = buildKasSendOptions(transaction);
+
+  if (typeof kastle.sendKaspa === 'function') {
+    return withWalletCallTimeout(
+      (kastle.sendKaspa as (to: string, amount: number, opts: Record<string, unknown>) => Promise<unknown>)(
+        toAddress,
+        sompi,
+        options,
+      ),
+      'KAS transfer',
+    );
+  }
+
+  if (typeof kastle.request === 'function') {
+    return withWalletCallTimeout(
+      (kastle.request as (method: string, params?: unknown) => Promise<unknown>)('kas:send_kaspa', {
+        to: toAddress,
+        amount: sompi,
+        ...options,
+      }),
+      'KAS transfer',
+    );
+  }
+
+  throw new Error('Kastle sendKaspa is not available. Update your Kastle extension.');
+}
+
+/**
+ * Verify the wallet extension responds before attempting a spend.
+ */
+export async function assertKaspaWalletReady(provider: KaspaWalletProvider): Promise<void> {
+  const walletProvider = getWalletProvider(provider);
+  if (!walletProvider) {
+    throw new Error('Wallet extension not detected. Refresh the page and reconnect your wallet.');
+  }
+
+  try {
+    const address = await withWalletCallTimeout(walletProvider.getAddress(), 'Wallet connection check');
+    if (!address) {
+      throw new Error('Wallet is locked or disconnected. Open your wallet extension and try again.');
+    }
+  } catch (error) {
+    throw new Error(formatKaspaWalletError(error));
+  }
+}
+
 /**
  * List of supported wallet providers with metadata
  */
@@ -233,26 +359,8 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
       }
       throw new Error('signMessage not available');
     },
-    sendTransaction: async (transaction: any) => {
-      // KasWare uses sendKaspa(toAddress, sompi, options)
-      if (typeof kasware.sendKaspa === 'function') {
-        const toAddress = transaction.to;
-        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount, 10) : transaction.amount;
-        const options: Record<string, any> = {};
-
-        if (transaction.fee) {
-          options.priorityFee = typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
-        }
-        if (transaction.note != null && transaction.note !== '') {
-          options.note = transaction.note;
-        }
-        if (transaction.payload != null && transaction.payload !== '') {
-          options.payload = transaction.payload;
-        }
-
-        return await kasware.sendKaspa(toAddress, sompi, options);
-      }
-      throw new Error('sendKaspa not available');
+    sendTransaction: async (transaction: KaspaTransactionRequest) => {
+      return invokeKasWareSend(kasware as Record<string, unknown>, transaction);
     },
     on: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
       if (typeof kasware.on === 'function') {
@@ -362,23 +470,8 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
       }
       throw new Error('signMessage not available');
     },
-    sendTransaction: async (transaction: any) => {
-      if (typeof kastle.sendKaspa === 'function') {
-        const toAddress = transaction.to;
-        const sompi = typeof transaction.amount === 'string' ? parseInt(transaction.amount, 10) : transaction.amount;
-        const options: Record<string, any> = {};
-        if (transaction.fee) {
-          options.priorityFee = typeof transaction.fee === 'string' ? parseFloat(transaction.fee) : transaction.fee;
-        }
-        if (transaction.note != null && transaction.note !== '') {
-          options.note = transaction.note;
-        }
-        if (transaction.payload != null && transaction.payload !== '') {
-          options.payload = transaction.payload;
-        }
-        return await kastle.sendKaspa(toAddress, sompi, options);
-      }
-      throw new Error('sendKaspa not available');
+    sendTransaction: async (transaction: KaspaTransactionRequest) => {
+      return invokeKastleSend(kastle as Record<string, unknown>, transaction);
     },
     on: (event: 'accountsChanged', callback: (accounts: string[]) => void) => {
       if (typeof kastle.on === 'function') {
@@ -799,21 +892,24 @@ export async function sendKaspaTransaction(
   provider: KaspaWalletProvider,
   transaction: KaspaTransactionRequest
 ): Promise<KaspaTransactionResponse> {
-  const walletProvider = getWalletProvider(provider);
-
-  if (!walletProvider) {
-    throw new Error('Wallet provider not available');
+  if (!getWalletProvider(provider)) {
+    return {
+      txHash: '',
+      status: 'failed',
+      error: 'Wallet provider not available. Refresh the page and reconnect your wallet.',
+    };
   }
 
   // Do not gate on isConnected(): KasWare may return false while the session is still active.
   try {
-    // Wallets expect a full kaspa: address prefix.
-    // Some call sites pass an address without prefix, so normalize here centrally.
+    await assertKaspaWalletReady(provider);
+
     const normalizedTx = {
       ...transaction,
       to: sdkNormalizeKaspaAddress(transaction.to),
     };
 
+    const walletProvider = getWalletProvider(provider)!;
     const raw = await walletProvider.sendTransaction(normalizedTx);
     const txHash = extractKaspaTransactionId(raw);
     if (!txHash) {

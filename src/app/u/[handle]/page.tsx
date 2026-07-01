@@ -1,7 +1,10 @@
+import { Suspense } from 'react';
 import { createKnsClient } from '@/lib/kns/client';
 import { isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { isAddress } from 'viem';
 import { ProfileHubContent } from './profile-hub-content';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{
@@ -57,11 +60,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
   }
 
   return (
-    <ProfileHubContent
-      initialHandle={handle}
-      initialKaspaAddress={kaspaAddress}
-      initialKnsName={knsName}
-    />
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-6 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading profile…</p>
+        </div>
+      }
+    >
+      <ProfileHubContent
+        initialHandle={handle}
+        initialKaspaAddress={kaspaAddress}
+        initialKnsName={knsName}
+      />
+    </Suspense>
   );
 }
 

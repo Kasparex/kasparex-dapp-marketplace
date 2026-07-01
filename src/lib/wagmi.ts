@@ -1,7 +1,7 @@
 'use client';
 
 import { getDefaultWallets, type Chain as RainbowKitChain } from '@rainbow-me/rainbowkit';
-import { createConfig, http } from 'wagmi';
+import { createConfig, fallback, http } from 'wagmi';
 import { defineChain, type Chain } from 'viem';
 import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
 import { L2_CHAIN_LOGOS } from '@/lib/chains/logos';
@@ -264,10 +264,19 @@ export const config = createConfig({
   chains: wagmiChains,
   connectors: [...createKastleMipdBlockConnectors(), ...rainbowKitConnectors],
   transports: {
-    [kasplexL2Mainnet.id]: http(),
-    [kasplexL2Testnet.id]: http(),
-    [igraGalleonTestnet.id]: http(),
-    [igraMainnet.id]: http(),
+    [kasplexL2Mainnet.id]: fallback([
+      http('https://evmrpc.kasplex.org'),
+      http('https://rpc.kasplex.org'),
+    ]),
+    [kasplexL2Testnet.id]: fallback([
+      http('https://rpc.kasplextest.xyz'),
+    ]),
+    [igraGalleonTestnet.id]: fallback([
+      http('https://galleon-testnet.igralabs.com:8545'),
+    ]),
+    [igraMainnet.id]: fallback([
+      http('https://rpc.igralabs.com:8545'),
+    ]),
   },
   ssr: true,
 });

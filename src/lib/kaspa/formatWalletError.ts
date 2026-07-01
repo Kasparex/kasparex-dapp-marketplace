@@ -8,6 +8,21 @@ function pickString(value: unknown): string | null {
   return trimmed;
 }
 
+function rpcDisconnectHelp(text: string): string | null {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes('websocket disconnected') ||
+    lower.includes('websocket') && lower.includes('disconnect') ||
+    lower.includes('rpc server') && lower.includes('remote error')
+  ) {
+    return (
+      'Your wallet lost its Kaspa RPC connection (WebSocket disconnected). ' +
+      'Open KasWare or Kastle, unlock the wallet, reconnect if prompted, or switch the RPC node in wallet settings, then retry.'
+    );
+  }
+  return null;
+}
+
 /**
  * Normalize wallet / RPC errors into user-readable messages.
  */
@@ -20,6 +35,8 @@ export function formatKaspaWalletError(err: unknown): string {
     const direct = pickString(err.message);
     if (direct) {
       if (isStorageMassErrorMessage(direct)) return storageMassHelp();
+      const rpcHelp = rpcDisconnectHelp(direct);
+      if (rpcHelp) return rpcHelp;
       if (direct.toLowerCase().includes('json')) {
         return 'Received an invalid or empty response from the server or wallet. Check KasWare for pending transactions, then retry.';
       }
@@ -31,6 +48,8 @@ export function formatKaspaWalletError(err: unknown): string {
     const direct = pickString(err);
     if (direct) {
       if (isStorageMassErrorMessage(direct)) return storageMassHelp();
+      const rpcHelp = rpcDisconnectHelp(direct);
+      if (rpcHelp) return rpcHelp;
       return direct;
     }
   }

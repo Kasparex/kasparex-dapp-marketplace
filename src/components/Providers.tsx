@@ -535,29 +535,8 @@ const queryClient = new QueryClient({
           console.error('Error occurred (conversion failed)');
         }
       },
-      // Use mutationFn wrapper to catch errors before they reach React Query
-      mutationFn: async (variables: any) => {
-        // This is a fallback - wagmi handles its own mutations
-        // But we can't wrap wagmi's internal mutations directly
-        throw new Error('This should not be called directly');
-      },
     },
     queries: {
-      // CRITICAL: Wrap queryFn to catch errors BEFORE they reach React Query
-      queryFn: async (context: any) => {
-        // This is a fallback - wagmi handles its own queries
-        // But we wrap it defensively to catch function-type errors
-        try {
-          // If wagmi's queryFn throws a function-type error, convert it immediately
-          throw new Error('This should not be called directly');
-        } catch (err) {
-          if (typeof err === 'function') {
-            const errorStr = getErrorMessage(err, 'Query failed');
-            throw new Error(errorStr);
-          }
-          throw err;
-        }
-      },
       // Prevent React Query from storing function-type errors in cache
       retry: (failureCount, error) => {
         // CRITICAL: If error is a function, don't retry (it will cause serialization issues)
