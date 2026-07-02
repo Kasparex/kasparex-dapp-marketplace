@@ -90,10 +90,10 @@ export function VBlogPremiumSectionGate({
   return (
     <div
       id="article-premium"
-      className={`relative min-h-[22rem] sm:min-h-[24rem] overflow-hidden ${PREMIUM_PREVIEW_FRAME_CLASS}`}
+      className={`relative h-[20rem] sm:h-[22rem] overflow-hidden ${PREMIUM_PREVIEW_FRAME_CLASS}`}
     >
       <div
-        className="pointer-events-none select-none overflow-hidden min-h-[22rem] sm:min-h-[24rem] blur-sm opacity-40 px-4 sm:px-5 py-6 sm:py-8"
+        className="pointer-events-none select-none absolute inset-0 overflow-hidden blur-sm opacity-40 px-4 sm:px-5 py-6 sm:py-8"
         aria-hidden
       >
         <KxRichTextContent html={previewHtml || '<p>Premium content preview</p>'} className="kx-prose" />
@@ -111,7 +111,7 @@ export function VBlogPremiumSectionGate({
             triggerUnlock();
           }
         }}
-        className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 sm:gap-4 px-6 sm:px-10 py-10 sm:py-14 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center overflow-y-auto ${
+        className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-10 py-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center overflow-y-auto ${
           isProcessing ? 'cursor-wait' : 'cursor-pointer'
         }`}
       >

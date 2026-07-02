@@ -10,9 +10,11 @@ import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
+import { VBlogPremiumBadge } from '@/components/vblog/VBlogPremiumBadge';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
+import { articleHasPremiumContent } from '@/lib/vblog/listing';
 
 interface VBlogCardProps {
   article: VBlogArticle;
@@ -61,6 +63,13 @@ export function VBlogCard({ article }: VBlogCardProps) {
   const authorDisplay = formatAddress(article.author);
   const authorHubUrl = `/u/${encodeURIComponent(article.author)}?tab=my-articles`;
   const hasImage = Boolean(article.featuredImage?.trim());
+  const hasPremium = articleHasPremiumContent(article);
+
+  const openModulesTab = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    router.push(`/vblog/${article.slug}?tab=modules`);
+  };
 
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isAuthor = Boolean(
@@ -110,6 +119,15 @@ export function VBlogCard({ article }: VBlogCardProps) {
         >
           <VBlogArticleMetaBadges article={article} />
         </div>
+
+        {hasPremium ? (
+          <div
+            className="absolute top-2 left-2 z-10"
+            onMouseDown={stopCardNavigation}
+          >
+            <VBlogPremiumBadge onClick={openModulesTab} showLabel title="Premium content. Open modules" />
+          </div>
+        ) : null}
 
         {isAuthor ? (
           <div

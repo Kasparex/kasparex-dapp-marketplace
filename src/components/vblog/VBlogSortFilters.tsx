@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { VBlogMagazineFilter, VBlogSortOption } from '@/lib/vblog/listing';
+import type { VBlogMagazineFilter, VBlogPremiumFilter, VBlogSortOption } from '@/lib/vblog/listing';
 import type { VBlogSourceFilter } from '@/lib/vblog/source';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -27,6 +27,8 @@ interface VBlogListingFiltersBarProps {
   onSourceFilterChange: (value: VBlogSourceFilter) => void;
   magazineFilter: VBlogMagazineFilter;
   onMagazineFilterChange: (value: VBlogMagazineFilter) => void;
+  premiumFilter: VBlogPremiumFilter;
+  onPremiumFilterChange: (value: VBlogPremiumFilter) => void;
 }
 
 const SORT_OPTIONS: { value: VBlogSortOption; label: string }[] = [
@@ -51,6 +53,12 @@ const MAGAZINE_OPTIONS: { value: VBlogMagazineFilter; label: string }[] = [
   { value: 'all', label: 'All articles' },
   { value: 'linked', label: 'Magazine linked' },
   { value: 'standalone', label: 'Standalone only' },
+];
+
+const PREMIUM_OPTIONS: { value: VBlogPremiumFilter; label: string }[] = [
+  { value: 'all', label: 'All content' },
+  { value: 'premium', label: 'Premium only' },
+  { value: 'standard', label: 'Standard only' },
 ];
 
 function useClickOutside(isOpen: boolean, onClose: () => void) {
@@ -211,6 +219,8 @@ export function VBlogListingFiltersBar({
   onSourceFilterChange,
   magazineFilter,
   onMagazineFilterChange,
+  premiumFilter,
+  onPremiumFilterChange,
 }: VBlogListingFiltersBarProps) {
   return (
     <>
@@ -226,6 +236,13 @@ export function VBlogListingFiltersBar({
         value={magazineFilter}
         options={MAGAZINE_OPTIONS}
         onChange={onMagazineFilterChange}
+        minWidth="170px"
+      />
+      <VBlogFilterDropdown
+        label="Premium"
+        value={premiumFilter}
+        options={PREMIUM_OPTIONS}
+        onChange={onPremiumFilterChange}
         minWidth="170px"
       />
       <VBlogSortFilters sortBy={sortBy} onSortChange={onSortChange} />

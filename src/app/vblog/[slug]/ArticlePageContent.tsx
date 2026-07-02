@@ -8,7 +8,7 @@ import { RelatedVBlogArticles } from '@/components/vblog/RelatedVBlogArticles';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
 import { HubSocialMeta } from '@/components/metadata/HubSocialMeta';
 import { useVBlog } from '@/hooks/useVBlog';
-import { notFound } from 'next/navigation';
+import { notFound, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { VBlogArticle } from '@/lib/vblog/types';
 
@@ -23,13 +23,25 @@ const TAB_NAV_IDS: Record<string, ArticleContentTab> = {
   'article-comments': 'comments',
 };
 
+const VALID_TABS: ArticleContentTab[] = ['article', 'author', 'author-posts', 'modules', 'comments'];
+
 const SCROLL_NAV_IDS = new Set(['article-header', 'article-intro', 'article-main', 'article-premium', 'article-tip-box']);
 
 export function ArticlePageContent({ slug }: ArticlePageContentProps) {
   const { getArticle, articles, getArticleComments } = useVBlog();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
   const [article, setArticle] = useState<VBlogArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [contentTab, setContentTab] = useState<ArticleContentTab>('article');
+  const [contentTab, setContentTab] = useState<ArticleContentTab>(
+    tabParam && VALID_TABS.includes(tabParam as ArticleContentTab) ? (tabParam as ArticleContentTab) : 'article',
+  );
+
+  useEffect(() => {
+    if (tabParam && VALID_TABS.includes(tabParam as ArticleContentTab)) {
+      setContentTab(tabParam as ArticleContentTab);
+    }
+  }, [tabParam]);
 
   useEffect(() => {
     const foundArticle = getArticle(slug);

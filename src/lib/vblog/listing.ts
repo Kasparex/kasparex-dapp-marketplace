@@ -14,13 +14,21 @@ export type VBlogSortOption =
 
 export type VBlogMagazineFilter = 'all' | 'linked' | 'standalone';
 
+export type VBlogPremiumFilter = 'all' | 'premium' | 'standard';
+
 export interface VBlogListingFilters {
   source: VBlogSourceFilter;
   category: string | null;
   tags: string[];
   magazine: VBlogMagazineFilter;
+  premium?: VBlogPremiumFilter;
   searchQuery: string;
   sortBy: VBlogSortOption;
+}
+
+/** True when an article includes the gated Premium Content module. */
+export function articleHasPremiumContent(article: VBlogArticle): boolean {
+  return Boolean(article.modules?.premiumSectionEnabled);
 }
 
 function articleTimestamp(article: VBlogArticle): number {
@@ -53,6 +61,12 @@ export function filterVBlogArticles(articles: VBlogArticle[], filters: VBlogList
     filtered = filtered.filter(isMagazineLinked);
   } else if (filters.magazine === 'standalone') {
     filtered = filtered.filter((article) => !isMagazineLinked(article));
+  }
+
+  if (filters.premium === 'premium') {
+    filtered = filtered.filter(articleHasPremiumContent);
+  } else if (filters.premium === 'standard') {
+    filtered = filtered.filter((article) => !articleHasPremiumContent(article));
   }
 
   if (filters.searchQuery.trim()) {

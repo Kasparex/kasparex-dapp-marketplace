@@ -21,6 +21,7 @@ import type { VBlogSourceFilter } from '@/lib/vblog/source';
 import {
   filterVBlogArticles,
   type VBlogMagazineFilter,
+  type VBlogPremiumFilter,
   type VBlogSortOption,
 } from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
@@ -51,6 +52,7 @@ function VBlogPageInner() {
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<VBlogSourceFilter>('all');
   const [magazineFilter, setMagazineFilter] = useState<VBlogMagazineFilter>('all');
+  const [premiumFilter, setPremiumFilter] = useState<VBlogPremiumFilter>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   const filteredArticles = useMemo(
@@ -60,10 +62,11 @@ function VBlogPageInner() {
         category: selectedCategory,
         tags: selectedTags,
         magazine: magazineFilter,
+        premium: premiumFilter,
         searchQuery,
         sortBy,
       }),
-    [articles, sourceFilter, selectedCategory, selectedTags, magazineFilter, searchQuery, sortBy],
+    [articles, sourceFilter, selectedCategory, selectedTags, magazineFilter, premiumFilter, searchQuery, sortBy],
   );
 
   const handleTagToggle = (tag: string) => {
@@ -76,6 +79,7 @@ function VBlogPageInner() {
     setSearchQuery('');
     setSourceFilter('all');
     setMagazineFilter('all');
+    setPremiumFilter('all');
     setSortBy('newest');
   };
 
@@ -102,7 +106,7 @@ function VBlogPageInner() {
 
               <div id="content" className="scroll-mt-4" />
 
-              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:pl-1.5">
                 <div className="min-w-0 flex items-stretch gap-3">
                   <span
                     className="w-1 shrink-0 self-stretch rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
@@ -138,6 +142,8 @@ function VBlogPageInner() {
                     onSourceFilterChange={setSourceFilter}
                     magazineFilter={magazineFilter}
                     onMagazineFilterChange={setMagazineFilter}
+                    premiumFilter={premiumFilter}
+                    onPremiumFilterChange={setPremiumFilter}
                   />
                 </FilterBar>
 
