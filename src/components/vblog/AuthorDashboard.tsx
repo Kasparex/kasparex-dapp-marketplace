@@ -13,6 +13,7 @@ import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import type { VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
@@ -164,7 +165,7 @@ export function AuthorDashboard({
             setActiveTab('create');
             setEditingArticle(null);
           }}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'create'
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'create'
             ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
             : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
@@ -176,7 +177,7 @@ export function AuthorDashboard({
             setActiveTab('my-articles');
             setEditingArticle(null);
           }}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'my-articles'
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'my-articles'
             ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
             : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
@@ -217,16 +218,18 @@ export function AuthorDashboard({
           </div>
         ) : (
           <div id="vblog-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">
-                Personal <span className="text-[#02abb8]">Archive</span>
-                {archiveCategoryFilter ? (
-                  <span className="ml-2 text-sm font-semibold normal-case tracking-normal text-zinc-500">
-                    / {archiveCategoryFilter}
-                  </span>
-                ) : null}
-              </h3>
-              <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-8">
+              <div className="min-w-0">
+                <DAppSectionHeader
+                  title={
+                    archiveCategoryFilter
+                      ? `Personal Archive / ${archiveCategoryFilter}`
+                      : 'Personal Archive'
+                  }
+                  className="mb-0"
+                />
+              </div>
+              <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">
                 Delete fee: {pricing.deleteFee} KAS
               </p>
             </div>

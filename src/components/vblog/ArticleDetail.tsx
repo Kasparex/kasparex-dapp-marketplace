@@ -390,7 +390,7 @@ export function ArticleDetail({
               {article.description}
             </p>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-6">
+            <div className="flex min-w-0 flex-wrap items-end gap-6">
               <Link href={authorProfileUrl} className="group flex items-center gap-3">
                 <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                 <div className="flex flex-col">
@@ -406,7 +406,7 @@ export function ArticleDetail({
                 <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
               </div>
 
-              <div className="sm:ml-auto">
+              <div className="sm:ml-auto shrink-0">
                 <KxListingCategoryChip
                   icon={<HeaderCategoryIcon />}
                   title={`Filter by ${article.category}`}
@@ -477,7 +477,7 @@ export function ArticleDetail({
                 {contentTab === 'article' ? (
                   <div className="space-y-6">
                     <DAppSectionHeader title="Article" className="mb-0" />
-                    <VBlogArticleBadges article={article} includeCategory />
+                    <VBlogArticleBadges article={article} />
                     <KxRichTextContent
                       id="article-main"
                       html={article.content}

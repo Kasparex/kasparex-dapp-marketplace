@@ -5,39 +5,13 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { computeEarnedHubPoints, formatHubPointsTierLabel, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
+import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { balanceToKrexVisualTier, KREX_TIER_UI } from '@/lib/rewards/tierUi';
 import { getVBlogModuleCombinedDiscountPercent } from '@/lib/vblog/modules';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
-
-function ReaderPerksTooltipContent() {
-  return (
-    <div className="space-y-2 text-left max-w-sm">
-      <p className="font-semibold text-zinc-900 dark:text-zinc-100">Reader tier perks</p>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-zinc-300/80 dark:border-zinc-600">
-            <th className="pb-1 pr-2 text-left font-semibold">KREX held</th>
-            <th className="pb-1 pr-2 text-left font-semibold">Module discount</th>
-            <th className="pb-1 text-left font-semibold">Hub Points</th>
-          </tr>
-        </thead>
-        <tbody className="text-zinc-700 dark:text-zinc-300">
-          {KREX_TIER_PERKS_ROWS.map((row) => (
-            <tr key={row.tier}>
-              <td className="py-0.5 pr-2">{row.thresholdLabel}</td>
-              <td className="py-0.5 pr-2">
-                {row.feeDiscountPercent > 0 ? `${row.feeDiscountPercent}% off` : 'None'}
-              </td>
-              <td className="py-0.5">{formatHubPointsTierLabel(row.tier)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 function formatKrexMillions(balance: number): string {
   if (balance >= 1_000_000) {
@@ -64,19 +38,20 @@ export function VBlogReaderBenefitsPanel({ className = '' }: { className?: strin
   return (
     <>
       <TooltipProvider>
-        <Tooltip content={<ReaderPerksTooltipContent />}>
+        <Tooltip content={<KrexTierPerksTooltipTable title="Reader tier perks" />}>
           <aside
             className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
             aria-label="Reader benefits. Hover for KREX tier details."
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8]">
-                Benefits
-              </p>
-              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
-                {ui.label}
-              </span>
-            </div>
+            <DAppSectionHeader
+              title="Benefits"
+              className="mb-2"
+              right={
+                <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
+                  {ui.label}
+                </span>
+              }
+            />
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
               Hold KREX. Unlock for Less. Earn More.
             </h2>

@@ -37,11 +37,11 @@ import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRo
 import type { PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
-const FORM_SECTION_HEADING_CLASS =
-  'text-base font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]';
 
 interface CreateArticleFormProps {
   onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
@@ -535,7 +535,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       <div className="flex flex-col gap-6 min-w-0">
         <div className={`${FORM_PANEL_CLASS} space-y-6`}>
           <div>
-            <p className={`${FORM_SECTION_HEADING_CLASS} mb-3`}>Main content</p>
+            <DAppSectionHeader title="Main content" className="mb-3" />
             <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
               {isEditMode ? 'Edit Article' : 'Create New Article'}
             </h3>
@@ -548,9 +548,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="k-label">
+            <KxFormFieldLabel>
               Title <span className="text-red-500">*</span>
-            </label>
+            </KxFormFieldLabel>
             <span
               className={`text-xs ${
                 getCharacterCount(title) > (pricing.isPremium ? CONTENT_LIMITS.premium.title.max : CONTENT_LIMITS.title.max)
@@ -575,9 +575,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="k-label">
+            <KxFormFieldLabel>
               Short Description <span className="text-red-500">*</span>
-            </label>
+            </KxFormFieldLabel>
             <span
               className={`text-xs ${
                 getCharacterCount(description) > (pricing.isPremium ? CONTENT_LIMITS.premium.description.max : CONTENT_LIMITS.description.max)
@@ -602,9 +602,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="k-label">
+            <KxFormFieldLabel>
               Main Content <span className="text-red-500">*</span>
-            </label>
+            </KxFormFieldLabel>
           </div>
           <KxRichTextEditor
             value={content}
@@ -648,9 +648,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         ) : null}
 
         <div className="k-form-group !mb-0">
-          <label className="k-label">
+          <KxFormFieldLabel>
             Featured image <span className="text-red-500">*</span>
-          </label>
+          </KxFormFieldLabel>
           <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
             Recommended size: 1200x630px (1.91:1 aspect ratio) for optimal display
           </p>
@@ -682,7 +682,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="k-label">Category</label>
+            <KxFormFieldLabel>Category</KxFormFieldLabel>
             <VBlogCategoryField
               authorAddress={walletAddress}
               value={category}
@@ -691,7 +691,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             />
           </div>
           <div>
-            <label className="k-label">Tags (comma-separated)</label>
+            <KxFormFieldLabel>Tags (comma-separated)</KxFormFieldLabel>
             <input
               type="text"
               value={tags}
@@ -704,7 +704,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
 
         <div className="space-y-2">
-          <label className="k-label">Website</label>
+          <KxFormFieldLabel>Website</KxFormFieldLabel>
           <input className="k-input" value={primaryLink} onChange={(e) => setPrimaryLink(e.target.value)} placeholder="https://yourwebsite.com" disabled={isSubmitting} />
         </div>
 
@@ -747,7 +747,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
 
         <div className={`${FORM_PANEL_CLASS} space-y-4`}>
           <div>
-            <p className={FORM_SECTION_HEADING_CLASS}>Advanced options</p>
+            <DAppSectionHeader title="Advanced options" className="mb-0" />
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
               Control default reader layout when this article opens.
             </p>
@@ -775,7 +775,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           className={`${FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}
         >
           <div className="space-y-2">
-            <p className={FORM_SECTION_HEADING_CLASS}>Premium modules</p>
+            <DAppSectionHeader title="Premium modules" className="mb-0" />
             <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               Optional premium features
             </h4>
@@ -845,7 +845,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       <div className="flex flex-col gap-4 xl:sticky xl:top-6">
         <VBlogDashboardBenefitsPanel />
         <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
-        <h4 className="text-xs font-black uppercase tracking-[0.18em] text-[#02abb8]">Calculation breakdown</h4>
+        <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
         <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span></div>
           <div className="flex justify-between"><span>Size fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span></div>

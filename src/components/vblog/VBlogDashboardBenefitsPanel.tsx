@@ -5,44 +5,18 @@ import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { computeEarnedHubPoints, formatHubPointsTierLabel, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
+import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { balanceToKrexVisualTier, KREX_TIER_UI } from '@/lib/rewards/tierUi';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 function formatKrexMillions(balance: number): string {
   if (balance >= 1_000_000) {
     return `${(balance / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 })}M`;
   }
   return balance.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
-
-function CreatorPerksTooltipContent() {
-  return (
-    <div className="space-y-2 text-left max-w-sm">
-      <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX tier perks</p>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-zinc-300/80 dark:border-zinc-600">
-            <th className="pb-1 pr-2 text-left font-semibold">KREX held</th>
-            <th className="pb-1 pr-2 text-left font-semibold">Fee discount</th>
-            <th className="pb-1 text-left font-semibold">Hub Points</th>
-          </tr>
-        </thead>
-        <tbody className="text-zinc-700 dark:text-zinc-300">
-          {KREX_TIER_PERKS_ROWS.map((row) => (
-            <tr key={row.tier}>
-              <td className="py-0.5 pr-2">{row.thresholdLabel}</td>
-              <td className="py-0.5 pr-2">
-                {row.feeDiscountPercent > 0 ? `${row.feeDiscountPercent}% off` : 'None'}
-              </td>
-              <td className="py-0.5">{formatHubPointsTierLabel(row.tier)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 }
 
 export function VBlogDashboardBenefitsPanel({
@@ -79,7 +53,7 @@ export function VBlogDashboardBenefitsPanel({
             className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
             aria-label="Benefits. Hover for KREX tier details."
           >
-            <Tooltip content={<CreatorPerksTooltipContent />}>
+            <Tooltip content={<KrexTierPerksTooltipTable title="KREX tier perks" />}>
               <div className="flex items-center gap-2 min-w-0 cursor-help">
                 <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
                   Benefits
@@ -117,19 +91,20 @@ export function VBlogDashboardBenefitsPanel({
   return (
     <>
       <TooltipProvider>
-        <Tooltip content={<CreatorPerksTooltipContent />}>
+        <Tooltip content={<KrexTierPerksTooltipTable title="KREX tier perks" />}>
           <aside
             className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
             aria-label="Creator perks. Hover for KREX tier details."
           >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8]">
-                Creator perks
-              </p>
-              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
-                {ui.label}
-              </span>
-            </div>
+            <DAppSectionHeader
+              title="Creator perks"
+              className="mb-2"
+              right={
+                <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
+                  {ui.label}
+                </span>
+              }
+            />
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
               Hold KREX. Pay Less. Earn More.
             </h2>
