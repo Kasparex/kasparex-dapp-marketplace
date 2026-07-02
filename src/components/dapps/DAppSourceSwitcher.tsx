@@ -10,11 +10,11 @@ interface DAppSourceSwitcherProps {
   className?: string;
 }
 
-const OPTIONS: { value: DAppSourceFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'kasparex', label: 'Kasparex' },
-  { value: 'directory', label: 'Community' },
-  { value: 'covenants', label: 'Covenants' },
+const OPTIONS: { value: DAppSourceFilter; label: string; title: string }[] = [
+  { value: 'all', label: 'All', title: 'All sources' },
+  { value: 'kasparex', label: 'Kasparex', title: 'Official Kasparex dApps' },
+  { value: 'directory', label: 'Community', title: 'Community listings' },
+  { value: 'covenants', label: 'Covenants', title: 'Covenant dApps' },
 ];
 
 export function DAppSourceSwitcher({ value, onChange, className = '' }: DAppSourceSwitcherProps) {

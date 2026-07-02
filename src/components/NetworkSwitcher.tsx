@@ -9,11 +9,11 @@ interface NetworkSwitcherProps {
   className?: string;
 }
 
-const OPTIONS: { value: DAppNetworkFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'L1', label: 'L1' },
-  { value: 'L2', label: 'L2' },
-  { value: 'MULTI', label: 'Multi' },
+const OPTIONS: { value: DAppNetworkFilter; label: string; title: string }[] = [
+  { value: 'all', label: 'All', title: 'All networks' },
+  { value: 'L1', label: 'L1', title: 'Kaspa L1' },
+  { value: 'L2', label: 'L2', title: 'EVM Layer-2' },
+  { value: 'MULTI', label: 'Multi', title: 'Multichain' },
 ];
 
 export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwitcherProps) {

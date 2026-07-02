@@ -9,10 +9,10 @@ interface VBlogSourceSwitcherProps {
   className?: string;
 }
 
-const OPTIONS: { value: VBlogSourceFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'kasparex', label: 'Kasparex' },
-  { value: 'community', label: 'Community' },
+const OPTIONS: { value: VBlogSourceFilter; label: string; title: string }[] = [
+  { value: 'all', label: 'All', title: 'All sources' },
+  { value: 'kasparex', label: 'Kasparex', title: 'Official Kasparex articles' },
+  { value: 'community', label: 'Community', title: 'Community articles' },
 ];
 
 export function VBlogSourceSwitcher({ value, onChange, className = '' }: VBlogSourceSwitcherProps) {

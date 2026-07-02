@@ -36,6 +36,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   let kaspaAddress: string | null = null;
   let knsName: string | null = null;
+  let evmAddress: string | null = null;
 
   if (looksLikeKnsName(handle)) {
     knsName = handle.toLowerCase();
@@ -55,7 +56,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
   } else if (isValidKaspaAddress(handle)) {
     kaspaAddress = normalizeKaspaAddress(handle).toLowerCase();
   } else if (isAddress(handle)) {
-    // Option A canonical is Kaspa, but we still allow EVM param and show a hint to link.
+    // L2 (EVM) profile: canonical identity for this page is the EVM wallet itself.
+    evmAddress = handle.toLowerCase();
     kaspaAddress = null;
   }
 
@@ -71,6 +73,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         initialHandle={handle}
         initialKaspaAddress={kaspaAddress}
         initialKnsName={knsName}
+        initialEvmAddress={evmAddress}
       />
     </Suspense>
   );

@@ -37,6 +37,13 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { ProfileTransactionsTab } from '@/components/profile/ProfileTransactionsTab';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
+/** Readable short form for an EVM address, e.g. 0x1234…abcd. */
+function shortenEvmAddress(address: string): string {
+  const a = (address || '').trim();
+  if (a.length <= 12) return a;
+  return `${a.slice(0, 6)}…${a.slice(-4)}`;
+}
+
 type TabId =
   | 'overview'
   | 'transactions'
@@ -51,10 +58,12 @@ export function ProfileHubContent({
   initialHandle,
   initialKaspaAddress,
   initialKnsName,
+  initialEvmAddress = null,
 }: {
   initialHandle: string;
   initialKaspaAddress: string | null;
   initialKnsName: string | null;
+  initialEvmAddress?: string | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,9 +99,18 @@ export function ProfileHubContent({
     return null;
   }, [initialKaspaAddress, initialHandle]);
 
+  const profileEvmAddress = useMemo(() => {
+    const raw = initialEvmAddress?.trim().toLowerCase();
+    return raw && raw.startsWith('0x') && raw.length === 42 ? (raw as `0x${string}`) : null;
+  }, [initialEvmAddress]);
+
+  // Identity key used for profile storage/links. Kaspa L1 is canonical when present,
+  // otherwise this is an L2 (EVM) wallet profile keyed on the EVM address.
+  const identityAddress = kaspaAddress || profileEvmAddress;
+
   const baseProfileHref = useMemo(() => {
-    return kaspaAddress ? `/u/${encodeURIComponent(kaspaAddress)}` : '/u';
-  }, [kaspaAddress]);
+    return identityAddress ? `/u/${encodeURIComponent(identityAddress)}` : '/u';
+  }, [identityAddress]);
 
   const hrefTab = useMemo(() => {
     return (tab: string, nextView?: string) => {
@@ -110,14 +128,20 @@ export function ProfileHubContent({
     };
   }, [hrefTab, router]);
 
-  const { profile, source, updateLocalProfile } = useUnifiedProfile(kaspaAddress);
+  const { profile, source, updateLocalProfile } = useUnifiedProfile(identityAddress);
   const kpxIdentity = useKpxPublicIdentity(kaspaAddress);
 
   const isOwnProfile = useMemo(() => {
-    if (!kaspaAddress) return false;
-    const connected = (kaspaState.address || '').toLowerCase();
-    return Boolean(kaspaState.isConnected && connected && connected === kaspaAddress.toLowerCase());
-  }, [kaspaAddress, kaspaState.address, kaspaState.isConnected]);
+    if (kaspaAddress) {
+      const connected = (kaspaState.address || '').toLowerCase();
+      return Boolean(kaspaState.isConnected && connected && connected === kaspaAddress.toLowerCase());
+    }
+    if (profileEvmAddress) {
+      const connected = (connectedEvmAddress || '').toLowerCase();
+      return Boolean(isEvmConnected && connected && connected === profileEvmAddress.toLowerCase());
+    }
+    return false;
+  }, [kaspaAddress, kaspaState.address, kaspaState.isConnected, profileEvmAddress, connectedEvmAddress, isEvmConnected]);
 
   const linkedEvmAddress = useMemo(() => {
     const addr = profile?.linkedEvmWallets?.[0]?.address;
@@ -155,9 +179,13 @@ export function ProfileHubContent({
     return (
       profile?.displayName?.trim() ||
       knsPrimaryName ||
-      (kaspaAddress ? formatKaspaAddress(kaspaAddress).display : initialHandle)
+      (kaspaAddress
+        ? formatKaspaAddress(kaspaAddress).display
+        : profileEvmAddress
+          ? shortenEvmAddress(profileEvmAddress)
+          : initialHandle)
     );
-  }, [profile?.displayName, knsPrimaryName, kaspaAddress, initialHandle]);
+  }, [profile?.displayName, knsPrimaryName, kaspaAddress, profileEvmAddress, initialHandle]);
 
   const bannerUrl = profile?.bannerUrl?.trim() || knsProfile?.banner || null;
   const avatarUrl = profile?.avatarUrl?.trim() || knsProfile?.avatar || null;
@@ -376,6 +404,7 @@ export function ProfileHubContent({
                 <ProfileHaloHeader
                   displayName={displayName}
                   kaspaAddress={kaspaAddress}
+                  evmAddress={profileEvmAddress}
                   knsPrimaryName={knsPrimaryName}
                   knsDomains={knsDomains}
                   insPrimaryName={insDisplayName}
@@ -498,14 +527,11 @@ export function ProfileHubContent({
                   />
                 )}
 
-                {!kaspaAddress && (
+                {!identityAddress && (
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
                     <div className="kx-body">
                       <div>
-                        This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-semibold">yourname.kas</span>) or a Kaspa address.
-                      </div>
-                      <div className="mt-2">
-                        If you opened an EVM address, link it to a Kaspa identity first.
+                        This profile could not be resolved yet. Try opening a `.kas` name (example: <span className="font-semibold">yourname.kas</span>), a Kaspa address, or an EVM address.
                       </div>
                     </div>
                   </div>
@@ -1550,6 +1576,7 @@ function SettingsTab({
 function ProfileHaloHeader({
   displayName,
   kaspaAddress,
+  evmAddress,
   knsPrimaryName,
   knsDomains,
   insPrimaryName,
@@ -1569,6 +1596,7 @@ function ProfileHaloHeader({
 }: {
   displayName: string;
   kaspaAddress: string | null;
+  evmAddress: string | null;
   knsPrimaryName: string | null;
   knsDomains: string[] | null;
   insPrimaryName: string | null;
@@ -1642,7 +1670,7 @@ function ProfileHaloHeader({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <Avatar address={(knsPrimaryName || kaspaAddress || displayName).replace(/^kaspa:/i, '')} size={48} />
+                      <Avatar address={(knsPrimaryName || kaspaAddress || evmAddress || displayName).replace(/^kaspa:/i, '')} size={48} />
                     )}
                   </div>
                 </div>
@@ -1718,6 +1746,13 @@ function ProfileHaloHeader({
                       <span className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold border border-zinc-200 dark:border-zinc-700">
                         <span className="normal-case">{formatKaspaAddress(kaspaAddress).display.toLowerCase()}</span>
                         <CopyIconButton value={formatKaspaAddress(kaspaAddress).full.toLowerCase()} label="Copy address" />
+                      </span>
+                    )}
+                    {!kaspaAddress && evmAddress && (
+                      <span className="inline-flex items-center gap-2 text-[12px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-500/20">
+                        <span className="normal-case font-mono">{shortenEvmAddress(evmAddress)}</span>
+                        <span className="text-[10px] font-black uppercase tracking-wider opacity-70">L2</span>
+                        <CopyIconButton value={evmAddress} label="Copy EVM address" />
                       </span>
                     )}
                     {source !== 'none' && (

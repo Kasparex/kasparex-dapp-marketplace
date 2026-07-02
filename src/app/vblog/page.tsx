@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
@@ -25,10 +26,26 @@ import {
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 
 export default function VBlogPage() {
+  return (
+    <Suspense fallback={null}>
+      <VBlogPageInner />
+    </Suspense>
+  );
+}
+
+function VBlogPageInner() {
   const { articles, isLoading } = useVBlog();
   const pricing = useVBlogPricing();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [categoryParam]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');

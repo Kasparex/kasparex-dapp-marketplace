@@ -69,9 +69,10 @@ export function KxTabStrip<T extends string>({
           </button>
         );
 
-        // Icon-only tabs have no visible label, so use the unified tooltip surface
-        // instead of the raw browser title. Labelled tabs keep their visible text.
-        if (iconOnly && tooltipLabel) {
+        // Icon-only tabs have no visible label, so always surface the unified tooltip.
+        // Labelled tabs opt in by providing an explicit `title` (short helper text).
+        const showTooltip = iconOnly ? Boolean(tooltipLabel) : Boolean(option.title);
+        if (showTooltip && tooltipLabel) {
           return (
             <Tooltip key={option.value} content={tooltipLabel}>
               {button}

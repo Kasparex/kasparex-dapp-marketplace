@@ -7,13 +7,14 @@ import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CategoryIcon } from './dapps/CategoryIcon';
-import { KX_LISTING_CATEGORY_CHIP } from '@/lib/ui/kxLayout';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
+import { useRouter } from 'next/navigation';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
@@ -24,6 +25,7 @@ interface DAppCardProps {
 }
 
 export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
+  const router = useRouter();
   const mergedDApp = mergeDAppData(null, dapp);
   const access = useDAppAccess({ dapp: mergedDApp, selectedNetwork });
   const { isOpenable } = access;
@@ -130,10 +132,17 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                 {category && (
-                  <div className={KX_LISTING_CATEGORY_CHIP}>
-                    <CategoryIcon id={category.id} />
-                    <span>{category.name}</span>
-                  </div>
+                  <KxListingCategoryChip
+                    icon={<CategoryIcon id={category.id} />}
+                    title={`Filter by ${category.name}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(`/dapps?category=${encodeURIComponent(category.id)}`);
+                    }}
+                  >
+                    {category.name}
+                  </KxListingCategoryChip>
                 )}
               </div>
 

@@ -180,7 +180,16 @@ export function VBlogCard({ article }: VBlogCardProps) {
         <p className="mb-4 line-clamp-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">{excerpt}</p>
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-          <KxListingCategoryChip icon={<CategoryIcon />} className="shrink-0">
+          <KxListingCategoryChip
+            icon={<CategoryIcon />}
+            className="shrink-0"
+            title={`Filter by ${article.category}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/vblog?category=${encodeURIComponent(article.category)}`);
+            }}
+          >
             {article.category}
           </KxListingCategoryChip>
           <span className="shrink-0 text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
