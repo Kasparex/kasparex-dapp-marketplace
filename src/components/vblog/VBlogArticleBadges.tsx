@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { KxBadge } from '@/components/ui/KxBadge';
+import { KxBadge, type KxBadgeVariant } from '@/components/ui/KxBadge';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import type { VBlogArticle } from '@/lib/vblog/types';
@@ -16,13 +16,17 @@ import {
 } from '@/lib/vblog/badges';
 
 /** Stronger fill so listing badges read clearly on card imagery. */
-const VBLOG_BADGE_FILL = {
+const VBLOG_BADGE_FILL: Partial<Record<KxBadgeVariant, string>> = {
   cyan: '!bg-cyan-500/35 dark:!bg-cyan-500/30',
   emerald: '!bg-emerald-500/35 dark:!bg-emerald-500/30',
   amber: '!bg-amber-500/35 dark:!bg-amber-500/30',
   violet: '!bg-violet-500/35 dark:!bg-violet-500/30',
   zinc: '!bg-zinc-300/90 dark:!bg-zinc-600/80',
-} as const;
+};
+
+function badgeFill(variant: KxBadgeVariant): string {
+  return VBLOG_BADGE_FILL[variant] ?? '';
+}
 
 function CategoryIcon() {
   return (
@@ -62,18 +66,18 @@ export function VBlogArticleMetaBadges({
     <TooltipProvider>
       <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
         <BadgeWithTooltip tooltip={vblogSourceBadgeTooltip(source)}>
-          <KxBadge variant={sourceVariant} className={VBLOG_BADGE_FILL[sourceVariant]}>
+          <KxBadge variant={sourceVariant} className={badgeFill(sourceVariant)}>
             {source === 'kasparex' ? 'Kasparex' : 'Community'}
           </KxBadge>
         </BadgeWithTooltip>
         <BadgeWithTooltip tooltip={vblogStatusBadgeTooltip(article)}>
-          <KxBadge variant={statusVariant} className={VBLOG_BADGE_FILL[statusVariant]}>
+          <KxBadge variant={statusVariant} className={badgeFill(statusVariant)}>
             {vblogStatusLabel(article)}
           </KxBadge>
         </BadgeWithTooltip>
         {isLinked ? (
           <BadgeWithTooltip tooltip={vblogMagazineBadgeTooltip(article.linkedIssueNumber!)}>
-            <KxBadge variant="violet" className={`tracking-wider ${VBLOG_BADGE_FILL.violet}`}>
+            <KxBadge variant="violet" className={`tracking-wider ${badgeFill('violet')}`}>
               Mag #{article.linkedIssueNumber}
             </KxBadge>
           </BadgeWithTooltip>
