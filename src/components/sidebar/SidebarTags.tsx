@@ -33,15 +33,15 @@ export function SidebarTags({
   const [expanded, setExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  if (tags.length === 0) return null;
-
-  const showSearch = tags.length > 6;
-
   const filteredTags = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return tags;
     return tags.filter((tag) => tag.toLowerCase().includes(q));
   }, [tags, searchQuery]);
+
+  if (tags.length === 0) return null;
+
+  const showSearch = tags.length > 6;
 
   const needsCollapse = collapsedItemCount != null && filteredTags.length > collapsedItemCount;
   const visibleTags = needsCollapse && !expanded ? filteredTags.slice(0, collapsedItemCount!) : filteredTags;
