@@ -374,7 +374,10 @@ export function ArticleDetail({
 
         <div className="relative flex flex-col lg:flex-row min-h-[360px]">
           <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-            <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text text-xl sm:text-2xl font-semibold text-zinc-800 dark:text-zinc-200 leading-snug">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-6 leading-tight">
+              {article.title}
+            </h1>
+            <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text">
               {article.description}
             </p>
 
@@ -453,14 +456,9 @@ export function ArticleDetail({
                 ) : null}
 
                 {contentTab === 'article' ? (
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     <DAppSectionHeader title="Article" className="mb-0" />
-                    <div className="space-y-4 -mt-2">
-                      <VBlogArticleBadges article={article} includeCategory />
-                      <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white leading-tight">
-                        {article.title}
-                      </h1>
-                    </div>
+                    <VBlogArticleBadges article={article} includeCategory />
                     <KxRichTextContent
                       id="article-main"
                       html={article.content}

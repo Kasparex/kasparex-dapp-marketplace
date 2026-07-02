@@ -30,11 +30,31 @@ function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; lab
   return entries;
 }
 
-function MetadataRow({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
+function MetadataRow({
+  label,
+  value,
+  mono = false,
+  inline = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+  inline?: boolean;
+}) {
+  if (inline) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 px-3 py-2">
+        <dt className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{label}</dt>
+        <dd className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 text-right">{value}</dd>
+      </div>
+    );
+  }
   return (
-    <div>
-      <dt className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">{label}</dt>
-      <dd className={`kx-body break-all ${mono ? 'font-mono text-sm leading-relaxed' : ''}`}>{value}</dd>
+    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 px-3 py-2.5">
+      <dt className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5">{label}</dt>
+      <dd className={`break-all ${mono ? 'font-mono text-xs leading-relaxed text-zinc-700 dark:text-zinc-300' : 'text-sm font-semibold text-zinc-800 dark:text-zinc-100'}`}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -254,15 +274,17 @@ export function ArticleSidebar({
             />
           ) : null}
           {article.articleId ? <MetadataRow label="Article ID" value={article.articleId} mono /> : null}
-          {payloadBytes != null ? (
-            <MetadataRow label="Payload used" value={`${payloadBytes.toLocaleString()} bytes`} />
-          ) : null}
-          {chunkCount != null && chunkCount > 0 ? (
-            <MetadataRow label="Chunks used" value={String(chunkCount)} />
-          ) : null}
-          <MetadataRow label="Source" value={<KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>{source}</KxBadge>} />
-          <MetadataRow label="Network" value="Kaspa Mainnet" />
-          <MetadataRow label="Status" value={article.status.replace(/_/g, ' ')} />
+          <div className="grid grid-cols-2 gap-2">
+            {payloadBytes != null ? (
+              <MetadataRow label="Payload" value={`${payloadBytes.toLocaleString()} B`} inline />
+            ) : null}
+            {chunkCount != null && chunkCount > 0 ? (
+              <MetadataRow label="Chunks" value={String(chunkCount)} inline />
+            ) : null}
+          </div>
+          <MetadataRow label="Source" value={<KxBadge variant={source === 'kasparex' ? 'cyan' : 'zinc'}>{source}</KxBadge>} inline />
+          <MetadataRow label="Network" value="Kaspa Mainnet" inline />
+          <MetadataRow label="Status" value={<span className="capitalize">{article.status.replace(/_/g, ' ')}</span>} inline />
         </dl>
       ),
     },

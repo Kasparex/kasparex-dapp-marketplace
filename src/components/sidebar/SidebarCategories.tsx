@@ -88,7 +88,7 @@ export function SidebarCategories({
             }}
             placeholder={searchPlaceholder}
             aria-label={`Search ${title.toLowerCase()}`}
-            className="k-input w-full text-sm"
+            className="k-input w-full !py-1.5 !text-sm !leading-6 !rounded-lg"
           />
         </div>
       ) : null}

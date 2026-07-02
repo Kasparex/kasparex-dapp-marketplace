@@ -25,8 +25,16 @@ export function VBlogRewardsSection() {
       <div className={`border-b border-zinc-200 dark:border-zinc-800 px-5 py-5 sm:px-6 sm:py-6 ${tierUi.panel}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <DAppSectionHeader title="Author Rewards & Discounts" className="mb-3" />
-            <p className="kx-body max-w-2xl">
+            <div className="flex items-center gap-3 mb-2">
+              <span
+                className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
+                aria-hidden="true"
+              />
+              <h3 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white leading-tight">
+                Author Rewards &amp; Discounts
+              </h3>
+            </div>
+            <p className="max-w-2xl text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
               Maximize your earnings through KREX holdings and NFT ownership. Tier perks apply to publication fees and Hub Points on create actions.
             </p>
           </div>

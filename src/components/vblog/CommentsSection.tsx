@@ -189,7 +189,7 @@ export function CommentsSection({ articleId, dappSectionHeader = false }: Commen
       <div
         className={
           dappSectionHeader
-            ? 'mt-2 pt-2 max-w-4xl mx-auto'
+            ? 'max-w-4xl mx-auto'
             : 'mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800 max-w-4xl mx-auto'
         }
       >
