@@ -1,10 +1,15 @@
 'use client';
 
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+
 export type KxLinkRow = { label: string; url: string };
+
+/** Height that matches the .k-input control (py-3 + leading-7 + border). */
+export const KX_FORM_CONTROL_H = '!h-[3.375rem]';
 
 /** Standard styling for in-form "Add …" field buttons (matches dApps listing form). */
 export const KX_FORM_ADD_BTN_CLASS =
-  'k-control-btn text-xs !border-cyan-500/30 !text-cyan-800 dark:!text-cyan-300';
+  `k-control-btn text-xs ${KX_FORM_CONTROL_H} !border-cyan-500/30 !text-cyan-800 dark:!text-cyan-300`;
 
 type KxLinkRowsEditorProps = {
   label: string;
@@ -29,10 +34,10 @@ export function KxLinkRowsEditor({
 
   return (
     <div className="k-form-group">
-      <label className="k-label">{label}</label>
+      <KxFormFieldLabel className="mb-2">{label}</KxFormFieldLabel>
       <div className="space-y-3">
         {rows.map((row, index) => (
-          <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_1.5fr_auto] gap-2">
+          <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_1.5fr_auto] gap-2 sm:items-stretch">
             <input
               type="text"
               className="k-input"
@@ -60,7 +65,7 @@ export function KxLinkRowsEditor({
             />
             <button
               type="button"
-              className="k-control-btn text-xs"
+              className={`k-control-btn text-xs ${KX_FORM_CONTROL_H}`}
               disabled={disabled || rows.length <= 1}
               onClick={() => onChange(rows.filter((_, i) => i !== index))}
             >

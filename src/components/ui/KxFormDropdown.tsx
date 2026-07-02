@@ -12,6 +12,7 @@ export function KxFormDropdown({
   placeholder = 'Select...',
   disabled,
   className,
+  triggerClassName,
 }: {
   ariaLabel: string;
   value: string;
@@ -20,6 +21,7 @@ export function KxFormDropdown({
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -48,7 +50,7 @@ export function KxFormDropdown({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className="k-select w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+        className={`k-select w-full text-left disabled:opacity-50 disabled:cursor-not-allowed ${triggerClassName ?? ''}`.trim()}
       >
         <span className="truncate">{label}</span>
       </button>

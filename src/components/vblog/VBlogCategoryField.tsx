@@ -55,9 +55,10 @@ export function VBlogCategoryField({ authorAddress, value, onChange, disabled }:
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         ariaLabel="Article category"
+        triggerClassName="!h-[3.375rem] !py-0 flex items-center"
         options={options.map((cat) => ({ value: cat, label: cat }))}
       />
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
         <input
           type="text"
           value={customInput}

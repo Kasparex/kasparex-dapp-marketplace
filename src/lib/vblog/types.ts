@@ -9,6 +9,8 @@ export type VBlogModuleId =
 export interface VBlogTipBoxConfig {
   presets: number[];
   allowCustom: boolean;
+  /** Currencies the author accepts for tips (defaults to KAS). */
+  currencies?: string[];
 }
 
 export interface VBlogPremiumPollConfig {

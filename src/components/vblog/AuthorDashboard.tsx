@@ -166,7 +166,7 @@ export function AuthorDashboard({
             setEditingArticle(null);
           }}
           className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'create'
-            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
+            ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
             : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
         >
@@ -178,7 +178,7 @@ export function AuthorDashboard({
             setEditingArticle(null);
           }}
           className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'my-articles'
-            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
+            ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
             : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
         >

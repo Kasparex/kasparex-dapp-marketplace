@@ -10,6 +10,7 @@ type KxFormSelectProps = {
   ariaLabel?: string;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
 };
 
 /** Form select with custom menu styling (accent hover + selection states). */
@@ -21,6 +22,7 @@ export function KxFormSelect({
   ariaLabel = 'Select option',
   placeholder,
   className,
+  triggerClassName,
 }: KxFormSelectProps) {
   return (
     <KxFormDropdown
@@ -31,6 +33,7 @@ export function KxFormSelect({
       placeholder={placeholder}
       disabled={disabled}
       className={className}
+      triggerClassName={triggerClassName}
     />
   );
 }

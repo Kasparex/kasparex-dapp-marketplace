@@ -605,6 +605,7 @@ export function ArticleDetail({
                 article={article}
                 tipBoxEnabled={Boolean(article.modules?.tipBoxEnabled)}
                 tipPresets={article.modules?.tipBox?.presets ?? [10, 50, 100]}
+                tipCurrencies={article.modules?.tipBox?.currencies}
                 customTipKas={customTipKas}
                 onCustomTipChange={setCustomTipKas}
                 onTip={(amount) => void handleTip(amount)}

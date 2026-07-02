@@ -43,6 +43,10 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
 
+/** Premium module card: amber dashed accent + subtle gradient so paid features stand out. */
+const PREMIUM_MODULE_CARD_CLASS =
+  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm';
+
 interface CreateArticleFormProps {
   onSubmit?: (article: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => Promise<void>;
   onUpdate?: (articleId: string, updates: Partial<Omit<VBlogArticle, 'id' | 'author' | 'publishDate'>>) => Promise<void>;
@@ -60,7 +64,7 @@ const FORM_MODULE_IDS: VBlogModuleId[] = [
 ];
 
 function moduleHasConfigFields(id: VBlogModuleId): boolean {
-  return id === 'premium_section' || id === 'tip_to_reveal' || id === 'premium_poll';
+  return id === 'premium_section' || id === 'tip_to_reveal' || id === 'premium_poll' || id === 'tip_box';
 }
 
 export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: CreateArticleFormProps) {
@@ -100,6 +104,12 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     payoutSplitRowsFromModules(article?.modules),
   );
   const [tipBoxEnabled, setTipBoxEnabled] = useState(Boolean(article?.modules?.tipBoxEnabled));
+  const [tipBoxPresets, setTipBoxPresets] = useState(() =>
+    (article?.modules?.tipBox?.presets ?? [10, 50, 100]).join(', '),
+  );
+  const [tipBoxCurrencies, setTipBoxCurrencies] = useState<string[]>(
+    () => article?.modules?.tipBox?.currencies ?? ['KAS'],
+  );
   const [tipToRevealEnabled, setTipToRevealEnabled] = useState(Boolean(article?.modules?.tipToRevealEnabled));
   const [tipToRevealContent, setTipToRevealContent] = useState(() => contentForRichEditor(article?.modules?.tipToRevealContent ?? ''));
   const [tipToRevealThresholdKas, setTipToRevealThresholdKas] = useState(String(article?.modules?.tipToRevealThresholdKas ?? 25));
@@ -125,6 +135,14 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     [premiumPayoutSplitRows],
   );
 
+  const parsedTipPresets = useMemo(() => {
+    const nums = tipBoxPresets
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return nums.length > 0 ? nums.slice(0, 6) : [10, 50, 100];
+  }, [tipBoxPresets]);
+
   const modulesPayload = useMemo(
     () => ({
       premiumSectionEnabled,
@@ -133,7 +151,9 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       premiumSectionPayoutAddress: premiumSectionEnabled ? resolvedPremiumPayoutSplits[0]?.address : undefined,
       premiumSectionPayoutSplits: premiumSectionEnabled ? resolvedPremiumPayoutSplits : undefined,
       tipBoxEnabled,
-      tipBox: tipBoxEnabled ? { presets: [10, 50, 100], allowCustom: true } : undefined,
+      tipBox: tipBoxEnabled
+        ? { presets: parsedTipPresets, allowCustom: true, currencies: tipBoxCurrencies }
+        : undefined,
       tipToRevealEnabled,
       tipToRevealContent: tipToRevealEnabled ? tipToRevealContent.trim() : undefined,
       tipToRevealThresholdKas: tipToRevealEnabled ? Number(tipToRevealThresholdKas) : undefined,
@@ -150,6 +170,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       resolvedPremiumPayoutSplits,
       premiumPayoutSplitRows,
       tipBoxEnabled,
+      parsedTipPresets,
+      tipBoxCurrencies,
       tipToRevealEnabled,
       tipToRevealContent,
       tipToRevealThresholdKas,
@@ -313,6 +335,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setPremiumSectionPriceKas(String(article.modules?.premiumSectionPriceKas ?? 10));
     setPremiumPayoutSplitRows(payoutSplitRowsFromModules(article.modules));
     setTipBoxEnabled(Boolean(article.modules?.tipBoxEnabled));
+    setTipBoxPresets((article.modules?.tipBox?.presets ?? [10, 50, 100]).join(', '));
+    setTipBoxCurrencies(article.modules?.tipBox?.currencies ?? ['KAS']);
     setTipToRevealEnabled(Boolean(article.modules?.tipToRevealEnabled));
     setTipToRevealContent(contentForRichEditor(article.modules?.tipToRevealContent ?? ''));
     setTipToRevealThresholdKas(String(article.modules?.tipToRevealThresholdKas ?? 25));
@@ -513,6 +537,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
       setPremiumSectionPriceKas('10');
       setPremiumPayoutSplitRows(DEFAULT_PAYOUT_SPLIT_ROWS());
       setTipBoxEnabled(false);
+      setTipBoxPresets('10, 50, 100');
+      setTipBoxCurrencies(['KAS']);
       setTipToRevealEnabled(false);
       setTipToRevealContent('');
       setTipToRevealThresholdKas('25');
@@ -617,7 +643,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         </div>
 
         {premiumSectionOffer ? (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm">
+          <div className={PREMIUM_MODULE_CARD_CLASS}>
             <KxInFormPremiumRow
               flat
               title={premiumSectionOffer.title}
@@ -788,10 +814,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           const alreadyPaid = isEditMode && originalPaidModuleIds.includes(offer.id);
           const effectiveKas = getVBlogModuleEffectivePriceKas(offer.unlockPriceKas, tier, nftStatus);
           return (
-            <div
-              key={offer.id}
-              className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm"
-            >
+            <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
               <KxInFormPremiumRow
                 flat
                 title={offer.title}
@@ -802,7 +825,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                 onToggle={() => setModuleEnabled(offer.id, !enabled)}
               />
               {enabled && offer.id === 'magazine_integration' ? (
-                <div className="pt-3 mt-3 border-t border-zinc-200 dark:border-zinc-700">
+                <div className="pt-5 mt-5 border-t border-zinc-200 dark:border-zinc-700">
                   <VBlogMagazineIntegration
                     embedded
                     linkedMagazineId={linkedMagazineId}
@@ -830,6 +853,10 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
                   onTipToRevealContentChange={setTipToRevealContent}
                   tipToRevealThresholdKas={tipToRevealThresholdKas}
                   onTipToRevealThresholdKasChange={setTipToRevealThresholdKas}
+                  tipBoxPresets={tipBoxPresets}
+                  onTipBoxPresetsChange={setTipBoxPresets}
+                  tipBoxCurrencies={tipBoxCurrencies}
+                  onTipBoxCurrenciesChange={setTipBoxCurrencies}
                   pollQuestion={pollQuestion}
                   onPollQuestionChange={setPollQuestion}
                   pollOptions={pollOptions}

@@ -139,6 +139,7 @@ interface ArticleSidebarProps {
   article: VBlogArticle;
   tipBoxEnabled?: boolean;
   tipPresets?: number[];
+  tipCurrencies?: string[];
   customTipKas?: string;
   onCustomTipChange?: (value: string) => void;
   onTip?: (amount: number) => void;
@@ -152,6 +153,7 @@ export function ArticleSidebar({
   article,
   tipBoxEnabled = false,
   tipPresets = [10, 50, 100],
+  tipCurrencies,
   customTipKas = '25',
   onCustomTipChange,
   onTip,
@@ -160,7 +162,8 @@ export function ArticleSidebar({
   tipHubPointsBase = 0,
   tipHubPointsTier = 'Tier0',
 }: ArticleSidebarProps) {
-  const [tipCurrency, setTipCurrency] = useState('KAS');
+  const acceptedCurrencies = tipCurrencies && tipCurrencies.length > 0 ? tipCurrencies : ['KAS'];
+  const [tipCurrency, setTipCurrency] = useState(acceptedCurrencies[0] ?? 'KAS');
   const source = getVBlogArticleSource(article);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorDisplay = formatAddress(article.author);
@@ -223,17 +226,19 @@ export function ArticleSidebar({
                 ) : null}
               </div>
 
-              <div className="mb-3 max-w-[160px]">
-                <KxFormSelect
-                  value={tipCurrency}
-                  onChange={(e) => setTipCurrency(e.target.value)}
-                  ariaLabel="Tip currency"
-                  options={[
-                    { value: 'KAS', label: 'KAS' },
-                    { value: 'KREX', label: 'KREX (soon)' },
-                  ]}
-                />
-              </div>
+              {acceptedCurrencies.length > 1 ? (
+                <div className="mb-3 max-w-[160px]">
+                  <KxFormSelect
+                    value={tipCurrency}
+                    onChange={(e) => setTipCurrency(e.target.value)}
+                    ariaLabel="Tip currency"
+                    options={acceptedCurrencies.map((currency) => ({
+                      value: currency,
+                      label: currency === 'KAS' ? 'KAS' : `${currency} (soon)`,
+                    }))}
+                  />
+                </div>
+              ) : null}
 
               {tipCurrency !== 'KAS' ? (
                 <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">

@@ -6,6 +6,13 @@ import { VBlogPollOptionsEditor } from './VBlogPollOptionsEditor';
 
 export type PayoutSplitRow = { address: string; sharePercent: string };
 
+/** Accepted tip currencies an author can enable for the tipping box. */
+export const VBLOG_TIP_CURRENCIES = ['KAS', 'KREX'] as const;
+
+/** Shared caption for module setup sub-sections (global standard). */
+const CONFIG_SUBTITLE_CLASS =
+  'text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400';
+
 export function VBlogPayoutSplitsEditor({
   rows,
   onChange,
@@ -85,6 +92,10 @@ export function VBlogModuleConfigFields({
   onTipToRevealContentChange,
   tipToRevealThresholdKas,
   onTipToRevealThresholdKasChange,
+  tipBoxPresets,
+  onTipBoxPresetsChange,
+  tipBoxCurrencies,
+  onTipBoxCurrenciesChange,
   pollQuestion,
   onPollQuestionChange,
   pollOptions,
@@ -103,6 +114,10 @@ export function VBlogModuleConfigFields({
   onTipToRevealContentChange?: (v: string) => void;
   tipToRevealThresholdKas?: string;
   onTipToRevealThresholdKasChange?: (v: string) => void;
+  tipBoxPresets?: string;
+  onTipBoxPresetsChange?: (v: string) => void;
+  tipBoxCurrencies?: string[];
+  onTipBoxCurrenciesChange?: (v: string[]) => void;
   pollQuestion?: string;
   onPollQuestionChange?: (v: string) => void;
   pollOptions?: string[];
@@ -111,13 +126,13 @@ export function VBlogModuleConfigFields({
   bare?: boolean;
 }) {
   const setupShellClass = bare
-    ? 'space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-700'
+    ? 'space-y-3 pt-5 border-t border-zinc-200 dark:border-zinc-700'
     : 'rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-950/40 px-4 py-3 space-y-3';
 
   if (moduleId === 'premium_section') {
     return (
       <div className={setupShellClass}>
-        <p className="text-xs font-bold uppercase tracking-wider text-[#02abb8] dark:text-[#66dfe8]">Premium section setup</p>
+        <p className={CONFIG_SUBTITLE_CLASS}>Premium section setup</p>
         <KxRichTextEditor
           value={premiumSectionContent ?? ''}
           onChange={(v) => onPremiumSectionContentChange?.(v)}
@@ -141,10 +156,64 @@ export function VBlogModuleConfigFields({
     );
   }
 
+  if (moduleId === 'tip_box') {
+    const activeCurrencies = tipBoxCurrencies && tipBoxCurrencies.length > 0 ? tipBoxCurrencies : ['KAS'];
+    const toggleCurrency = (currency: string) => {
+      const isOn = activeCurrencies.includes(currency);
+      const next = isOn
+        ? activeCurrencies.filter((c) => c !== currency)
+        : [...activeCurrencies, currency];
+      onTipBoxCurrenciesChange?.(next.length > 0 ? next : ['KAS']);
+    };
+    return (
+      <div className={setupShellClass}>
+        <p className={CONFIG_SUBTITLE_CLASS}>Tipping box setup</p>
+        <div className="space-y-1.5">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Default tip amounts shown publicly to readers (comma-separated).
+          </p>
+          <input
+            className="k-input tabular-nums"
+            value={tipBoxPresets ?? ''}
+            onChange={(e) => onTipBoxPresetsChange?.(e.target.value)}
+            placeholder="10, 50, 100"
+            disabled={disabled}
+            aria-label="Default tip amounts"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Accepted tip currencies</p>
+          <div className="flex flex-wrap gap-2">
+            {VBLOG_TIP_CURRENCIES.map((currency) => {
+              const active = activeCurrencies.includes(currency);
+              return (
+                <button
+                  key={currency}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => toggleCurrency(currency)}
+                  aria-pressed={active}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                    active
+                      ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8] dark:text-[#66dfe8]'
+                      : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-[#02abb8]/40'
+                  }`}
+                >
+                  {currency}
+                  {currency !== 'KAS' ? <span className="ml-1 opacity-70">(soon)</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (moduleId === 'tip_to_reveal') {
     return (
       <div className={setupShellClass}>
-        <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tip-to-reveal setup</p>
+        <p className={CONFIG_SUBTITLE_CLASS}>Tip-to-reveal setup</p>
         <KxRichTextEditor
           value={tipToRevealContent ?? ''}
           onChange={(v) => onTipToRevealContentChange?.(v)}
@@ -166,7 +235,7 @@ export function VBlogModuleConfigFields({
   if (moduleId === 'premium_poll') {
     return (
       <div className={setupShellClass}>
-        <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Premium poll setup</p>
+        <p className={CONFIG_SUBTITLE_CLASS}>Premium poll setup</p>
         <input
           className="k-input"
           value={pollQuestion ?? ''}
