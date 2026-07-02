@@ -65,12 +65,6 @@ export function VBlogCard({ article }: VBlogCardProps) {
   const hasImage = Boolean(article.featuredImage?.trim());
   const hasPremium = articleHasPremiumContent(article);
 
-  const openModulesTab = (event: MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    router.push(`/vblog/${article.slug}?tab=modules`);
-  };
-
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isAuthor = Boolean(
     walletAddress &&
@@ -120,22 +114,15 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <VBlogArticleMetaBadges article={article} />
         </div>
 
-        {hasPremium ? (
-          <div
-            className="absolute top-2 left-2 z-10"
-            onMouseDown={stopCardNavigation}
-          >
-            <VBlogPremiumBadge onClick={openModulesTab} showLabel title="Premium content. Open modules" />
-          </div>
-        ) : null}
-
-        {isAuthor ? (
+        {isAuthor || hasPremium ? (
           <div
             className="absolute top-2 right-2 z-20 flex items-center gap-1.5"
             onClick={stopCardNavigation}
             onMouseDown={stopCardNavigation}
           >
-            {confirmDelete ? (
+            {hasPremium ? <VBlogPremiumBadge /> : null}
+            {isAuthor ? (
+              confirmDelete ? (
               <>
                 <button
                   type="button"
@@ -177,7 +164,8 @@ export function VBlogCard({ article }: VBlogCardProps) {
                   </svg>
                 </button>
               </>
-            )}
+              )
+            ) : null}
           </div>
         ) : null}
       </KxListingCardMedia>

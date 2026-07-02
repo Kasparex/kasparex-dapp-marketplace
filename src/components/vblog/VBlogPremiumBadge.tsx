@@ -1,7 +1,5 @@
 'use client';
 
-import type { MouseEvent } from 'react';
-
 function LockIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -27,34 +25,25 @@ function UnlockIcon({ className = 'h-4 w-4' }: { className?: string }) {
 }
 
 /**
- * Premium indicator for vBlog articles that include the gated Premium Content module.
- * Shows a lock/unlock glyph. Clickable (opens the Modules tab of that article).
+ * Informational-only premium indicator for vBlog articles that include the gated
+ * Premium Content module. Non-interactive (visual badge, not clickable).
  */
 export function VBlogPremiumBadge({
   unlocked = false,
-  onClick,
-  showLabel = false,
   className = '',
-  title = 'Premium content. Open modules',
+  title = 'Includes premium content',
 }: {
   unlocked?: boolean;
-  onClick?: (e: MouseEvent) => void;
-  showLabel?: boolean;
   className?: string;
   title?: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <span
       aria-label={title}
       title={title}
-      className={`inline-flex items-center gap-1.5 rounded-lg border border-amber-400/60 bg-amber-50/90 px-2 py-1.5 text-amber-700 backdrop-blur-md transition-all hover:scale-105 dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
+      className={`inline-flex items-center justify-center rounded-lg border border-amber-400/60 bg-amber-50/90 p-1.5 text-amber-700 backdrop-blur-md dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
     >
       {unlocked ? <UnlockIcon /> : <LockIcon />}
-      {showLabel ? (
-        <span className="text-[10px] font-black uppercase tracking-wide">Premium</span>
-      ) : null}
-    </button>
+    </span>
   );
 }

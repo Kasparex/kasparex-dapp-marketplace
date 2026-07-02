@@ -387,13 +387,6 @@ export function ArticleDetail({
 
   const hasPremium = articleHasPremiumContent(article);
 
-  const openModulesTab = () => {
-    setContentTab('modules');
-    window.setTimeout(() => {
-      document.getElementById('article-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-  };
-
   return (
     <article className="max-w-6xl mx-auto font-sans">
       <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
@@ -450,13 +443,7 @@ export function ArticleDetail({
 
         {isAuthor || hasPremium ? (
           <div className="absolute top-6 right-6 flex items-center gap-3 z-30">
-            {hasPremium ? (
-              <VBlogPremiumBadge
-                onClick={openModulesTab}
-                className="!px-3 !py-3"
-                title="Premium content. Open modules"
-              />
-            ) : null}
+            {hasPremium ? <VBlogPremiumBadge className="!p-3" /> : null}
             {isAuthor ? (
               <>
                 <button
