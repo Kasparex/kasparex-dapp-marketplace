@@ -11,6 +11,7 @@ import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
+import { KxCategoryKicker } from '@/components/ui/KxCategoryKicker';
 
 function VBlogDashboardPageContent() {
   const { articles, getAuthorArticles } = useVBlog();
@@ -57,6 +58,22 @@ function VBlogDashboardPageContent() {
 
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
             <div className="max-w-6xl mx-auto">
+              <div className="mb-8">
+                <KxCategoryKicker className="mb-4">Author dashboard</KxCategoryKicker>
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)]"
+                    aria-hidden="true"
+                  />
+                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
+                    Creator <span className="text-[#02abb8]">Center</span>
+                  </h1>
+                </div>
+                <p className="kx-body max-w-3xl">
+                  Manage your decentralized vBlog publications
+                </p>
+              </div>
+
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
                 <AuthorDashboard
                   createIntentKey={createIntentKey}

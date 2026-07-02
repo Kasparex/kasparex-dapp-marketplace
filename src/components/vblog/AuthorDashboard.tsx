@@ -13,7 +13,6 @@ import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import type { VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface AuthorDashboardProps {
   createIntentKey?: number;
@@ -187,11 +186,9 @@ export function AuthorDashboard({
       </div>
 
       {/* Pricing and Benefits Section */}
-      {activeTab === 'create' ? (
-        <div id="vblog-dashboard-pricing" className="scroll-mt-24">
-          <AuthorPricing />
-        </div>
-      ) : null}
+      <div id="vblog-dashboard-pricing" className="scroll-mt-24">
+        <AuthorPricing />
+      </div>
 
       {/* Success Message Area */}
       {successMessage && (
@@ -218,21 +215,6 @@ export function AuthorDashboard({
           </div>
         ) : (
           <div id="vblog-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-8">
-              <div className="min-w-0">
-                <DAppSectionHeader
-                  title={
-                    archiveCategoryFilter
-                      ? `Personal Archive / ${archiveCategoryFilter}`
-                      : 'Personal Archive'
-                  }
-                  className="mb-0"
-                />
-              </div>
-              <p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">
-                Delete fee: {pricing.deleteFee} KAS
-              </p>
-            </div>
             <ArticleList articles={filteredAuthorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
           </div>
         )}

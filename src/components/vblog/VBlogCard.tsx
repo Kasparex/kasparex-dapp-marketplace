@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type MouseEvent } from 'react';
+import { useState, type MouseEvent, type ReactNode } from 'react';
 import { useAccount } from 'wagmi';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
@@ -18,6 +18,8 @@ import { articleHasPremiumContent } from '@/lib/vblog/listing';
 
 interface VBlogCardProps {
   article: VBlogArticle;
+  /** Optional action row rendered inside the card body (e.g. archive Edit / Delete). */
+  footer?: ReactNode;
 }
 
 function CategoryIcon() {
@@ -51,7 +53,7 @@ function stopCardNavigation(event: MouseEvent) {
   event.stopPropagation();
 }
 
-export function VBlogCard({ article }: VBlogCardProps) {
+export function VBlogCard({ article, footer }: VBlogCardProps) {
   const router = useRouter();
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
@@ -202,6 +204,16 @@ export function VBlogCard({ article }: VBlogCardProps) {
           </KxListingCategoryChip>
           <span className="shrink-0 text-xs font-semibold text-zinc-700 dark:text-zinc-300">{formatDate(article.publishDate)}</span>
         </div>
+
+        {footer ? (
+          <div
+            className="mt-3 border-t border-zinc-100 pt-3 dark:border-zinc-800"
+            onClick={stopCardNavigation}
+            onMouseDown={stopCardNavigation}
+          >
+            {footer}
+          </div>
+        ) : null}
       </KxListingCardBody>
     </KxListingCard>
   );
