@@ -27,7 +27,7 @@ export const KREX_TIER_UI: Record<KrexPerkVisualTier, KrexTierUi> = {
     panel:
       'border-orange-300/80 bg-gradient-to-br from-orange-50 via-white to-orange-100/70 dark:border-orange-400/35 dark:from-orange-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-orange-300/80 bg-orange-50 text-orange-900 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-100',
-    statusText: '1M+ KREX. 2% off fees and 1x Hub Points on earn actions.',
+    statusText: '1M+ KREX. 5% off fees and 1x Hub Points on earn actions.',
     accent: 'text-orange-600 dark:text-orange-400',
     badge: 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200',
   },
@@ -36,7 +36,7 @@ export const KREX_TIER_UI: Record<KrexPerkVisualTier, KrexTierUi> = {
     panel:
       'border-yellow-300/80 bg-gradient-to-br from-yellow-50 via-white to-amber-100/70 dark:border-yellow-400/35 dark:from-yellow-500/10 dark:via-zinc-900 dark:to-zinc-800/40',
     status: 'border-yellow-300/80 bg-yellow-50 text-yellow-900 dark:border-yellow-400/30 dark:bg-yellow-500/10 dark:text-yellow-100',
-    statusText: '10M+ KREX. 5% off fees and 2x Hub Points.',
+    statusText: '10M+ KREX. 10% off fees and 2x Hub Points.',
     accent: 'text-yellow-700 dark:text-yellow-400',
     badge: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-200',
   },

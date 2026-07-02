@@ -924,7 +924,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
         <button
           type="submit"
           disabled={isSubmitting || isUploading}
-          className="w-full px-4 py-2.5 bg-[#02abb8] hover:bg-[#028a94] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Article' : 'Create Article')}
         </button>
@@ -932,7 +932,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
           type="button"
           onClick={() => setIsPreviewOpen(true)}
           disabled={isSubmitting}
-          className="w-full px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full k-control-btn disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Preview Article
         </button>

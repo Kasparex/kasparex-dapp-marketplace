@@ -10,15 +10,15 @@ export function KrexTierPerksTooltipTable({ title = 'KREX tier perks' }: { title
           <tr className="border-b border-zinc-300/80 dark:border-zinc-600">
             <th className="pb-1.5 pr-2 text-left font-semibold">Tier</th>
             <th className="pb-1.5 pr-2 text-left font-semibold">KREX held</th>
-            <th className="pb-1.5 pr-2 text-left font-semibold">Fee discount</th>
-            <th className="pb-1.5 text-left font-semibold">Hub Points</th>
+            <th className="pb-1.5 pr-2 text-left font-semibold">Discount</th>
+            <th className="pb-1.5 text-left font-semibold">Multiplier</th>
           </tr>
         </thead>
         <tbody className="text-zinc-700 dark:text-zinc-300">
           {KREX_TIER_PERKS_ROWS.map((row) => (
             <tr key={row.tier}>
               <td className="py-1 pr-2 align-middle">
-                <TierBadge tier={row.tier} isUnlocked={row.tier !== 'Tier0'} />
+                <TierBadge tier={row.tier} isUnlocked />
               </td>
               <td className="py-1 pr-2 align-middle whitespace-nowrap">{row.thresholdLabel}</td>
               <td className="py-1 pr-2 align-middle whitespace-nowrap">

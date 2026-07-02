@@ -1,5 +1,7 @@
 'use client';
 
+import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+
 function LockIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -24,6 +26,8 @@ function UnlockIcon({ className = 'h-4 w-4' }: { className?: string }) {
   );
 }
 
+const PREMIUM_TOOLTIP = 'Includes a paid premium section for readers to unlock.';
+
 /**
  * Informational-only premium indicator for vBlog articles that include the gated
  * Premium Content module. Non-interactive (visual badge, not clickable).
@@ -32,22 +36,25 @@ export function VBlogPremiumBadge({
   unlocked = false,
   className = '',
   size = 'md',
-  title = 'Includes premium content',
+  tooltip = PREMIUM_TOOLTIP,
 }: {
   unlocked?: boolean;
   className?: string;
   size?: 'sm' | 'md';
-  title?: string;
+  tooltip?: string;
 }) {
   const padClass = size === 'sm' ? 'p-1' : 'p-1.5';
   const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
   return (
-    <span
-      aria-label={title}
-      title={title}
-      className={`inline-flex items-center justify-center rounded-lg border border-amber-400/60 bg-amber-50/90 ${padClass} text-amber-700 backdrop-blur-md dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
-    >
-      {unlocked ? <UnlockIcon className={iconClass} /> : <LockIcon className={iconClass} />}
-    </span>
+    <TooltipProvider>
+      <Tooltip content={tooltip}>
+        <span
+          aria-label={tooltip}
+          className={`inline-flex cursor-help items-center justify-center rounded-lg border border-amber-400/60 bg-amber-50/90 ${padClass} text-amber-700 backdrop-blur-md dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
+        >
+          {unlocked ? <UnlockIcon className={iconClass} /> : <LockIcon className={iconClass} />}
+        </span>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

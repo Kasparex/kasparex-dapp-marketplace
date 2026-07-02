@@ -20,10 +20,17 @@ export function formatHubPointsTierLabel(tier: KREXTier): string {
   return `${getHubPointsMultiplier(tier)}x`;
 }
 
-export const KREX_TIER_PERKS_ROWS = [
-  { thresholdLabel: '< 1M KREX', tier: 'Tier0' as KREXTier, feeDiscountPercent: 0, pointsMultiplier: 1 },
-  { thresholdLabel: '1M+ KREX', tier: 'Tier1' as KREXTier, feeDiscountPercent: 2, pointsMultiplier: 1 },
-  { thresholdLabel: '10M+ KREX', tier: 'Tier2' as KREXTier, feeDiscountPercent: 5, pointsMultiplier: 2 },
-  { thresholdLabel: '50M+ KREX', tier: 'Tier3' as KREXTier, feeDiscountPercent: 50, pointsMultiplier: 3 },
-  { thresholdLabel: '100M+ KREX', tier: 'Tier4' as KREXTier, feeDiscountPercent: 80, pointsMultiplier: 4 },
-] as const;
+const KREX_TIER_THRESHOLD_LABELS: Record<KREXTier, string> = {
+  Tier0: '< 1M KREX',
+  Tier1: '1M+ KREX',
+  Tier2: '10M+ KREX',
+  Tier3: '50M+ KREX',
+  Tier4: '100M+ KREX',
+};
+
+export const KREX_TIER_PERKS_ROWS = (['Tier0', 'Tier1', 'Tier2', 'Tier3', 'Tier4'] as const).map((tier) => ({
+  thresholdLabel: KREX_TIER_THRESHOLD_LABELS[tier],
+  tier,
+  feeDiscountPercent: KREX_TIERS[tier].feeDiscountPercent,
+  pointsMultiplier: KREX_TIERS[tier].pointsMultiplier,
+}));

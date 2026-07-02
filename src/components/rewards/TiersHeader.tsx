@@ -19,7 +19,7 @@ export function TiersHeader() {
             Tiers &amp; multipliers
           </h1>
           <p className="kx-body max-w-2xl leading-relaxed">
-            KREX tiers set fee discounts and Hub Points multipliers across the hub. Hold 1M+ KREX for 2% off and 1x
+            KREX tiers set fee discounts and Hub Points multipliers across the hub. Hold 1M+ KREX for 5% off and 1x
             points; up to 100M+ for 80% off and 4x points. Spending redeemable catalog items happens exclusively on{' '}
             <a href="/rewards" className="font-semibold text-[#02abb8] underline">
               Rewards

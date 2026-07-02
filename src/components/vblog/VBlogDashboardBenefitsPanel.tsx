@@ -113,7 +113,7 @@ export function VBlogDashboardBenefitsPanel({
                 <span className={ui.accent}>•</span>{' '}
                 {discountPercent > 0
                   ? `${discountPercent}% off vBlog fees (${tierLabel})`
-                  : 'Stack 1M+ KREX for 2% off fees'}
+                  : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off fees`}
               </li>
               <li>
                 <span className={ui.accent}>•</span> Publish earns +{publishPts} Hub Points at your tier

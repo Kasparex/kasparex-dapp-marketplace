@@ -21,3 +21,23 @@ export function vblogStatusLabel(article: VBlogArticle): string {
   if (article.status === 'verified') return 'Verified';
   return article.status.replace(/_/g, ' ');
 }
+
+export function vblogSourceBadgeTooltip(source: ReturnType<typeof getVBlogArticleSource>): string {
+  return source === 'kasparex'
+    ? 'Official Kasparex publication.'
+    : 'Community-authored article.';
+}
+
+export function vblogStatusBadgeTooltip(article: VBlogArticle): string {
+  if (article.status === 'published' || article.status === 'on-chain-ready' || article.status === 'verified') {
+    return 'Live and readable on vBlog.';
+  }
+  if (article.status === 'pending' || article.status === 'paying_chunks' || article.status === 'committing') {
+    return 'Publishing in progress.';
+  }
+  return 'Draft or unpublished.';
+}
+
+export function vblogMagazineBadgeTooltip(issueNumber: number): string {
+  return `Linked to magazine issue #${issueNumber}.`;
+}
