@@ -49,6 +49,7 @@ import { VBlogPremiumSectionGate } from '@/components/vblog/VBlogPremiumSectionG
 import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
 
@@ -373,33 +374,24 @@ export function ArticleDetail({
 
         <div className="relative flex flex-col lg:flex-row min-h-[360px]">
           <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-6 leading-tight">
-              {article.title}
-            </h1>
-            <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text">
+            <p id="article-intro" className="kx-body max-w-2xl mb-8 select-text text-xl sm:text-2xl font-semibold text-zinc-800 dark:text-zinc-200 leading-snug">
               {article.description}
             </p>
 
-            <div className="grid w-full gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-              <div className="flex min-w-0 flex-wrap items-center gap-8">
-                <div className="flex items-center gap-3">
-                  <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
-                    <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
-                      {authorDisplay}
-                    </Link>
-                  </div>
-                </div>
-
+            <div className="flex min-w-0 flex-wrap items-center gap-8">
+              <div className="flex items-center gap-3">
+                <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
-                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
+                  <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
+                    {authorDisplay}
+                  </Link>
                 </div>
               </div>
 
-              <div className="flex w-full justify-end sm:w-auto sm:justify-self-end">
-                <VBlogArticleBadges article={article} includeCategory className="justify-end" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
+                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
               </div>
             </div>
           </div>
@@ -462,6 +454,13 @@ export function ArticleDetail({
 
                 {contentTab === 'article' ? (
                   <div className="space-y-8">
+                    <DAppSectionHeader title="Article" className="mb-0" />
+                    <div className="space-y-4 -mt-2">
+                      <VBlogArticleBadges article={article} includeCategory />
+                      <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white leading-tight">
+                        {article.title}
+                      </h1>
+                    </div>
                     <KxRichTextContent
                       id="article-main"
                       html={article.content}
@@ -492,16 +491,21 @@ export function ArticleDetail({
 
                 {contentTab === 'author' ? (
                   <div id="article-author">
+                    <DAppSectionHeader title="Author" className="mb-4" />
                     <VBlogAuthorCard article={article} />
                   </div>
                 ) : null}
 
                 {contentTab === 'author-posts' ? (
-                  <AuthorArticlesTab article={article} allArticles={allArticles} />
+                  <div>
+                    <DAppSectionHeader title="More from Author" className="mb-4" />
+                    <AuthorArticlesTab article={article} allArticles={allArticles} />
+                  </div>
                 ) : null}
 
                 {contentTab === 'modules' ? (
                   <div id="article-modules" className="space-y-6">
+                    <DAppSectionHeader title="Modules" className="mb-2" />
                     {article.modules?.tipToRevealEnabled ? (
                       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
                         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
@@ -557,7 +561,7 @@ export function ArticleDetail({
 
                 {contentTab === 'comments' ? (
                   <div id="article-comments">
-                    <CommentsSection articleId={article.id} />
+                    <CommentsSection articleId={article.id} dappSectionHeader />
                   </div>
                 ) : null}
               </div>

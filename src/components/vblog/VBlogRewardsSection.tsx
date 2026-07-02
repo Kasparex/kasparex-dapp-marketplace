@@ -1,81 +1,77 @@
 'use client';
 
-// Kasparex vBlog Rewards - Unified with Magazines for curated publishing
-
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { KREX_TIERS } from '@/lib/rewards/types';
+import { getKrexTierUi } from '@/lib/rewards/tierUi';
 import { TierBadge } from '@/components/rewards/TierBadge';
-
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
+import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 
 export function VBlogRewardsSection() {
-    const { balance: krexBalance, tier: krexTier } = useKREXBalance();
-    const { nftStatus } = useNFTStatus();
-    const pricing = useVBlogPricing();
+  const { balance: krexBalance, tier: krexTier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  const pricing = useVBlogPricing();
 
-    const currentTier = KREX_TIERS[krexTier];
-    const hasDiscount = pricing.tier.hasKREXDiscount || pricing.tier.hasNFTPerks;
+  const currentTier = KREX_TIERS[krexTier];
+  const tierUi = getKrexTierUi(krexTier);
+  const hasDiscount = pricing.tier.hasKREXDiscount || pricing.tier.hasNFTPerks;
+  const discountPercent = pricing.tier.krexDiscountPercent;
 
-    return (
-        <div className="mt-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl">
-            <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-[#02abb8]/5 to-teal-500/5 dark:from-[#02abb8]/10 dark:to-teal-500/10 flex items-center justify-between">
-                <div>
-                    <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1">Author Rewards & Discounts</h3>
-                    <p className="text-zinc-500 text-xs">Maximize your earnings through KREX and NFT ownership.</p>
-                </div>
-                <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-100 dark:bg-zinc-800">
-                {/* Cost Reduction */}
-                <div className="p-6 bg-white dark:bg-zinc-900">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Publication Discount</h4>
-                    </div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-zinc-900 dark:text-white">{hasDiscount ? 'Enabled' : '0%'}</span>
-                        {hasDiscount && (
-                            <span className="text-sm font-bold text-emerald-500">KREX Tier {currentTier.label.split(' ')[1]}</span>
-                        )}
-                    </div>
-                    <p className="text-xs text-zinc-500 leading-relaxed">
-                        Your on-chain creation fee is reduced based on your KREX tier.
-                        {krexBalance === 0 && ' Hold 10M+ KREX to unlock discounts.'}
-                    </p>
-                </div>
-
-                {/* Magazine Revenue Share */}
-                <div className="p-6 bg-white dark:bg-zinc-900">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-[#02abb8]/10 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Mag Potential Share</h4>
-                    </div>
-                    <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-zinc-900 dark:text-white">100% Transparency</span>
-                    </div>
-                    <p className="text-xs text-zinc-500 leading-relaxed">
-                        When linked to a magazine, authors receive a direct share of community-driven revenue. Verified by Kaspa GHOSTDAG on-chain settlement.
-                    </p>
-                </div>
-            </div>
-
-            {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) && (
-                <div className="p-4 bg-[#02abb8]/5 border-t border-zinc-100 dark:border-zinc-800 text-center">
-                    <span className="text-xs font-bold text-[#02abb8] dark:text-[#66dfe8]">
-                        NFT Multiplier Active: You qualify for premium text limits and enhanced on-chain visibility.
-                    </span>
-                </div>
-            )}
+  return (
+    <section className={`${CHRONICLES_PANEL} overflow-hidden`}>
+      <div className={`border-b border-zinc-200 dark:border-zinc-800 px-5 py-5 sm:px-6 sm:py-6 ${tierUi.panel}`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <DAppSectionHeader title="Author Rewards & Discounts" className="mb-3" />
+            <p className="kx-body max-w-2xl">
+              Maximize your earnings through KREX holdings and NFT ownership. Tier perks apply to publication fees and Hub Points on create actions.
+            </p>
+          </div>
+          <TierBadge tier={krexTier} isUnlocked={krexBalance > 0} className="shrink-0" />
         </div>
-    );
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-100 dark:bg-zinc-800">
+        <div className="p-5 sm:p-6 bg-white dark:bg-zinc-900">
+          <DAppSectionHeader title="Publication discount" className="mb-4" />
+          <div className="flex flex-wrap items-baseline gap-2 mb-3">
+            <span className="text-3xl font-black text-zinc-900 dark:text-white tabular-nums">
+              {hasDiscount ? `${discountPercent}%` : '0%'}
+            </span>
+            {hasDiscount ? (
+              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${tierUi.badge}`}>
+                {currentTier.label}
+              </span>
+            ) : null}
+          </div>
+          <p className="kx-body-sm">
+            Your on-chain creation fee is reduced based on your KREX tier
+            {krexTier !== 'Tier0' ? ` (${formatHubPointsTierLabel(krexTier)} Hub Points multiplier).` : '.'}
+            {krexBalance === 0 ? ' Hold 1M+ KREX to unlock discounts.' : null}
+          </p>
+        </div>
+
+        <div className="p-5 sm:p-6 bg-white dark:bg-zinc-900">
+          <DAppSectionHeader title="Magazine revenue share" className="mb-4" />
+          <div className="flex flex-wrap items-baseline gap-2 mb-3">
+            <span className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white">100% transparency</span>
+          </div>
+          <p className="kx-body-sm">
+            When linked to a magazine, authors receive a direct share of community-driven revenue. Verified by Kaspa GHOSTDAG on-chain settlement.
+          </p>
+        </div>
+      </div>
+
+      {nftStatus && (nftStatus.hasKREXPRIME || nftStatus.hasPIXELKREX) ? (
+        <div className="px-5 py-4 sm:px-6 border-t border-zinc-200 dark:border-zinc-800 bg-[#02abb8]/5 text-center">
+          <p className="kx-body-sm font-semibold text-[#02abb8] dark:text-[#66dfe8]">
+            NFT multiplier active: premium text limits and enhanced on-chain visibility.
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
 }

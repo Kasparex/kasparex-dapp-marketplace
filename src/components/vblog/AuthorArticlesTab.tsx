@@ -42,12 +42,9 @@ export function AuthorArticlesTab({ article, allArticles }: AuthorArticlesTabPro
   return (
     <div id="article-author-posts" className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">More from this author</p>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {authorArticles.length} other {authorArticles.length === 1 ? 'article' : 'articles'} by this creator
-          </p>
-        </div>
+        <p className="kx-body text-zinc-500 dark:text-zinc-400">
+          {authorArticles.length} other {authorArticles.length === 1 ? 'article' : 'articles'} by this creator
+        </p>
         <div className="w-full sm:w-48">
           <KxFormSelect
             value={sort}

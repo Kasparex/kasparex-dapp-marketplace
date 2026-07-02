@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { SidebarSection } from './SidebarSection';
 
 export interface SidebarTagsProps {
@@ -10,7 +10,14 @@ export interface SidebarTagsProps {
   selectedTags: string[];
   onToggle: (tag: string) => void;
   className?: string;
+  /**
+   * When set and `tags.length` exceeds this value, show only the first N tags
+   * plus a Load more / Show less control (same pattern as Categories).
+   */
+  collapsedItemCount?: number;
 }
+
+const DEFAULT_COLLAPSED_TAG_COUNT = 22;
 
 export function SidebarTags({
   title = 'Popular Tags',
@@ -19,12 +26,20 @@ export function SidebarTags({
   selectedTags,
   onToggle,
   className = '',
+  collapsedItemCount = DEFAULT_COLLAPSED_TAG_COUNT,
 }: SidebarTagsProps) {
+  const [expanded, setExpanded] = useState(false);
+
   if (tags.length === 0) return null;
+
+  const needsCollapse = collapsedItemCount != null && tags.length > collapsedItemCount;
+  const visibleTags = needsCollapse && !expanded ? tags.slice(0, collapsedItemCount!) : tags;
+  const hiddenCount = needsCollapse ? tags.length - collapsedItemCount! : 0;
+
   return (
     <SidebarSection title={title} className={className}>
       <div className="flex flex-wrap gap-2 px-1">
-        {tags.map((tag) => {
+        {visibleTags.map((tag) => {
           const isSelected = selectedTags.includes(tag);
           return (
             <button
@@ -42,6 +57,15 @@ export function SidebarTags({
           );
         })}
       </div>
+      {needsCollapse ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mb-0 mt-2 w-full k-control-btn"
+        >
+          {expanded ? 'Show less' : `Load more (${hiddenCount})`}
+        </button>
+      ) : null}
     </SidebarSection>
   );
 }

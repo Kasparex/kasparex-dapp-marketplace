@@ -24,6 +24,7 @@ import {
   type VBlogSortOption,
 } from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 export default function VBlogPage() {
   return (
@@ -102,13 +103,14 @@ function VBlogPageInner() {
 
               <div id="content" className="scroll-mt-4" />
 
+              <div className="mb-6">
+                <DAppSectionHeader title="Available Articles" />
+                <p className="kx-body -mt-2">
+                  Browse on-chain articles from Kasparex and community authors.
+                </p>
+              </div>
+
               <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">Available articles</h2>
-                  <p className="kx-body">
-                    {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
-                  </p>
-                </div>
                 <VBlogDashboardBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
               </div>
 
@@ -154,6 +156,12 @@ function VBlogPageInner() {
                     ))}
                   </div>
                 ) : null}
+              </div>
+
+              <div className="mb-6">
+                <DAppSectionHeader
+                  title={`${filteredArticles.length} Article${filteredArticles.length !== 1 ? 's' : ''} Found`}
+                />
               </div>
 
               {isLoading ? (

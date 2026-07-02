@@ -9,6 +9,7 @@ import { Avatar } from '@/components/Avatar';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
+import { VBlogReaderBenefitsPanel } from '@/components/vblog/VBlogReaderBenefitsPanel';
 import { vBlogSocialLinkUrl } from '@/lib/vblog/socialLinks';
 import type { VBlogSocialLink } from '@/lib/vblog/types';
 import { getSocialLinkIconMeta } from '@/lib/socialLinkIcons';
@@ -31,11 +32,9 @@ function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; lab
 
 function MetadataRow({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/50 px-4 py-3">
-      <dt className="text-[10px] font-black uppercase tracking-wider text-zinc-500 mb-1.5">{label}</dt>
-      <dd className={`text-sm text-zinc-800 dark:text-zinc-200 break-all ${mono ? 'font-mono text-[12px] leading-relaxed' : 'font-semibold'}`}>
-        {value}
-      </dd>
+    <div>
+      <dt className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-1">{label}</dt>
+      <dd className={`kx-body break-all ${mono ? 'font-mono text-sm leading-relaxed' : ''}`}>{value}</dd>
     </div>
   );
 }
@@ -283,5 +282,5 @@ export function ArticleSidebar({
     });
   }
 
-  return <VBlogArticleAside sections={sections} />;
+  return <VBlogArticleAside topContent={<VBlogReaderBenefitsPanel />} sections={sections} />;
 }

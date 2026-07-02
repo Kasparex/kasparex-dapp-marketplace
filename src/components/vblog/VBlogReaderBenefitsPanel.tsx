@@ -1,31 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { computeEarnedHubPoints, formatHubPointsTierLabel, KREX_TIER_PERKS_ROWS } from '@/lib/rewards/hub-points';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { balanceToKrexVisualTier, KREX_TIER_UI } from '@/lib/rewards/tierUi';
+import { getVBlogModuleCombinedDiscountPercent } from '@/lib/vblog/modules';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
-function formatKrexMillions(balance: number): string {
-  if (balance >= 1_000_000) {
-    return `${(balance / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 })}M`;
-  }
-  return balance.toLocaleString(undefined, { maximumFractionDigits: 0 });
-}
-
-function CreatorPerksTooltipContent() {
+function ReaderPerksTooltipContent() {
   return (
     <div className="space-y-2 text-left max-w-sm">
-      <p className="font-semibold text-zinc-900 dark:text-zinc-100">KREX tier perks</p>
+      <p className="font-semibold text-zinc-900 dark:text-zinc-100">Reader tier perks</p>
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-zinc-300/80 dark:border-zinc-600">
             <th className="pb-1 pr-2 text-left font-semibold">KREX held</th>
-            <th className="pb-1 pr-2 text-left font-semibold">Fee discount</th>
+            <th className="pb-1 pr-2 text-left font-semibold">Module discount</th>
             <th className="pb-1 text-left font-semibold">Hub Points</th>
           </tr>
         </thead>
@@ -45,104 +39,60 @@ function CreatorPerksTooltipContent() {
   );
 }
 
-export function VBlogDashboardBenefitsPanel({
-  className = '',
-  variant = 'panel',
-}: {
-  className?: string;
-  variant?: 'panel' | 'compact';
-}) {
-  const pricing = useVBlogPricing();
-  const { balance: krexBalance, tier } = useKREXBalance();
-  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+function formatKrexMillions(balance: number): string {
+  if (balance >= 1_000_000) {
+    return `${(balance / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 })}M`;
+  }
+  return balance.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
 
-  const discountPercent = pricing.tier.krexDiscountPercent;
-  const publishPts = computeEarnedHubPoints(HUB_EARN_POINTS.vblogArticleCreate, tier);
+export function VBlogReaderBenefitsPanel({ className = '' }: { className?: string }) {
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
 
   const visualTier = balanceToKrexVisualTier(krexBalance);
   const ui = KREX_TIER_UI[visualTier];
   const tierLabel = KREX_TIERS[tier].label;
+  const moduleDiscount = getVBlogModuleCombinedDiscountPercent(tier, nftStatus);
+  const tipPts = computeEarnedHubPoints(HUB_EARN_POINTS.vblogTip, tier);
+  const unlockPts = computeEarnedHubPoints(HUB_EARN_POINTS.vblogPremiumUnlock, tier);
 
   const buyKrexButtonClass =
     'shrink-0 k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]';
 
-  if (variant === 'compact') {
-    const feePerk =
-      discountPercent > 0 ? `${discountPercent}% discount` : 'Hold 1M+ KREX for a discount';
-    const pointsPerk =
-      tier !== 'Tier0' ? `Multiplier (${formatHubPointsTierLabel(tier)})` : 'No multiplier';
-
-    return (
-      <>
-        <TooltipProvider>
-          <aside
-            className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
-            aria-label="Benefits. Hover for KREX tier details."
-          >
-            <Tooltip content={<CreatorPerksTooltipContent />}>
-              <div className="flex items-center gap-2 min-w-0 cursor-help">
-                <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
-                  Benefits
-                </span>
-                <span
-                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}
-                >
-                  {ui.label}
-                </span>
-                <span className="hidden md:inline text-[13px] leading-none text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
-                  {feePerk}
-                </span>
-                <span className="hidden lg:inline text-[13px] leading-none text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
-                  {pointsPerk}
-                </span>
-                <span className={`hidden sm:inline text-[13px] leading-none font-semibold whitespace-nowrap ${ui.accent}`}>
-                  {formatKrexMillions(krexBalance)} KREX
-                </span>
-              </div>
-            </Tooltip>
-            <button
-              type="button"
-              onClick={() => setIsKrexWizardOpen(true)}
-              className={`${buyKrexButtonClass} !h-auto !py-1 !px-3 !text-xs !font-bold`}
-            >
-              Buy KREX
-            </button>
-          </aside>
-        </TooltipProvider>
-        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
-      </>
-    );
-  }
-
   return (
     <>
       <TooltipProvider>
-        <Tooltip content={<CreatorPerksTooltipContent />}>
+        <Tooltip content={<ReaderPerksTooltipContent />}>
           <aside
             className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
-            aria-label="Creator perks. Hover for KREX tier details."
+            aria-label="Reader benefits. Hover for KREX tier details."
           >
             <div className="flex items-center justify-between gap-2 mb-2">
               <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#02abb8] dark:text-[#66dfe8]">
-                Creator perks
+                Benefits
               </p>
               <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
                 {ui.label}
               </span>
             </div>
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
-              Hold KREX. Pay Less. Earn More.
+              Hold KREX. Unlock for Less. Earn More.
             </h2>
             <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
               <li>
                 <span className={ui.accent}>•</span>{' '}
-                {discountPercent > 0
-                  ? `${discountPercent}% off vBlog fees (${tierLabel})`
-                  : 'Stack 1M+ KREX for 2% off fees'}
+                {moduleDiscount > 0
+                  ? `${moduleDiscount}% off premium modules (${tierLabel})`
+                  : 'Stack 1M+ KREX for module discounts'}
               </li>
               <li>
-                <span className={ui.accent}>•</span> Publish earns +{publishPts} Hub Points at your tier
+                <span className={ui.accent}>•</span> Tips earn +{tipPts} Hub Points at your tier
                 {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
+              </li>
+              <li>
+                <span className={ui.accent}>•</span> Premium unlocks earn +{unlockPts} Hub Points
               </li>
             </ul>
             <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>

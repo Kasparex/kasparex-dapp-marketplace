@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
-import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
+import { CHRONICLES_PANEL, CHRONICLES_PANEL_BODY } from '@/lib/chronicles/typography';
 
 export type VBlogAsideLink = { href: string; label: string; sublabel?: string; openInNewTab?: boolean };
 
@@ -14,23 +14,30 @@ export type VBlogAsideSection = {
   rawBody?: boolean;
 };
 
-export function VBlogArticleAside({ sections }: { sections: VBlogAsideSection[] }) {
+export function VBlogArticleAside({
+  sections,
+  topContent,
+}: {
+  sections: VBlogAsideSection[];
+  topContent?: ReactNode;
+}) {
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
     <aside id="kasparex-vblog-side-panel" className="space-y-4 lg:sticky lg:top-6 self-start">
+      {topContent}
       {filtered.map((sec) => (
-        <div key={sec.title} className={`${CHRONICLES_PANEL} p-5 sm:p-6`}>
-          <DAppSectionHeader title={sec.title} className="mb-4" />
+        <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>
+          <DAppSectionHeader title={sec.title} className="mb-3" />
           {sec.body ? (
             sec.rawBody ? (
               <div className="space-y-3">{sec.body}</div>
             ) : (
-              <div className="text-base text-zinc-600 dark:text-zinc-400 leading-8 space-y-3">{sec.body}</div>
+              <div className={CHRONICLES_PANEL_BODY}>{sec.body}</div>
             )
           ) : null}
           {sec.links && sec.links.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {sec.links.map((l) => (
                 <li key={`${l.href}-${l.label}`}>
                   <Link
@@ -41,7 +48,9 @@ export function VBlogArticleAside({ sections }: { sections: VBlogAsideSection[] 
                   >
                     {l.label}
                   </Link>
-                  {l.sublabel ? <span className="block kx-body mt-1 leading-relaxed">{l.sublabel}</span> : null}
+                  {l.sublabel ? (
+                    <span className="block kx-body mt-0.5 leading-relaxed">{l.sublabel}</span>
+                  ) : null}
                 </li>
               ))}
             </ul>
