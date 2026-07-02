@@ -1,6 +1,7 @@
 'use client';
 
 import type { VBlogPollVote } from '@/lib/vblog/modules';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 type VBlogPremiumPollProps = {
   question: string;
@@ -38,11 +39,9 @@ export function VBlogPremiumPoll({
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-gradient-to-b from-zinc-50/80 to-white dark:from-zinc-900/60 dark:to-zinc-900 p-5 sm:p-6 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] dark:text-[#66dfe8]">
-            Reader poll
-          </p>
-          <p className="mt-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug">
+        <div className="min-w-0">
+          <DAppSectionHeader title="Reader poll" className="mb-2" />
+          <p className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug">
             {question}
           </p>
         </div>

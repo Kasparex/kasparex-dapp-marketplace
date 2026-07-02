@@ -50,6 +50,7 @@ import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
@@ -97,6 +98,7 @@ export function ArticleDetail({
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showConnectWallet, setShowConnectWallet] = useState(false);
   const [customTipKas, setCustomTipKas] = useState('25');
   const [actionError, setActionError] = useState<string | null>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
@@ -138,6 +140,11 @@ export function ArticleDetail({
   const premiumPricing = useMemo(
     () => computeVBlogReaderPaymentSplit(premiumListKas, krexTier, nftStatus),
     [premiumListKas, krexTier, nftStatus],
+  );
+
+  const premiumPayoutSplits = useMemo(
+    () => resolvePremiumPayoutSplits(article.modules, article.author),
+    [article.modules, article.author],
   );
 
   const creditReaderEarn = (
@@ -500,7 +507,14 @@ export function ArticleDetail({
                         tier={krexTier}
                         isProcessing={isProcessingAction}
                         isWalletConnected={kaspaState.isConnected}
-                        onUnlock={() => void handlePremiumUnlock()}
+                        payoutSplits={premiumPayoutSplits}
+                        onUnlock={() => {
+                          if (!kaspaState.isConnected) {
+                            setShowConnectWallet(true);
+                            return;
+                          }
+                          void handlePremiumUnlock();
+                        }}
                       />
                     ) : null}
                   </div>
@@ -525,7 +539,7 @@ export function ArticleDetail({
                     <DAppSectionHeader title="Modules" className="mb-2" />
                     {article.modules?.tipToRevealEnabled ? (
                       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Tip-to-Reveal Bonus</p>
+                        <DAppSectionHeader title="Tip-to-Reveal bonus" className="mb-0" />
                         {!tipRevealEntitled ? (
                           <p className="mt-3 kx-body">Tip at least {article.modules.tipToRevealThresholdKas} KAS to reveal bonus content.</p>
                         ) : (
@@ -552,7 +566,7 @@ export function ArticleDetail({
 
                     {article.modules?.readingReceiptsEnabled ? (
                       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#02abb8]">Reading receipts + badges</p>
+                        <DAppSectionHeader title="Reading receipts + badges" className="mb-0" />
                         <p className="mt-2 kx-body">Current streak: {receiptBadge.streak} day(s) | Badge: {receiptBadge.badge}</p>
                         <p className="mt-1 text-xs text-zinc-500">On-chain receipt cost: 1 KAS</p>
                         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -635,6 +649,19 @@ export function ArticleDetail({
           index={0}
           onClose={() => setFeaturedLightboxOpen(false)}
           onNavigate={() => {}}
+        />
+      ) : null}
+
+      {showConnectWallet ? (
+        <HubWalletGateModal
+          isOpen
+          onClose={() => setShowConnectWallet(false)}
+          title="Wallet required"
+          name="Premium content"
+          message="Connect your Kaspa L1 wallet to unlock this premium content."
+          networkBadge={{ layer: 'L1', label: 'Kaspa' }}
+          showL1Connect
+          showEvmConnect={false}
         />
       ) : null}
     </article>
