@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface FilterBarSearchProps {
   value: string;
@@ -54,9 +55,11 @@ export function FilterBar({
       </div>
       {children}
       {onReset != null && (
-        <button type="button" onClick={onReset} className="k-control-btn whitespace-nowrap shrink-0">
-          {resetLabel}
-        </button>
+        <Tooltip content="Reset all filters">
+          <button type="button" onClick={onReset} className="k-control-btn whitespace-nowrap shrink-0">
+            {resetLabel}
+          </button>
+        </Tooltip>
       )}
     </div>
   );

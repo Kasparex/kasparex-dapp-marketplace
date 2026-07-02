@@ -3,7 +3,6 @@
 import { DApp, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useDAppXpReward } from '@/hooks/useDAppXpReward';
 import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -15,9 +14,8 @@ import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
-import { Avatar } from '@/components/Avatar';
-import { formatAddress } from '@/lib/vblog/utils';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -34,11 +32,9 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const xpReward = useDAppXpReward(mergedDApp);
   const isDirectoryListing = isDirectoryListingDApp(mergedDApp);
-  const isWalletDeveloper = Boolean(mergedDApp.developer?.startsWith('0x'));
-  const authorName = isWalletDeveloper
-    ? formatAddress(mergedDApp.developer)
-    : mergedDApp.developer || 'Unknown';
-  const authorSeed = mergedDApp.deployerAddress || mergedDApp.developer || mergedDApp.id;
+  const authorWallet =
+    mergedDApp.deployerAddress ||
+    (mergedDApp.developer?.startsWith('0x') ? mergedDApp.developer : null);
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(mergedDApp.id);
@@ -107,20 +103,21 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                     </span>
                   ) : null}
                   {!isDirectoryListing ? (
-                    <KxHubPtsBadge
-                      label={`${formatLargeNumber(xpReward)} PTS`}
-                      title="Hub Points earned on your first action"
-                    />
+                    <HubPointsEarnBadge points={xpReward} size="sm" />
                   ) : null}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 mt-1.5">
-                <Avatar address={authorSeed} size={20} className="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
-                <span className="min-w-0 truncate">
-                  by <span className="font-semibold text-zinc-700 dark:text-zinc-300">{authorName}</span>
-                </span>
-              </div>
+              {authorWallet ? (
+                <AuthorInline address={authorWallet} href={`/u/${encodeURIComponent(authorWallet)}`} className="mt-1.5" />
+              ) : (
+                <AuthorInline
+                  address={mergedDApp.developer || mergedDApp.name}
+                  displayName={mergedDApp.developer || 'Unknown'}
+                  href={null}
+                  className="mt-1.5"
+                />
+              )}
             </div>
           </div>
 

@@ -5,7 +5,6 @@ import {
   chroniclesNftTierDiscountPercent,
   krexTierDiscountPercent,
 } from '@/lib/chronicles/vault/pricing';
-import { VAULT_MAX_COMBINED_DISCOUNT_PERCENT } from '@/lib/chronicles/vault/constants';
 
 export type VBlogModuleOffer = {
   id: VBlogModuleId;
@@ -102,12 +101,12 @@ export function getVBlogModuleNftDiscountPercent(nft: NFTStatus | null | undefin
 
 export function getVBlogModuleCombinedDiscountPercent(
   tier: KREXTier,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   nft: NFTStatus | null | undefined,
 ): number {
-  return Math.min(
-    VAULT_MAX_COMBINED_DISCOUNT_PERCENT,
-    getVBlogModuleDiscountPercent(tier) + getVBlogModuleNftDiscountPercent(nft),
-  );
+  // Unified discount: vBlog reader/premium unlocks use the same standard KREX tier
+  // discount shown in the Benefits module and tier table (2 / 5 / 50 / 80%).
+  return getVBlogModuleDiscountPercent(tier);
 }
 
 export function getVBlogModuleEffectivePriceKas(

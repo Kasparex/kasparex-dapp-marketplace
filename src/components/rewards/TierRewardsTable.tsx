@@ -29,12 +29,6 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
   const hasKREX = krexBalance >= KREX_TIERS.Tier1.minKREX;
   const effectiveTier = hasKREX ? currentTier : null;
 
-  // KREX tier table is KREX-only (do not include NFT reductions here).
-  const baseFee = 1.0;
-  const calculateActualFee = (tier: typeof tiers[0]) => {
-    return Math.max(0, baseFee * (1 - tier.feeDiscountPercent / 100));
-  };
-
   // Define benefit rows with icons and tooltips
   const benefitRows = [
     { 
@@ -59,7 +53,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
     },
     { 
       id: 'feeReduction', 
-      label: 'Fee Reduction', 
+      label: 'Discount', 
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -117,12 +111,10 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
         return tier.multiplier > 0 ? `${tier.multiplier}x` : 'None';
       case 'feeReduction':
         if (tier.feeDiscountPercent <= 0) return 'None';
-        const actualFee = calculateActualFee(tier);
         return (
-          <div className="flex items-center justify-center gap-2">
-            <span className="line-through text-zinc-400">{baseFee.toFixed(2)}%</span>
-            <span className="text-green-600 dark:text-green-400">{actualFee.toFixed(2)}%</span>
-          </div>
+          <span className="font-semibold text-green-600 dark:text-green-400">
+            {tier.feeDiscountPercent}%
+          </span>
         );
       case 'pointsMultiplier':
         return formatHubPointsTierLabel(tier.tier);
@@ -147,7 +139,7 @@ export function TierRewardsTable({ currentTier, krexBalance }: TierRewardsTableP
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <table className="w-full border-collapse min-w-[600px]">
           <thead>
             <tr className="bg-zinc-50/30 dark:bg-zinc-900/30">

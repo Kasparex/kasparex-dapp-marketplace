@@ -3,11 +3,11 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { VBlogArticle } from '@/lib/vblog/types';
-import { formatAddress, formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
+import { formatDate, getArticleExcerpt } from '@/lib/vblog/utils';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
-import { Avatar } from '@/components/Avatar';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 
 function CategoryIcon() {
   return (
@@ -67,8 +67,11 @@ export function VBlogArticleCompact({ articles }: { articles: VBlogArticle[] }) 
           <div className="flex-1 min-w-0">
             <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{article.title}</h3>
             <div className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-              <Avatar address={article.author} size={16} className="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
-              <span className="truncate">by {formatAddress(article.author)}</span>
+              <AuthorInline
+                address={article.author}
+                href={`/u/${encodeURIComponent(article.author)}?tab=my-articles`}
+                size={16}
+              />
               <span aria-hidden>•</span>
               <span className="truncate">{article.category}</span>
             </div>
@@ -142,7 +145,7 @@ export function VBlogArticleTable({ articles }: { articles: VBlogArticle[] }) {
   if (articles.length === 0) return <EmptyState />;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+    <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
       <table className="w-full border-collapse min-w-[760px]">
         <thead>
           <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
@@ -183,16 +186,12 @@ export function VBlogArticleTable({ articles }: { articles: VBlogArticle[] }) {
                 </Link>
               </td>
               <td className="py-3 px-4">
-                <Link
+                <AuthorInline
+                  address={article.author}
                   href={`/u/${encodeURIComponent(article.author)}?tab=my-articles`}
-                  className="flex items-center gap-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Avatar address={article.author} size={20} className="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors">
-                    {formatAddress(article.author)}
-                  </span>
-                </Link>
+                  prefix=""
+                  className="text-sm"
+                />
               </td>
               <td className="py-3 px-4">
                 <KxListingCategoryChip icon={<CategoryIcon />} className="shrink-0">

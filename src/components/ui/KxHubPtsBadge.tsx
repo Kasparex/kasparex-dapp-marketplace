@@ -1,15 +1,9 @@
-function HubPtsIcon({ className = 'h-3.5 w-3.5' }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  );
-}
+import { HubPointsLightningIcon } from '@/components/hub/HubPointsEarnBadge';
 
-const HUB_PTS_BADGE_CLASS =
-  'inline-flex items-center gap-1 shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300';
-
-/** Hub PTS reward badge only (bordered emerald styling, not used for general tags). */
+/**
+ * Hub Points reward badge. Unified borderless style (lightning icon + emerald text),
+ * matching the standard used in the vBlog publishing fee box and across the Hub.
+ */
 export function KxHubPtsBadge({
   points,
   label,
@@ -23,8 +17,11 @@ export function KxHubPtsBadge({
   className?: string;
 }) {
   return (
-    <span className={`${HUB_PTS_BADGE_CLASS} ${className}`.trim()} title={title}>
-      <HubPtsIcon />
+    <span
+      className={`inline-flex items-center gap-1 shrink-0 text-xs font-bold tabular-nums text-emerald-600 dark:text-emerald-400 ${className}`.trim()}
+      title={title}
+    >
+      <HubPointsLightningIcon className="h-3.5 w-3.5 shrink-0" />
       {label ?? `${points ?? 0} PTS`}
     </span>
   );

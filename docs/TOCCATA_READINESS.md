@@ -65,3 +65,7 @@ Hub users rely on wallet fee estimation for standard sends; covenant runtime del
 ## Reference KIPs
 
 [KIP-16](https://github.com/kaspanet/kips/blob/master/kip-0016.md), [KIP-17](https://github.com/kaspanet/kips/blob/master/kip-0017.md), [KIP-20](https://github.com/kaspanet/kips/blob/master/kip-0020.md), [KIP-21](https://github.com/kaspanet/kips/blob/master/kip-0021.md)
+
+## Fungible tokens on L1 (KCC20)
+
+Optional covenant token interface (not required for non-token covenants): [KCC20_SPEC.md](./KCC20_SPEC.md)

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type SortOption =
   | 'newest'
@@ -105,16 +106,18 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
       ) : null}
 
       <div className="relative flex-shrink-0 overflow-visible" ref={sortContainerRef}>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="k-control-btn min-w-[160px]"
-        >
-          <span className="truncate">{currentLabel}</span>
-          <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        <Tooltip content="Sort">
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="k-control-btn min-w-[160px]"
+          >
+            <span className="truncate">{currentLabel}</span>
+            <svg className="w-4 h-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </Tooltip>
 
         {isOpen && (
           <div
@@ -142,6 +145,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
         )}
       </div>
 
+      <Tooltip content={isFavoritesActive ? 'Show all' : 'Show favorites'}>
       <button
         onClick={() => {
           onSortChange(isFavoritesActive ? 'newest' : 'favorites');
@@ -151,7 +155,6 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
             ? 'bg-yellow-100 dark:bg-yellow-900/30 !border-yellow-300 dark:!border-yellow-700 text-yellow-600 dark:text-yellow-400'
             : ''
         }`}
-        title={isFavoritesActive ? 'Show All' : 'Show Favorites'}
         aria-label={isFavoritesActive ? 'Show All' : 'Show Favorites'}
       >
         <div className="relative flex items-center justify-center">
@@ -171,6 +174,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
           )}
         </div>
       </button>
+      </Tooltip>
     </div>
   );
 }

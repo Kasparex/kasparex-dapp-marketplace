@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { VBlogMagazineFilter, VBlogSortOption } from '@/lib/vblog/listing';
 import type { VBlogSourceFilter } from '@/lib/vblog/source';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type { VBlogSortOption } from '@/lib/vblog/listing';
 
@@ -79,13 +80,15 @@ function FilterDropdownButton({
   isOpen,
   onClick,
   active,
+  tooltip,
 }: {
   label: string;
   isOpen: boolean;
   onClick: () => void;
   active?: boolean;
+  tooltip?: string;
 }) {
-  return (
+  const button = (
     <button
       type="button"
       onClick={onClick}
@@ -97,6 +100,7 @@ function FilterDropdownButton({
       </svg>
     </button>
   );
+  return tooltip ? <Tooltip content={tooltip}>{button}</Tooltip> : button;
 }
 
 function FilterDropdownMenu({ children }: { children: ReactNode }) {
@@ -150,6 +154,7 @@ function VBlogFilterDropdown<T extends string>({
         isOpen={isOpen}
         onClick={() => setIsOpen((open) => !open)}
         active={isActive}
+        tooltip={`Filter by ${label.toLowerCase()}`}
       />
       {isOpen ? (
         <FilterDropdownMenu>
@@ -178,7 +183,7 @@ export function VBlogSortFilters({ sortBy, onSortChange }: VBlogSortFiltersProps
 
   return (
     <div className="relative flex-shrink-0 overflow-visible min-w-[170px]" ref={ref}>
-      <FilterDropdownButton label={currentLabel} isOpen={isOpen} onClick={() => setIsOpen((open) => !open)} />
+      <FilterDropdownButton label={currentLabel} isOpen={isOpen} onClick={() => setIsOpen((open) => !open)} tooltip="Sort" />
       {isOpen ? (
         <FilterDropdownMenu>
           {SORT_OPTIONS.map((option) => (

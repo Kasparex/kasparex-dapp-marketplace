@@ -179,7 +179,7 @@ export function EVMWalletButton() {
           aria-label="EVM Wallet"
         >
           {/* Network badge (opens chain switcher) */}
-          <Tooltip content={gameTooltipRich('L2 network', 'Opens the chain switcher so you can pick the correct Layer-2 network.')}>
+          <Tooltip content={gameTooltipRich('L2 network', 'Switch Layer-2 network.')}>
             <span
               role="button"
               tabIndex={0}
@@ -412,8 +412,8 @@ export function EVMWalletButton() {
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{KREX_TIERS[krexTier].multiplier}x</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500 dark:text-zinc-400">Fee reduction</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">-{KREX_TIERS[krexTier].feeReduction}%</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Discount</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{KREX_TIERS[krexTier].feeDiscountPercent}%</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400">Hub pts</span>

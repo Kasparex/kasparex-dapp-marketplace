@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type MouseEvent } from 'react';
 import { useAccount } from 'wagmi';
@@ -11,7 +10,7 @@ import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
 import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
-import { Avatar } from '@/components/Avatar';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useVBlog } from '@/hooks/useVBlog';
 
@@ -170,19 +169,12 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
             {article.title}
           </h3>
-          <div className="mt-3.5 flex min-w-0 items-center gap-2 text-xs text-zinc-500">
-            <Avatar address={article.author} size={20} className="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
-            <span className="min-w-0 truncate">
-              by{' '}
-              <Link
-                href={authorHubUrl}
-                className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {authorDisplay}
-              </Link>
-            </span>
-          </div>
+          <AuthorInline
+            address={article.author}
+            displayName={authorDisplay}
+            href={authorHubUrl}
+            className="mt-3.5"
+          />
         </div>
 
         <p className="mb-4 line-clamp-2 text-base leading-7 text-zinc-600 dark:text-zinc-400">{excerpt}</p>
