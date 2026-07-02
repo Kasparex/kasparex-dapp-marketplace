@@ -101,11 +101,11 @@ export function getVBlogModuleNftDiscountPercent(nft: NFTStatus | null | undefin
 
 export function getVBlogModuleCombinedDiscountPercent(
   tier: KREXTier,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  nft: NFTStatus | null | undefined,
+  _nft?: NFTStatus | null | undefined,
 ): number {
   // Unified discount: vBlog reader/premium unlocks use the same standard KREX tier
   // discount shown in the Benefits module and tier table (2 / 5 / 50 / 80%).
+  void _nft;
   return getVBlogModuleDiscountPercent(tier);
 }
 
