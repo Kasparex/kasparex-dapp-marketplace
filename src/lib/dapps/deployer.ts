@@ -1,6 +1,37 @@
 'use client';
 
 import { useProfile } from '@/hooks/useProfile';
+import { getAdminAddresses } from '@/lib/admin';
+import type { DApp } from '@/lib/dapps';
+
+const PLACEHOLDER_DEVELOPER_NAMES = new Set(['kasparex', 'community', 'unknown', '']);
+
+/**
+ * Resolve the publisher/deployer of a dApp for the standard author credit.
+ *
+ * Priority for the wallet: community lister (submitterAddress) -> on-chain deployer ->
+ * developer field when it is a wallet -> the Kasparex owner wallet for official listings.
+ * `name` is only returned when a real custom developer name is set (overriding the address).
+ */
+export function resolveDAppAuthor(dapp: DApp): { wallet: string | null; name?: string } {
+  const developer = dapp.developer?.trim();
+  const officialDeployer =
+    dapp.source !== 'directory' ? getAdminAddresses()[0] ?? null : null;
+
+  const wallet =
+    dapp.directoryListing?.submitterAddress ||
+    dapp.deployerAddress ||
+    (developer && developer.startsWith('0x') ? developer : null) ||
+    officialDeployer ||
+    null;
+
+  const isPlaceholder =
+    !developer ||
+    developer.startsWith('0x') ||
+    PLACEHOLDER_DEVELOPER_NAMES.has(developer.toLowerCase());
+
+  return { wallet, name: isPlaceholder ? undefined : developer };
+}
 
 /**
  * Check if connected address matches deployer address

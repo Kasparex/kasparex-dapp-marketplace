@@ -16,6 +16,7 @@ import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { AuthorInline } from '@/components/ui/AuthorInline';
+import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -32,9 +33,7 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const xpReward = useDAppXpReward(mergedDApp);
   const isDirectoryListing = isDirectoryListingDApp(mergedDApp);
-  const authorWallet =
-    mergedDApp.deployerAddress ||
-    (mergedDApp.developer?.startsWith('0x') ? mergedDApp.developer : null);
+  const { wallet: authorWallet, name: authorCustomName } = resolveDAppAuthor(mergedDApp);
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(mergedDApp.id);
@@ -97,11 +96,6 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
                   {mergedDApp.name}
                 </h3>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {mergedDApp.source === 'directory' ? (
-                    <span className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 dark:text-amber-300">
-                      Community
-                    </span>
-                  ) : null}
                   {!isDirectoryListing ? (
                     <HubPointsEarnBadge points={xpReward} size="sm" />
                   ) : null}
@@ -109,11 +103,16 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
               </div>
 
               {authorWallet ? (
-                <AuthorInline address={authorWallet} href={`/u/${encodeURIComponent(authorWallet)}`} className="mt-1.5" />
+                <AuthorInline
+                  address={authorWallet}
+                  displayName={authorCustomName}
+                  href={`/u/${encodeURIComponent(authorWallet)}`}
+                  className="mt-1.5"
+                />
               ) : (
                 <AuthorInline
-                  address={mergedDApp.developer || mergedDApp.name}
-                  displayName={mergedDApp.developer || 'Unknown'}
+                  address={authorCustomName || mergedDApp.name}
+                  displayName={authorCustomName || 'Unknown'}
                   href={null}
                   className="mt-1.5"
                 />
