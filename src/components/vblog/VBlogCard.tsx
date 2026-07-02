@@ -114,14 +114,13 @@ export function VBlogCard({ article }: VBlogCardProps) {
           <VBlogArticleMetaBadges article={article} />
         </div>
 
-        {isAuthor || hasPremium ? (
+        {isAuthor ? (
           <div
             className="absolute top-2 right-2 z-20 flex items-center gap-1.5"
             onClick={stopCardNavigation}
             onMouseDown={stopCardNavigation}
           >
-            {hasPremium ? <VBlogPremiumBadge /> : null}
-            {isAuthor ? (
+            {
               confirmDelete ? (
               <>
                 <button
@@ -165,16 +164,19 @@ export function VBlogCard({ article }: VBlogCardProps) {
                 </button>
               </>
               )
-            ) : null}
+            }
           </div>
         ) : null}
       </KxListingCardMedia>
 
       <KxListingCardBody comfortable className="flex-1">
         <div className="mb-3.5 min-w-0">
-          <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
-            {article.title}
-          </h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+              {article.title}
+            </h3>
+            {hasPremium ? <VBlogPremiumBadge size="sm" className="mt-0.5 shrink-0" /> : null}
+          </div>
           <AuthorInline
             address={article.author}
             displayName={authorDisplay}

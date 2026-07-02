@@ -107,7 +107,7 @@ function VBlogPageInner() {
               <div id="content" className="scroll-mt-4" />
 
               <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 flex items-stretch gap-3 pl-3">
+                <div className="min-w-0 flex items-stretch gap-5">
                   <span
                     className="w-1 shrink-0 self-stretch rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
                     aria-hidden="true"

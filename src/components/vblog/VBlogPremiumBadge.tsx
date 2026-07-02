@@ -31,19 +31,23 @@ function UnlockIcon({ className = 'h-4 w-4' }: { className?: string }) {
 export function VBlogPremiumBadge({
   unlocked = false,
   className = '',
+  size = 'md',
   title = 'Includes premium content',
 }: {
   unlocked?: boolean;
   className?: string;
+  size?: 'sm' | 'md';
   title?: string;
 }) {
+  const padClass = size === 'sm' ? 'p-1' : 'p-1.5';
+  const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
   return (
     <span
       aria-label={title}
       title={title}
-      className={`inline-flex items-center justify-center rounded-lg border border-amber-400/60 bg-amber-50/90 p-1.5 text-amber-700 backdrop-blur-md dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
+      className={`inline-flex items-center justify-center rounded-lg border border-amber-400/60 bg-amber-50/90 ${padClass} text-amber-700 backdrop-blur-md dark:border-amber-300/40 dark:bg-amber-500/15 dark:text-amber-300 ${className}`.trim()}
     >
-      {unlocked ? <UnlockIcon /> : <LockIcon />}
+      {unlocked ? <UnlockIcon className={iconClass} /> : <LockIcon className={iconClass} />}
     </span>
   );
 }
