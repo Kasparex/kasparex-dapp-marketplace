@@ -128,36 +128,34 @@ export function VBlogDashboardBenefitsPanel({
 
   if (variant === 'compact') {
     const feePerk =
-      discountPercent > 0 ? `${discountPercent}% off fees` : 'Hold 1M+ KREX for fee discounts';
+      discountPercent > 0 ? `${discountPercent}% discount` : 'Hold 1M+ KREX for a discount';
     const pointsPerk =
-      tier !== 'Tier0'
-        ? `+${publishPts} Hub Points (${formatHubPointsTierLabel(tier)})`
-        : `+${publishPts} Hub Points`;
+      tier !== 'Tier0' ? `Multiplier (${formatHubPointsTierLabel(tier)})` : 'No multiplier';
 
     return (
       <>
         <TooltipProvider>
           <aside
-            className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
-            aria-label="Perks and benefits. Hover for KREX tier details."
+            className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
+            aria-label="Benefits. Hover for KREX tier details."
           >
             <Tooltip content={<CreatorPerksTooltipContent />}>
-              <div className="flex items-center gap-1.5 min-w-0 cursor-help">
-                <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
-                  Perks &amp; Benefits
+              <div className="flex items-center gap-2 min-w-0 cursor-help">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
+                  Benefits
                 </span>
                 <span
-                  className={`rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}
+                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}
                 >
                   {ui.label}
                 </span>
-                <span className="hidden md:inline text-[11px] leading-none text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
+                <span className="hidden md:inline text-[13px] leading-none text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
                   {feePerk}
                 </span>
-                <span className="hidden lg:inline text-[11px] leading-none text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                <span className="hidden lg:inline text-[13px] leading-none text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
                   {pointsPerk}
                 </span>
-                <span className={`hidden sm:inline text-[11px] leading-none font-semibold whitespace-nowrap ${ui.accent}`}>
+                <span className={`hidden sm:inline text-[13px] leading-none font-semibold whitespace-nowrap ${ui.accent}`}>
                   {formatKrexMillions(krexBalance)} KREX
                 </span>
               </div>
@@ -165,7 +163,7 @@ export function VBlogDashboardBenefitsPanel({
             <button
               type="button"
               onClick={() => setIsKrexWizardOpen(true)}
-              className={`${buyKrexButtonClass} !py-1 !px-2.5 !text-[11px] !font-bold`}
+              className={`${buyKrexButtonClass} !h-auto !py-1 !px-3 !text-xs !font-bold`}
             >
               Buy KREX
             </button>
