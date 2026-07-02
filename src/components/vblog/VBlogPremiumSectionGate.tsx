@@ -36,18 +36,18 @@ function PayoutSplitCapsules({ splits }: { splits: ResolvedPayoutSplit[] }) {
         {splits.map((split) => (
           <span
             key={split.address}
-            className="inline-flex items-center gap-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/60 pl-2.5 pr-1 py-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="inline-flex items-center gap-1 rounded-full border border-zinc-200/50 dark:border-zinc-700/40 bg-zinc-100/40 dark:bg-zinc-800/25 pl-2.5 pr-1 py-1 text-[11px] font-normal text-zinc-500 dark:text-zinc-400"
             title={split.address}
           >
             <span className="font-mono">{formatAddress(split.address)}</span>
-            <span className="font-bold tabular-nums text-[#02abb8] dark:text-[#66dfe8]">
+            <span className="font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
               {split.sharePercent}%
             </span>
             <span
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
               role="presentation"
-              className="inline-flex"
+              className="inline-flex opacity-70"
             >
               <KxCopyIconButton value={split.address} label="Copy split wallet address" />
             </span>
@@ -90,7 +90,7 @@ export function VBlogPremiumSectionGate({
   return (
     <div
       id="article-premium"
-      className={`relative h-[20rem] sm:h-[22rem] overflow-hidden ${PREMIUM_PREVIEW_FRAME_CLASS}`}
+      className={`relative h-[30rem] sm:h-[34rem] overflow-hidden ${PREMIUM_PREVIEW_FRAME_CLASS}`}
     >
       <div
         className="pointer-events-none select-none absolute inset-0 overflow-hidden blur-sm opacity-40 px-4 sm:px-5 py-6 sm:py-8"
@@ -111,11 +111,11 @@ export function VBlogPremiumSectionGate({
             triggerUnlock();
           }
         }}
-        className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-10 py-8 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center overflow-y-auto ${
+        className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-3.5 sm:gap-4 px-8 sm:px-12 py-12 sm:py-16 bg-white/92 dark:bg-zinc-950/92 backdrop-blur-xl text-center overflow-y-auto ${
           isProcessing ? 'cursor-wait' : 'cursor-pointer'
         }`}
       >
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#02abb8] dark:text-[#66dfe8] shrink-0">
+        <p className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#02abb8] dark:text-[#66dfe8] shrink-0">
           Premium Content
         </p>
 
