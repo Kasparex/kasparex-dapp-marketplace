@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { VBlogMagazineFilter, VBlogPremiumFilter, VBlogSortOption } from '@/lib/vblog/listing';
-import type { VBlogSourceFilter } from '@/lib/vblog/source';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export type { VBlogSortOption } from '@/lib/vblog/listing';
@@ -23,8 +22,6 @@ interface VBlogFilterDropdownProps<T extends string> {
 interface VBlogListingFiltersBarProps {
   sortBy: VBlogSortOption;
   onSortChange: (sort: VBlogSortOption) => void;
-  sourceFilter: VBlogSourceFilter;
-  onSourceFilterChange: (value: VBlogSourceFilter) => void;
   magazineFilter: VBlogMagazineFilter;
   onMagazineFilterChange: (value: VBlogMagazineFilter) => void;
   premiumFilter: VBlogPremiumFilter;
@@ -41,12 +38,6 @@ const SORT_OPTIONS: { value: VBlogSortOption; label: string }[] = [
   { value: 'category-az', label: 'Category (A-Z)' },
   { value: 'category-za', label: 'Category (Z-A)' },
   { value: 'magazine-first', label: 'Magazine issues first' },
-];
-
-const SOURCE_OPTIONS: { value: VBlogSourceFilter; label: string }[] = [
-  { value: 'all', label: 'All sources' },
-  { value: 'kasparex', label: 'Kasparex' },
-  { value: 'community', label: 'Community' },
 ];
 
 const MAGAZINE_OPTIONS: { value: VBlogMagazineFilter; label: string }[] = [
@@ -215,8 +206,6 @@ export function VBlogSortFilters({ sortBy, onSortChange }: VBlogSortFiltersProps
 export function VBlogListingFiltersBar({
   sortBy,
   onSortChange,
-  sourceFilter,
-  onSourceFilterChange,
   magazineFilter,
   onMagazineFilterChange,
   premiumFilter,
@@ -224,13 +213,6 @@ export function VBlogListingFiltersBar({
 }: VBlogListingFiltersBarProps) {
   return (
     <>
-      <VBlogFilterDropdown
-        label="Source"
-        value={sourceFilter}
-        options={SOURCE_OPTIONS}
-        onChange={onSourceFilterChange}
-        minWidth="170px"
-      />
       <VBlogFilterDropdown
         label="Magazine"
         value={magazineFilter}

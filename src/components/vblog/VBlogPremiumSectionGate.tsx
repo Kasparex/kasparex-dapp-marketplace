@@ -134,7 +134,13 @@ export function VBlogPremiumSectionGate({
         </div>
 
         <p className="text-sm sm:text-base font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed max-w-sm shrink-0">
-          Unlock to keep reading. Your payment goes directly to the author.
+          Unlock to keep reading.
+          <br />
+          Your payment goes directly to the author.
+        </p>
+
+        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed shrink-0">
+          Support independent writing on Kaspa. One unlock, full access.
         </p>
 
         <PayoutSplitCapsules splits={payoutSplits} />
