@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import type { VBlogArticle } from '@/lib/vblog/types';
-import { getMagazineIssueHref, getMagazineIssueLinkLabel } from '@/lib/magazines/routes';
+import { getMagazineIssueHref } from '@/lib/magazines/routes';
+import { getMagazineById } from '@/lib/magazines/data';
 import { formatAddress } from '@/lib/vblog/utils';
 import { getVBlogArticleSource } from '@/lib/vblog/source';
 import { Avatar } from '@/components/Avatar';
@@ -313,16 +314,29 @@ export function ArticleSidebar({
   ];
 
   if (article.linkedMagazineId && article.linkedIssueNumber) {
+    const magazine = getMagazineById(article.linkedMagazineId);
+    const issueHref = getMagazineIssueHref(article.linkedMagazineId, article.linkedIssueNumber);
     sections.unshift({
-      title: 'Magazine link',
-      links: [
-        {
-          href: getMagazineIssueHref(article.linkedMagazineId, article.linkedIssueNumber),
-          label: getMagazineIssueLinkLabel(article.linkedMagazineId, article.linkedIssueNumber),
-          sublabel: 'View magazine issue or catalog',
-          openInNewTab: true,
-        },
-      ],
+      title: 'Syndicated content',
+      rawBody: true as const,
+      body: (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
+              {magazine?.name ?? 'Kasparex Magazine'}
+            </p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Issue #{article.linkedIssueNumber}</p>
+          </div>
+          <Link
+            href={issueHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="k-control-btn text-xs shrink-0"
+          >
+            View
+          </Link>
+        </div>
+      ),
     });
   }
 

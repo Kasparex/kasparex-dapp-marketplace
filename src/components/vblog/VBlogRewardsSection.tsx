@@ -34,7 +34,7 @@ export function VBlogRewardsSection() {
                 Author Rewards &amp; Discounts
               </h3>
             </div>
-            <p className="max-w-2xl text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <p className="kx-body-sm max-w-2xl">
               Maximize your earnings through KREX holdings and NFT ownership. Tier perks apply to publication fees and Hub Points on create actions.
             </p>
           </div>
