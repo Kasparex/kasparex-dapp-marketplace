@@ -13,6 +13,9 @@ import { KxBadge } from '@/components/ui/KxBadge';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { VBlogArticleAside, type VBlogAsideSection } from '@/components/vblog/VBlogArticleAside';
 import { VBlogReaderBenefitsPanel } from '@/components/vblog/VBlogReaderBenefitsPanel';
+import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
+import { VBlogPremiumBadge } from '@/components/vblog/VBlogPremiumBadge';
+import { articleHasPremiumContent } from '@/lib/vblog/listing';
 import { vBlogSocialLinkUrl } from '@/lib/vblog/socialLinks';
 import type { VBlogSocialLink } from '@/lib/vblog/types';
 import { getSocialLinkIconMeta } from '@/lib/socialLinkIcons';
@@ -174,6 +177,7 @@ export function ArticleSidebar({
   const txExplorerUrl = article.txHash
     ? `https://explorer.kaspa.org/transactions/${article.txHash.replace(/^0x/, '')}`
     : undefined;
+  const hasPremium = articleHasPremiumContent(article);
 
   const sections: VBlogAsideSection[] = [
     {
@@ -276,6 +280,16 @@ export function ArticleSidebar({
             </div>
           ) : null}
         </>
+      ),
+    },
+    {
+      title: 'Badges',
+      rawBody: true as const,
+      body: (
+        <div className="flex flex-wrap items-center gap-2">
+          <VBlogArticleMetaBadges article={article} />
+          {hasPremium ? <VBlogPremiumBadge /> : null}
+        </div>
       ),
     },
     {

@@ -8,9 +8,10 @@ interface ArticleListProps {
   articles: VBlogArticle[];
   onEdit: (article: VBlogArticle) => void;
   onDelete?: (articleId: string) => void;
+  deleteFeeKas?: number;
 }
 
-export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
+export function ArticleList({ articles, onEdit, onDelete, deleteFeeKas }: ArticleListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -78,9 +79,9 @@ export function ArticleList({ articles, onEdit, onDelete }: ArticleListProps) {
                     type="button"
                     onClick={() => setConfirmDeleteId(article.id)}
                     disabled={deletingId === article.id}
-                    className="k-control-btn !border-red-300 !text-red-700 dark:!border-red-800 dark:!text-red-300"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40"
                   >
-                    Delete
+                    Delete{typeof deleteFeeKas === 'number' ? ` (${deleteFeeKas} KAS)` : ''}
                   </button>
                 )
               ) : null}

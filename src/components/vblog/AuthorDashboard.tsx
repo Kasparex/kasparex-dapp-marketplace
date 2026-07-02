@@ -186,9 +186,11 @@ export function AuthorDashboard({
       </div>
 
       {/* Pricing and Benefits Section */}
-      <div id="vblog-dashboard-pricing" className="scroll-mt-24">
-        <AuthorPricing />
-      </div>
+      {activeTab === 'create' ? (
+        <div id="vblog-dashboard-pricing" className="scroll-mt-24">
+          <AuthorPricing />
+        </div>
+      ) : null}
 
       {/* Success Message Area */}
       {successMessage && (
@@ -215,7 +217,7 @@ export function AuthorDashboard({
           </div>
         ) : (
           <div id="vblog-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <ArticleList articles={filteredAuthorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} />
+            <ArticleList articles={filteredAuthorArticles} onEdit={handleEdit} onDelete={handleDeleteArticle} deleteFeeKas={pricing.deleteFee} />
           </div>
         )}
       </div>

@@ -9,7 +9,6 @@ import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/componen
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { VBlogFeaturedImage } from '@/components/vblog/VBlogFeaturedImage';
-import { VBlogArticleMetaBadges } from '@/components/vblog/VBlogArticleBadges';
 import { VBlogPremiumBadge } from '@/components/vblog/VBlogPremiumBadge';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -107,14 +106,6 @@ export function VBlogCard({ article, footer }: VBlogCardProps) {
             <ArticleIcon />
           </div>
         )}
-
-        <div
-          className="absolute bottom-2 left-2 z-10 max-w-[calc(100%-1rem)]"
-          onClick={stopCardNavigation}
-          onMouseDown={stopCardNavigation}
-        >
-          <VBlogArticleMetaBadges article={article} />
-        </div>
 
         {isAuthor ? (
           <div
