@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { KxFormSelect } from '@/components/ui/KxFormSelect';
 import type { VBlogArticle } from '@/lib/vblog/types';
 import { getMagazineIssueHref, getMagazineIssueLinkLabel } from '@/lib/magazines/routes';
 import { formatAddress } from '@/lib/vblog/utils';
@@ -157,6 +159,7 @@ export function ArticleSidebar({
   tipHubPointsBase = 0,
   tipHubPointsTier = 'Tier0',
 }: ArticleSidebarProps) {
+  const [tipCurrency, setTipCurrency] = useState('KAS');
   const source = getVBlogArticleSource(article);
   const authorAddress = article.author.replace(/^(evm:|kaspa:)/, '');
   const authorDisplay = formatAddress(article.author);
@@ -213,32 +216,51 @@ export function ArticleSidebar({
           {tipBoxEnabled ? (
             <div id="article-tip-box" className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#02abb8]">Support the author</p>
+                <p className="text-sm font-semibold text-[#02abb8] dark:text-[#66dfe8]">Support the author</p>
                 {tipHubPointsBase > 0 ? (
                   <HubPointsEarnRow label="Earn:" basePoints={tipHubPointsBase} tier={tipHubPointsTier} />
                 ) : null}
               </div>
-              <div className="flex flex-wrap gap-2">
+
+              <div className="mb-3 max-w-[160px]">
+                <KxFormSelect
+                  value={tipCurrency}
+                  onChange={(e) => setTipCurrency(e.target.value)}
+                  ariaLabel="Tip currency"
+                  options={[
+                    { value: 'KAS', label: 'KAS' },
+                    { value: 'KREX', label: 'KREX (soon)' },
+                  ]}
+                />
+              </div>
+
+              {tipCurrency !== 'KAS' ? (
+                <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+                  {tipCurrency} tipping is coming soon. Switch to KAS to tip now.
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-2">
                 {tipPresets.map((amount) => (
                   <button
                     key={amount}
                     type="button"
-                    disabled={isProcessingAction || !isWalletConnected}
+                    disabled={isProcessingAction || !isWalletConnected || tipCurrency !== 'KAS'}
                     onClick={() => onTip?.(amount)}
                     className="k-control-btn text-xs"
                   >
-                    Tip {amount} KAS
+                    Tip {amount} {tipCurrency}
                   </button>
                 ))}
                 <input
                   value={customTipKas}
                   onChange={(e) => onCustomTipChange?.(e.target.value)}
-                  className="k-input max-w-[120px] text-sm"
-                  aria-label="Custom tip amount in KAS"
+                  className="k-input !h-10 !py-0 max-w-[120px] text-sm"
+                  aria-label={`Custom tip amount in ${tipCurrency}`}
                 />
                 <button
                   type="button"
-                  disabled={isProcessingAction || !isWalletConnected}
+                  disabled={isProcessingAction || !isWalletConnected || tipCurrency !== 'KAS'}
                   onClick={() => onTip?.(Number(customTipKas) || 1)}
                   className="k-control-btn text-xs"
                 >

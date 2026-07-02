@@ -50,6 +50,7 @@ import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { VBlogArticleBadges } from '@/components/vblog/VBlogArticleBadges';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
 
@@ -59,6 +60,14 @@ interface ArticleDetailProps {
   onEdit?: (article: VBlogArticle) => void;
   contentTab?: ArticleContentTab;
   onContentTabChange?: (tab: ArticleContentTab) => void;
+}
+
+function HeaderCategoryIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+    </svg>
+  );
 }
 
 function AuthorPostsIcon() {
@@ -381,20 +390,30 @@ export function ArticleDetail({
               {article.description}
             </p>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-8">
-              <div className="flex items-center gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-6">
+              <Link href={authorProfileUrl} className="group flex items-center gap-3">
                 <Avatar address={authorAddress} size={44} className="ring-2 ring-cyan-500/20" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">By</span>
-                  <Link href={authorProfileUrl} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors">
+                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#02abb8] transition-colors">
                     {authorDisplay}
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
 
               <div className="flex flex-col">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Published</span>
                 <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{formatDate(article.publishDate)}</span>
+              </div>
+
+              <div className="sm:ml-auto">
+                <KxListingCategoryChip
+                  icon={<HeaderCategoryIcon />}
+                  title={`Filter by ${article.category}`}
+                  onClick={() => router.push(`/vblog?category=${encodeURIComponent(article.category)}`)}
+                >
+                  {article.category}
+                </KxListingCategoryChip>
               </div>
             </div>
           </div>
