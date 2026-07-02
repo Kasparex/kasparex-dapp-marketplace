@@ -12,17 +12,20 @@ const HUB_PTS_BADGE_CLASS =
 /** Hub PTS reward badge only (bordered emerald styling, not used for general tags). */
 export function KxHubPtsBadge({
   points,
+  label,
   title = 'Hub PTS reward',
   className = '',
 }: {
-  points: number;
+  points?: number;
+  /** Optional preformatted value (e.g. "1.2K PTS"); overrides the default `{points} PTS`. */
+  label?: string;
   title?: string;
   className?: string;
 }) {
   return (
     <span className={`${HUB_PTS_BADGE_CLASS} ${className}`.trim()} title={title}>
       <HubPtsIcon />
-      {points} PTS
+      {label ?? `${points ?? 0} PTS`}
     </span>
   );
 }

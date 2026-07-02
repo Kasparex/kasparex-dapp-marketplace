@@ -22,6 +22,7 @@ import { DAppSourceSwitcher, type DAppSourceFilter } from '@/components/dapps/DA
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { FilterBar } from '@/components/FilterBar';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -163,7 +164,7 @@ export function DAppsHomeContent() {
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div className="max-w-7xl mx-auto">
-            <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
+            <div className="relative mb-8 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.12),transparent_70%)] rounded-full blur-3xl" />
@@ -209,13 +210,16 @@ export function DAppsHomeContent() {
 
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                Available dApps
-              </h2>
-              <p className="kx-body">
-                {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-              </p>
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
+                  Available dApps
+                </h2>
+                <p className="kx-body">
+                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+              <VBlogDashboardBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
             </div>
 
             <div className="flex flex-col gap-4 mb-6">

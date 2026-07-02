@@ -85,7 +85,7 @@ export default function VBlogPage() {
 
               <div id="content" className="scroll-mt-4" />
 
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">Available articles</h2>
                   <p className="kx-body">

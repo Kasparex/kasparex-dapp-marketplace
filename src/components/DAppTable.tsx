@@ -235,7 +235,7 @@ export function DAppTable({ dapps, selectedNetwork = 'all' }: DAppTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+    <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
       <table className="w-full border-collapse min-w-[800px]">
         <thead>
           <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">

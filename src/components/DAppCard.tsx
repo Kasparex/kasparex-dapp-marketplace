@@ -15,6 +15,9 @@ import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
+import { Avatar } from '@/components/Avatar';
+import { formatAddress } from '@/lib/vblog/utils';
 
 interface DAppCardProps {
   dapp: DApp;
@@ -30,6 +33,12 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
   const category = getCategoryById(mergedDApp.category);
   const slug = mergedDApp.slug || generateDAppSlug(mergedDApp.name);
   const xpReward = useDAppXpReward(mergedDApp);
+  const isDirectoryListing = isDirectoryListingDApp(mergedDApp);
+  const isWalletDeveloper = Boolean(mergedDApp.developer?.startsWith('0x'));
+  const authorName = isWalletDeveloper
+    ? formatAddress(mergedDApp.developer)
+    : mergedDApp.developer || 'Unknown';
+  const authorSeed = mergedDApp.deployerAddress || mergedDApp.developer || mergedDApp.id;
   const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
   const likeCount = getLikeCount(mergedDApp.id);
@@ -84,26 +93,32 @@ export function DAppCard({ dapp, selectedNetwork = 'all' }: DAppCardProps) {
             />
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex items-start justify-between gap-2 mb-2">
                 <h3
                   className="flex-1 truncate text-[15px] font-semibold text-zinc-900 dark:text-zinc-100"
                   title={mergedDApp.name}
                 >
                   {mergedDApp.name}
                 </h3>
-                {mergedDApp.source === 'directory' ? (
-                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 dark:text-amber-300">
-                    Community
-                  </span>
-                ) : null}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {mergedDApp.source === 'directory' ? (
+                    <span className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-800 dark:text-amber-300">
+                      Community
+                    </span>
+                  ) : null}
+                  {!isDirectoryListing ? (
+                    <KxHubPtsBadge
+                      label={`${formatLargeNumber(xpReward)} PTS`}
+                      title="Hub Points earned on your first action"
+                    />
+                  ) : null}
+                </div>
               </div>
 
-              <div className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400 mt-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="font-medium">
-                  {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
+              <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 mt-1.5">
+                <Avatar address={authorSeed} size={20} className="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
+                <span className="min-w-0 truncate">
+                  by <span className="font-semibold text-zinc-700 dark:text-zinc-300">{authorName}</span>
                 </span>
               </div>
             </div>

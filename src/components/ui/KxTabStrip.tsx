@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 export type KxTabStripOption<T extends string = string> = {
   value: T;
@@ -54,19 +55,31 @@ export function KxTabStrip<T extends string>({
     >
       {options.map((option) => {
         const active = value === option.value;
-        return (
+        const tooltipLabel = option.title ?? option.ariaLabel ?? option.label;
+        const button = (
           <button
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
             className={kxTabBtnClass(active, iconOnly)}
-            title={option.title ?? option.label}
             aria-label={option.ariaLabel ?? option.label ?? option.title}
             aria-pressed={active}
           >
             {option.icon ?? option.label}
           </button>
         );
+
+        // Icon-only tabs have no visible label, so use the unified tooltip surface
+        // instead of the raw browser title. Labelled tabs keep their visible text.
+        if (iconOnly && tooltipLabel) {
+          return (
+            <Tooltip key={option.value} content={tooltipLabel}>
+              {button}
+            </Tooltip>
+          );
+        }
+
+        return button;
       })}
     </div>
   );
