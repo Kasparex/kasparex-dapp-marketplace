@@ -57,13 +57,15 @@ export function filterVBlogArticles(articles: VBlogArticle[], filters: VBlogList
 
   if (filters.searchQuery.trim()) {
     const query = filters.searchQuery.toLowerCase();
+    const authorQuery = query.replace(/^(evm:|kaspa:)/, '');
     filtered = filtered.filter(
       (article) =>
         article.title.toLowerCase().includes(query) ||
         article.description.toLowerCase().includes(query) ||
         article.content.toLowerCase().includes(query) ||
         article.category.toLowerCase().includes(query) ||
-        article.tags.some((tag) => tag.toLowerCase().includes(query)),
+        article.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+        article.author.toLowerCase().includes(authorQuery),
     );
   }
 

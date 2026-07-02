@@ -10,6 +10,9 @@ import { VBlogListingFiltersBar } from '@/components/vblog/VBlogSortFilters';
 import { VBlogPricingStrip } from '@/components/vblog/VBlogPricingStrip';
 import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
+import { VBlogArticleTable, VBlogArticleCompact } from '@/components/vblog/VBlogArticleViews';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
+import { VIEW_MODE_OPTIONS, type ViewMode } from '@/components/SortFilters';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
 import { FilterBar } from '@/components/FilterBar';
@@ -31,6 +34,7 @@ export default function VBlogPage() {
   const [sortBy, setSortBy] = useState<VBlogSortOption>('newest');
   const [sourceFilter, setSourceFilter] = useState<VBlogSourceFilter>('all');
   const [magazineFilter, setMagazineFilter] = useState<VBlogMagazineFilter>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   const filteredArticles = useMemo(
     () =>
@@ -93,10 +97,17 @@ export default function VBlogPage() {
 
               <div className="flex flex-col gap-4 mb-6">
                 <FilterBar
-                  search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search articles...' }}
+                  search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search by title, tag, or wallet address...' }}
                   onReset={handleResetFilters}
                   flexWrap
                 >
+                  <KxTabStrip
+                    value={viewMode}
+                    onChange={setViewMode}
+                    options={VIEW_MODE_OPTIONS}
+                    ariaLabel="View mode"
+                    iconOnly
+                  />
                   <VBlogListingFiltersBar
                     sortBy={sortBy}
                     onSortChange={setSortBy}
@@ -135,6 +146,10 @@ export default function VBlogPage() {
                     style={{ borderColor: VBLOG_ACCENT, borderTopColor: 'transparent' }}
                   />
                 </div>
+              ) : viewMode === 'table' ? (
+                <VBlogArticleTable articles={filteredArticles} />
+              ) : viewMode === 'compact' ? (
+                <VBlogArticleCompact articles={filteredArticles} />
               ) : (
                 <VBlogArticleGrid articles={filteredArticles} />
               )}

@@ -16,7 +16,7 @@ export type SortOption =
 
 export type ViewMode = 'cards' | 'table' | 'compact';
 
-const VIEW_MODE_OPTIONS = [
+export const VIEW_MODE_OPTIONS = [
   {
     value: 'cards' as const,
     title: 'Card view',
