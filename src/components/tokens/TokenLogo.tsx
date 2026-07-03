@@ -6,7 +6,7 @@ import { loadTokenLogoUrl } from '@/lib/tokens/metadata';
 
 export interface TokenLogoProps {
   token: Token;
-  size?: 24 | 32 | 40 | 48 | 64 | 80;
+  size?: 24 | 32 | 40 | 48 | 56 | 64 | 80;
   showName?: boolean;
   showSymbol?: boolean;
   className?: string;
@@ -109,7 +109,7 @@ export function TokenLogoCompact({
   className = '',
 }: {
   token: Token;
-  size?: 24 | 32 | 40 | 48 | 64 | 80;
+  size?: 24 | 32 | 40 | 48 | 56 | 64 | 80;
   className?: string;
 }) {
   return (
@@ -132,7 +132,7 @@ export function TokenLogoFull({
   className = '',
 }: {
   token: Token;
-  size?: 24 | 32 | 40 | 48 | 64 | 80;
+  size?: 24 | 32 | 40 | 48 | 56 | 64 | 80;
   className?: string;
 }) {
   return (
