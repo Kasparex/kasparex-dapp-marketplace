@@ -1,7 +1,7 @@
 import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenSourceFilter } from '@/lib/tokens/source';
-import type { TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import { matchesTokenTags } from '@/lib/tokens/tags';
 import { matchesTokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
 
 export type TokenSortOption =
@@ -32,6 +32,7 @@ export interface TokenListingFilters {
   verified: TokenVerifiedFilter;
   utilitySidebar: TokenUtilitySidebarFilter;
   premium: TokenPremiumFilter;
+  selectedTags: string[];
   sortBy: TokenSortOption;
 }
 
@@ -91,6 +92,10 @@ export function filterTokens(tokens: Token[], filters: TokenListingFilters): Tok
 
   if (filters.premium === 'featured') {
     filtered = filtered.filter(tokenIsFeatured);
+  }
+
+  if (filters.selectedTags.length > 0) {
+    filtered = filtered.filter((token) => matchesTokenTags(token, filters.selectedTags));
   }
 
   return sortTokens(filtered, filters.sortBy);

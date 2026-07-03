@@ -3,6 +3,7 @@
  * Main page displaying all ecosystem tokens
  */
 
+import { Suspense } from 'react';
 import { TokensPageContent } from './TokensPageContent';
 import { getAllTokens } from '@/lib/tokens/registry';
 import { loadTokenWithMetadata } from '@/lib/tokens/metadata';
@@ -15,5 +16,9 @@ export default async function TokensPage() {
     tokens.map((token) => loadTokenWithMetadata(token))
   );
 
-  return <TokensPageContent tokens={tokensWithMetadata} />;
+  return (
+    <Suspense fallback={null}>
+      <TokensPageContent tokens={tokensWithMetadata} />
+    </Suspense>
+  );
 }

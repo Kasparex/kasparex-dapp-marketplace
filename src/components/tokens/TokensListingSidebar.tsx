@@ -8,6 +8,8 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarTags } from '@/components/sidebar/SidebarTags';
+import { getAllTokenTags } from '@/lib/tokens/tags';
 import {
   buildTokenModuleSectionItems,
   buildTokenUtilitySectionItems,
@@ -45,6 +47,8 @@ export function TokensListingSidebar({
   onUtilityFilterChange,
   onModuleFilterChange,
   showUtilityFilter = false,
+  selectedTags = [],
+  onTagToggle,
 }: {
   tokens?: Token[];
   utilityFilter?: TokenUtilitySectionFilter;
@@ -52,12 +56,15 @@ export function TokensListingSidebar({
   onUtilityFilterChange?: (value: TokenUtilitySectionFilter) => void;
   onModuleFilterChange?: (value: TokenModuleSectionFilter) => void;
   showUtilityFilter?: boolean;
+  selectedTags?: string[];
+  onTagToggle?: (tag: string) => void;
 }) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/tokens/dashboard') ?? false;
 
   const utilityItems = useMemo(() => buildTokenUtilitySectionItems(tokens), [tokens]);
   const moduleItems = useMemo(() => buildTokenModuleSectionItems(), []);
+  const allTags = useMemo(() => getAllTokenTags(tokens), [tokens]);
 
   const tokensFooter = (
     <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
@@ -128,6 +135,16 @@ export function TokensListingSidebar({
             className="mb-6"
           />
         </>
+      ) : null}
+
+      {allTags.length > 0 && onTagToggle ? (
+        <SidebarTags
+          title="Tags"
+          tags={allTags}
+          selectedTags={selectedTags}
+          onToggle={onTagToggle}
+          className="mb-6"
+        />
       ) : null}
 
       <SidebarQuickActions title="Quick Links" items={QUICK_LINKS} />

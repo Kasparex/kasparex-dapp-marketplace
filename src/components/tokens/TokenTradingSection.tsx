@@ -7,7 +7,6 @@
 
 import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
-import { TokenLogo } from './TokenLogo';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface TokenTradingSectionProps {
@@ -78,10 +77,7 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
 
   return (
     <section id="trading" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <DAppSectionHeader
-        title="Trade"
-        right={<TokenLogo token={token} size={32} showSymbol={true} showName={false} />}
-      />
+      <DAppSectionHeader title="Swap" />
 
       {/* L2 Trading Options */}
       {(token.network === 'L2' || hasL1AndL2) && (

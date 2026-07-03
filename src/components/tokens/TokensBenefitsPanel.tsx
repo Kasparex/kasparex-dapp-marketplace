@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { KREX_TIERS } from '@/lib/rewards/types';
@@ -65,12 +64,13 @@ export function TokensBenefitsPanel({
                 </span>
               </div>
             </Tooltip>
-            <Link
-              href="/tokens/dashboard"
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
               className={`${buyKrexButtonClass} !py-1 !px-3 !text-xs !font-bold`}
             >
-              Build
-            </Link>
+              Buy KREX
+            </button>
           </aside>
         </TooltipProvider>
         <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
@@ -87,7 +87,7 @@ export function TokensBenefitsPanel({
             aria-label="Token developer perks. Hover for KREX tier details."
           >
             <DAppSectionHeader
-              title="Developer perks"
+              title="Benefits"
               className="mb-2"
               right={
                 <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
@@ -116,18 +116,13 @@ export function TokensBenefitsPanel({
               <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
               {ui.statusText}
             </div>
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              <Link href="/tokens/dashboard" className={`flex-1 text-center ${buyKrexButtonClass} !py-2 !text-sm`}>
-                Developer Dashboard
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsKrexWizardOpen(true)}
-                className={`flex-1 k-control-btn !py-2 !text-sm`}
-              >
-                Buy KREX
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
+              className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
+            >
+              Buy KREX
+            </button>
           </aside>
         </Tooltip>
       </TooltipProvider>

@@ -6,20 +6,6 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TOKEN_MODULE_OFFERS } from '@/lib/tokens/modules';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
-export function TokenCommentsSection({ token: _token }: { token: Token }) {
-  return (
-    <section id="token-comments" className="scroll-mt-28 space-y-4">
-      <DAppSectionHeader title="Comments" />
-      <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-        <p className="kx-body-sm max-w-md mx-auto">
-          Community comments for token projects are coming soon. Connect your wallet to prepare for on-chain
-          discussions.
-        </p>
-      </div>
-    </section>
-  );
-}
-
 export function TokenUtilitySection({ token }: { token: Token }) {
   if (!token.listing?.instantUtility && !token.listing?.verified) return null;
 
@@ -46,7 +32,7 @@ export function TokenUtilitySection({ token }: { token: Token }) {
         className="k-cta-primary inline-flex text-sm"
         style={{ borderColor: TOKENS_ACCENT }}
       >
-        Open Developer Dashboard
+        Open token editor
       </Link>
     </section>
   );

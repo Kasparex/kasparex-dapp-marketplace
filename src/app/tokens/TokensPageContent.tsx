@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { TokensHero } from '@/components/tokens/TokensHero';
@@ -40,6 +41,7 @@ interface TokensPageContentProps {
 }
 
 export function TokensPageContent({ tokens }: TokensPageContentProps) {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
@@ -48,6 +50,14 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [premiumFilter, setPremiumFilter] = useState<TokenPremiumFilter>('all');
   const [sortControl, setSortControl] = useState<TokenSortControlValue>('verified-first');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    const tagParam = searchParams.get('tag');
+    if (tagParam) {
+      setSelectedTags([tagParam]);
+    }
+  }, [searchParams]);
 
   const utilitySidebarFilter = useMemo(
     () => resolveTokenSidebarFilter(utilitySectionFilter, moduleSectionFilter),
@@ -69,6 +79,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
         verified: verifiedFilter,
         utilitySidebar: utilitySidebarFilter,
         premium: premiumFilter,
+        selectedTags,
         sortBy,
       }),
     [
@@ -80,9 +91,14 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       verifiedFilter,
       utilitySidebarFilter,
       premiumFilter,
+      selectedTags,
       sortBy,
     ],
   );
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
 
   const handleUtilitySectionChange = (value: TokenUtilitySectionFilter) => {
     setModuleSectionFilter('all');
@@ -102,6 +118,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     setModuleSectionFilter('all');
     setPremiumFilter('all');
     setSortControl('verified-first');
+    setSelectedTags([]);
   };
 
   const handleNetworkFilterChange = (value: DAppNetworkFilter) => {
@@ -123,6 +140,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
           moduleFilter={moduleSectionFilter}
           onUtilityFilterChange={handleUtilitySectionChange}
           onModuleFilterChange={handleModuleSectionChange}
+          selectedTags={selectedTags}
+          onTagToggle={handleTagToggle}
           showUtilityFilter
         />
 

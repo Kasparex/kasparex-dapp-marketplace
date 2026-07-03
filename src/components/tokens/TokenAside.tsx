@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 const PANEL_CLASS =
@@ -74,6 +75,8 @@ export function TokenAside({ token }: { token: Token }) {
 
   return (
     <aside id="kasparex-token-side-panel" className="space-y-4 lg:sticky lg:top-6 self-start">
+      <TokensBenefitsPanel variant="panel" />
+
       {sections.map((sec) => (
         <div key={sec.title} className={PANEL_CLASS}>
           <DAppSectionHeader title={sec.title} className="mb-3" />

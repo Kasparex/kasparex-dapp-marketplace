@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type { Token } from '@/lib/tokens/types';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
@@ -7,46 +8,34 @@ import { TokenListingMeta } from './TokenListingMeta';
 import { TokenListingBadges } from './TokenListingBadges';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
-import { SidebarSection } from '@/components/sidebar/SidebarSection';
-import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
-import type { TokenContentTab } from './TokenDetail';
+import { SidebarTags } from '@/components/sidebar/SidebarTags';
+import { getAllTokenTags } from '@/lib/tokens/tags';
+import { getAllTokens } from '@/lib/tokens/registry';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface TokenSidebarProps {
   token: Token;
-  activeTab?: TokenContentTab;
-  onNavClick?: (itemId: string) => void;
-  showUtility?: boolean;
+  selectedTags?: string[];
+  onTagToggle?: (tag: string) => void;
 }
-
-const navIcon = (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
-  </svg>
-);
 
 export function TokenSidebar({
   token,
-  activeTab = 'info',
-  onNavClick,
-  showUtility = false,
+  selectedTags = [],
+  onTagToggle,
 }: TokenSidebarProps) {
+  const router = useRouter();
   const price = token.price?.current;
   const priceChange24h = token.price?.change24h;
+  const allTags = getAllTokenTags(getAllTokens());
 
-  const navItems: { id: string; label: string; tab: TokenContentTab }[] = [
-    { id: 'token-header', label: 'Overview', tab: 'info' },
-    { id: 'token-info', label: 'Token Info', tab: 'info' },
-    { id: 'token-tokenomics', label: 'Tokenomics', tab: 'tokenomics' },
-    { id: 'token-roadmap', label: 'Roadmap', tab: 'roadmap' },
-    { id: 'token-markets', label: 'Markets', tab: 'markets' },
-  ];
-
-  if (showUtility) {
-    navItems.push({ id: 'token-utility', label: 'Utility', tab: 'utility' });
-  }
-
-  navItems.push({ id: 'token-comments', label: 'Comments', tab: 'comments' });
+  const handleTagToggle = (tag: string) => {
+    if (onTagToggle) {
+      onTagToggle(tag);
+      return;
+    }
+    router.push(`/tokens?tag=${encodeURIComponent(tag)}`);
+  };
 
   return (
     <UnifiedSidebar
@@ -89,23 +78,15 @@ export function TokenSidebar({
         )}
       </div>
 
-      <SidebarSection title="Sections" className="mt-6 mb-0">
-        <nav className="space-y-0.5">
-          {navItems.map((section) => {
-            if (section.id === 'token-roadmap' && !token.roadmap?.length) return null;
-
-            return (
-              <SidebarNavItem
-                key={section.id}
-                label={section.label}
-                icon={navIcon}
-                active={activeTab === section.tab}
-                onClick={() => onNavClick?.(section.id)}
-              />
-            );
-          })}
-        </nav>
-      </SidebarSection>
+      {allTags.length > 0 ? (
+        <SidebarTags
+          title="Tags"
+          tags={allTags}
+          selectedTags={selectedTags.length > 0 ? selectedTags : (token.tags ?? [])}
+          onToggle={handleTagToggle}
+          className="mt-6"
+        />
+      ) : null}
     </UnifiedSidebar>
   );
 }

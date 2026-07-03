@@ -34,6 +34,7 @@ export const baseTokens: Token[] = [
       activityScore: 95,
       communityScore: 120,
     },
+    tags: ['native', 'payments', 'l1'],
   },
   {
     id: 'krex',
