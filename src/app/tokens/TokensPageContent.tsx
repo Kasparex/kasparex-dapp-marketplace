@@ -28,6 +28,7 @@ import {
   type TokenUtilityFilter,
   type TokenVerifiedFilter,
 } from '@/lib/tokens/listing';
+import type { DAppNetworkFilter } from '@/lib/dapps';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
 interface TokensPageContentProps {
@@ -68,6 +69,14 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     setUtilityFilter('all');
     setPremiumFilter('all');
     setSortBy('verified-first');
+  };
+
+  const handleNetworkFilterChange = (value: DAppNetworkFilter) => {
+    if (value === 'MULTI') {
+      setNetworkFilter('all');
+      return;
+    }
+    setNetworkFilter(value);
   };
 
   return (
@@ -119,7 +128,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                   ariaLabel="View mode"
                   iconOnly
                 />
-                <NetworkSwitcher value={networkFilter as TokenNetwork | 'all'} onChange={setNetworkFilter as (v: TokenNetwork | 'all') => void} />
+                <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
                 <TokenTypeSwitcher value={typeFilter} onChange={setTypeFilter} />
                 <TokenListingFiltersBar
                   sortBy={sortBy}
