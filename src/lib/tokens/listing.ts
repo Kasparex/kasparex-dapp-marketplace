@@ -2,7 +2,7 @@ import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenTags } from '@/lib/tokens/tags';
-import { matchesTokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import { matchesTokenUtilitySidebarFilter, type TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
 
 export type TokenSortOption =
   | 'name-az'
