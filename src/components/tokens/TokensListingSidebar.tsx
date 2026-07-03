@@ -32,6 +32,8 @@ export function TokensListingSidebar({
   showUtilityFilter = false,
   selectedTags = [],
   onTagToggle,
+  backHref = '/hub',
+  backLabel = 'Back to Hub',
 }: {
   tokens?: Token[];
   utilityFilter?: TokenUtilitySectionFilter;
@@ -41,6 +43,8 @@ export function TokensListingSidebar({
   showUtilityFilter?: boolean;
   selectedTags?: string[];
   onTagToggle?: (tag: string) => void;
+  backHref?: string;
+  backLabel?: string;
 }) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/tokens/dashboard') ?? false;
@@ -64,8 +68,8 @@ export function TokensListingSidebar({
       storageKeyPrefix="tokens-listing"
       header={(onHide) => (
         <SidebarHeader
-          backHref="/hub"
-          backLabel="Back to Hub"
+          backHref={backHref}
+          backLabel={backLabel}
           onHide={onHide}
           className="bg-white dark:bg-zinc-950"
         />

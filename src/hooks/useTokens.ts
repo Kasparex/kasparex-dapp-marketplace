@@ -15,11 +15,13 @@ import {
   TOKEN_CHUNK_SIZE_BYTES,
   type TokenListingPriceQuote,
 } from '@/lib/tokens/pricing';
-import { createDefaultPageConfig } from '@/lib/tokens/pageConfig';
+import { createDefaultPageConfig, applyPageSectionConfig } from '@/lib/tokens/pageConfig';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork } from '@/lib/tokens/listingNetwork';
+import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import {
   createPublishedListing,
+  createSeedClaimListing,
   getAllPublishedListings,
   getPublishedListingById,
   getPublishedListingBySlug,
@@ -28,6 +30,7 @@ import {
   deletePublishedListing,
   mergePublishedIntoRegistry,
 } from '@/lib/tokens/data';
+import { getClaimableSeeds, type ClaimableSeed } from '@/lib/tokens/seedClaims';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot } from '@/lib/tokens/listingRecord';
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { buildCanonicalListingPayload, hashListingPayload, type TokenListingDraft } from '@/lib/tokens/publish';
@@ -55,6 +58,7 @@ export type CreateTokenListingInput = {
   featuredImageCid?: string;
   enabledModuleIds?: TokenModuleId[];
   sectionToggles?: Record<string, boolean>;
+  sectionOrder?: TokenPageSectionType[];
   assetKind?: TokenAssetKind;
   deployerAddress?: string;
   maxSupply?: number;
@@ -65,13 +69,13 @@ export type CreateTokenListingInput = {
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
   const enabledModuleIds = input.enabledModuleIds ?? [];
-  const pageConfig = createDefaultPageConfig(enabledModuleIds);
-  if (input.sectionToggles) {
-    pageConfig.sections = pageConfig.sections.map((section) => ({
-      ...section,
-      enabled: input.sectionToggles?.[section.type] ?? section.enabled,
-    }));
-  }
+  const pageConfig = input.sectionToggles || input.sectionOrder
+    ? applyPageSectionConfig(
+        createDefaultPageConfig(enabledModuleIds),
+        input.sectionToggles ?? {},
+        input.sectionOrder,
+      )
+    : createDefaultPageConfig(enabledModuleIds);
   return {
     symbol: input.symbol,
     name: input.name,
@@ -477,6 +481,47 @@ export function useTokens() {
     [loadListings],
   );
 
+  const unassignWallet = useCallback(
+    async (id: string): Promise<PublishedTokenListing | null> => {
+      const existing = getPublishedListingById(id);
+      if (!existing) throw new Error('Listing not found');
+      if (existing.ownership === 'deployer_verified') {
+        throw new Error('Deployer-verified listings cannot be unassigned.');
+      }
+
+      const updated = updatePublishedListing(id, {
+        ownership: 'none',
+        ownershipProof: undefined,
+        listing: { ...(existing.listing ?? {}), verified: false, deployerVerified: false },
+      });
+
+      loadListings();
+      return updated;
+    },
+    [loadListings],
+  );
+
+  const getClaimableSeedsForWallet = useCallback(
+    (walletAddress: string | null | undefined): ClaimableSeed[] => {
+      const claimable = getClaimableSeeds(walletAddress);
+      // Hide any seed that is already claimed (a published listing exists for its slug).
+      return claimable.filter((seed) => !getPublishedListingBySlug(seed.slug));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listings],
+  );
+
+  const claimSeedToken = useCallback(
+    async (seed: ClaimableSeed, author: string): Promise<PublishedTokenListing> => {
+      const listing = createSeedClaimListing(seed.token, author, {
+        ownership: seed.coin ? 'wallet_assigned' : 'deployer_verified',
+      });
+      loadListings();
+      return listing;
+    },
+    [loadListings],
+  );
+
   const resolveToken = useCallback(
     (slug: string, baseToken?: Token | null): Token | null => {
       if (baseToken) return baseToken;
@@ -506,6 +551,9 @@ export function useTokens() {
     removeListing,
     verifyDeployer,
     assignWallet,
+    unassignWallet,
+    getClaimableSeedsForWallet,
+    claimSeedToken,
     resolveToken,
     discountPercent,
   };

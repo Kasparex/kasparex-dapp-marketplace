@@ -14,6 +14,7 @@ import { TokenVerificationWizard, type TokenVerificationMode } from '@/component
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { getListingNetworkLabel, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
+import type { ClaimableSeed } from '@/lib/tokens/seedClaims';
 
 interface TokenListingArchiveProps {
   listings: PublishedTokenListing[];
@@ -21,6 +22,9 @@ interface TokenListingArchiveProps {
   onDelete?: (id: string) => void;
   onVerifyDeployer: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
   onAssignWallet: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
+  onUnassignWallet?: (id: string) => Promise<void> | void;
+  claimableSeeds?: ClaimableSeed[];
+  onClaimSeed?: (seed: ClaimableSeed) => Promise<void> | void;
 }
 
 function paymentPill(status: PublishedTokenListing['status']): { label: string; className: string } {
@@ -42,12 +46,68 @@ function ownershipLabel(listing: PublishedTokenListing): string {
   return 'Community collab';
 }
 
+function ClaimableSeedsPanel({
+  seeds,
+  onClaimSeed,
+}: {
+  seeds: ClaimableSeed[];
+  onClaimSeed: (seed: ClaimableSeed) => Promise<void> | void;
+}) {
+  const [claiming, setClaiming] = useState<string | null>(null);
+  return (
+    <div className="rounded-2xl border border-[#02abb8]/30 bg-[#02abb8]/5 p-5">
+      <DAppSectionHeader title="Claimable ecosystem pages" className="mb-2" />
+      <p className="kx-body-sm mb-4">
+        Your connected wallet is the registered deployer for these ecosystem token pages. Claim them to manage and edit
+        them from your dashboard.
+      </p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {seeds.map((seed) => (
+          <div
+            key={seed.slug}
+            className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+          >
+            <TokenLogo token={seed.token} size={40} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                {seed.token.name}
+              </p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {seed.token.symbol}
+                {seed.coin ? ' (coin)' : ''}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={claiming === seed.slug}
+              onClick={async () => {
+                setClaiming(seed.slug);
+                try {
+                  await onClaimSeed(seed);
+                } finally {
+                  setClaiming(null);
+                }
+              }}
+              className="k-control-btn shrink-0 text-sm !border-[#02abb8]/40 !text-[#02abb8] disabled:opacity-50"
+            >
+              {claiming === seed.slug ? 'Claiming…' : 'Claim'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TokenListingArchive({
   listings,
   onEdit,
   onDelete,
   onVerifyDeployer,
   onAssignWallet,
+  onUnassignWallet,
+  claimableSeeds = [],
+  onClaimSeed,
 }: TokenListingArchiveProps) {
   const [wizardTarget, setWizardTarget] = useState<PublishedTokenListing | null>(null);
   const [wizardMode, setWizardMode] = useState<TokenVerificationMode>('deployer');
@@ -57,22 +117,31 @@ export function TokenListingArchive({
     setWizardMode(mode);
   };
 
+  const claimablePanel =
+    claimableSeeds.length > 0 && onClaimSeed ? (
+      <ClaimableSeedsPanel seeds={claimableSeeds} onClaimSeed={onClaimSeed} />
+    ) : null;
+
   if (listings.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-10 text-center">
-        <DAppSectionHeader title="Your token listings" className="mb-3 justify-center" />
-        <p className="kx-body-sm max-w-md mx-auto mb-6">
-          Published token pages appear here after you pay and verify on Kaspa L1.
-        </p>
-        <Link href="/tokens" className="k-cta-secondary text-sm">
-          Browse ecosystem tokens
-        </Link>
+      <div className="space-y-6">
+        {claimablePanel}
+        <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-10 text-center">
+          <DAppSectionHeader title="Your token listings" className="mb-3 justify-center" />
+          <p className="kx-body-sm max-w-md mx-auto mb-6">
+            Published token pages appear here after you pay and verify on Kaspa L1.
+          </p>
+          <Link href="/tokens" className="k-cta-secondary text-sm">
+            Browse ecosystem tokens
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {claimablePanel}
       <DAppSectionHeader title="Your token listings" />
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {listings.map((listing) => {
@@ -135,6 +204,15 @@ export function TokenListingArchive({
                       className="k-control-btn col-span-2 text-sm"
                     >
                       Assign Wallet Address
+                    </button>
+                  ) : null}
+                  {listing.ownership === 'wallet_assigned' && onUnassignWallet ? (
+                    <button
+                      type="button"
+                      onClick={() => void onUnassignWallet(listing.id)}
+                      className="k-control-btn col-span-2 text-sm"
+                    >
+                      Unassign Wallet
                     </button>
                   ) : null}
                   {onDelete ? (

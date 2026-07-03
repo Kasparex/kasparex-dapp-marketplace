@@ -50,6 +50,7 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
         onNavClick={handleTokenNavClick}
         showSwap={showSwap}
         showUtility={showUtility}
+        pageConfig={pageConfig}
       />
 
       <main className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">

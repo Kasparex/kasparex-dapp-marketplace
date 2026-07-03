@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export type KxFormDropdownOption = { value: string; label: string };
+export type KxFormDropdownOption = { value: string; label: string; disabled?: boolean };
 
 export function KxFormDropdown({
   ariaLabel,
@@ -63,6 +63,19 @@ export function KxFormDropdown({
         >
           {options.map((opt) => {
             const selected = opt.value === value;
+            if (opt.disabled) {
+              return (
+                <div
+                  key={opt.value}
+                  role="option"
+                  aria-selected={false}
+                  aria-disabled
+                  className="w-full cursor-not-allowed px-4 py-2.5 text-sm text-zinc-400 dark:text-zinc-600"
+                >
+                  {opt.label}
+                </div>
+              );
+            }
             return (
               <button
                 key={opt.value}

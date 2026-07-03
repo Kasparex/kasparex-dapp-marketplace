@@ -1,9 +1,11 @@
 'use client';
 
-import type { PublishedTokenListing } from './listingRecord';
+import type { PublishedTokenListing, TokenOwnershipStatus } from './listingRecord';
 import { listingToToken } from './listingRecord';
 import type { Token } from './types';
 import { generateTokenSlug } from './publish';
+import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
+import { tokenNetworkToListingNetwork } from './listingNetwork';
 
 const STORAGE_KEY = 'tokens_published_listings';
 
@@ -120,6 +122,66 @@ export function deletePublishedListing(id: string): boolean {
   if (next.length === listings.length) return false;
   saveListings(next);
   return true;
+}
+
+/**
+ * Seed a manageable published listing from an existing registry token (e.g. KREX,
+ * GRID, KAS) so its owner wallet can edit and verify it from the dashboard. The base
+ * slug is preserved so the public page reflects edits.
+ */
+export function createSeedClaimListing(
+  token: Token,
+  author: string,
+  options?: { ownership?: TokenOwnershipStatus },
+): PublishedTokenListing {
+  const listings = getAllPublishedListings();
+  const existing = listings.find((l) => l.slug === token.slug);
+  if (existing) return existing;
+
+  const ownership: TokenOwnershipStatus = options?.ownership ?? 'deployer_verified';
+  const deployerVerified = ownership === 'deployer_verified';
+  const listingNetwork = tokenNetworkToListingNetwork(token.network, token.contractAddress);
+  const pageConfig = applyPageSectionConfig(createDefaultPageConfig(), {
+    overview: true,
+    tokenomics: true,
+    markets: true,
+    links: true,
+    comments: true,
+  });
+
+  const now = new Date().toISOString();
+  const listing: PublishedTokenListing = {
+    id: `tl-seed-${token.slug}-${Date.now().toString(36)}`,
+    listingId: `ktl-seed-${token.slug}`,
+    slug: token.slug,
+    author: canonicalizeAuthorKey(author),
+    symbol: token.symbol,
+    name: token.name,
+    description: token.description ?? '',
+    shortDescription: token.shortDescription,
+    tags: token.tags,
+    listingNetwork,
+    network: token.network,
+    contractAddress: token.contractAddress,
+    logoUrl: token.logo,
+    logoCid: token.logoCid,
+    featuredImageUrl: token.featuredImage,
+    featuredImageCid: token.featuredImageCid,
+    pageConfig,
+    publishDate: now,
+    updatedAt: now,
+    status: 'published',
+    paidModuleIds: [],
+    assetKind: 'real',
+    ownership,
+    maxSupply: token.maxSupply,
+    totalSupply: token.totalSupply,
+    decimals: token.decimals,
+    listing: { verified: deployerVerified, deployerVerified },
+  };
+  listings.unshift(listing);
+  saveListings(listings);
+  return listing;
 }
 
 export function mergePublishedIntoRegistry(baseTokens: Token[]): Token[] {

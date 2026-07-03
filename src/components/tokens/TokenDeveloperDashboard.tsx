@@ -38,13 +38,23 @@ export function TokenDeveloperDashboard() {
   const { address: evmAddress } = useAccount();
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
-  const { getAuthorListings, removeListing, verifyDeployer, assignWallet, listings } = useTokens();
+  const {
+    getAuthorListings,
+    removeListing,
+    verifyDeployer,
+    assignWallet,
+    unassignWallet,
+    getClaimableSeedsForWallet,
+    claimSeedToken,
+    listings,
+  } = useTokens();
   const [activeTab, setActiveTab] = useState<'create' | 'archive'>('create');
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
   const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const authorListings = walletAddress ? getAuthorListings(walletAddress) : [];
+  const claimableSeeds = getClaimableSeedsForWallet(kaspaState.address);
 
   useEffect(() => {
     if (!editId) return;
@@ -93,6 +103,29 @@ export function TokenDeveloperDashboard() {
     const result = await assignWallet(id, proof);
     if (result) {
       setSuccessMessage(`Wallet assigned to ${result.symbol}. Listing stays under Community Collaboration Tokens.`);
+      window.setTimeout(() => setSuccessMessage(null), 8000);
+    }
+  };
+
+  const handleUnassignWallet = async (id: string) => {
+    if (!window.confirm('Unassign your wallet from this token page? You can re-assign it later.')) return;
+    try {
+      const result = await unassignWallet(id);
+      if (result) {
+        setSuccessMessage(`Wallet unassigned from ${result.symbol}.`);
+        window.setTimeout(() => setSuccessMessage(null), 8000);
+      }
+    } catch (e) {
+      setSuccessMessage(e instanceof Error ? e.message : 'Could not unassign wallet.');
+      window.setTimeout(() => setSuccessMessage(null), 8000);
+    }
+  };
+
+  const handleClaimSeed = async (seed: Parameters<typeof claimSeedToken>[0]) => {
+    if (!kaspaState.address) return;
+    const result = await claimSeedToken(seed, kaspaState.address);
+    if (result) {
+      setSuccessMessage(`${result.symbol} page claimed. You can now edit and manage it from your dashboard.`);
       window.setTimeout(() => setSuccessMessage(null), 8000);
     }
   };
@@ -157,6 +190,9 @@ export function TokenDeveloperDashboard() {
               onDelete={handleDelete}
               onVerifyDeployer={handleVerifyDeployer}
               onAssignWallet={handleAssignWallet}
+              onUnassignWallet={handleUnassignWallet}
+              claimableSeeds={claimableSeeds}
+              onClaimSeed={handleClaimSeed}
             />
           </div>
         ) : null}

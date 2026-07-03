@@ -16,7 +16,7 @@ function TokensDashboardPageContent() {
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
         <div className="flex flex-col lg:flex-row h-full">
-          <TokensListingSidebar />
+          <TokensListingSidebar backHref="/tokens" backLabel="Back to Tokens" />
 
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
             <div className="max-w-6xl mx-auto">

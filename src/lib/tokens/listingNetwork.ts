@@ -15,12 +15,21 @@ export type TokenListingNetworkOption = {
 };
 
 export const TOKEN_LISTING_NETWORK_OPTIONS: TokenListingNetworkOption[] = [
-  { id: 'kaspa_l1', label: 'Kaspa L1' },
-  { id: 'krc20', label: 'KRC-20' },
+  { id: 'krc20', label: 'L1 Kaspa Mainnet (KRC-20)' },
+  { id: 'kcc20', label: 'L1 Kaspa Mainnet (KCC-20) - Coming Soon', disabled: true, hint: 'Coming soon' },
   { id: 'l2_kasplex', label: 'L2 (Kasplex / EVM)' },
   { id: 'l2_igra', label: 'L2 (Igra / EVM)' },
-  { id: 'kcc20', label: 'KCC20 (coming soon)', disabled: true, hint: 'Coming soon' },
 ];
+
+/** True for Kaspa L1 networks that use kaspa: addresses (KRC-20, KCC-20). */
+export function isKaspaL1Network(network: TokenListingNetwork): boolean {
+  return network === 'krc20' || network === 'kaspa_l1' || network === 'kcc20';
+}
+
+/** True for EVM L2 networks that use 0x addresses (Kasplex, Igra). */
+export function isL2EvmNetwork(network: TokenListingNetwork): boolean {
+  return network === 'l2_kasplex' || network === 'l2_igra';
+}
 
 export function listingNetworkToTokenNetwork(network: TokenListingNetwork): TokenNetwork {
   if (network === 'kaspa_l1' || network === 'krc20') return 'L1';
@@ -38,6 +47,7 @@ export function tokenNetworkToListingNetwork(
 }
 
 export function getListingNetworkLabel(id: TokenListingNetwork): string {
+  if (id === 'kaspa_l1') return 'L1 Kaspa Mainnet';
   return TOKEN_LISTING_NETWORK_OPTIONS.find((o) => o.id === id)?.label ?? id;
 }
 

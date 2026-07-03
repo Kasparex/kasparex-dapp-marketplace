@@ -27,7 +27,9 @@ import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
-import { createDefaultPageConfig } from '@/lib/tokens/pageConfig';
+import { createDefaultPageConfig, applyPageSectionConfig } from '@/lib/tokens/pageConfig';
+import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { TokenListingDraft } from '@/lib/tokens/publish';
 import { contentForRichEditor } from '@/lib/richText/html';
 import { useTokens } from '@/hooks/useTokens';
@@ -86,6 +88,7 @@ function buildFormDraft(args: {
   media: TokenListingMediaState;
   enabledModuleIds: TokenModuleId[];
   sectionToggles: Record<string, boolean>;
+  sectionOrder: TokenPageSectionType[];
   author: string;
   assetKind: TokenAssetKind;
   deployerAddress?: string;
@@ -95,11 +98,11 @@ function buildFormDraft(args: {
   onChainSnapshot?: TokenOnChainSnapshot;
 }): TokenListingDraft {
   const resolved = resolveTokenListingMedia(args.media);
-  const pageConfig = createDefaultPageConfig(args.enabledModuleIds);
-  pageConfig.sections = pageConfig.sections.map((section) => ({
-    ...section,
-    enabled: args.sectionToggles[section.type] ?? section.enabled,
-  }));
+  const pageConfig = applyPageSectionConfig(
+    createDefaultPageConfig(args.enabledModuleIds),
+    args.sectionToggles,
+    args.sectionOrder,
+  );
   return {
     symbol: args.symbol,
     name: args.name,
@@ -179,6 +182,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
     setTotalSupply(parseSupplyNumber(info.minted, dec));
     if (info.contractAddress) setContractAddress(info.contractAddress);
+    setSectionToggles((prev) => ({ ...prev, tokenomics: true, markets: true }));
   }, []);
 
   const lookupL2Contract = useCallback(async () => {
@@ -223,6 +227,15 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     }
     return map;
   });
+  const [sectionOrder, setSectionOrder] = useState<TokenPageSectionType[]>(() => {
+    const saved = (listing?.pageConfig?.sections ?? []).map((s) => s.type);
+    const merged = [...saved];
+    for (const type of PAGE_SECTION_TYPES) {
+      if (!merged.includes(type)) merged.push(type);
+    }
+    return merged.length ? merged : [...PAGE_SECTION_TYPES];
+  });
+  const [dragSection, setDragSection] = useState<TokenPageSectionType | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -296,6 +309,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
           media,
           enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
           sectionToggles,
+          sectionOrder,
           author: 'kaspa:preview',
           ...draftExtras,
         }),
@@ -322,6 +336,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       media,
       enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
       sectionToggles,
+      sectionOrder,
       author: kaspaState.address ?? walletAddress,
       ...draftExtras,
     });
@@ -353,6 +368,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     media,
     enabledModules,
     sectionToggles,
+    sectionOrder,
     tierDiscount,
     isEditMode,
     listing,
@@ -378,6 +394,19 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
   const toggleSection = (type: TokenPageSectionType) => {
     setSectionToggles((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  const reorderSection = (from: TokenPageSectionType, to: TokenPageSectionType) => {
+    if (from === to) return;
+    setSectionOrder((prev) => {
+      const next = [...prev];
+      const fromIdx = next.indexOf(from);
+      const toIdx = next.indexOf(to);
+      if (fromIdx < 0 || toIdx < 0) return prev;
+      next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, from);
+      return next;
+    });
   };
 
   const handlePublish = async () => {
@@ -424,6 +453,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         featuredImageCid: resolvedMedia.featuredImageCid,
         enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
         sectionToggles,
+        sectionOrder,
         assetKind,
         deployerAddress: deployerAddress || undefined,
         maxSupply,
@@ -514,22 +544,23 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 <KxFormFieldLabel>
                   Network <span className="text-red-500">*</span>
                 </KxFormFieldLabel>
-                <select
-                  value={listingNetwork}
-                  onChange={(e) => {
-                    setListingNetwork(e.target.value as TokenListingNetwork);
-                    setOnChainSnapshot(null);
-                    setKrc20Selected(null);
-                  }}
-                  className="k-input text-base mt-2 w-full"
-                  disabled={isSubmitting || onChainLocked}
-                >
-                  {TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => (
-                    <option key={opt.id} value={opt.id} disabled={opt.disabled}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-2">
+                  <KxFormDropdown
+                    ariaLabel="Listing network"
+                    value={listingNetwork}
+                    onChange={(value) => {
+                      setListingNetwork(value as TokenListingNetwork);
+                      setOnChainSnapshot(null);
+                      setKrc20Selected(null);
+                    }}
+                    options={TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => ({
+                      value: opt.id,
+                      label: opt.label,
+                      disabled: opt.disabled,
+                    }))}
+                    disabled={isSubmitting || onChainLocked}
+                  />
+                </div>
               </div>
               {!isRealToken || !isKrc20Network ? (
                 <div>
@@ -543,7 +574,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                     type="text"
                     value={contractAddress}
                     onChange={(e) => setContractAddress(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.contractAddress.max))}
-                    placeholder={isL2Network ? '0x…' : '0x… or KRC-20 address'}
+                    placeholder={isL2Network ? '0x…' : 'kaspa:…'}
                     className="k-input text-base w-full"
                     disabled={isSubmitting || (onChainLocked && !isL2Network)}
                   />
@@ -699,20 +730,47 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
           <div className={`${FORM_PANEL_CLASS} space-y-3`} id="tokens-dashboard-sections">
             <DAppSectionHeader title="Page sections" className="mb-1" />
-            <p className="kx-body-sm">Choose which tabs and blocks appear on your public token page.</p>
-            {PAGE_SECTION_TYPES.map((type) => (
-              <KxInFormPremiumRow
+            <p className="kx-body-sm">
+              Toggle which tabs and blocks appear on your public token page, and drag to reorder them. The order is
+              reflected on the live page.
+            </p>
+            {sectionOrder.map((type) => (
+              <div
                 key={type}
-                flat
-                title={TOKEN_PAGE_SECTION_LABELS[type]}
-                description={
-                  type === 'overview' || type === 'comments'
-                    ? 'Recommended for all listings'
-                    : 'Optional block on your landing page'
-                }
-                checked={sectionToggles[type] ?? (type === 'overview' || type === 'comments' || type === 'links')}
-                onToggle={() => toggleSection(type)}
-              />
+                draggable={!isSubmitting}
+                onDragStart={() => setDragSection(type)}
+                onDragEnd={() => setDragSection(null)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragSection && dragSection !== type) reorderSection(dragSection, type);
+                }}
+                className={`flex items-center gap-2 rounded-xl transition ${
+                  dragSection === type ? 'opacity-60' : ''
+                }`}
+              >
+                <span
+                  className="flex h-8 w-6 shrink-0 cursor-grab items-center justify-center text-zinc-400 active:cursor-grabbing"
+                  aria-hidden="true"
+                  title="Drag to reorder"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" />
+                  </svg>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <KxInFormPremiumRow
+                    flat
+                    title={TOKEN_PAGE_SECTION_LABELS[type]}
+                    description={
+                      type === 'overview' || type === 'comments'
+                        ? 'Recommended for all listings'
+                        : 'Optional block on your landing page'
+                    }
+                    checked={sectionToggles[type] ?? (type === 'overview' || type === 'comments' || type === 'links')}
+                    onToggle={() => toggleSection(type)}
+                  />
+                </div>
+              </div>
             ))}
           </div>
 
@@ -785,6 +843,23 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 <span>Chunk estimate</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span>
               </div>
+            </div>
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/60 px-2.5 py-2 text-xs leading-snug">
+              <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Earn Hub Points</p>
+              <ul className="space-y-0.5 text-zinc-700 dark:text-zinc-300">
+                <li className="flex justify-between gap-2">
+                  <span>List Token</span>
+                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingCreate} pts</span>
+                </li>
+                <li className="flex justify-between gap-2">
+                  <span>Update Page</span>
+                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingUpdate} pts</span>
+                </li>
+                <li className="flex justify-between gap-2">
+                  <span>Verify Token</span>
+                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingVerify} pts</span>
+                </li>
+              </ul>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
               <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>

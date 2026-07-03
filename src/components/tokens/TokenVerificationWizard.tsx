@@ -92,7 +92,9 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
         : isL2
           ? 'Connect and sign with the EVM wallet that owns this contract. Your address must match the on-chain owner().'
           : 'Sign with the wallet that deployed this token.'
-      : 'Link any connected wallet to this token page. This does not prove deployer ownership and will not grant the verified developer badge.';
+      : isL2
+        ? 'Link your EVM wallet to this L2 token page. This does not prove deployer ownership and will not grant the verified developer badge.'
+        : 'Link your Kaspa L1 wallet to this token page. This does not prove deployer ownership and will not grant the verified developer badge.';
 
   const handleSubmit = async () => {
     setError(null);
@@ -134,17 +136,24 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
           signature = await signKaspaMessage(kaspaState.provider as KaspaWalletProvider, message);
         }
       } else {
-        if (evmReady) {
+        // Assign wallet: Kaspa L1 tokens (KRC-20 / Kaspa L1 / KCC-20) use the Kaspa
+        // wallet connector; only EVM L2 tokens use the EVM connector.
+        if (isL2) {
+          if (!evmReady) {
+            setError('Connect your EVM wallet to assign this L2 token.');
+            return;
+          }
           walletAddress = activeEvm;
           const message = buildVerificationMessage(listing, walletAddress, mode);
           signature = await signMessageAsync({ message });
-        } else if (kaspaReady && kaspaState.provider) {
+        } else {
+          if (!kaspaReady || !kaspaState.provider) {
+            setError('Connect your Kaspa L1 wallet to assign this token.');
+            return;
+          }
           walletAddress = activeKaspa;
           const message = buildVerificationMessage(listing, walletAddress, mode);
           signature = await signKaspaMessage(kaspaState.provider as KaspaWalletProvider, message);
-        } else {
-          setError('Connect a Kaspa or EVM wallet to assign.');
-          return;
         }
       }
 

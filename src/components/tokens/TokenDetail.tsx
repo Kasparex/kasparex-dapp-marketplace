@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
-import { getEnabledTabs, isSectionEnabled } from '@/lib/tokens/pageConfig';
+import { getOrderedTabs, getOrderedOverviewSubsections } from '@/lib/tokens/pageConfig';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
@@ -72,25 +72,65 @@ export function TokenDetail({
   const showSwap = fullyMinted || token.id === 'krex' || token.type === 'global';
   const showUtility = Boolean(token.listing?.instantUtility || token.listing?.verified);
   const commentsCount = useDAppCommentsCount(tokenCommentsArticleId(token.slug));
-  const enabledTabs = getEnabledTabs(pageConfig);
+  const orderedTabs = getOrderedTabs(pageConfig);
+  const orderedOverviewSubsections = getOrderedOverviewSubsections(pageConfig);
 
-  const tokenTabs: DAppTab<TokenContentTab>[] = [
-    { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
-    ...(enabledTabs.has('roadmap') ? [{ id: 'roadmap' as const, label: 'Roadmap', icon: <IconTokenRoadmap /> }] : []),
-    ...(enabledTabs.has('markets') ? [{ id: 'markets' as const, label: 'Markets', icon: <IconTokenMarkets /> }] : []),
-    ...(showSwap && enabledTabs.has('swap') ? [{ id: 'swap' as const, label: 'Swap', icon: <IconTokenSwap /> }] : []),
-    ...(showUtility && enabledTabs.has('utility') ? [{ id: 'utility' as const, label: 'Utility', icon: <IconTokenUtility /> }] : []),
-    ...(enabledTabs.has('comments')
-      ? [
-          {
-            id: 'comments' as const,
-            label: 'Comments',
-            icon: <IconTokenComments />,
-            rightAdornment: <CommentsTabBadge count={commentsCount} />,
-          },
-        ]
-      : []),
-  ];
+  const TAB_META: Record<TokenContentTab, DAppTab<TokenContentTab> | null> = {
+    overview: { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
+    roadmap: { id: 'roadmap', label: 'Roadmap', icon: <IconTokenRoadmap /> },
+    markets: { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
+    swap: showSwap ? { id: 'swap', label: 'Swap', icon: <IconTokenSwap /> } : null,
+    utility: showUtility ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
+    comments: {
+      id: 'comments',
+      label: 'Comments',
+      icon: <IconTokenComments />,
+      rightAdornment: <CommentsTabBadge count={commentsCount} />,
+    },
+  };
+
+  const tokenTabs: DAppTab<TokenContentTab>[] = orderedTabs
+    .map((tab) => TAB_META[tab])
+    .filter((tab): tab is DAppTab<TokenContentTab> => tab !== null);
+
+  const renderOverviewSubsection = (type: (typeof orderedOverviewSubsections)[number]) => {
+    if (type === 'tokenomics') {
+      return (
+        <div key="tokenomics" id="token-tokenomics" className="scroll-mt-28">
+          <TokenomicsSection token={token} />
+        </div>
+      );
+    }
+    if (type === 'whitepaper') {
+      return <TokenWhitepaperSection key="whitepaper" token={token} />;
+    }
+    if (type === 'links' && token.links && token.links.length > 0) {
+      return (
+        <section key="links" id="token-links" className="space-y-6">
+          <DAppSectionHeader title="Links" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {token.links.map((link, index) => (
+              <a
+                key={`${link.url}-${index}`}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-cyan-500/30 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{link.label}</div>
+                  <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    }
+    return null;
+  };
 
   return (
     <article className="mx-auto max-w-6xl font-sans">
@@ -117,35 +157,7 @@ export function TokenDetail({
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
-                    {isSectionEnabled(pageConfig, 'tokenomics') ? (
-                      <div id="token-tokenomics" className="scroll-mt-28">
-                        <TokenomicsSection token={token} />
-                      </div>
-                    ) : null}
-                    {isSectionEnabled(pageConfig, 'whitepaper') ? <TokenWhitepaperSection token={token} /> : null}
-                    {isSectionEnabled(pageConfig, 'links') && token.links && token.links.length > 0 ? (
-                      <section id="token-links" className="space-y-6">
-                        <DAppSectionHeader title="Links" />
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          {token.links.map((link, index) => (
-                            <a
-                              key={`${link.url}-${index}`}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-cyan-500/30 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{link.label}</div>
-                                <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                                  {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                                </div>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      </section>
-                    ) : null}
+                    {orderedOverviewSubsections.map((type) => renderOverviewSubsection(type))}
                   </div>
                 ) : null}
 
