@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { TokenLandingPage } from '@/components/tokens/TokenLandingPage';
 import { useTokens } from '@/hooks/useTokens';
 import type { Token } from '@/lib/tokens/types';
+import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { getPublishedListingBySlug } from '@/lib/tokens/data';
 
 interface TokenPageContentProps {
@@ -17,7 +18,7 @@ interface TokenPageContentProps {
 export function TokenPageContent({ slug, serverToken }: TokenPageContentProps) {
   const { resolveToken, listings } = useTokens();
   const [token, setToken] = useState<Token | null>(serverToken);
-  const [pageConfig, setPageConfig] = useState(serverToken ? undefined : undefined);
+  const [pageConfig, setPageConfig] = useState<TokenPageConfig | undefined>(undefined);
   const [ready, setReady] = useState(Boolean(serverToken));
 
   useEffect(() => {
