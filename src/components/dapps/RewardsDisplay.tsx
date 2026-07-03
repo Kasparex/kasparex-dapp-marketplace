@@ -13,10 +13,6 @@ import { getExplorerUrl } from '@/lib/dapps/deployer';
 
 export interface RewardsDisplayProps {
   gridTokenAddress?: string;
-  /** @deprecated LRT removed; use GRID/tGRID only */
-  dAppTokenAddress?: string;
-  /** @deprecated LRT removed */
-  ticker?: string;
   className?: string;
 }
 

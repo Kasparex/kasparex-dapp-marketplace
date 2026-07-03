@@ -12,7 +12,6 @@ export interface RewardRecord {
   actionType: string;
   actionValue: number;
   gridReward?: number;
-  dAppTokenReward?: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
   distributedAt?: string;

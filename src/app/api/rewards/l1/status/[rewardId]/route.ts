@@ -9,7 +9,6 @@ import { NextRequest, NextResponse } from 'next/server';
 export interface L1RewardStatusResponse {
   status: 'pending' | 'processing' | 'distributed' | 'failed' | 'error';
   gridReward?: number;
-  dAppTokenReward?: number;
   distributedAt?: string;
   error?: string;
 }
@@ -53,7 +52,6 @@ export async function GET(
     return NextResponse.json({
       status: 'pending',
       gridReward: undefined,
-      dAppTokenReward: undefined,
       distributedAt: undefined,
     });
   } catch (error) {

@@ -12,7 +12,6 @@ export interface RewardRecord {
   actionType: string;
   actionValue: number;
   gridReward?: number;
-  dAppTokenReward?: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   network: 'L1' | 'L2' | 'vProgs';
   createdAt: number;
@@ -65,7 +64,7 @@ export async function createRewardRecord(
         record.actionType,
         record.actionValue,
         record.gridReward ?? null,
-        record.dAppTokenReward ?? null,
+        null,
         record.status,
         record.network,
         now,
@@ -108,7 +107,6 @@ export async function updateRewardStatus(
   rewardId: string,
   status: RewardRecord['status'],
   gridReward?: number,
-  dAppTokenReward?: number,
   ipfsCid?: string
 ): Promise<boolean> {
   try {
@@ -121,11 +119,6 @@ export async function updateRewardStatus(
     if (gridReward !== undefined) {
       updates.push('grid_reward = ?');
       values.push(gridReward);
-    }
-
-    if (dAppTokenReward !== undefined) {
-      updates.push('dapp_token_reward = ?');
-      values.push(dAppTokenReward);
     }
 
     if (distributedAt !== undefined) {

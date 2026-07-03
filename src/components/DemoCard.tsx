@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, generateSimulatedAddress, getDAppNetworkType } from '@/lib/dapps';
+import { DApp, generateSimulatedAddress } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
 import { useLikes } from '@/hooks/useLikes';
@@ -12,7 +12,6 @@ import { DAppInfoModal } from './dapps/DAppInfoModal';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { StatusIndicator } from './dapps/StatusIndicator';
-import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { DAppFeesModal } from './dapps/DAppFeesModal';
 
@@ -49,34 +48,7 @@ export function DemoCard({ dapp, gradientColors }: DemoCardProps) {
   // Modal states
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  // Get token information
-  // For L1 dApps, use special token mappings (Send KAS -> KAS, Send KREX -> KREX)
-  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
-  let rawTicker: string | null = null;
-  if (isL1DApp) {
-    // L1 dApps: map to actual tokens
-    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
-      rawTicker = 'KAS';
-    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
-      rawTicker = 'KREX';
-    }
-  } else {
-    // L2 dApps: use contract data or generate
-    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
-  }
-  const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
-  const tokenAddress = contractData?.tokenAddress || (tokenTicker ? generateSimulatedAddress(`${mergedDApp.id}-token`) : null);
   const dAppContractAddress = contractData?.contractAddress || mergedDApp.contractAddress || generateSimulatedAddress(mergedDApp.id);
-  
-  // Format addresses for display
-  const formatAddress = (address: string | null) => {
-    if (!address || !address.startsWith('0x')) return null;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-  
-  // Get explorer URLs
-  const dAppExplorerUrl = dAppContractAddress ? getExplorerUrl(dAppContractAddress, chainId) : null;
-  const tokenExplorerUrl = tokenAddress ? getExplorerUrl(tokenAddress, chainId) : null;
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
     e.preventDefault();

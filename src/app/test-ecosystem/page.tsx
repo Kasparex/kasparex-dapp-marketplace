@@ -14,7 +14,6 @@ import { useAccount, useChainId } from 'wagmi';
 import { getContractAddress } from '@/lib/contracts/addresses';
 
 // Dynamically import components that might use indexedDB to avoid SSR issues
-const TokenDisplay = nextDynamic(() => import('@/components/dapps/TokenDisplay').then(mod => ({ default: mod.TokenDisplay })), { ssr: false });
 const RewardsDisplay = nextDynamic(() => import('@/components/dapps/RewardsDisplay').then(mod => ({ default: mod.RewardsDisplay })), { ssr: false });
 const AffiliateWidget = nextDynamic(() => import('@/components/dapps/AffiliateWidget').then(mod => ({ default: mod.AffiliateWidget })), { ssr: false });
 

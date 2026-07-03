@@ -62,7 +62,6 @@ export async function handleArchiveRewards(
             actionType: reward.actionType,
             actionValue: reward.actionValue,
             gridReward: reward.gridReward,
-            dAppTokenReward: reward.dAppTokenReward,
             status: reward.status,
             createdAt: new Date(reward.createdAt).toISOString(),
             distributedAt: reward.distributedAt

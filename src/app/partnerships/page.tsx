@@ -63,7 +63,7 @@ export default function PartnershipsPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-zinc-900 dark:text-zinc-100 mb-1">Tokenization Support</h3>
-                                        <p className="text-sm text-zinc-600 dark:text-zinc-400">Get expert help in launching your own dApp token on the Kaspa network.</p>
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-400">Get expert help listing your token project on Kasparex through UaaS onboarding.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">

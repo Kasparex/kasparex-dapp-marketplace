@@ -130,7 +130,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
               </h3>
               <div className="space-y-3">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Kasparex dApp Marketplace is a tokenized utility ecosystem where each dApp has its own token and rewards users for real interaction.
+                  Kasparex is a tokenized utility ecosystem where dApps reward users with GRID for real interaction.
                 </p>
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                   <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -139,11 +139,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                   <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <li className="flex items-start gap-2">
                       <span className="text-[#02abb8] mt-0.5">•</span>
-                      <span>Each dApp = its own token (Local Reward Token)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#02abb8] mt-0.5">•</span>
-                      <span>Tokens are earned through real use, not presales or airdrops</span>
+                      <span>Earn GRID and Hub pts through real use, not presales or airdrops</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-[#02abb8] mt-0.5">•</span>
@@ -228,11 +224,7 @@ export function QuickGuideWizard({ isOpen, onClose }: QuickGuideWizardProps) {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="font-semibold text-[#02abb8]">3.</span>
-                      <span>Contract mints 5 VOTE tokens (dApp&apos;s native token) to user</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="font-semibold text-[#02abb8]">4.</span>
-                      <span>User also receives GRID, L2 modeled pts, Hub pts when applicable, and multipliers if holding KREX/NFTs</span>
+                      <span>User receives GRID, L2 modeled pts, Hub pts when applicable, and multipliers if holding KREX/NFTs</span>
                     </li>
                   </ol>
                 </div>

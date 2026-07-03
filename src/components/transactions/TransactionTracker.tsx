@@ -56,7 +56,6 @@ export function TransactionTracker({ txHash, showAll = false, compact = false }:
       updateTransactionReward(tx.txHash, {
         rewardStatus: status.status as any,
         gridReward: status.gridReward,
-        dAppTokenReward: status.dAppTokenReward,
       });
 
       // Reload to show updated status
@@ -202,15 +201,6 @@ export function TransactionTracker({ txHash, showAll = false, compact = false }:
                   <span className="text-sm text-zinc-400">GRID Reward</span>
                   <span className="text-sm text-green-400 font-medium">
                     +{selectedTx.gridReward.toFixed(4)} GRID
-                  </span>
-                </div>
-              )}
-
-              {selectedTx.dAppTokenReward !== undefined && selectedTx.dAppTokenReward > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">dApp Token Reward</span>
-                  <span className="text-sm text-green-400 font-medium">
-                    +{selectedTx.dAppTokenReward.toFixed(4)} Tokens
                   </span>
                 </div>
               )}

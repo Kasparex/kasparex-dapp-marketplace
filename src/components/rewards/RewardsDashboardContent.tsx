@@ -420,8 +420,6 @@ export function RewardsDashboardContent({
             )}
           </div>
         </div>
-
-        {/* LRT/dApp tokens section removed: rewards are GRID/tGRID only */}
       </div>
 
       {/* Rewards Tables */}

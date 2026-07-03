@@ -15,7 +15,6 @@ import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
-import { DAppRelationSection } from './DAppRelationSection';
 import { TokenCommentsSection, TokenUtilitySection } from './TokenCommentsSection';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
@@ -129,7 +128,6 @@ export function TokenDetail({
                 {contentTab === 'info' ? (
                   <div id="token-info" className="scroll-mt-28 space-y-8 animate-in fade-in duration-300">
                     <TokenInfoSection token={token} />
-                    <DAppRelationSection token={token} />
                     {token.links && token.links.length > 0 ? (
                       <section id="token-links" className="scroll-mt-28 space-y-6">
                         <DAppSectionHeader title="Links" />

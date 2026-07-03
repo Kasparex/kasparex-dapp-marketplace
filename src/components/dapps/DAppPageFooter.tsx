@@ -33,13 +33,7 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
     chainId
   );
 
-  // Merge localStorage data
   const mergedDApp = mergeDAppData(contractData, dapp);
-  
-  // Get token ticker from contract data (only for L2 dApps)
-  const tokenTicker = !isL1DApp ? (contractData?.ticker || null) : null;
-
-  if (isFooterCollapsed) {
     return (
       <button
         onClick={() => setIsFooterCollapsed(false)}

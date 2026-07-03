@@ -24,7 +24,6 @@ export function RewardStatusBox({
 }: RewardStatusBoxProps) {
   const [rewardStatus, setRewardStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [gridReward, setGridReward] = useState<number | null>(null);
-  const [dAppTokenReward, setDAppTokenReward] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +61,6 @@ export function RewardStatusBox({
       const status = await getL1RewardStatus(rewardId);
       setRewardStatus(status.status as any);
       setGridReward(status.gridReward || null);
-      setDAppTokenReward(status.dAppTokenReward || null);
 
       // Stop polling if completed or failed
       if (status.status === 'completed' || status.status === 'failed') {
@@ -135,31 +133,18 @@ export function RewardStatusBox({
       </div>
 
       {/* Rewards */}
-      {(gridReward !== null || dAppTokenReward !== null) && (
+      {gridReward !== null && gridReward > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-zinc-300">Rewards Earned</h4>
           
-          {gridReward !== null && gridReward > 0 && (
-            <div className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-zinc-300">GRID Token</span>
-              </div>
-              <span className="text-lg font-semibold text-green-400">
-                +{gridReward.toFixed(4)} GRID
-              </span>
+          <div className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-zinc-300">GRID Token</span>
             </div>
-          )}
-
-          {dAppTokenReward !== null && dAppTokenReward > 0 && (
-            <div className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-zinc-300">dApp Token</span>
-              </div>
-              <span className="text-lg font-semibold text-blue-400">
-                +{dAppTokenReward.toFixed(4)} Tokens
-              </span>
-            </div>
-          )}
+            <span className="text-lg font-semibold text-green-400">
+              +{gridReward.toFixed(4)} GRID
+            </span>
+          </div>
         </div>
       )}
 

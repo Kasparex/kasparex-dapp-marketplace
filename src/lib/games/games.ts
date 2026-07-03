@@ -38,7 +38,6 @@ export interface Game {
   rewardConfig?: {
     gridReward?: number; // Base GRID reward
     xpReward?: number; // pts reward alongside GRID in UI displays
-    dAppTokenReward?: number; // dApp token reward (if applicable)
   };
   // Game embed URL (iframe)
   gameUrl?: string;

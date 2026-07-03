@@ -1,11 +1,11 @@
 /**
  * Token Type Definitions
- * Comprehensive interface for ecosystem tokens (KREX, GRID, dApp tokens, collab tokens).
+ * Comprehensive interface for ecosystem tokens (KREX, GRID, collab tokens, UaaS listings).
  * GRID: see docs/GRID_CANONICAL_SUPPLY_MODEL.md (L1 canonical KRC-20 + bridged L2 ERC-20 representations).
  */
 
 export type TokenNetwork = 'L1' | 'L2';
-export type TokenType = 'global' | 'local' | 'collab';
+export type TokenType = 'global' | 'collab';
 
 /** Listing signals for directory badges, sorting, and premium placement. */
 export type TokenListingStatus = {
@@ -69,7 +69,7 @@ export interface Token {
   l2Address?: string; // L2 contract address (if token exists on both)
   
   // Token Type
-  type: TokenType; // global, local, or collab
+  type: TokenType; // global or collab
   
   // Tokenomics
   totalSupply?: number; // Total supply
@@ -81,9 +81,8 @@ export interface Token {
   // Roadmap
   roadmap?: RoadmapEvent[]; // Timeline of milestones
   
-  // dApp Relations
-  relatedDAppIds?: string[]; // IDs of related dApps
-  parentDAppId?: string; // Parent dApp ID (for local tokens)
+  // Ecosystem relations
+  relatedDAppIds?: string[]; // Optional linked Kasparex dApps
   
   // Price Data
   price?: PriceData; // Current price information

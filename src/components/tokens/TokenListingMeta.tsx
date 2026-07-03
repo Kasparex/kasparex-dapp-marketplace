@@ -12,7 +12,6 @@ const NETWORK_LABELS: Record<Token['network'], string> = {
 
 const TYPE_LABELS: Record<Token['type'], string> = {
   global: 'Global ecosystem token',
-  local: 'Local dApp or developer token',
   collab: 'Community collaboration token',
 };
 

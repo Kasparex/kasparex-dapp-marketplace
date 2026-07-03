@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useChainId } from 'wagmi';
-import { DApp, generateSimulatedTicker, getDAppNetworkType, isDirectoryListingDApp } from '@/lib/dapps';
+import { DApp, getDAppNetworkType, isDirectoryListingDApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppActionsColumn } from './DAppActionsColumn';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
@@ -36,19 +36,6 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
 
   const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
   const xpReward = useDAppXpReward(mergedDApp);
-
-  let rawTicker: string | null = null;
-  if (isL1DApp) {
-    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
-      rawTicker = 'KAS';
-    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
-      rawTicker = 'KREX';
-    }
-  } else {
-    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
-  }
-
-  const featured = mergedDApp.featuredImage || mergedDApp.image || '';
   const description = mergedDApp.utility || mergedDApp.description || mergedDApp.process || '';
   const [showInfoModal, setShowInfoModal] = useState(false);
 

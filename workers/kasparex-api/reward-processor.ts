@@ -84,8 +84,8 @@ async function stageRewardForDistribution(reward: RewardRecord, env: Env): Promi
   }
   const krexBalance = await queryL1KREXBalance(reward.userAddress);
   const krexTier = getKREXTierFromBalance(krexBalance);
-  const { gridReward, dAppTokenReward } = calculateRewardAmounts(reward.actionValue, krexTier);
-  await updateRewardStatus(env.REWARDS_DB, reward.id, 'processing', gridReward, dAppTokenReward);
+  const { gridReward } = calculateRewardAmounts(reward.actionValue, krexTier);
+  await updateRewardStatus(env.REWARDS_DB, reward.id, 'processing', gridReward);
   return { ok: true, gridReward };
 }
 
@@ -206,27 +206,18 @@ async function verifyKaspaTransaction(txHash: string): Promise<boolean> {
 function calculateRewardAmounts(
   actionValue: number,
   krexTier: KREXTier
-): { gridReward: number; dAppTokenReward: number } {
-  // Base reward rate (per KAS)  -  canonical config.
+): { gridReward: number } {
   const GRID_PER_KAS = BASE_REWARDS.GRID_PER_KAS;
-  // This project is GRID-first; keep dApp token rewards disabled for now.
-  const DAPP_TOKEN_PER_KAS = 0;
 
-  // Calculate base rewards
   const baseGridReward = actionValue * GRID_PER_KAS;
-  const baseDAppTokenReward = actionValue * DAPP_TOKEN_PER_KAS;
 
-  // Get tier multiplier
   const tierConfig = FRONTEND_KREX_TIERS[krexTier];
   const multiplier = tierConfig.multiplier;
 
-  // Apply multiplier
   const gridReward = baseGridReward * multiplier;
-  const dAppTokenReward = baseDAppTokenReward * multiplier;
 
   return {
-    gridReward: Math.round(gridReward * 100) / 100, // Round to 2 decimals
-    dAppTokenReward: Math.round(dAppTokenReward * 100) / 100,
+    gridReward: Math.round(gridReward * 100) / 100,
   };
 }
 
@@ -277,37 +268,31 @@ async function processReward(
     console.log(`[Reward Processor] User ${reward.userAddress}: KREX balance=${krexBalance}, tier=${krexTier}`);
 
     // Step 3: Calculate rewards
-    const { gridReward, dAppTokenReward } = calculateRewardAmounts(
+    const { gridReward } = calculateRewardAmounts(
       reward.actionValue,
       krexTier
     );
 
-    console.log(`[Reward Processor] Calculated rewards: GRID=${gridReward}, dAppToken=${dAppTokenReward}`);
+    console.log(`[Reward Processor] Calculated rewards: GRID=${gridReward}`);
 
     // Step 4: Update status to 'processing'
     await updateRewardStatus(
       env.REWARDS_DB,
       reward.id,
       'processing',
-      gridReward,
-      dAppTokenReward
+      gridReward
     );
 
-    // Step 5: TODO - Distribute tokens
+    // Step 5: TODO - Distribute GRID tokens
     // This requires implementing L1 token distribution mechanism
     // For now, we'll mark as completed after calculating rewards
-    // In production, you would:
-    // - Send GRID tokens to user address
-    // - Send dApp tokens to user address
-    // - Only then mark as completed
 
     // Step 6: Update status to 'completed'
     await updateRewardStatus(
       env.REWARDS_DB,
       reward.id,
       'completed',
-      gridReward,
-      dAppTokenReward
+      gridReward
     );
 
     console.log(`[Reward Processor] Successfully processed reward ${reward.id}`);

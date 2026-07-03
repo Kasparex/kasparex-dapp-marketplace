@@ -13,7 +13,7 @@ const OPTIONS: { value: TokenSourceFilter; label: string; title: string }[] = [
   { value: 'all', label: 'All', title: 'All listed tokens' },
   { value: 'kasparex', label: 'Kasparex', title: 'Official Kasparex ecosystem tokens' },
   { value: 'community', label: 'Community', title: 'Community collaboration tokens' },
-  { value: 'developer', label: 'Developer', title: 'Developer and dApp project tokens' },
+  { value: 'developer', label: 'Developer', title: 'Developer-listed token projects (UaaS)' },
 ];
 
 export function TokenSourceSwitcher({ value, onChange, className = '' }: TokenSourceSwitcherProps) {

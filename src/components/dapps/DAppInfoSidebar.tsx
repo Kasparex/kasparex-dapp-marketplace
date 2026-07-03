@@ -161,20 +161,7 @@ export function DAppInfoSidebar({
   // Featured image
   const featuredImage = mergedDApp.featuredImage;
 
-  // Get token and contract addresses for display
-  const tokenTicker = contractData?.ticker || null;
-  const tokenAddress = contractData?.tokenAddress || null;
   const dAppContractAddress = contractData?.contractAddress || resolvedContractAddress || null;
-
-  // Format addresses for display
-  const formatAddress = (address: string | null) => {
-    if (!address || !address.startsWith('0x')) return null;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  // Get explorer URLs
-  const dAppExplorerUrl = dAppContractAddress ? getExplorerUrl(dAppContractAddress, chainId) : null;
-  const tokenExplorerUrl = tokenAddress ? getExplorerUrl(tokenAddress, chainId) : null;
 
   return (
     <>

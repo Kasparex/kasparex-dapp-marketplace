@@ -30,7 +30,6 @@ export interface TransactionDetails {
   rewardId?: string;
   rewardStatus?: 'pending' | 'processing' | 'completed' | 'failed';
   gridReward?: number;
-  dAppTokenReward?: number;
   xpReward?: number;
   
   // User info
@@ -98,7 +97,6 @@ export function updateTransactionReward(
     rewardId?: string;
     rewardStatus?: 'pending' | 'processing' | 'completed' | 'failed';
     gridReward?: number;
-    dAppTokenReward?: number;
     xpReward?: number;
   }
 ): void {

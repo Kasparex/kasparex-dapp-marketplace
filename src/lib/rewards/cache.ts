@@ -134,7 +134,6 @@ export class RewardCache {
     return this.adapter.get<{
       status: string;
       gridReward?: number;
-      dAppTokenReward?: number;
       distributedAt?: string;
     }>(key);
   }
@@ -147,7 +146,6 @@ export class RewardCache {
     data: {
       status: string;
       gridReward?: number;
-      dAppTokenReward?: number;
       distributedAt?: string;
     },
     ttl: number = CacheTTL.MEDIUM
@@ -172,7 +170,6 @@ export class RewardCache {
     return this.adapter.get<{
       totalRewards: number;
       totalGridReward: number;
-      totalDAppTokenReward: number;
       lastRewardAt?: number;
     }>(key);
   }
@@ -185,7 +182,6 @@ export class RewardCache {
     data: {
       totalRewards: number;
       totalGridReward: number;
-      totalDAppTokenReward: number;
       lastRewardAt?: number;
     },
     ttl: number = CacheTTL.LONG

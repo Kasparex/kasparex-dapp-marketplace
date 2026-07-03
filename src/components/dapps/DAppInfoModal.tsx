@@ -410,7 +410,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                     </div>
 
                     {/* Rewards */}
-                    {(mergedContractData?.tokenAddress || gridTokenAddress) && (
+                    {gridTokenAddress && (
                       <div className="relative pl-12">
                         <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -419,12 +419,9 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                         </div>
                         <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Rewards</h4>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-                          Earn tokens through Proof-of-Utility interactions:
+                          Earn GRID through Proof-of-Utility interactions:
                         </p>
                         <ul className="text-xs text-zinc-600 dark:text-zinc-400 space-y-1 mb-2">
-                          {mergedContractData?.tokenAddress && mergedContractData.ticker && (
-                            <li>• {mergedContractData.ticker} tokens</li>
-                          )}
                           {gridTokenAddress && <li>• GRID tokens</li>}
                         </ul>
                         {rewardManagerAddress && (
@@ -437,31 +434,6 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
                             {formatAddress(rewardManagerAddress)}
                           </a>
                         )}
-                      </div>
-                    )}
-
-                    {/* dApp Token */}
-                    {mergedContractData?.tokenAddress && mergedContractData.ticker && (
-                      <div className="relative pl-12">
-                        <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                          {mergedContractData.ticker} Token
-                        </h4>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-1">
-                          Total Supply: {formatTokenSupply(mergedContractData.totalSupply)} {mergedContractData.ticker}
-                        </p>
-                        <a
-                          href={getExplorerLink(mergedContractData.tokenAddress)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-mono text-[#02abb8] hover:underline"
-                        >
-                          {formatAddress(mergedContractData.tokenAddress)}
-                        </a>
                       </div>
                     )}
 

@@ -169,7 +169,6 @@ export async function handleGetL1RewardStatus(
             JSON.stringify({
               status: archivedRecord.status,
               gridReward: archivedRecord.gridReward,
-              dAppTokenReward: archivedRecord.dAppTokenReward,
               distributedAt: archivedRecord.distributedAt,
             }),
             {
@@ -196,7 +195,6 @@ export async function handleGetL1RewardStatus(
     const response = {
       status: record.status,
       gridReward: record.gridReward,
-      dAppTokenReward: record.dAppTokenReward,
       distributedAt: record.distributedAt
         ? new Date(record.distributedAt).toISOString()
         : undefined,

@@ -4,7 +4,6 @@ import type { TokenType } from '@/lib/tokens/types';
 export type TokenSortControlValue =
   | 'all-tokens'
   | 'global-tokens'
-  | 'local-tokens'
   | 'collab-tokens'
   | 'verified-only'
   | TokenSortOption;
@@ -12,7 +11,6 @@ export type TokenSortControlValue =
 export const TOKEN_SORT_CONTROL_OPTIONS: { value: TokenSortControlValue; label: string }[] = [
   { value: 'all-tokens', label: 'All tokens' },
   { value: 'global-tokens', label: 'Global tokens' },
-  { value: 'local-tokens', label: 'Local tokens' },
   { value: 'collab-tokens', label: 'Collab tokens' },
   { value: 'verified-only', label: 'Verified only' },
   { value: 'verified-first', label: 'Verified first' },
@@ -39,8 +37,6 @@ export function resolveTokenSortControl(value: TokenSortControlValue): {
       return { type: 'all', verified: 'all', sortBy: 'name-az' };
     case 'global-tokens':
       return { type: 'global', verified: 'all', sortBy: 'name-az' };
-    case 'local-tokens':
-      return { type: 'local', verified: 'all', sortBy: 'name-az' };
     case 'collab-tokens':
       return { type: 'collab', verified: 'all', sortBy: 'name-az' };
     case 'verified-only':

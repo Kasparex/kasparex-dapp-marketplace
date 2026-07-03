@@ -81,7 +81,7 @@ export async function recordUsageAndRewardL1(
  */
 export async function getL1RewardStatus(
   rewardId: string
-): Promise<{ status: string; gridReward?: number; dAppTokenReward?: number; distributedAt?: string; error?: string }> {
+): Promise<{ status: string; gridReward?: number; distributedAt?: string; error?: string }> {
   try {
     // Prefer node-first reads for status (cheap + cacheable), fall back to central.
     // Writes (record endpoint) should remain centralized and verifiable.
@@ -129,7 +129,6 @@ export async function getL1RewardStatus(
     return {
       status: data.status || 'pending',
       gridReward: data.gridReward,
-      dAppTokenReward: data.dAppTokenReward,
       distributedAt: data.distributedAt,
     };
   } catch (error) {

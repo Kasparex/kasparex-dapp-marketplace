@@ -305,27 +305,6 @@ export function mergeDAppData(contractData: ContractDAppData | null, frontendDat
     merged.logoImage = savedLogo;
   }
 
-  // Auto-sync dApp logo from token logo if dApp doesn't have one
-  // This ensures dApps always use their token logos
-  if (!merged.image && typeof window !== 'undefined') {
-    try {
-      const { getTokenForDApp, syncDAppLogoFromToken } = require('@/lib/tokens/sync');
-      const token = getTokenForDApp(frontendData.id);
-      if (token) {
-        syncDAppLogoFromToken(frontendData.id, token.id);
-        // Reload the logo after sync
-        const syncedLogo = loadDAppLogo(frontendData.id);
-        if (syncedLogo) {
-          merged.image = syncedLogo;
-          merged.logoImage = syncedLogo;
-        }
-      }
-    } catch (err) {
-      // Silently fail if sync fails (not critical)
-      console.debug('Could not sync dApp logo from token:', err);
-    }
-  }
-
   return merged;
 }
 

@@ -6,8 +6,6 @@ import { DApp } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { getCategoryById } from '@/lib/categories';
-import { getDAppNetworkType } from '@/lib/dapps';
-import { generateSimulatedTicker, generateSimulatedAddress } from '@/lib/dapps';
 
 interface DAppWidgetFooterProps {
   dapp: DApp;
@@ -23,10 +21,6 @@ interface DAppWidgetFooterProps {
 export function DAppWidgetFooter({ 
   dapp, 
   contractAddress,
-  hideIcons = false,
-  hideStar = false,
-  hideHeart = false,
-  hideEmbed = false,
   hideMetaRow = false,
 }: DAppWidgetFooterProps) {
   const chainId = useChainId();
@@ -36,37 +30,18 @@ export function DAppWidgetFooter({
     resolvedContractAddress = getDAppContractAddress(dapp, chainId) || '';
   }
   
-  // Fetch contract data
   const { data: contractData } = useDAppFromContract(
     resolvedContractAddress && resolvedContractAddress.startsWith('0x') ? resolvedContractAddress : undefined,
     chainId
   );
 
-  // Merge contract data
   const mergedDApp = mergeDAppData(contractData, dapp);
   const category = getCategoryById(mergedDApp.category);
-
-  // Check if this is an L1 dApp
-  const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
-
-  // Get token information
-  let rawTicker: string | null = null;
-  if (isL1DApp) {
-    if (mergedDApp.slug === 'send-kas' || mergedDApp.name.toLowerCase().includes('send kas')) {
-      rawTicker = 'KAS';
-    } else if (mergedDApp.slug === 'send-krex' || mergedDApp.name.toLowerCase().includes('send krex')) {
-      rawTicker = 'KREX';
-    }
-  } else {
-    rawTicker = contractData?.ticker || generateSimulatedTicker(mergedDApp.name);
-  }
-  const tokenTicker = rawTicker ? rawTicker.substring(0, 6) : null;
 
   return (
     <>
       <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center justify-between gap-6">
-          {/* Left: meta chips */}
           <div className="min-w-0 flex flex-wrap items-center gap-2">
             {!hideMetaRow ? (
               <>
@@ -88,7 +63,6 @@ export function DAppWidgetFooter({
             ) : null}
           </div>
 
-          {/* Right: hub + built-by */}
           <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-500 text-right">
             <Link
               href="https://hub.kasparex.com"
@@ -108,7 +82,7 @@ export function DAppWidgetFooter({
               className="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors"
               title="Symbol of intelligence, resilience, and purpose. Fair-launched, community-owned KRC-20 and L2 token on the Kaspa network.
 
-Est. 2024 🔥"
+Est. 2024"
             >
               Krex
             </Link>

@@ -106,14 +106,6 @@ export function GameInfoPanel({ game }: GameInfoPanelProps) {
                 </span>
               </div>
             )}
-            {game.rewardConfig.dAppTokenReward && (
-              <div className="flex items-center justify-between">
-                <span className="kx-body">dApp Token:</span>
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {game.rewardConfig.dAppTokenReward} Tokens
-                </span>
-              </div>
-            )}
           </div>
         </div>
       )}

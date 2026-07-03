@@ -143,7 +143,6 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
         if (result.success) {
           // Refresh balances after successful transaction
           queryClient.invalidateQueries({ queryKey: ['gridToken'] });
-          queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
           queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
         }
 
@@ -161,7 +160,6 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
         if (result.success) {
           // Refresh balances after successful reward distribution
           queryClient.invalidateQueries({ queryKey: ['gridToken'] });
-          queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
           queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
         }
 
@@ -208,7 +206,6 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
   // Refresh balances when reward transaction succeeds
   if (isRewardSuccess && rewardTxHash) {
     queryClient.invalidateQueries({ queryKey: ['gridToken'] });
-    queryClient.invalidateQueries({ queryKey: ['dAppToken'] });
     queryClient.invalidateQueries({ queryKey: ['tokenBalance'] });
   }
 
