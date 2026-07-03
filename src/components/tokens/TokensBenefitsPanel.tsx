@@ -106,7 +106,7 @@ export function TokensBenefitsPanel({
                   : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off modules`}
               </li>
               <li>
-                <span className={ui.accent}>•</span> Verified badge via lightweight on-chain KAS claim (coming soon)
+                <span className={ui.accent}>•</span> Verified badge via on-chain KAS listing payment
               </li>
               <li>
                 <span className={ui.accent}>•</span> Connect Hub payments, dApps, and tools to your token page

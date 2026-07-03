@@ -22,7 +22,9 @@ export type EarnSource =
   | 'dapp_l1_interaction'
   | 'krex_node_operator'
   | 'chronicles_article_create'
-  | 'chronicles_quiz_complete';
+  | 'chronicles_quiz_complete'
+  | 'token_listing_create'
+  | 'token_listing_update';
 
 export type HubLedgerEntry = {
   id: string;

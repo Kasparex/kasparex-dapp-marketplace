@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import type { Token } from '@/lib/tokens/types';
+import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
+import { getEnabledTabs, isSectionEnabled } from '@/lib/tokens/pageConfig';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
@@ -21,7 +23,7 @@ import { TokenUtilitySection } from './TokenCommentsSection';
 import { TokenWhitepaperSection } from './TokenWhitepaperSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { TOKEN_TAB_SECTION_CLASS } from '@/lib/tokens/sections';
+import { TOKEN_TAB_SECTION_CLASS, type TokenContentTab } from '@/lib/tokens/sections';
 import {
   IconTokenComments,
   IconTokenMarkets,
@@ -31,7 +33,7 @@ import {
   IconTokenUtility,
 } from '@/components/tokens/icons/TokenTabIcons';
 
-export type TokenContentTab = 'overview' | 'roadmap' | 'markets' | 'swap' | 'utility' | 'comments';
+export type { TokenContentTab } from '@/lib/tokens/sections';
 
 function isFullyMinted(token: Token): boolean {
   if (!token.maxSupply || !token.circulatingSupply) return false;
@@ -51,12 +53,14 @@ interface TokenDetailProps {
   token: Token;
   contentTab?: TokenContentTab;
   onContentTabChange?: (tab: TokenContentTab) => void;
+  pageConfig?: TokenPageConfig;
 }
 
 export function TokenDetail({
   token,
   contentTab: controlledTab,
   onContentTabChange,
+  pageConfig,
 }: TokenDetailProps) {
   const [internalTab, setInternalTab] = useState<TokenContentTab>('overview');
   const contentTab = controlledTab ?? internalTab;
@@ -68,19 +72,24 @@ export function TokenDetail({
   const showSwap = fullyMinted || token.id === 'krex' || token.type === 'global';
   const showUtility = Boolean(token.listing?.instantUtility || token.listing?.verified);
   const commentsCount = useDAppCommentsCount(tokenCommentsArticleId(token.slug));
+  const enabledTabs = getEnabledTabs(pageConfig);
 
   const tokenTabs: DAppTab<TokenContentTab>[] = [
     { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
-    { id: 'roadmap', label: 'Roadmap', icon: <IconTokenRoadmap /> },
-    { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
-    ...(showSwap ? [{ id: 'swap' as const, label: 'Swap', icon: <IconTokenSwap /> }] : []),
-    ...(showUtility ? [{ id: 'utility' as const, label: 'Utility', icon: <IconTokenUtility /> }] : []),
-    {
-      id: 'comments',
-      label: 'Comments',
-      icon: <IconTokenComments />,
-      rightAdornment: <CommentsTabBadge count={commentsCount} />,
-    },
+    ...(enabledTabs.has('roadmap') ? [{ id: 'roadmap' as const, label: 'Roadmap', icon: <IconTokenRoadmap /> }] : []),
+    ...(enabledTabs.has('markets') ? [{ id: 'markets' as const, label: 'Markets', icon: <IconTokenMarkets /> }] : []),
+    ...(showSwap && enabledTabs.has('swap') ? [{ id: 'swap' as const, label: 'Swap', icon: <IconTokenSwap /> }] : []),
+    ...(showUtility && enabledTabs.has('utility') ? [{ id: 'utility' as const, label: 'Utility', icon: <IconTokenUtility /> }] : []),
+    ...(enabledTabs.has('comments')
+      ? [
+          {
+            id: 'comments' as const,
+            label: 'Comments',
+            icon: <IconTokenComments />,
+            rightAdornment: <CommentsTabBadge count={commentsCount} />,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -108,11 +117,13 @@ export function TokenDetail({
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
-                    <div id="token-tokenomics" className="scroll-mt-28">
-                      <TokenomicsSection token={token} />
-                    </div>
-                    <TokenWhitepaperSection token={token} />
-                    {token.links && token.links.length > 0 ? (
+                    {isSectionEnabled(pageConfig, 'tokenomics') ? (
+                      <div id="token-tokenomics" className="scroll-mt-28">
+                        <TokenomicsSection token={token} />
+                      </div>
+                    ) : null}
+                    {isSectionEnabled(pageConfig, 'whitepaper') ? <TokenWhitepaperSection token={token} /> : null}
+                    {isSectionEnabled(pageConfig, 'links') && token.links && token.links.length > 0 ? (
                       <section id="token-links" className="space-y-6">
                         <DAppSectionHeader title="Links" />
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

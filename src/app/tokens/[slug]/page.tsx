@@ -1,16 +1,12 @@
 /**
  * Individual Token Page
- * Landing page for a specific token
+ * Landing page for a specific token (registry + dashboard-published listings).
  */
 
-import { notFound } from 'next/navigation';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { TokenLandingPage } from '@/components/tokens/TokenLandingPage';
-import { getTokenBySlug, getAllTokens } from '@/lib/tokens/registry';
+import { getTokenBySlug } from '@/lib/tokens/registry';
 import { loadTokenWithMetadata } from '@/lib/tokens/metadata';
-import { generateDAppSlug } from '@/lib/utils';
 import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
+import { TokenPageContent } from './TokenPageContent';
 
 interface PageProps {
   params: Promise<{
@@ -20,12 +16,8 @@ interface PageProps {
 
 export const dynamic = 'force-dynamic';
 
-// Generate static params for all token slugs
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
-  const tokens = getAllTokens();
-  return tokens.map((token) => ({
-    slug: token.slug,
-  }));
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -34,7 +26,8 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!token) {
     return buildHubOpenGraphMetadata({
-      title: 'Token Not Found - Kasparex Tokens',
+      title: 'Token - Kasparex Tokens',
+      description: 'Token landing page on Kasparex Tokens.',
       path: `/tokens/${slug}`,
     });
   }
@@ -49,24 +42,8 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function TokenPage({ params }: PageProps) {
   const { slug } = await params;
-  const token = getTokenBySlug(slug);
+  const registryToken = getTokenBySlug(slug);
+  const serverToken = registryToken ? await loadTokenWithMetadata(registryToken) : null;
 
-  if (!token) {
-    notFound();
-  }
-
-  // Load IPFS metadata if available
-  const tokenWithMetadata = await loadTokenWithMetadata(token);
-
-  return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
-      <Header />
-
-      <main className="flex min-h-0 flex-1 flex-col">
-        <TokenLandingPage token={tokenWithMetadata} />
-      </main>
-
-      <Footer />
-    </div>
-  );
+  return <TokenPageContent slug={slug} serverToken={serverToken} />;
 }

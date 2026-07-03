@@ -1,12 +1,14 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
+import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { TokenSidebar } from './TokenSidebar';
 import { TokenDetail, type TokenContentTab } from './TokenDetail';
 import { useCallback, useState } from 'react';
 
 interface TokenLandingPageProps {
   token: Token;
+  pageConfig?: TokenPageConfig;
 }
 
 const TAB_NAV_IDS: Record<string, TokenContentTab> = {
@@ -23,7 +25,7 @@ function isFullyMinted(token: Token): boolean {
   return token.circulatingSupply >= token.maxSupply;
 }
 
-export function TokenLandingPage({ token }: TokenLandingPageProps) {
+export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
   const [contentTab, setContentTab] = useState<TokenContentTab>('overview');
 
   const fullyMinted = isFullyMinted(token);
@@ -56,6 +58,7 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
             token={token}
             contentTab={contentTab}
             onContentTabChange={setContentTab}
+            pageConfig={pageConfig}
           />
         </div>
       </main>

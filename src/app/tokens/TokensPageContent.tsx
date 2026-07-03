@@ -35,6 +35,7 @@ import {
 } from '@/lib/tokens/sortControls';
 import type { DAppNetworkFilter } from '@/lib/dapps';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
+import { useTokens } from '@/hooks/useTokens';
 
 interface TokensPageContentProps {
   tokens: Token[];
@@ -42,6 +43,8 @@ interface TokensPageContentProps {
 
 export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const searchParams = useSearchParams();
+  const { getMergedTokens, listings } = useTokens();
+  const allTokens = useMemo(() => getMergedTokens(tokens), [tokens, getMergedTokens, listings]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
@@ -71,7 +74,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
 
   const filteredAndSortedTokens = useMemo(
     () =>
-      filterTokens(tokens, {
+      filterTokens(allTokens, {
         searchQuery,
         network: networkFilter,
         type: typeFilter,
@@ -83,7 +86,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
         sortBy,
       }),
     [
-      tokens,
+      allTokens,
       searchQuery,
       networkFilter,
       typeFilter,
@@ -135,7 +138,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <TokensListingSidebar
-          tokens={tokens}
+          tokens={allTokens}
           utilityFilter={utilitySectionFilter}
           moduleFilter={moduleSectionFilter}
           onUtilityFilterChange={handleUtilitySectionChange}
@@ -199,7 +202,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
             </div>
 
             {viewMode === 'table' ? (
-              <TokenListingTableView tokens={tokens} displayTokens={filteredAndSortedTokens} />
+              <TokenListingTableView tokens={allTokens} displayTokens={filteredAndSortedTokens} />
             ) : viewMode === 'compact' ? (
               <TokenListingCompact tokens={filteredAndSortedTokens} />
             ) : (
