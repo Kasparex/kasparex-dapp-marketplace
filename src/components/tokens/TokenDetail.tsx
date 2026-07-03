@@ -18,8 +18,10 @@ import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
 import { TokenUtilitySection } from './TokenCommentsSection';
+import { TokenWhitepaperSection } from './TokenWhitepaperSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { TOKEN_TAB_SECTION_CLASS } from '@/lib/tokens/sections';
 import {
   IconTokenComments,
   IconTokenMarkets,
@@ -69,9 +71,7 @@ export function TokenDetail({
 
   const tokenTabs: DAppTab<TokenContentTab>[] = [
     { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
-    ...(token.roadmap?.length
-      ? [{ id: 'roadmap' as const, label: 'Roadmap', icon: <IconTokenRoadmap /> }]
-      : []),
+    { id: 'roadmap', label: 'Roadmap', icon: <IconTokenRoadmap /> },
     { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
     ...(showSwap ? [{ id: 'swap' as const, label: 'Swap', icon: <IconTokenSwap /> }] : []),
     ...(showUtility ? [{ id: 'utility' as const, label: 'Utility', icon: <IconTokenUtility /> }] : []),
@@ -101,18 +101,19 @@ export function TokenDetail({
           </div>
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 xl:gap-12 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`min-w-0 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+        <div className={`grid grid-cols-1 gap-8 xl:gap-10 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`min-w-0 ${rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
             <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
-              <div className="flex min-w-0 flex-col space-y-6">
+              <div className="flex min-w-0 flex-col">
                 {contentTab === 'overview' ? (
-                  <div id="token-overview" className="scroll-mt-28 space-y-8 animate-in fade-in duration-300">
+                  <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
                     <div id="token-tokenomics" className="scroll-mt-28">
                       <TokenomicsSection token={token} />
                     </div>
+                    <TokenWhitepaperSection token={token} />
                     {token.links && token.links.length > 0 ? (
-                      <section id="token-links" className="scroll-mt-28 space-y-6">
+                      <section id="token-links" className="space-y-6">
                         <DAppSectionHeader title="Links" />
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           {token.links.map((link, index) => (
@@ -138,13 +139,13 @@ export function TokenDetail({
                 ) : null}
 
                 {contentTab === 'roadmap' ? (
-                  <div id="token-roadmap" className="scroll-mt-28 animate-in fade-in duration-300">
+                  <div id="token-roadmap" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <RoadmapSection token={token} />
                   </div>
                 ) : null}
 
                 {contentTab === 'markets' ? (
-                  <div id="token-markets" className="scroll-mt-28 space-y-8 animate-in fade-in duration-300">
+                  <div id="token-markets" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     {showMintingProgress ? <TokenMintingProgress token={token} /> : null}
                     <PriceSection token={token} />
                     <TokenBalanceDisplay token={token} />
@@ -152,19 +153,19 @@ export function TokenDetail({
                 ) : null}
 
                 {contentTab === 'swap' && showSwap ? (
-                  <div id="token-swap" className="scroll-mt-28 animate-in fade-in duration-300">
+                  <div id="token-swap" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenTradingSection token={token} />
                   </div>
                 ) : null}
 
                 {contentTab === 'utility' && showUtility ? (
-                  <div id="token-utility" className="scroll-mt-28 animate-in fade-in duration-300">
+                  <div id="token-utility" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenUtilitySection token={token} />
                   </div>
                 ) : null}
 
                 {contentTab === 'comments' ? (
-                  <div id="token-comments" className="scroll-mt-28 animate-in fade-in duration-300">
+                  <div id="token-comments" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <CommentsSection articleId={tokenCommentsArticleId(token.slug)} dappSectionHeader />
                   </div>
                 ) : null}
@@ -173,7 +174,7 @@ export function TokenDetail({
           </div>
 
           {rightOpen ? (
-            <div className="min-w-0 lg:col-span-5">
+            <div className="min-w-0 lg:col-span-4">
               <TokenAside token={token} />
             </div>
           ) : null}

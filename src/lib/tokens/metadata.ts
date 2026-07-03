@@ -79,6 +79,7 @@ export function mergeTokenMetadata(
     relatedDAppIds: ipfsMetadata.relatedDAppIds || baseToken.relatedDAppIds,
     links: ipfsMetadata.links || baseToken.links,
     tags: ipfsMetadata.tags || baseToken.tags,
+    whitepaperUrl: ipfsMetadata.whitepaperUrl || baseToken.whitepaperUrl,
   };
 }
 

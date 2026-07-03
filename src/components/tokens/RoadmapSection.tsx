@@ -16,7 +16,14 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
   const roadmap = token.roadmap || [];
 
   if (roadmap.length === 0) {
-    return null;
+    return (
+      <section id="roadmap" className="space-y-6">
+        <DAppSectionHeader title="Roadmap" />
+        <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-6 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">No roadmap has been published for this token yet.</p>
+        </div>
+      </section>
+    );
   }
 
   const getStatusColor = (status?: string) => {
@@ -33,7 +40,7 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
   };
 
   return (
-    <section id="roadmap" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="roadmap" className="space-y-6">
       <DAppSectionHeader title="Roadmap" />
 
       <div className="relative">

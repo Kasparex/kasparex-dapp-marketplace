@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
@@ -8,40 +8,67 @@ import { TokenListingMeta } from './TokenListingMeta';
 import { TokenListingBadges } from './TokenListingBadges';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
-import { SidebarTags } from '@/components/sidebar/SidebarTags';
-import { getAllTokenTags } from '@/lib/tokens/tags';
-import { getAllTokens } from '@/lib/tokens/registry';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import type { TokenContentTab } from './TokenDetail';
+import {
+  IconTokenComments,
+  IconTokenMarkets,
+  IconTokenOverview,
+  IconTokenRoadmap,
+  IconTokenSwap,
+  IconTokenUtility,
+} from '@/components/tokens/icons/TokenTabIcons';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface TokenSidebarProps {
   token: Token;
-  selectedTags?: string[];
-  onTagToggle?: (tag: string) => void;
+  activeTab?: TokenContentTab;
+  onNavClick?: (itemId: string) => void;
+  showSwap?: boolean;
+  showUtility?: boolean;
 }
+
+const TAB_ICONS: Record<TokenContentTab, ReactNode> = {
+  overview: <IconTokenOverview />,
+  roadmap: <IconTokenRoadmap />,
+  markets: <IconTokenMarkets />,
+  swap: <IconTokenSwap />,
+  utility: <IconTokenUtility />,
+  comments: <IconTokenComments />,
+};
 
 export function TokenSidebar({
   token,
-  selectedTags = [],
-  onTagToggle,
+  activeTab = 'overview',
+  onNavClick,
+  showSwap = false,
+  showUtility = false,
 }: TokenSidebarProps) {
-  const router = useRouter();
   const price = token.price?.current;
   const priceChange24h = token.price?.change24h;
-  const allTags = getAllTokenTags(getAllTokens());
 
-  const handleTagToggle = (tag: string) => {
-    if (onTagToggle) {
-      onTagToggle(tag);
-      return;
-    }
-    router.push(`/tokens?tag=${encodeURIComponent(tag)}`);
-  };
+  const navItems: { id: string; label: string; tab: TokenContentTab }[] = [
+    { id: 'token-overview', label: 'Overview', tab: 'overview' },
+    { id: 'token-roadmap', label: 'Roadmap', tab: 'roadmap' },
+    { id: 'token-markets', label: 'Markets', tab: 'markets' },
+  ];
+
+  if (showSwap) {
+    navItems.push({ id: 'token-swap', label: 'Swap', tab: 'swap' });
+  }
+
+  if (showUtility) {
+    navItems.push({ id: 'token-utility', label: 'Utility', tab: 'utility' });
+  }
+
+  navItems.push({ id: 'token-comments', label: 'Comments', tab: 'comments' });
 
   return (
     <UnifiedSidebar
       storageKeyPrefix={`token-${token.slug}`}
       header={(onHide) => (
-        <SidebarHeader backHref="/tokens" backLabel="Back to Tokens" onHide={onHide} className="bg-white dark:bg-zinc-950" />
+        <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} className="bg-white dark:bg-zinc-950" />
       )}
       defaultWidth={280}
     >
@@ -78,15 +105,19 @@ export function TokenSidebar({
         )}
       </div>
 
-      {allTags.length > 0 ? (
-        <SidebarTags
-          title="Tags"
-          tags={allTags}
-          selectedTags={selectedTags.length > 0 ? selectedTags : (token.tags ?? [])}
-          onToggle={handleTagToggle}
-          className="mt-6"
-        />
-      ) : null}
+      <SidebarSection title="Sections" className="mt-6 mb-0">
+        <nav className="space-y-0.5">
+          {navItems.map((section) => (
+            <SidebarNavItem
+              key={section.id}
+              label={section.label}
+              icon={TAB_ICONS[section.tab]}
+              active={activeTab === section.tab}
+              onClick={() => onNavClick?.(section.id)}
+            />
+          ))}
+        </nav>
+      </SidebarSection>
     </UnifiedSidebar>
   );
 }

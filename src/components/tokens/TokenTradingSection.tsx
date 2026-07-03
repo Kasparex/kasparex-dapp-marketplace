@@ -76,7 +76,7 @@ export function TokenTradingSection({ token }: TokenTradingSectionProps) {
   const hasL1AndL2 = isKREX || (token.l1Address && token.l2Address);
 
   return (
-    <section id="trading" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="trading" className="space-y-6">
       <DAppSectionHeader title="Swap" />
 
       {/* L2 Trading Options */}

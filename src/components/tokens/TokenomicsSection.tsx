@@ -21,7 +21,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
   }
 
   return (
-    <section id="tokenomics" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="tokenomics" className="scroll-mt-28 space-y-6">
       <DAppSectionHeader title="Tokenomics" />
 
       {/* Supply Info */}

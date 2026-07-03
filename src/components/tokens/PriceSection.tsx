@@ -20,7 +20,7 @@ export function PriceSection({ token }: PriceSectionProps) {
   }
 
   return (
-    <section id="price" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="price" className="space-y-6">
       <DAppSectionHeader title="Price" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

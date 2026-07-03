@@ -10,7 +10,7 @@ export function TokenUtilitySection({ token }: { token: Token }) {
   if (!token.listing?.instantUtility && !token.listing?.verified) return null;
 
   return (
-    <section id="token-utility" className="scroll-mt-28 space-y-6">
+    <section id="token-utility" className="space-y-6">
       <DAppSectionHeader title="Utility & modules" />
       <p className="kx-body-sm">
         Extend this token page with roadmap editors, Hub integrations, analytics, and featured placement.

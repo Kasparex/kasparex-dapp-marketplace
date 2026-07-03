@@ -20,7 +20,7 @@ export type TokenListingStatus = {
 export interface TokenLink {
   label: string;
   url: string;
-  type?: 'website' | 'explorer' | 'social' | 'other';
+  type?: 'website' | 'explorer' | 'social' | 'whitepaper' | 'other';
 }
 
 export interface TokenAllocation {
@@ -97,6 +97,7 @@ export interface Token {
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
   tags?: string[]; // Tags for categorization
+  whitepaperUrl?: string; // Official whitepaper download URL
 
   /** Directory listing badges, scores, and premium signals. */
   listing?: TokenListingStatus;
@@ -116,4 +117,5 @@ export interface TokenIPFSMetadata {
   relatedDAppIds?: string[];
   links?: TokenLink[];
   tags?: string[];
+  whitepaperUrl?: string;
 }

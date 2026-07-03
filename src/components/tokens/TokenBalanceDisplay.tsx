@@ -32,7 +32,7 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
 
   if (!isConnected || !address) {
     return (
-      <section id="balance" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+      <section id="balance" className="space-y-6">
         <DAppSectionHeader title="Your Balance" />
         <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 text-center">
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
@@ -58,7 +58,7 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
   }
 
   return (
-    <section id="balance" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="balance" className="space-y-6">
       <DAppSectionHeader title="Your Balance" />
 
       <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800">

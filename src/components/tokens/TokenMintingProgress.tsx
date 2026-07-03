@@ -97,7 +97,7 @@ export function TokenMintingProgress({ token }: TokenMintingProgressProps) {
   }
 
   return (
-    <section className="scroll-mt-28 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section className="space-y-6">
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <div
         ref={tooltipRef}

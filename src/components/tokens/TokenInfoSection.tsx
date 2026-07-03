@@ -22,7 +22,7 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
     : null;
 
   return (
-    <section id="info" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
+    <section id="info" className="scroll-mt-28 space-y-6">
       <DAppSectionHeader title="About" />
       
       <div className="prose prose-zinc dark:prose-invert max-w-none">

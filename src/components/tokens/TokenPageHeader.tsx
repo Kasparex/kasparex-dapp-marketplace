@@ -72,7 +72,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
-        <div className="flex flex-1 flex-col justify-center p-8 sm:p-10 lg:p-12">
+        <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-[52%] lg:p-12">
           <div className="mb-6 flex items-center gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <TokenTitle token={token} size="lg" layout="besideLogo" className="min-w-0" />
@@ -125,7 +125,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
           </div>
         </div>
 
-        <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-[40%] lg:border-l lg:border-t-0">
+        <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-[48%] lg:border-l lg:border-t-0">
           {featuredImageUrl ? (
             <Image
               src={featuredImageUrl}
