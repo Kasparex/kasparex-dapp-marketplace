@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAccount, useChainId } from 'wagmi';
+import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
@@ -34,6 +34,8 @@ export function DAppPageFooter({ dapp }: DAppPageFooterProps) {
   );
 
   const mergedDApp = mergeDAppData(contractData, dapp);
+
+  if (isFooterCollapsed) {
     return (
       <button
         onClick={() => setIsFooterCollapsed(false)}

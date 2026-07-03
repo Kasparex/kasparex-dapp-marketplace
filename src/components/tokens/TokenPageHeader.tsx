@@ -8,6 +8,7 @@ import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
+import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { TokenListingBadges } from './TokenListingBadges';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -73,8 +74,8 @@ export function TokenPageHeader({ token }: { token: Token }) {
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="flex flex-1 flex-col justify-center p-8 sm:p-10 lg:p-12">
           <div className="mb-6 flex items-center gap-4">
-            <TokenLogo token={token} size={64} showName={false} showSymbol={false} />
-            <TokenTitle token={token} size="lg" className="min-w-0" />
+            <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <TokenTitle token={token} size="lg" layout="besideLogo" className="min-w-0" />
           </div>
 
           <p id="token-intro" className="kx-body mb-6 max-w-2xl select-text">
@@ -135,9 +136,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
               unoptimized
             />
           ) : (
-            <div className={`flex h-full min-h-[260px] w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-cyan-50/30 to-zinc-100 dark:from-zinc-900 dark:via-cyan-950/20 dark:to-zinc-900`}>
-              <TokenLogo token={token} size={80} showName={false} showSymbol={false} />
-            </div>
+            <KxListingFeaturedPlaceholder className="min-h-[260px]" iconClassName="h-16 w-16" />
           )}
         </div>
       </div>

@@ -14,6 +14,10 @@ import {
   type TokenModuleSectionFilter,
   type TokenUtilitySectionFilter,
 } from '@/lib/tokens/utilityFilters';
+import {
+  getTokenModuleSectionIcon,
+  getTokenUtilitySectionIcon,
+} from '@/lib/tokens/sidebarIcons';
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
@@ -33,18 +37,6 @@ const QUICK_LINKS = [
   { id: 'dapps', label: 'Explore dApps', href: '/', icon: <TokenLinkIcon id="dapps" /> },
   { id: 'rewards', label: 'View Rewards', href: '/rewards', icon: <TokenLinkIcon id="rewards" /> },
 ];
-
-const UTILITY_SECTION_ICON = (
-  <svg className="k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
-
-const MODULE_SECTION_ICON = (
-  <svg className="k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-  </svg>
-);
 
 export function TokensListingSidebar({
   tokens = [],
@@ -106,11 +98,11 @@ export function TokensListingSidebar({
         <>
           <SidebarCategories
             title="Utility"
-            sectionIcon={UTILITY_SECTION_ICON}
             items={utilityItems.map((item) => ({
               id: item.id,
               label: item.label,
               count: item.count,
+              icon: getTokenUtilitySectionIcon(item.id),
             }))}
             selectedIds={utilityFilter}
             onSelect={(id) => onUtilityFilterChange(id as TokenUtilitySectionFilter)}
@@ -122,10 +114,10 @@ export function TokensListingSidebar({
           />
           <SidebarCategories
             title="Modules"
-            sectionIcon={MODULE_SECTION_ICON}
             items={moduleItems.map((item) => ({
               id: item.id,
               label: item.label,
+              icon: getTokenModuleSectionIcon(item.id),
             }))}
             selectedIds={moduleFilter}
             onSelect={(id) => onModuleFilterChange(id as TokenModuleSectionFilter)}

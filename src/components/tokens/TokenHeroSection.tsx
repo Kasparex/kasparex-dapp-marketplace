@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AdSlider } from '@/components/ads/AdSlider';
 import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
+import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { TokenListingMeta } from './TokenListingMeta';
@@ -29,14 +30,16 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
 
       <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <TokenLogo token={token} size={64} showName={false} showSymbol={false} />
-            <div className="min-w-0">
-              <TokenListingMeta token={token} />
+          <div className="mb-4 flex items-start gap-4">
+            <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <TokenTitle token={token} size="lg" layout="besideLogo" />
+              <div className="mt-2">
+                <TokenListingMeta token={token} />
+              </div>
             </div>
           </div>
-          <TokenTitle token={token} size="lg" />
-          <p className="mt-3 max-w-2xl kx-body-sm">{short}</p>
+          <p className="max-w-2xl kx-body-sm">{short}</p>
           <div className="mt-4">
             <TokenListingBadges token={token} />
           </div>
@@ -68,7 +71,11 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
               <Image src={featuredImageUrl} alt={token.name} fill className="object-cover" priority unoptimized />
             </div>
-          ) : null}
+          ) : (
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+              <KxListingFeaturedPlaceholder iconClassName="h-14 w-14" />
+            </div>
+          )}
           <div
             id="ad-slot-token-detail-halo"
             className="relative flex min-h-[160px] w-full items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/40"

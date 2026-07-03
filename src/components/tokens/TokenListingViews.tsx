@@ -1,9 +1,11 @@
 'use client';
 
-import Link from 'next/link';
+import Image from 'next/image';
 import type { Token } from '@/lib/tokens/types';
+import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
+import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import Link from 'next/link';
 import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
 import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
@@ -22,17 +24,33 @@ function EmptyState() {
   );
 }
 
+function TokenFeaturedMedia({ token }: { token: Token }) {
+  const featuredImageUrl = loadTokenFeaturedImageUrl(token);
+
+  if (featuredImageUrl) {
+    return (
+      <Image
+        src={featuredImageUrl}
+        alt={`${token.name} featured`}
+        fill
+        className="object-cover"
+        unoptimized
+      />
+    );
+  }
+
+  return <KxListingFeaturedPlaceholder />;
+}
+
 export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
   if (tokens.length === 0) return <EmptyState />;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
       {tokens.map((token) => (
-        <KxListingCard key={token.id} href={`/tokens/${token.slug}`} accent="tokens">
+        <KxListingCard key={token.id} href={`/tokens/${token.slug}`} accent="tokens" className="flex h-full flex-col">
           <KxListingCardMedia aspectClass="aspect-[16/9]">
-            <div className={`flex h-full w-full items-center justify-center ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
-              <TokenLogo token={token} size={64} showName={false} showSymbol={false} />
-            </div>
+            <TokenFeaturedMedia token={token} />
             {token.listing?.featured ? (
               <Tooltip content="Premium featured listing">
                 <span className="absolute top-2 right-2 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
@@ -41,17 +59,20 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
               </Tooltip>
             ) : null}
           </KxListingCardMedia>
-          <KxListingCardBody comfortable>
-            <div className="mb-2 min-w-0">
-              <TokenTitle token={token} size="sm" />
+          <KxListingCardBody comfortable className="flex flex-1 flex-col">
+            <div className="mb-3 flex items-start gap-4">
+              <TokenLogo token={token} size={56} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+              <TokenTitle token={token} size="sm" layout="besideLogo" className="flex-1 min-w-0" />
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
+            <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
               {token.shortDescription || token.description}
             </p>
             <div className="mb-2">
               <TokenListingMeta token={token} />
             </div>
-            <TokenListingBadges token={token} />
+            <div className="mt-auto pt-2">
+              <TokenListingBadges token={token} />
+            </div>
           </KxListingCardBody>
         </KxListingCard>
       ))}
@@ -70,11 +91,9 @@ export function TokenListingCompact({ tokens }: { tokens: Token[] }) {
           href={`/tokens/${token.slug}`}
           className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all"
         >
-          <div className="h-12 w-12 shrink-0 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
-            <TokenLogo token={token} size={40} showName={false} showSymbol={false} />
-          </div>
+          <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <TokenTitle token={token} size="sm" />
+            <TokenTitle token={token} size="sm" layout="besideLogo" />
             <TokenListingMeta token={token} />
           </div>
         </Link>

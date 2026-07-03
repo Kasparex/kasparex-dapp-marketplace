@@ -7,16 +7,23 @@ export function TokenTitle({
   token,
   size = 'md',
   className = '',
+  layout = 'standalone',
 }: {
   token: Token;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** When logo sits beside the title, show name only (no duplicate ticker). */
+  layout?: 'standalone' | 'besideLogo';
 }) {
   const titleClass =
     size === 'lg'
-      ? 'text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-white'
+      ? layout === 'besideLogo'
+        ? 'text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-white'
+        : 'text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-white'
       : size === 'sm'
-        ? 'text-sm font-semibold text-zinc-900 dark:text-zinc-100'
+        ? layout === 'besideLogo'
+          ? 'text-[15px] font-semibold text-zinc-900 dark:text-zinc-100'
+          : 'text-sm font-semibold text-zinc-900 dark:text-zinc-100'
         : 'text-base font-bold text-zinc-900 dark:text-zinc-100';
 
   const subtitleClass =
@@ -25,6 +32,15 @@ export function TokenTitle({
       : size === 'sm'
         ? 'text-[11px] text-zinc-500 dark:text-zinc-400 truncate'
         : 'text-sm text-zinc-500 dark:text-zinc-400 truncate';
+
+  if (layout === 'besideLogo') {
+    return (
+      <div className={`min-w-0 ${className}`.trim()}>
+        <p className={`${titleClass} truncate`}>{token.symbol}</p>
+        <p className={subtitleClass}>{token.name}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-w-0 ${className}`.trim()}>

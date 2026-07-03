@@ -156,9 +156,9 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search tokens...' }}
                 onReset={handleResetFilters}
                 flexWrap
-                className="gap-x-3 gap-y-3"
+                className="gap-3"
               >
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
                   <KxTabStrip
                     value={viewMode}
                     onChange={setViewMode}
@@ -168,7 +168,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                   />
                   <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
                 </div>
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
                   <TokenListingFiltersBar
                     sortControl={sortControl}
                     onSortControlChange={setSortControl}

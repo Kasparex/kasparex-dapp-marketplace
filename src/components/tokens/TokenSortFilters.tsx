@@ -158,7 +158,7 @@ export function TokenListingFiltersBar({
   onPremiumFilterChange,
 }: TokenListingFiltersBarProps) {
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-3">
       <TokenFilterDropdown
         label="Sort tokens"
         value={sortControl}
@@ -173,6 +173,6 @@ export function TokenListingFiltersBar({
         options={PREMIUM_OPTIONS}
         onChange={onPremiumFilterChange}
       />
-    </>
+    </div>
   );
 }

@@ -12,6 +12,8 @@ export interface TokenLogoProps {
   className?: string;
   nameClassName?: string;
   symbolClassName?: string;
+  /** circle (default) or rounded-xl for listing cards (dApp-style). */
+  shape?: 'circle' | 'rounded';
 }
 
 /**
@@ -26,18 +28,17 @@ export function TokenLogo({
   className = '',
   nameClassName = '',
   symbolClassName = '',
+  shape = 'circle',
 }: TokenLogoProps) {
   const logoUrl = loadTokenLogoUrl(token);
-
-  // Default to showing symbol if neither name nor symbol is explicitly set
-  const shouldShowSymbol = showSymbol || (!showName && !showSymbol);
+  const shapeClass = shape === 'rounded' ? 'rounded-xl' : 'rounded-full';
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {/* Logo */}
       {logoUrl ? (
         <div
-          className="relative rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex-shrink-0"
+          className={`relative overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex-shrink-0 ${shapeClass}`}
           style={{ width: size, height: size }}
         >
           <Image
@@ -65,7 +66,7 @@ export function TokenLogo({
         </div>
       ) : (
         <div
-          className="rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0"
+          className={`bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 ${shapeClass}`}
           style={{ width: size, height: size }}
         >
           <span
@@ -77,10 +78,9 @@ export function TokenLogo({
         </div>
       )}
 
-      {/* Name and/or Symbol */}
-      {(showName || shouldShowSymbol) && (
+      {(showName || showSymbol) && (
         <div className="flex flex-col min-w-0">
-          {shouldShowSymbol && (
+          {showSymbol && (
             <span
               className={`text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate ${symbolClassName}`}
             >

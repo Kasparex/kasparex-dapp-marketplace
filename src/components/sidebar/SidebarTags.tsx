@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { SidebarSection } from './SidebarSection';
+import { KxSearchInput } from '@/components/ui/KxSearchInput';
 
 export interface SidebarTagsProps {
   title?: string;
@@ -51,16 +52,15 @@ export function SidebarTags({
     <SidebarSection title={title} className={className}>
       {showSearch ? (
         <div className="mb-2 px-1">
-          <input
-            type="search"
+          <KxSearchInput
+            size="compact"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
+            onChange={(value) => {
+              setSearchQuery(value);
               setExpanded(false);
             }}
             placeholder={searchPlaceholder}
             aria-label={`Search ${title.toLowerCase()}`}
-            className="k-input w-full !py-1.5 !text-sm !leading-6 !rounded-lg"
           />
         </div>
       ) : null}

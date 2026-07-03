@@ -58,8 +58,8 @@ export function TokenSidebar({
     >
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <TokenLogo token={token} size={48} showName={false} showSymbol={false} />
-          <TokenTitle token={token} size="sm" className="flex-1 min-w-0" />
+          <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+          <TokenTitle token={token} size="sm" layout="besideLogo" className="flex-1 min-w-0" />
         </div>
         <TokenListingMeta token={token} />
         <TokenListingBadges token={token} />
