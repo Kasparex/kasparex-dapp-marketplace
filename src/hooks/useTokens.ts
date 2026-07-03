@@ -10,8 +10,14 @@ import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
-import { estimateTokenPageQuote, TOKEN_LISTING_FEES } from '@/lib/tokens/pricing';
+import {
+  estimateTokenListingQuote,
+  TOKEN_CHUNK_SIZE_BYTES,
+  type TokenListingPriceQuote,
+} from '@/lib/tokens/pricing';
 import { createDefaultPageConfig } from '@/lib/tokens/pageConfig';
+import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
+import { listingNetworkToTokenNetwork } from '@/lib/tokens/listingNetwork';
 import {
   createPublishedListing,
   getAllPublishedListings,
@@ -28,11 +34,12 @@ import { buildCanonicalListingPayload, hashListingPayload, type TokenListingDraf
 import {
   buildTokenListingCommitPlainNote,
   buildTokenListingCommitPayloadHex,
+  computeTokenListingRootHash,
+  splitPayloadToHexChunks,
 } from '@/lib/tokens/payloadHex';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { Token } from '@/lib/tokens/types';
-import type { TokenNetwork } from '@/lib/tokens/types';
 
 export type CreateTokenListingInput = {
   symbol: string;
@@ -40,8 +47,12 @@ export type CreateTokenListingInput = {
   description: string;
   shortDescription?: string;
   tags?: string[];
-  network?: TokenNetwork;
+  listingNetwork?: TokenListingNetwork;
   contractAddress?: string;
+  logoUrl?: string;
+  logoCid?: string;
+  featuredImageUrl?: string;
+  featuredImageCid?: string;
   enabledModuleIds?: TokenModuleId[];
   sectionToggles?: Record<string, boolean>;
 };
@@ -61,25 +72,32 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     description: input.description,
     shortDescription: input.shortDescription,
     tags: input.tags,
-    network: input.network ?? 'L2',
+    listingNetwork: input.listingNetwork ?? 'l2_kasplex',
     contractAddress: input.contractAddress,
+    logoUrl: input.logoUrl,
+    logoCid: input.logoCid,
+    featuredImageUrl: input.featuredImageUrl,
+    featuredImageCid: input.featuredImageCid,
     pageConfig,
     enabledModuleIds,
     author,
   };
 }
 
-function quoteForDraft(draft: TokenListingDraft, discountPercent: number, action: 'create' | 'edit') {
-  const modulePriceById = Object.fromEntries(TOKEN_MODULE_OFFERS.map((o) => [o.id, o.unlockPriceKas]));
-  const quote = estimateTokenPageQuote({
-    baseFeeKas: action === 'edit' ? TOKEN_LISTING_FEES.updateListingKas : TOKEN_LISTING_FEES.createListingKas,
+function quoteForDraft(
+  draft: TokenListingDraft,
+  discountPercent: number,
+  action: 'create' | 'edit',
+  options?: { excludeModuleIds?: TokenModuleId[]; priorPricingSnapshot?: { payloadBytes: number; chunkCount: number } },
+): TokenListingPriceQuote {
+  return estimateTokenListingQuote({
+    draft,
+    action,
+    discountPercent,
     moduleIds: draft.enabledModuleIds,
-    modulePriceById,
+    excludeModuleIds: options?.excludeModuleIds,
+    priorPricingSnapshot: options?.priorPricingSnapshot,
   });
-  const subtotal = quote.baseFeeKas + quote.modulesFeeKas + quote.networkFeeBufferKas;
-  const discountKas = (subtotal * discountPercent) / 100;
-  const totalKas = Math.round((subtotal - discountKas) * 100) / 100;
-  return { ...quote, subtotalKas: subtotal, discountKas, totalKas };
 }
 
 export function useTokens() {
@@ -126,16 +144,23 @@ export function useTokens() {
         throw new Error('Kaspa wallet must be connected to publish token listings.');
       }
       const contentHash = hashListingPayload(args.draft, args.op);
+      const canonicalPayload = buildCanonicalListingPayload(args.draft, args.op);
+      const chunkHexList = splitPayloadToHexChunks(canonicalPayload, TOKEN_CHUNK_SIZE_BYTES);
+      const rootHash = computeTokenListingRootHash(chunkHexList);
       const treasury = getTokensTreasuryL1Address();
       const paymentKas = Math.max(0.01, Math.ceil(args.totalKas * 100) / 100);
       const commitNote = buildTokenListingCommitPlainNote({
         listingId: args.listingId,
         op: args.op,
+        chunkTotal: chunkHexList.length,
+        rootHash,
         contentHash,
       });
       const commitPayload = buildTokenListingCommitPayloadHex({
         listingId: args.listingId,
         op: args.op,
+        chunkTotal: chunkHexList.length,
+        rootHash,
         contentHash,
       });
       const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
@@ -161,7 +186,9 @@ export function useTokens() {
               op: args.op,
               payerAddress: args.author,
               commitTxHash,
+              chunkHexList,
               contentHash,
+              rootHash,
               requiredTotalKas: args.totalKas,
             }),
           });
@@ -179,7 +206,7 @@ export function useTokens() {
         }
       }
 
-      return { commitTxHash, contentHash, verified, lastError };
+      return { commitTxHash, contentHash, rootHash, chunkHexList, verified, lastError };
     },
     [kaspaState.address, kaspaState.isConnected, kaspaState.provider],
   );
@@ -218,8 +245,13 @@ export function useTokens() {
           description: draft.description.trim(),
           shortDescription: draft.shortDescription?.trim(),
           tags: draft.tags,
-          network: draft.network,
+          listingNetwork: draft.listingNetwork,
+          network: listingNetworkToTokenNetwork(draft.listingNetwork),
           contractAddress: draft.contractAddress?.trim(),
+          logoUrl: draft.logoUrl,
+          logoCid: draft.logoCid,
+          featuredImageUrl: draft.featuredImageUrl,
+          featuredImageCid: draft.featuredImageCid,
           pageConfig: draft.pageConfig,
           paidModuleIds: draft.enabledModuleIds,
         },
@@ -232,9 +264,12 @@ export function useTokens() {
           metadataCid,
           pricingSnapshot: {
             baseFeeKas: quote.baseFeeKas,
+            sizeFeeKas: quote.sizeFeeKas,
             modulesFeeKas: quote.modulesFeeKas,
             networkFeeBufferKas: quote.networkFeeBufferKas,
             totalKas: quote.totalKas,
+            payloadBytes: quote.payloadBytes,
+            chunkCount: quote.chunkCount,
           },
         },
       );
@@ -263,7 +298,16 @@ export function useTokens() {
 
       const draft = buildDraft(input, author);
       const listingId = existing.listingId;
-      const quote = quoteForDraft(draft, discountPercent, 'edit');
+      const quote = quoteForDraft(draft, discountPercent, 'edit', {
+        excludeModuleIds: existing.paidModuleIds,
+        priorPricingSnapshot:
+          existing.pricingSnapshot?.payloadBytes != null && existing.pricingSnapshot?.chunkCount != null
+            ? {
+                payloadBytes: existing.pricingSnapshot.payloadBytes,
+                chunkCount: existing.pricingSnapshot.chunkCount,
+              }
+            : undefined,
+      });
 
       if (quote.totalKas <= 0) {
         const updated = updatePublishedListing(id, {
@@ -272,8 +316,13 @@ export function useTokens() {
           description: draft.description.trim(),
           shortDescription: draft.shortDescription?.trim(),
           tags: draft.tags,
-          network: draft.network,
+          listingNetwork: draft.listingNetwork,
+          network: listingNetworkToTokenNetwork(draft.listingNetwork),
           contractAddress: draft.contractAddress?.trim(),
+          logoUrl: draft.logoUrl,
+          logoCid: draft.logoCid,
+          featuredImageUrl: draft.featuredImageUrl,
+          featuredImageCid: draft.featuredImageCid,
           pageConfig: draft.pageConfig,
           paidModuleIds: [
             ...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds]),
@@ -299,8 +348,13 @@ export function useTokens() {
           description: draft.description.trim(),
           shortDescription: draft.shortDescription?.trim(),
           tags: draft.tags,
-          network: draft.network,
+          listingNetwork: draft.listingNetwork,
+          network: listingNetworkToTokenNetwork(draft.listingNetwork),
           contractAddress: draft.contractAddress?.trim(),
+          logoUrl: draft.logoUrl,
+          logoCid: draft.logoCid,
+          featuredImageUrl: draft.featuredImageUrl,
+          featuredImageCid: draft.featuredImageCid,
           pageConfig: draft.pageConfig,
           paidModuleIds: [
             ...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds]),
@@ -313,9 +367,12 @@ export function useTokens() {
           status: bundle.verified ? 'verified' : 'verification_pending',
           pricingSnapshot: {
             baseFeeKas: quote.baseFeeKas,
+            sizeFeeKas: quote.sizeFeeKas,
             modulesFeeKas: quote.modulesFeeKas,
             networkFeeBufferKas: quote.networkFeeBufferKas,
             totalKas: quote.totalKas,
+            payloadBytes: quote.payloadBytes,
+            chunkCount: quote.chunkCount,
           },
         },
       );

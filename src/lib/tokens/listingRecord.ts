@@ -5,6 +5,7 @@
 import type { Token, TokenListingStatus, TokenNetwork } from './types';
 import type { TokenModuleId } from './modules';
 import type { TokenContentTab } from './sections';
+import type { TokenListingNetwork } from './listingNetwork';
 
 export type TokenPublishStatus =
   | 'draft'
@@ -36,9 +37,12 @@ export type TokenPageConfig = {
 
 export type TokenListingPricingSnapshot = {
   baseFeeKas: number;
+  sizeFeeKas?: number;
   modulesFeeKas: number;
   networkFeeBufferKas: number;
   totalKas: number;
+  payloadBytes?: number;
+  chunkCount?: number;
 };
 
 export type PublishedTokenListing = {
@@ -51,9 +55,12 @@ export type PublishedTokenListing = {
   description: string;
   shortDescription?: string;
   tags?: string[];
-  network: TokenNetwork;
+  listingNetwork?: TokenListingNetwork;
+  network: import('./types').TokenNetwork;
   contractAddress?: string;
+  logoUrl?: string;
   logoCid?: string;
+  featuredImageUrl?: string;
   featuredImageCid?: string;
   pageConfig: TokenPageConfig;
   publishDate: string;
@@ -86,11 +93,15 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     symbol: listing.symbol,
     description: listing.description,
     shortDescription: listing.shortDescription,
-    network: listing.network,
+    network: listing.listingNetwork
+      ? (listing.listingNetwork === 'kaspa_l1' || listing.listingNetwork === 'krc20' ? 'L1' : 'L2')
+      : listing.network,
     contractAddress: listing.contractAddress,
     type: 'collab',
     tags: listing.tags,
+    logo: listing.logoUrl,
     logoCid: listing.logoCid,
+    featuredImage: listing.featuredImageUrl,
     featuredImageCid: listing.featuredImageCid,
     metadataCid: listing.metadataCid,
     createdAt: listing.publishDate,

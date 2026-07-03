@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { verifyTokenListingTx } from '@/lib/tokens/verifyListingTx';
+import { verifyTokenListingTx, verifyTokenListingTxBundle } from '@/lib/tokens/verifyListingTx';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { postWorkerPtsIngest } from '@/lib/kasparex/worker-pts-ingest-server';
 import { resolveHubEarnDeltaForKaspaWallet } from '@/lib/krex/tier-from-wallet';
@@ -12,7 +12,9 @@ export async function POST(request: NextRequest) {
       op?: 'create' | 'edit';
       payerAddress?: string;
       commitTxHash?: string;
+      chunkHexList?: string[];
       contentHash?: string;
+      rootHash?: string;
       requiredTotalKas?: number;
     };
     const listingId = (body.listingId ?? '').trim();
@@ -21,7 +23,9 @@ export async function POST(request: NextRequest) {
     const commitTxHash =
       extractKaspaTransactionId(body.commitTxHash ?? '') ??
       (body.commitTxHash ?? '').trim().replace(/^0x/i, '').toLowerCase();
+    const chunkHexList = Array.isArray(body.chunkHexList) ? body.chunkHexList.map((x) => String(x)) : [];
     const contentHash = (body.contentHash ?? '').trim();
+    const rootHash = (body.rootHash ?? '').trim();
     const requiredTotalKas = Number(body.requiredTotalKas ?? 0);
 
     if (
@@ -38,14 +42,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Invalid tx hash format' }, { status: 400 });
     }
 
-    const result = await verifyTokenListingTx({
-      listingId,
-      op,
-      payerAddress,
-      commitTxHash,
-      contentHash,
-      requiredTotalKas,
-    });
+    const result =
+      chunkHexList.length > 0 && rootHash
+        ? await verifyTokenListingTxBundle({
+            listingId,
+            op,
+            payerAddress,
+            commitTxHash,
+            chunkHexList,
+            contentHash,
+            rootHash,
+            requiredTotalKas,
+          })
+        : await verifyTokenListingTx({
+            listingId,
+            op,
+            payerAddress,
+            commitTxHash,
+            contentHash,
+            requiredTotalKas,
+          });
+
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     }

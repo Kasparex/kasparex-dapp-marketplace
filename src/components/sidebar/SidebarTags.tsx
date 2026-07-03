@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { SidebarSection } from './SidebarSection';
 import { KxSearchInput } from '@/components/ui/KxSearchInput';
+import { kxTagChipClass } from '@/components/ui/KxTagChip';
 
 export interface SidebarTagsProps {
   title?: string;
@@ -75,11 +76,7 @@ export function SidebarTags({
                 key={tag}
                 type="button"
                 onClick={() => onToggle(tag)}
-                className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${
-                  isSelected
-                    ? 'bg-[#02abb8] text-white shadow-lg shadow-[#02abb8]/20'
-                    : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
+                className={kxTagChipClass(isSelected)}
               >
                 #{tag}
               </button>

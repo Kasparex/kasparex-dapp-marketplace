@@ -12,6 +12,7 @@ import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedP
 import { TokenListingBadges } from './TokenListingBadges';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { KxTagChip } from '@/components/ui/KxTagChip';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -72,7 +73,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
-        <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-[52%] lg:p-12">
+        <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-center gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <TokenTitle token={token} size="lg" layout="besideLogo" className="min-w-0" />
@@ -101,12 +102,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
 
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {token.tags?.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-lg border border-zinc-200 bg-white/70 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-300"
-              >
-                {tag}
-              </span>
+              <KxTagChip key={tag} label={tag} prefix="" />
             ))}
             <KxListingCategoryChip icon={<HeaderCategoryIcon />} title={`Category: ${token.type}`}>
               {token.type}
@@ -125,7 +121,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
           </div>
         </div>
 
-        <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-[48%] lg:border-l lg:border-t-0">
+        <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
           {featuredImageUrl ? (
             <Image
               src={featuredImageUrl}

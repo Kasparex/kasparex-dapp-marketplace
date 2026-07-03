@@ -68,7 +68,7 @@ export function TokenSidebar({
     <UnifiedSidebar
       storageKeyPrefix={`token-${token.slug}`}
       header={(onHide) => (
-        <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} className="bg-white dark:bg-zinc-950" />
+        <SidebarHeader backHref="/tokens" backLabel="Back to Tokens" onHide={onHide} className="bg-white dark:bg-zinc-950" />
       )}
       defaultWidth={280}
     >

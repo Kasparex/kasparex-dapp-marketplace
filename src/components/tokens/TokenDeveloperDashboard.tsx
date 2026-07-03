@@ -1,16 +1,36 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CreateTokenForm } from '@/components/tokens/CreateTokenForm';
 import { TokenAuthorPricing } from '@/components/tokens/TokenAuthorPricing';
 import { TokenListingArchive } from '@/components/tokens/TokenListingArchive';
+import {
+  EMPTY_TOKEN_LISTING_MEDIA,
+  TokenListingMediaPanel,
+  type TokenListingMediaState,
+} from '@/components/tokens/TokenListingMediaPanel';
 import { useTokens } from '@/hooks/useTokens';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
+import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { Alert } from '@/components/Alert';
+
+function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
+  if (!listing) return { ...EMPTY_TOKEN_LISTING_MEDIA };
+  return {
+    logoSource: listing.logoUrl ? 'url' : listing.logoCid ? 'file' : 'file',
+    logoUrl: listing.logoUrl ?? '',
+    logoCid: listing.logoCid ?? null,
+    logoName: listing.logoCid ? 'Uploaded logo' : null,
+    featuredSource: listing.featuredImageUrl ? 'url' : listing.featuredImageCid ? 'file' : 'file',
+    featuredUrl: listing.featuredImageUrl ?? (listing.featuredImageCid ? getBestGatewayUrl(listing.featuredImageCid) : ''),
+    featuredCid: listing.featuredImageCid ?? null,
+    featuredName: listing.featuredImageCid ? 'Uploaded banner' : null,
+  };
+}
 
 export function TokenDeveloperDashboard() {
   const searchParams = useSearchParams();
@@ -20,8 +40,9 @@ export function TokenDeveloperDashboard() {
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
   const { getAuthorListings, removeListing, listings } = useTokens();
-  const [activeTab, setActiveTab] = useState<'create' | 'archive'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'listing' | 'archive'>('create');
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
+  const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const authorListings = walletAddress ? getAuthorListings(walletAddress) : [];
@@ -31,9 +52,16 @@ export function TokenDeveloperDashboard() {
     const match = listings.find((l) => l.id === editId) ?? null;
     if (match) {
       setEditingListing(match);
+      setMedia(mediaFromListing(match));
       setActiveTab('create');
     }
   }, [editId, listings]);
+
+  useEffect(() => {
+    if (editingListing) {
+      setMedia(mediaFromListing(editingListing));
+    }
+  }, [editingListing]);
 
   const handlePublishSuccess = (listing: PublishedTokenListing) => {
     setSuccessMessage(
@@ -42,6 +70,7 @@ export function TokenDeveloperDashboard() {
         : `Listing saved. Verification pending for /tokens/${listing.slug}`,
     );
     setEditingListing(null);
+    setMedia(EMPTY_TOKEN_LISTING_MEDIA);
     setActiveTab('archive');
     window.setTimeout(() => setSuccessMessage(null), 8000);
   };
@@ -52,6 +81,13 @@ export function TokenDeveloperDashboard() {
     }
     await removeListing(id);
   };
+
+  const tabClass = (tab: typeof activeTab) =>
+    `px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+      activeTab === tab
+        ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
+        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+    }`;
 
   return (
     <div className="space-y-8">
@@ -66,30 +102,14 @@ export function TokenDeveloperDashboard() {
         </Alert>
       ) : null}
 
-      <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab('create');
-            setEditingListing(null);
-          }}
-          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-            activeTab === 'create'
-              ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
-              : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-          }`}
-        >
+      <div className="flex flex-wrap items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
+        <button type="button" onClick={() => setActiveTab('create')} className={tabClass('create')}>
           {editingListing ? 'Edit listing' : 'Create listing'}
         </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('archive')}
-          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-            activeTab === 'archive'
-              ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
-              : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-          }`}
-        >
+        <button type="button" onClick={() => setActiveTab('listing')} className={tabClass('listing')}>
+          Listing
+        </button>
+        <button type="button" onClick={() => setActiveTab('archive')} className={tabClass('archive')}>
           My tokens ({authorListings.length})
         </button>
       </div>
@@ -105,22 +125,32 @@ export function TokenDeveloperDashboard() {
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
             <CreateTokenForm
               listing={editingListing}
+              media={media}
               onSuccess={handlePublishSuccess}
               onCancelEdit={editingListing ? () => setEditingListing(null) : undefined}
             />
           </div>
-        ) : (
+        ) : null}
+
+        {activeTab === 'listing' ? (
+          <div id="tokens-dashboard-listing-media" className="scroll-mt-24 animate-in fade-in duration-500">
+            <TokenListingMediaPanel media={media} onChange={setMedia} />
+          </div>
+        ) : null}
+
+        {activeTab === 'archive' ? (
           <div id="tokens-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <TokenListingArchive
               listings={authorListings}
               onEdit={(listing) => {
                 setEditingListing(listing);
+                setMedia(mediaFromListing(listing));
                 setActiveTab('create');
               }}
               onDelete={handleDelete}
             />
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

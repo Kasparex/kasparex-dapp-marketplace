@@ -1,5 +1,6 @@
 import type { TokenModuleId } from './modules';
-import type { TokenNetwork } from './types';
+import type { TokenListingNetwork } from './listingNetwork';
+import { listingNetworkToTokenNetwork } from './listingNetwork';
 import type { TokenPageConfig } from './listingRecord';
 import { fnv1aHex } from '@/lib/vblog/pricing';
 
@@ -9,9 +10,11 @@ export type TokenListingDraft = {
   description: string;
   shortDescription?: string;
   tags?: string[];
-  network: TokenNetwork;
+  listingNetwork: TokenListingNetwork;
   contractAddress?: string;
+  logoUrl?: string;
   logoCid?: string;
+  featuredImageUrl?: string;
   featuredImageCid?: string;
   pageConfig: TokenPageConfig;
   enabledModuleIds: TokenModuleId[];
@@ -30,16 +33,19 @@ export function generateTokenSlug(symbol: string, name: string): string {
 
 export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'create' | 'edit'): string {
   return JSON.stringify({
-    v: 1,
+    v: 2,
     op,
     symbol: draft.symbol.trim().toUpperCase(),
     name: draft.name.trim(),
     description: draft.description.trim(),
     shortDescription: (draft.shortDescription ?? '').trim(),
     tags: (draft.tags ?? []).map((t) => t.trim()).filter(Boolean),
-    network: draft.network,
+    listingNetwork: draft.listingNetwork,
+    network: listingNetworkToTokenNetwork(draft.listingNetwork),
     contractAddress: (draft.contractAddress ?? '').trim(),
+    logoUrl: draft.logoUrl?.trim() || null,
     logoCid: draft.logoCid ?? null,
+    featuredImageUrl: draft.featuredImageUrl?.trim() || null,
     featuredImageCid: draft.featuredImageCid ?? null,
     pageConfig: draft.pageConfig,
     enabledModuleIds: draft.enabledModuleIds,

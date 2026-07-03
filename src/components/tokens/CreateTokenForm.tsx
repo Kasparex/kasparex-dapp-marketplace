@@ -4,17 +4,29 @@ import { useMemo, useState } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
+import {
+  resolveTokenListingMedia,
+  type TokenListingMediaState,
+} from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
-import { estimateTokenPageQuote, TOKEN_LISTING_FEES } from '@/lib/tokens/pricing';
+import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenModuleDiscountPercent } from '@/lib/tokens/modules';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
-import type { Token, TokenNetwork } from '@/lib/tokens/types';
+import type { Token } from '@/lib/tokens/types';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 import { TOKEN_PAGE_SECTION_LABELS } from '@/lib/tokens/pageConfig';
 import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
+import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
+import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
+import { listingNetworkToTokenNetwork, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
+import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
+import { createDefaultPageConfig } from '@/lib/tokens/pageConfig';
+import type { TokenListingDraft } from '@/lib/tokens/publish';
+import { contentForRichEditor } from '@/lib/richText/html';
 import { useTokens } from '@/hooks/useTokens';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -22,6 +34,9 @@ import { Alert } from '@/components/Alert';
 
 const FORM_PANEL_CLASS =
   'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm';
+
+const PREMIUM_MODULE_CARD_CLASS =
+  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm space-y-4';
 
 const PAGE_SECTION_TYPES: TokenPageSectionType[] = [
   'overview',
@@ -37,11 +52,49 @@ const PAGE_SECTION_TYPES: TokenPageSectionType[] = [
 
 interface CreateTokenFormProps {
   listing?: PublishedTokenListing | null;
+  media: TokenListingMediaState;
   onSuccess?: (listing: PublishedTokenListing) => void;
   onCancelEdit?: () => void;
 }
 
-export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateTokenFormProps) {
+function buildFormDraft(args: {
+  symbol: string;
+  name: string;
+  description: string;
+  shortDescription: string;
+  tags: string[];
+  listingNetwork: TokenListingNetwork;
+  contractAddress: string;
+  media: TokenListingMediaState;
+  enabledModuleIds: TokenModuleId[];
+  sectionToggles: Record<string, boolean>;
+  author: string;
+}): TokenListingDraft {
+  const resolved = resolveTokenListingMedia(args.media);
+  const pageConfig = createDefaultPageConfig(args.enabledModuleIds);
+  pageConfig.sections = pageConfig.sections.map((section) => ({
+    ...section,
+    enabled: args.sectionToggles[section.type] ?? section.enabled,
+  }));
+  return {
+    symbol: args.symbol,
+    name: args.name,
+    description: args.description,
+    shortDescription: args.shortDescription,
+    tags: args.tags,
+    listingNetwork: args.listingNetwork,
+    contractAddress: args.contractAddress,
+    logoUrl: resolved.logoUrl,
+    logoCid: resolved.logoCid,
+    featuredImageUrl: resolved.featuredImageUrl,
+    featuredImageCid: resolved.featuredImageCid,
+    pageConfig,
+    enabledModuleIds: args.enabledModuleIds,
+    author: args.author,
+  };
+}
+
+export function CreateTokenForm({ listing, media, onSuccess, onCancelEdit }: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
   const { tier } = useKREXBalance();
   const { state: kaspaState } = useKaspaWallet();
@@ -53,10 +106,12 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
 
   const [symbol, setSymbol] = useState(listing?.symbol ?? '');
   const [name, setName] = useState(listing?.name ?? '');
-  const [description, setDescription] = useState(listing?.description ?? '');
+  const [description, setDescription] = useState(() => contentForRichEditor(listing?.description ?? ''));
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
   const [tags, setTags] = useState((listing?.tags ?? []).join(', '));
-  const [network, setNetwork] = useState<TokenNetwork>(listing?.network ?? 'L2');
+  const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(
+    listing?.listingNetwork ?? tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress),
+  );
   const [contractAddress, setContractAddress] = useState(listing?.contractAddress ?? '');
   const [enabledModules, setEnabledModules] = useState<Set<string>>(
     () => new Set(listing?.paidModuleIds ?? []),
@@ -76,9 +131,11 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
   const moduleDiscountPercent = getTokenModuleDiscountPercent(tier);
 
   const tagsArray = useMemo(
-    () => tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+    () => tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, TOKEN_CONTENT_LIMITS.tags.max),
     [tags],
   );
+
+  const resolvedMedia = useMemo(() => resolveTokenListingMedia(media), [media]);
 
   const previewToken: Token = useMemo(
     () => ({
@@ -88,8 +145,12 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
       name: name.trim() || 'Token name',
       description: description.trim() || 'Token description preview.',
       shortDescription: shortDescription.trim() || undefined,
-      network,
+      network: listingNetworkToTokenNetwork(listingNetwork),
       contractAddress: contractAddress.trim() || undefined,
+      logo: resolvedMedia.logoUrl,
+      logoCid: resolvedMedia.logoCid,
+      featuredImage: resolvedMedia.featuredImageUrl,
+      featuredImageCid: resolvedMedia.featuredImageCid,
       type: 'collab',
       tags: tagsArray,
       listing: {
@@ -98,30 +159,95 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
         featured: enabledModules.has('featured_listing'),
       },
     }),
-    [symbol, name, description, shortDescription, tagsArray, enabledModules, network, contractAddress, listing],
+    [
+      symbol,
+      name,
+      description,
+      shortDescription,
+      tagsArray,
+      enabledModules,
+      listingNetwork,
+      contractAddress,
+      listing,
+      resolvedMedia,
+    ],
   );
 
   const formQuote = useMemo(() => {
-    const modulePriceById = Object.fromEntries(
-      TOKEN_MODULE_OFFERS.map((offer) => [offer.id, offer.unlockPriceKas]),
-    );
+    if (!walletAddress) {
+      return estimateTokenListingQuote({
+        draft: buildFormDraft({
+          symbol: symbol.trim() || 'TICK',
+          name: name.trim() || 'Token',
+          description: description || ' ',
+          shortDescription,
+          tags: tagsArray,
+          listingNetwork,
+          contractAddress,
+          media,
+          enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
+          sectionToggles,
+          author: 'kaspa:preview',
+        }),
+        action: isEditMode ? 'edit' : 'create',
+        discountPercent: tierDiscount,
+        excludeModuleIds: isEditMode ? (listing?.paidModuleIds ?? []) : [],
+        priorPricingSnapshot:
+          isEditMode && listing?.pricingSnapshot?.payloadBytes != null
+            ? {
+                payloadBytes: listing.pricingSnapshot.payloadBytes!,
+                chunkCount: listing.pricingSnapshot.chunkCount ?? 1,
+              }
+            : undefined,
+      });
+    }
+    const draft = buildFormDraft({
+      symbol,
+      name,
+      description,
+      shortDescription,
+      tags: tagsArray,
+      listingNetwork,
+      contractAddress,
+      media,
+      enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
+      sectionToggles,
+      author: kaspaState.address ?? walletAddress,
+    });
     const newModuleIds = Array.from(enabledModules).filter(
       (id) => !listing?.paidModuleIds?.includes(id as TokenModuleId),
-    );
-    const quote = estimateTokenPageQuote({
-      baseFeeKas: isEditMode ? TOKEN_LISTING_FEES.updateListingKas : TOKEN_LISTING_FEES.createListingKas,
-      moduleIds: isEditMode ? newModuleIds : Array.from(enabledModules),
-      modulePriceById,
+    ) as TokenModuleId[];
+    return estimateTokenListingQuote({
+      draft,
+      action: isEditMode ? 'edit' : 'create',
+      discountPercent: tierDiscount,
+      moduleIds: isEditMode ? newModuleIds : draft.enabledModuleIds,
+      excludeModuleIds: isEditMode ? (listing?.paidModuleIds ?? []) : [],
+      priorPricingSnapshot:
+        isEditMode && listing?.pricingSnapshot?.payloadBytes != null
+          ? {
+              payloadBytes: listing.pricingSnapshot.payloadBytes!,
+              chunkCount: listing.pricingSnapshot.chunkCount ?? 1,
+            }
+          : undefined,
     });
-    const subtotal = quote.baseFeeKas + quote.modulesFeeKas + quote.networkFeeBufferKas;
-    const discountKas = (subtotal * tierDiscount) / 100;
-    return {
-      ...quote,
-      subtotalKas: Math.round(subtotal * 100) / 100,
-      discountKas: Math.round(discountKas * 100) / 100,
-      totalKas: Math.round((subtotal - discountKas) * 100) / 100,
-    };
-  }, [enabledModules, tierDiscount, isEditMode, listing?.paidModuleIds]);
+  }, [
+    symbol,
+    name,
+    description,
+    shortDescription,
+    tagsArray,
+    listingNetwork,
+    contractAddress,
+    media,
+    enabledModules,
+    sectionToggles,
+    tierDiscount,
+    isEditMode,
+    listing,
+    walletAddress,
+    kaspaState.address,
+  ]);
 
   const toggleModule = (id: string) => {
     setEnabledModules((prev) => {
@@ -130,12 +256,8 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
       else next.add(id);
       return next;
     });
-    if (id === 'roadmap_editor') {
-      setSectionToggles((prev) => ({ ...prev, roadmap: true }));
-    }
-    if (id === 'utility_integrations') {
-      setSectionToggles((prev) => ({ ...prev, utility: true }));
-    }
+    if (id === 'roadmap_editor') setSectionToggles((prev) => ({ ...prev, roadmap: true }));
+    if (id === 'utility_integrations') setSectionToggles((prev) => ({ ...prev, utility: true }));
   };
 
   const toggleSection = (type: TokenPageSectionType) => {
@@ -146,6 +268,10 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
     setError(null);
     if (!symbol.trim() || !name.trim() || !shortDescription.trim()) {
       setError('Ticker, name, and short description are required.');
+      return;
+    }
+    if (getTokenCharacterCount(description) < TOKEN_CONTENT_LIMITS.description.min) {
+      setError(`Main content must be at least ${TOKEN_CONTENT_LIMITS.description.min} characters.`);
       return;
     }
     if (!walletAddress) {
@@ -165,8 +291,12 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
         description: description.trim(),
         shortDescription: shortDescription.trim(),
         tags: tagsArray,
-        network,
+        listingNetwork,
         contractAddress: contractAddress.trim() || undefined,
+        logoUrl: resolvedMedia.logoUrl,
+        logoCid: resolvedMedia.logoCid,
+        featuredImageUrl: resolvedMedia.featuredImageUrl,
+        featuredImageCid: resolvedMedia.featuredImageCid,
         enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
         sectionToggles,
       };
@@ -175,22 +305,14 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
         : await publishNewListing(input, kaspaState.address!);
       if (!result) throw new Error('Failed to save listing');
       onSuccess?.(result);
-      if (!isEditMode) {
-        setSymbol('');
-        setName('');
-        setDescription('');
-        setShortDescription('');
-        setTags('');
-        setContractAddress('');
-        setEnabledModules(new Set());
-        setSectionToggles({});
-      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Publish failed. Try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const charCount = (text: string) => getTokenCharacterCount(text);
 
   return (
     <>
@@ -222,7 +344,7 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
               </h3>
               <p className="kx-body">
                 {isEditMode
-                  ? `Update your landing page. Estimated cost: ${formQuote.totalKas} KAS.`
+                  ? `Update your landing page. Estimated cost: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunk${formQuote.chunkCount === 1 ? '' : 's'}).`
                   : `List your token, verify ownership, and build a modular landing page. Estimated cost: ${formQuote.totalKas} KAS.`}
                 {discountPercent > 0 ? ` KREX tier discount: ${discountPercent}%.` : ''}
               </p>
@@ -239,79 +361,117 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
                   Network <span className="text-red-500">*</span>
                 </KxFormFieldLabel>
                 <select
-                  value={network}
-                  onChange={(e) => setNetwork(e.target.value as TokenNetwork)}
+                  value={listingNetwork}
+                  onChange={(e) => setListingNetwork(e.target.value as TokenListingNetwork)}
                   className="k-input text-base mt-2 w-full"
+                  disabled={isSubmitting}
                 >
-                  <option value="L2">L2 (Kasplex / EVM)</option>
-                  <option value="L1">L1 (Kaspa KRC-20)</option>
+                  {TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id} disabled={opt.disabled}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <KxFormFieldLabel>Contract / ticker address</KxFormFieldLabel>
+                <div className="flex items-center justify-between mb-2">
+                  <KxFormFieldLabel>Contract / ticker address</KxFormFieldLabel>
+                  <span className="text-xs text-zinc-500">{contractAddress.length} / {TOKEN_CONTENT_LIMITS.contractAddress.max}</span>
+                </div>
                 <input
                   type="text"
                   value={contractAddress}
-                  onChange={(e) => setContractAddress(e.target.value)}
+                  onChange={(e) => setContractAddress(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.contractAddress.max))}
                   placeholder="0x… or KRC-20 address"
-                  className="k-input text-base mt-2"
+                  className="k-input text-base w-full"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
 
             <div>
-              <KxFormFieldLabel>
-                Ticker symbol <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
+              <div className="flex items-center justify-between mb-2">
+                <KxFormFieldLabel>
+                  Ticker symbol <span className="text-red-500">*</span>
+                </KxFormFieldLabel>
+                <span className="text-xs text-zinc-500">{symbol.length} / {TOKEN_CONTENT_LIMITS.symbol.max}</span>
+              </div>
               <input
                 type="text"
                 value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                onChange={(e) => setSymbol(e.target.value.toUpperCase().slice(0, TOKEN_CONTENT_LIMITS.symbol.max))}
                 placeholder="e.g. KREX"
-                className="k-input text-base mt-2"
+                className="k-input text-base w-full"
                 required
                 disabled={isSubmitting || isEditMode}
               />
             </div>
 
             <div>
-              <KxFormFieldLabel>
-                Token name <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
+              <div className="flex items-center justify-between mb-2">
+                <KxFormFieldLabel>
+                  Token name <span className="text-red-500">*</span>
+                </KxFormFieldLabel>
+                <span className="text-xs text-zinc-500">{name.length} / {TOKEN_CONTENT_LIMITS.name.max}</span>
+              </div>
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.name.max))}
                 placeholder="Full token name"
-                className="k-input text-base mt-2"
+                className="k-input text-base w-full"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <KxFormFieldLabel>
-                Short description <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
+              <div className="flex items-center justify-between mb-2">
+                <KxFormFieldLabel>
+                  Short description <span className="text-red-500">*</span>
+                </KxFormFieldLabel>
+                <span
+                  className={`text-xs ${
+                    charCount(shortDescription) > TOKEN_CONTENT_LIMITS.shortDescription.max
+                      ? 'text-red-500'
+                      : 'text-zinc-500'
+                  }`}
+                >
+                  {charCount(shortDescription)} / {TOKEN_CONTENT_LIMITS.shortDescription.max}
+                </span>
+              </div>
               <textarea
                 value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
+                onChange={(e) => setShortDescription(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.shortDescription.max))}
                 placeholder="One-line summary for cards and search"
                 rows={2}
-                className="k-input text-base w-full resize-y min-h-[3rem] mt-2"
+                className="k-input text-base w-full resize-y min-h-[3rem]"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <KxFormFieldLabel>About this token</KxFormFieldLabel>
-              <textarea
+              <div className="flex items-center justify-between mb-2">
+                <KxFormFieldLabel>
+                  Main content <span className="text-red-500">*</span>
+                </KxFormFieldLabel>
+                <span
+                  className={`text-xs ${
+                    charCount(description) > TOKEN_CONTENT_LIMITS.description.max
+                      ? 'text-red-500'
+                      : 'text-zinc-500'
+                  }`}
+                >
+                  {charCount(description)} / {TOKEN_CONTENT_LIMITS.description.max}
+                </span>
+              </div>
+              <KxRichTextEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={setDescription}
                 placeholder="Full description for your landing page"
-                rows={6}
-                className="k-input text-base w-full resize-y min-h-[8rem] mt-2"
+                minRows={10}
+                maxLength={TOKEN_CONTENT_LIMITS.description.max}
                 disabled={isSubmitting}
               />
             </div>
@@ -323,7 +483,7 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="defi, governance, utility"
-                className="k-input mt-2"
+                className="k-input mt-2 w-full"
                 disabled={isSubmitting}
               />
             </div>
@@ -342,32 +502,34 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
                     ? 'Recommended for all listings'
                     : 'Optional block on your landing page'
                 }
-                priceLabel=""
                 checked={sectionToggles[type] ?? (type === 'overview' || type === 'comments' || type === 'links')}
                 onToggle={() => toggleSection(type)}
               />
             ))}
           </div>
 
-          <div className={`${FORM_PANEL_CLASS} space-y-4`} id="tokens-dashboard-modules">
-            <DAppSectionHeader title="Premium modules" className="mb-1" />
-            <p className="kx-body-sm">
-              Unlock roadmap editors, Hub integrations, analytics, and featured placement.
-              {moduleDiscountPercent > 0 ? ` KREX tier discount: ${moduleDiscountPercent}% off modules.` : ''}
-            </p>
+          <div className="space-y-4" id="tokens-dashboard-modules">
+            <div className={FORM_PANEL_CLASS}>
+              <DAppSectionHeader title="Premium modules" className="mb-1" />
+              <p className="kx-body-sm mb-4">
+                Unlock roadmap editors, Hub integrations, analytics, and featured placement.
+                {moduleDiscountPercent > 0 ? ` KREX tier discount: ${moduleDiscountPercent}% off modules.` : ''}
+              </p>
+            </div>
             {TOKEN_MODULE_OFFERS.map((offer) => (
-              <KxInFormPremiumRow
-                key={offer.id}
-                flat
-                title={offer.title}
-                description={offer.description}
-                priceLabel={
-                  listing?.paidModuleIds?.includes(offer.id) ? 'Paid' : `+${offer.unlockPriceKas} KAS`
-                }
-                checked={enabledModules.has(offer.id)}
-                onToggle={() => toggleModule(offer.id)}
-                disabled={listing?.paidModuleIds?.includes(offer.id)}
-              />
+              <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
+                <KxInFormPremiumRow
+                  flat
+                  title={offer.title}
+                  description={offer.description}
+                  priceLabel={
+                    listing?.paidModuleIds?.includes(offer.id) ? 'Paid' : `+${offer.unlockPriceKas} KAS`
+                  }
+                  checked={enabledModules.has(offer.id)}
+                  onToggle={() => toggleModule(offer.id)}
+                  disabled={listing?.paidModuleIds?.includes(offer.id) || isSubmitting}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -381,12 +543,22 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
                 <span>Base fee</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span>
               </div>
+              <div className="flex justify-between">
+                <span>Size fee</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span>
+              </div>
               {formQuote.moduleLines.map((line) => (
                 <div key={line.id} className="flex justify-between gap-2">
                   <span className="truncate">{line.title}</span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
                 </div>
               ))}
+              {formQuote.modulesFeeKas > 0 ? (
+                <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
+                  <span>Modules subtotal</span>
+                  <span className="font-semibold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span>Network buffer</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span>
@@ -397,14 +569,22 @@ export function CreateTokenForm({ listing, onSuccess, onCancelEdit }: CreateToke
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{formQuote.discountKas} KAS</span>
                 </div>
               ) : null}
+              <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
+                <span>Payload bytes</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Chunk estimate</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span>
+              </div>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
               <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
               <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
             </div>
             <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-              Listing payment is sent on Kaspa L1 to the Kasparex treasury. Verification confirms amount, payer, and
-              payload binding.
+              One Kaspa L1 payment commits your listing payload on-chain. Chunk count and size fees follow the same model
+              as vBlog.
             </div>
             <button
               type="submit"

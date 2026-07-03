@@ -2,9 +2,25 @@ import { kasToSompi } from '@/lib/ads/config';
 import { getRestTransactionById, type KaspaRestTransaction, type KaspaRestTxOutput } from '@/lib/kaspa/api';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
-import { parseTokenListingCommitPayload } from '@/lib/tokens/payloadHex';
+import {
+  buildTokenListingCommitPlainNote,
+  computeTokenListingRootHash,
+  parseTokenListingCommitPayload,
+  parseTokenListingLegacyCommitPayload,
+} from '@/lib/tokens/payloadHex';
 
-export type VerifyTokenListingInput = {
+export type VerifyTokenListingBundleInput = {
+  listingId: string;
+  op: 'create' | 'edit';
+  payerAddress: string;
+  commitTxHash: string;
+  chunkHexList: string[];
+  contentHash: string;
+  rootHash: string;
+  requiredTotalKas: number;
+};
+
+export type VerifyTokenListingLegacyInput = {
   listingId: string;
   op: 'create' | 'edit';
   payerAddress: string;
@@ -45,41 +61,115 @@ function txPaysAddressSompi(tx: KaspaRestTransaction, targetNorm: string): numbe
   return paid;
 }
 
-function getTxPayload(tx: KaspaRestTransaction): string | null | undefined {
-  const p = tx.payload;
-  if (typeof p === 'string' && p.length > 0) return p;
-  const t = tx as Record<string, unknown>;
-  const vd = t.verboseData ?? t.verbose_data;
-  if (vd && typeof vd === 'object' && typeof (vd as { payload?: string }).payload === 'string') {
-    const vp = (vd as { payload: string }).payload;
-    if (vp.length > 0) return vp;
-  }
-  return undefined;
-}
-
-function payerAddressesFromTx(tx: KaspaRestTransaction): Set<string> {
-  const set = new Set<string>();
-  for (const inp of tx.inputs ?? []) {
-    const i = inp as Record<string, unknown>;
-    const vd = i.verboseData ?? i.verbose_data;
-    const fromVerbose =
-      vd && typeof vd === 'object' && typeof (vd as { address?: string }).address === 'string'
-        ? (vd as { address: string }).address
-        : undefined;
-    const a = inp.previous_outpoint_address ?? inp.previousOutpointAddress ?? fromVerbose;
-    if (a && typeof a === 'string' && a.startsWith('kaspa:')) {
-      try {
-        set.add(normalizeKaspaAddress(a));
-      } catch {
-        set.add(a);
-      }
+function peelHexPayload(payload: string | null | undefined): string {
+  if (!payload) return '';
+  let cur = payload.replace(/^0x/i, '').trim();
+  for (let i = 0; i < 3; i++) {
+    if (!/^[0-9a-fA-F]+$/.test(cur) || cur.length % 2 !== 0) break;
+    try {
+      const text = Buffer.from(cur, 'hex').toString('utf8');
+      if (!text) break;
+      cur = text;
+    } catch {
+      break;
     }
   }
-  return set;
+  return cur;
 }
 
+function txPayload(tx: KaspaRestTransaction): string {
+  const raw = tx.payload;
+  return peelHexPayload(typeof raw === 'string' ? raw : undefined);
+}
+
+function txHasPayerInputRelaxed(tx: KaspaRestTransaction, payer: string): boolean {
+  const inputs = tx.inputs ?? [];
+  if (inputs.length === 0) return true;
+  let payerNorm: string;
+  try {
+    payerNorm = normalizeKaspaAddress(payer);
+  } catch {
+    return false;
+  }
+  const variants = new Set([
+    payerNorm,
+    payerNorm.toLowerCase(),
+    payerNorm.replace(/^kaspa:/, ''),
+  ]);
+  return inputs.some((input) => {
+    const raw =
+      input.previous_outpoint_address ??
+      input.previousOutpointAddress ??
+      (input as { signature_script?: { address?: string } }).signature_script?.address;
+    if (!raw) return false;
+    try {
+      const norm = normalizeKaspaAddress(String(raw)).toLowerCase();
+      return variants.has(norm) || variants.has(norm.replace(/^kaspa:/, ''));
+    } catch {
+      const lower = String(raw).trim().toLowerCase();
+      return variants.has(lower);
+    }
+  });
+}
+
+export async function verifyTokenListingTxBundle(
+  input: VerifyTokenListingBundleInput,
+): Promise<VerifyTokenListingResult> {
+  let payerNorm: string;
+  let treasuryNorm: string;
+  try {
+    payerNorm = normalizeKaspaAddress(input.payerAddress);
+    treasuryNorm = normalizeKaspaAddress(getTokensTreasuryL1Address());
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Invalid address' };
+  }
+
+  if (input.chunkHexList.length === 0) {
+    return { ok: false, error: 'Invalid chunk metadata' };
+  }
+  const recomputedRoot = computeTokenListingRootHash(input.chunkHexList);
+  if (recomputedRoot !== input.rootHash) {
+    return { ok: false, error: 'Invalid chunk root hash' };
+  }
+
+  const minSompi = kasToSompi(input.requiredTotalKas);
+  const commitTx = await getRestTransactionById(input.commitTxHash.replace(/^0x/i, ''), {
+    maxAttempts: 8,
+    delayMs: 1400,
+  });
+  if (!commitTx) {
+    return { ok: false, error: 'Commit transaction not found yet. Wait for the indexer and try again.' };
+  }
+
+  const expectedCommit = buildTokenListingCommitPlainNote({
+    listingId: input.listingId,
+    op: input.op,
+    chunkTotal: input.chunkHexList.length,
+    rootHash: input.rootHash,
+    contentHash: input.contentHash,
+    version: 1,
+  });
+  if (!txPayload(commitTx).startsWith(expectedCommit)) {
+    return { ok: false, error: 'Commit payload mismatch' };
+  }
+  if (!txHasPayerInputRelaxed(commitTx, payerNorm)) {
+    return { ok: false, error: 'Commit transaction payer mismatch' };
+  }
+
+  const paid = txPaysAddressSompi(commitTx, treasuryNorm);
+  if (paid < minSompi) {
+    return {
+      ok: false,
+      error: `Treasury output too low (need at least ${input.requiredTotalKas} KAS).`,
+    };
+  }
+
+  return { ok: true };
+}
+
+/** Legacy listings published before chunk bundle support. */
 export async function verifyTokenListingTx(
-  input: VerifyTokenListingInput,
+  input: VerifyTokenListingLegacyInput,
 ): Promise<VerifyTokenListingResult> {
   let treasuryNorm: string;
   let payerNorm: string;
@@ -109,7 +199,9 @@ export async function verifyTokenListingTx(
     };
   }
 
-  const binding = parseTokenListingCommitPayload(getTxPayload(tx) ?? null);
+  const binding =
+    parseTokenListingCommitPayload(txPayload(tx) || null) ??
+    parseTokenListingLegacyCommitPayload(txPayload(tx) || null);
   if (
     !binding ||
     binding.listingId !== input.listingId ||
@@ -119,8 +211,7 @@ export async function verifyTokenListingTx(
     return { ok: false, error: 'Payload does not match this listing commit.' };
   }
 
-  const payers = payerAddressesFromTx(tx);
-  if (payers.size > 0 && !payers.has(payerNorm)) {
+  if (!txHasPayerInputRelaxed(tx, payerNorm)) {
     return { ok: false, error: 'Transaction inputs do not show your wallet as the payer.' };
   }
 

@@ -64,8 +64,8 @@ export function TokensListingSidebar({
       storageKeyPrefix="tokens-listing"
       header={(onHide) => (
         <SidebarHeader
-          backHref="/tokens"
-          backLabel="Back to Tokens"
+          backHref="/hub"
+          backLabel="Back to Hub"
           onHide={onHide}
           className="bg-white dark:bg-zinc-950"
         />
