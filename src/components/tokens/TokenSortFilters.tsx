@@ -1,63 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { TokenType } from '@/lib/tokens/types';
-import type {
-  TokenPremiumFilter,
-  TokenSortOption,
-  TokenUtilityFilter,
-  TokenVerifiedFilter,
-} from '@/lib/tokens/listing';
+import type { TokenPremiumFilter } from '@/lib/tokens/listing';
+import {
+  TOKEN_SORT_CONTROL_OPTIONS,
+  type TokenSortControlValue,
+} from '@/lib/tokens/sortControls';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-export type { TokenSortOption } from '@/lib/tokens/listing';
-
-export type TokenTypeFilter = TokenType | 'all';
-
 interface TokenListingFiltersBarProps {
-  typeFilter: TokenTypeFilter;
-  onTypeFilterChange: (value: TokenTypeFilter) => void;
-  sortBy: TokenSortOption;
-  onSortChange: (sort: TokenSortOption) => void;
-  verifiedFilter: TokenVerifiedFilter;
-  onVerifiedFilterChange: (value: TokenVerifiedFilter) => void;
-  utilityFilter: TokenUtilityFilter;
-  onUtilityFilterChange: (value: TokenUtilityFilter) => void;
+  sortControl: TokenSortControlValue;
+  onSortControlChange: (value: TokenSortControlValue) => void;
   premiumFilter: TokenPremiumFilter;
   onPremiumFilterChange: (value: TokenPremiumFilter) => void;
 }
-
-const ALL_TOKENS_OPTIONS: { value: TokenTypeFilter; label: string }[] = [
-  { value: 'all', label: 'All tokens' },
-  { value: 'global', label: 'Global' },
-  { value: 'local', label: 'Local' },
-  { value: 'collab', label: 'Collab' },
-];
-
-const SORT_OPTIONS: { value: TokenSortOption; label: string }[] = [
-  { value: 'verified-first', label: 'Verified first' },
-  { value: 'featured-first', label: 'Featured first' },
-  { value: 'utility-first', label: 'Utility enabled first' },
-  { value: 'activity-high', label: 'Highest activity' },
-  { value: 'name-az', label: 'Name (A-Z)' },
-  { value: 'name-za', label: 'Name (Z-A)' },
-  { value: 'symbol-az', label: 'Symbol (A-Z)' },
-  { value: 'price-high', label: 'Price (high to low)' },
-  { value: 'price-low', label: 'Price (low to high)' },
-  { value: 'market-cap-high', label: 'Market cap (high to low)' },
-  { value: 'network', label: 'Network' },
-  { value: 'type', label: 'Type' },
-];
-
-const VERIFIED_OPTIONS: { value: TokenVerifiedFilter; label: string }[] = [
-  { value: 'all', label: 'All tokens' },
-  { value: 'verified', label: 'Verified only' },
-];
-
-const UTILITY_OPTIONS: { value: TokenUtilityFilter; label: string }[] = [
-  { value: 'all', label: 'All utility' },
-  { value: 'utility-enabled', label: 'Utility enabled' },
-];
 
 const PREMIUM_OPTIONS: { value: TokenPremiumFilter; label: string }[] = [
   { value: 'all', label: 'All listings' },
@@ -173,7 +129,7 @@ function TokenFilterDropdown<T extends string>({
         isOpen={isOpen}
         onClick={() => setIsOpen((open) => !open)}
         active={isActive}
-        tooltip={tooltip ?? `Filter by ${label.toLowerCase()}`}
+        tooltip={tooltip ?? label}
       />
       {isOpen ? (
         <FilterDropdownMenu>
@@ -196,50 +152,26 @@ function TokenFilterDropdown<T extends string>({
 }
 
 export function TokenListingFiltersBar({
-  typeFilter,
-  onTypeFilterChange,
-  sortBy,
-  onSortChange,
-  verifiedFilter,
-  onVerifiedFilterChange,
-  utilityFilter,
-  onUtilityFilterChange,
+  sortControl,
+  onSortControlChange,
   premiumFilter,
   onPremiumFilterChange,
 }: TokenListingFiltersBarProps) {
   return (
     <>
       <TokenFilterDropdown
-        label="All tokens"
-        value={typeFilter}
-        options={ALL_TOKENS_OPTIONS}
-        onChange={onTypeFilterChange}
-        tooltip="Filter by token type"
-      />
-      <TokenFilterDropdown
-        label="Verified"
-        value={verifiedFilter}
-        options={VERIFIED_OPTIONS}
-        onChange={onVerifiedFilterChange}
-      />
-      <TokenFilterDropdown
-        label="Utility"
-        value={utilityFilter}
-        options={UTILITY_OPTIONS}
-        onChange={onUtilityFilterChange}
+        label="Sort tokens"
+        value={sortControl}
+        options={TOKEN_SORT_CONTROL_OPTIONS}
+        onChange={onSortControlChange}
+        minWidth="160px"
+        tooltip="Sort and filter tokens"
       />
       <TokenFilterDropdown
         label="Premium"
         value={premiumFilter}
         options={PREMIUM_OPTIONS}
         onChange={onPremiumFilterChange}
-      />
-      <TokenFilterDropdown
-        label="Sort"
-        value={sortBy}
-        options={SORT_OPTIONS}
-        onChange={onSortChange}
-        tooltip="Sort tokens"
       />
     </>
   );

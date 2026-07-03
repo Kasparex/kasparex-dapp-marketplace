@@ -1,6 +1,8 @@
 import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenSourceFilter } from '@/lib/tokens/source';
+import type { TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import { matchesTokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
 
 export type TokenSortOption =
   | 'name-az'
@@ -28,7 +30,7 @@ export interface TokenListingFilters {
   type: TokenType | 'all';
   source: TokenSourceFilter;
   verified: TokenVerifiedFilter;
-  utility: TokenUtilityFilter;
+  utilitySidebar: TokenUtilitySidebarFilter;
   premium: TokenPremiumFilter;
   sortBy: TokenSortOption;
 }
@@ -83,8 +85,8 @@ export function filterTokens(tokens: Token[], filters: TokenListingFilters): Tok
     filtered = filtered.filter(tokenIsVerified);
   }
 
-  if (filters.utility === 'utility-enabled') {
-    filtered = filtered.filter(tokenHasUtility);
+  if (filters.utilitySidebar !== 'all') {
+    filtered = filtered.filter((token) => matchesTokenUtilitySidebarFilter(token, filters.utilitySidebar));
   }
 
   if (filters.premium === 'featured') {

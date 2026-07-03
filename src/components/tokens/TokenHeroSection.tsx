@@ -1,7 +1,3 @@
-/**
- * Token detail hero with halo layout and ad slot.
- */
-
 'use client';
 
 import Image from 'next/image';
@@ -10,6 +6,7 @@ import { AdSlider } from '@/components/ads/AdSlider';
 import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
+import { TokenTitle } from './TokenTitle';
 import { TokenListingMeta } from './TokenListingMeta';
 import { TokenListingBadges } from './TokenListingBadges';
 
@@ -32,13 +29,16 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
 
       <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          <div className="mb-4">
-            <TokenListingMeta token={token} />
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <TokenLogo token={token} size={64} showName={false} showSymbol={false} />
+            <div className="min-w-0">
+              <TokenListingMeta token={token} />
+            </div>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white sm:text-4xl">{token.name}</h1>
+          <TokenTitle token={token} size="lg" />
           <p className="mt-3 max-w-2xl kx-body-sm">{short}</p>
           <div className="mt-4">
-            <TokenListingBadges token={token} compact showUtilityChips={false} />
+            <TokenListingBadges token={token} />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -65,14 +65,10 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
 
         <div className="flex w-full max-w-[280px] shrink-0 flex-col items-stretch gap-4 lg:items-end">
           {featuredImageUrl ? (
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
               <Image src={featuredImageUrl} alt={token.name} fill className="object-cover" priority unoptimized />
             </div>
-          ) : (
-            <div className="relative flex h-48 w-full items-center justify-center rounded-2xl border border-zinc-200 bg-white/60 p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
-              <TokenLogo token={token} size={80} showName={false} showSymbol={false} />
-            </div>
-          )}
+          ) : null}
           <div
             id="ad-slot-token-detail-halo"
             className="relative flex min-h-[160px] w-full items-center justify-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/40"

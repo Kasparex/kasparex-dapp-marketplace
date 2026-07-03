@@ -80,18 +80,18 @@ export function TokenLogo({
       {/* Name and/or Symbol */}
       {(showName || shouldShowSymbol) && (
         <div className="flex flex-col min-w-0">
-          {showName && (
-            <span
-              className={`text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate ${nameClassName}`}
-            >
-              {token.name}
-            </span>
-          )}
           {shouldShowSymbol && (
             <span
-              className={`text-xs text-zinc-500 dark:text-zinc-400 ${symbolClassName}`}
+              className={`text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate ${symbolClassName}`}
             >
               {token.symbol}
+            </span>
+          )}
+          {showName && (
+            <span
+              className={`text-xs text-zinc-500 dark:text-zinc-400 truncate ${nameClassName}`}
+            >
+              {token.name}
             </span>
           )}
         </div>

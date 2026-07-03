@@ -9,6 +9,9 @@ import Image from 'next/image';
 import type { Token } from '@/lib/tokens/types';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
+import { TokenTitle } from './TokenTitle';
+import { TokenListingMeta } from './TokenListingMeta';
+import { TokenListingBadges } from './TokenListingBadges';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
@@ -90,31 +93,13 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-2">
-          <TokenLogo token={token} size={48} showName showSymbol />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`rounded px-2 py-1 text-xs font-medium ${
-              token.network === 'L1'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-            }`}
-          >
-            {token.network}
-          </span>
-          <span
-            className={`rounded px-2 py-1 text-xs font-medium capitalize ${
-              token.type === 'global'
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                : token.type === 'local'
-                  ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-                  : 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300'
-            }`}
-          >
-            {token.type}
-          </span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <TokenLogo token={token} size={48} showName={false} showSymbol={false} />
+            <TokenTitle token={token} size="sm" className="flex-1" />
+          </div>
+          <TokenListingMeta token={token} />
+          <TokenListingBadges token={token} />
         </div>
 
         {price !== undefined && (

@@ -13,6 +13,7 @@ import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { TokenLogo } from './TokenLogo';
+import { TokenTitle } from './TokenTitle';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { TokenListingMeta } from './TokenListingMeta';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -216,7 +217,8 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
     <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
       <td className="py-4 px-4">
         <Link href={`/tokens/${token.slug}`} className="flex items-center gap-3">
-          <TokenLogo token={token} size={40} showName={true} showSymbol={true} />
+          <TokenLogo token={token} size={40} showName={false} showSymbol={false} />
+          <TokenTitle token={token} size="sm" />
         </Link>
       </td>
       <td className="py-4 px-4">

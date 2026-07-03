@@ -1,10 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
+import type { Token } from '@/lib/tokens/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
+import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import {
+  buildTokenUtilityFilterItems,
+  type TokenUtilitySidebarFilter,
+} from '@/lib/tokens/utilityFilters';
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
@@ -25,9 +32,27 @@ const QUICK_LINKS = [
   { id: 'rewards', label: 'View Rewards', href: '/rewards', icon: <TokenLinkIcon id="rewards" /> },
 ];
 
-export function TokensListingSidebar() {
+const UTILITY_SECTION_ICON = (
+  <svg className="k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
+
+export function TokensListingSidebar({
+  tokens = [],
+  utilityFilter = 'all',
+  onUtilityFilterChange,
+  showUtilityFilter = false,
+}: {
+  tokens?: Token[];
+  utilityFilter?: TokenUtilitySidebarFilter;
+  onUtilityFilterChange?: (value: TokenUtilitySidebarFilter) => void;
+  showUtilityFilter?: boolean;
+}) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/tokens/dashboard') ?? false;
+
+  const utilityItems = useMemo(() => buildTokenUtilityFilterItems(tokens), [tokens]);
 
   const tokensFooter = (
     <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
@@ -63,6 +88,25 @@ export function TokensListingSidebar() {
           Dashboard
         </Link>
       </div>
+
+      {showUtilityFilter && onUtilityFilterChange ? (
+        <SidebarCategories
+          title="Utility / Modules"
+          sectionIcon={UTILITY_SECTION_ICON}
+          items={utilityItems.map((item) => ({
+            id: item.id,
+            label: item.label,
+            count: item.count,
+          }))}
+          selectedIds={utilityFilter}
+          onSelect={(id) => onUtilityFilterChange(id as TokenUtilitySidebarFilter)}
+          multi={false}
+          searchable
+          searchPlaceholder="Search utility..."
+          className="mb-6"
+        />
+      ) : null}
+
       <SidebarQuickActions title="Quick Links" items={QUICK_LINKS} />
     </UnifiedSidebar>
   );

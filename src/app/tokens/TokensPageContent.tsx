@@ -17,15 +17,17 @@ import {
   TokenListingCompact,
   TokenListingTableView,
 } from '@/components/tokens/TokenListingViews';
-import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
+import type { Token, TokenNetwork } from '@/lib/tokens/types';
 import {
   filterTokens,
   type TokenPremiumFilter,
-  type TokenSortOption,
-  type TokenUtilityFilter,
-  type TokenVerifiedFilter,
 } from '@/lib/tokens/listing';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
+import type { TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import {
+  resolveTokenSortControl,
+  type TokenSortControlValue,
+} from '@/lib/tokens/sortControls';
 import type { DAppNetworkFilter } from '@/lib/dapps';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
@@ -36,13 +38,16 @@ interface TokensPageContentProps {
 export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
-  const [typeFilter, setTypeFilter] = useState<TokenType | 'all'>('all');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
-  const [verifiedFilter, setVerifiedFilter] = useState<TokenVerifiedFilter>('all');
-  const [utilityFilter, setUtilityFilter] = useState<TokenUtilityFilter>('all');
+  const [utilitySidebarFilter, setUtilitySidebarFilter] = useState<TokenUtilitySidebarFilter>('all');
   const [premiumFilter, setPremiumFilter] = useState<TokenPremiumFilter>('all');
-  const [sortBy, setSortBy] = useState<TokenSortOption>('verified-first');
+  const [sortControl, setSortControl] = useState<TokenSortControlValue>('verified-first');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
+
+  const { type: typeFilter, verified: verifiedFilter, sortBy } = useMemo(
+    () => resolveTokenSortControl(sortControl),
+    [sortControl],
+  );
 
   const filteredAndSortedTokens = useMemo(
     () =>
@@ -52,22 +57,30 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
         type: typeFilter,
         source: sourceFilter,
         verified: verifiedFilter,
-        utility: utilityFilter,
+        utilitySidebar: utilitySidebarFilter,
         premium: premiumFilter,
         sortBy,
       }),
-    [tokens, searchQuery, networkFilter, typeFilter, sourceFilter, verifiedFilter, utilityFilter, premiumFilter, sortBy],
+    [
+      tokens,
+      searchQuery,
+      networkFilter,
+      typeFilter,
+      sourceFilter,
+      verifiedFilter,
+      utilitySidebarFilter,
+      premiumFilter,
+      sortBy,
+    ],
   );
 
   const handleResetFilters = () => {
     setSearchQuery('');
     setSourceFilter('all');
-    setTypeFilter('all');
     setNetworkFilter('all');
-    setVerifiedFilter('all');
-    setUtilityFilter('all');
+    setUtilitySidebarFilter('all');
     setPremiumFilter('all');
-    setSortBy('verified-first');
+    setSortControl('verified-first');
   };
 
   const handleNetworkFilterChange = (value: DAppNetworkFilter) => {
@@ -83,7 +96,12 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       <Header />
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <TokensListingSidebar />
+        <TokensListingSidebar
+          tokens={tokens}
+          utilityFilter={utilitySidebarFilter}
+          onUtilityFilterChange={setUtilitySidebarFilter}
+          showUtilityFilter
+        />
 
         <div className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
           <div className="mx-auto max-w-7xl">
@@ -125,14 +143,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                 />
                 <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
                 <TokenListingFiltersBar
-                  typeFilter={typeFilter}
-                  onTypeFilterChange={setTypeFilter}
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                  verifiedFilter={verifiedFilter}
-                  onVerifiedFilterChange={setVerifiedFilter}
-                  utilityFilter={utilityFilter}
-                  onUtilityFilterChange={setUtilityFilter}
+                  sortControl={sortControl}
+                  onSortControlChange={setSortControl}
                   premiumFilter={premiumFilter}
                   onPremiumFilterChange={setPremiumFilter}
                 />

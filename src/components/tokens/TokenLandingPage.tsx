@@ -17,7 +17,6 @@ import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { TokenListingBadges } from './TokenListingBadges';
 import { TOKEN_MODULE_OFFERS } from '@/lib/tokens/modules';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
@@ -46,12 +45,13 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
               Tokens
             </Link>
             <span className="mx-2 text-zinc-400">/</span>
-            <span className="font-semibold text-zinc-800 dark:text-zinc-100">{token.name}</span>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-100">{token.symbol}</span>
+            <span className="mx-1 text-zinc-400">·</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{token.name}</span>
           </nav>
 
           <div className="space-y-10">
             <TokenHeroSection token={token} />
-            <TokenListingBadges token={token} />
 
             {showMintingProgress && <TokenMintingProgress token={token} />}
             {showTrading && <TokenTradingSection token={token} />}
