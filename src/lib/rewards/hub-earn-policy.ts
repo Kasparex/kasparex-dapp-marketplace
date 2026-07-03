@@ -21,5 +21,6 @@ export const HUB_EARN_POINTS = {
   chroniclesQuizComplete: 25,
   tokenListingCreate: 100,
   tokenListingUpdate: 15,
+  tokenListingVerify: 1000,
   tokensListingVote: 5,
 } as const;

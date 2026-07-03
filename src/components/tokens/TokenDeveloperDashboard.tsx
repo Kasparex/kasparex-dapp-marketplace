@@ -8,7 +8,6 @@ import { TokenAuthorPricing } from '@/components/tokens/TokenAuthorPricing';
 import { TokenListingArchive } from '@/components/tokens/TokenListingArchive';
 import {
   EMPTY_TOKEN_LISTING_MEDIA,
-  TokenListingMediaPanel,
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { useTokens } from '@/hooks/useTokens';
@@ -39,8 +38,8 @@ export function TokenDeveloperDashboard() {
   const { address: evmAddress } = useAccount();
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
-  const { getAuthorListings, removeListing, listings } = useTokens();
-  const [activeTab, setActiveTab] = useState<'create' | 'listing' | 'archive'>('create');
+  const { getAuthorListings, removeListing, verifyListing, listings } = useTokens();
+  const [activeTab, setActiveTab] = useState<'create' | 'archive'>('create');
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
   const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -82,6 +81,14 @@ export function TokenDeveloperDashboard() {
     await removeListing(id);
   };
 
+  const handleVerify = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
+    const result = await verifyListing(id, proof);
+    if (result) {
+      setSuccessMessage(`${result.symbol} is now verified. Hub Points awarded for verification.`);
+      window.setTimeout(() => setSuccessMessage(null), 8000);
+    }
+  };
+
   const tabClass = (tab: typeof activeTab) =>
     `px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
       activeTab === tab
@@ -106,9 +113,6 @@ export function TokenDeveloperDashboard() {
         <button type="button" onClick={() => setActiveTab('create')} className={tabClass('create')}>
           {editingListing ? 'Edit listing' : 'Create listing'}
         </button>
-        <button type="button" onClick={() => setActiveTab('listing')} className={tabClass('listing')}>
-          Listing
-        </button>
         <button type="button" onClick={() => setActiveTab('archive')} className={tabClass('archive')}>
           My tokens ({authorListings.length})
         </button>
@@ -126,15 +130,10 @@ export function TokenDeveloperDashboard() {
             <CreateTokenForm
               listing={editingListing}
               media={media}
+              onMediaChange={setMedia}
               onSuccess={handlePublishSuccess}
               onCancelEdit={editingListing ? () => setEditingListing(null) : undefined}
             />
-          </div>
-        ) : null}
-
-        {activeTab === 'listing' ? (
-          <div id="tokens-dashboard-listing-media" className="scroll-mt-24 animate-in fade-in duration-500">
-            <TokenListingMediaPanel media={media} onChange={setMedia} />
           </div>
         ) : null}
 
@@ -148,6 +147,7 @@ export function TokenDeveloperDashboard() {
                 setActiveTab('create');
               }}
               onDelete={handleDelete}
+              onVerify={handleVerify}
             />
           </div>
         ) : null}

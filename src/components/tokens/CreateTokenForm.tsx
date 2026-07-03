@@ -9,6 +9,7 @@ import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import {
   resolveTokenListingMedia,
+  TokenListingMediaPanel,
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
@@ -53,6 +54,7 @@ const PAGE_SECTION_TYPES: TokenPageSectionType[] = [
 interface CreateTokenFormProps {
   listing?: PublishedTokenListing | null;
   media: TokenListingMediaState;
+  onMediaChange: (next: TokenListingMediaState) => void;
   onSuccess?: (listing: PublishedTokenListing) => void;
   onCancelEdit?: () => void;
 }
@@ -94,7 +96,7 @@ function buildFormDraft(args: {
   };
 }
 
-export function CreateTokenForm({ listing, media, onSuccess, onCancelEdit }: CreateTokenFormProps) {
+export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCancelEdit }: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
   const { tier } = useKREXBalance();
   const { state: kaspaState } = useKaspaWallet();
@@ -487,6 +489,14 @@ export function CreateTokenForm({ listing, media, onSuccess, onCancelEdit }: Cre
                 disabled={isSubmitting}
               />
             </div>
+          </div>
+
+          <div className={`${FORM_PANEL_CLASS} space-y-6`} id="tokens-dashboard-media">
+            <DAppSectionHeader title="Listing media" className="mb-1" />
+            <p className="kx-body-sm">
+              Upload your token logo and featured banner via direct URL or IPFS, same as vBlog article media.
+            </p>
+            <TokenListingMediaPanel media={media} onChange={onMediaChange} disabled={isSubmitting} embedded />
           </div>
 
           <div className={`${FORM_PANEL_CLASS} space-y-3`} id="tokens-dashboard-sections">

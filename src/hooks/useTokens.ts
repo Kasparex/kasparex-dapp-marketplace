@@ -403,6 +403,36 @@ export function useTokens() {
     [loadListings],
   );
 
+  const verifyListing = useCallback(
+    async (id: string, proof: { method: string; walletAddress: string; signature?: string }): Promise<PublishedTokenListing | null> => {
+      const existing = getPublishedListingById(id);
+      if (!existing) throw new Error('Listing not found');
+
+      const updated = updatePublishedListing(
+        id,
+        {
+          status: 'verified',
+          listing: { ...(existing.listing ?? {}), verified: true },
+        },
+        {},
+      );
+
+      const idKey = `ktl:verify:${id}:${proof.signature ? proof.signature.slice(0, 24) : proof.walletAddress}`;
+      appendHubActivityEarn({
+        walletRaw: proof.walletAddress,
+        source: 'token_listing_verify',
+        redeemableDelta: HUB_EARN_POINTS.tokenListingVerify,
+        krexBalance,
+        idempotencyKey: idKey,
+        meta: { listingId: existing.listingId, id, method: proof.method },
+      });
+
+      loadListings();
+      return updated;
+    },
+    [krexBalance, loadListings],
+  );
+
   const resolveToken = useCallback(
     (slug: string, baseToken?: Token | null): Token | null => {
       if (baseToken) return baseToken;
@@ -430,6 +460,7 @@ export function useTokens() {
     publishNewListing,
     updateExistingListing,
     removeListing,
+    verifyListing,
     resolveToken,
     discountPercent,
   };
