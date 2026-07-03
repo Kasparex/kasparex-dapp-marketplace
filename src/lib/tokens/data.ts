@@ -140,7 +140,11 @@ export function createSeedClaimListing(
 
   const ownership: TokenOwnershipStatus = options?.ownership ?? 'deployer_verified';
   const deployerVerified = ownership === 'deployer_verified';
-  const listingNetwork = tokenNetworkToListingNetwork(token.network, token.contractAddress);
+  const listingNetwork =
+    token.networks?.[0]?.network ??
+    tokenNetworkToListingNetwork(token.network, token.contractAddress);
+  const primaryAddress =
+    token.networks?.[0]?.contractAddress ?? token.contractAddress;
   const pageConfig = applyPageSectionConfig(createDefaultPageConfig(), {
     overview: true,
     tokenomics: true,
@@ -162,7 +166,7 @@ export function createSeedClaimListing(
     tags: token.tags,
     listingNetwork,
     network: token.network,
-    contractAddress: token.contractAddress,
+    contractAddress: primaryAddress,
     logoUrl: token.logo,
     logoCid: token.logoCid,
     featuredImageUrl: token.featuredImage,
@@ -178,6 +182,13 @@ export function createSeedClaimListing(
     totalSupply: token.totalSupply,
     decimals: token.decimals,
     listing: { verified: deployerVerified, deployerVerified },
+    networks: token.networks?.length
+      ? token.networks.map((entry, index) => ({
+          ...entry,
+          primary: entry.primary ?? index === 0,
+          verified: entry.verified ?? (deployerVerified && index === 0),
+        }))
+      : undefined,
   };
   listings.unshift(listing);
   saveListings(listings);

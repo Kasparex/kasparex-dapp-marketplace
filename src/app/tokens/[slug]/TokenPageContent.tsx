@@ -29,6 +29,11 @@ function mergeListingOverBase(base: Token, listing: PublishedTokenListing): Toke
     logoCid: listingToken.logoCid ?? base.logoCid,
     featuredImage: listingToken.featuredImage ?? base.featuredImage,
     featuredImageCid: listingToken.featuredImageCid ?? base.featuredImageCid,
+    network: listingToken.network ?? base.network,
+    contractAddress: listingToken.contractAddress ?? base.contractAddress,
+    l1Address: listingToken.l1Address ?? base.l1Address,
+    l2Address: listingToken.l2Address ?? base.l2Address,
+    networks: listing.networks?.length ? listing.networks : base.networks,
     listing: { ...base.listing, ...listingToken.listing },
     updatedAt: listing.updatedAt ?? base.updatedAt,
   };

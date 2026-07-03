@@ -20,7 +20,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenModuleDiscountPercent } from '@/lib/tokens/modules';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
 import { TOKEN_PAGE_SECTION_LABELS } from '@/lib/tokens/pageConfig';
 import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
@@ -39,6 +39,11 @@ import { Alert } from '@/components/Alert';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
 import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
 import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
+import {
+  buildNetworkEntries,
+  getNetworkAddressPlaceholder,
+  getSecondaryNetworkOptions,
+} from '@/lib/tokens/networks';
 
 const FORM_PANEL_CLASS =
   'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm';
@@ -57,6 +62,23 @@ const PAGE_SECTION_TYPES: TokenPageSectionType[] = [
   'links',
   'whitepaper',
 ];
+
+type SecondaryNetworkRow = {
+  id: string;
+  network: TokenListingNetwork;
+  contractAddress: string;
+};
+
+function initSecondaryNetworks(listing?: PublishedTokenListing | null): SecondaryNetworkRow[] {
+  if (!listing?.networks?.length) return [];
+  return listing.networks
+    .filter((n) => !n.primary)
+    .map((n, i) => ({
+      id: `sec-${i}-${n.network}`,
+      network: n.network,
+      contractAddress: n.contractAddress ?? '',
+    }));
+}
 
 interface CreateTokenFormProps {
   listing?: PublishedTokenListing | null;
@@ -96,6 +118,7 @@ function buildFormDraft(args: {
   totalSupply?: number;
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
+  networks?: TokenNetworkEntry[];
 }): TokenListingDraft {
   const resolved = resolveTokenListingMedia(args.media);
   const pageConfig = applyPageSectionConfig(
@@ -124,6 +147,7 @@ function buildFormDraft(args: {
     totalSupply: args.totalSupply,
     decimals: args.decimals,
     onChainSnapshot: args.onChainSnapshot,
+    networks: args.networks,
   };
 }
 
@@ -157,6 +181,9 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   );
   const [l2LookupLoading, setL2LookupLoading] = useState(false);
   const [l2LookupError, setL2LookupError] = useState<string | null>(null);
+  const [secondaryNetworks, setSecondaryNetworks] = useState<SecondaryNetworkRow[]>(() =>
+    initSecondaryNetworks(listing),
+  );
 
   const isRealToken = assetKind === 'real';
   const isKrc20Network = listingNetwork === 'krc20';
@@ -250,6 +277,20 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
   const resolvedMedia = useMemo(() => resolveTokenListingMedia(media), [media]);
 
+  const assembledNetworks = useMemo(
+    () =>
+      buildNetworkEntries({
+        primaryNetwork: listingNetwork,
+        primaryAddress: contractAddress,
+        primaryVerified: listing?.ownership === 'deployer_verified',
+        secondaryNetworks: secondaryNetworks.map((row) => ({
+          network: row.network,
+          contractAddress: row.contractAddress,
+        })),
+      }),
+    [listingNetwork, contractAddress, secondaryNetworks, listing?.ownership],
+  );
+
   const previewToken: Token = useMemo(
     () => ({
       id: listing?.id ?? 'preview',
@@ -260,6 +301,9 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       shortDescription: shortDescription.trim() || undefined,
       network: listingNetworkToTokenNetwork(listingNetwork),
       contractAddress: contractAddress.trim() || undefined,
+      l1Address: assembledNetworks.find((n) => n.network === 'krc20' || n.network === 'kaspa_l1')?.contractAddress,
+      l2Address: assembledNetworks.find((n) => n.network === 'l2_kasplex' || n.network === 'l2_igra')?.contractAddress,
+      networks: assembledNetworks,
       logo: resolvedMedia.logoUrl,
       logoCid: resolvedMedia.logoCid,
       featuredImage: resolvedMedia.featuredImageUrl,
@@ -283,6 +327,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       contractAddress,
       listing,
       resolvedMedia,
+      assembledNetworks,
     ],
   );
 
@@ -293,6 +338,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     totalSupply,
     decimals: tokenDecimals,
     onChainSnapshot: onChainSnapshot ?? undefined,
+    networks: assembledNetworks,
   };
 
   const formQuote = useMemo(() => {
@@ -409,6 +455,34 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     });
   };
 
+  const secondaryNetworkOptions = useMemo(
+    () => getSecondaryNetworkOptions(listingNetwork),
+    [listingNetwork],
+  );
+
+  const addSecondaryNetwork = () => {
+    const available = secondaryNetworkOptions.filter(
+      (n) => !secondaryNetworks.some((row) => row.network === n),
+    );
+    if (available.length === 0) return;
+    setSecondaryNetworks((prev) => [
+      ...prev,
+      {
+        id: `sec-${Date.now()}`,
+        network: available[0],
+        contractAddress: '',
+      },
+    ]);
+  };
+
+  const updateSecondaryNetwork = (id: string, patch: Partial<SecondaryNetworkRow>) => {
+    setSecondaryNetworks((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+  };
+
+  const removeSecondaryNetwork = (id: string) => {
+    setSecondaryNetworks((prev) => prev.filter((row) => row.id !== id));
+  };
+
   const handlePublish = async () => {
     setError(null);
     if (!symbol.trim() || !name.trim() || !shortDescription.trim()) {
@@ -460,6 +534,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         totalSupply,
         decimals: tokenDecimals,
         onChainSnapshot: onChainSnapshot ?? undefined,
+        networks: assembledNetworks,
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -542,16 +617,19 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <KxFormFieldLabel>
-                  Network <span className="text-red-500">*</span>
+                  Primary network <span className="text-red-500">*</span>
                 </KxFormFieldLabel>
+                <p className="kx-body-sm mb-2">The verified network for this token project.</p>
                 <div className="mt-2">
                   <KxFormDropdown
-                    ariaLabel="Listing network"
+                    ariaLabel="Primary listing network"
                     value={listingNetwork}
                     onChange={(value) => {
-                      setListingNetwork(value as TokenListingNetwork);
+                      const next = value as TokenListingNetwork;
+                      setListingNetwork(next);
                       setOnChainSnapshot(null);
                       setKrc20Selected(null);
+                      setSecondaryNetworks((prev) => prev.filter((row) => row.network !== next));
                     }}
                     options={TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => ({
                       value: opt.id,
@@ -584,6 +662,89 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   {l2LookupError ? <p className="mt-1 text-xs text-red-500">{l2LookupError}</p> : null}
                 </div>
               ) : null}
+            </div>
+
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <KxFormFieldLabel>Additional networks</KxFormFieldLabel>
+                  <p className="kx-body-sm">
+                    Add wrapped or bridged deployments (e.g. Kasplex L2, Igra L2). These appear as linked /
+                    unverified until you verify them later.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addSecondaryNetwork}
+                  disabled={isSubmitting || secondaryNetworkOptions.length <= secondaryNetworks.length}
+                  className="k-control-btn text-sm shrink-0 disabled:opacity-50"
+                >
+                  Add network
+                </button>
+              </div>
+              {secondaryNetworks.length === 0 ? (
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  No additional networks yet. Use this for tokens that exist on multiple chains.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {secondaryNetworks.map((row) => (
+                    <div
+                      key={row.id}
+                      className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] gap-3 items-end"
+                    >
+                      <div>
+                        <KxFormFieldLabel>Network</KxFormFieldLabel>
+                        <div className="mt-2">
+                          <KxFormDropdown
+                            ariaLabel="Secondary network"
+                            value={row.network}
+                            onChange={(value) =>
+                              updateSecondaryNetwork(row.id, { network: value as TokenListingNetwork })
+                            }
+                            options={secondaryNetworkOptions
+                              .filter(
+                                (n) =>
+                                  n === row.network ||
+                                  !secondaryNetworks.some((other) => other.id !== row.id && other.network === n),
+                              )
+                              .map((n) => ({
+                                value: n,
+                                label:
+                                  TOKEN_LISTING_NETWORK_OPTIONS.find((opt) => opt.id === n)?.label ??
+                                  n,
+                              }))}
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <KxFormFieldLabel>Contract address</KxFormFieldLabel>
+                        <input
+                          type="text"
+                          value={row.contractAddress}
+                          onChange={(e) =>
+                            updateSecondaryNetwork(row.id, {
+                              contractAddress: e.target.value.slice(0, TOKEN_CONTENT_LIMITS.contractAddress.max),
+                            })
+                          }
+                          placeholder={getNetworkAddressPlaceholder(row.network)}
+                          className="k-input text-base mt-2 w-full"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeSecondaryNetwork(row.id)}
+                        className="k-control-btn text-sm text-red-600 dark:text-red-400 mb-0.5"
+                        disabled={isSubmitting}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {isRealToken && isKrc20Network ? (

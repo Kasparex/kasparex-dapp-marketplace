@@ -8,6 +8,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 
 // KREX Token (L1 + L2)
 const KREX_L2_ADDRESS = '0x0FD8d408cE707f4E4f8E54193c4C55a3b969834B';
+const GRID_L2_ADDRESS = getContractAddress(202555, 'GRIDToken') || undefined;
 
 /**
  * Base token registry
@@ -79,10 +80,18 @@ export const baseTokens: Token[] = [
     symbol: 'GRID',
     description: 'GRID has a fixed supply of 10B on Kaspa L1. L2 deployments are operational layers used for rewards and utility across Kasparex dApps. GRID is earned through Proof-of-Utility by actively using dApps, and can be used for perks, upgrades, and reward programs.',
     shortDescription: 'Fixed 10B supply on Kaspa L1; L2 is operational layer',
-    network: 'L2',
+    network: 'L1',
     chainId: 202555,
     type: 'global',
-    contractAddress: getContractAddress(202555, 'GRIDToken') || undefined,
+    contractAddress: 'GRID',
+    l1Address: 'GRID',
+    l2Address: GRID_L2_ADDRESS,
+    networks: [
+      { network: 'krc20', contractAddress: 'GRID', primary: true, verified: true },
+      ...(GRID_L2_ADDRESS
+        ? [{ network: 'l2_kasplex' as const, contractAddress: GRID_L2_ADDRESS, primary: false, verified: false }]
+        : []),
+    ],
     totalSupply: 10_000_000_000,
     maxSupply: 10_000_000_000,
     decimals: 8,

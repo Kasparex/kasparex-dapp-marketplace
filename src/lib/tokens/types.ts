@@ -4,6 +4,8 @@
  * GRID: see docs/GRID_CANONICAL_SUPPLY_MODEL.md (L1 canonical KRC-20 + bridged L2 ERC-20 representations).
  */
 
+import type { TokenNetworkEntry } from './listingRecord';
+
 export type TokenNetwork = 'L1' | 'L2';
 export type TokenType = 'global' | 'collab';
 
@@ -69,7 +71,9 @@ export interface Token {
   contractAddress?: string; // Contract address (L1 or L2)
   l1Address?: string; // L1 contract address (if token exists on both)
   l2Address?: string; // L2 contract address (if token exists on both)
-  
+  /** Multi-network deployments; entry 0 is primary. */
+  networks?: TokenNetworkEntry[];
+
   // Token Type
   type: TokenType; // global or collab
   

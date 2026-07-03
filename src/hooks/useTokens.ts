@@ -31,7 +31,7 @@ import {
   mergePublishedIntoRegistry,
 } from '@/lib/tokens/data';
 import { getClaimableSeeds, type ClaimableSeed } from '@/lib/tokens/seedClaims';
-import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { buildCanonicalListingPayload, hashListingPayload, type TokenListingDraft } from '@/lib/tokens/publish';
 import {
@@ -65,6 +65,7 @@ export type CreateTokenListingInput = {
   totalSupply?: number;
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
+  networks?: TokenNetworkEntry[];
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
@@ -97,6 +98,7 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     totalSupply: input.totalSupply,
     decimals: input.decimals,
     onChainSnapshot: input.onChainSnapshot,
+    networks: input.networks,
   };
 }
 
@@ -127,6 +129,7 @@ function listingUpdateFields(
     totalSupply: draft.totalSupply ?? existing?.totalSupply,
     decimals: draft.decimals ?? existing?.decimals,
     onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
+    networks: draft.networks ?? existing?.networks,
   };
 }
 
@@ -305,6 +308,7 @@ export function useTokens() {
         totalSupply: draft.totalSupply,
         decimals: draft.decimals,
         onChainSnapshot: draft.onChainSnapshot,
+        networks: draft.networks,
         listing: { verified: false, deployerVerified: false },
       };
 
@@ -430,10 +434,27 @@ export function useTokens() {
       if (!existing) throw new Error('Listing not found');
       if (existing.ownership === 'deployer_verified') return existing;
 
+      const verifiedNetworks = existing.networks?.length
+        ? existing.networks.map((entry, index) => ({
+            ...entry,
+            verified: entry.primary || index === 0 ? true : entry.verified,
+          }))
+        : existing.listingNetwork
+          ? [
+              {
+                network: existing.listingNetwork,
+                contractAddress: existing.contractAddress,
+                primary: true,
+                verified: true,
+              },
+            ]
+          : undefined;
+
       const updated = updatePublishedListing(id, {
         ownership: 'deployer_verified',
         status: existing.status === 'draft' ? 'published' : existing.status,
         listing: { ...(existing.listing ?? {}), verified: true, deployerVerified: true },
+        networks: verifiedNetworks,
         ownershipProof: {
           method: proof.method,
           walletAddress: proof.walletAddress,

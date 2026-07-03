@@ -10,8 +10,8 @@ import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { TokenListingBadges } from './TokenListingBadges';
+import { TokenNetworkChips } from './TokenNetworkChips';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { KxTagChip } from '@/components/ui/KxTagChip';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -22,17 +22,6 @@ function HeaderCategoryIcon() {
       <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
     </svg>
   );
-}
-
-function getAvailabilityLabels(token: Token): string[] {
-  const labels: string[] = [];
-  if (token.network === 'L1') {
-    labels.push('Kaspa L1', 'KRC-20');
-  } else {
-    labels.push('L2 EVM');
-  }
-  if (token.l1Address && token.l2Address) labels.push('L1 + L2');
-  return labels;
 }
 
 function SocialIcon({ type }: { type?: string }) {
@@ -60,7 +49,6 @@ export function TokenPageHeader({ token }: { token: Token }) {
   const featuredImageUrl = loadTokenFeaturedImageUrl(token);
   const short = token.shortDescription?.trim() || token.description;
   const socialLinks = (token.links ?? []).filter((l) => l.type === 'social' || l.type === 'website' || !l.type);
-  const availability = getAvailabilityLabels(token);
   const isWalletConnected = kaspaState.isConnected || isConnected;
   const isVerifiedDeveloper = Boolean(token.listing?.verified && isWalletConnected);
 
@@ -110,13 +98,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {availability.map((label) => (
-              <Tooltip key={label} content={`Available on ${label}`}>
-                <span className="cursor-help rounded-lg border border-zinc-200 bg-white/70 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-300">
-                  {label}
-                </span>
-              </Tooltip>
-            ))}
+            <TokenNetworkChips token={token} size="md" />
             <TokenListingBadges token={token} />
           </div>
         </div>

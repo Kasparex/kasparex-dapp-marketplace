@@ -12,6 +12,7 @@ import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/componen
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { TokenVerificationWizard, type TokenVerificationMode } from '@/components/tokens/TokenVerificationWizard';
 import { listingToToken } from '@/lib/tokens/listingRecord';
+import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { getListingNetworkLabel, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import type { ClaimableSeed } from '@/lib/tokens/seedClaims';
@@ -175,6 +176,9 @@ export function TokenListingArchive({
                   </div>
                 </div>
                 <p className="mb-2 text-xs font-semibold text-[#02abb8]">{ownershipLabel(listing)}</p>
+                <div className="mb-2">
+                  <TokenNetworkChips token={token} />
+                </div>
                 <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
                   {listing.shortDescription || listing.description}
                 </p>

@@ -70,6 +70,17 @@ export type TokenListingPricingSnapshot = {
   chunkCount?: number;
 };
 
+/** One network deployment for a token project (primary or secondary). */
+export type TokenNetworkEntry = {
+  network: TokenListingNetwork;
+  contractAddress?: string;
+  /** True for the canonical / verified network (entry 0). */
+  primary?: boolean;
+  /** True when deployer/owner ownership was proven for this network. */
+  verified?: boolean;
+  label?: string;
+};
+
 export type PublishedTokenListing = {
   id: string;
   listingId: string;
@@ -106,6 +117,8 @@ export type PublishedTokenListing = {
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
   ownershipProof?: TokenOwnershipProof;
+  /** Multi-network deployments; entry 0 is primary. */
+  networks?: TokenNetworkEntry[];
 };
 
 function parseSupplyFromRaw(raw: string | undefined, decimals: number): number | undefined {
@@ -140,6 +153,15 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     listing.totalSupply ??
     parseSupplyFromRaw(listing.onChainSnapshot?.minted, decimals);
 
+  const primaryNetwork = listing.listingNetwork ?? 'l2_kasplex';
+  const isL1Primary = primaryNetwork === 'kaspa_l1' || primaryNetwork === 'krc20';
+  const l1FromNetworks = listing.networks?.find(
+    (n) => n.network === 'kaspa_l1' || n.network === 'krc20',
+  )?.contractAddress;
+  const l2FromNetworks = listing.networks?.find(
+    (n) => n.network === 'l2_kasplex' || n.network === 'l2_igra',
+  )?.contractAddress;
+
   return {
     id: listing.id,
     slug: listing.slug,
@@ -151,6 +173,13 @@ export function listingToToken(listing: PublishedTokenListing): Token {
       ? (listing.listingNetwork === 'kaspa_l1' || listing.listingNetwork === 'krc20' ? 'L1' : 'L2')
       : listing.network,
     contractAddress: listing.contractAddress ?? listing.onChainSnapshot?.contractAddress,
+    l1Address: isL1Primary
+      ? (listing.contractAddress ?? l1FromNetworks)
+      : l1FromNetworks,
+    l2Address: !isL1Primary
+      ? (listing.contractAddress ?? l2FromNetworks)
+      : l2FromNetworks,
+    networks: listing.networks,
     type: 'collab',
     tags: listing.tags,
     logo: listing.logoUrl,

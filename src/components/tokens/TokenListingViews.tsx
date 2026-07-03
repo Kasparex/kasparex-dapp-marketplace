@@ -10,6 +10,7 @@ import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
 import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
 import { TokenListingMeta } from '@/components/tokens/TokenListingMeta';
+import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -69,6 +70,9 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
             </p>
             <div className="mb-2">
               <TokenListingMeta token={token} />
+            </div>
+            <div className="mb-2">
+              <TokenNetworkChips token={token} />
             </div>
             <div className="mt-auto pt-2">
               <TokenListingBadges token={token} />
