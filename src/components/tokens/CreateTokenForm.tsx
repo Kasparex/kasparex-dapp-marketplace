@@ -9,6 +9,7 @@ import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
+import { TokenPageBuilder } from '@/components/tokens/TokenPageBuilder';
 import {
   resolveTokenListingMedia,
   TokenListingMediaPanel,
@@ -20,14 +21,12 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenModuleDiscountPercent } from '@/lib/tokens/modules';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
-import { TOKEN_PAGE_SECTION_LABELS } from '@/lib/tokens/pageConfig';
-import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType } from '@/lib/tokens/listingRecord';
+import { createDefaultPageConfig, applyPageSectionConfig, OVERVIEW_CANVAS_BLOCKS } from '@/lib/tokens/pageConfig';
 import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
 import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
-import { createDefaultPageConfig, applyPageSectionConfig } from '@/lib/tokens/pageConfig';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { TokenListingDraft } from '@/lib/tokens/publish';
@@ -262,7 +261,6 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     }
     return merged.length ? merged : [...PAGE_SECTION_TYPES];
   });
-  const [dragSection, setDragSection] = useState<TokenPageSectionType | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +287,16 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         })),
       }),
     [listingNetwork, contractAddress, secondaryNetworks, listing?.ownership],
+  );
+
+  const livePageConfig = useMemo(
+    () =>
+      applyPageSectionConfig(
+        createDefaultPageConfig([...enabledModules] as TokenModuleId[]),
+        sectionToggles,
+        sectionOrder,
+      ),
+    [enabledModules, sectionToggles, sectionOrder],
   );
 
   const previewToken: Token = useMemo(
@@ -440,6 +448,18 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
   const toggleSection = (type: TokenPageSectionType) => {
     setSectionToggles((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  const addSection = (type: TokenPageSectionType) => {
+    setSectionToggles((prev) => ({ ...prev, [type]: true }));
+    if (OVERVIEW_CANVAS_BLOCKS.includes(type)) {
+      setSectionOrder((prev) => (prev.includes(type) ? prev : [...prev, type]));
+    }
+  };
+
+  const removeSection = (type: TokenPageSectionType) => {
+    if (type === 'overview') return;
+    setSectionToggles((prev) => ({ ...prev, [type]: false }));
   };
 
   const reorderSection = (from: TokenPageSectionType, to: TokenPageSectionType) => {
@@ -889,50 +909,16 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             <TokenListingMediaPanel media={media} onChange={onMediaChange} disabled={isSubmitting} embedded />
           </div>
 
-          <div className={`${FORM_PANEL_CLASS} space-y-3`} id="tokens-dashboard-sections">
-            <DAppSectionHeader title="Page sections" className="mb-1" />
-            <p className="kx-body-sm">
-              Toggle which tabs and blocks appear on your public token page, and drag to reorder them. The order is
-              reflected on the live page.
-            </p>
-            {sectionOrder.map((type) => (
-              <div
-                key={type}
-                draggable={!isSubmitting}
-                onDragStart={() => setDragSection(type)}
-                onDragEnd={() => setDragSection(null)}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (dragSection && dragSection !== type) reorderSection(dragSection, type);
-                }}
-                className={`flex items-center gap-2 rounded-xl transition ${
-                  dragSection === type ? 'opacity-60' : ''
-                }`}
-              >
-                <span
-                  className="flex h-8 w-6 shrink-0 cursor-grab items-center justify-center text-zinc-400 active:cursor-grabbing"
-                  aria-hidden="true"
-                  title="Drag to reorder"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" />
-                  </svg>
-                </span>
-                <div className="min-w-0 flex-1">
-                  <KxInFormPremiumRow
-                    flat
-                    title={TOKEN_PAGE_SECTION_LABELS[type]}
-                    description={
-                      type === 'overview' || type === 'comments'
-                        ? 'Recommended for all listings'
-                        : 'Optional block on your landing page'
-                    }
-                    checked={sectionToggles[type] ?? (type === 'overview' || type === 'comments' || type === 'links')}
-                    onToggle={() => toggleSection(type)}
-                  />
-                </div>
-              </div>
-            ))}
+          <div className={FORM_PANEL_CLASS} id="tokens-dashboard-sections">
+            <TokenPageBuilder
+              pageConfig={livePageConfig}
+              sectionToggles={sectionToggles}
+              sectionOrder={sectionOrder}
+              disabled={isSubmitting}
+              onAddSection={addSection}
+              onRemoveSection={removeSection}
+              onReorderSections={reorderSection}
+            />
           </div>
 
           <div className="space-y-4" id="tokens-dashboard-modules">
@@ -1052,7 +1038,12 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
           </aside>
         </div>
       </form>
-      <TokenPreviewModal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} token={previewToken} />
+      <TokenPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        token={previewToken}
+        pageConfig={livePageConfig}
+      />
     </>
   );
 }

@@ -54,6 +54,8 @@ interface TokenDetailProps {
   contentTab?: TokenContentTab;
   onContentTabChange?: (tab: TokenContentTab) => void;
   pageConfig?: TokenPageConfig;
+  /** Preview mode: hide aside panel and side-panel toggle. */
+  preview?: boolean;
 }
 
 export function TokenDetail({
@@ -61,11 +63,12 @@ export function TokenDetail({
   contentTab: controlledTab,
   onContentTabChange,
   pageConfig,
+  preview = false,
 }: TokenDetailProps) {
   const [internalTab, setInternalTab] = useState<TokenContentTab>('overview');
   const contentTab = controlledTab ?? internalTab;
   const setContentTab = onContentTabChange ?? setInternalTab;
-  const [rightOpen, setRightOpen] = useTokenRightPanelOpen(true);
+  const [rightOpen, setRightOpen] = useTokenRightPanelOpen(!preview);
 
   const fullyMinted = isFullyMinted(token);
   const showMintingProgress = Boolean(token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted);
@@ -79,8 +82,8 @@ export function TokenDetail({
     overview: { id: 'overview', label: 'Overview', icon: <IconTokenOverview /> },
     roadmap: { id: 'roadmap', label: 'Roadmap', icon: <IconTokenRoadmap /> },
     markets: { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
-    swap: showSwap ? { id: 'swap', label: 'Swap', icon: <IconTokenSwap /> } : null,
-    utility: showUtility ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
+    swap: showSwap || preview ? { id: 'swap', label: 'Swap', icon: <IconTokenSwap /> } : null,
+    utility: showUtility || preview ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
     comments: {
       id: 'comments',
       label: 'Comments',
@@ -141,18 +144,20 @@ export function TokenDetail({
           <div className="min-w-0 flex-1">
             <DAppTabs tabs={tokenTabs} value={contentTab} onChange={setContentTab} />
           </div>
-          <div className="flex shrink-0 justify-end sm:items-center">
-            <DAppSidePanelToggle
-              open={rightOpen}
-              onToggle={() => setRightOpen(!rightOpen)}
-              panelId="kasparex-token-side-panel"
-            />
-          </div>
+          {!preview ? (
+            <div className="flex shrink-0 justify-end sm:items-center">
+              <DAppSidePanelToggle
+                open={rightOpen}
+                onToggle={() => setRightOpen(!rightOpen)}
+                panelId="kasparex-token-side-panel"
+              />
+            </div>
+          ) : null}
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 xl:gap-10 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`min-w-0 ${rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
-            <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
+        <div className={`grid grid-cols-1 gap-8 xl:gap-10 ${!preview && rightOpen ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`min-w-0 ${!preview && rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
+            <SidePanelCollapsedContentWrap panelOpen={preview ? false : rightOpen}>
               <div className="flex min-w-0 flex-col">
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
@@ -175,13 +180,13 @@ export function TokenDetail({
                   </div>
                 ) : null}
 
-                {contentTab === 'swap' && showSwap ? (
+                {contentTab === 'swap' && (showSwap || preview) ? (
                   <div id="token-swap" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenTradingSection token={token} />
                   </div>
                 ) : null}
 
-                {contentTab === 'utility' && showUtility ? (
+                {contentTab === 'utility' && (showUtility || preview) ? (
                   <div id="token-utility" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenUtilitySection token={token} />
                   </div>
@@ -196,7 +201,7 @@ export function TokenDetail({
             </SidePanelCollapsedContentWrap>
           </div>
 
-          {rightOpen ? (
+          {!preview && rightOpen ? (
             <div className="min-w-0 lg:col-span-4">
               <TokenAside token={token} />
             </div>

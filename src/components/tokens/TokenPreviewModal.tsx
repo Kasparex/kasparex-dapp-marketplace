@@ -2,18 +2,17 @@
 
 import { createPortal } from 'react-dom';
 import type { Token } from '@/lib/tokens/types';
-import { TokenPageHeader } from '@/components/tokens/TokenPageHeader';
-import { TokenInfoSection } from '@/components/tokens/TokenInfoSection';
-import { TokenomicsSection } from '@/components/tokens/TokenomicsSection';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
+import { TokenDetail } from '@/components/tokens/TokenDetail';
 
 interface TokenPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   token: Token;
+  pageConfig?: TokenPageConfig;
 }
 
-export function TokenPreviewModal({ isOpen, onClose, token }: TokenPreviewModalProps) {
+export function TokenPreviewModal({ isOpen, onClose, token, pageConfig }: TokenPreviewModalProps) {
   if (!isOpen || typeof window === 'undefined') return null;
 
   return createPortal(
@@ -32,7 +31,7 @@ export function TokenPreviewModal({ isOpen, onClose, token }: TokenPreviewModalP
               Public token page preview
             </p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Main landing view only. Side navigation and benefits panel are hidden.
+              Tabs and blocks reflect your page builder layout. Side panel is hidden in preview.
             </p>
           </div>
           <button
@@ -48,26 +47,7 @@ export function TokenPreviewModal({ isOpen, onClose, token }: TokenPreviewModalP
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 bg-zinc-50 dark:bg-zinc-950">
-          <TokenPageHeader token={token} />
-          <div className="space-y-8">
-            <TokenInfoSection token={token} />
-            {token.allocations?.length || token.totalSupply ? <TokenomicsSection token={token} /> : null}
-            {token.tags?.length ? (
-              <section className="space-y-3">
-                <DAppSectionHeader title="Tags" />
-                <div className="flex flex-wrap gap-2">
-                  {token.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-widest bg-[#02abb8]/10 text-[#02abb8]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-          </div>
+          <TokenDetail token={token} pageConfig={pageConfig} preview />
         </div>
       </div>
     </div>,
