@@ -1,5 +1,6 @@
 import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
-import { getEffectiveCommunityScore } from '@/lib/tokens/votes';
+import type { TokenSourceFilter } from '@/lib/tokens/source';
+import { matchesTokenSourceFilter } from '@/lib/tokens/source';
 
 export type TokenSortOption =
   | 'name-az'
@@ -14,7 +15,6 @@ export type TokenSortOption =
   | 'featured-first'
   | 'utility-first'
   | 'activity-high'
-  | 'community-high'
   | 'network'
   | 'type';
 
@@ -26,6 +26,7 @@ export interface TokenListingFilters {
   searchQuery: string;
   network: TokenNetwork | 'all';
   type: TokenType | 'all';
+  source: TokenSourceFilter;
   verified: TokenVerifiedFilter;
   utility: TokenUtilityFilter;
   premium: TokenPremiumFilter;
@@ -49,8 +50,7 @@ export function getTokenActivityScore(token: Token): number {
 }
 
 export function getTokenCommunityScore(token: Token): number {
-  const base = token.listing?.communityScore ?? 0;
-  return getEffectiveCommunityScore(token.id, base);
+  return token.listing?.communityScore ?? 0;
 }
 
 export function filterTokens(tokens: Token[], filters: TokenListingFilters): Token[] {
@@ -73,6 +73,10 @@ export function filterTokens(tokens: Token[], filters: TokenListingFilters): Tok
 
   if (filters.type !== 'all') {
     filtered = filtered.filter((token) => token.type === filters.type);
+  }
+
+  if (filters.source !== 'all') {
+    filtered = filtered.filter((token) => matchesTokenSourceFilter(token, filters.source));
   }
 
   if (filters.verified === 'verified') {
@@ -114,9 +118,6 @@ export function sortTokens(tokens: Token[], sortBy: TokenSortOption): Token[] {
     }
     if (sortBy === 'activity-high') {
       return getTokenActivityScore(b) - getTokenActivityScore(a);
-    }
-    if (sortBy === 'community-high') {
-      return getTokenCommunityScore(b) - getTokenCommunityScore(a);
     }
     if (sortBy === 'name-az') return a.name.localeCompare(b.name);
     if (sortBy === 'name-za') return b.name.localeCompare(a.name);

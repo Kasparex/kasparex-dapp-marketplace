@@ -9,8 +9,6 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 export type TokenModuleId =
   | 'roadmap_editor'
   | 'timeline_builder'
-  | 'voting_module'
-  | 'on_chain_poll'
   | 'utility_integrations'
   | 'premium_analytics'
   | 'featured_listing'
@@ -36,18 +34,6 @@ export const TOKEN_MODULE_OFFERS: TokenModuleOffer[] = [
     title: 'Timeline Builder',
     description: 'Drag-and-drop milestone editor with status tracking.',
     unlockPriceKas: 15,
-  },
-  {
-    id: 'voting_module',
-    title: 'Community Voting',
-    description: 'Let holders vote on proposals and listing signals.',
-    unlockPriceKas: 12,
-  },
-  {
-    id: 'on_chain_poll',
-    title: 'On-Chain Poll',
-    description: 'Verified polls settled on Kaspa L1 or L2.',
-    unlockPriceKas: 25,
   },
   {
     id: 'utility_integrations',

@@ -6,7 +6,6 @@ import { Footer } from '@/components/Footer';
 import { TokensHero } from '@/components/tokens/TokensHero';
 import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenListingFiltersBar } from '@/components/tokens/TokenSortFilters';
-import { TokenTypeSwitcher } from '@/components/tokens/TokenTypeSwitcher';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { FilterBar } from '@/components/FilterBar';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
@@ -19,8 +18,6 @@ import {
   TokenListingTableView,
 } from '@/components/tokens/TokenListingViews';
 import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
-import { TokenLedgerDashboard } from '@/components/tokens/TokenLedgerDashboard';
-import { getTokenLedger } from '@/lib/tokens/ledger';
 import {
   filterTokens,
   type TokenPremiumFilter,
@@ -28,6 +25,7 @@ import {
   type TokenUtilityFilter,
   type TokenVerifiedFilter,
 } from '@/lib/tokens/listing';
+import type { TokenSourceFilter } from '@/lib/tokens/source';
 import type { DAppNetworkFilter } from '@/lib/dapps';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
@@ -37,6 +35,7 @@ interface TokensPageContentProps {
 
 export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TokenType | 'all'>('all');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
   const [verifiedFilter, setVerifiedFilter] = useState<TokenVerifiedFilter>('all');
@@ -51,18 +50,18 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
         searchQuery,
         network: networkFilter,
         type: typeFilter,
+        source: sourceFilter,
         verified: verifiedFilter,
         utility: utilityFilter,
         premium: premiumFilter,
         sortBy,
       }),
-    [tokens, searchQuery, networkFilter, typeFilter, verifiedFilter, utilityFilter, premiumFilter, sortBy],
+    [tokens, searchQuery, networkFilter, typeFilter, sourceFilter, verifiedFilter, utilityFilter, premiumFilter, sortBy],
   );
-
-  const gridLedger = useMemo(() => getTokenLedger('grid'), []);
 
   const handleResetFilters = () => {
     setSearchQuery('');
+    setSourceFilter('all');
     setTypeFilter('all');
     setNetworkFilter('all');
     setVerifiedFilter('all');
@@ -88,13 +87,9 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
 
         <div className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
           <div className="mx-auto max-w-7xl">
-            <TokensHero />
+            <TokensHero sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
             <div id="content" className="scroll-mt-4" />
-
-            <div className="mb-10">
-              <TokenLedgerDashboard snapshot={gridLedger} />
-            </div>
 
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0 flex items-stretch gap-5">
@@ -129,8 +124,9 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                   iconOnly
                 />
                 <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
-                <TokenTypeSwitcher value={typeFilter} onChange={setTypeFilter} />
                 <TokenListingFiltersBar
+                  typeFilter={typeFilter}
+                  onTypeFilterChange={setTypeFilter}
                   sortBy={sortBy}
                   onSortChange={setSortBy}
                   verifiedFilter={verifiedFilter}

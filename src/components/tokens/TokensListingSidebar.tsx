@@ -1,8 +1,13 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
+
+const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
+const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
 
 function TokenLinkIcon({ id, className = '' }: { id: string; className?: string }) {
   const iconProps = { className: `k-sidebar-icon ${className}`, strokeWidth: 2, fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor' as const };
@@ -16,12 +21,14 @@ function TokenLinkIcon({ id, className = '' }: { id: string; className?: string 
 
 const QUICK_LINKS = [
   { id: 'hub', label: 'Back to Hub', href: '/hub', icon: <TokenLinkIcon id="hub" /> },
-  { id: 'dashboard', label: 'Developer Dashboard', href: '/tokens/dashboard', icon: <TokenLinkIcon id="default" /> },
   { id: 'dapps', label: 'Explore dApps', href: '/', icon: <TokenLinkIcon id="dapps" /> },
   { id: 'rewards', label: 'View Rewards', href: '/rewards', icon: <TokenLinkIcon id="rewards" /> },
 ];
 
 export function TokensListingSidebar() {
+  const pathname = usePathname();
+  const dashboardActive = pathname?.startsWith('/tokens/dashboard') ?? false;
+
   const tokensFooter = (
     <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
       <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">KT</div>
@@ -45,6 +52,17 @@ export function TokensListingSidebar() {
       )}
       footer={tokensFooter}
     >
+      <div className="mb-6">
+        <Link
+          href="/tokens/dashboard"
+          className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+        >
+          <svg className={dashboardActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Dashboard
+        </Link>
+      </div>
       <SidebarQuickActions title="Quick Links" items={QUICK_LINKS} />
     </UnifiedSidebar>
   );

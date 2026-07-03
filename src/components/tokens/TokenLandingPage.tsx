@@ -16,8 +16,6 @@ import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
-import { TokenLedgerDashboard } from './TokenLedgerDashboard';
-import { getTokenLedger } from '@/lib/tokens/ledger';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokenListingBadges } from './TokenListingBadges';
 import { TOKEN_MODULE_OFFERS } from '@/lib/tokens/modules';
@@ -36,7 +34,6 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
   const fullyMinted = isFullyMinted(token);
   const showMintingProgress = token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted;
   const showTrading = fullyMinted || token.id === 'krex' || token.type === 'global';
-  const showGridLedger = token.id === 'grid';
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
@@ -55,8 +52,6 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
           <div className="space-y-10">
             <TokenHeroSection token={token} />
             <TokenListingBadges token={token} />
-
-            {showGridLedger && <TokenLedgerDashboard snapshot={getTokenLedger('grid')} />}
 
             {showMintingProgress && <TokenMintingProgress token={token} />}
             {showTrading && <TokenTradingSection token={token} />}

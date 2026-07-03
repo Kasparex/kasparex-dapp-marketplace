@@ -3,13 +3,12 @@
 import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
-import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
-import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
+import { TokenListingMeta } from '@/components/tokens/TokenListingMeta';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
-import { getTokenActivityScore } from '@/lib/tokens/listing';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 function EmptyState() {
   return (
@@ -20,10 +19,6 @@ function EmptyState() {
       </p>
     </div>
   );
-}
-
-function NetworkChip({ network }: { network: Token['network'] }) {
-  return <KxListingCategoryChip>{network}</KxListingCategoryChip>;
 }
 
 export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
@@ -38,34 +33,25 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
               <TokenLogo token={token} size={64} showName={false} showSymbol={false} />
             </div>
             {token.listing?.featured ? (
-              <span className="absolute top-2 right-2 rounded-md bg-amber-500/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
-                Featured
-              </span>
+              <Tooltip content="Premium featured listing">
+                <span className="absolute top-2 right-2 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                  Featured
+                </span>
+              </Tooltip>
             ) : null}
           </KxListingCardMedia>
           <KxListingCardBody comfortable>
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="min-w-0">
-                <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{token.name}</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">{token.symbol}</p>
-              </div>
-              <TokenVoteControls
-                tokenId={token.id}
-                baseCommunityScore={token.listing?.communityScore ?? 0}
-                compact
-              />
+            <div className="mb-2 min-w-0">
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{token.name}</h3>
+              <Tooltip content={`Ticker symbol: ${token.symbol}`}>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 cursor-help w-fit">{token.symbol}</p>
+              </Tooltip>
             </div>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
               {token.shortDescription || token.description}
             </p>
-            <div className="flex flex-wrap items-center gap-1.5 mb-2">
-              <NetworkChip network={token.network} />
-              <KxListingCategoryChip>{token.type}</KxListingCategoryChip>
-              {getTokenActivityScore(token) > 0 ? (
-                <span className="text-[10px] font-semibold text-zinc-500">
-                  Activity {getTokenActivityScore(token)}
-                </span>
-              ) : null}
+            <div className="mb-2">
+              <TokenListingMeta token={token} />
             </div>
             <TokenListingBadges token={token} compact showUtilityChips={false} />
           </KxListingCardBody>
@@ -91,18 +77,8 @@ export function TokenListingCompact({ tokens }: { tokens: Token[] }) {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">{token.name}</h3>
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-              <span className="font-bold">{token.symbol}</span>
-              <span aria-hidden>•</span>
-              <span>{token.network}</span>
-            </div>
-            <TokenListingBadges token={token} compact showUtilityChips={false} />
+            <TokenListingMeta token={token} />
           </div>
-          <TokenVoteControls
-            tokenId={token.id}
-            baseCommunityScore={token.listing?.communityScore ?? 0}
-            compact
-          />
         </Link>
       ))}
     </div>
