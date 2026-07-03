@@ -3,7 +3,10 @@ import { TOKEN_MODULE_OFFERS } from '@/lib/tokens/modules';
 
 export type TokenUtilitySidebarFilter = 'all' | 'utility-enabled' | `module:${string}` | `badge:${string}`;
 
-export function buildTokenUtilityFilterItems(tokens: Token[]) {
+export type TokenUtilitySectionFilter = 'all' | 'utility-enabled' | `badge:${string}`;
+export type TokenModuleSectionFilter = 'all' | `module:${string}`;
+
+export function buildTokenUtilitySectionItems(tokens: Token[]) {
   const badgeCounts = new Map<string, number>();
   for (const token of tokens) {
     for (const badge of token.listing?.utilityBadges ?? []) {
@@ -11,7 +14,7 @@ export function buildTokenUtilityFilterItems(tokens: Token[]) {
     }
   }
 
-  const items: { id: TokenUtilitySidebarFilter; label: string; count?: number }[] = [
+  const items: { id: TokenUtilitySectionFilter; label: string; count?: number }[] = [
     { id: 'all', label: 'All utility' },
     {
       id: 'utility-enabled',
@@ -20,19 +23,32 @@ export function buildTokenUtilityFilterItems(tokens: Token[]) {
     },
   ];
 
-  for (const offer of TOKEN_MODULE_OFFERS) {
-    items.push({
-      id: `module:${offer.id}`,
-      label: offer.title,
-      count: undefined,
-    });
-  }
-
   for (const [badge, count] of Array.from(badgeCounts.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
     items.push({ id: `badge:${badge}`, label: badge, count });
   }
 
   return items;
+}
+
+export function buildTokenModuleSectionItems() {
+  const items: { id: TokenModuleSectionFilter; label: string }[] = [{ id: 'all', label: 'All modules' }];
+
+  for (const offer of TOKEN_MODULE_OFFERS) {
+    items.push({
+      id: `module:${offer.id}`,
+      label: offer.title,
+    });
+  }
+
+  return items;
+}
+
+export function resolveTokenSidebarFilter(
+  utilityFilter: TokenUtilitySectionFilter,
+  moduleFilter: TokenModuleSectionFilter,
+): TokenUtilitySidebarFilter {
+  if (moduleFilter !== 'all') return moduleFilter;
+  return utilityFilter;
 }
 
 export function matchesTokenUtilitySidebarFilter(token: Token, filter: TokenUtilitySidebarFilter): boolean {
@@ -44,4 +60,9 @@ export function matchesTokenUtilitySidebarFilter(token: Token, filter: TokenUtil
     return token.listing?.utilityBadges?.includes(badge) ?? false;
   }
   return true;
+}
+
+/** @deprecated Use buildTokenUtilitySectionItems */
+export function buildTokenUtilityFilterItems(tokens: Token[]) {
+  return buildTokenUtilitySectionItems(tokens);
 }

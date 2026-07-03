@@ -1,13 +1,6 @@
-/**
- * Token detail sidebar: UnifiedSidebar + standard nav (Profile Hub / protocols pattern).
- */
-
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import type { Token } from '@/lib/tokens/types';
-import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { TokenListingMeta } from './TokenListingMeta';
@@ -16,20 +9,15 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import type { TokenContentTab } from './TokenDetail';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 
 interface TokenSidebarProps {
   token: Token;
+  activeTab?: TokenContentTab;
+  onNavClick?: (itemId: string) => void;
+  showUtility?: boolean;
 }
-
-const SECTIONS = [
-  { id: 'info', label: 'About' },
-  { id: 'tokenomics', label: 'Tokenomics' },
-  { id: 'roadmap', label: 'Roadmap' },
-  { id: 'dapps', label: 'Related dApps' },
-  { id: 'price', label: 'Price' },
-  { id: 'balance', label: 'Your Balance' },
-  { id: 'links', label: 'Links' },
-] as const;
 
 const navIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -37,46 +25,28 @@ const navIcon = (
   </svg>
 );
 
-export function TokenSidebar({ token }: TokenSidebarProps) {
-  const [activeSection, setActiveSection] = useState<string>('info');
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '-20% 0px -60% 0px',
-      threshold: 0,
-    };
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    }, observerOptions);
-
-    SECTIONS.forEach((section) => {
-      const element = document.getElementById(section.id);
-      if (element) observerRef.current?.observe(element);
-    });
-
-    return () => {
-      observerRef.current?.disconnect();
-    };
-  }, [token.slug]);
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveSection(sectionId);
-    }
-  };
-
-  const featuredImageUrl = loadTokenFeaturedImageUrl(token);
+export function TokenSidebar({
+  token,
+  activeTab = 'info',
+  onNavClick,
+  showUtility = false,
+}: TokenSidebarProps) {
   const price = token.price?.current;
   const priceChange24h = token.price?.change24h;
+
+  const navItems: { id: string; label: string; tab: TokenContentTab }[] = [
+    { id: 'token-header', label: 'Overview', tab: 'info' },
+    { id: 'token-info', label: 'Token Info', tab: 'info' },
+    { id: 'token-tokenomics', label: 'Tokenomics', tab: 'tokenomics' },
+    { id: 'token-roadmap', label: 'Roadmap', tab: 'roadmap' },
+    { id: 'token-markets', label: 'Markets', tab: 'markets' },
+  ];
+
+  if (showUtility) {
+    navItems.push({ id: 'token-utility', label: 'Utility', tab: 'utility' });
+  }
+
+  navItems.push({ id: 'token-comments', label: 'Comments', tab: 'comments' });
 
   return (
     <UnifiedSidebar
@@ -86,21 +56,13 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
       )}
       defaultWidth={280}
     >
-      <div className="space-y-4">
-        {featuredImageUrl ? (
-          <div className="relative w-full h-32 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800">
-            <Image src={featuredImageUrl} alt={token.name} fill className="object-cover" unoptimized />
-          </div>
-        ) : null}
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <TokenLogo token={token} size={48} showName={false} showSymbol={false} />
-            <TokenTitle token={token} size="sm" className="flex-1" />
-          </div>
-          <TokenListingMeta token={token} />
-          <TokenListingBadges token={token} />
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <TokenLogo token={token} size={48} showName={false} showSymbol={false} />
+          <TokenTitle token={token} size="sm" className="flex-1 min-w-0" />
         </div>
+        <TokenListingMeta token={token} />
+        <TokenListingBadges token={token} />
 
         {price !== undefined && (
           <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
@@ -119,26 +81,26 @@ export function TokenSidebar({ token }: TokenSidebarProps) {
                   {priceChange24h.toFixed(2)}%
                 </div>
               )}
+              {token.price?.marketCap !== undefined ? (
+                <span className="ml-auto text-xs text-zinc-500">${formatLargeNumber(token.price.marketCap)} mcap</span>
+              ) : null}
             </div>
           </div>
         )}
       </div>
 
-      <SidebarSection title="On this page" className="mt-6 mb-0">
+      <SidebarSection title="Sections" className="mt-6 mb-0">
         <nav className="space-y-0.5">
-          {SECTIONS.map((section) => {
-            if (section.id === 'roadmap' && !token.roadmap?.length) return null;
-            if (section.id === 'dapps' && !token.relatedDAppIds?.length && !token.parentDAppId) return null;
-            if (section.id === 'price' && !token.price) return null;
-            if (section.id === 'links' && !token.links?.length) return null;
+          {navItems.map((section) => {
+            if (section.id === 'token-roadmap' && !token.roadmap?.length) return null;
 
             return (
               <SidebarNavItem
                 key={section.id}
                 label={section.label}
                 icon={navIcon}
-                active={activeSection === section.id}
-                onClick={() => scrollToSection(section.id)}
+                active={activeTab === section.tab}
+                onClick={() => onNavClick?.(section.id)}
               />
             );
           })}

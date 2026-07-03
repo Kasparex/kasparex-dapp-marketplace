@@ -23,7 +23,11 @@ import {
   type TokenPremiumFilter,
 } from '@/lib/tokens/listing';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
-import type { TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import {
+  resolveTokenSidebarFilter,
+  type TokenModuleSectionFilter,
+  type TokenUtilitySectionFilter,
+} from '@/lib/tokens/utilityFilters';
 import {
   resolveTokenSortControl,
   type TokenSortControlValue,
@@ -39,10 +43,16 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
   const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
-  const [utilitySidebarFilter, setUtilitySidebarFilter] = useState<TokenUtilitySidebarFilter>('all');
+  const [utilitySectionFilter, setUtilitySectionFilter] = useState<TokenUtilitySectionFilter>('all');
+  const [moduleSectionFilter, setModuleSectionFilter] = useState<TokenModuleSectionFilter>('all');
   const [premiumFilter, setPremiumFilter] = useState<TokenPremiumFilter>('all');
   const [sortControl, setSortControl] = useState<TokenSortControlValue>('verified-first');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
+
+  const utilitySidebarFilter = useMemo(
+    () => resolveTokenSidebarFilter(utilitySectionFilter, moduleSectionFilter),
+    [utilitySectionFilter, moduleSectionFilter],
+  );
 
   const { type: typeFilter, verified: verifiedFilter, sortBy } = useMemo(
     () => resolveTokenSortControl(sortControl),
@@ -74,11 +84,22 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     ],
   );
 
+  const handleUtilitySectionChange = (value: TokenUtilitySectionFilter) => {
+    setModuleSectionFilter('all');
+    setUtilitySectionFilter(value);
+  };
+
+  const handleModuleSectionChange = (value: TokenModuleSectionFilter) => {
+    setUtilitySectionFilter('all');
+    setModuleSectionFilter(value);
+  };
+
   const handleResetFilters = () => {
     setSearchQuery('');
     setSourceFilter('all');
     setNetworkFilter('all');
-    setUtilitySidebarFilter('all');
+    setUtilitySectionFilter('all');
+    setModuleSectionFilter('all');
     setPremiumFilter('all');
     setSortControl('verified-first');
   };
@@ -98,8 +119,10 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <TokensListingSidebar
           tokens={tokens}
-          utilityFilter={utilitySidebarFilter}
-          onUtilityFilterChange={setUtilitySidebarFilter}
+          utilityFilter={utilitySectionFilter}
+          moduleFilter={moduleSectionFilter}
+          onUtilityFilterChange={handleUtilitySectionChange}
+          onModuleFilterChange={handleModuleSectionChange}
           showUtilityFilter
         />
 
@@ -128,26 +151,31 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
               <TokensBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
             </div>
 
-            <div className="flex flex-col gap-4 mb-6">
+            <div className="mb-6">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search tokens...' }}
                 onReset={handleResetFilters}
                 flexWrap
+                className="gap-x-3 gap-y-3"
               >
-                <KxTabStrip
-                  value={viewMode}
-                  onChange={setViewMode}
-                  options={VIEW_MODE_OPTIONS}
-                  ariaLabel="View mode"
-                  iconOnly
-                />
-                <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
-                <TokenListingFiltersBar
-                  sortControl={sortControl}
-                  onSortControlChange={setSortControl}
-                  premiumFilter={premiumFilter}
-                  onPremiumFilterChange={setPremiumFilter}
-                />
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <KxTabStrip
+                    value={viewMode}
+                    onChange={setViewMode}
+                    options={VIEW_MODE_OPTIONS}
+                    ariaLabel="View mode"
+                    iconOnly
+                  />
+                  <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <TokenListingFiltersBar
+                    sortControl={sortControl}
+                    onSortControlChange={setSortControl}
+                    premiumFilter={premiumFilter}
+                    onPremiumFilterChange={setPremiumFilter}
+                  />
+                </div>
               </FilterBar>
             </div>
 

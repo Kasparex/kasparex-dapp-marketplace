@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { Token } from '@/lib/tokens/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
@@ -9,8 +9,10 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarQuickActions } from '@/components/sidebar/SidebarQuickActions';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import {
-  buildTokenUtilityFilterItems,
-  type TokenUtilitySidebarFilter,
+  buildTokenModuleSectionItems,
+  buildTokenUtilitySectionItems,
+  type TokenModuleSectionFilter,
+  type TokenUtilitySectionFilter,
 } from '@/lib/tokens/utilityFilters';
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
@@ -38,21 +40,32 @@ const UTILITY_SECTION_ICON = (
   </svg>
 );
 
+const MODULE_SECTION_ICON = (
+  <svg className="k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  </svg>
+);
+
 export function TokensListingSidebar({
   tokens = [],
   utilityFilter = 'all',
+  moduleFilter = 'all',
   onUtilityFilterChange,
+  onModuleFilterChange,
   showUtilityFilter = false,
 }: {
   tokens?: Token[];
-  utilityFilter?: TokenUtilitySidebarFilter;
-  onUtilityFilterChange?: (value: TokenUtilitySidebarFilter) => void;
+  utilityFilter?: TokenUtilitySectionFilter;
+  moduleFilter?: TokenModuleSectionFilter;
+  onUtilityFilterChange?: (value: TokenUtilitySectionFilter) => void;
+  onModuleFilterChange?: (value: TokenModuleSectionFilter) => void;
   showUtilityFilter?: boolean;
 }) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/tokens/dashboard') ?? false;
 
-  const utilityItems = useMemo(() => buildTokenUtilityFilterItems(tokens), [tokens]);
+  const utilityItems = useMemo(() => buildTokenUtilitySectionItems(tokens), [tokens]);
+  const moduleItems = useMemo(() => buildTokenModuleSectionItems(), []);
 
   const tokensFooter = (
     <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
@@ -69,8 +82,8 @@ export function TokensListingSidebar({
       storageKeyPrefix="tokens-listing"
       header={(onHide) => (
         <SidebarHeader
-          backHref="/hub"
-          backLabel="Back to Hub"
+          backHref="/tokens"
+          backLabel="Back to Tokens"
           onHide={onHide}
           className="bg-white dark:bg-zinc-950"
         />
@@ -89,22 +102,40 @@ export function TokensListingSidebar({
         </Link>
       </div>
 
-      {showUtilityFilter && onUtilityFilterChange ? (
-        <SidebarCategories
-          title="Utility / Modules"
-          sectionIcon={UTILITY_SECTION_ICON}
-          items={utilityItems.map((item) => ({
-            id: item.id,
-            label: item.label,
-            count: item.count,
-          }))}
-          selectedIds={utilityFilter}
-          onSelect={(id) => onUtilityFilterChange(id as TokenUtilitySidebarFilter)}
-          multi={false}
-          searchable
-          searchPlaceholder="Search utility..."
-          className="mb-6"
-        />
+      {showUtilityFilter && onUtilityFilterChange && onModuleFilterChange ? (
+        <>
+          <SidebarCategories
+            title="Utility"
+            sectionIcon={UTILITY_SECTION_ICON}
+            items={utilityItems.map((item) => ({
+              id: item.id,
+              label: item.label,
+              count: item.count,
+            }))}
+            selectedIds={utilityFilter}
+            onSelect={(id) => onUtilityFilterChange(id as TokenUtilitySectionFilter)}
+            multi={false}
+            searchable
+            searchPlaceholder="Search utility..."
+            collapsedItemCount={5}
+            className="mb-6"
+          />
+          <SidebarCategories
+            title="Modules"
+            sectionIcon={MODULE_SECTION_ICON}
+            items={moduleItems.map((item) => ({
+              id: item.id,
+              label: item.label,
+            }))}
+            selectedIds={moduleFilter}
+            onSelect={(id) => onModuleFilterChange(id as TokenModuleSectionFilter)}
+            multi={false}
+            searchable
+            searchPlaceholder="Search modules..."
+            collapsedItemCount={5}
+            className="mb-6"
+          />
+        </>
       ) : null}
 
       <SidebarQuickActions title="Quick Links" items={QUICK_LINKS} />
