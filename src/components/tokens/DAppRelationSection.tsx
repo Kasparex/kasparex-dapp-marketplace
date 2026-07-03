@@ -10,6 +10,7 @@ import type { Token } from '@/lib/tokens/types';
 import { placeholderDApps } from '@/lib/dapps';
 import { generateDAppSlug } from '@/lib/utils';
 import { DAppIcon } from '@/components/dapps/DAppIcon';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface DAppRelationSectionProps {
   token: Token;
@@ -30,7 +31,7 @@ export function DAppRelationSection({ token }: DAppRelationSectionProps) {
 
   return (
     <section id="dapps" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Related dApps</h2>
+      <DAppSectionHeader title="Related dApps" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {relatedDApps.map((dapp) => {

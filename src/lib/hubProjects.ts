@@ -39,7 +39,8 @@ export const hubProjects: HubProject[] = [
     id: 'kasparex-tokens',
     name: 'Kasparex Tokens',
     category: 'Finance',
-    description: 'Token creation, management, and trading tools for the Kaspa ecosystem. Create and manage your tokens with ease.',
+    description:
+      'Utility-as-a-Service for token projects. Launch landing pages, verify ownership, and connect real Hub utility for your community.',
     route: '/tokens',
     status: 'beta',
   },

@@ -12,6 +12,7 @@ import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { useKaspaTokenBalance } from '@/hooks/useKaspaTokenBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface TokenBalanceDisplayProps {
   token: Token;
@@ -32,7 +33,7 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
   if (!isConnected || !address) {
     return (
       <section id="balance" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-        <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Your Balance</h2>
+        <DAppSectionHeader title="Your Balance" />
         <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800 text-center">
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
             Connect your wallet to view your token balance
@@ -58,7 +59,7 @@ export function TokenBalanceDisplay({ token }: TokenBalanceDisplayProps) {
 
   return (
     <section id="balance" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Your Balance</h2>
+      <DAppSectionHeader title="Your Balance" />
 
       <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-6 border border-zinc-200 dark:border-zinc-800">
         {isLoading ? (

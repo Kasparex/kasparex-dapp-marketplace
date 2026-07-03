@@ -8,6 +8,7 @@
 import type { Token } from '@/lib/tokens/types';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { useChainId } from 'wagmi';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface TokenInfoSectionProps {
   token: Token;
@@ -22,7 +23,7 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
 
   return (
     <section id="info" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">About</h2>
+      <DAppSectionHeader title="About" />
       
       <div className="prose prose-zinc dark:prose-invert max-w-none">
         <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">

@@ -16,6 +16,7 @@ function TokenLinkIcon({ id, className = '' }: { id: string; className?: string 
 
 const QUICK_LINKS = [
   { id: 'hub', label: 'Back to Hub', href: '/hub', icon: <TokenLinkIcon id="hub" /> },
+  { id: 'dashboard', label: 'Developer Dashboard', href: '/tokens/dashboard', icon: <TokenLinkIcon id="default" /> },
   { id: 'dapps', label: 'Explore dApps', href: '/', icon: <TokenLinkIcon id="dapps" /> },
   { id: 'rewards', label: 'View Rewards', href: '/rewards', icon: <TokenLinkIcon id="rewards" /> },
 ];

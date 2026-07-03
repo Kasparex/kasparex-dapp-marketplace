@@ -7,6 +7,7 @@
 
 import type { Token } from '@/lib/tokens/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface TokenomicsSectionProps {
   token: Token;
@@ -21,7 +22,7 @@ export function TokenomicsSection({ token }: TokenomicsSectionProps) {
 
   return (
     <section id="tokenomics" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Tokenomics</h2>
+      <DAppSectionHeader title="Tokenomics" />
 
       {/* Supply Info */}
       {(token.totalSupply || token.circulatingSupply) && (

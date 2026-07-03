@@ -18,6 +18,10 @@ import { TokenMintingProgress } from './TokenMintingProgress';
 import { TokenTradingSection } from './TokenTradingSection';
 import { TokenLedgerDashboard } from './TokenLedgerDashboard';
 import { getTokenLedger } from '@/lib/tokens/ledger';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { TokenListingBadges } from './TokenListingBadges';
+import { TOKEN_MODULE_OFFERS } from '@/lib/tokens/modules';
+import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
 interface TokenLandingPageProps {
   token: Token;
@@ -50,6 +54,7 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
 
           <div className="space-y-10">
             <TokenHeroSection token={token} />
+            <TokenListingBadges token={token} />
 
             {showGridLedger && <TokenLedgerDashboard snapshot={getTokenLedger('grid')} />}
 
@@ -65,7 +70,7 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
 
             {token.links && token.links.length > 0 && (
               <section id="links" className="scroll-mt-28 space-y-6 py-10">
-                <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Links</h2>
+                <DAppSectionHeader title="Links" />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {token.links.map((link, index) => (
                     <a
@@ -109,6 +114,34 @@ export function TokenLandingPage({ token }: TokenLandingPageProps) {
                     </a>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {(token.listing?.instantUtility || token.listing?.verified) && (
+              <section id="modules" className="scroll-mt-28 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 bg-zinc-50/80 dark:bg-zinc-900/40">
+                <DAppSectionHeader title="Premium modules" className="mb-4" />
+                <p className="kx-body-sm mb-4">
+                  Extend this token page with roadmap editors, Hub integrations, analytics, and more.
+                  Developer dashboard and module unlocks are coming in the next release.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  {TOKEN_MODULE_OFFERS.slice(0, 4).map((module) => (
+                    <div
+                      key={module.id}
+                      className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3"
+                    >
+                      <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{module.title}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{module.unlockPriceKas} KAS unlock</p>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/tokens/dashboard"
+                  className="k-cta-primary inline-flex text-sm"
+                  style={{ borderColor: TOKENS_ACCENT }}
+                >
+                  Open Developer Dashboard
+                </Link>
               </section>
             )}
           </div>

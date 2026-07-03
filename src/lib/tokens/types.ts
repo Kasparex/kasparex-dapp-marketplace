@@ -7,6 +7,16 @@
 export type TokenNetwork = 'L1' | 'L2';
 export type TokenType = 'global' | 'local' | 'collab';
 
+/** Listing signals for directory badges, sorting, and premium placement. */
+export type TokenListingStatus = {
+  verified?: boolean;
+  instantUtility?: boolean;
+  featured?: boolean;
+  utilityBadges?: string[];
+  activityScore?: number;
+  communityScore?: number;
+};
+
 export interface TokenLink {
   label: string;
   url: string;
@@ -88,6 +98,9 @@ export interface Token {
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
   tags?: string[]; // Tags for categorization
+
+  /** Directory listing badges, scores, and premium signals. */
+  listing?: TokenListingStatus;
 }
 
 /**

@@ -1,0 +1,137 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { KREX_TIERS } from '@/lib/rewards/types';
+import { balanceToKrexVisualTier, KREX_TIER_UI } from '@/lib/rewards/tierUi';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { TOKENS_CTA_BTN } from '@/lib/tokens/theme';
+
+function formatKrexMillions(balance: number): string {
+  if (balance >= 1_000_000) {
+    return `${(balance / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 2 })}M`;
+  }
+  return balance.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+export function TokensBenefitsPanel({
+  className = '',
+  variant = 'panel',
+}: {
+  className?: string;
+  variant?: 'panel' | 'compact';
+}) {
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+
+  const discountPercent = krexTierDiscountPercent(tier);
+  const visualTier = balanceToKrexVisualTier(krexBalance);
+  const ui = KREX_TIER_UI[visualTier];
+  const tierLabel = KREX_TIERS[tier].label;
+
+  const buyKrexButtonClass = `${TOKENS_CTA_BTN} shrink-0 !h-auto`;
+
+  if (variant === 'compact') {
+    const feePerk =
+      discountPercent > 0 ? `${discountPercent}% module discount` : 'Hold 1M+ KREX for module discounts';
+
+    return (
+      <>
+        <TooltipProvider>
+          <aside
+            className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2 shadow-md max-w-full ${ui.panel} ${className}`.trim()}
+            aria-label="Developer benefits. Hover for KREX tier details."
+          >
+            <Tooltip content={<KrexTierPerksTooltipTable title="KREX tier perks" />}>
+              <div className="flex items-center gap-2 min-w-0 cursor-help">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
+                  Benefits
+                </span>
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[11px] font-black uppercase tracking-wide whitespace-nowrap ${ui.badge}`}
+                >
+                  {ui.label}
+                </span>
+                <span className="hidden md:inline text-[13px] leading-none text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
+                  {feePerk}
+                </span>
+                <span className={`hidden sm:inline text-[13px] leading-none font-semibold whitespace-nowrap ${ui.accent}`}>
+                  {formatKrexMillions(krexBalance)} KREX
+                </span>
+              </div>
+            </Tooltip>
+            <Link
+              href="/tokens/dashboard"
+              className={`${buyKrexButtonClass} !py-1 !px-3 !text-xs !font-bold`}
+            >
+              Build
+            </Link>
+          </aside>
+        </TooltipProvider>
+        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TooltipProvider>
+        <Tooltip content={<KrexTierPerksTooltipTable title="KREX tier perks" />}>
+          <aside
+            className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
+            aria-label="Token developer perks. Hover for KREX tier details."
+          >
+            <DAppSectionHeader
+              title="Developer perks"
+              className="mb-2"
+              right={
+                <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
+                  {ui.label}
+                </span>
+              }
+            />
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
+              Hold KREX. Unlock modules. Ship utility faster.
+            </h2>
+            <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+              <li>
+                <span className={ui.accent}>•</span>{' '}
+                {discountPercent > 0
+                  ? `${discountPercent}% off premium token modules (${tierLabel})`
+                  : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off modules`}
+              </li>
+              <li>
+                <span className={ui.accent}>•</span> Verified badge via lightweight on-chain KAS claim (coming soon)
+              </li>
+              <li>
+                <span className={ui.accent}>•</span> Connect Hub payments, dApps, and tools to your token page
+              </li>
+            </ul>
+            <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
+              <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
+              {ui.statusText}
+            </div>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              <Link href="/tokens/dashboard" className={`flex-1 text-center ${buyKrexButtonClass} !py-2 !text-sm`}>
+                Developer Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsKrexWizardOpen(true)}
+                className={`flex-1 k-control-btn !py-2 !text-sm`}
+              >
+                Buy KREX
+              </button>
+            </div>
+          </aside>
+        </Tooltip>
+      </TooltipProvider>
+      <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+    </>
+  );
+}

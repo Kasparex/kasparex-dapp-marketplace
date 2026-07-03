@@ -16,6 +16,9 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { TokenListingBadges, tokenRowHighlightClass } from './TokenListingBadges';
+import { TokenVoteControls } from './TokenVoteControls';
+import { getTokenActivityScore } from '@/lib/tokens/listing';
 
 export type TokenSortField = 'name' | 'symbol' | 'price' | 'marketCap' | 'balance' | 'network' | 'type';
 export type TokenSortDirection = 'asc' | 'desc';
@@ -216,6 +219,15 @@ export function TokenListingTable({
                 Price
                 <SortIcon field="price" />
               </th>
+              <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Badges
+              </th>
+              <th className="text-center py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Community
+              </th>
+              <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Activity
+              </th>
               <th
                 className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 onClick={() => handleSort('marketCap')}
@@ -238,7 +250,7 @@ export function TokenListingTable({
             {filteredAndSortedTokens.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isConnected ? 6 : 5}
+                  colSpan={isConnected ? 9 : 8}
                   className="py-12 text-center text-zinc-500 dark:text-zinc-400"
                 >
                   No tokens found matching your filters.
@@ -312,11 +324,28 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
   const marketCap = token.price?.marketCap;
 
   return (
-    <tr className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+    <tr className={`border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${tokenRowHighlightClass(token)}`}>
       <td className="py-4 px-4">
         <Link href={`/tokens/${token.slug}`} className="flex items-center gap-3">
           <TokenLogo token={token} size={40} showName={true} showSymbol={true} />
         </Link>
+      </td>
+      <td className="py-4 px-4">
+        <TokenListingBadges token={token} compact showUtilityChips={false} />
+      </td>
+      <td className="py-4 px-4">
+        <div className="flex justify-center">
+          <TokenVoteControls
+            tokenId={token.id}
+            baseCommunityScore={token.listing?.communityScore ?? 0}
+            compact
+          />
+        </div>
+      </td>
+      <td className="py-4 px-4 text-right">
+        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 tabular-nums">
+          {getTokenActivityScore(token) || '-'}
+        </span>
       </td>
       <td className="py-4 px-4">
         <span

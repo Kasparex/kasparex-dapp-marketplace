@@ -6,6 +6,7 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface PriceSectionProps {
   token: Token;
@@ -20,7 +21,7 @@ export function PriceSection({ token }: PriceSectionProps) {
 
   return (
     <section id="price" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Price</h2>
+      <DAppSectionHeader title="Price" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Current Price */}

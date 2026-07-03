@@ -6,6 +6,7 @@
 'use client';
 
 import type { Token } from '@/lib/tokens/types';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface RoadmapSectionProps {
   token: Token;
@@ -33,7 +34,7 @@ export function RoadmapSection({ token }: RoadmapSectionProps) {
 
   return (
     <section id="roadmap" className="scroll-mt-28 space-y-6 border-b border-zinc-200 py-10 dark:border-zinc-800">
-      <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Roadmap</h2>
+      <DAppSectionHeader title="Roadmap" />
 
       <div className="relative">
         {/* Timeline line */}

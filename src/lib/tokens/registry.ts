@@ -28,6 +28,14 @@ export const baseTokens: Token[] = [
     contractAddress: undefined, // KAS is the native token, not a contract
     type: 'global',
     decimals: 8,
+    listing: {
+      verified: true,
+      instantUtility: true,
+      featured: true,
+      utilityBadges: ['Payments', 'Swaps', 'Native L1'],
+      activityScore: 95,
+      communityScore: 120,
+    },
   },
   {
     id: 'krex',
@@ -56,6 +64,14 @@ export const baseTokens: Token[] = [
       { label: 'X (Twitter)', url: 'https://x.com/kasparex', type: 'social' },
     ],
     tags: ['governance', 'flagship', 'tier-benefits'],
+    listing: {
+      verified: true,
+      instantUtility: true,
+      featured: true,
+      utilityBadges: ['Payments', 'Store', 'vBlog Tips', 'Tier Benefits'],
+      activityScore: 100,
+      communityScore: 200,
+    },
   },
   {
     id: 'grid',
@@ -78,6 +94,14 @@ export const baseTokens: Token[] = [
       { label: 'Website', url: 'https://kasparex.com', type: 'website' },
     ],
     tags: ['rewards', 'utility', 'deflationary'],
+    listing: {
+      verified: true,
+      instantUtility: true,
+      featured: true,
+      utilityBadges: ['Rewards', 'Redemptions', 'Hub Points'],
+      activityScore: 90,
+      communityScore: 150,
+    },
   },
 ];
 
@@ -92,8 +116,27 @@ export function getDAppTokens(): Token[] {
       // You can filter based on contract data or other criteria
       return true; // Include all for now
     })
-    .map((dapp) => {
+    .map((dapp, index) => {
       const slug = dapp.slug || slugify(dapp.name);
+      const listing =
+        index === 0
+          ? {
+              verified: true,
+              instantUtility: true,
+              utilityBadges: ['dApp Rewards', 'Payments'],
+              activityScore: 55,
+              communityScore: 30,
+            }
+          : index < 4
+            ? {
+                instantUtility: true,
+                utilityBadges: ['dApp Rewards'],
+                activityScore: 35 + index * 5,
+                communityScore: 10,
+              }
+            : index === 4
+              ? { featured: true, activityScore: 25, communityScore: 5 }
+              : { activityScore: 15 };
       return {
         id: `dapp-${dapp.id}`,
         slug: `${slug}-token`,
@@ -121,6 +164,7 @@ export function getDAppTokens(): Token[] {
           type: 'other' as const,
         })) || [],
         tags: ['dapp-token', 'utility', dapp.category],
+        listing,
       } as Token;
     });
 }
