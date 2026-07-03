@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType, isDirectoryListingDApp } from '@/lib/dapps';
-import { getCategoryById } from '@/lib/categories';
 import { DAppActionsColumn } from './DAppActionsColumn';
 import { mergeDAppData, useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -23,9 +22,8 @@ interface DAppRightColumnProps {
  */
 export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: DAppRightColumnProps) {
   const chainId = useChainId();
-  const mergedDApp = mergeDAppData(null, dapp);
 
-  let resolvedContractAddress = propContractAddress || mergedDApp.contractAddress || '';
+  let resolvedContractAddress = propContractAddress || dapp.contractAddress || '';
   if (!resolvedContractAddress) {
     resolvedContractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
   }
@@ -33,6 +31,8 @@ export function DAppRightColumn({ dapp, contractAddress: propContractAddress }: 
     resolvedContractAddress?.startsWith('0x') ? resolvedContractAddress : undefined,
     chainId
   );
+  const mergedDApp = mergeDAppData(contractData, dapp);
+  const featured = mergedDApp.featuredImage || mergedDApp.image || null;
 
   const isL1DApp = getDAppNetworkType(mergedDApp) === 'L1';
   const xpReward = useDAppXpReward(mergedDApp);
