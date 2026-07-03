@@ -17,8 +17,8 @@ const TYPE_LABELS: Record<Token['type'], string> = {
 
 const SOURCE_LABELS = {
   kasparex: 'Listed by Kasparex',
-  community: 'Community listing',
-  developer: 'Developer listing',
+  community: 'Community Collaboration Token',
+  developer: 'Developer-Listed (UaaS)',
 } as const;
 
 function MetaDot({ label, children }: { label: string; children: ReactNode }) {

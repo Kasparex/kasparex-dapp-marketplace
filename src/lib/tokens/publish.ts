@@ -1,7 +1,7 @@
 import type { TokenModuleId } from './modules';
 import type { TokenListingNetwork } from './listingNetwork';
 import { listingNetworkToTokenNetwork } from './listingNetwork';
-import type { TokenPageConfig } from './listingRecord';
+import type { TokenPageConfig, TokenAssetKind, TokenOnChainSnapshot } from './listingRecord';
 import { fnv1aHex } from '@/lib/vblog/pricing';
 
 export type TokenListingDraft = {
@@ -19,6 +19,12 @@ export type TokenListingDraft = {
   pageConfig: TokenPageConfig;
   enabledModuleIds: TokenModuleId[];
   author: string;
+  assetKind?: TokenAssetKind;
+  deployerAddress?: string;
+  maxSupply?: number;
+  totalSupply?: number;
+  decimals?: number;
+  onChainSnapshot?: TokenOnChainSnapshot;
 };
 
 export function generateTokenSlug(symbol: string, name: string): string {
@@ -50,6 +56,12 @@ export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'crea
     pageConfig: draft.pageConfig,
     enabledModuleIds: draft.enabledModuleIds,
     author: draft.author.trim().toLowerCase(),
+    assetKind: draft.assetKind ?? 'fictional',
+    deployerAddress: (draft.deployerAddress ?? '').trim() || null,
+    maxSupply: draft.maxSupply ?? null,
+    totalSupply: draft.totalSupply ?? null,
+    decimals: draft.decimals ?? null,
+    onChainSnapshot: draft.onChainSnapshot ?? null,
   });
 }
 

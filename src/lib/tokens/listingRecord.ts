@@ -13,6 +13,31 @@ export type TokenPublishStatus =
   | 'verified'
   | 'published';
 
+export type TokenAssetKind = 'fictional' | 'real';
+
+export type TokenOwnershipStatus = 'none' | 'wallet_assigned' | 'deployer_verified';
+
+export type TokenOnChainSnapshot = {
+  source: 'krc20' | 'l2';
+  ticker: string;
+  name?: string;
+  maxSupply?: string;
+  minted?: string;
+  decimals?: number;
+  deployer?: string;
+  owner?: string;
+  contractAddress?: string;
+  holderTotal?: number;
+  fetchedAt: string;
+};
+
+export type TokenOwnershipProof = {
+  method: string;
+  walletAddress: string;
+  signature?: string;
+  verifiedAt: string;
+};
+
 export type TokenPageSectionType =
   | 'overview'
   | 'tokenomics'
@@ -56,7 +81,7 @@ export type PublishedTokenListing = {
   shortDescription?: string;
   tags?: string[];
   listingNetwork?: TokenListingNetwork;
-  network: import('./types').TokenNetwork;
+  network: TokenNetwork;
   contractAddress?: string;
   logoUrl?: string;
   logoCid?: string;
@@ -73,18 +98,47 @@ export type PublishedTokenListing = {
   paidModuleIds?: TokenModuleId[];
   listing?: TokenListingStatus;
   pricingSnapshot?: TokenListingPricingSnapshot;
+  assetKind?: TokenAssetKind;
+  ownership?: TokenOwnershipStatus;
+  deployerAddress?: string;
+  maxSupply?: number;
+  totalSupply?: number;
+  decimals?: number;
+  onChainSnapshot?: TokenOnChainSnapshot;
+  ownershipProof?: TokenOwnershipProof;
 };
+
+function parseSupplyFromRaw(raw: string | undefined, decimals: number): number | undefined {
+  if (!raw) return undefined;
+  try {
+    const n = BigInt(raw);
+    const divisor = BigInt(10 ** Math.min(decimals, 18));
+    return Number(n / divisor);
+  } catch {
+    return undefined;
+  }
+}
 
 export function listingToToken(listing: PublishedTokenListing): Token {
   const paid = listing.paidModuleIds ?? [];
+  const deployerVerified = listing.ownership === 'deployer_verified';
   const directoryListing: TokenListingStatus = {
-    verified: listing.status === 'verified' || listing.status === 'published',
+    verified: deployerVerified,
+    deployerVerified,
     instantUtility: paid.includes('utility_integrations') || Boolean(listing.listing?.instantUtility),
     featured: paid.includes('featured_listing') || Boolean(listing.listing?.featured),
     utilityBadges: listing.listing?.utilityBadges,
     activityScore: listing.listing?.activityScore ?? 10,
     communityScore: listing.listing?.communityScore ?? 0,
   };
+
+  const decimals = listing.decimals ?? listing.onChainSnapshot?.decimals ?? (listing.listingNetwork === 'krc20' ? 8 : 18);
+  const maxSupply =
+    listing.maxSupply ??
+    parseSupplyFromRaw(listing.onChainSnapshot?.maxSupply, decimals);
+  const totalSupply =
+    listing.totalSupply ??
+    parseSupplyFromRaw(listing.onChainSnapshot?.minted, decimals);
 
   return {
     id: listing.id,
@@ -96,7 +150,7 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     network: listing.listingNetwork
       ? (listing.listingNetwork === 'kaspa_l1' || listing.listingNetwork === 'krc20' ? 'L1' : 'L2')
       : listing.network,
-    contractAddress: listing.contractAddress,
+    contractAddress: listing.contractAddress ?? listing.onChainSnapshot?.contractAddress,
     type: 'collab',
     tags: listing.tags,
     logo: listing.logoUrl,
@@ -106,6 +160,10 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     metadataCid: listing.metadataCid,
     createdAt: listing.publishDate,
     updatedAt: listing.updatedAt,
+    maxSupply,
+    totalSupply,
+    circulatingSupply: totalSupply,
+    decimals,
     listing: directoryListing,
   };
 }

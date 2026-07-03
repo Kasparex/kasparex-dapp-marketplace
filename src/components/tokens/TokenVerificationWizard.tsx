@@ -6,89 +6,162 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { Alert } from '@/components/Alert';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { signKaspaMessage } from '@/lib/kaspa/wallet';
+import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
-import {
-  getTokenVerificationFlow,
-  getListingNetworkLabel,
-  tokenNetworkToListingNetwork,
-  type TokenVerificationMethod,
-} from '@/lib/tokens/listingNetwork';
+import { getListingNetworkLabel, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+
+export type TokenVerificationMode = 'deployer' | 'assign';
 
 interface TokenVerificationWizardProps {
   listing: PublishedTokenListing;
-  onVerified: (proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
+  mode: TokenVerificationMode;
+  onComplete: (proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
   onClose: () => void;
 }
 
-function buildVerificationMessage(listing: PublishedTokenListing, address: string): string {
+function buildVerificationMessage(listing: PublishedTokenListing, address: string, mode: TokenVerificationMode): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kasparex.com';
+  const action = mode === 'deployer' ? 'Deployer ownership verification' : 'Assign wallet to listed token';
   return [
-    'Kasparex Token Verification',
+    `Kasparex Token ${action}`,
     `Listing: ${listing.symbol} (${listing.slug})`,
-    `Contract: ${listing.contractAddress || 'n/a'}`,
-    `Owner wallet: ${address}`,
+    `Contract: ${listing.contractAddress || listing.onChainSnapshot?.contractAddress || 'n/a'}`,
+    `Wallet: ${address}`,
     `Origin: ${origin}`,
     `Issued: ${new Date().toISOString()}`,
   ].join('\n');
 }
 
-export function TokenVerificationWizard({ listing, onVerified, onClose }: TokenVerificationWizardProps) {
+function addressesMatch(a: string, b: string): boolean {
+  try {
+    return normalizeKaspaAddress(a).toLowerCase() === normalizeKaspaAddress(b).toLowerCase();
+  } catch {
+    return a.toLowerCase() === b.toLowerCase();
+  }
+}
+
+export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: TokenVerificationWizardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
   const network = listing.listingNetwork ?? tokenNetworkToListingNetwork(listing.network, listing.contractAddress);
-  const flow = useMemo(() => getTokenVerificationFlow(network), [network]);
+  const isKrc20 = network === 'krc20';
+  const isL2 = network === 'l2_kasplex' || network === 'l2_igra';
 
-  const availableMethods = flow.methods.filter((m) => m.available);
-  const [selectedMethod, setSelectedMethod] = useState<TokenVerificationMethod | null>(availableMethods[0] ?? null);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const walletKind = selectedMethod?.walletKind ?? flow.walletKind;
   const kaspaReady = kaspaState.isConnected && Boolean(kaspaState.address);
   const evmReady = isEvmConnected && Boolean(evmAddress);
-  const activeAddress = walletKind === 'evm' ? (evmAddress ?? '') : (kaspaState.address ?? '');
-  const walletReady = walletKind === 'evm' ? evmReady : kaspaReady;
+  const activeKaspa = kaspaState.address ?? '';
+  const activeEvm = evmAddress ?? '';
 
-  const alreadyVerified = listing.status === 'verified';
+  const expectedDeployer =
+    listing.deployerAddress ??
+    listing.onChainSnapshot?.deployer ??
+    listing.onChainSnapshot?.owner;
 
-  const handleVerify = async () => {
+  const deployerMismatch = useMemo(() => {
+    if (mode !== 'deployer' || !expectedDeployer) return null;
+    if (isKrc20 || network === 'kaspa_l1') {
+      if (!kaspaReady) return null;
+      return addressesMatch(activeKaspa, expectedDeployer) ? null : expectedDeployer;
+    }
+    if (isL2) {
+      if (!evmReady) return null;
+      return activeEvm.toLowerCase() === expectedDeployer.toLowerCase() ? null : expectedDeployer;
+    }
+    return null;
+  }, [mode, expectedDeployer, isKrc20, isL2, network, kaspaReady, evmReady, activeKaspa, activeEvm]);
+
+  const l2NoOwner = mode === 'deployer' && isL2 && listing.assetKind === 'real' && !expectedDeployer;
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const alreadyDeployerVerified = listing.ownership === 'deployer_verified';
+  const alreadyWalletAssigned = listing.ownership === 'wallet_assigned' && mode === 'assign';
+
+  const title =
+    mode === 'deployer' ? 'Verify with Deployer Wallet' : 'Assign Wallet Address to Listed Token';
+
+  const intro =
+    mode === 'deployer'
+      ? isKrc20
+        ? 'Connect and sign with the Kaspa wallet that deployed this KRC-20 token. Your address must match the on-chain deployer.'
+        : isL2
+          ? 'Connect and sign with the EVM wallet that owns this contract. Your address must match the on-chain owner().'
+          : 'Sign with the wallet that deployed this token.'
+      : 'Link any connected wallet to this token page. This does not prove deployer ownership and will not grant the verified developer badge.';
+
+  const handleSubmit = async () => {
     setError(null);
-    if (!selectedMethod) {
-      setError('Select a verification method.');
-      return;
-    }
-    if (!walletReady || !activeAddress) {
-      setError(
-        walletKind === 'evm'
-          ? 'Connect the EVM wallet that deployed or owns the contract.'
-          : 'Connect the Kaspa wallet that deployed this token.',
-      );
+
+    if (l2NoOwner) {
+      setError('This contract has no readable owner(). Use Assign Wallet instead.');
       return;
     }
 
-    setIsVerifying(true);
+    setIsSubmitting(true);
     try {
-      const message = buildVerificationMessage(listing, activeAddress);
+      let walletAddress = '';
       let signature: string | undefined;
 
-      if (walletKind === 'evm') {
-        signature = await signMessageAsync({ message });
+      if (mode === 'deployer') {
+        if (isL2) {
+          if (!evmReady) {
+            setError('Connect the EVM wallet that owns this contract.');
+            return;
+          }
+          if (deployerMismatch) {
+            setError('Connected wallet is not the on-chain owner. Switch to the owner wallet.');
+            return;
+          }
+          walletAddress = activeEvm;
+          const message = buildVerificationMessage(listing, walletAddress, mode);
+          signature = await signMessageAsync({ message });
+        } else {
+          if (!kaspaReady || !kaspaState.provider) {
+            setError('Connect the Kaspa wallet that deployed this token.');
+            return;
+          }
+          if (deployerMismatch) {
+            setError('Connected wallet is not the on-chain deployer. Switch to the deployer wallet.');
+            return;
+          }
+          walletAddress = activeKaspa;
+          const message = buildVerificationMessage(listing, walletAddress, mode);
+          signature = await signKaspaMessage(kaspaState.provider as KaspaWalletProvider, message);
+        }
       } else {
-        if (!kaspaState.provider) throw new Error('Kaspa wallet provider unavailable.');
-        signature = await signKaspaMessage(kaspaState.provider as KaspaWalletProvider, message);
+        if (evmReady) {
+          walletAddress = activeEvm;
+          const message = buildVerificationMessage(listing, walletAddress, mode);
+          signature = await signMessageAsync({ message });
+        } else if (kaspaReady && kaspaState.provider) {
+          walletAddress = activeKaspa;
+          const message = buildVerificationMessage(listing, walletAddress, mode);
+          signature = await signKaspaMessage(kaspaState.provider as KaspaWalletProvider, message);
+        } else {
+          setError('Connect a Kaspa or EVM wallet to assign.');
+          return;
+        }
       }
 
-      if (!signature) throw new Error('Signature was not provided.');
+      if (!signature) {
+        setError('Signature was not provided.');
+        return;
+      }
 
-      await onVerified({ method: selectedMethod.id, walletAddress: activeAddress, signature });
+      await onComplete({
+        method: mode === 'deployer' ? 'deployer_signature' : 'wallet_assign',
+        walletAddress,
+        signature,
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Verification failed. Try again.');
+      setError(e instanceof Error ? e.message : 'Action failed. Try again.');
     } finally {
-      setIsVerifying(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -97,18 +170,13 @@ export function TokenVerificationWizard({ listing, onVerified, onClose }: TokenV
       <div className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5 dark:border-zinc-800">
           <div>
-            <DAppSectionHeader title="Token verification" className="mb-1" />
-            <h3 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">{flow.title}</h3>
+            <DAppSectionHeader title={mode === 'deployer' ? 'Deployer verification' : 'Wallet assignment'} className="mb-1" />
+            <h3 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">{title}</h3>
             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-[#02abb8]">
               {getListingNetworkLabel(network)}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-            aria-label="Close"
-          >
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800" aria-label="Close">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -116,81 +184,55 @@ export function TokenVerificationWizard({ listing, onVerified, onClose }: TokenV
         </div>
 
         <div className="space-y-4 p-5">
-          {alreadyVerified ? (
+          {alreadyDeployerVerified && mode === 'deployer' ? (
             <Alert type="success" title="Already verified">
-              This listing is verified. The developer badge is active on its token page.
+              Deployer ownership is verified. This listing appears under Developer-Listed Token Projects (UaaS).
+            </Alert>
+          ) : alreadyWalletAssigned ? (
+            <Alert type="success" title="Wallet assigned">
+              A wallet is already linked to this listing.
             </Alert>
           ) : (
             <>
-              <p className="kx-body-sm">{flow.intro}</p>
+              <p className="kx-body-sm">{intro}</p>
 
-              {availableMethods.length === 0 ? (
-                <Alert type="info" title="Coming soon">
-                  Verification for {getListingNetworkLabel(network)} is not available yet. Check back soon.
+              {expectedDeployer && mode === 'deployer' ? (
+                <div className="rounded-xl border border-zinc-200 p-3 text-xs dark:border-zinc-800">
+                  <p className="text-zinc-500 dark:text-zinc-400">
+                    {isL2 ? 'On-chain owner' : 'On-chain deployer'}
+                  </p>
+                  <p className="mt-1 truncate font-mono text-[11px] text-zinc-700 dark:text-zinc-300" title={expectedDeployer}>
+                    {expectedDeployer}
+                  </p>
+                </div>
+              ) : null}
+
+              {deployerMismatch ? (
+                <Alert type="error" title="Wallet mismatch">
+                  Your connected wallet does not match the on-chain {isL2 ? 'owner' : 'deployer'}. Connect the correct wallet to verify.
                 </Alert>
+              ) : null}
+
+              {l2NoOwner ? (
+                <Alert type="info" title="Owner not available">
+                  This contract does not expose owner(). Automatic deployer verification is unavailable. You can still assign a wallet to this listing.
+                </Alert>
+              ) : null}
+
+              {error ? (
+                <Alert type="error" title="Error">
+                  {error}
+                </Alert>
+              ) : null}
+
+              {mode === 'deployer' ? (
+                <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+                  Success awards <span className="font-bold text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingVerify} Hub Points</span> and lists under Developer-Listed Token Projects (UaaS).
+                </div>
               ) : (
-                <>
-                  <div className="space-y-2">
-                    {flow.methods.map((method) => {
-                      const isSelected = selectedMethod?.id === method.id;
-                      return (
-                        <button
-                          key={method.id}
-                          type="button"
-                          disabled={!method.available}
-                          onClick={() => method.available && setSelectedMethod(method)}
-                          className={`w-full rounded-xl border p-4 text-left transition-all ${
-                            isSelected
-                              ? 'border-[#02abb8] bg-[#02abb8]/5 shadow-sm'
-                              : 'border-zinc-200 bg-white hover:border-[#02abb8]/40 dark:border-zinc-800 dark:bg-zinc-900'
-                          } ${method.available ? '' : 'cursor-not-allowed opacity-50'}`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{method.label}</span>
-                            {!method.available ? (
-                              <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800">
-                                Soon
-                              </span>
-                            ) : isSelected ? (
-                              <span className="rounded-md bg-[#02abb8]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
-                                Selected
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{method.description}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-200 p-3 text-xs dark:border-zinc-800">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-zinc-500 dark:text-zinc-400">
-                        {walletKind === 'evm' ? 'EVM wallet' : 'Kaspa wallet'}
-                      </span>
-                      <span
-                        className={`font-semibold ${walletReady ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
-                      >
-                        {walletReady ? 'Connected' : 'Not connected'}
-                      </span>
-                    </div>
-                    {activeAddress ? (
-                      <p className="mt-1 truncate font-mono text-[11px] text-zinc-600 dark:text-zinc-300" title={activeAddress}>
-                        {activeAddress}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  {error ? (
-                    <Alert type="error" title="Verification error">
-                      {error}
-                    </Alert>
-                  ) : null}
-
-                  <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-                    Verifying rewards <span className="font-bold text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingVerify} Hub Points</span> and activates the verified developer badge.
-                  </div>
-                </>
+                <div className="rounded-xl border border-zinc-200 p-3 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                  Assigning a wallet links it to your page but keeps the listing under Community Collaboration Tokens without a verified badge.
+                </div>
               )}
             </>
           )}
@@ -198,16 +240,16 @@ export function TokenVerificationWizard({ listing, onVerified, onClose }: TokenV
 
         <div className="flex items-center justify-end gap-2 border-t border-zinc-200 p-5 dark:border-zinc-800">
           <button type="button" onClick={onClose} className="k-control-btn">
-            {alreadyVerified ? 'Close' : 'Cancel'}
+            {alreadyDeployerVerified || alreadyWalletAssigned ? 'Close' : 'Cancel'}
           </button>
-          {!alreadyVerified && availableMethods.length > 0 ? (
+          {!alreadyDeployerVerified && !alreadyWalletAssigned && !l2NoOwner ? (
             <button
               type="button"
-              onClick={() => void handleVerify()}
-              disabled={isVerifying || !walletReady}
+              onClick={() => void handleSubmit()}
+              disabled={isSubmitting || Boolean(deployerMismatch)}
               className="k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isVerifying ? 'Verifying…' : 'Sign and verify'}
+              {isSubmitting ? 'Signing…' : mode === 'deployer' ? 'Sign and verify' : 'Sign and assign'}
             </button>
           ) : null}
         </div>

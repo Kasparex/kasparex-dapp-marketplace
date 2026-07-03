@@ -38,7 +38,7 @@ export function TokenDeveloperDashboard() {
   const { address: evmAddress } = useAccount();
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
-  const { getAuthorListings, removeListing, verifyListing, listings } = useTokens();
+  const { getAuthorListings, removeListing, verifyDeployer, assignWallet, listings } = useTokens();
   const [activeTab, setActiveTab] = useState<'create' | 'archive'>('create');
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
   const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
@@ -81,10 +81,18 @@ export function TokenDeveloperDashboard() {
     await removeListing(id);
   };
 
-  const handleVerify = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
-    const result = await verifyListing(id, proof);
+  const handleVerifyDeployer = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
+    const result = await verifyDeployer(id, proof);
     if (result) {
-      setSuccessMessage(`${result.symbol} is now verified. Hub Points awarded for verification.`);
+      setSuccessMessage(`${result.symbol} deployer verified. +1000 Hub Points awarded. Listed under Developer UaaS.`);
+      window.setTimeout(() => setSuccessMessage(null), 8000);
+    }
+  };
+
+  const handleAssignWallet = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
+    const result = await assignWallet(id, proof);
+    if (result) {
+      setSuccessMessage(`Wallet assigned to ${result.symbol}. Listing stays under Community Collaboration Tokens.`);
       window.setTimeout(() => setSuccessMessage(null), 8000);
     }
   };
@@ -147,7 +155,8 @@ export function TokenDeveloperDashboard() {
                 setActiveTab('create');
               }}
               onDelete={handleDelete}
-              onVerify={handleVerify}
+              onVerifyDeployer={handleVerifyDeployer}
+              onAssignWallet={handleAssignWallet}
             />
           </div>
         ) : null}

@@ -7,8 +7,8 @@ export type TokenListSource = 'kasparex' | 'community' | 'developer';
 /** Who listed the token in the Kasparex directory. */
 export function getTokenListSource(token: Token): TokenListSource {
   if (token.type === 'global') return 'kasparex';
-  if (token.type === 'collab') return 'community';
-  return 'developer';
+  if (token.listing?.deployerVerified) return 'developer';
+  return 'community';
 }
 
 export function matchesTokenSourceFilter(token: Token, filter: TokenSourceFilter): boolean {

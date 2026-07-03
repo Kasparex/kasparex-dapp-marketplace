@@ -10,6 +10,8 @@ export type TokenType = 'global' | 'collab';
 /** Listing signals for directory badges, sorting, and premium placement. */
 export type TokenListingStatus = {
   verified?: boolean;
+  /** True when deployer/owner ownership was proven on-chain. */
+  deployerVerified?: boolean;
   instantUtility?: boolean;
   featured?: boolean;
   utilityBadges?: string[];

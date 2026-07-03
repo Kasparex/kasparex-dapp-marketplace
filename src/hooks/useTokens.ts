@@ -28,7 +28,7 @@ import {
   deletePublishedListing,
   mergePublishedIntoRegistry,
 } from '@/lib/tokens/data';
-import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot } from '@/lib/tokens/listingRecord';
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { buildCanonicalListingPayload, hashListingPayload, type TokenListingDraft } from '@/lib/tokens/publish';
 import {
@@ -55,6 +55,12 @@ export type CreateTokenListingInput = {
   featuredImageCid?: string;
   enabledModuleIds?: TokenModuleId[];
   sectionToggles?: Record<string, boolean>;
+  assetKind?: TokenAssetKind;
+  deployerAddress?: string;
+  maxSupply?: number;
+  totalSupply?: number;
+  decimals?: number;
+  onChainSnapshot?: TokenOnChainSnapshot;
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
@@ -81,6 +87,42 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     pageConfig,
     enabledModuleIds,
     author,
+    assetKind: input.assetKind ?? 'fictional',
+    deployerAddress: input.deployerAddress,
+    maxSupply: input.maxSupply,
+    totalSupply: input.totalSupply,
+    decimals: input.decimals,
+    onChainSnapshot: input.onChainSnapshot,
+  };
+}
+
+function listingUpdateFields(
+  draft: TokenListingDraft,
+  existing?: PublishedTokenListing,
+) {
+  return {
+    symbol: draft.symbol.trim().toUpperCase(),
+    name: draft.name.trim(),
+    description: draft.description.trim(),
+    shortDescription: draft.shortDescription?.trim(),
+    tags: draft.tags,
+    listingNetwork: draft.listingNetwork,
+    network: listingNetworkToTokenNetwork(draft.listingNetwork),
+    contractAddress: draft.contractAddress?.trim(),
+    logoUrl: draft.logoUrl,
+    logoCid: draft.logoCid,
+    featuredImageUrl: draft.featuredImageUrl,
+    featuredImageCid: draft.featuredImageCid,
+    pageConfig: draft.pageConfig,
+    paidModuleIds: existing
+      ? [...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds])]
+      : draft.enabledModuleIds,
+    assetKind: draft.assetKind ?? existing?.assetKind ?? 'fictional',
+    deployerAddress: draft.deployerAddress?.trim() ?? existing?.deployerAddress,
+    maxSupply: draft.maxSupply ?? existing?.maxSupply,
+    totalSupply: draft.totalSupply ?? existing?.totalSupply,
+    decimals: draft.decimals ?? existing?.decimals,
+    onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
   };
 }
 
@@ -237,24 +279,33 @@ export function useTokens() {
         totalKas: quote.totalKas,
       });
 
+      const listingFields = {
+        symbol: draft.symbol.trim().toUpperCase(),
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        shortDescription: draft.shortDescription?.trim(),
+        tags: draft.tags,
+        listingNetwork: draft.listingNetwork,
+        network: listingNetworkToTokenNetwork(draft.listingNetwork),
+        contractAddress: draft.contractAddress?.trim(),
+        logoUrl: draft.logoUrl,
+        logoCid: draft.logoCid,
+        featuredImageUrl: draft.featuredImageUrl,
+        featuredImageCid: draft.featuredImageCid,
+        pageConfig: draft.pageConfig,
+        paidModuleIds: draft.enabledModuleIds,
+        assetKind: draft.assetKind ?? 'fictional',
+        ownership: 'none' as const,
+        deployerAddress: draft.deployerAddress?.trim(),
+        maxSupply: draft.maxSupply,
+        totalSupply: draft.totalSupply,
+        decimals: draft.decimals,
+        onChainSnapshot: draft.onChainSnapshot,
+        listing: { verified: false, deployerVerified: false },
+      };
+
       const listing = createPublishedListing(
-        {
-          author,
-          symbol: draft.symbol.trim().toUpperCase(),
-          name: draft.name.trim(),
-          description: draft.description.trim(),
-          shortDescription: draft.shortDescription?.trim(),
-          tags: draft.tags,
-          listingNetwork: draft.listingNetwork,
-          network: listingNetworkToTokenNetwork(draft.listingNetwork),
-          contractAddress: draft.contractAddress?.trim(),
-          logoUrl: draft.logoUrl,
-          logoCid: draft.logoCid,
-          featuredImageUrl: draft.featuredImageUrl,
-          featuredImageCid: draft.featuredImageCid,
-          pageConfig: draft.pageConfig,
-          paidModuleIds: draft.enabledModuleIds,
-        },
+        { author, ...listingFields },
         {
           listingId,
           txHash: bundle.commitTxHash,
@@ -310,24 +361,7 @@ export function useTokens() {
       });
 
       if (quote.totalKas <= 0) {
-        const updated = updatePublishedListing(id, {
-          symbol: draft.symbol.trim().toUpperCase(),
-          name: draft.name.trim(),
-          description: draft.description.trim(),
-          shortDescription: draft.shortDescription?.trim(),
-          tags: draft.tags,
-          listingNetwork: draft.listingNetwork,
-          network: listingNetworkToTokenNetwork(draft.listingNetwork),
-          contractAddress: draft.contractAddress?.trim(),
-          logoUrl: draft.logoUrl,
-          logoCid: draft.logoCid,
-          featuredImageUrl: draft.featuredImageUrl,
-          featuredImageCid: draft.featuredImageCid,
-          pageConfig: draft.pageConfig,
-          paidModuleIds: [
-            ...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds]),
-          ],
-        });
+        const updated = updatePublishedListing(id, listingUpdateFields(draft, existing));
         loadListings();
         return updated;
       }
@@ -342,24 +376,7 @@ export function useTokens() {
 
       const updated = updatePublishedListing(
         id,
-        {
-          symbol: draft.symbol.trim().toUpperCase(),
-          name: draft.name.trim(),
-          description: draft.description.trim(),
-          shortDescription: draft.shortDescription?.trim(),
-          tags: draft.tags,
-          listingNetwork: draft.listingNetwork,
-          network: listingNetworkToTokenNetwork(draft.listingNetwork),
-          contractAddress: draft.contractAddress?.trim(),
-          logoUrl: draft.logoUrl,
-          logoCid: draft.logoCid,
-          featuredImageUrl: draft.featuredImageUrl,
-          featuredImageCid: draft.featuredImageCid,
-          pageConfig: draft.pageConfig,
-          paidModuleIds: [
-            ...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds]),
-          ],
-        },
+        listingUpdateFields(draft, existing),
         {
           txHash: bundle.commitTxHash,
           commitTxHash: bundle.commitTxHash,
@@ -403,21 +420,25 @@ export function useTokens() {
     [loadListings],
   );
 
-  const verifyListing = useCallback(
+  const verifyDeployer = useCallback(
     async (id: string, proof: { method: string; walletAddress: string; signature?: string }): Promise<PublishedTokenListing | null> => {
       const existing = getPublishedListingById(id);
       if (!existing) throw new Error('Listing not found');
+      if (existing.ownership === 'deployer_verified') return existing;
 
-      const updated = updatePublishedListing(
-        id,
-        {
-          status: 'verified',
-          listing: { ...(existing.listing ?? {}), verified: true },
+      const updated = updatePublishedListing(id, {
+        ownership: 'deployer_verified',
+        status: existing.status === 'draft' ? 'published' : existing.status,
+        listing: { ...(existing.listing ?? {}), verified: true, deployerVerified: true },
+        ownershipProof: {
+          method: proof.method,
+          walletAddress: proof.walletAddress,
+          signature: proof.signature,
+          verifiedAt: new Date().toISOString(),
         },
-        {},
-      );
+      });
 
-      const idKey = `ktl:verify:${id}:${proof.signature ? proof.signature.slice(0, 24) : proof.walletAddress}`;
+      const idKey = `ktl:deployer:${id}:${proof.signature ? proof.signature.slice(0, 24) : proof.walletAddress}`;
       appendHubActivityEarn({
         walletRaw: proof.walletAddress,
         source: 'token_listing_verify',
@@ -431,6 +452,29 @@ export function useTokens() {
       return updated;
     },
     [krexBalance, loadListings],
+  );
+
+  const assignWallet = useCallback(
+    async (id: string, proof: { method: string; walletAddress: string; signature?: string }): Promise<PublishedTokenListing | null> => {
+      const existing = getPublishedListingById(id);
+      if (!existing) throw new Error('Listing not found');
+      if (existing.ownership === 'deployer_verified') return existing;
+
+      const updated = updatePublishedListing(id, {
+        ownership: 'wallet_assigned',
+        listing: { ...(existing.listing ?? {}), verified: false, deployerVerified: false },
+        ownershipProof: {
+          method: proof.method,
+          walletAddress: proof.walletAddress,
+          signature: proof.signature,
+          verifiedAt: new Date().toISOString(),
+        },
+      });
+
+      loadListings();
+      return updated;
+    },
+    [loadListings],
   );
 
   const resolveToken = useCallback(
@@ -460,7 +504,8 @@ export function useTokens() {
     publishNewListing,
     updateExistingListing,
     removeListing,
-    verifyListing,
+    verifyDeployer,
+    assignWallet,
     resolveToken,
     discountPercent,
   };

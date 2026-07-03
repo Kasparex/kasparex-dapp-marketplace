@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import {
@@ -18,7 +20,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { getTokenModuleDiscountPercent } from '@/lib/tokens/modules';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
+import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot } from '@/lib/tokens/listingRecord';
 import { TOKEN_PAGE_SECTION_LABELS } from '@/lib/tokens/pageConfig';
 import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import { TOKEN_LISTING_NETWORK_OPTIONS } from '@/lib/tokens/listingNetwork';
@@ -32,6 +34,9 @@ import { useTokens } from '@/hooks/useTokens';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { Alert } from '@/components/Alert';
+import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
+import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
+import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
 
 const FORM_PANEL_CLASS =
   'rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 sm:p-6 shadow-sm';
@@ -59,6 +64,17 @@ interface CreateTokenFormProps {
   onCancelEdit?: () => void;
 }
 
+function parseSupplyNumber(raw: string | undefined, decimals: number): number | undefined {
+  if (!raw) return undefined;
+  try {
+    const n = BigInt(raw);
+    const divisor = BigInt(10 ** Math.min(decimals, 18));
+    return Number(n / divisor);
+  } catch {
+    return undefined;
+  }
+}
+
 function buildFormDraft(args: {
   symbol: string;
   name: string;
@@ -71,6 +87,12 @@ function buildFormDraft(args: {
   enabledModuleIds: TokenModuleId[];
   sectionToggles: Record<string, boolean>;
   author: string;
+  assetKind: TokenAssetKind;
+  deployerAddress?: string;
+  maxSupply?: number;
+  totalSupply?: number;
+  decimals?: number;
+  onChainSnapshot?: TokenOnChainSnapshot;
 }): TokenListingDraft {
   const resolved = resolveTokenListingMedia(args.media);
   const pageConfig = createDefaultPageConfig(args.enabledModuleIds);
@@ -93,6 +115,12 @@ function buildFormDraft(args: {
     pageConfig,
     enabledModuleIds: args.enabledModuleIds,
     author: args.author,
+    assetKind: args.assetKind,
+    deployerAddress: args.deployerAddress,
+    maxSupply: args.maxSupply,
+    totalSupply: args.totalSupply,
+    decimals: args.decimals,
+    onChainSnapshot: args.onChainSnapshot,
   };
 }
 
@@ -115,6 +143,76 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     listing?.listingNetwork ?? tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress),
   );
   const [contractAddress, setContractAddress] = useState(listing?.contractAddress ?? '');
+  const [assetKind, setAssetKind] = useState<TokenAssetKind>(listing?.assetKind ?? 'fictional');
+  const [onChainSnapshot, setOnChainSnapshot] = useState<TokenOnChainSnapshot | null>(listing?.onChainSnapshot ?? null);
+  const [deployerAddress, setDeployerAddress] = useState(listing?.deployerAddress ?? '');
+  const [tokenDecimals, setTokenDecimals] = useState<number | undefined>(listing?.decimals);
+  const [maxSupply, setMaxSupply] = useState<number | undefined>(listing?.maxSupply);
+  const [totalSupply, setTotalSupply] = useState<number | undefined>(listing?.totalSupply);
+  const [krc20Selected, setKrc20Selected] = useState<Krc20TokenInfo | null>(
+    listing?.onChainSnapshot?.source === 'krc20' ? (listing.onChainSnapshot as Krc20TokenInfo) : null,
+  );
+  const [l2LookupLoading, setL2LookupLoading] = useState(false);
+  const [l2LookupError, setL2LookupError] = useState<string | null>(null);
+
+  const isRealToken = assetKind === 'real';
+  const isKrc20Network = listingNetwork === 'krc20';
+  const isL2Network = listingNetwork === 'l2_kasplex' || listingNetwork === 'l2_igra';
+  const onChainLocked = isRealToken && Boolean(onChainSnapshot);
+
+  const applyKrc20Selection = useCallback((info: Krc20TokenInfo | null) => {
+    setKrc20Selected(info);
+    if (!info) {
+      setOnChainSnapshot(null);
+      setDeployerAddress('');
+      setTokenDecimals(undefined);
+      setMaxSupply(undefined);
+      setTotalSupply(undefined);
+      return;
+    }
+    const dec = info.decimals ?? 8;
+    setSymbol(info.ticker);
+    setName(info.name ?? info.ticker);
+    setOnChainSnapshot(info);
+    setDeployerAddress(info.deployer ?? '');
+    setTokenDecimals(dec);
+    setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
+    setTotalSupply(parseSupplyNumber(info.minted, dec));
+    if (info.contractAddress) setContractAddress(info.contractAddress);
+  }, []);
+
+  const lookupL2Contract = useCallback(async () => {
+    if (!isL2Network) return;
+    setL2LookupError(null);
+    setL2LookupLoading(true);
+    try {
+      const info = await fetchL2TokenInfo(contractAddress, listingNetwork as 'l2_kasplex' | 'l2_igra');
+      if (!info) {
+        setL2LookupError('Could not read this contract. Check the address and network.');
+        return;
+      }
+      const dec = info.decimals ?? 18;
+      setSymbol(info.ticker);
+      setName(info.name ?? info.ticker);
+      setOnChainSnapshot(info);
+      setDeployerAddress(info.owner ?? info.deployer ?? '');
+      setTokenDecimals(dec);
+      setMaxSupply(undefined);
+      setTotalSupply(parseSupplyNumber(info.minted, dec));
+    } catch {
+      setL2LookupError('L2 lookup failed. Try again.');
+    } finally {
+      setL2LookupLoading(false);
+    }
+  }, [contractAddress, isL2Network, listingNetwork]);
+
+  useEffect(() => {
+    if (!isRealToken || !isL2Network) return;
+    const addr = contractAddress.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) return;
+    const timer = window.setTimeout(() => void lookupL2Contract(), 600);
+    return () => window.clearTimeout(timer);
+  }, [contractAddress, isRealToken, isL2Network, lookupL2Contract]);
   const [enabledModules, setEnabledModules] = useState<Set<string>>(
     () => new Set(listing?.paidModuleIds ?? []),
   );
@@ -175,6 +273,15 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     ],
   );
 
+  const draftExtras = {
+    assetKind,
+    deployerAddress: deployerAddress || undefined,
+    maxSupply,
+    totalSupply,
+    decimals: tokenDecimals,
+    onChainSnapshot: onChainSnapshot ?? undefined,
+  };
+
   const formQuote = useMemo(() => {
     if (!walletAddress) {
       return estimateTokenListingQuote({
@@ -190,6 +297,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
           enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
           sectionToggles,
           author: 'kaspa:preview',
+          ...draftExtras,
         }),
         action: isEditMode ? 'edit' : 'create',
         discountPercent: tierDiscount,
@@ -215,6 +323,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
       sectionToggles,
       author: kaspaState.address ?? walletAddress,
+      ...draftExtras,
     });
     const newModuleIds = Array.from(enabledModules).filter(
       (id) => !listing?.paidModuleIds?.includes(id as TokenModuleId),
@@ -248,7 +357,12 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     isEditMode,
     listing,
     walletAddress,
-    kaspaState.address,
+    assetKind,
+    deployerAddress,
+    maxSupply,
+    totalSupply,
+    tokenDecimals,
+    onChainSnapshot,
   ]);
 
   const toggleModule = (id: string) => {
@@ -285,6 +399,15 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       return;
     }
 
+    if (isRealToken && isKrc20Network && !onChainSnapshot) {
+      setError('Select a KRC-20 token from the lookup results before publishing.');
+      return;
+    }
+    if (isRealToken && isL2Network && !onChainSnapshot) {
+      setError('Load on-chain data for the L2 contract before publishing.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const input = {
@@ -301,6 +424,12 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         featuredImageCid: resolvedMedia.featuredImageCid,
         enabledModuleIds: Array.from(enabledModules) as TokenModuleId[],
         sectionToggles,
+        assetKind,
+        deployerAddress: deployerAddress || undefined,
+        maxSupply,
+        totalSupply,
+        decimals: tokenDecimals,
+        onChainSnapshot: onChainSnapshot ?? undefined,
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -357,6 +486,29 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               ) : null}
             </div>
 
+            <div>
+              <KxFormFieldLabel>Token type</KxFormFieldLabel>
+              <p className="kx-body-sm mb-3">
+                Choose whether you are listing a fictional/community token or an existing on-chain token.
+              </p>
+              <KxSegmentToggle
+                value={assetKind}
+                onChange={(v) => {
+                  setAssetKind(v);
+                  if (v === 'fictional') {
+                    setOnChainSnapshot(null);
+                    setKrc20Selected(null);
+                    setDeployerAddress('');
+                  }
+                }}
+                options={[
+                  { value: 'fictional', label: 'Fictional / community' },
+                  { value: 'real', label: 'Real (on-chain)' },
+                ]}
+                ariaLabel="Token asset kind"
+              />
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <KxFormFieldLabel>
@@ -364,9 +516,13 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 </KxFormFieldLabel>
                 <select
                   value={listingNetwork}
-                  onChange={(e) => setListingNetwork(e.target.value as TokenListingNetwork)}
+                  onChange={(e) => {
+                    setListingNetwork(e.target.value as TokenListingNetwork);
+                    setOnChainSnapshot(null);
+                    setKrc20Selected(null);
+                  }}
                   className="k-input text-base mt-2 w-full"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || onChainLocked}
                 >
                   {TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => (
                     <option key={opt.id} value={opt.id} disabled={opt.disabled}>
@@ -375,39 +531,81 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   ))}
                 </select>
               </div>
+              {!isRealToken || !isKrc20Network ? (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <KxFormFieldLabel>
+                      {isRealToken && isL2Network ? 'Contract address' : 'Contract / ticker address'}
+                    </KxFormFieldLabel>
+                    <span className="text-xs text-zinc-500">{contractAddress.length} / {TOKEN_CONTENT_LIMITS.contractAddress.max}</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={contractAddress}
+                    onChange={(e) => setContractAddress(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.contractAddress.max))}
+                    placeholder={isL2Network ? '0x…' : '0x… or KRC-20 address'}
+                    className="k-input text-base w-full"
+                    disabled={isSubmitting || (onChainLocked && !isL2Network)}
+                  />
+                  {isRealToken && isL2Network && l2LookupLoading ? (
+                    <p className="mt-1 text-xs text-zinc-500">Reading contract on-chain…</p>
+                  ) : null}
+                  {l2LookupError ? <p className="mt-1 text-xs text-red-500">{l2LookupError}</p> : null}
+                </div>
+              ) : null}
+            </div>
+
+            {isRealToken && isKrc20Network ? (
+              <Krc20TickerSearchField
+                value={symbol}
+                onChange={setSymbol}
+                onSelect={applyKrc20Selection}
+                disabled={isSubmitting}
+                selected={krc20Selected}
+              />
+            ) : (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <KxFormFieldLabel>Contract / ticker address</KxFormFieldLabel>
-                  <span className="text-xs text-zinc-500">{contractAddress.length} / {TOKEN_CONTENT_LIMITS.contractAddress.max}</span>
+                  <KxFormFieldLabel>
+                    Ticker symbol <span className="text-red-500">*</span>
+                  </KxFormFieldLabel>
+                  <span className="text-xs text-zinc-500">{symbol.length} / {TOKEN_CONTENT_LIMITS.symbol.max}</span>
                 </div>
                 <input
                   type="text"
-                  value={contractAddress}
-                  onChange={(e) => setContractAddress(e.target.value.slice(0, TOKEN_CONTENT_LIMITS.contractAddress.max))}
-                  placeholder="0x… or KRC-20 address"
+                  value={symbol}
+                  onChange={(e) => setSymbol(e.target.value.toUpperCase().slice(0, TOKEN_CONTENT_LIMITS.symbol.max))}
+                  placeholder="e.g. KREX"
                   className="k-input text-base w-full"
-                  disabled={isSubmitting}
+                  required
+                  disabled={isSubmitting || isEditMode || onChainLocked}
                 />
               </div>
-            </div>
+            )}
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <KxFormFieldLabel>
-                  Ticker symbol <span className="text-red-500">*</span>
-                </KxFormFieldLabel>
-                <span className="text-xs text-zinc-500">{symbol.length} / {TOKEN_CONTENT_LIMITS.symbol.max}</span>
+            {onChainSnapshot ? (
+              <div className="rounded-xl border border-[#02abb8]/30 bg-[#02abb8]/5 p-4 text-sm">
+                <p className="font-semibold text-[#02abb8] mb-2">On-chain tokenomics loaded</p>
+                <div className="grid grid-cols-2 gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                  {onChainSnapshot.maxSupply ? (
+                    <span>Max supply: {formatKrc20Supply(onChainSnapshot.maxSupply, onChainSnapshot.decimals ?? 8)}</span>
+                  ) : null}
+                  {onChainSnapshot.minted ? (
+                    <span>
+                      {onChainSnapshot.source === 'l2' ? 'Total supply' : 'Minted'}:{' '}
+                      {onChainSnapshot.source === 'l2'
+                        ? formatL2Supply(onChainSnapshot.minted, onChainSnapshot.decimals ?? 18)
+                        : formatKrc20Supply(onChainSnapshot.minted, onChainSnapshot.decimals ?? 8)}
+                    </span>
+                  ) : null}
+                  {deployerAddress ? (
+                    <span className="col-span-2 truncate font-mono text-[10px]" title={deployerAddress}>
+                      {onChainSnapshot.source === 'l2' ? 'Owner' : 'Deployer'}: {deployerAddress}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase().slice(0, TOKEN_CONTENT_LIMITS.symbol.max))}
-                placeholder="e.g. KREX"
-                className="k-input text-base w-full"
-                required
-                disabled={isSubmitting || isEditMode}
-              />
-            </div>
+            ) : null}
 
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -423,7 +621,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 placeholder="Full token name"
                 className="k-input text-base w-full"
                 required
-                disabled={isSubmitting}
+                disabled={isSubmitting || (onChainLocked && isRealToken)}
               />
             </div>
 

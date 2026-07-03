@@ -10,7 +10,7 @@ import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
-import { TokenVerificationWizard } from '@/components/tokens/TokenVerificationWizard';
+import { TokenVerificationWizard, type TokenVerificationMode } from '@/components/tokens/TokenVerificationWizard';
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { getListingNetworkLabel, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
@@ -19,33 +19,43 @@ interface TokenListingArchiveProps {
   listings: PublishedTokenListing[];
   onEdit: (listing: PublishedTokenListing) => void;
   onDelete?: (id: string) => void;
-  onVerify: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
+  onVerifyDeployer: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
+  onAssignWallet: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
 }
 
-function statusPill(status: PublishedTokenListing['status']): { label: string; className: string } {
+function paymentPill(status: PublishedTokenListing['status']): { label: string; className: string } {
   switch (status) {
     case 'verified':
-      return {
-        label: 'Verified',
-        className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-      };
-    case 'verification_pending':
-      return {
-        label: 'Pending verification',
-        className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
-      };
     case 'published':
       return { label: 'Published', className: 'bg-[#02abb8]/15 text-[#02abb8] border-[#02abb8]/30' };
+    case 'verification_pending':
+      return { label: 'Payment pending', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' };
     default:
-      return {
-        label: 'Draft',
-        className: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400 border-zinc-500/30',
-      };
+      return { label: 'Draft', className: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400 border-zinc-500/30' };
   }
 }
 
-export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: TokenListingArchiveProps) {
-  const [verifyTarget, setVerifyTarget] = useState<PublishedTokenListing | null>(null);
+function ownershipLabel(listing: PublishedTokenListing): string {
+  if (listing.ownership === 'deployer_verified') return 'Developer UaaS (verified)';
+  if (listing.ownership === 'wallet_assigned') return 'Wallet assigned';
+  if (listing.assetKind === 'real') return 'Real token (unverified)';
+  return 'Community collab';
+}
+
+export function TokenListingArchive({
+  listings,
+  onEdit,
+  onDelete,
+  onVerifyDeployer,
+  onAssignWallet,
+}: TokenListingArchiveProps) {
+  const [wizardTarget, setWizardTarget] = useState<PublishedTokenListing | null>(null);
+  const [wizardMode, setWizardMode] = useState<TokenVerificationMode>('deployer');
+
+  const openWizard = (listing: PublishedTokenListing, mode: TokenVerificationMode) => {
+    setWizardTarget(listing);
+    setWizardMode(mode);
+  };
 
   if (listings.length === 0) {
     return (
@@ -68,9 +78,10 @@ export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: To
         {listings.map((listing) => {
           const token = listingToToken(listing);
           const featuredImageUrl = loadTokenFeaturedImageUrl(token);
-          const pill = statusPill(listing.status);
+          const pill = paymentPill(listing.status);
           const network = listing.listingNetwork ?? tokenNetworkToListingNetwork(listing.network, listing.contractAddress);
-          const canVerify = listing.status !== 'verified';
+          const canVerifyDeployer = listing.ownership !== 'deployer_verified';
+          const isReal = listing.assetKind === 'real';
 
           return (
             <KxListingCard key={listing.id} accent="tokens" className="flex h-full flex-col">
@@ -80,9 +91,7 @@ export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: To
                 ) : (
                   <KxListingFeaturedPlaceholder />
                 )}
-                <span
-                  className={`absolute left-2 top-2 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${pill.className}`}
-                >
+                <span className={`absolute left-2 top-2 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${pill.className}`}>
                   {pill.label}
                 </span>
               </KxListingCardMedia>
@@ -96,6 +105,7 @@ export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: To
                     </p>
                   </div>
                 </div>
+                <p className="mb-2 text-xs font-semibold text-[#02abb8]">{ownershipLabel(listing)}</p>
                 <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
                   {listing.shortDescription || listing.description}
                 </p>
@@ -109,20 +119,29 @@ export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: To
                   <button type="button" onClick={() => onEdit(listing)} className="k-control-btn text-sm">
                     Edit
                   </button>
-                  {canVerify ? (
+                  {canVerifyDeployer && isReal ? (
                     <button
                       type="button"
-                      onClick={() => setVerifyTarget(listing)}
-                      className="k-control-btn text-sm !border-[#02abb8]/40 !text-[#02abb8] col-span-1"
+                      onClick={() => openWizard(listing, 'deployer')}
+                      className="k-control-btn col-span-2 text-sm !border-[#02abb8]/40 !text-[#02abb8]"
                     >
-                      Verify
+                      Verify with Deployer Wallet
+                    </button>
+                  ) : null}
+                  {listing.ownership !== 'wallet_assigned' && listing.ownership !== 'deployer_verified' ? (
+                    <button
+                      type="button"
+                      onClick={() => openWizard(listing, 'assign')}
+                      className="k-control-btn col-span-2 text-sm"
+                    >
+                      Assign Wallet Address
                     </button>
                   ) : null}
                   {onDelete ? (
                     <button
                       type="button"
                       onClick={() => onDelete(listing.id)}
-                      className={`k-control-btn text-sm text-red-600 dark:text-red-400 ${canVerify ? '' : 'col-span-2'}`}
+                      className="k-control-btn col-span-2 text-sm text-red-600 dark:text-red-400"
                     >
                       Remove
                     </button>
@@ -134,13 +153,18 @@ export function TokenListingArchive({ listings, onEdit, onDelete, onVerify }: To
         })}
       </div>
 
-      {verifyTarget ? (
+      {wizardTarget ? (
         <TokenVerificationWizard
-          listing={verifyTarget}
-          onClose={() => setVerifyTarget(null)}
-          onVerified={async (proof) => {
-            await onVerify(verifyTarget.id, proof);
-            setVerifyTarget(null);
+          listing={wizardTarget}
+          mode={wizardMode}
+          onClose={() => setWizardTarget(null)}
+          onComplete={async (proof) => {
+            if (wizardMode === 'deployer') {
+              await onVerifyDeployer(wizardTarget.id, proof);
+            } else {
+              await onAssignWallet(wizardTarget.id, proof);
+            }
+            setWizardTarget(null);
           }}
         />
       ) : null}
