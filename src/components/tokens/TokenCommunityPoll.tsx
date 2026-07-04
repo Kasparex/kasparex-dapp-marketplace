@@ -10,21 +10,22 @@ import {
   savePollVote,
 } from '@/lib/tokens/votes';
 import { tokenHasModule } from '@/lib/tokens/modules';
+import { canUseIntegrationUtility } from '@/lib/tokens/utilityEligibility';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
-import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function TokenCommunityPoll({ token }: { token: Token }) {
   const poll = token.modulesConfig?.poll;
-  const enabled = tokenHasModule(token.paidModuleIds, 'on_chain_poll') && poll && poll.options.length >= 2;
+  const enabled =
+    canUseIntegrationUtility(token) &&
+    tokenHasModule(token.paidModuleIds, 'on_chain_poll') &&
+    poll &&
+    poll.options.length >= 2;
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
-  const { balance: krexBalance } = useKREXBalance();
   const wallet = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
   const [refreshTick, setRefreshTick] = useState(0);
@@ -59,14 +60,6 @@ export function TokenCommunityPoll({ token }: { token: Token }) {
         optionIndex: selectedOption,
         votedAt: new Date().toISOString(),
         txHash,
-      });
-      appendHubActivityEarn({
-        walletRaw: wallet,
-        source: 'tokens_listing_vote',
-        redeemableDelta: HUB_EARN_POINTS.tokensListingVote,
-        krexBalance,
-        idempotencyKey: `poll:${token.slug}:${wallet}`,
-        meta: { slug: token.slug },
       });
       setRefreshTick((t) => t + 1);
     } finally {

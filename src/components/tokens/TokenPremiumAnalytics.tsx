@@ -5,9 +5,12 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { getListingVoteScore } from '@/lib/tokens/votes';
 import { getPollVotes } from '@/lib/tokens/votes';
 import { tokenHasModule } from '@/lib/tokens/modules';
+import { canUseIntegrationUtility } from '@/lib/tokens/utilityEligibility';
 
 export function TokenPremiumAnalytics({ token }: { token: Token }) {
-  if (!tokenHasModule(token.paidModuleIds, 'premium_analytics')) return null;
+  if (!canUseIntegrationUtility(token) || !tokenHasModule(token.paidModuleIds, 'premium_analytics')) {
+    return null;
+  }
 
   const communityScore = token.listing?.communityScore ?? getListingVoteScore(token.id);
   const pollVotes = getPollVotes(token.slug).length;

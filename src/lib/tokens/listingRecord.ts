@@ -7,6 +7,7 @@ import type { TokenModuleId, TokenModulesConfig } from './modules';
 import type { TokenContentTab } from './sections';
 import type { TokenListingNetwork } from './listingNetwork';
 import { buildUtilityBadgesFromProducts } from './utilityRegistry';
+import { filterModulesForAssetKind } from './utilityEligibility';
 
 export type TokenPublishStatus =
   | 'draft'
@@ -138,14 +139,18 @@ export function listingToToken(listing: PublishedTokenListing): Token {
   const paid = listing.paidModuleIds ?? [];
   const deployerVerified = listing.ownership === 'deployer_verified';
   const utilityProductIds = listing.modulesConfig?.utilityProducts ?? [];
+  const integrationEligible =
+    listing.assetKind === 'real' && deployerVerified;
   const utilityBadges =
-    utilityProductIds.length > 0
+    integrationEligible && utilityProductIds.length > 0
       ? buildUtilityBadgesFromProducts(utilityProductIds)
       : listing.listing?.utilityBadges;
   const directoryListing: TokenListingStatus = {
     verified: deployerVerified,
     deployerVerified,
-    instantUtility: paid.includes('utility_integrations') || Boolean(listing.listing?.instantUtility),
+    instantUtility:
+      integrationEligible &&
+      (paid.includes('utility_integrations') || Boolean(listing.listing?.instantUtility)),
     featured: paid.includes('featured_listing') || Boolean(listing.listing?.featured),
     utilityBadges,
     activityScore: listing.listing?.activityScore ?? 10,
@@ -202,8 +207,9 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     decimals,
     listing: directoryListing,
     roadmap: listing.modulesConfig?.roadmap,
-    paidModuleIds: paid,
+    paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional'),
     modulesConfig: listing.modulesConfig,
+    assetKind: listing.assetKind ?? 'fictional',
   };
 }
 
@@ -240,6 +246,7 @@ export function mergeListingOverBase(base: Token, listing: PublishedTokenListing
     roadmap: listing.modulesConfig?.roadmap ?? base.roadmap,
     paidModuleIds: listing.paidModuleIds ?? base.paidModuleIds,
     modulesConfig: listing.modulesConfig ?? base.modulesConfig,
+    assetKind: listing.assetKind ?? base.assetKind,
     updatedAt: listing.updatedAt ?? base.updatedAt,
   };
 }

@@ -7,6 +7,7 @@
 
 import type { Token } from '@/lib/tokens/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import {
   getNetworkChipLabel,
   getNetworkExplorerUrl,
@@ -24,9 +25,7 @@ export function TokenInfoSection({ token }: TokenInfoSectionProps) {
     <section id="info" className="scroll-mt-28 space-y-6">
       <DAppSectionHeader title="About" />
 
-      <div className="prose prose-zinc dark:prose-invert max-w-none">
-        <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">{token.description}</p>
-      </div>
+      <KxRichTextContent html={token.description} className="kx-prose" />
 
       <div className="grid grid-cols-1 gap-4 pt-4">
         {networkEntries.length > 0 ? (

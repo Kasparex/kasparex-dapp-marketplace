@@ -14,6 +14,7 @@ type TokenModuleConfigFieldsProps = {
   config: TokenModulesConfig;
   onChange: (config: TokenModulesConfig) => void;
   enabledModuleIds: Set<string>;
+  isRealToken: boolean;
   disabled?: boolean;
 };
 
@@ -21,12 +22,13 @@ export function TokenModuleConfigFields({
   config,
   onChange,
   enabledModuleIds,
+  isRealToken,
   disabled,
 }: TokenModuleConfigFieldsProps) {
   const showRoadmap =
     enabledModuleIds.has('roadmap_editor') || enabledModuleIds.has('timeline_builder');
-  const showPoll = enabledModuleIds.has('on_chain_poll');
-  const showUtility = enabledModuleIds.has('utility_integrations');
+  const showPoll = isRealToken && enabledModuleIds.has('on_chain_poll');
+  const showUtility = isRealToken && enabledModuleIds.has('utility_integrations');
 
   if (!showRoadmap && !showPoll && !showUtility) return null;
 

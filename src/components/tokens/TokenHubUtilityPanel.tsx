@@ -4,9 +4,11 @@ import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { resolveTokenUtilityProducts } from '@/lib/tokens/utilityRegistry';
+import { canUseIntegrationUtility } from '@/lib/tokens/utilityEligibility';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
 export function TokenHubUtilityPanel({ token }: { token: Token }) {
+  if (!canUseIntegrationUtility(token)) return null;
   const products = resolveTokenUtilityProducts(token);
   if (products.length === 0) return null;
 

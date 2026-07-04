@@ -16,6 +16,7 @@ import {
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, formatTokenModulePaymentLabel, type TokenModulesConfig } from '@/lib/tokens/modules';
+import { filterModulesForAssetKind, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { TokenModuleConfigFields } from '@/components/tokens/TokenModuleConfigFields';
@@ -323,12 +324,20 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       featuredImageCid: resolvedMedia.featuredImageCid,
       type: 'collab',
       tags: tagsArray,
+      assetKind,
       listing: {
-        verified: false,
-        instantUtility: enabledModules.has('utility_integrations'),
+        verified: listing?.ownership === 'deployer_verified',
+        deployerVerified: listing?.ownership === 'deployer_verified',
+        instantUtility:
+          assetKind === 'real' &&
+          listing?.ownership === 'deployer_verified' &&
+          enabledModules.has('utility_integrations'),
         featured: enabledModules.has('featured_listing'),
       },
-      paidModuleIds: Array.from(enabledModules) as TokenModuleId[],
+      paidModuleIds: filterModulesForAssetKind(
+        Array.from(enabledModules) as TokenModuleId[],
+        assetKind,
+      ),
       modulesConfig,
     }),
     [
@@ -445,6 +454,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   ]);
 
   const toggleModule = (id: string) => {
+    if (!isRealToken && isIntegrationModule(id as TokenModuleId)) return;
     setEnabledModules((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -636,6 +646,18 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                     setOnChainSnapshot(null);
                     setKrc20Selected(null);
                     setDeployerAddress('');
+                    setEnabledModules((prev) => {
+                      const next = new Set(
+                        filterModulesForAssetKind([...prev] as TokenModuleId[], 'fictional'),
+                      );
+                      return next;
+                    });
+                    setModulesConfig((prev) => ({
+                      ...prev,
+                      utilityProducts: [],
+                      poll: undefined,
+                    }));
+                    setSectionToggles((prev) => ({ ...prev, utility: false }));
                   }
                 }}
                 options={[
@@ -938,10 +960,13 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               <DAppSectionHeader title="Premium modules" className="mb-1" />
               <p className="kx-body-sm mb-4">
                 Unlock roadmap editors, Hub integrations, analytics, and featured placement.
+                {!isRealToken
+                  ? ' Fictional tokens can use presentation modules only. Real on-chain tokens unlock integrations after deployer verification.'
+                  : ''}
                 {moduleDiscountPercent > 0 ? ` KREX tier discount: ${moduleDiscountPercent}% off modules.` : ''}
               </p>
             </div>
-            {TOKEN_MODULE_OFFERS.map((offer) => (
+            {TOKEN_MODULE_OFFERS.filter((offer) => isRealToken || !isIntegrationModule(offer.id)).map((offer) => (
               <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
                 <KxInFormPremiumRow
                   flat
@@ -960,6 +985,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               config={modulesConfig}
               onChange={setModulesConfig}
               enabledModuleIds={enabledModules}
+              isRealToken={isRealToken}
               disabled={isSubmitting}
             />
           </div>

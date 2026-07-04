@@ -10,9 +10,6 @@ import {
 } from '@/lib/tokens/votes';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
-import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 type TokenVoteControlsProps = {
@@ -23,7 +20,6 @@ type TokenVoteControlsProps = {
 export function TokenVoteControls({ token, compact = false }: TokenVoteControlsProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
-  const { balance: krexBalance } = useKREXBalance();
   const wallet = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
 
   const [tick, setTick] = useState(0);
@@ -32,21 +28,12 @@ export function TokenVoteControls({ token, compact = false }: TokenVoteControlsP
 
   const castVote = (vote: TokenListingVote) => {
     if (!wallet) return;
-    const isToggleOff = currentVote === vote;
-    if (isToggleOff) return;
+    if (currentVote === vote) return;
     saveListingVote({
       tokenId: token.id,
       wallet,
       vote,
       votedAt: new Date().toISOString(),
-    });
-    appendHubActivityEarn({
-      walletRaw: wallet,
-      source: 'tokens_listing_vote',
-      redeemableDelta: HUB_EARN_POINTS.tokensListingVote,
-      krexBalance,
-      idempotencyKey: `vote:${token.id}:${wallet}`,
-      meta: { tokenId: token.id, vote },
     });
     setTick((t) => t + 1);
   };
@@ -85,9 +72,6 @@ export function TokenVoteControls({ token, compact = false }: TokenVoteControlsP
           ▼
         </button>
       </Tooltip>
-      {!compact ? (
-        <span className="text-[10px] text-zinc-400">+{HUB_EARN_POINTS.tokensListingVote} pts</span>
-      ) : null}
     </div>
   );
 }

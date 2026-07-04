@@ -4,6 +4,7 @@
 
 import type { Token } from './types';
 import type { TokenModuleId } from './modules';
+import { canUseIntegrationUtility } from './utilityEligibility';
 
 export type HubUtilityProductId =
   | 'store'
@@ -79,6 +80,7 @@ export function getHubUtilityProduct(id: HubUtilityProductId): HubUtilityProduct
 }
 
 export function resolveTokenUtilityProducts(token: Token): HubUtilityProduct[] {
+  if (!canUseIntegrationUtility(token)) return [];
   const ids = token.modulesConfig?.utilityProducts ?? [];
   if (ids.length === 0 && token.listing?.instantUtility) {
     return HUB_UTILITY_PRODUCTS.slice(0, 3);

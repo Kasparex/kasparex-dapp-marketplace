@@ -13,6 +13,7 @@ import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
+import { filterModulesForAssetKind } from '@/lib/tokens/utilityEligibility';
 import {
   estimateTokenListingQuote,
   TOKEN_CHUNK_SIZE_BYTES,
@@ -75,7 +76,8 @@ export type CreateTokenListingInput = {
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
-  const enabledModuleIds = input.enabledModuleIds ?? [];
+  const assetKind = input.assetKind ?? 'fictional';
+  const enabledModuleIds = filterModulesForAssetKind(input.enabledModuleIds ?? [], assetKind);
   const pageConfig = input.sectionToggles || input.sectionOrder
     ? applyPageSectionConfig(
         createDefaultPageConfig(enabledModuleIds),
@@ -98,7 +100,7 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     pageConfig,
     enabledModuleIds,
     author,
-    assetKind: input.assetKind ?? 'fictional',
+    assetKind: draft.assetKind ?? 'fictional',
     deployerAddress: input.deployerAddress,
     maxSupply: input.maxSupply,
     totalSupply: input.totalSupply,
@@ -127,9 +129,12 @@ function listingUpdateFields(
     featuredImageUrl: draft.featuredImageUrl,
     featuredImageCid: draft.featuredImageCid,
     pageConfig: draft.pageConfig,
-    paidModuleIds: existing
-      ? [...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds])]
-      : draft.enabledModuleIds,
+    paidModuleIds: filterModulesForAssetKind(
+      existing
+        ? [...new Set([...(existing.paidModuleIds ?? []), ...draft.enabledModuleIds])]
+        : draft.enabledModuleIds,
+      draft.assetKind ?? existing?.assetKind ?? 'fictional',
+    ),
     assetKind: draft.assetKind ?? existing?.assetKind ?? 'fictional',
     deployerAddress: draft.deployerAddress?.trim() ?? existing?.deployerAddress,
     maxSupply: draft.maxSupply ?? existing?.maxSupply,
@@ -138,6 +143,7 @@ function listingUpdateFields(
     onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
     networks: draft.networks ?? existing?.networks,
     modulesConfig: draft.modulesConfig ?? existing?.modulesConfig,
+    assetKind: draft.assetKind ?? existing?.assetKind ?? 'fictional',
   };
 }
 

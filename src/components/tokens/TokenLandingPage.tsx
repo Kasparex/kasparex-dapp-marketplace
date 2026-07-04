@@ -4,6 +4,7 @@ import type { Token } from '@/lib/tokens/types';
 import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { TokenSidebar } from './TokenSidebar';
 import { TokenDetail, type TokenContentTab } from './TokenDetail';
+import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
 import { useCallback, useState } from 'react';
 
 interface TokenLandingPageProps {
@@ -30,7 +31,7 @@ export function TokenLandingPage({ token, pageConfig }: TokenLandingPageProps) {
 
   const fullyMinted = isFullyMinted(token);
   const showSwap = fullyMinted || token.id === 'krex' || token.type === 'global';
-  const showUtility = Boolean(token.listing?.instantUtility || token.listing?.verified);
+  const showUtility = canShowUtilityTab(token);
 
   const handleTokenNavClick = useCallback((itemId: string) => {
     const tabTarget = TAB_NAV_IDS[itemId];

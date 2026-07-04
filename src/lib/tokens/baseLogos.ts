@@ -31,7 +31,7 @@ export const baseTokenLogos: Record<string, BaseTokenLogo> = {
   grid: {
     tokenId: 'grid',
     symbol: 'GRID',
-    logoCid: 'bafkreidmvhcok2nffrz7no5da5g2qskwzwqivspw2ndzuv76nmama7egh4',
+    logoUrl: '/img/tokens/grid.png',
   },
 };
 

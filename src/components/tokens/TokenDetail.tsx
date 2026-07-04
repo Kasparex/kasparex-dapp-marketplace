@@ -24,6 +24,7 @@ import { TokenWhitepaperSection } from './TokenWhitepaperSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TOKEN_TAB_SECTION_CLASS, type TokenContentTab } from '@/lib/tokens/sections';
+import { canShowUtilityTab } from '@/lib/tokens/utilityEligibility';
 import {
   IconTokenComments,
   IconTokenMarkets,
@@ -73,7 +74,7 @@ export function TokenDetail({
   const fullyMinted = isFullyMinted(token);
   const showMintingProgress = Boolean(token.maxSupply && token.circulatingSupply !== undefined && !fullyMinted);
   const showSwap = fullyMinted || token.id === 'krex' || token.type === 'global';
-  const showUtility = Boolean(token.listing?.instantUtility || token.listing?.verified);
+  const showUtility = canShowUtilityTab(token);
   const commentsCount = useDAppCommentsCount(tokenCommentsArticleId(token.slug));
   const orderedTabs = getOrderedTabs(pageConfig);
   const orderedOverviewSubsections = getOrderedOverviewSubsections(pageConfig);
@@ -83,7 +84,7 @@ export function TokenDetail({
     roadmap: { id: 'roadmap', label: 'Roadmap', icon: <IconTokenRoadmap /> },
     markets: { id: 'markets', label: 'Markets', icon: <IconTokenMarkets /> },
     swap: showSwap || preview ? { id: 'swap', label: 'Swap', icon: <IconTokenSwap /> } : null,
-    utility: showUtility || preview ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
+    utility: showUtility ? { id: 'utility', label: 'Utility', icon: <IconTokenUtility /> } : null,
     comments: {
       id: 'comments',
       label: 'Comments',
@@ -186,7 +187,7 @@ export function TokenDetail({
                   </div>
                 ) : null}
 
-                {contentTab === 'utility' && (showUtility || preview) ? (
+                {contentTab === 'utility' && showUtility ? (
                   <div id="token-utility" className={`${TOKEN_TAB_SECTION_CLASS} animate-in fade-in duration-300`}>
                     <TokenUtilitySection token={token} />
                   </div>

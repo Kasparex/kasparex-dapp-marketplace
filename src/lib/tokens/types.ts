@@ -5,7 +5,7 @@
  */
 
 import type { TokenModuleId, TokenModulesConfig } from './modules';
-import type { TokenNetworkEntry } from './listingRecord';
+import type { TokenNetworkEntry, TokenAssetKind } from './listingRecord';
 
 export type TokenNetwork = 'L1' | 'L2';
 export type TokenType = 'global' | 'collab';
@@ -111,6 +111,9 @@ export interface Token {
 
   /** Unlocked premium module IDs (UaaS Phase 3). */
   paidModuleIds?: TokenModuleId[];
+
+  /** Fictional/community vs verified on-chain listing. */
+  assetKind?: TokenAssetKind;
 
   /** Module-specific content (roadmap, poll, utility products). */
   modulesConfig?: TokenModulesConfig;
