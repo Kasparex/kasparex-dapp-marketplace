@@ -36,6 +36,7 @@ import {
 import type { DAppNetworkFilter } from '@/lib/dapps';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 import { useTokens } from '@/hooks/useTokens';
+import { TOKEN_LISTING_VOTES_CHANGED_EVENT } from '@/lib/tokens/votes';
 
 interface TokensPageContentProps {
   tokens: Token[];
@@ -51,9 +52,16 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [utilitySectionFilter, setUtilitySectionFilter] = useState<TokenUtilitySectionFilter>('all');
   const [moduleSectionFilter, setModuleSectionFilter] = useState<TokenModuleSectionFilter>('all');
   const [premiumFilter, setPremiumFilter] = useState<TokenPremiumFilter>('all');
-  const [sortControl, setSortControl] = useState<TokenSortControlValue>('verified-first');
+  const [sortControl, setSortControl] = useState<TokenSortControlValue>('community-high');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [voteTick, setVoteTick] = useState(0);
+
+  useEffect(() => {
+    const onVotesChanged = () => setVoteTick((t) => t + 1);
+    window.addEventListener(TOKEN_LISTING_VOTES_CHANGED_EVENT, onVotesChanged);
+    return () => window.removeEventListener(TOKEN_LISTING_VOTES_CHANGED_EVENT, onVotesChanged);
+  }, []);
 
   useEffect(() => {
     const tagParam = searchParams.get('tag');
@@ -96,6 +104,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       premiumFilter,
       selectedTags,
       sortBy,
+      voteTick,
     ],
   );
 

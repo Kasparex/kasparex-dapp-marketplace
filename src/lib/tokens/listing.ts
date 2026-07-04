@@ -3,6 +3,7 @@ import type { TokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenTags } from '@/lib/tokens/tags';
 import { matchesTokenUtilitySidebarFilter, type TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
+import { getListingVoteScore } from '@/lib/tokens/votes';
 
 export type TokenSortOption =
   | 'name-az'
@@ -17,6 +18,7 @@ export type TokenSortOption =
   | 'featured-first'
   | 'utility-first'
   | 'activity-high'
+  | 'community-high'
   | 'network'
   | 'type';
 
@@ -53,7 +55,8 @@ export function getTokenActivityScore(token: Token): number {
 }
 
 export function getTokenCommunityScore(token: Token): number {
-  return token.listing?.communityScore ?? 0;
+  const base = token.listing?.communityScore ?? 0;
+  return base + getListingVoteScore(token.id);
 }
 
 export function filterTokens(tokens: Token[], filters: TokenListingFilters): Token[] {
@@ -109,12 +112,16 @@ export function sortTokens(tokens: Token[], sortBy: TokenSortOption): Token[] {
       const aV = tokenIsVerified(a) ? 1 : 0;
       const bV = tokenIsVerified(b) ? 1 : 0;
       if (bV !== aV) return bV - aV;
+      const voteDiff = getTokenCommunityScore(b) - getTokenCommunityScore(a);
+      if (voteDiff !== 0) return voteDiff;
       return a.name.localeCompare(b.name);
     }
     if (sortBy === 'featured-first') {
       const aF = tokenIsFeatured(a) ? 1 : 0;
       const bF = tokenIsFeatured(b) ? 1 : 0;
       if (bF !== aF) return bF - aF;
+      const voteDiff = getTokenCommunityScore(b) - getTokenCommunityScore(a);
+      if (voteDiff !== 0) return voteDiff;
       return getTokenActivityScore(b) - getTokenActivityScore(a);
     }
     if (sortBy === 'utility-first') {
@@ -124,7 +131,14 @@ export function sortTokens(tokens: Token[], sortBy: TokenSortOption): Token[] {
       return a.name.localeCompare(b.name);
     }
     if (sortBy === 'activity-high') {
+      const voteDiff = getTokenCommunityScore(b) - getTokenCommunityScore(a);
+      if (voteDiff !== 0) return voteDiff;
       return getTokenActivityScore(b) - getTokenActivityScore(a);
+    }
+    if (sortBy === 'community-high') {
+      const voteDiff = getTokenCommunityScore(b) - getTokenCommunityScore(a);
+      if (voteDiff !== 0) return voteDiff;
+      return getTokenActivityScore(b) - getTokenActivityScore(a) || a.name.localeCompare(b.name);
     }
     if (sortBy === 'name-az') return a.name.localeCompare(b.name);
     if (sortBy === 'name-za') return b.name.localeCompare(a.name);

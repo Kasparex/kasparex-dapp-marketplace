@@ -10,3 +10,6 @@ export function getTokensTreasuryL1Address(): string {
   }
   return getAdsTreasuryL1Address();
 }
+
+/** KAS sent to the token creator wallet per listing upvote/downvote. */
+export const TOKEN_LISTING_VOTE_FEE_KAS = 0.01;

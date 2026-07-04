@@ -117,6 +117,9 @@ export interface Token {
 
   /** Module-specific content (roadmap, poll, utility products). */
   modulesConfig?: TokenModulesConfig;
+
+  /** Kaspa L1 address of the published listing author (receives vote payments). */
+  creatorWallet?: string;
 }
 
 /**

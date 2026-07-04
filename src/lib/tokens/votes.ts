@@ -1,5 +1,5 @@
 /**
- * Community listing votes (local MVP) and token poll votes.
+ * Paid KAS listing votes and token poll votes.
  */
 
 export type TokenListingVote = 'up' | 'down';
@@ -25,6 +25,8 @@ const STORAGE_KEYS = {
   pollVotes: 'tokens_poll_votes',
 } as const;
 
+export const TOKEN_LISTING_VOTES_CHANGED_EVENT = 'tokens-listing-votes-changed';
+
 function safeParse<T>(value: string | null, fallback: T): T {
   if (!value) return fallback;
   try {
@@ -39,10 +41,19 @@ function safeWrite(key: string, value: unknown): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+export function notifyListingVotesChanged(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TOKEN_LISTING_VOTES_CHANGED_EVENT));
+}
+
+function isPaidListingVote(record: TokenListingVoteRecord): boolean {
+  return Boolean(record.txHash?.trim());
+}
+
 export function getListingVotes(tokenId: string): TokenListingVoteRecord[] {
   if (typeof window === 'undefined') return [];
   const all = safeParse<TokenListingVoteRecord[]>(localStorage.getItem(STORAGE_KEYS.listingVotes), []);
-  return all.filter((v) => v.tokenId === tokenId);
+  return all.filter((v) => v.tokenId === tokenId && isPaidListingVote(v));
 }
 
 export function getListingVoteScore(tokenId: string): number {
@@ -63,12 +74,13 @@ export function getListingVoteForWallet(tokenId: string, wallet: string): TokenL
 }
 
 export function saveListingVote(record: TokenListingVoteRecord): void {
-  if (typeof window === 'undefined' || !record.wallet) return;
+  if (typeof window === 'undefined' || !record.wallet || !record.txHash?.trim()) return;
   const key = record.wallet.toLowerCase();
   const all = safeParse<TokenListingVoteRecord[]>(localStorage.getItem(STORAGE_KEYS.listingVotes), []);
   const next = all.filter((v) => !(v.tokenId === record.tokenId && v.wallet.toLowerCase() === key));
-  next.push({ ...record, wallet: key });
+  next.push({ ...record, wallet: key, txHash: record.txHash.trim() });
   safeWrite(STORAGE_KEYS.listingVotes, next);
+  notifyListingVotesChanged();
 }
 
 export function getPollVotes(tokenSlug: string): TokenPollVoteRecord[] {

@@ -210,6 +210,7 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional'),
     modulesConfig: listing.modulesConfig,
     assetKind: listing.assetKind ?? 'fictional',
+    creatorWallet: listing.author,
   };
 }
 
@@ -247,6 +248,7 @@ export function mergeListingOverBase(base: Token, listing: PublishedTokenListing
     paidModuleIds: listing.paidModuleIds ?? base.paidModuleIds,
     modulesConfig: listing.modulesConfig ?? base.modulesConfig,
     assetKind: listing.assetKind ?? base.assetKind,
+    creatorWallet: listing.author ?? base.creatorWallet,
     updatedAt: listing.updatedAt ?? base.updatedAt,
   };
 }

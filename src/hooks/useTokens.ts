@@ -100,7 +100,7 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     pageConfig,
     enabledModuleIds,
     author,
-    assetKind: draft.assetKind ?? 'fictional',
+    assetKind,
     deployerAddress: input.deployerAddress,
     maxSupply: input.maxSupply,
     totalSupply: input.totalSupply,
@@ -143,7 +143,6 @@ function listingUpdateFields(
     onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
     networks: draft.networks ?? existing?.networks,
     modulesConfig: draft.modulesConfig ?? existing?.modulesConfig,
-    assetKind: draft.assetKind ?? existing?.assetKind ?? 'fictional',
   };
 }
 

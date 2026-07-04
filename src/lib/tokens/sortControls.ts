@@ -14,6 +14,7 @@ export const TOKEN_SORT_CONTROL_OPTIONS: { value: TokenSortControlValue; label: 
   { value: 'collab-tokens', label: 'Collab tokens' },
   { value: 'verified-only', label: 'Verified only' },
   { value: 'verified-first', label: 'Verified first' },
+  { value: 'community-high', label: 'Most community support' },
   { value: 'featured-first', label: 'Featured first' },
   { value: 'utility-first', label: 'Utility enabled first' },
   { value: 'activity-high', label: 'Highest activity' },
