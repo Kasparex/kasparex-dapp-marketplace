@@ -44,27 +44,22 @@ export function getNetworkChipShortLabel(network: TokenListingNetwork): string {
   }
 }
 
-/** Distinct tier-style pill colors per network type. */
+/** Distinct tier-style pill colors per network type (stronger contrast). */
 export function getNetworkChipStyleClasses(network: TokenListingNetwork): string {
   switch (network) {
     case 'krc20':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200';
+      return 'bg-amber-200 text-amber-950 dark:bg-amber-500/35 dark:text-amber-100';
     case 'kcc20':
-      return 'bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200';
+      return 'bg-violet-200 text-violet-950 dark:bg-violet-500/35 dark:text-violet-100';
     case 'kaspa_l1':
-      return 'bg-cyan-100 text-cyan-900 dark:bg-cyan-500/20 dark:text-cyan-200';
+      return 'bg-teal-200 text-teal-950 dark:bg-teal-500/35 dark:text-teal-100';
     case 'l2_kasplex':
-      return 'bg-blue-100 text-blue-900 dark:bg-blue-500/20 dark:text-blue-200';
+      return 'bg-sky-200 text-sky-950 dark:bg-sky-500/35 dark:text-sky-100';
     case 'l2_igra':
-      return 'bg-indigo-100 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-200';
+      return 'bg-indigo-200 text-indigo-950 dark:bg-indigo-500/35 dark:text-indigo-100';
     default:
       return 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700/60 dark:text-zinc-200';
   }
-}
-
-/** Featured listing pill colors (matches premium tier accent). */
-export function getFeaturedChipStyleClasses(): string {
-  return 'bg-yellow-100 text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-200';
 }
 
 export function getNetworkChipTooltip(

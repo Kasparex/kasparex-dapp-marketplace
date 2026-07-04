@@ -6,16 +6,13 @@ import {
   getNetworkChipShortLabel,
   getNetworkChipStyleClasses,
   getNetworkChipTooltip,
-  getFeaturedChipStyleClasses,
 } from '@/lib/tokens/networks';
 import { TokenListingPillBadge } from '@/components/tokens/TokenListingPillBadge';
-import { FeaturedBadgeIcon, NetworkBadgeIcon } from '@/components/tokens/tokenNetworkBadgeIcons';
+import { NetworkBadgeIcon } from '@/components/tokens/tokenNetworkBadgeIcons';
 
 type TokenNetworkChipsProps = {
   token: Token;
   className?: string;
-  /** When true, renders Featured pill alongside network badges (top section). */
-  includeFeatured?: boolean;
   /** stack: column under verification badge. inline: horizontal row. */
   layout?: 'inline' | 'stack';
 };
@@ -23,13 +20,10 @@ type TokenNetworkChipsProps = {
 export function TokenNetworkChips({
   token,
   className = '',
-  includeFeatured = false,
   layout = 'inline',
 }: TokenNetworkChipsProps) {
   const entries = getTokenNetworkEntries(token);
-  const showFeatured = includeFeatured && Boolean(token.listing?.featured);
-
-  if (entries.length === 0 && !showFeatured) return null;
+  if (entries.length === 0) return null;
 
   const layoutClass =
     layout === 'stack'
@@ -45,16 +39,9 @@ export function TokenNetworkChips({
           tooltip={getNetworkChipTooltip(entry.network, entry)}
           styleClass={getNetworkChipStyleClasses(entry.network)}
           icon={<NetworkBadgeIcon network={entry.network} />}
+          size="sm"
         />
       ))}
-      {showFeatured ? (
-        <TokenListingPillBadge
-          label="Featured"
-          tooltip="Premium featured listing"
-          styleClass={getFeaturedChipStyleClasses()}
-          icon={<FeaturedBadgeIcon />}
-        />
-      ) : null}
     </div>
   );
 }

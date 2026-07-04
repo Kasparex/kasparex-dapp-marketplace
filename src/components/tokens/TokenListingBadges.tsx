@@ -4,35 +4,25 @@ import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-const DEFAULT_MAX_VISIBLE = 4;
+const ACTIVE_ICON =
+  'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#02abb8]/35 bg-[#02abb8]/10 text-[#02abb8] cursor-help dark:border-[#02abb8]/40 dark:bg-[#02abb8]/15 dark:text-[#66dfe8]';
 
-type BadgeItem = {
-  key: string;
+const INACTIVE_ICON =
+  'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-400 cursor-help opacity-70 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-500';
+
+function IconButton({
+  label,
+  active,
+  children,
+}: {
   label: string;
-  icon: ReactNode;
-};
-
-function IconButton({ label, children }: { label: string; children: React.ReactNode }) {
+  active: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <Tooltip content={label}>
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 cursor-help dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300"
-        aria-label={label}
-      >
+      <span className={active ? ACTIVE_ICON : INACTIVE_ICON} aria-label={label}>
         {children}
-      </span>
-    </Tooltip>
-  );
-}
-
-function OverflowButton({ labels }: { labels: string[] }) {
-  return (
-    <Tooltip content={labels.join(' · ')}>
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-bold text-zinc-500 cursor-help dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-400"
-        aria-label={`${labels.length} more badges: ${labels.join(', ')}`}
-      >
-        …
       </span>
     </Tooltip>
   );
@@ -66,54 +56,32 @@ function BadgeIcon() {
   );
 }
 
-function collectBadgeItems(token: Token): BadgeItem[] {
-  const listing = token.listing;
-  if (!listing) return [];
-
-  const items: BadgeItem[] = [];
-
-  if (listing.verified) {
-    items.push({ key: 'verified', label: 'Verified project', icon: <VerifiedIcon /> });
-  }
-  if (listing.instantUtility) {
-    items.push({
-      key: 'utility',
-      label: 'Instant utility enabled in Kasparex Hub',
-      icon: <UtilityIcon />,
-    });
-  }
-  for (const badge of listing.utilityBadges ?? []) {
-    items.push({ key: `utility-${badge}`, label: `Utility: ${badge}`, icon: <BadgeIcon /> });
-  }
-
-  return items;
-}
-
-/** Footer icon badges with optional overflow ellipsis (Featured is shown as a top pill badge). */
+/** Always-visible footer icon badges: active when assigned, muted when not. */
 export function TokenListingBadges({
   token,
   className = '',
-  maxVisible = DEFAULT_MAX_VISIBLE,
 }: {
   token: Token;
   className?: string;
-  maxVisible?: number;
 }) {
-  const items = collectBadgeItems(token);
-  if (items.length === 0) return null;
-
-  const overflow = items.length > maxVisible;
-  const visibleItems = overflow ? items.slice(0, maxVisible - 1) : items;
-  const hiddenLabels = overflow ? items.slice(maxVisible - 1).map((item) => item.label) : [];
+  const listing = token.listing;
+  const verified = Boolean(listing?.verified);
+  const instantUtility = Boolean(listing?.instantUtility);
+  const utilityTips = listing?.utilityBadges ?? [];
 
   return (
-    <div className={`flex flex-nowrap items-center gap-1.5 min-w-0 overflow-hidden ${className}`.trim()}>
-      {visibleItems.map((item) => (
-        <IconButton key={item.key} label={item.label}>
-          {item.icon}
+    <div className={`flex flex-nowrap items-center justify-center gap-1.5 ${className}`.trim()}>
+      <IconButton label="Verified project" active={verified}>
+        <VerifiedIcon />
+      </IconButton>
+      <IconButton label="Instant utility enabled in Kasparex Hub" active={instantUtility}>
+        <UtilityIcon />
+      </IconButton>
+      {utilityTips.map((badge) => (
+        <IconButton key={badge} label={`Utility: ${badge}`} active>
+          <BadgeIcon />
         </IconButton>
       ))}
-      {overflow ? <OverflowButton labels={hiddenLabels} /> : null}
     </div>
   );
 }

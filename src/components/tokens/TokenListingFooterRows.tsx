@@ -12,33 +12,28 @@ type TokenListingFooterRowsProps = {
   showCategory?: boolean;
 };
 
-/** Icon badges (left) and vote controls (right). */
+/** Category (left), icon badges (center), vote controls (right). */
 export function TokenListingFooterRow({
   token,
+  onCategoryFilter,
+  showCategory = true,
   className = '',
-}: Pick<TokenListingFooterRowsProps, 'token' | 'className'>) {
+}: TokenListingFooterRowsProps) {
   return (
-    <div className={`flex items-center justify-between gap-2 ${className}`.trim()}>
-      <TokenListingBadges token={token} className="flex-1 min-w-0" />
-      <TokenVoteControls token={token} compact />
+    <div className={`grid grid-cols-[1fr_auto_1fr] items-center gap-2 ${className}`.trim()}>
+      <div className="justify-self-start min-w-0">
+        {showCategory ? <TokenCategoryBadge token={token} onFilter={onCategoryFilter} /> : null}
+      </div>
+      <div className="justify-self-center px-1">
+        <TokenListingBadges token={token} />
+      </div>
+      <div className="justify-self-end shrink-0">
+        <TokenVoteControls token={token} compact />
+      </div>
     </div>
   );
 }
 
-export function TokenListingFooterRows({
-  token,
-  onCategoryFilter,
-  className = '',
-  showCategory = true,
-}: TokenListingFooterRowsProps) {
-  return (
-    <div className={`space-y-2 ${className}`.trim()}>
-      {showCategory ? (
-        <div>
-          <TokenCategoryBadge token={token} onFilter={onCategoryFilter} />
-        </div>
-      ) : null}
-      <TokenListingFooterRow token={token} />
-    </div>
-  );
+export function TokenListingFooterRows(props: TokenListingFooterRowsProps) {
+  return <TokenListingFooterRow {...props} />;
 }
