@@ -3,7 +3,7 @@
  */
 
 import type { Token, TokenListingStatus, TokenNetwork } from './types';
-import type { TokenModuleId } from './modules';
+import type { TokenModuleId, TokenModulesConfig } from './modules';
 import type { TokenContentTab } from './sections';
 import type { TokenListingNetwork } from './listingNetwork';
 
@@ -107,6 +107,7 @@ export type PublishedTokenListing = {
   contentHash?: string;
   status: TokenPublishStatus;
   paidModuleIds?: TokenModuleId[];
+  modulesConfig?: TokenModulesConfig;
   listing?: TokenListingStatus;
   pricingSnapshot?: TokenListingPricingSnapshot;
   assetKind?: TokenAssetKind;
@@ -135,12 +136,17 @@ function parseSupplyFromRaw(raw: string | undefined, decimals: number): number |
 export function listingToToken(listing: PublishedTokenListing): Token {
   const paid = listing.paidModuleIds ?? [];
   const deployerVerified = listing.ownership === 'deployer_verified';
+  const utilityProductIds = listing.modulesConfig?.utilityProducts ?? [];
+  const utilityBadges =
+    utilityProductIds.length > 0
+      ? buildUtilityBadgesFromProducts(utilityProductIds)
+      : listing.listing?.utilityBadges;
   const directoryListing: TokenListingStatus = {
     verified: deployerVerified,
     deployerVerified,
     instantUtility: paid.includes('utility_integrations') || Boolean(listing.listing?.instantUtility),
     featured: paid.includes('featured_listing') || Boolean(listing.listing?.featured),
-    utilityBadges: listing.listing?.utilityBadges,
+    utilityBadges,
     activityScore: listing.listing?.activityScore ?? 10,
     communityScore: listing.listing?.communityScore ?? 0,
   };
@@ -194,6 +200,9 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     circulatingSupply: totalSupply,
     decimals,
     listing: directoryListing,
+    roadmap: listing.modulesConfig?.roadmap,
+    paidModuleIds: paid,
+    modulesConfig: listing.modulesConfig,
   };
 }
 
@@ -227,6 +236,9 @@ export function mergeListingOverBase(base: Token, listing: PublishedTokenListing
     circulatingSupply: listingToken.circulatingSupply ?? base.circulatingSupply,
     decimals: listingToken.decimals ?? base.decimals,
     listing: { ...base.listing, ...listingToken.listing },
+    roadmap: listing.modulesConfig?.roadmap ?? base.roadmap,
+    paidModuleIds: listing.paidModuleIds ?? base.paidModuleIds,
+    modulesConfig: listing.modulesConfig ?? base.modulesConfig,
     updatedAt: listing.updatedAt ?? base.updatedAt,
   };
 }

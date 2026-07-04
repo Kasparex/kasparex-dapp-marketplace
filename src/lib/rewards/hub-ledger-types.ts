@@ -25,7 +25,8 @@ export type EarnSource =
   | 'chronicles_quiz_complete'
   | 'token_listing_create'
   | 'token_listing_update'
-  | 'token_listing_verify';
+  | 'token_listing_verify'
+  | 'tokens_listing_vote';
 
 export type HubLedgerEntry = {
   id: string;

@@ -15,10 +15,11 @@ import {
   TokenListingMediaPanel,
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
-import { TOKEN_MODULE_OFFERS, type TokenModuleId } from '@/lib/tokens/modules';
+import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, formatTokenModulePaymentLabel, type TokenModulesConfig } from '@/lib/tokens/modules';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { getTokenModuleDiscountPercent } from '@/lib/tokens/modules';
+import { TokenModuleConfigFields } from '@/components/tokens/TokenModuleConfigFields';
+import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { Token } from '@/lib/tokens/types';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry, TokenPageSectionType } from '@/lib/tokens/listingRecord';
@@ -118,6 +119,7 @@ function buildFormDraft(args: {
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
   networks?: TokenNetworkEntry[];
+  modulesConfig?: TokenModulesConfig;
 }): TokenListingDraft {
   const resolved = resolveTokenListingMedia(args.media);
   const pageConfig = applyPageSectionConfig(
@@ -147,6 +149,7 @@ function buildFormDraft(args: {
     decimals: args.decimals,
     onChainSnapshot: args.onChainSnapshot,
     networks: args.networks,
+    modulesConfig: args.modulesConfig,
   };
 }
 
@@ -246,6 +249,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [enabledModules, setEnabledModules] = useState<Set<string>>(
     () => new Set(listing?.paidModuleIds ?? []),
   );
+  const [modulesConfig, setModulesConfig] = useState<TokenModulesConfig>(listing?.modulesConfig ?? {});
+  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [sectionToggles, setSectionToggles] = useState<Record<string, boolean>>(() => {
     const map: Record<string, boolean> = {};
     for (const section of listing?.pageConfig?.sections ?? []) {
@@ -323,6 +328,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         instantUtility: enabledModules.has('utility_integrations'),
         featured: enabledModules.has('featured_listing'),
       },
+      paidModuleIds: Array.from(enabledModules) as TokenModuleId[],
+      modulesConfig,
     }),
     [
       symbol,
@@ -331,6 +338,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       shortDescription,
       tagsArray,
       enabledModules,
+      modulesConfig,
       listingNetwork,
       contractAddress,
       listing,
@@ -347,6 +355,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     decimals: tokenDecimals,
     onChainSnapshot: onChainSnapshot ?? undefined,
     networks: assembledNetworks,
+    modulesConfig,
   };
 
   const formQuote = useMemo(() => {
@@ -444,6 +453,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     });
     if (id === 'roadmap_editor') setSectionToggles((prev) => ({ ...prev, roadmap: true }));
     if (id === 'utility_integrations') setSectionToggles((prev) => ({ ...prev, utility: true }));
+    if (id === 'on_chain_poll') setSectionToggles((prev) => ({ ...prev, utility: true }));
   };
 
   const toggleSection = (type: TokenPageSectionType) => {
@@ -555,6 +565,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         decimals: tokenDecimals,
         onChainSnapshot: onChainSnapshot ?? undefined,
         networks: assembledNetworks,
+        modulesConfig,
+        paymentCurrency,
       };
       const result = listing
         ? await updateExistingListing(listing.id, input, kaspaState.address!)
@@ -944,6 +956,12 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 />
               </div>
             ))}
+            <TokenModuleConfigFields
+              config={modulesConfig}
+              onChange={setModulesConfig}
+              enabledModuleIds={enabledModules}
+              disabled={isSubmitting}
+            />
           </div>
         </div>
 
@@ -1009,8 +1027,19 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               </ul>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
+              <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Pay with</p>
+              <KxSegmentToggle
+                value={paymentCurrency}
+                onChange={setPaymentCurrency}
+                options={STORE_PAYMENT_CURRENCIES.map((c) => ({ value: c, label: c }))}
+                ariaLabel="Payment currency"
+              />
+            </div>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
               <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formQuote.totalKas} KAS</p>
+              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
+                {formatTokenModulePaymentLabel(paymentCurrency, formQuote.totalKas)}
+              </p>
             </div>
             <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
               One Kaspa L1 payment commits your listing payload on-chain. Chunk count and size fees follow the same model

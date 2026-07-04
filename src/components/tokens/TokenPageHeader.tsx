@@ -13,6 +13,7 @@ import { TokenListingBadges } from './TokenListingBadges';
 import { TokenNetworkChips } from './TokenNetworkChips';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KxTagChip } from '@/components/ui/KxTagChip';
+import { tokenHasModule } from '@/lib/tokens/modules';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -52,13 +53,26 @@ export function TokenPageHeader({ token }: { token: Token }) {
   const isWalletConnected = kaspaState.isConnected || isConnected;
   const isVerifiedDeveloper = Boolean(token.listing?.verified && isWalletConnected);
 
+  const isHighlighted = tokenHasModule(token.paidModuleIds, 'highlighted_profile');
+
   const handleEdit = () => {
     router.push(`/tokens/dashboard?edit=${encodeURIComponent(token.slug)}`);
   };
 
   return (
-    <div id="token-header" className="relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/45 select-text">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
+    <div
+      id="token-header"
+      className={`relative mb-10 scroll-mt-24 overflow-hidden rounded-2xl border bg-zinc-50/80 dark:bg-zinc-900/45 select-text ${
+        isHighlighted
+          ? 'border-amber-400/60 shadow-[0_0_40px_-12px_rgba(251,191,36,0.45)]'
+          : 'border-zinc-200 dark:border-zinc-800'
+      }`}
+    >
+      <div
+        className={`absolute inset-0 bg-gradient-to-br via-transparent to-transparent ${
+          isHighlighted ? 'from-amber-500/10' : 'from-cyan-500/5'
+        }`}
+      />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">

@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
 import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
+import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
 import { TokenListingMeta } from '@/components/tokens/TokenListingMeta';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
@@ -74,8 +75,9 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
             <div className="mb-2">
               <TokenNetworkChips token={token} />
             </div>
-            <div className="mt-auto pt-2">
+            <div className="mt-auto pt-2 flex items-end justify-between gap-2">
               <TokenListingBadges token={token} />
+              <TokenVoteControls token={token} compact />
             </div>
           </KxListingCardBody>
         </KxListingCard>

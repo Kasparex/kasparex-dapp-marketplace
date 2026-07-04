@@ -4,6 +4,7 @@
  * GRID: see docs/GRID_CANONICAL_SUPPLY_MODEL.md (L1 canonical KRC-20 + bridged L2 ERC-20 representations).
  */
 
+import type { TokenModuleId, TokenModulesConfig } from './modules';
 import type { TokenNetworkEntry } from './listingRecord';
 
 export type TokenNetwork = 'L1' | 'L2';
@@ -107,6 +108,12 @@ export interface Token {
 
   /** Directory listing badges, scores, and premium signals. */
   listing?: TokenListingStatus;
+
+  /** Unlocked premium module IDs (UaaS Phase 3). */
+  paidModuleIds?: TokenModuleId[];
+
+  /** Module-specific content (roadmap, poll, utility products). */
+  modulesConfig?: TokenModulesConfig;
 }
 
 /**

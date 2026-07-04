@@ -169,6 +169,9 @@ export function createDefaultPageConfig(enabledModuleIds: string[] = []): TokenP
     if (section.type === 'utility' && enabledModuleIds.includes('utility_integrations')) {
       return { ...section, enabled: true };
     }
+    if (section.type === 'utility' && enabledModuleIds.includes('on_chain_poll')) {
+      return { ...section, enabled: true };
+    }
     return { ...section };
   });
 

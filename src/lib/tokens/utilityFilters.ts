@@ -54,7 +54,10 @@ export function resolveTokenSidebarFilter(
 export function matchesTokenUtilitySidebarFilter(token: Token, filter: TokenUtilitySidebarFilter): boolean {
   if (filter === 'all') return true;
   if (filter === 'utility-enabled') return Boolean(token.listing?.instantUtility);
-  if (filter.startsWith('module:')) return Boolean(token.listing?.instantUtility);
+  if (filter.startsWith('module:')) {
+    const moduleId = filter.slice('module:'.length);
+    return (token.paidModuleIds ?? []).includes(moduleId as import('./modules').TokenModuleId);
+  }
   if (filter.startsWith('badge:')) {
     const badge = filter.slice('badge:'.length);
     return token.listing?.utilityBadges?.includes(badge) ?? false;

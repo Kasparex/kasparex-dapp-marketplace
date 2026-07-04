@@ -6,6 +6,9 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { kasToSompi } from '@/lib/ads/config';
+import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
+import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
+import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
@@ -32,6 +35,7 @@ import {
 } from '@/lib/tokens/data';
 import { getClaimableSeeds, type ClaimableSeed } from '@/lib/tokens/seedClaims';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
+import type { TokenModulesConfig } from '@/lib/tokens/modules';
 import { listingToToken } from '@/lib/tokens/listingRecord';
 import { buildCanonicalListingPayload, hashListingPayload, type TokenListingDraft } from '@/lib/tokens/publish';
 import {
@@ -66,6 +70,8 @@ export type CreateTokenListingInput = {
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
   networks?: TokenNetworkEntry[];
+  modulesConfig?: TokenModulesConfig;
+  paymentCurrency?: StorePaymentCurrency;
 };
 
 function buildDraft(input: CreateTokenListingInput, author: string): TokenListingDraft {
@@ -99,6 +105,7 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     decimals: input.decimals,
     onChainSnapshot: input.onChainSnapshot,
     networks: input.networks,
+    modulesConfig: input.modulesConfig,
   };
 }
 
@@ -130,6 +137,7 @@ function listingUpdateFields(
     decimals: draft.decimals ?? existing?.decimals,
     onChainSnapshot: draft.onChainSnapshot ?? existing?.onChainSnapshot,
     networks: draft.networks ?? existing?.networks,
+    modulesConfig: draft.modulesConfig ?? existing?.modulesConfig,
   };
 }
 
@@ -188,6 +196,7 @@ export function useTokens() {
       author: string;
       draft: TokenListingDraft;
       totalKas: number;
+      paymentCurrency?: StorePaymentCurrency;
     }) => {
       if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
         throw new Error('Kaspa wallet must be connected to publish token listings.');
@@ -196,7 +205,7 @@ export function useTokens() {
       const canonicalPayload = buildCanonicalListingPayload(args.draft, args.op);
       const chunkHexList = splitPayloadToHexChunks(canonicalPayload, TOKEN_CHUNK_SIZE_BYTES);
       const rootHash = computeTokenListingRootHash(chunkHexList);
-      const treasury = getTokensTreasuryL1Address();
+      const treasury = getTokensTreasuryL1Address().replace(/^kaspa:/, '');
       const paymentKas = Math.max(0.01, Math.ceil(args.totalKas * 100) / 100);
       const commitNote = buildTokenListingCommitPlainNote({
         listingId: args.listingId,
@@ -212,16 +221,40 @@ export function useTokens() {
         rootHash,
         contentHash,
       });
-      const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: treasury,
-        amount: String(kasToSompi(paymentKas)),
-        note: commitNote,
-        payload: commitPayload,
-      });
-      if (commitTx.status === 'failed' || !commitTx.txHash) {
-        throw new Error(commitTx.error ?? 'Payment transaction failed');
+
+      let commitTxHash: string;
+      if (args.paymentCurrency === 'KREX') {
+        const amountKrex = kasToKrexAmount(paymentKas);
+        if (krexBalance + 1e-12 < amountKrex) {
+          throw new Error('Insufficient KREX balance for listing payment');
+        }
+        const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
+        const inscribeJson = {
+          p: 'KRC-20',
+          op: 'transfer',
+          tick: 'KREX',
+          amt: amountSmallest.toString(),
+          to: treasury,
+        };
+        commitTxHash = await signKrc20Transfer(
+          kaspaState.provider as KaspaWalletProvider,
+          JSON.stringify(inscribeJson),
+          KRC20_TRANSFER_TYPE,
+          treasury,
+          0.1,
+        );
+      } else {
+        const commitTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+          to: treasury,
+          amount: String(kasToSompi(paymentKas)),
+          note: commitNote,
+          payload: commitPayload,
+        });
+        if (commitTx.status === 'failed' || !commitTx.txHash) {
+          throw new Error(commitTx.error ?? 'Payment transaction failed');
+        }
+        commitTxHash = extractKaspaTransactionId(commitTx.txHash) ?? commitTx.txHash;
       }
-      const commitTxHash = extractKaspaTransactionId(commitTx.txHash) ?? commitTx.txHash;
 
       let verified = false;
       let lastError = 'Verification failed.';
@@ -257,7 +290,7 @@ export function useTokens() {
 
       return { commitTxHash, contentHash, rootHash, chunkHexList, verified, lastError };
     },
-    [kaspaState.address, kaspaState.isConnected, kaspaState.provider],
+    [kaspaState.address, kaspaState.isConnected, kaspaState.provider, krexBalance],
   );
 
   const publishNewListing = useCallback(
@@ -284,6 +317,7 @@ export function useTokens() {
         author,
         draft,
         totalKas: quote.totalKas,
+        paymentCurrency: input.paymentCurrency,
       });
 
       const listingFields = {
@@ -301,6 +335,7 @@ export function useTokens() {
         featuredImageCid: draft.featuredImageCid,
         pageConfig: draft.pageConfig,
         paidModuleIds: draft.enabledModuleIds,
+        modulesConfig: draft.modulesConfig,
         assetKind: draft.assetKind ?? 'fictional',
         ownership: 'none' as const,
         deployerAddress: draft.deployerAddress?.trim(),
@@ -380,6 +415,7 @@ export function useTokens() {
         author,
         draft,
         totalKas: quote.totalKas,
+        paymentCurrency: input.paymentCurrency,
       });
 
       const updated = updatePublishedListing(

@@ -1,4 +1,4 @@
-import type { TokenModuleId } from './modules';
+import type { TokenModuleId, TokenModulesConfig } from './modules';
 import type { TokenListingNetwork } from './listingNetwork';
 import { listingNetworkToTokenNetwork } from './listingNetwork';
 import type { TokenPageConfig, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from './listingRecord';
@@ -26,6 +26,7 @@ export type TokenListingDraft = {
   decimals?: number;
   onChainSnapshot?: TokenOnChainSnapshot;
   networks?: TokenNetworkEntry[];
+  modulesConfig?: TokenModulesConfig;
 };
 
 export function generateTokenSlug(symbol: string, name: string): string {
@@ -40,7 +41,7 @@ export function generateTokenSlug(symbol: string, name: string): string {
 
 export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'create' | 'edit'): string {
   return JSON.stringify({
-    v: 3,
+    v: 4,
     op,
     symbol: draft.symbol.trim().toUpperCase(),
     name: draft.name.trim(),
@@ -64,6 +65,7 @@ export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'crea
     decimals: draft.decimals ?? null,
     onChainSnapshot: draft.onChainSnapshot ?? null,
     networks: draft.networks ?? null,
+    modulesConfig: draft.modulesConfig ?? null,
   });
 }
 
