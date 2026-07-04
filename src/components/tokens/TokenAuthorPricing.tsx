@@ -1,29 +1,32 @@
 'use client';
 
-import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
-import { TOKEN_LISTING_FEES } from '@/lib/tokens/pricing';
+import { useTokenPricing } from '@/hooks/useTokenPricing';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 
 export function TokenPricingCards({ className = '' }: { className?: string }) {
-  const { tier } = useKREXBalance();
+  const { createFee, editFee, verifyFee, tier } = useTokenPricing();
 
   return (
     <div className={`grid grid-cols-1 gap-4 md:grid-cols-3 ${className}`.trim()}>
       <VBlogFeeCard
         title="List Token"
-        feeKas={TOKEN_LISTING_FEES.createListingKas}
+        feeKas={createFee}
+        basePoints={HUB_EARN_POINTS.tokenListingCreate}
         tier={tier}
         note="Publish your token landing page on Kasparex Tokens."
       />
       <VBlogFeeCard
         title="Update Page"
-        feeKas={TOKEN_LISTING_FEES.updateListingKas}
+        feeKas={editFee}
+        basePoints={HUB_EARN_POINTS.tokenListingUpdate}
         tier={tier}
         note="Refresh on-chain metadata and landing content."
       />
       <VBlogFeeCard
         title="Verify Project"
-        feeKas={TOKEN_LISTING_FEES.verifyProjectKas}
+        feeKas={verifyFee}
+        basePoints={HUB_EARN_POINTS.tokenListingVerify}
         tier={tier}
         note="Claim ownership and unlock verified status."
       />

@@ -14,6 +14,9 @@ import { TokenNetworkChips } from './TokenNetworkChips';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KxTagChip } from '@/components/ui/KxTagChip';
 import { tokenHasModule } from '@/lib/tokens/modules';
+import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
+import { formatAddress } from '@/lib/vblog/utils';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -54,6 +57,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
   const isVerifiedDeveloper = Boolean(token.listing?.verified && isWalletConnected);
 
   const isHighlighted = tokenHasModule(token.paidModuleIds, 'highlighted_profile');
+  const creatorWallet = resolveTokenCreatorWallet(token);
 
   const handleEdit = () => {
     router.push(`/tokens/dashboard?edit=${encodeURIComponent(token.slug)}`);
@@ -78,7 +82,17 @@ export function TokenPageHeader({ token }: { token: Token }) {
         <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-center gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
-            <TokenTitle token={token} size="lg" layout="besideLogo" className="min-w-0" />
+            <div className="min-w-0">
+              <TokenTitle token={token} size="lg" layout="besideLogo" />
+              {creatorWallet ? (
+                <AuthorInline
+                  address={creatorWallet}
+                  displayName={formatAddress(creatorWallet)}
+                  href={`/u/${encodeURIComponent(creatorWallet)}`}
+                  className="mt-2"
+                />
+              ) : null}
+            </div>
           </div>
 
           <p id="token-intro" className="kx-body mb-6 max-w-2xl select-text">

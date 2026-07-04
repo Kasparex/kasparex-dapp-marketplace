@@ -30,7 +30,6 @@ import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import { TOKEN_CONTENT_LIMITS, getTokenCharacterCount } from '@/lib/tokens/limits';
 import { KxFormDropdown } from '@/components/ui/KxFormDropdown';
-import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { TokenListingDraft } from '@/lib/tokens/publish';
 import { contentForRichEditor } from '@/lib/richText/html';
 import { useTokens } from '@/hooks/useTokens';
@@ -1034,23 +1033,6 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 <span>Chunk estimate</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span>
               </div>
-            </div>
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white/70 dark:bg-zinc-900/60 px-2.5 py-2 text-xs leading-snug">
-              <p className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Earn Hub Points</p>
-              <ul className="space-y-0.5 text-zinc-700 dark:text-zinc-300">
-                <li className="flex justify-between gap-2">
-                  <span>List Token</span>
-                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingCreate} pts</span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span>Update Page</span>
-                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingUpdate} pts</span>
-                </li>
-                <li className="flex justify-between gap-2">
-                  <span>Verify Token</span>
-                  <span className="font-bold tabular-nums text-[#02abb8]">+{HUB_EARN_POINTS.tokenListingVerify} pts</span>
-                </li>
-              </ul>
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
               <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Pay with</p>

@@ -14,6 +14,9 @@ import { TokenListingMeta } from '@/components/tokens/TokenListingMeta';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { AuthorInline } from '@/components/ui/AuthorInline';
+import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
+import { formatAddress } from '@/lib/vblog/utils';
 
 function EmptyState() {
   return (
@@ -49,7 +52,9 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-      {tokens.map((token) => (
+      {tokens.map((token) => {
+        const creatorWallet = resolveTokenCreatorWallet(token);
+        return (
         <KxListingCard key={token.id} href={`/tokens/${token.slug}`} accent="tokens" className="flex h-full flex-col">
           <KxListingCardMedia aspectClass="aspect-[16/9]">
             <TokenFeaturedMedia token={token} />
@@ -64,7 +69,17 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
           <KxListingCardBody comfortable className="flex flex-1 flex-col">
             <div className="mb-3 flex items-start gap-4">
               <TokenLogo token={token} size={56} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
-              <TokenTitle token={token} size="sm" layout="besideLogo" className="flex-1 min-w-0" />
+              <div className="flex-1 min-w-0">
+                <TokenTitle token={token} size="sm" layout="besideLogo" />
+                {creatorWallet ? (
+                  <AuthorInline
+                    address={creatorWallet}
+                    displayName={formatAddress(creatorWallet)}
+                    href={`/u/${encodeURIComponent(creatorWallet)}`}
+                    className="mt-1.5"
+                  />
+                ) : null}
+              </div>
             </div>
             <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
               {token.shortDescription || token.description}
@@ -81,7 +96,8 @@ export function TokenListingCardGrid({ tokens }: { tokens: Token[] }) {
             </div>
           </KxListingCardBody>
         </KxListingCard>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -91,7 +107,9 @@ export function TokenListingCompact({ tokens }: { tokens: Token[] }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-      {tokens.map((token) => (
+      {tokens.map((token) => {
+        const creatorWallet = resolveTokenCreatorWallet(token);
+        return (
         <Link
           key={token.id}
           href={`/tokens/${token.slug}`}
@@ -100,10 +118,19 @@ export function TokenListingCompact({ tokens }: { tokens: Token[] }) {
           <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <TokenTitle token={token} size="sm" layout="besideLogo" />
+            {creatorWallet ? (
+              <AuthorInline
+                address={creatorWallet}
+                displayName={formatAddress(creatorWallet)}
+                href={`/u/${encodeURIComponent(creatorWallet)}`}
+                className="mt-1"
+              />
+            ) : null}
             <TokenListingMeta token={token} />
           </div>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

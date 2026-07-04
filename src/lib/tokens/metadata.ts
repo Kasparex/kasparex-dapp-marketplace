@@ -85,37 +85,31 @@ export function mergeTokenMetadata(
 
 /**
  * Load token logo with priority chain
- * Priority: localStorage > baseLogos config > token.logoCid > token.logo > placeholder
+ * Priority: token.logoCid > token.logo > localStorage override > baseLogos fallback
  */
 export function loadTokenLogoUrl(token: Token): string | null {
-  // 1. Check localStorage (highest priority)
+  if (token.logoCid) {
+    return getTokenImageUrl(token.logoCid);
+  }
+
+  if (token.logo?.trim()) {
+    return token.logo.trim();
+  }
+
   const localStorageLogo = loadTokenLogo(token.id);
   if (localStorageLogo) {
-    // If it's a CID, resolve it
     if (!localStorageLogo.startsWith('http://') && !localStorageLogo.startsWith('https://')) {
       return getTokenImageUrl(localStorageLogo);
     }
     return localStorageLogo;
   }
 
-  // 2. Check base token logos config (for KAS, KREX, GRID)
   const baseLogo = getBaseTokenLogoUrl(token.id);
   if (baseLogo) {
-    // If it's a CID, resolve it
     if (!baseLogo.startsWith('http://') && !baseLogo.startsWith('https://')) {
       return getTokenImageUrl(baseLogo);
     }
     return baseLogo;
-  }
-
-  // 3. Check token.logoCid
-  if (token.logoCid) {
-    return getTokenImageUrl(token.logoCid);
-  }
-
-  // 4. Check token.logo (direct URL)
-  if (token.logo) {
-    return token.logo;
   }
 
   return null;
@@ -123,10 +117,17 @@ export function loadTokenLogoUrl(token: Token): string | null {
 
 /**
  * Load token featured image with priority chain
- * Priority: localStorage > baseLogos config > token.featuredImageCid > token.featuredImage > null
+ * Priority: token.featuredImageCid > token.featuredImage > localStorage override > baseLogos fallback
  */
 export function loadTokenFeaturedImageUrl(token: Token): string | null {
-  // 1. Check localStorage (highest priority)
+  if (token.featuredImageCid) {
+    return getTokenImageUrl(token.featuredImageCid);
+  }
+
+  if (token.featuredImage?.trim()) {
+    return token.featuredImage.trim();
+  }
+
   const localStorageFeatured = loadTokenFeaturedImage(token.id);
   if (localStorageFeatured) {
     if (!localStorageFeatured.startsWith('http://') && !localStorageFeatured.startsWith('https://')) {
@@ -135,23 +136,12 @@ export function loadTokenFeaturedImageUrl(token: Token): string | null {
     return localStorageFeatured;
   }
 
-  // 2. Check base token logos config
   const baseFeatured = getBaseTokenFeaturedImageUrl(token.id);
   if (baseFeatured) {
     if (!baseFeatured.startsWith('http://') && !baseFeatured.startsWith('https://')) {
       return getTokenImageUrl(baseFeatured);
     }
     return baseFeatured;
-  }
-
-  // 3. Check token.featuredImageCid
-  if (token.featuredImageCid) {
-    return getTokenImageUrl(token.featuredImageCid);
-  }
-
-  // 4. Check token.featuredImage (direct URL)
-  if (token.featuredImage) {
-    return token.featuredImage;
   }
 
   return null;
