@@ -5,16 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { TokenTitle } from '@/components/tokens/TokenTitle';
-import { TokenLogo } from '@/components/tokens/TokenLogo';
-import { TokenListingBadges } from '@/components/tokens/TokenListingBadges';
 import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import { TokenLogo } from '@/components/tokens/TokenLogo';
+import { TokenListingCardContent } from '@/components/tokens/TokenListingCardContent';
 import { TokenVerificationWizard, type TokenVerificationMode } from '@/components/tokens/TokenVerificationWizard';
 import { listingToToken } from '@/lib/tokens/listingRecord';
-import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
-import { getListingNetworkLabel, tokenNetworkToListingNetwork } from '@/lib/tokens/listingNetwork';
 import type { ClaimableSeed } from '@/lib/tokens/seedClaims';
 
 interface TokenListingArchiveProps {
@@ -149,10 +146,8 @@ export function TokenListingArchive({
           const token = listingToToken(listing);
           const featuredImageUrl = loadTokenFeaturedImageUrl(token);
           const pill = paymentPill(listing.status);
-          const network = listing.listingNetwork ?? tokenNetworkToListingNetwork(listing.network, listing.contractAddress);
           const canVerifyDeployer = listing.ownership !== 'deployer_verified';
           const isReal = listing.assetKind === 'real';
-
           return (
             <KxListingCard key={listing.id} accent="tokens" className="flex h-full flex-col">
               <KxListingCardMedia aspectClass="aspect-[16/9]">
@@ -166,69 +161,58 @@ export function TokenListingArchive({
                 </span>
               </KxListingCardMedia>
               <KxListingCardBody comfortable className="flex flex-1 flex-col">
-                <div className="mb-3 flex items-start gap-3">
-                  <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <TokenTitle token={token} size="sm" layout="besideLogo" />
-                    <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      {getListingNetworkLabel(network)}
-                    </p>
-                  </div>
-                </div>
-                <p className="mb-2 text-xs font-semibold text-[#02abb8]">{ownershipLabel(listing)}</p>
-                <div className="mb-2">
-                  <TokenNetworkChips token={token} />
-                </div>
-                <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
-                  {listing.shortDescription || listing.description}
-                </p>
-                <div className="mb-3">
-                  <TokenListingBadges token={token} />
-                </div>
-                <div className="mt-auto grid grid-cols-2 gap-2">
-                  <Link href={`/tokens/${listing.slug}`} className="k-control-btn text-sm text-center">
-                    View page
-                  </Link>
-                  <button type="button" onClick={() => onEdit(listing)} className="k-control-btn text-sm">
-                    Edit
-                  </button>
-                  {canVerifyDeployer && isReal ? (
-                    <button
-                      type="button"
-                      onClick={() => openWizard(listing, 'deployer')}
-                      className="k-control-btn col-span-2 text-sm !border-[#02abb8]/40 !text-[#02abb8]"
-                    >
-                      Verify with Deployer Wallet
-                    </button>
-                  ) : null}
-                  {listing.ownership !== 'wallet_assigned' && listing.ownership !== 'deployer_verified' ? (
-                    <button
-                      type="button"
-                      onClick={() => openWizard(listing, 'assign')}
-                      className="k-control-btn col-span-2 text-sm"
-                    >
-                      Assign Wallet Address
-                    </button>
-                  ) : null}
-                  {listing.ownership === 'wallet_assigned' && onUnassignWallet ? (
-                    <button
-                      type="button"
-                      onClick={() => void onUnassignWallet(listing.id)}
-                      className="k-control-btn col-span-2 text-sm"
-                    >
-                      Unassign Wallet
-                    </button>
-                  ) : null}
-                  {onDelete ? (
-                    <button
-                      type="button"
-                      onClick={() => onDelete(listing.id)}
-                      className="k-control-btn col-span-2 text-sm text-red-600 dark:text-red-400"
-                    >
-                      Remove
-                    </button>
-                  ) : null}
-                </div>
+                <TokenListingCardContent
+                  token={token}
+                  ownershipLabel={
+                    <p className="text-xs font-semibold text-[#02abb8]">{ownershipLabel(listing)}</p>
+                  }
+                  footer={
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link href={`/tokens/${listing.slug}`} className="k-control-btn text-sm text-center">
+                        View page
+                      </Link>
+                      <button type="button" onClick={() => onEdit(listing)} className="k-control-btn text-sm">
+                        Edit
+                      </button>
+                      {canVerifyDeployer && isReal ? (
+                        <button
+                          type="button"
+                          onClick={() => openWizard(listing, 'deployer')}
+                          className="k-control-btn col-span-2 text-sm !border-[#02abb8]/40 !text-[#02abb8]"
+                        >
+                          Verify with Deployer Wallet
+                        </button>
+                      ) : null}
+                      {listing.ownership !== 'wallet_assigned' && listing.ownership !== 'deployer_verified' ? (
+                        <button
+                          type="button"
+                          onClick={() => openWizard(listing, 'assign')}
+                          className="k-control-btn col-span-2 text-sm"
+                        >
+                          Assign Wallet Address
+                        </button>
+                      ) : null}
+                      {listing.ownership === 'wallet_assigned' && onUnassignWallet ? (
+                        <button
+                          type="button"
+                          onClick={() => void onUnassignWallet(listing.id)}
+                          className="k-control-btn col-span-2 text-sm"
+                        >
+                          Unassign Wallet
+                        </button>
+                      ) : null}
+                      {onDelete ? (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(listing.id)}
+                          className="k-control-btn col-span-2 text-sm text-red-600 dark:text-red-400"
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+                  }
+                />
               </KxListingCardBody>
             </KxListingCard>
           );

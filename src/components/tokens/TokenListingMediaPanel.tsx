@@ -5,7 +5,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { TOKEN_MEDIA_MAX_KB, validateTokenImage } from '@/lib/tokens/limits';
 
 export type TokenListingMediaState = {
@@ -84,7 +84,13 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
     }
     const cid = await upload(file, { filename: file.name });
     if (cid) {
-      onChange({ ...media, logoSource: 'file', logoCid: cid, logoName: file.name, logoUrl: '' });
+      onChange({
+        ...media,
+        logoSource: 'url',
+        logoCid: cid,
+        logoName: file.name,
+        logoUrl: normalizeIpfsUrlForForm(null, cid),
+      });
     }
   };
 
@@ -100,7 +106,13 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
     }
     const cid = await upload(file, { filename: file.name });
     if (cid) {
-      onChange({ ...media, featuredSource: 'file', featuredCid: cid, featuredName: file.name, featuredUrl: '' });
+      onChange({
+        ...media,
+        featuredSource: 'url',
+        featuredCid: cid,
+        featuredName: file.name,
+        featuredUrl: normalizeIpfsUrlForForm(null, cid),
+      });
     }
   };
 
@@ -115,7 +127,9 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
           source={media.logoSource}
           onSourceChange={(logoSource) => onChange({ ...media, logoSource })}
           url={media.logoUrl}
-          onUrlChange={(logoUrl) => onChange({ ...media, logoUrl, logoCid: null, logoName: null })}
+          onUrlChange={(logoUrl) =>
+            onChange({ ...media, logoUrl: normalizeIpfsUrlForForm(logoUrl), logoCid: null, logoName: null })
+          }
           urlPlaceholder="https://..."
           urlHint="Direct HTTPS image URL. PNG, JPG, or WebP."
           fileName={media.logoName ?? (media.logoCid ? 'Uploaded logo' : null)}
@@ -137,7 +151,14 @@ export function TokenListingMediaPanel({ media, onChange, disabled, embedded = f
           source={media.featuredSource}
           onSourceChange={(featuredSource) => onChange({ ...media, featuredSource })}
           url={media.featuredUrl}
-          onUrlChange={(featuredUrl) => onChange({ ...media, featuredUrl, featuredCid: null, featuredName: null })}
+          onUrlChange={(featuredUrl) =>
+            onChange({
+              ...media,
+              featuredUrl: normalizeIpfsUrlForForm(featuredUrl),
+              featuredCid: null,
+              featuredName: null,
+            })
+          }
           urlPlaceholder="https://..."
           urlHint="Direct HTTPS image URL. PNG, JPG, or WebP."
           fileName={media.featuredName ?? (media.featuredCid ? 'Uploaded banner' : null)}

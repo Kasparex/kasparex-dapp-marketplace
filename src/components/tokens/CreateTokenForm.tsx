@@ -622,7 +622,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         }}
       >
         <div className="flex flex-col gap-6 min-w-0">
-          <div className={`${FORM_PANEL_CLASS} space-y-6`}>
+          <div className={`${FORM_PANEL_CLASS} space-y-6 scroll-mt-24`} id="tokens-dashboard-main">
             <div>
               <DAppSectionHeader title="Main content" className="mb-3" />
               <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
@@ -955,7 +955,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             </div>
           </div>
 
-          <div className={`${FORM_PANEL_CLASS} space-y-6`} id="tokens-dashboard-media">
+          <div className={`${FORM_PANEL_CLASS} space-y-6 scroll-mt-24`} id="tokens-dashboard-media">
             <DAppSectionHeader title="Listing media" className="mb-1" />
             <p className="kx-body-sm">
               Upload your token logo and featured banner via direct URL or IPFS, same as vBlog article media.
@@ -963,7 +963,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             <TokenListingMediaPanel media={media} onChange={onMediaChange} disabled={isSubmitting} embedded />
           </div>
 
-          <div className={FORM_PANEL_CLASS} id="tokens-dashboard-sections">
+          <div className={`${FORM_PANEL_CLASS} scroll-mt-24`} id="tokens-dashboard-sections">
             <TokenPageBuilder
               pageConfig={livePageConfig}
               sectionToggles={sectionToggles}
@@ -975,7 +975,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             />
           </div>
 
-          <div className="space-y-4" id="tokens-dashboard-modules">
+          <div className="space-y-4 scroll-mt-24" id="tokens-dashboard-modules">
             <div className={FORM_PANEL_CLASS}>
               <DAppSectionHeader title="Premium modules" className="mb-1" />
               <p className="kx-body-sm mb-4">
@@ -1006,6 +1006,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               onChange={setModulesConfig}
               enabledModuleIds={enabledModules}
               isRealToken={isRealToken}
+              marketsSectionEnabled={sectionToggles.markets ?? false}
               disabled={isSubmitting}
             />
           </div>

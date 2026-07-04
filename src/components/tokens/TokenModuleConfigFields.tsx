@@ -3,18 +3,22 @@
 import { VBlogPollOptionsEditor } from '@/components/vblog/VBlogPollOptionsEditor';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TokenRoadmapEditor } from '@/components/tokens/TokenRoadmapEditor';
+import { TokenMarketsEditor } from '@/components/tokens/TokenMarketsEditor';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import {
   cleanPollOptions,
   defaultTokenPollConfig,
   type TokenModulesConfig,
 } from '@/lib/tokens/modules';
 import { HUB_UTILITY_PRODUCTS } from '@/lib/tokens/utilityRegistry';
+import { contentForRichEditor } from '@/lib/richText/html';
 
 type TokenModuleConfigFieldsProps = {
   config: TokenModulesConfig;
   onChange: (config: TokenModulesConfig) => void;
   enabledModuleIds: Set<string>;
   isRealToken: boolean;
+  marketsSectionEnabled?: boolean;
   disabled?: boolean;
 };
 
@@ -23,14 +27,16 @@ export function TokenModuleConfigFields({
   onChange,
   enabledModuleIds,
   isRealToken,
+  marketsSectionEnabled = false,
   disabled,
 }: TokenModuleConfigFieldsProps) {
   const showRoadmap =
     enabledModuleIds.has('roadmap_editor') || enabledModuleIds.has('timeline_builder');
   const showPoll = isRealToken && enabledModuleIds.has('on_chain_poll');
   const showUtility = isRealToken && enabledModuleIds.has('utility_integrations');
+  const showMarkets = marketsSectionEnabled;
 
-  if (!showRoadmap && !showPoll && !showUtility) return null;
+  if (!showRoadmap && !showPoll && !showUtility && !showMarkets) return null;
 
   const poll = config.poll ?? defaultTokenPollConfig();
   const utilityProducts = config.utilityProducts ?? [];
@@ -42,8 +48,24 @@ export function TokenModuleConfigFields({
           <DAppSectionHeader title="Roadmap content" className="mb-1" />
           <p className="kx-body-sm">Milestones appear on the Roadmap tab after publish.</p>
           <TokenRoadmapEditor
+            intro={config.roadmapIntro ?? ''}
+            outro={config.roadmapOutro ?? ''}
             milestones={config.roadmap ?? []}
+            onIntroChange={(roadmapIntro) => onChange({ ...config, roadmapIntro })}
+            onOutroChange={(roadmapOutro) => onChange({ ...config, roadmapOutro })}
             onChange={(roadmap) => onChange({ ...config, roadmap })}
+            disabled={disabled}
+          />
+        </div>
+      ) : null}
+
+      {showMarkets ? (
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4" id="tokens-dashboard-markets">
+          <DAppSectionHeader title="Markets content" className="mb-1" />
+          <p className="kx-body-sm">Build a custom list of CEX and DEX marketplaces for your token.</p>
+          <TokenMarketsEditor
+            markets={config.markets ?? []}
+            onChange={(markets) => onChange({ ...config, markets })}
             disabled={disabled}
           />
         </div>
@@ -54,12 +76,12 @@ export function TokenModuleConfigFields({
           <DAppSectionHeader title="Community poll" className="mb-1" />
           <div>
             <label className="k-label">Question</label>
-            <input
-              type="text"
-              className="k-input mt-1 w-full"
-              value={poll.question}
+            <KxRichTextEditor
+              value={contentForRichEditor(poll.question)}
+              onChange={(question) => onChange({ ...config, poll: { ...poll, question } })}
+              placeholder="What should we prioritize next?"
+              minRows={3}
               disabled={disabled}
-              onChange={(e) => onChange({ ...config, poll: { ...poll, question: e.target.value } })}
             />
           </div>
           <VBlogPollOptionsEditor

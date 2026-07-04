@@ -22,7 +22,7 @@ import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
@@ -320,7 +320,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     setDescription(htmlToPlainText(article.description) || article.description);
     setContent(contentForRichEditor(article.content));
     setFeaturedImageSource(article.featuredImage ? 'url' : 'file');
-    setFeaturedImageUrl(article.featuredImage ?? '');
+    setFeaturedImageUrl(normalizeIpfsUrlForForm(article.featuredImage));
     setFeaturedImageCid(null);
     setFeaturedImageName(null);
     setCategory(article.category);
@@ -372,7 +372,8 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
     if (uploadedCid) {
       setFeaturedImageCid(uploadedCid);
       setFeaturedImageName(file.name);
-      setFeaturedImageUrl('');
+      setFeaturedImageUrl(normalizeIpfsUrlForForm(null, uploadedCid));
+      setFeaturedImageSource('url');
       setError(null);
     } else {
       setError('Failed to upload featured image to IPFS');
@@ -685,7 +686,7 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             onSourceChange={setFeaturedImageSource}
             url={featuredImageUrl}
             onUrlChange={(next) => {
-              setFeaturedImageUrl(next);
+              setFeaturedImageUrl(normalizeIpfsUrlForForm(next));
               setFeaturedImageCid(null);
               setFeaturedImageName(null);
             }}

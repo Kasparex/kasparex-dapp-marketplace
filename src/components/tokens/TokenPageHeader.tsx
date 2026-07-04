@@ -18,6 +18,8 @@ import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
+import { TokenVerificationStatusBadge } from '@/components/tokens/TokenVerificationStatusBadge';
+import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -81,9 +83,9 @@ export function TokenPageHeader({ token }: { token: Token }) {
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="relative flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
-          <div className="mb-6 flex items-center gap-4">
+          <div className="mb-6 flex items-start gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <TokenTitle token={token} size="lg" layout="besideLogo" />
               {creatorWallet ? (
                 <AuthorInline
@@ -93,6 +95,10 @@ export function TokenPageHeader({ token }: { token: Token }) {
                   className="mt-2"
                 />
               ) : null}
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-1.5">
+              <TokenVerificationStatusBadge token={token} />
+              <TokenVoteControls token={token} compact />
             </div>
           </div>
 

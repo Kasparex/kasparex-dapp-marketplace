@@ -27,7 +27,7 @@ import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { getCategoryById } from '@/lib/categories';
 import { DAppIcon } from '@/components/dapps/DAppIcon';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
@@ -118,16 +118,16 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   );
   const [featureImageCid, setFeatureImageCid] = useState<string | null>(listing?.featureImageCid ?? null);
   const [featureImageName, setFeatureImageName] = useState<string | null>(null);
-  const [featureImageUrl, setFeatureImageUrl] = useState(listing?.featureImageUrl ?? '');
+  const initialFeatureUrl = normalizeIpfsUrlForForm(listing?.featureImageUrl, listing?.featureImageCid);
+  const [featureImageUrl, setFeatureImageUrl] = useState(initialFeatureUrl);
   const [featureImageSource, setFeatureImageSource] = useState<'url' | 'file'>(() =>
-    listing?.featureImageUrl ? 'url' : 'file',
+    initialFeatureUrl ? 'url' : 'file',
   );
   const [logoCid, setLogoCid] = useState<string | null>(listing?.logoCid ?? null);
   const [logoName, setLogoName] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState(listing?.logoUrl ?? '');
-  const [logoSource, setLogoSource] = useState<'url' | 'file'>(() =>
-    listing?.logoUrl ? 'url' : 'file',
-  );
+  const initialLogoUrl = normalizeIpfsUrlForForm(listing?.logoUrl, listing?.logoCid);
+  const [logoUrl, setLogoUrl] = useState(initialLogoUrl);
+  const [logoSource, setLogoSource] = useState<'url' | 'file'>(() => (initialLogoUrl ? 'url' : 'file'));
   const [galleryCids, setGalleryCids] = useState<string[]>(listing?.galleryCids ?? []);
   const [galleryFileNames, setGalleryFileNames] = useState<string[]>(listing?.galleryFileNames ?? []);
   const [galleryUrlsRaw, setGalleryUrlsRaw] = useState((listing?.galleryUrls ?? []).join('\n'));
@@ -168,11 +168,13 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     );
     setActionButtons(listing.actionButtons.length ? listing.actionButtons : [{ label: '', url: '' }]);
     setFeatureImageCid(listing.featureImageCid ?? null);
-    setFeatureImageUrl(listing.featureImageUrl ?? '');
-    setFeatureImageSource(listing.featureImageUrl ? 'url' : 'file');
+    setFeatureImageUrl(normalizeIpfsUrlForForm(listing.featureImageUrl, listing.featureImageCid));
+    setFeatureImageSource(
+      normalizeIpfsUrlForForm(listing.featureImageUrl, listing.featureImageCid) ? 'url' : 'file',
+    );
     setLogoCid(listing.logoCid ?? null);
-    setLogoUrl(listing.logoUrl ?? '');
-    setLogoSource(listing.logoUrl ? 'url' : 'file');
+    setLogoUrl(normalizeIpfsUrlForForm(listing.logoUrl, listing.logoCid));
+    setLogoSource(normalizeIpfsUrlForForm(listing.logoUrl, listing.logoCid) ? 'url' : 'file');
     setGalleryCids(listing.galleryCids);
     setGalleryFileNames(listing.galleryFileNames);
     setGalleryUrlsRaw((listing.galleryUrls ?? []).join('\n'));
@@ -233,7 +235,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     if (cid) {
       setFeatureImageCid(cid);
       setFeatureImageName(file.name);
-      setFeatureImageUrl('');
+      setFeatureImageUrl(normalizeIpfsUrlForForm(null, cid));
+      setFeatureImageSource('url');
       setError(null);
     }
     e.target.value = '';
@@ -246,7 +249,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     if (cid) {
       setLogoCid(cid);
       setLogoName(file.name);
-      setLogoUrl('');
+      setLogoUrl(normalizeIpfsUrlForForm(null, cid));
+      setLogoSource('url');
       setError(null);
     }
     e.target.value = '';
@@ -581,7 +585,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
                     className="k-input"
                     value={logoUrl}
                     onChange={(e) => {
-                      setLogoUrl(e.target.value);
+                      setLogoUrl(normalizeIpfsUrlForForm(e.target.value));
                       setLogoCid(null);
                       setLogoName(null);
                     }}
@@ -619,7 +623,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
                     className="k-input"
                     value={featureImageUrl}
                     onChange={(e) => {
-                      setFeatureImageUrl(e.target.value);
+                      setFeatureImageUrl(normalizeIpfsUrlForForm(e.target.value));
                       setFeatureImageCid(null);
                       setFeatureImageName(null);
                     }}

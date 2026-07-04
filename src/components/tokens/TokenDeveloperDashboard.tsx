@@ -14,18 +14,22 @@ import { useTokens } from '@/hooks/useTokens';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { Alert } from '@/components/Alert';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
   if (!listing) return { ...EMPTY_TOKEN_LISTING_MEDIA };
+  const logoUrl = normalizeIpfsUrlForForm(listing.logoUrl, listing.logoCid);
+  const featuredUrl = normalizeIpfsUrlForForm(listing.featuredImageUrl, listing.featuredImageCid);
+  const hasLogo = Boolean(logoUrl);
+  const hasFeatured = Boolean(featuredUrl);
   return {
-    logoSource: listing.logoUrl ? 'url' : listing.logoCid ? 'file' : 'file',
-    logoUrl: listing.logoUrl ?? '',
+    logoSource: hasLogo ? 'url' : 'file',
+    logoUrl,
     logoCid: listing.logoCid ?? null,
     logoName: listing.logoCid ? 'Uploaded logo' : null,
-    featuredSource: listing.featuredImageUrl ? 'url' : listing.featuredImageCid ? 'file' : 'file',
-    featuredUrl: listing.featuredImageUrl ?? (listing.featuredImageCid ? getBestGatewayUrl(listing.featuredImageCid) : ''),
+    featuredSource: hasFeatured ? 'url' : 'file',
+    featuredUrl,
     featuredCid: listing.featuredImageCid ?? null,
     featuredName: listing.featuredImageCid ? 'Uploaded banner' : null,
   };

@@ -7,6 +7,8 @@ import type { Token } from '@/lib/tokens/types';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { getAllTokenTags } from '@/lib/tokens/tags';
 import { getTokenCategoriesFromTokens, getTokenCategory } from '@/lib/tokens/categories';
@@ -24,6 +26,22 @@ import {
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
 const ALL_CATEGORIES_ID = 'all';
+
+const DASHBOARD_SECTIONS: Array<{ label: string; anchor: string }> = [
+  { label: 'Create listing', anchor: 'tokens-dashboard-main' },
+  { label: 'Fees & rewards', anchor: 'tokens-dashboard-pricing' },
+  { label: 'Listing media', anchor: 'tokens-dashboard-media' },
+  { label: 'Page sections', anchor: 'tokens-dashboard-sections' },
+  { label: 'Premium modules', anchor: 'tokens-dashboard-modules' },
+  { label: 'My tokens', anchor: 'tokens-dashboard-archive' },
+];
+
+function scrollToAnchor(anchorId: string) {
+  if (typeof window === 'undefined') return;
+  window.requestAnimationFrame(() => {
+    document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
 
 function TokenCategoryIcon({ className = '' }: { className?: string }) {
   return (
@@ -126,6 +144,25 @@ export function TokensListingSidebar({
           Dashboard
         </Link>
       </div>
+
+      {dashboardActive ? (
+        <SidebarSection title="Form navigation" className="mb-6">
+          <nav className="space-y-0.5">
+            {DASHBOARD_SECTIONS.map((item) => (
+              <SidebarNavItem
+                key={item.anchor}
+                href={`#${item.anchor}`}
+                onLinkClick={(e) => {
+                  e.preventDefault();
+                  scrollToAnchor(item.anchor);
+                }}
+                label={item.label}
+                icon={<TokenCategoryIcon className="!h-4 !w-4" />}
+              />
+            ))}
+          </nav>
+        </SidebarSection>
+      ) : null}
 
       {onCategoryChange ? (
         <SidebarCategories

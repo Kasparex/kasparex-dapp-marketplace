@@ -15,6 +15,7 @@ import { TokenAside } from './TokenAside';
 import { TokenInfoSection } from './TokenInfoSection';
 import { TokenomicsSection } from './TokenomicsSection';
 import { RoadmapSection } from './RoadmapSection';
+import { TokenMarketsSection } from './TokenMarketsSection';
 import { PriceSection } from './PriceSection';
 import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { TokenMintingProgress } from './TokenMintingProgress';
@@ -175,6 +176,7 @@ export function TokenDetail({
 
                 {contentTab === 'markets' ? (
                   <div id="token-markets" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
+                    <TokenMarketsSection token={token} />
                     {showMintingProgress ? <TokenMintingProgress token={token} /> : null}
                     <PriceSection token={token} />
                     <TokenBalanceDisplay token={token} />

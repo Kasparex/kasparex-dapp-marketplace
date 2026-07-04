@@ -3,6 +3,8 @@
  * Tries multiple gateways with fallback chain
  */
 
+import { DOMAINS } from '@/lib/config/domains';
+
 export interface GatewayConfig {
   primary?: string;
   fallbacks?: string[];
@@ -42,7 +44,7 @@ export async function fetchFromGateway(
     try {
       // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
       const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
-      const proxyUrl = `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
+      const proxyUrl = getIpfsProxyPath(cleanHash);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -128,18 +130,79 @@ export async function fetchJSON<T = unknown>(
 }
 
 /**
- * Get the best available gateway URL (for direct use in img/src tags)
- * Uses proxy API route in browser to avoid CORS
+ * Relative IPFS proxy path used by the hub API route.
  */
-export function getBestGatewayUrl(hash: string): string {
-  // In browser, use proxy API route to avoid CORS
-  if (typeof window !== 'undefined') {
-    // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
-    const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
-    return `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
-  }
-  
-  // Server-side, use direct gateway
-  return getGatewayUrl(hash, DEFAULT_GATEWAYS[0]);
+export function getIpfsProxyPath(hash: string): string {
+  const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+  return `/api/ipfs?path=${encodeURIComponent(cleanHash)}`;
 }
 
+function getIpfsProxyOrigin(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host.includes('127.0.0.1')) {
+      return window.location.origin;
+    }
+    return `https://${DOMAINS.hub}`;
+  }
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (site) return site.replace(/\/$/, '');
+  return `https://${DOMAINS.hub}`;
+}
+
+/**
+ * Full absolute IPFS proxy URL (platform standard for forms, copy/paste, and external links).
+ */
+export function getIpfsProxyUrl(hash: string): string {
+  return `${getIpfsProxyOrigin()}${getIpfsProxyPath(hash)}`;
+}
+
+/** Extract a CID/path from a hub IPFS proxy URL or ipfs:// URI. */
+export function extractCidFromIpfsUrl(input: string): string | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  try {
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      const url = new URL(raw);
+      const pathParam = url.searchParams.get('path');
+      if (pathParam) return pathParam.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+      const match = url.pathname.match(/\/ipfs\/([^/?#]+)/);
+      if (match?.[1]) return match[1];
+    }
+  } catch {
+    /* fall through */
+  }
+  if (raw.startsWith('ipfs://')) return raw.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
+  if (raw.startsWith('/api/ipfs?')) {
+    const pathParam = new URL(raw, 'https://hub.kasparex.com').searchParams.get('path');
+    return pathParam?.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '') ?? null;
+  }
+  return null;
+}
+
+/**
+ * Normalize any IPFS reference to the full hub proxy URL.
+ */
+export function normalizeIpfsUrlForForm(value: string | null | undefined, cid?: string | null): string {
+  const direct = value?.trim();
+  if (direct) {
+    const extracted = extractCidFromIpfsUrl(direct);
+    if (extracted) return getIpfsProxyUrl(extracted);
+    if (direct.startsWith('http://') || direct.startsWith('https://')) return direct;
+    if (direct.startsWith('/api/ipfs')) return `${getIpfsProxyOrigin()}${direct}`;
+  }
+  if (cid?.trim()) return getIpfsProxyUrl(cid.trim());
+  return '';
+}
+
+/**
+ * Get the best available gateway URL (for direct use in img/src tags and form fields).
+ * Returns the full hub IPFS proxy URL in the browser; direct Pinata gateway on SSR fallback.
+ */
+export function getBestGatewayUrl(hash: string): string {
+  const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+  if (typeof window !== 'undefined') {
+    return getIpfsProxyUrl(cleanHash);
+  }
+  return getGatewayUrl(cleanHash, DEFAULT_GATEWAYS[0]);
+}

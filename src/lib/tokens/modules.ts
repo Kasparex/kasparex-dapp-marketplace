@@ -31,8 +31,20 @@ export type TokenRoadmapMilestone = {
   status?: 'completed' | 'in-progress' | 'upcoming';
 };
 
+export type TokenMarketVenueType = 'cex' | 'dex';
+
+export type TokenMarketEntry = {
+  name: string;
+  description: string;
+  url: string;
+  venueType: TokenMarketVenueType;
+};
+
 export type TokenModulesConfig = {
   roadmap?: TokenRoadmapMilestone[];
+  roadmapIntro?: string;
+  roadmapOutro?: string;
+  markets?: TokenMarketEntry[];
   poll?: TokenPollConfig;
   utilityProducts?: HubUtilityProductId[];
 };

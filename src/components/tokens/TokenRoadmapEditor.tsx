@@ -1,7 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import type { TokenRoadmapMilestone } from '@/lib/tokens/modules';
+import { contentForRichEditor } from '@/lib/richText/html';
 
 const STATUS_OPTIONS: { value: TokenRoadmapMilestone['status']; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
@@ -14,12 +18,24 @@ function emptyMilestone(): TokenRoadmapMilestone {
 }
 
 type TokenRoadmapEditorProps = {
+  intro?: string;
+  outro?: string;
   milestones: TokenRoadmapMilestone[];
+  onIntroChange?: (intro: string) => void;
+  onOutroChange?: (outro: string) => void;
   onChange: (milestones: TokenRoadmapMilestone[]) => void;
   disabled?: boolean;
 };
 
-export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoadmapEditorProps) {
+export function TokenRoadmapEditor({
+  intro = '',
+  outro = '',
+  milestones,
+  onIntroChange,
+  onOutroChange,
+  onChange,
+  disabled,
+}: TokenRoadmapEditorProps) {
   const items = milestones.length > 0 ? milestones : [emptyMilestone()];
 
   const update = (index: number, patch: Partial<TokenRoadmapMilestone>) => {
@@ -30,6 +46,20 @@ export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoad
 
   return (
     <div className="space-y-4">
+      {onIntroChange ? (
+        <div>
+          <KxFormFieldLabel>Intro text</KxFormFieldLabel>
+          <p className="kx-body-sm mb-2">Optional context shown before the roadmap timeline.</p>
+          <KxRichTextEditor
+            value={contentForRichEditor(intro)}
+            onChange={onIntroChange}
+            placeholder="Introduce your roadmap..."
+            minRows={4}
+            disabled={disabled}
+          />
+        </div>
+      ) : null}
+
       {items.map((milestone, index) => (
         <div
           key={index}
@@ -48,7 +78,7 @@ export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoad
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="k-label">Date</label>
+              <KxFormFieldLabel>Date</KxFormFieldLabel>
               <input
                 type="text"
                 className="k-input mt-1 w-full"
@@ -59,7 +89,7 @@ export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoad
               />
             </div>
             <div>
-              <label className="k-label">Status</label>
+              <KxFormFieldLabel>Status</KxFormFieldLabel>
               <select
                 className="k-input mt-1 w-full"
                 value={milestone.status ?? 'upcoming'}
@@ -77,7 +107,7 @@ export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoad
             </div>
           </div>
           <div>
-            <label className="k-label">Title</label>
+            <KxFormFieldLabel>Title</KxFormFieldLabel>
             <input
               type="text"
               className="k-input mt-1 w-full"
@@ -87,24 +117,40 @@ export function TokenRoadmapEditor({ milestones, onChange, disabled }: TokenRoad
             />
           </div>
           <div>
-            <label className="k-label">Description</label>
-            <textarea
-              className="k-input mt-1 w-full min-h-[72px]"
-              value={milestone.description}
+            <KxFormFieldLabel>Description</KxFormFieldLabel>
+            <KxRichTextEditor
+              value={contentForRichEditor(milestone.description)}
+              onChange={(description) => update(index, { description })}
+              placeholder="Milestone details..."
+              minRows={4}
               disabled={disabled}
-              onChange={(e) => update(index, { description: e.target.value })}
             />
           </div>
         </div>
       ))}
+
       <button
         type="button"
         disabled={disabled || items.length >= 12}
         onClick={() => onChange([...items, emptyMilestone()])}
-        className="k-control-btn text-sm"
+        className={KX_FORM_ADD_BTN_CLASS}
       >
         Add milestone
       </button>
+
+      {onOutroChange ? (
+        <div>
+          <KxFormFieldLabel>Outro text</KxFormFieldLabel>
+          <p className="kx-body-sm mb-2">Optional closing notes shown after the roadmap timeline.</p>
+          <KxRichTextEditor
+            value={contentForRichEditor(outro)}
+            onChange={onOutroChange}
+            placeholder="Closing thoughts or next steps..."
+            minRows={4}
+            disabled={disabled}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
