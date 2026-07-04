@@ -242,8 +242,6 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     roadmap: listing.modulesConfig?.roadmap,
     paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional', listing.listingNetwork),
     modulesConfig: listing.modulesConfig,
-    listingNetwork: listing.listingNetwork,
-    onChainSnapshot: listing.onChainSnapshot,
     assetKind: listing.assetKind ?? 'fictional',
     creatorWallet: listing.author,
   };
