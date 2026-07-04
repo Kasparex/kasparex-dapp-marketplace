@@ -1,16 +1,38 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { Tooltip } from '@/components/ui/Tooltip';
+
+const DEFAULT_MAX_VISIBLE = 4;
+
+type BadgeItem = {
+  key: string;
+  label: string;
+  icon: ReactNode;
+};
 
 function IconButton({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <Tooltip content={label}>
       <span
-        className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 cursor-help dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300"
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 cursor-help dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300"
         aria-label={label}
       >
         {children}
+      </span>
+    </Tooltip>
+  );
+}
+
+function OverflowButton({ labels }: { labels: string[] }) {
+  return (
+    <Tooltip content={labels.join(' · ')}>
+      <span
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-bold text-zinc-500 cursor-help dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-400"
+        aria-label={`${labels.length} more badges: ${labels.join(', ')}`}
+      >
+        …
       </span>
     </Tooltip>
   );
@@ -36,14 +58,6 @@ function UtilityIcon() {
   );
 }
 
-function FeaturedIcon() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  );
-}
-
 function BadgeIcon() {
   return (
     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -52,45 +66,54 @@ function BadgeIcon() {
   );
 }
 
-/** Tooltip-only status icons (no colorful badge pills). */
+function collectBadgeItems(token: Token): BadgeItem[] {
+  const listing = token.listing;
+  if (!listing) return [];
+
+  const items: BadgeItem[] = [];
+
+  if (listing.verified) {
+    items.push({ key: 'verified', label: 'Verified project', icon: <VerifiedIcon /> });
+  }
+  if (listing.instantUtility) {
+    items.push({
+      key: 'utility',
+      label: 'Instant utility enabled in Kasparex Hub',
+      icon: <UtilityIcon />,
+    });
+  }
+  for (const badge of listing.utilityBadges ?? []) {
+    items.push({ key: `utility-${badge}`, label: `Utility: ${badge}`, icon: <BadgeIcon /> });
+  }
+
+  return items;
+}
+
+/** Footer icon badges with optional overflow ellipsis (Featured is shown as a top pill badge). */
 export function TokenListingBadges({
   token,
   className = '',
+  maxVisible = DEFAULT_MAX_VISIBLE,
 }: {
   token: Token;
   className?: string;
+  maxVisible?: number;
 }) {
-  const listing = token.listing;
-  if (!listing) return null;
+  const items = collectBadgeItems(token);
+  if (items.length === 0) return null;
 
-  const utilityTips = listing.utilityBadges ?? [];
-  const hasIcons =
-    listing.verified || listing.instantUtility || listing.featured || utilityTips.length > 0;
-
-  if (!hasIcons) return null;
+  const overflow = items.length > maxVisible;
+  const visibleItems = overflow ? items.slice(0, maxVisible - 1) : items;
+  const hiddenLabels = overflow ? items.slice(maxVisible - 1).map((item) => item.label) : [];
 
   return (
-    <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
-      {listing.verified ? (
-        <IconButton label="Verified project">
-          <VerifiedIcon />
-        </IconButton>
-      ) : null}
-      {listing.instantUtility ? (
-        <IconButton label="Instant utility enabled in Kasparex Hub">
-          <UtilityIcon />
-        </IconButton>
-      ) : null}
-      {listing.featured ? (
-        <IconButton label="Premium featured listing">
-          <FeaturedIcon />
-        </IconButton>
-      ) : null}
-      {utilityTips.map((badge) => (
-        <IconButton key={badge} label={`Utility: ${badge}`}>
-          <BadgeIcon />
+    <div className={`flex flex-nowrap items-center gap-1.5 min-w-0 overflow-hidden ${className}`.trim()}>
+      {visibleItems.map((item) => (
+        <IconButton key={item.key} label={item.label}>
+          {item.icon}
         </IconButton>
       ))}
+      {overflow ? <OverflowButton labels={hiddenLabels} /> : null}
     </div>
   );
 }

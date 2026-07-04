@@ -11,7 +11,6 @@ import { TokenTitle } from '@/components/tokens/TokenTitle';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { TokenListingCardContent } from '@/components/tokens/TokenListingCardContent';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
@@ -60,13 +59,6 @@ export function TokenListingCardGrid({
         <KxListingCard key={token.id} href={`/tokens/${token.slug}`} accent="tokens" className="flex h-full flex-col">
           <KxListingCardMedia aspectClass="aspect-[16/9]">
             <TokenFeaturedMedia token={token} />
-            {token.listing?.featured ? (
-              <Tooltip content="Premium featured listing">
-                <span className="absolute top-2 right-2 rounded-md bg-zinc-900/75 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
-                  Featured
-                </span>
-              </Tooltip>
-            ) : null}
           </KxListingCardMedia>
           <KxListingCardBody comfortable className="flex flex-1 flex-col">
             <TokenListingCardContent token={token} onCategoryFilter={onCategoryFilter} />

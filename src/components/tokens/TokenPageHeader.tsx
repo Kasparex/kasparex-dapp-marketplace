@@ -9,13 +9,14 @@ import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import { TokenListingTopStatus } from '@/components/tokens/TokenListingTopStatus';
 import { TokenListingFooterRows } from '@/components/tokens/TokenListingFooterRows';
+import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
 import { KxTagChip } from '@/components/ui/KxTagChip';
 import { tokenHasModule } from '@/lib/tokens/modules';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
-import { TokenVerificationStatusBadge } from '@/components/tokens/TokenVerificationStatusBadge';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -72,7 +73,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="relative flex w-full flex-1 flex-col p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-start gap-4">
-            <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <TokenLogo token={token} size={72} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <TokenTitle token={token} size="lg" layout="besideLogo" />
               {creatorWallet ? (
@@ -84,7 +85,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
                 />
               ) : null}
             </div>
-            <TokenVerificationStatusBadge token={token} />
+            <TokenListingTopStatus token={token} />
           </div>
 
           <p id="token-intro" className="kx-body mb-6 max-w-2xl select-text">
@@ -108,15 +109,14 @@ export function TokenPageHeader({ token }: { token: Token }) {
             </div>
           ) : null}
 
-          {token.tags && token.tags.length > 0 ? (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              {token.tags.map((tag) => (
-                <KxTagChip key={tag} label={tag} prefix="" />
-              ))}
-            </div>
-          ) : null}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {token.tags?.map((tag) => (
+              <KxTagChip key={tag} label={tag} prefix="" />
+            ))}
+            <TokenCategoryBadge token={token} />
+          </div>
 
-          <TokenListingFooterRows token={token} networkSize="md" className="mt-auto pt-4" />
+          <TokenListingFooterRows token={token} showCategory={false} className="mt-auto pt-4" />
         </div>
 
         <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">

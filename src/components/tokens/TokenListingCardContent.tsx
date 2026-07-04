@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { Token } from '@/lib/tokens/types';
 import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
-import { TokenVerificationStatusBadge } from '@/components/tokens/TokenVerificationStatusBadge';
+import { TokenListingTopStatus } from '@/components/tokens/TokenListingTopStatus';
 import { TokenListingFooterRows } from '@/components/tokens/TokenListingFooterRows';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
@@ -28,7 +28,7 @@ export function TokenListingCardContent({
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-3 flex items-start gap-3">
-        <TokenLogo token={token} size={56} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+        <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <TokenTitle token={token} size="sm" layout="besideLogo" />
           {creatorWallet ? (
@@ -40,7 +40,7 @@ export function TokenListingCardContent({
             />
           ) : null}
         </div>
-        <TokenVerificationStatusBadge token={token} />
+        <TokenListingTopStatus token={token} />
       </div>
 
       {ownershipLabel ? <div className="mb-2">{ownershipLabel}</div> : null}

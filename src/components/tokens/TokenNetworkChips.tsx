@@ -6,37 +6,55 @@ import {
   getNetworkChipShortLabel,
   getNetworkChipStyleClasses,
   getNetworkChipTooltip,
+  getFeaturedChipStyleClasses,
 } from '@/lib/tokens/networks';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { TokenListingPillBadge } from '@/components/tokens/TokenListingPillBadge';
+import { FeaturedBadgeIcon, NetworkBadgeIcon } from '@/components/tokens/tokenNetworkBadgeIcons';
 
 type TokenNetworkChipsProps = {
   token: Token;
-  size?: 'sm' | 'md';
   className?: string;
+  /** When true, renders Featured pill alongside network badges (top section). */
+  includeFeatured?: boolean;
+  /** stack: column under verification badge. inline: horizontal row. */
+  layout?: 'inline' | 'stack';
 };
 
-export function TokenNetworkChips({ token, size = 'sm', className = '' }: TokenNetworkChipsProps) {
+export function TokenNetworkChips({
+  token,
+  className = '',
+  includeFeatured = false,
+  layout = 'inline',
+}: TokenNetworkChipsProps) {
   const entries = getTokenNetworkEntries(token);
-  if (entries.length === 0) return null;
+  const showFeatured = includeFeatured && Boolean(token.listing?.featured);
 
-  const chipClass =
-    size === 'sm'
-      ? 'rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide'
-      : 'rounded-lg border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide';
+  if (entries.length === 0 && !showFeatured) return null;
+
+  const layoutClass =
+    layout === 'stack'
+      ? 'flex flex-wrap items-end justify-end gap-1'
+      : 'flex flex-wrap items-center gap-1';
 
   return (
-    <div className={`flex flex-wrap items-center gap-1.5 ${className}`.trim()}>
-      {entries.map((entry) => {
-        const label = getNetworkChipShortLabel(entry.network);
-        const tooltip = getNetworkChipTooltip(entry.network, entry);
-        return (
-          <Tooltip key={`${entry.network}-${entry.contractAddress ?? 'none'}`} content={tooltip}>
-            <span className={`cursor-help ${chipClass} ${getNetworkChipStyleClasses(entry.network)}`}>
-              {label}
-            </span>
-          </Tooltip>
-        );
-      })}
+    <div className={`${layoutClass} ${className}`.trim()}>
+      {entries.map((entry) => (
+        <TokenListingPillBadge
+          key={`${entry.network}-${entry.contractAddress ?? 'none'}`}
+          label={getNetworkChipShortLabel(entry.network)}
+          tooltip={getNetworkChipTooltip(entry.network, entry)}
+          styleClass={getNetworkChipStyleClasses(entry.network)}
+          icon={<NetworkBadgeIcon network={entry.network} />}
+        />
+      ))}
+      {showFeatured ? (
+        <TokenListingPillBadge
+          label="Featured"
+          tooltip="Premium featured listing"
+          styleClass={getFeaturedChipStyleClasses()}
+          icon={<FeaturedBadgeIcon />}
+        />
+      ) : null}
     </div>
   );
 }
