@@ -73,7 +73,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="relative flex w-full flex-1 flex-col p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-start gap-4">
-            <TokenLogo token={token} size={72} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
+            <TokenLogo token={token} size={80} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <TokenTitle token={token} size="lg" layout="besideLogo" />
               {creatorWallet ? (
