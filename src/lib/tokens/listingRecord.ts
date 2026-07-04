@@ -93,6 +93,7 @@ export type PublishedTokenListing = {
   description: string;
   shortDescription?: string;
   tags?: string[];
+  category?: string;
   listingNetwork?: TokenListingNetwork;
   network: TokenNetwork;
   contractAddress?: string;
@@ -194,6 +195,7 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     networks: listing.networks,
     type: 'collab',
     tags: listing.tags,
+    category: listing.category,
     logo: listing.logoUrl,
     logoCid: listing.logoCid,
     featuredImage: listing.featuredImageUrl,
@@ -249,6 +251,7 @@ export function mergeListingOverBase(base: Token, listing: PublishedTokenListing
     modulesConfig: listing.modulesConfig ?? base.modulesConfig,
     assetKind: listing.assetKind ?? base.assetKind,
     creatorWallet: listing.author ?? base.creatorWallet,
+    category: listing.category ?? base.category,
     updatedAt: listing.updatedAt ?? base.updatedAt,
   };
 }

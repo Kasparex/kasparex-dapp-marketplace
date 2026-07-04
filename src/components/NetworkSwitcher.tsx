@@ -11,9 +11,9 @@ interface NetworkSwitcherProps {
 
 const OPTIONS: { value: DAppNetworkFilter; label: string; title: string }[] = [
   { value: 'all', label: 'All', title: 'All networks' },
-  { value: 'L1', label: 'L1', title: 'Kaspa L1' },
-  { value: 'L2', label: 'L2', title: 'EVM Layer-2' },
-  { value: 'MULTI', label: 'Multi', title: 'Multichain' },
+  { value: 'L1', label: 'L1', title: 'Tokens available on Kaspa L1' },
+  { value: 'L2', label: 'L2', title: 'Tokens available on Kaspa L2' },
+  { value: 'MULTI', label: 'Multi', title: 'Tokens on more than one network or protocol' },
 ];
 
 export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwitcherProps) {

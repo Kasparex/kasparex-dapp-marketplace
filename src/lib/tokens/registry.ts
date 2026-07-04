@@ -26,6 +26,7 @@ export const baseTokens: Token[] = [
     chainId: undefined,
     contractAddress: undefined,
     type: 'global',
+    category: 'Infrastructure',
     decimals: 8,
     listing: {
       verified: true,
@@ -50,6 +51,7 @@ export const baseTokens: Token[] = [
     l1Address: undefined,
     l2Address: KREX_L2_ADDRESS,
     type: 'global',
+    category: 'Governance',
     totalSupply: 21_000_000_000,
     maxSupply: 21_000_000_000,
     circulatingSupply: 21_000_000_000,
@@ -83,6 +85,7 @@ export const baseTokens: Token[] = [
     network: 'L1',
     chainId: 202555,
     type: 'global',
+    category: 'Utility',
     contractAddress: 'GRID',
     l1Address: 'GRID',
     l2Address: GRID_L2_ADDRESS,

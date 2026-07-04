@@ -1,9 +1,12 @@
-import type { Token, TokenNetwork, TokenType } from '@/lib/tokens/types';
+import type { Token } from '@/lib/tokens/types';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenSourceFilter } from '@/lib/tokens/source';
 import { matchesTokenTags } from '@/lib/tokens/tags';
 import { matchesTokenUtilitySidebarFilter, type TokenUtilitySidebarFilter } from '@/lib/tokens/utilityFilters';
 import { getListingVoteScore } from '@/lib/tokens/votes';
+import { getTokenCategory } from '@/lib/tokens/categories';
+import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
+import { matchesTokenNetworkFilter, type TokenNetworkFilter } from '@/lib/tokens/networks';
 
 export type TokenSortOption =
   | 'name-az'
@@ -24,16 +27,24 @@ export type TokenSortOption =
 
 export type TokenVerifiedFilter = 'all' | 'verified';
 export type TokenUtilityFilter = 'all' | 'utility-enabled';
+export type TokenListingsFilter =
+  | 'all'
+  | 'global'
+  | 'collab'
+  | 'verified'
+  | 'non-verified'
+  | 'featured';
+
+/** @deprecated Use TokenListingsFilter */
 export type TokenPremiumFilter = 'all' | 'featured';
 
 export interface TokenListingFilters {
   searchQuery: string;
-  network: TokenNetwork | 'all';
-  type: TokenType | 'all';
+  network: TokenNetworkFilter;
   source: TokenSourceFilter;
-  verified: TokenVerifiedFilter;
+  listings: TokenListingsFilter;
+  category: string | null;
   utilitySidebar: TokenUtilitySidebarFilter;
-  premium: TokenPremiumFilter;
   selectedTags: string[];
   sortBy: TokenSortOption;
 }
@@ -64,37 +75,47 @@ export function filterTokens(tokens: Token[], filters: TokenListingFilters): Tok
 
   if (filters.searchQuery.trim()) {
     const query = filters.searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      (token) =>
+    const authorQuery = query.replace(/^(evm:|kaspa:)/, '');
+    filtered = filtered.filter((token) => {
+      const creator = resolveTokenCreatorWallet(token);
+      const category = getTokenCategory(token).toLowerCase();
+      return (
         token.name.toLowerCase().includes(query) ||
         token.symbol.toLowerCase().includes(query) ||
         token.description?.toLowerCase().includes(query) ||
-        token.tags?.some((tag) => tag.toLowerCase().includes(query)),
-    );
+        category.includes(query) ||
+        token.tags?.some((tag) => tag.toLowerCase().includes(query)) ||
+        (creator ? creator.toLowerCase().includes(authorQuery) : false)
+      );
+    });
   }
 
   if (filters.network !== 'all') {
-    filtered = filtered.filter((token) => token.network === filters.network);
+    filtered = filtered.filter((token) => matchesTokenNetworkFilter(token, filters.network));
   }
 
-  if (filters.type !== 'all') {
-    filtered = filtered.filter((token) => token.type === filters.type);
+  if (filters.listings === 'global') {
+    filtered = filtered.filter((token) => token.type === 'global');
+  } else if (filters.listings === 'collab') {
+    filtered = filtered.filter((token) => token.type === 'collab');
+  } else if (filters.listings === 'verified') {
+    filtered = filtered.filter(tokenIsVerified);
+  } else if (filters.listings === 'non-verified') {
+    filtered = filtered.filter((token) => !tokenIsVerified(token));
+  } else if (filters.listings === 'featured') {
+    filtered = filtered.filter(tokenIsFeatured);
+  }
+
+  if (filters.category) {
+    filtered = filtered.filter((token) => getTokenCategory(token) === filters.category);
   }
 
   if (filters.source !== 'all') {
     filtered = filtered.filter((token) => matchesTokenSourceFilter(token, filters.source));
   }
 
-  if (filters.verified === 'verified') {
-    filtered = filtered.filter(tokenIsVerified);
-  }
-
   if (filters.utilitySidebar !== 'all') {
     filtered = filtered.filter((token) => matchesTokenUtilitySidebarFilter(token, filters.utilitySidebar));
-  }
-
-  if (filters.premium === 'featured') {
-    filtered = filtered.filter(tokenIsFeatured);
   }
 
   if (filters.selectedTags.length > 0) {

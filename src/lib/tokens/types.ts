@@ -120,6 +120,9 @@ export interface Token {
 
   /** Kaspa L1 address of the published listing author (receives vote payments). */
   creatorWallet?: string;
+
+  /** Listing category for directory filters and badges. */
+  category?: string;
 }
 
 /**

@@ -1,20 +1,10 @@
-import type { TokenSortOption, TokenVerifiedFilter } from '@/lib/tokens/listing';
-import type { TokenType } from '@/lib/tokens/types';
+import type { TokenSortOption } from '@/lib/tokens/listing';
 
-export type TokenSortControlValue =
-  | 'all-tokens'
-  | 'global-tokens'
-  | 'collab-tokens'
-  | 'verified-only'
-  | TokenSortOption;
+export type TokenSortControlValue = TokenSortOption;
 
 export const TOKEN_SORT_CONTROL_OPTIONS: { value: TokenSortControlValue; label: string }[] = [
-  { value: 'all-tokens', label: 'All tokens' },
-  { value: 'global-tokens', label: 'Global tokens' },
-  { value: 'collab-tokens', label: 'Collab tokens' },
-  { value: 'verified-only', label: 'Verified only' },
-  { value: 'verified-first', label: 'Verified first' },
   { value: 'community-high', label: 'Most community support' },
+  { value: 'verified-first', label: 'Verified first' },
   { value: 'featured-first', label: 'Featured first' },
   { value: 'utility-first', label: 'Utility enabled first' },
   { value: 'activity-high', label: 'Highest activity' },
@@ -29,20 +19,7 @@ export const TOKEN_SORT_CONTROL_OPTIONS: { value: TokenSortControlValue; label: 
 ];
 
 export function resolveTokenSortControl(value: TokenSortControlValue): {
-  type: TokenType | 'all';
-  verified: TokenVerifiedFilter;
   sortBy: TokenSortOption;
 } {
-  switch (value) {
-    case 'all-tokens':
-      return { type: 'all', verified: 'all', sortBy: 'name-az' };
-    case 'global-tokens':
-      return { type: 'global', verified: 'all', sortBy: 'name-az' };
-    case 'collab-tokens':
-      return { type: 'collab', verified: 'all', sortBy: 'name-az' };
-    case 'verified-only':
-      return { type: 'all', verified: 'verified', sortBy: 'verified-first' };
-    default:
-      return { type: 'all', verified: 'all', sortBy: value };
-  }
+  return { sortBy: value };
 }

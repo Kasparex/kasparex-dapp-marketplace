@@ -18,10 +18,10 @@ import {
   TokenListingCompact,
   TokenListingTableView,
 } from '@/components/tokens/TokenListingViews';
-import type { Token, TokenNetwork } from '@/lib/tokens/types';
+import type { Token } from '@/lib/tokens/types';
 import {
   filterTokens,
-  type TokenPremiumFilter,
+  type TokenListingsFilter,
 } from '@/lib/tokens/listing';
 import type { TokenSourceFilter } from '@/lib/tokens/source';
 import {
@@ -34,6 +34,7 @@ import {
   type TokenSortControlValue,
 } from '@/lib/tokens/sortControls';
 import type { DAppNetworkFilter } from '@/lib/dapps';
+import type { TokenNetworkFilter } from '@/lib/tokens/networks';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 import { useTokens } from '@/hooks/useTokens';
 import { TOKEN_LISTING_VOTES_CHANGED_EVENT } from '@/lib/tokens/votes';
@@ -48,10 +49,11 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const allTokens = useMemo(() => getMergedTokens(tokens), [tokens, getMergedTokens, listings]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState<TokenSourceFilter>('all');
-  const [networkFilter, setNetworkFilter] = useState<TokenNetwork | 'all'>('all');
+  const [networkFilter, setNetworkFilter] = useState<TokenNetworkFilter>('all');
+  const [listingsFilter, setListingsFilter] = useState<TokenListingsFilter>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
   const [utilitySectionFilter, setUtilitySectionFilter] = useState<TokenUtilitySectionFilter>('all');
   const [moduleSectionFilter, setModuleSectionFilter] = useState<TokenModuleSectionFilter>('all');
-  const [premiumFilter, setPremiumFilter] = useState<TokenPremiumFilter>('all');
   const [sortControl, setSortControl] = useState<TokenSortControlValue>('community-high');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -68,6 +70,10 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     if (tagParam) {
       setSelectedTags([tagParam]);
     }
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
   }, [searchParams]);
 
   const utilitySidebarFilter = useMemo(
@@ -75,21 +81,17 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     [utilitySectionFilter, moduleSectionFilter],
   );
 
-  const { type: typeFilter, verified: verifiedFilter, sortBy } = useMemo(
-    () => resolveTokenSortControl(sortControl),
-    [sortControl],
-  );
+  const { sortBy } = useMemo(() => resolveTokenSortControl(sortControl), [sortControl]);
 
   const filteredAndSortedTokens = useMemo(
     () =>
       filterTokens(allTokens, {
         searchQuery,
         network: networkFilter,
-        type: typeFilter,
         source: sourceFilter,
-        verified: verifiedFilter,
+        listings: listingsFilter,
+        category: selectedCategory,
         utilitySidebar: utilitySidebarFilter,
-        premium: premiumFilter,
         selectedTags,
         sortBy,
       }),
@@ -97,11 +99,10 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       allTokens,
       searchQuery,
       networkFilter,
-      typeFilter,
       sourceFilter,
-      verifiedFilter,
+      listingsFilter,
+      selectedCategory,
       utilitySidebarFilter,
-      premiumFilter,
       selectedTags,
       sortBy,
       voteTick,
@@ -126,18 +127,15 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     setSearchQuery('');
     setSourceFilter('all');
     setNetworkFilter('all');
+    setListingsFilter('all');
+    setSelectedCategory(null);
     setUtilitySectionFilter('all');
     setModuleSectionFilter('all');
-    setPremiumFilter('all');
-    setSortControl('verified-first');
+    setSortControl('community-high');
     setSelectedTags([]);
   };
 
   const handleNetworkFilterChange = (value: DAppNetworkFilter) => {
-    if (value === 'MULTI') {
-      setNetworkFilter('all');
-      return;
-    }
     setNetworkFilter(value);
   };
 
@@ -152,6 +150,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
           moduleFilter={moduleSectionFilter}
           onUtilityFilterChange={handleUtilitySectionChange}
           onModuleFilterChange={handleModuleSectionChange}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
           selectedTags={selectedTags}
           onTagToggle={handleTagToggle}
           showUtilityFilter
@@ -182,31 +182,30 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
               <TokensBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
             </div>
 
-            <div className="mb-6">
+            <div className="flex flex-col gap-4 mb-6">
               <FilterBar
-                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search tokens...' }}
+                search={{
+                  value: searchQuery,
+                  onChange: setSearchQuery,
+                  placeholder: 'Search by name, ticker, tag, wallet address, or category...',
+                }}
                 onReset={handleResetFilters}
                 flexWrap
-                className="gap-3"
               >
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                  <KxTabStrip
-                    value={viewMode}
-                    onChange={setViewMode}
-                    options={VIEW_MODE_OPTIONS}
-                    ariaLabel="View mode"
-                    iconOnly
-                  />
-                  <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
-                </div>
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
-                  <TokenListingFiltersBar
-                    sortControl={sortControl}
-                    onSortControlChange={setSortControl}
-                    premiumFilter={premiumFilter}
-                    onPremiumFilterChange={setPremiumFilter}
-                  />
-                </div>
+                <KxTabStrip
+                  value={viewMode}
+                  onChange={setViewMode}
+                  options={VIEW_MODE_OPTIONS}
+                  ariaLabel="View mode"
+                  iconOnly
+                />
+                <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
+                <TokenListingFiltersBar
+                  sortControl={sortControl}
+                  onSortControlChange={setSortControl}
+                  listingsFilter={listingsFilter}
+                  onListingsFilterChange={setListingsFilter}
+                />
               </FilterBar>
             </div>
 
@@ -215,7 +214,10 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
             ) : viewMode === 'compact' ? (
               <TokenListingCompact tokens={filteredAndSortedTokens} />
             ) : (
-              <TokenListingCardGrid tokens={filteredAndSortedTokens} />
+              <TokenListingCardGrid
+                tokens={filteredAndSortedTokens}
+                onCategoryFilter={setSelectedCategory}
+              />
             )}
 
             <div className="mt-10 mb-16">

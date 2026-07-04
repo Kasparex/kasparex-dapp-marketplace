@@ -12,6 +12,8 @@ import {
   tokenNetworkToListingNetwork,
 } from './listingNetwork';
 
+export type TokenNetworkFilter = 'all' | 'L1' | 'L2' | 'MULTI';
+
 const KASPLEX_EXPLORER = 'https://explorer.kasplex.org/address';
 const IGRA_EXPLORER = 'https://explorer.igralabs.com/address';
 
@@ -96,6 +98,30 @@ export function getTokenNetworkEntries(token: Token): TokenNetworkEntry[] {
   }
 
   return entries;
+}
+
+export function tokenAvailableOnL1(token: Token): boolean {
+  const entries = getTokenNetworkEntries(token);
+  return entries.some((e) => isKaspaL1Network(e.network)) || token.network === 'L1';
+}
+
+export function tokenAvailableOnL2(token: Token): boolean {
+  const entries = getTokenNetworkEntries(token);
+  return entries.some((e) => isL2EvmNetwork(e.network)) || token.network === 'L2';
+}
+
+export function tokenSpansMultipleNetworks(token: Token): boolean {
+  const entries = getTokenNetworkEntries(token);
+  if (entries.length > 1) return true;
+  return tokenAvailableOnL1(token) && tokenAvailableOnL2(token);
+}
+
+export function matchesTokenNetworkFilter(token: Token, filter: TokenNetworkFilter): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'MULTI') return tokenSpansMultipleNetworks(token);
+  if (filter === 'L1') return tokenAvailableOnL1(token);
+  if (filter === 'L2') return tokenAvailableOnL2(token);
+  return true;
 }
 
 /** Build networks[] from primary + secondary rows for listing publish. */

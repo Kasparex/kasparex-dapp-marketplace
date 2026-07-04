@@ -10,6 +10,7 @@ import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchFie
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import { TokenPageBuilder } from '@/components/tokens/TokenPageBuilder';
+import { TokenCategoryField } from '@/components/tokens/TokenCategoryField';
 import {
   resolveTokenListingMedia,
   TokenListingMediaPanel,
@@ -105,6 +106,7 @@ function buildFormDraft(args: {
   description: string;
   shortDescription: string;
   tags: string[];
+  category: string;
   listingNetwork: TokenListingNetwork;
   contractAddress: string;
   media: TokenListingMediaState;
@@ -133,6 +135,7 @@ function buildFormDraft(args: {
     description: args.description,
     shortDescription: args.shortDescription,
     tags: args.tags,
+    category: args.category,
     listingNetwork: args.listingNetwork,
     contractAddress: args.contractAddress,
     logoUrl: resolved.logoUrl,
@@ -168,6 +171,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [description, setDescription] = useState(() => contentForRichEditor(listing?.description ?? ''));
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
   const [tags, setTags] = useState((listing?.tags ?? []).join(', '));
+  const [category, setCategory] = useState(listing?.category ?? 'Other');
   const [listingNetwork, setListingNetwork] = useState<TokenListingNetwork>(
     listing?.listingNetwork ?? tokenNetworkToListingNetwork(listing?.network ?? 'L2', listing?.contractAddress),
   );
@@ -323,6 +327,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       featuredImageCid: resolvedMedia.featuredImageCid,
       type: 'collab',
       tags: tagsArray,
+      category,
       assetKind,
       listing: {
         verified: listing?.ownership === 'deployer_verified',
@@ -345,6 +350,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       description,
       shortDescription,
       tagsArray,
+      category,
       enabledModules,
       modulesConfig,
       listingNetwork,
@@ -356,6 +362,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   );
 
   const draftExtras = {
+    category,
     assetKind,
     deployerAddress: deployerAddress || undefined,
     maxSupply,
@@ -434,6 +441,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     description,
     shortDescription,
     tagsArray,
+    category,
     listingNetwork,
     contractAddress,
     media,
@@ -558,6 +566,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
         description: description.trim(),
         shortDescription: shortDescription.trim(),
         tags: tagsArray,
+        category,
         listingNetwork,
         contractAddress: contractAddress.trim() || undefined,
         logoUrl: resolvedMedia.logoUrl,
@@ -919,6 +928,18 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 maxLength={TOKEN_CONTENT_LIMITS.description.max}
                 disabled={isSubmitting}
               />
+            </div>
+
+            <div>
+              <KxFormFieldLabel>Category</KxFormFieldLabel>
+              <div className="mt-2">
+                <TokenCategoryField
+                  authorAddress={walletAddress}
+                  value={category}
+                  onChange={setCategory}
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
 
             <div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { TokenPremiumFilter } from '@/lib/tokens/listing';
+import type { TokenListingsFilter } from '@/lib/tokens/listing';
 import {
   TOKEN_SORT_CONTROL_OPTIONS,
   type TokenSortControlValue,
@@ -11,12 +11,16 @@ import { Tooltip } from '@/components/ui/Tooltip';
 interface TokenListingFiltersBarProps {
   sortControl: TokenSortControlValue;
   onSortControlChange: (value: TokenSortControlValue) => void;
-  premiumFilter: TokenPremiumFilter;
-  onPremiumFilterChange: (value: TokenPremiumFilter) => void;
+  listingsFilter: TokenListingsFilter;
+  onListingsFilterChange: (value: TokenListingsFilter) => void;
 }
 
-const PREMIUM_OPTIONS: { value: TokenPremiumFilter; label: string }[] = [
+const LISTINGS_OPTIONS: { value: TokenListingsFilter; label: string }[] = [
   { value: 'all', label: 'All listings' },
+  { value: 'global', label: 'Global tokens' },
+  { value: 'collab', label: 'Collab tokens' },
+  { value: 'verified', label: 'Verified projects' },
+  { value: 'non-verified', label: 'Non-verified projects' },
   { value: 'featured', label: 'Featured only' },
 ];
 
@@ -59,7 +63,7 @@ function FilterDropdownButton({
     <button
       type="button"
       onClick={onClick}
-      className={`k-control-btn min-w-[140px] ${active ? '!border-[#02abb8]/40 !text-[#02abb8]' : ''}`}
+      className={`k-control-btn min-w-[170px] ${active ? '!border-[#02abb8]/40 !text-[#02abb8]' : ''}`}
     >
       <span className="truncate">{label}</span>
       <svg className={`w-4 h-4 ml-auto shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,7 +111,7 @@ function TokenFilterDropdown<T extends string>({
   value,
   options,
   onChange,
-  minWidth = '140px',
+  minWidth = '170px',
   tooltip,
 }: {
   label: string;
@@ -129,7 +133,7 @@ function TokenFilterDropdown<T extends string>({
         isOpen={isOpen}
         onClick={() => setIsOpen((open) => !open)}
         active={isActive}
-        tooltip={tooltip ?? label}
+        tooltip={tooltip ?? `Filter by ${label.toLowerCase()}`}
       />
       {isOpen ? (
         <FilterDropdownMenu>
@@ -154,25 +158,26 @@ function TokenFilterDropdown<T extends string>({
 export function TokenListingFiltersBar({
   sortControl,
   onSortControlChange,
-  premiumFilter,
-  onPremiumFilterChange,
+  listingsFilter,
+  onListingsFilterChange,
 }: TokenListingFiltersBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <>
       <TokenFilterDropdown
-        label="Sort tokens"
+        label="Listings"
+        value={listingsFilter}
+        options={LISTINGS_OPTIONS}
+        onChange={onListingsFilterChange}
+        minWidth="170px"
+      />
+      <TokenFilterDropdown
+        label="Sort"
         value={sortControl}
         options={TOKEN_SORT_CONTROL_OPTIONS}
         onChange={onSortControlChange}
-        minWidth="160px"
-        tooltip="Sort and filter tokens"
+        minWidth="170px"
+        tooltip="Sort tokens"
       />
-      <TokenFilterDropdown
-        label="Premium"
-        value={premiumFilter}
-        options={PREMIUM_OPTIONS}
-        onChange={onPremiumFilterChange}
-      />
-    </div>
+    </>
   );
 }

@@ -55,6 +55,7 @@ export type CreateTokenListingInput = {
   description: string;
   shortDescription?: string;
   tags?: string[];
+  category?: string;
   listingNetwork?: TokenListingNetwork;
   contractAddress?: string;
   logoUrl?: string;
@@ -91,6 +92,7 @@ function buildDraft(input: CreateTokenListingInput, author: string): TokenListin
     description: input.description,
     shortDescription: input.shortDescription,
     tags: input.tags,
+    category: input.category,
     listingNetwork: input.listingNetwork ?? 'l2_kasplex',
     contractAddress: input.contractAddress,
     logoUrl: input.logoUrl,
@@ -121,6 +123,7 @@ function listingUpdateFields(
     description: draft.description.trim(),
     shortDescription: draft.shortDescription?.trim(),
     tags: draft.tags,
+    category: draft.category,
     listingNetwork: draft.listingNetwork,
     network: listingNetworkToTokenNetwork(draft.listingNetwork),
     contractAddress: draft.contractAddress?.trim(),

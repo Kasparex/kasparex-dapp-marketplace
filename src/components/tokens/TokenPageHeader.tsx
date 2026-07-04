@@ -17,6 +17,7 @@ import { tokenHasModule } from '@/lib/tokens/modules';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
+import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 
@@ -79,7 +80,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
-        <div className="flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
+        <div className="relative flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-center gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <div className="min-w-0">
@@ -128,6 +129,10 @@ export function TokenPageHeader({ token }: { token: Token }) {
           <div className="flex flex-wrap items-center gap-2">
             <TokenNetworkChips token={token} size="md" />
             <TokenListingBadges token={token} />
+          </div>
+
+          <div className="absolute bottom-6 right-6">
+            <TokenCategoryBadge token={token} />
           </div>
         </div>
 

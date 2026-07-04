@@ -9,6 +9,7 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarTags } from '@/components/sidebar/SidebarTags';
 import { getAllTokenTags } from '@/lib/tokens/tags';
+import { getTokenCategoriesFromTokens, getTokenCategory } from '@/lib/tokens/categories';
 import {
   buildTokenModuleSectionItems,
   buildTokenUtilitySectionItems,
@@ -22,6 +23,26 @@ import {
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
+const ALL_CATEGORIES_ID = 'all';
+
+function TokenCategoryIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      className={`k-sidebar-icon text-zinc-800 dark:text-zinc-200 ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+      />
+    </svg>
+  );
+}
 
 export function TokensListingSidebar({
   tokens = [],
@@ -30,6 +51,8 @@ export function TokensListingSidebar({
   onUtilityFilterChange,
   onModuleFilterChange,
   showUtilityFilter = false,
+  selectedCategory = null,
+  onCategoryChange,
   selectedTags = [],
   onTagToggle,
   backHref = '/hub',
@@ -41,6 +64,8 @@ export function TokensListingSidebar({
   onUtilityFilterChange?: (value: TokenUtilitySectionFilter) => void;
   onModuleFilterChange?: (value: TokenModuleSectionFilter) => void;
   showUtilityFilter?: boolean;
+  selectedCategory?: string | null;
+  onCategoryChange?: (category: string | null) => void;
   selectedTags?: string[];
   onTagToggle?: (tag: string) => void;
   backHref?: string;
@@ -52,6 +77,20 @@ export function TokensListingSidebar({
   const utilityItems = useMemo(() => buildTokenUtilitySectionItems(tokens), [tokens]);
   const moduleItems = useMemo(() => buildTokenModuleSectionItems(), []);
   const allTags = useMemo(() => getAllTokenTags(tokens), [tokens]);
+  const categories = useMemo(() => getTokenCategoriesFromTokens(tokens), [tokens]);
+
+  const categoryItems = useMemo(
+    () => [
+      { id: ALL_CATEGORIES_ID, label: 'All categories', count: tokens.length, icon: <TokenCategoryIcon /> },
+      ...categories.map((category) => ({
+        id: category,
+        label: category,
+        count: tokens.filter((token) => getTokenCategory(token) === category).length,
+        icon: <TokenCategoryIcon />,
+      })),
+    ],
+    [categories, tokens],
+  );
 
   const tokensFooter = (
     <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
@@ -87,6 +126,20 @@ export function TokensListingSidebar({
           Dashboard
         </Link>
       </div>
+
+      {onCategoryChange ? (
+        <SidebarCategories
+          title="Categories"
+          items={categoryItems}
+          selectedIds={selectedCategory ?? ALL_CATEGORIES_ID}
+          onSelect={(id) => onCategoryChange(id === ALL_CATEGORIES_ID ? null : id)}
+          multi={false}
+          searchable
+          searchPlaceholder="Search categories..."
+          collapsedItemCount={5}
+          className="mb-6"
+        />
+      ) : null}
 
       {showUtilityFilter && onUtilityFilterChange && onModuleFilterChange ? (
         <>

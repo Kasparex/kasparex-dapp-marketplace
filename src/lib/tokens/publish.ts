@@ -10,6 +10,7 @@ export type TokenListingDraft = {
   description: string;
   shortDescription?: string;
   tags?: string[];
+  category?: string;
   listingNetwork: TokenListingNetwork;
   contractAddress?: string;
   logoUrl?: string;
@@ -48,6 +49,7 @@ export function buildCanonicalListingPayload(draft: TokenListingDraft, op: 'crea
     description: draft.description.trim(),
     shortDescription: (draft.shortDescription ?? '').trim(),
     tags: (draft.tags ?? []).map((t) => t.trim()).filter(Boolean),
+    category: (draft.category ?? '').trim() || null,
     listingNetwork: draft.listingNetwork,
     network: listingNetworkToTokenNetwork(draft.listingNetwork),
     contractAddress: (draft.contractAddress ?? '').trim(),
