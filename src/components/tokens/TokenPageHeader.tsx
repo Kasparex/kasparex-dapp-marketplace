@@ -9,27 +9,15 @@ import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
-import { TokenListingBadges } from './TokenListingBadges';
-import { TokenNetworkChips } from './TokenNetworkChips';
-import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
+import { TokenListingFooterRows } from '@/components/tokens/TokenListingFooterRows';
 import { KxTagChip } from '@/components/ui/KxTagChip';
 import { tokenHasModule } from '@/lib/tokens/modules';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { formatAddress } from '@/lib/vblog/utils';
 import { AuthorInline } from '@/components/ui/AuthorInline';
-import { TokenCategoryBadge } from '@/components/tokens/TokenCategoryBadge';
 import { TokenVerificationStatusBadge } from '@/components/tokens/TokenVerificationStatusBadge';
-import { TokenVoteControls } from '@/components/tokens/TokenVoteControls';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
-
-function HeaderCategoryIcon() {
-  return (
-    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-    </svg>
-  );
-}
 
 function SocialIcon({ type }: { type?: string }) {
   const props = { className: 'h-4 w-4', fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor', strokeWidth: 2 };
@@ -82,7 +70,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
       />
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
-        <div className="relative flex w-full flex-col justify-center p-8 sm:p-10 lg:w-1/2 lg:p-12">
+        <div className="relative flex w-full flex-1 flex-col p-8 sm:p-10 lg:w-1/2 lg:p-12">
           <div className="mb-6 flex items-start gap-4">
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
@@ -96,10 +84,7 @@ export function TokenPageHeader({ token }: { token: Token }) {
                 />
               ) : null}
             </div>
-            <div className="flex shrink-0 flex-col items-end gap-1.5">
-              <TokenVerificationStatusBadge token={token} />
-              <TokenVoteControls token={token} compact />
-            </div>
+            <TokenVerificationStatusBadge token={token} />
           </div>
 
           <p id="token-intro" className="kx-body mb-6 max-w-2xl select-text">
@@ -123,23 +108,15 @@ export function TokenPageHeader({ token }: { token: Token }) {
             </div>
           ) : null}
 
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            {token.tags?.map((tag) => (
-              <KxTagChip key={tag} label={tag} prefix="" />
-            ))}
-            <KxListingCategoryChip icon={<HeaderCategoryIcon />} title={`Category: ${token.type}`}>
-              {token.type}
-            </KxListingCategoryChip>
-          </div>
+          {token.tags && token.tags.length > 0 ? (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {token.tags.map((tag) => (
+                <KxTagChip key={tag} label={tag} prefix="" />
+              ))}
+            </div>
+          ) : null}
 
-          <div className="flex flex-wrap items-center gap-2">
-            <TokenNetworkChips token={token} size="md" />
-            <TokenListingBadges token={token} />
-          </div>
-
-          <div className="absolute bottom-6 right-6">
-            <TokenCategoryBadge token={token} />
-          </div>
+          <TokenListingFooterRows token={token} networkSize="md" className="mt-auto pt-4" />
         </div>
 
         <div className="relative min-h-[260px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">

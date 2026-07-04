@@ -15,7 +15,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
-import { TokenListingMeta } from './TokenListingMeta';
+import { TokenNetworkChips } from './TokenNetworkChips';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export type TokenSortField = 'name' | 'symbol' | 'price' | 'marketCap' | 'balance' | 'network' | 'type';
@@ -126,7 +126,7 @@ export function TokenListingTable({
                 Token
               </th>
               <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                Details
+                Networks
               </th>
               <th
                 className="text-right py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -222,7 +222,7 @@ function TokenTableRow({ token, isConnected, krexBalance }: TokenTableRowProps) 
         </Link>
       </td>
       <td className="py-4 px-4">
-        <TokenListingMeta token={token} />
+        <TokenNetworkChips token={token} />
       </td>
       <td className="py-4 px-4 text-right">
         {price !== undefined ? (

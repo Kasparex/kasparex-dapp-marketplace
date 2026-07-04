@@ -8,8 +8,8 @@ import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
-import { TokenListingMeta } from './TokenListingMeta';
 import { TokenListingBadges } from './TokenListingBadges';
+import { TokenNetworkChips } from './TokenNetworkChips';
 
 interface TokenHeroSectionProps {
   token: Token;
@@ -34,14 +34,12 @@ export function TokenHeroSection({ token }: TokenHeroSectionProps) {
             <TokenLogo token={token} size={64} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <TokenTitle token={token} size="lg" layout="besideLogo" />
-              <div className="mt-2">
-                <TokenListingMeta token={token} />
-              </div>
             </div>
           </div>
           <p className="max-w-2xl kx-body-sm">{short}</p>
-          <div className="mt-4">
+          <div className="mt-4 flex items-center justify-between gap-2">
             <TokenListingBadges token={token} />
+            <TokenNetworkChips token={token} className="justify-end shrink-0" />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">

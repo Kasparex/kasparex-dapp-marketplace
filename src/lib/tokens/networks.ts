@@ -22,22 +22,59 @@ export type TokenNetworkFilter = 'all' | 'L1' | 'L2' | 'MULTI';
 const KASPLEX_EXPLORER = 'https://explorer.kasplex.org/address';
 const IGRA_EXPLORER = 'https://explorer.igralabs.com/address';
 
-/** Short chip label for UI (cards, headers). */
+/** Full network name for detail views and tooltips. */
 export function getNetworkChipLabel(network: TokenListingNetwork): string {
+  return getListingNetworkLabel(network);
+}
+
+/** Compact chip label for cards and headers (KRC20, KCC20, L1, L2). */
+export function getNetworkChipShortLabel(network: TokenListingNetwork): string {
   switch (network) {
     case 'krc20':
-      return 'KRC-20';
-    case 'kaspa_l1':
-      return 'Kaspa L1';
+      return 'KRC20';
     case 'kcc20':
-      return 'KCC-20';
+      return 'KCC20';
+    case 'kaspa_l1':
+      return 'L1';
     case 'l2_kasplex':
-      return 'Kasplex L2';
     case 'l2_igra':
-      return 'Igra L2';
+      return 'L2';
     default:
       return getListingNetworkLabel(network);
   }
+}
+
+/** Distinct chip colors per network type. */
+export function getNetworkChipStyleClasses(network: TokenListingNetwork): string {
+  switch (network) {
+    case 'krc20':
+      return 'border-amber-500/50 bg-amber-500/15 text-amber-800 dark:text-amber-300';
+    case 'kcc20':
+      return 'border-violet-500/50 bg-violet-500/15 text-violet-800 dark:text-violet-300';
+    case 'kaspa_l1':
+      return 'border-cyan-500/50 bg-cyan-500/15 text-cyan-800 dark:text-cyan-300';
+    case 'l2_kasplex':
+      return 'border-blue-500/50 bg-blue-500/15 text-blue-800 dark:text-blue-300';
+    case 'l2_igra':
+      return 'border-indigo-500/50 bg-indigo-500/15 text-indigo-800 dark:text-indigo-300';
+    default:
+      return 'border-zinc-200 bg-white/70 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-300';
+  }
+}
+
+export function getNetworkChipTooltip(
+  network: TokenListingNetwork,
+  entry: { primary?: boolean; verified?: boolean },
+): string {
+  const full = getListingNetworkLabel(network);
+  const status = entry.primary
+    ? entry.verified
+      ? 'Primary network (verified on-chain)'
+      : 'Primary network'
+    : entry.verified
+      ? 'Linked network (verified on-chain)'
+      : 'Linked network (unverified)';
+  return `${full}: ${status}`;
 }
 
 export function getNetworkAddressPlaceholder(network: TokenListingNetwork): string {

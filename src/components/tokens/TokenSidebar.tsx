@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { TokenLogo } from './TokenLogo';
 import { TokenTitle } from './TokenTitle';
-import { TokenListingMeta } from './TokenListingMeta';
+import { TokenNetworkChips } from './TokenNetworkChips';
 import { TokenListingBadges } from './TokenListingBadges';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
@@ -93,7 +93,7 @@ export function TokenSidebar({
           <TokenLogo token={token} size={48} showName={false} showSymbol={false} shape="rounded" className="flex-shrink-0" />
           <TokenTitle token={token} size="sm" layout="besideLogo" className="flex-1 min-w-0" />
         </div>
-        <TokenListingMeta token={token} />
+        <TokenNetworkChips token={token} />
         <TokenListingBadges token={token} />
 
         {price !== undefined && (

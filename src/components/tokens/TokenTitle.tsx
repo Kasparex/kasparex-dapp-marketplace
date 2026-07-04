@@ -22,7 +22,7 @@ export function TokenTitle({
         : 'text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-white'
       : size === 'sm'
         ? layout === 'besideLogo'
-          ? 'text-[15px] font-semibold text-zinc-900 dark:text-zinc-100'
+          ? 'text-[17px] font-bold text-zinc-900 dark:text-zinc-100'
           : 'text-sm font-semibold text-zinc-900 dark:text-zinc-100'
         : 'text-base font-bold text-zinc-900 dark:text-zinc-100';
 

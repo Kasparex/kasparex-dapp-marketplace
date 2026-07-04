@@ -8,7 +8,6 @@ import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedP
 import Link from 'next/link';
 import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenTitle } from '@/components/tokens/TokenTitle';
-import { TokenListingMeta } from '@/components/tokens/TokenListingMeta';
 import { TokenNetworkChips } from '@/components/tokens/TokenNetworkChips';
 import { TokenListingCardContent } from '@/components/tokens/TokenListingCardContent';
 import { TokenListingTable, type TokenSortField, type TokenSortDirection } from '@/components/tokens/TokenListingTable';
@@ -105,7 +104,6 @@ export function TokenListingCompact({ tokens }: { tokens: Token[] }) {
                 ) : null}
                 <TokenNetworkChips token={token} className="justify-end shrink-0" />
               </div>
-              <TokenListingMeta token={token} />
             </div>
           </Link>
         );
