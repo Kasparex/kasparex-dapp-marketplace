@@ -223,14 +223,14 @@ export function TokenPageBuilder({
         follows the order of enabled blocks.
       </p>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Block library */}
-        <div className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+        {/* Block library sidebar */}
+        <aside className="space-y-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900/60 lg:self-start">
           <p className="text-xs font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
             Block library
           </p>
           {libraryGroups.map((group) => (
-            <div key={group.tab} className="space-y-2">
+            <div key={group.tab} className="space-y-1.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 {group.tabLabel}
               </p>
@@ -239,23 +239,22 @@ export function TokenPageBuilder({
                 return (
                   <div
                     key={type}
-                    className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${
+                    className={`flex items-center justify-between gap-1.5 rounded-lg border px-2 py-1.5 ${
                       enabled
-                        ? 'border-zinc-200 bg-zinc-50/50 opacity-70 dark:border-zinc-700 dark:bg-zinc-800/30'
+                        ? 'border-zinc-200 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-800/30'
                         : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900'
                     }`}
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                        {TOKEN_PAGE_SECTION_LABELS[type]}
-                      </p>
-                    </div>
+                    <p className="min-w-0 truncate text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                      {TOKEN_PAGE_SECTION_LABELS[type]}
+                    </p>
                     {enabled ? (
                       <button
                         type="button"
                         disabled={disabled}
                         onClick={() => onRemoveSection(type)}
-                        className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-500/10 disabled:opacity-50"
+                        aria-label={`Remove ${TOKEN_PAGE_SECTION_LABELS[type]}`}
+                        className="shrink-0 rounded-md px-1.5 py-0.5 text-xs font-semibold text-red-600 hover:bg-red-500/10 disabled:opacity-50"
                       >
                         Remove
                       </button>
@@ -264,7 +263,8 @@ export function TokenPageBuilder({
                         type="button"
                         disabled={disabled}
                         onClick={() => onAddSection(type)}
-                        className="shrink-0 rounded-lg bg-[#02abb8]/10 px-2 py-1 text-xs font-semibold text-[#02abb8] hover:bg-[#02abb8]/20 disabled:opacity-50"
+                        aria-label={`Add ${TOKEN_PAGE_SECTION_LABELS[type]}`}
+                        className="shrink-0 rounded-md bg-[#02abb8]/10 px-1.5 py-0.5 text-xs font-semibold text-[#02abb8] hover:bg-[#02abb8]/20 disabled:opacity-50"
                       >
                         Add
                       </button>
@@ -274,7 +274,7 @@ export function TokenPageBuilder({
               })}
             </div>
           ))}
-        </div>
+        </aside>
 
         {/* Tab canvas */}
         <div className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">

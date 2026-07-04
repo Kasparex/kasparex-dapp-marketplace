@@ -196,3 +196,37 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     listing: directoryListing,
   };
 }
+
+/**
+ * Merge a dashboard-published listing over a registry (base) token. Editable fields
+ * from the listing win; market/allocation data from the registry is preserved so
+ * claimed ecosystem pages (KREX, GRID, KAS) keep their rich data after edits. Used
+ * for both the public token page and the main listing cards so they stay in sync.
+ */
+export function mergeListingOverBase(base: Token, listing: PublishedTokenListing): Token {
+  const listingToken = listingToToken(listing);
+  return {
+    ...base,
+    name: listingToken.name,
+    symbol: listingToken.symbol,
+    description: listingToken.description || base.description,
+    shortDescription: listingToken.shortDescription ?? base.shortDescription,
+    tags: listingToken.tags && listingToken.tags.length > 0 ? listingToken.tags : base.tags,
+    logo: listingToken.logo ?? base.logo,
+    logoCid: listingToken.logoCid ?? base.logoCid,
+    featuredImage: listingToken.featuredImage ?? base.featuredImage,
+    featuredImageCid: listingToken.featuredImageCid ?? base.featuredImageCid,
+    metadataCid: listingToken.metadataCid ?? base.metadataCid,
+    network: listingToken.network ?? base.network,
+    contractAddress: listingToken.contractAddress ?? base.contractAddress,
+    l1Address: listingToken.l1Address ?? base.l1Address,
+    l2Address: listingToken.l2Address ?? base.l2Address,
+    networks: listing.networks?.length ? listing.networks : base.networks,
+    maxSupply: listingToken.maxSupply ?? base.maxSupply,
+    totalSupply: listingToken.totalSupply ?? base.totalSupply,
+    circulatingSupply: listingToken.circulatingSupply ?? base.circulatingSupply,
+    decimals: listingToken.decimals ?? base.decimals,
+    listing: { ...base.listing, ...listingToken.listing },
+    updatedAt: listing.updatedAt ?? base.updatedAt,
+  };
+}

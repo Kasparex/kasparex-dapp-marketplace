@@ -7,37 +7,9 @@ import { Footer } from '@/components/Footer';
 import { TokenLandingPage } from '@/components/tokens/TokenLandingPage';
 import { useTokens } from '@/hooks/useTokens';
 import type { Token } from '@/lib/tokens/types';
-import type { PublishedTokenListing, TokenPageConfig } from '@/lib/tokens/listingRecord';
+import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { getPublishedListingBySlug } from '@/lib/tokens/data';
-import { listingToToken } from '@/lib/tokens/listingRecord';
-
-/**
- * Merge a dashboard-published listing over a registry (base) token. Editable fields
- * from the listing win; market/allocation data from the registry is preserved so
- * claimed ecosystem pages (KREX, GRID, KAS) keep their rich data after edits.
- */
-function mergeListingOverBase(base: Token, listing: PublishedTokenListing): Token {
-  const listingToken = listingToToken(listing);
-  return {
-    ...base,
-    name: listingToken.name,
-    symbol: listingToken.symbol,
-    description: listingToken.description || base.description,
-    shortDescription: listingToken.shortDescription ?? base.shortDescription,
-    tags: listingToken.tags && listingToken.tags.length > 0 ? listingToken.tags : base.tags,
-    logo: listingToken.logo ?? base.logo,
-    logoCid: listingToken.logoCid ?? base.logoCid,
-    featuredImage: listingToken.featuredImage ?? base.featuredImage,
-    featuredImageCid: listingToken.featuredImageCid ?? base.featuredImageCid,
-    network: listingToken.network ?? base.network,
-    contractAddress: listingToken.contractAddress ?? base.contractAddress,
-    l1Address: listingToken.l1Address ?? base.l1Address,
-    l2Address: listingToken.l2Address ?? base.l2Address,
-    networks: listing.networks?.length ? listing.networks : base.networks,
-    listing: { ...base.listing, ...listingToken.listing },
-    updatedAt: listing.updatedAt ?? base.updatedAt,
-  };
-}
+import { mergeListingOverBase } from '@/lib/tokens/listingRecord';
 
 interface TokenPageContentProps {
   slug: string;

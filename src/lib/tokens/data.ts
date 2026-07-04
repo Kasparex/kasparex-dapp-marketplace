@@ -1,7 +1,7 @@
 'use client';
 
 import type { PublishedTokenListing, TokenOwnershipStatus } from './listingRecord';
-import { listingToToken } from './listingRecord';
+import { listingToToken, mergeListingOverBase } from './listingRecord';
 import type { Token } from './types';
 import { generateTokenSlug } from './publish';
 import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
@@ -199,8 +199,27 @@ export function mergePublishedIntoRegistry(baseTokens: Token[]): Token[] {
   const published = getAllPublishedListings().filter(
     (l) => l.status === 'verified' || l.status === 'published' || l.status === 'verification_pending',
   );
-  const publishedTokens = published.map(listingToToken);
+
+  // Latest listing per slug wins (listings are stored newest-first).
+  const latestBySlug = new Map<string, PublishedTokenListing>();
+  for (const listing of published) {
+    if (!latestBySlug.has(listing.slug)) latestBySlug.set(listing.slug, listing);
+  }
+
   const baseSlugs = new Set(baseTokens.map((t) => t.slug));
-  const extra = publishedTokens.filter((t) => !baseSlugs.has(t.slug));
-  return [...baseTokens, ...extra];
+
+  // Override registry tokens with their edited/claimed listing so cards reflect
+  // uploaded logos, banners, and metadata just like the public token page.
+  const merged = baseTokens.map((base) => {
+    const listing = latestBySlug.get(base.slug);
+    return listing ? mergeListingOverBase(base, listing) : base;
+  });
+
+  // Append brand-new listings that do not exist in the registry.
+  const extra = published
+    .filter((l) => !baseSlugs.has(l.slug))
+    .filter((l, index, arr) => arr.findIndex((x) => x.slug === l.slug) === index)
+    .map(listingToToken);
+
+  return [...merged, ...extra];
 }
