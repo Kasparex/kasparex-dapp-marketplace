@@ -40,7 +40,7 @@ export function listingNetworkToTokenNetwork(network: TokenListingNetwork): Toke
   return 'L2';
 }
 
-export function isProgrammableListingNetwork(network: TokenListingNetwork): boolean {
+export function isProgrammableListingNetwork(network: TokenListingNetwork | undefined): boolean {
   return network === 'kcc20';
 }
 
