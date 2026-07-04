@@ -6,6 +6,7 @@ import type { Token, TokenListingStatus, TokenNetwork } from './types';
 import type { TokenModuleId, TokenModulesConfig } from './modules';
 import type { TokenContentTab } from './sections';
 import type { TokenListingNetwork } from './listingNetwork';
+import { buildUtilityBadgesFromProducts } from './utilityRegistry';
 
 export type TokenPublishStatus =
   | 'draft'
