@@ -13,6 +13,7 @@ import { tokenCommentsArticleId } from '@/lib/tokens/comments';
 import { TokenPageHeader } from './TokenPageHeader';
 import { TokenAside } from './TokenAside';
 import { TokenInfoSection } from './TokenInfoSection';
+import { ProgrammableAssetPanel } from './ProgrammableAssetPanel';
 import { TokenomicsSection } from './TokenomicsSection';
 import { RoadmapSection } from './RoadmapSection';
 import { TokenMarketsSection } from './TokenMarketsSection';
@@ -164,6 +165,7 @@ export function TokenDetail({
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
+                    <ProgrammableAssetPanel token={token} />
                     {orderedOverviewSubsections.map((type) => renderOverviewSubsection(type))}
                   </div>
                 ) : null}

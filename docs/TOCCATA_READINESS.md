@@ -69,3 +69,5 @@ Hub users rely on wallet fee estimation for standard sends; covenant runtime del
 ## Fungible tokens on L1 (KCC20)
 
 Optional covenant token interface (not required for non-token covenants): [KCC20_SPEC.md](./KCC20_SPEC.md)
+
+Programmable token **listing and UaaS** (connect, verify, utility modules): [PROGRAMMABLE_TOKEN_UAAS.md](./PROGRAMMABLE_TOKEN_UAAS.md)

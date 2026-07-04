@@ -11,6 +11,11 @@ import {
   isL2EvmNetwork,
   tokenNetworkToListingNetwork,
 } from './listingNetwork';
+import {
+  DEFAULT_PROGRAMMABLE_NETWORK,
+  kascovCovenantExplorerUrl,
+  type ProgrammableNetworkId,
+} from '@/lib/programmable/config';
 
 export type TokenNetworkFilter = 'all' | 'L1' | 'L2' | 'MULTI';
 
@@ -36,7 +41,17 @@ export function getNetworkChipLabel(network: TokenListingNetwork): string {
 }
 
 export function getNetworkAddressPlaceholder(network: TokenListingNetwork): string {
+  if (network === 'kcc20') return '64-char covenant id or genesis tx id';
   return isL2EvmNetwork(network) ? '0x…' : 'kaspa:…';
+}
+
+export function getProgrammableExplorerUrl(
+  covenantId: string | undefined,
+  network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK,
+): string | null {
+  const id = covenantId?.trim().toLowerCase();
+  if (!id || !/^[a-f0-9]{64}$/.test(id)) return null;
+  return kascovCovenantExplorerUrl(id, network);
 }
 
 export function getNetworkExplorerUrl(
@@ -45,6 +60,9 @@ export function getNetworkExplorerUrl(
 ): string | null {
   const addr = address?.trim();
   if (!addr) return null;
+  if (network === 'kcc20') {
+    return getProgrammableExplorerUrl(addr.replace(/^kaspa:/i, ''), DEFAULT_PROGRAMMABLE_NETWORK);
+  }
   if (isL2EvmNetwork(network)) {
     if (network === 'l2_igra') return `${IGRA_EXPLORER}/${addr}`;
     return `${KASPLEX_EXPLORER}/${addr}`;

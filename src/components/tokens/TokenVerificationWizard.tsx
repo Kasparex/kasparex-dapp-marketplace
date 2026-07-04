@@ -24,14 +24,20 @@ interface TokenVerificationWizardProps {
 function buildVerificationMessage(listing: PublishedTokenListing, address: string, mode: TokenVerificationMode): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kasparex.com';
   const action = mode === 'deployer' ? 'Deployer ownership verification' : 'Assign wallet to listed token';
+  const covenantId =
+    listing.onChainSnapshot?.covenantId ??
+    (listing.listingNetwork === 'kcc20' ? listing.contractAddress : undefined);
   return [
     `Kasparex Token ${action}`,
     `Listing: ${listing.symbol} (${listing.slug})`,
     `Contract: ${listing.contractAddress || listing.onChainSnapshot?.contractAddress || 'n/a'}`,
+    covenantId ? `Covenant: ${covenantId}` : null,
     `Wallet: ${address}`,
     `Origin: ${origin}`,
     `Issued: ${new Date().toISOString()}`,
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 function addressesMatch(a: string, b: string): boolean {
@@ -49,6 +55,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
 
   const network = listing.listingNetwork ?? tokenNetworkToListingNetwork(listing.network, listing.contractAddress);
   const isKrc20 = network === 'krc20';
+  const isKcc20 = network === 'kcc20';
   const isL2 = network === 'l2_kasplex' || network === 'l2_igra';
 
   const kaspaReady = kaspaState.isConnected && Boolean(kaspaState.address);
@@ -63,7 +70,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
 
   const deployerMismatch = useMemo(() => {
     if (mode !== 'deployer' || !expectedDeployer) return null;
-    if (isKrc20 || network === 'kaspa_l1') {
+    if (isKrc20 || isKcc20 || network === 'kaspa_l1') {
       if (!kaspaReady) return null;
       return addressesMatch(activeKaspa, expectedDeployer) ? null : expectedDeployer;
     }
@@ -72,7 +79,7 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
       return activeEvm.toLowerCase() === expectedDeployer.toLowerCase() ? null : expectedDeployer;
     }
     return null;
-  }, [mode, expectedDeployer, isKrc20, isL2, network, kaspaReady, evmReady, activeKaspa, activeEvm]);
+  }, [mode, expectedDeployer, isKrc20, isKcc20, isL2, network, kaspaReady, evmReady, activeKaspa, activeEvm]);
 
   const l2NoOwner = mode === 'deployer' && isL2 && listing.assetKind === 'real' && !expectedDeployer;
 
@@ -87,7 +94,9 @@ export function TokenVerificationWizard({ listing, mode, onComplete, onClose }: 
 
   const intro =
     mode === 'deployer'
-      ? isKrc20
+      ? isKcc20
+        ? 'Connect and sign with the Kaspa wallet that controls this KCC-20 covenant. Your address should match the project controller wallet.'
+        : isKrc20
         ? 'Connect and sign with the Kaspa wallet that deployed this KRC-20 token. Your address must match the on-chain deployer.'
         : isL2
           ? 'Connect and sign with the EVM wallet that owns this contract. Your address must match the on-chain owner().'

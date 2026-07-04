@@ -4,9 +4,10 @@
 
 import type { Token, TokenListingStatus, TokenNetwork } from './types';
 import type { TokenModuleId, TokenModulesConfig } from './modules';
+import { isProgrammableOnlyModule } from './modules';
 import type { TokenContentTab } from './sections';
 import type { TokenListingNetwork } from './listingNetwork';
-import { buildUtilityBadgesFromProducts } from './utilityRegistry';
+import { buildProgrammableModuleBadges, buildUtilityBadgesFromProducts } from './utilityRegistry';
 import { filterModulesForAssetKind } from './utilityEligibility';
 
 export type TokenPublishStatus =
@@ -20,7 +21,7 @@ export type TokenAssetKind = 'fictional' | 'real';
 export type TokenOwnershipStatus = 'none' | 'wallet_assigned' | 'deployer_verified';
 
 export type TokenOnChainSnapshot = {
-  source: 'krc20' | 'l2';
+  source: 'krc20' | 'l2' | 'kcc20';
   ticker: string;
   name?: string;
   maxSupply?: string;
@@ -31,6 +32,14 @@ export type TokenOnChainSnapshot = {
   contractAddress?: string;
   holderTotal?: number;
   fetchedAt: string;
+  /** KCC-20 covenant id (32-byte hex). */
+  covenantId?: string;
+  genesisTxid?: string;
+  networkId?: 'testnet-10' | 'mainnet';
+  templateLabel?: string;
+  status?: string;
+  liveValueSompi?: string;
+  eventCount?: number;
 };
 
 export type TokenOwnershipProof = {
@@ -142,23 +151,35 @@ export function listingToToken(listing: PublishedTokenListing): Token {
   const utilityProductIds = listing.modulesConfig?.utilityProducts ?? [];
   const integrationEligible =
     listing.assetKind === 'real' && deployerVerified;
-  const utilityBadges =
+  const hasProgrammableModules = paid.some((id) => isProgrammableOnlyModule(id));
+  const programmableBadges =
+    integrationEligible ? buildProgrammableModuleBadges(listing.paidModuleIds ?? []) : [];
+  const productBadges =
     integrationEligible && utilityProductIds.length > 0
       ? buildUtilityBadgesFromProducts(utilityProductIds)
+      : [];
+  const utilityBadges =
+    productBadges.length > 0 || programmableBadges.length > 0
+      ? [...new Set([...productBadges, ...programmableBadges])]
       : listing.listing?.utilityBadges;
   const directoryListing: TokenListingStatus = {
     verified: deployerVerified,
     deployerVerified,
     instantUtility:
       integrationEligible &&
-      (paid.includes('utility_integrations') || Boolean(listing.listing?.instantUtility)),
+      (paid.includes('utility_integrations') ||
+        hasProgrammableModules ||
+        Boolean(listing.listing?.instantUtility)),
     featured: paid.includes('featured_listing') || Boolean(listing.listing?.featured),
     utilityBadges,
     activityScore: listing.listing?.activityScore ?? 10,
     communityScore: listing.listing?.communityScore ?? 0,
   };
 
-  const decimals = listing.decimals ?? listing.onChainSnapshot?.decimals ?? (listing.listingNetwork === 'krc20' ? 8 : 18);
+  const decimals =
+    listing.decimals ??
+    listing.onChainSnapshot?.decimals ??
+    (listing.listingNetwork === 'krc20' || listing.listingNetwork === 'kcc20' ? 8 : 18);
   const maxSupply =
     listing.maxSupply ??
     parseSupplyFromRaw(listing.onChainSnapshot?.maxSupply, decimals);
@@ -167,7 +188,8 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     parseSupplyFromRaw(listing.onChainSnapshot?.minted, decimals);
 
   const primaryNetwork = listing.listingNetwork ?? 'l2_kasplex';
-  const isL1Primary = primaryNetwork === 'kaspa_l1' || primaryNetwork === 'krc20';
+  const isL1Primary =
+    primaryNetwork === 'kaspa_l1' || primaryNetwork === 'krc20' || primaryNetwork === 'kcc20';
   const l1FromNetworks = listing.networks?.find(
     (n) => n.network === 'kaspa_l1' || n.network === 'krc20',
   )?.contractAddress;
@@ -183,9 +205,18 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     description: listing.description,
     shortDescription: listing.shortDescription,
     network: listing.listingNetwork
-      ? (listing.listingNetwork === 'kaspa_l1' || listing.listingNetwork === 'krc20' ? 'L1' : 'L2')
+      ? listing.listingNetwork === 'kaspa_l1' ||
+        listing.listingNetwork === 'krc20' ||
+        listing.listingNetwork === 'kcc20'
+        ? 'L1'
+        : 'L2'
       : listing.network,
-    contractAddress: listing.contractAddress ?? listing.onChainSnapshot?.contractAddress,
+    listingNetwork: listing.listingNetwork,
+    onChainSnapshot: listing.onChainSnapshot,
+    contractAddress:
+      listing.contractAddress ??
+      listing.onChainSnapshot?.covenantId ??
+      listing.onChainSnapshot?.contractAddress,
     l1Address: isL1Primary
       ? (listing.contractAddress ?? l1FromNetworks)
       : l1FromNetworks,
@@ -209,8 +240,10 @@ export function listingToToken(listing: PublishedTokenListing): Token {
     decimals,
     listing: directoryListing,
     roadmap: listing.modulesConfig?.roadmap,
-    paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional'),
+    paidModuleIds: filterModulesForAssetKind(paid, listing.assetKind ?? 'fictional', listing.listingNetwork),
     modulesConfig: listing.modulesConfig,
+    listingNetwork: listing.listingNetwork,
+    onChainSnapshot: listing.onChainSnapshot,
     assetKind: listing.assetKind ?? 'fictional',
     creatorWallet: listing.author,
   };
@@ -248,6 +281,8 @@ export function mergeListingOverBase(base: Token, listing: PublishedTokenListing
     listing: { ...base.listing, ...listingToken.listing },
     roadmap: listing.modulesConfig?.roadmap ?? base.roadmap,
     paidModuleIds: listing.paidModuleIds ?? base.paidModuleIds,
+    listingNetwork: listing.listingNetwork,
+    onChainSnapshot: listing.onChainSnapshot,
     modulesConfig: listing.modulesConfig ?? base.modulesConfig,
     assetKind: listing.assetKind ?? base.assetKind,
     creatorWallet: listing.author ?? base.creatorWallet,

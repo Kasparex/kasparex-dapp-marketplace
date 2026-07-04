@@ -5,6 +5,7 @@
 
 import type { KREXTier } from '@/lib/rewards/types';
 import type { HubUtilityProductId } from './utilityRegistry';
+import type { CovenantUtilityTemplateId } from '@/lib/programmable/covenantUtilities';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
 
@@ -15,7 +16,10 @@ export type TokenModuleId =
   | 'premium_analytics'
   | 'featured_listing'
   | 'highlighted_profile'
-  | 'on_chain_poll';
+  | 'on_chain_poll'
+  | 'covenant_utilities_hub'
+  | 'access_gate'
+  | 'native_subscriptions';
 
 export type TokenPollConfig = {
   question: string;
@@ -40,6 +44,17 @@ export type TokenMarketEntry = {
   venueType: TokenMarketVenueType;
 };
 
+export type TokenAccessGateConfig = {
+  /** Minimum live covenant value (sompi) to pass holder check. */
+  minBalanceSompi?: string;
+  /** When true, any live UTXO holder passes. */
+  holderOnly?: boolean;
+  /** Message shown when access is denied. */
+  deniedMessage?: string;
+  /** Optional content URL unlocked for holders. */
+  unlockUrl?: string;
+};
+
 export type TokenModulesConfig = {
   roadmap?: TokenRoadmapMilestone[];
   roadmapIntro?: string;
@@ -47,6 +62,12 @@ export type TokenModulesConfig = {
   markets?: TokenMarketEntry[];
   poll?: TokenPollConfig;
   utilityProducts?: HubUtilityProductId[];
+  /** Programmable-only: linked Kasparex covenant dApp templates. */
+  covenantUtilityTemplates?: CovenantUtilityTemplateId[];
+  /** Programmable-only: gated content rules. */
+  accessGate?: TokenAccessGateConfig;
+  /** Programmable-only: subscriptions placeholder note for creators. */
+  subscriptionsNote?: string;
 };
 
 export type TokenModuleOffer = {
@@ -106,6 +127,27 @@ export const TOKEN_MODULE_OFFERS: TokenModuleOffer[] = [
     description: 'Run a community poll on your token page with optional on-chain vote proof.',
     unlockPriceKas: 12,
   },
+  {
+    id: 'covenant_utilities_hub',
+    title: 'Covenant Utilities Hub',
+    description:
+      'Link your token page to Kasparex covenant tools: lockbox, split, milestone, crowdfund, and voucher flows.',
+    unlockPriceKas: 25,
+  },
+  {
+    id: 'access_gate',
+    title: 'Access Gate',
+    description:
+      'Gate premium content or links for covenant token holders. Uses read-only kascov balance checks or tx proof.',
+    unlockPriceKas: 20,
+  },
+  {
+    id: 'native_subscriptions',
+    title: 'Native Subscriptions',
+    description:
+      'Surface recurring access plans for your programmable token. Billing rails activate as L1 payment support expands.',
+    unlockPriceKas: 28,
+  },
 ];
 
 export function getTokenModuleDiscountPercent(tier: KREXTier): number {
@@ -162,6 +204,16 @@ export function defaultTokenPollConfig(): TokenPollConfig {
 
 export function cleanPollOptions(options: string[]): string[] {
   return options.map((o) => o.trim()).filter(Boolean).slice(0, 10);
+}
+
+export const PROGRAMMABLE_ONLY_MODULE_IDS: TokenModuleId[] = [
+  'covenant_utilities_hub',
+  'access_gate',
+  'native_subscriptions',
+];
+
+export function isProgrammableOnlyModule(id: TokenModuleId): boolean {
+  return PROGRAMMABLE_ONLY_MODULE_IDS.includes(id);
 }
 
 export function tokenHasModule(paidModuleIds: TokenModuleId[] | undefined, id: TokenModuleId): boolean {

@@ -7,6 +7,7 @@ import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { Krc20TickerSearchField } from '@/components/tokens/Krc20TickerSearchField';
+import { Kcc20ConnectField } from '@/components/tokens/Kcc20ConnectField';
 import { TokensBenefitsPanel } from '@/components/tokens/TokensBenefitsPanel';
 import { TokenPreviewModal } from '@/components/tokens/TokenPreviewModal';
 import { TokenPageBuilder } from '@/components/tokens/TokenPageBuilder';
@@ -17,7 +18,7 @@ import {
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
 import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, formatTokenModulePaymentLabel, type TokenModulesConfig } from '@/lib/tokens/modules';
-import { filterModulesForAssetKind, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
+import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { TokenModuleConfigFields } from '@/components/tokens/TokenModuleConfigFields';
@@ -38,8 +39,11 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import { Alert } from '@/components/Alert';
 import type { Krc20TokenInfo } from '@/lib/tokens/krc20Lookup';
-import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
+import type { Kcc20TokenInfo } from '@/lib/tokens/kcc20Lookup';
 import { formatKrc20Supply } from '@/lib/tokens/krc20Lookup';
+import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
+import type { ProgrammableNetworkId } from '@/lib/programmable/config';
+import { fetchL2TokenInfo, formatL2Supply } from '@/lib/tokens/l2TokenLookup';
 import {
   buildNetworkEntries,
   getNetworkAddressPlaceholder,
@@ -185,6 +189,17 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
   const [krc20Selected, setKrc20Selected] = useState<Krc20TokenInfo | null>(
     listing?.onChainSnapshot?.source === 'krc20' ? (listing.onChainSnapshot as Krc20TokenInfo) : null,
   );
+  const [kcc20Selected, setKcc20Selected] = useState<Kcc20TokenInfo | null>(
+    listing?.onChainSnapshot?.source === 'kcc20' ? (listing.onChainSnapshot as Kcc20TokenInfo) : null,
+  );
+  const [kcc20ConnectInput, setKcc20ConnectInput] = useState(
+    listing?.onChainSnapshot?.source === 'kcc20'
+      ? (listing.onChainSnapshot.covenantId ?? listing.contractAddress ?? '')
+      : '',
+  );
+  const [programmableNetwork, setProgrammableNetwork] = useState<ProgrammableNetworkId>(
+    (listing?.onChainSnapshot?.networkId as ProgrammableNetworkId | undefined) ?? 'testnet-10',
+  );
   const [l2LookupLoading, setL2LookupLoading] = useState(false);
   const [l2LookupError, setL2LookupError] = useState<string | null>(null);
   const [secondaryNetworks, setSecondaryNetworks] = useState<SecondaryNetworkRow[]>(() =>
@@ -193,6 +208,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
   const isRealToken = assetKind === 'real';
   const isKrc20Network = listingNetwork === 'krc20';
+  const isKcc20Network = listingNetwork === 'kcc20';
   const isL2Network = listingNetwork === 'l2_kasplex' || listingNetwork === 'l2_igra';
   const onChainLocked = isRealToken && Boolean(onChainSnapshot);
 
@@ -216,6 +232,29 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
     setTotalSupply(parseSupplyNumber(info.minted, dec));
     if (info.contractAddress) setContractAddress(info.contractAddress);
     setSectionToggles((prev) => ({ ...prev, tokenomics: true, markets: true }));
+  }, []);
+
+  const applyKcc20Selection = useCallback((info: Kcc20TokenInfo | null) => {
+    setKcc20Selected(info);
+    if (!info) {
+      setOnChainSnapshot(null);
+      setDeployerAddress('');
+      setTokenDecimals(undefined);
+      setMaxSupply(undefined);
+      setTotalSupply(undefined);
+      setContractAddress('');
+      return;
+    }
+    const dec = info.decimals ?? 8;
+    setSymbol(info.ticker);
+    setName(info.name ?? info.ticker);
+    setOnChainSnapshot(info);
+    setContractAddress(info.covenantId);
+    setKcc20ConnectInput(info.covenantId);
+    setTokenDecimals(dec);
+    setMaxSupply(parseSupplyNumber(info.maxSupply, dec));
+    setTotalSupply(parseSupplyNumber(info.minted, dec));
+    setSectionToggles((prev) => ({ ...prev, tokenomics: true, utility: true }));
   }, []);
 
   const lookupL2Contract = useCallback(async () => {
@@ -317,8 +356,12 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       description: description.trim() || 'Token description preview.',
       shortDescription: shortDescription.trim() || undefined,
       network: listingNetworkToTokenNetwork(listingNetwork),
+      listingNetwork,
       contractAddress: contractAddress.trim() || undefined,
-      l1Address: assembledNetworks.find((n) => n.network === 'krc20' || n.network === 'kaspa_l1')?.contractAddress,
+      onChainSnapshot: onChainSnapshot ?? undefined,
+      l1Address: assembledNetworks.find(
+        (n) => n.network === 'krc20' || n.network === 'kaspa_l1' || n.network === 'kcc20',
+      )?.contractAddress,
       l2Address: assembledNetworks.find((n) => n.network === 'l2_kasplex' || n.network === 'l2_igra')?.contractAddress,
       networks: assembledNetworks,
       logo: resolvedMedia.logoUrl,
@@ -341,6 +384,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       paidModuleIds: filterModulesForAssetKind(
         Array.from(enabledModules) as TokenModuleId[],
         assetKind,
+        listingNetwork,
       ),
       modulesConfig,
     }),
@@ -358,6 +402,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       listing,
       resolvedMedia,
       assembledNetworks,
+      onChainSnapshot,
     ],
   );
 
@@ -553,6 +598,10 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       setError('Select a KRC-20 token from the lookup results before publishing.');
       return;
     }
+    if (isRealToken && isKcc20Network && !onChainSnapshot) {
+      setError('Connect a KCC-20 covenant from kascov before publishing.');
+      return;
+    }
     if (isRealToken && isL2Network && !onChainSnapshot) {
       setError('Load on-chain data for the L2 contract before publishing.');
       return;
@@ -691,6 +740,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                       setListingNetwork(next);
                       setOnChainSnapshot(null);
                       setKrc20Selected(null);
+                      setKcc20Selected(null);
+                      setKcc20ConnectInput('');
                       setSecondaryNetworks((prev) => prev.filter((row) => row.network !== next));
                     }}
                     options={TOKEN_LISTING_NETWORK_OPTIONS.map((opt) => ({
@@ -702,7 +753,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   />
                 </div>
               </div>
-              {!isRealToken || !isKrc20Network ? (
+              {!isRealToken || (!isKrc20Network && !isKcc20Network) ? (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <KxFormFieldLabel>
@@ -817,6 +868,16 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 disabled={isSubmitting}
                 selected={krc20Selected}
               />
+            ) : isRealToken && isKcc20Network ? (
+              <Kcc20ConnectField
+                value={kcc20ConnectInput}
+                onChange={setKcc20ConnectInput}
+                onSelect={applyKcc20Selection}
+                disabled={isSubmitting}
+                selected={kcc20Selected}
+                network={programmableNetwork}
+                onNetworkChange={setProgrammableNetwork}
+              />
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -846,10 +907,22 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   ) : null}
                   {onChainSnapshot.minted ? (
                     <span>
-                      {onChainSnapshot.source === 'l2' ? 'Total supply' : 'Minted'}:{' '}
+                      {onChainSnapshot.source === 'l2'
+                        ? 'Total supply'
+                        : onChainSnapshot.source === 'kcc20'
+                          ? 'Live value'
+                          : 'Minted'}
+                      :{' '}
                       {onChainSnapshot.source === 'l2'
                         ? formatL2Supply(onChainSnapshot.minted, onChainSnapshot.decimals ?? 18)
-                        : formatKrc20Supply(onChainSnapshot.minted, onChainSnapshot.decimals ?? 8)}
+                        : onChainSnapshot.source === 'kcc20'
+                          ? `${formatKcc20Sompi(onChainSnapshot.minted, onChainSnapshot.decimals ?? 8)} KAS`
+                          : formatKrc20Supply(onChainSnapshot.minted, onChainSnapshot.decimals ?? 8)}
+                    </span>
+                  ) : null}
+                  {onChainSnapshot.source === 'kcc20' && onChainSnapshot.covenantId ? (
+                    <span className="col-span-2 truncate font-mono text-[10px]" title={onChainSnapshot.covenantId}>
+                      Covenant: {onChainSnapshot.covenantId}
                     </span>
                   ) : null}
                   {deployerAddress ? (
@@ -986,7 +1059,9 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 {moduleDiscountPercent > 0 ? ` KREX tier discount: ${moduleDiscountPercent}% off modules.` : ''}
               </p>
             </div>
-            {TOKEN_MODULE_OFFERS.filter((offer) => isRealToken || !isIntegrationModule(offer.id)).map((offer) => (
+            {TOKEN_MODULE_OFFERS.filter((offer) =>
+              filterModuleOffersForListing([offer], { assetKind, listingNetwork }).length > 0,
+            ).map((offer) => (
               <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
                 <KxInFormPremiumRow
                   flat
@@ -1006,6 +1081,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               onChange={setModulesConfig}
               enabledModuleIds={enabledModules}
               isRealToken={isRealToken}
+              listingNetwork={listingNetwork}
               marketsSectionEnabled={sectionToggles.markets ?? false}
               disabled={isSubmitting}
             />

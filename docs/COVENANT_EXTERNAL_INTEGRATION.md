@@ -30,6 +30,8 @@ External repos can mirror types from `src/lib/programmability/types.ts`:
 - `CovenantTxRequest`, `CovenantBinding`, `UtxoOutpoint`
 - Artifact layout in `public/covenant/*.json`
 
+**Programmable token listings (KCC-20):** connect by covenant id in the Tokens Dashboard; read-only enrichment via kascov. See [PROGRAMMABLE_TOKEN_UAAS.md](./PROGRAMMABLE_TOKEN_UAAS.md). No Hub indexer.
+
 No npm package yet; copy types or consume artifacts JSON from a deployed Hub URL.
 
 ### 4. postMessage bridge (optional)

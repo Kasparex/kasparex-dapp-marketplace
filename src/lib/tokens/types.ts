@@ -5,7 +5,8 @@
  */
 
 import type { TokenModuleId, TokenModulesConfig } from './modules';
-import type { TokenNetworkEntry, TokenAssetKind } from './listingRecord';
+import type { TokenListingNetwork } from './listingNetwork';
+import type { TokenNetworkEntry, TokenOnChainSnapshot, TokenAssetKind } from './listingRecord';
 
 export type TokenNetwork = 'L1' | 'L2';
 export type TokenType = 'global' | 'collab';
@@ -123,6 +124,12 @@ export interface Token {
 
   /** Listing category for directory filters and badges. */
   category?: string;
+
+  /** Primary listing network (KRC-20, KCC-20, L2, etc.). */
+  listingNetwork?: TokenListingNetwork;
+
+  /** Cached on-chain snapshot from listing connect flow. */
+  onChainSnapshot?: TokenOnChainSnapshot;
 }
 
 /**

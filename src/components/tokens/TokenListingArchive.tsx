@@ -11,6 +11,7 @@ import { TokenLogo } from '@/components/tokens/TokenLogo';
 import { TokenListingCardContent } from '@/components/tokens/TokenListingCardContent';
 import { TokenVerificationWizard, type TokenVerificationMode } from '@/components/tokens/TokenVerificationWizard';
 import { listingToToken } from '@/lib/tokens/listingRecord';
+import { getProgrammableExplorerUrl } from '@/lib/tokens/networks';
 import { loadTokenFeaturedImageUrl } from '@/lib/tokens/metadata';
 import type { ClaimableSeed } from '@/lib/tokens/seedClaims';
 
@@ -148,6 +149,13 @@ export function TokenListingArchive({
           const pill = paymentPill(listing.status);
           const canVerifyDeployer = listing.ownership !== 'deployer_verified';
           const isReal = listing.assetKind === 'real';
+          const kascovUrl =
+            listing.listingNetwork === 'kcc20'
+              ? getProgrammableExplorerUrl(
+                  listing.onChainSnapshot?.covenantId ?? listing.contractAddress,
+                  listing.onChainSnapshot?.networkId,
+                )
+              : null;
           return (
             <KxListingCard key={listing.id} accent="tokens" className="flex h-full flex-col">
               <KxListingCardMedia aspectClass="aspect-[16/9]">
@@ -174,6 +182,16 @@ export function TokenListingArchive({
                       <button type="button" onClick={() => onEdit(listing)} className="k-control-btn text-sm">
                         Edit
                       </button>
+                      {kascovUrl ? (
+                        <a
+                          href={kascovUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="k-control-btn col-span-2 text-sm text-center"
+                        >
+                          View covenant on kascov
+                        </a>
+                      ) : null}
                       {canVerifyDeployer && isReal ? (
                         <button
                           type="button"

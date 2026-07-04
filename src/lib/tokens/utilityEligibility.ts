@@ -5,6 +5,8 @@
 import type { Token } from './types';
 import type { TokenAssetKind } from './listingRecord';
 import type { TokenModuleId } from './modules';
+import { isProgrammableOnlyModule } from './modules';
+import { isProgrammableListingNetwork } from './listingNetwork';
 
 /** Modules that only affect page presentation (no on-chain token wiring). */
 export const TOKEN_INFORMATIONAL_MODULE_IDS: TokenModuleId[] = [
@@ -19,6 +21,9 @@ export const TOKEN_INTEGRATION_MODULE_IDS: TokenModuleId[] = [
   'utility_integrations',
   'premium_analytics',
   'on_chain_poll',
+  'covenant_utilities_hub',
+  'access_gate',
+  'native_subscriptions',
 ];
 
 export function isInformationalModule(id: TokenModuleId): boolean {
@@ -48,12 +53,37 @@ export function canUseIntegrationUtility(token: Token): boolean {
 export function filterModulesForAssetKind(
   moduleIds: TokenModuleId[],
   assetKind: TokenAssetKind,
+  listingNetwork?: import('./listingNetwork').TokenListingNetwork,
 ): TokenModuleId[] {
-  if (assetKind === 'real') return moduleIds;
-  return moduleIds.filter(isInformationalModule);
+  let filtered = moduleIds;
+  if (assetKind === 'real') {
+    filtered = moduleIds;
+  } else {
+    filtered = moduleIds.filter(isInformationalModule);
+  }
+  if (!isProgrammableListingNetwork(listingNetwork)) {
+    filtered = filtered.filter((id) => !isProgrammableOnlyModule(id));
+  }
+  return filtered;
 }
 
+export function filterModuleOffersForListing(
+  offers: import('./modules').TokenModuleOffer[],
+  args: { assetKind: TokenAssetKind; listingNetwork?: import('./listingNetwork').TokenListingNetwork },
+): import('./modules').TokenModuleOffer[] {
+  return offers.filter((offer) => {
+    if (args.assetKind === 'fictional' && isIntegrationModule(offer.id)) return false;
+    if (isProgrammableOnlyModule(offer.id) && !isProgrammableListingNetwork(args.listingNetwork)) {
+      return false;
+    }
+    return true;
+  });
+}
+
+import { canShowProgrammableUtilitySection } from '@/lib/programmable/eligibility';
+
 export function canShowUtilityTab(token: Token): boolean {
+  if (canShowProgrammableUtilitySection(token)) return true;
   if (!canUseIntegrationUtility(token)) return false;
   return Boolean(
     token.listing?.instantUtility ||

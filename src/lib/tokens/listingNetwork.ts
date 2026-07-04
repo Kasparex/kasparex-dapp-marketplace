@@ -16,7 +16,11 @@ export type TokenListingNetworkOption = {
 
 export const TOKEN_LISTING_NETWORK_OPTIONS: TokenListingNetworkOption[] = [
   { id: 'krc20', label: 'L1 Kaspa Mainnet (KRC-20)' },
-  { id: 'kcc20', label: 'L1 Kaspa Mainnet (KCC-20) - Coming Soon', disabled: true, hint: 'Coming soon' },
+  {
+    id: 'kcc20',
+    label: 'L1 Programmable (KCC-20)',
+    hint: 'Connect a covenant deployed on testnet-10 (mainnet when ready)',
+  },
   { id: 'l2_kasplex', label: 'L2 (Kasplex / EVM)' },
   { id: 'l2_igra', label: 'L2 (Igra / EVM)' },
 ];
@@ -32,8 +36,12 @@ export function isL2EvmNetwork(network: TokenListingNetwork): boolean {
 }
 
 export function listingNetworkToTokenNetwork(network: TokenListingNetwork): TokenNetwork {
-  if (network === 'kaspa_l1' || network === 'krc20') return 'L1';
+  if (network === 'kaspa_l1' || network === 'krc20' || network === 'kcc20') return 'L1';
   return 'L2';
+}
+
+export function isProgrammableListingNetwork(network: TokenListingNetwork): boolean {
+  return network === 'kcc20';
 }
 
 export function tokenNetworkToListingNetwork(
@@ -131,6 +139,23 @@ export function getTokenVerificationFlow(network: TokenListingNetwork): TokenVer
         ],
       };
     case 'kcc20':
+      return {
+        network,
+        title: 'Verify KCC-20 controller',
+        intro:
+          'Confirm you control the Kaspa wallet that deployed or governs this programmable token covenant. Sign a verification message with the controller wallet.',
+        walletKind: 'kaspa',
+        methods: [
+          {
+            id: 'covenant_controller_signature',
+            label: 'Controller wallet signature',
+            description:
+              'Sign with the Kaspa wallet linked to this covenant. Include your covenant id in the verification record.',
+            walletKind: 'kaspa',
+            available: true,
+          },
+        ],
+      };
     default:
       return {
         network,

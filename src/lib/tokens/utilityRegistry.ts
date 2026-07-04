@@ -4,6 +4,7 @@
 
 import type { Token } from './types';
 import type { TokenModuleId } from './modules';
+import { isProgrammableOnlyModule } from './modules';
 import { canUseIntegrationUtility } from './utilityEligibility';
 
 export type HubUtilityProductId =
@@ -95,6 +96,22 @@ export function buildUtilityBadgesFromProducts(productIds: string[]): string[] {
   for (const id of productIds) {
     const product = getHubUtilityProduct(id as HubUtilityProductId);
     if (product) badges.add(product.badge);
+  }
+  return Array.from(badges);
+}
+
+const PROGRAMMABLE_MODULE_BADGES: Partial<Record<TokenModuleId, string>> = {
+  covenant_utilities_hub: 'Covenant Utilities',
+  access_gate: 'Gated',
+  native_subscriptions: 'Subscriptions',
+};
+
+export function buildProgrammableModuleBadges(moduleIds: TokenModuleId[]): string[] {
+  const badges = new Set<string>();
+  for (const id of moduleIds) {
+    if (!isProgrammableOnlyModule(id)) continue;
+    const badge = PROGRAMMABLE_MODULE_BADGES[id];
+    if (badge) badges.add(badge);
   }
   return Array.from(badges);
 }
