@@ -19,10 +19,8 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
   const [passed, setPassed] = useState<boolean | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (!canUseProgrammableUtility(token) || !tokenHasModule(token.paidModuleIds, 'access_gate')) {
-    return null;
-  }
-
+  const visible =
+    canUseProgrammableUtility(token) && tokenHasModule(token.paidModuleIds, 'access_gate');
   const config = token.modulesConfig?.accessGate;
   const covenantId = resolveProgrammableCovenantId(token);
   const networkId = token.onChainSnapshot?.networkId ?? DEFAULT_PROGRAMMABLE_NETWORK;
@@ -67,6 +65,8 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
       setChecking(false);
     }
   }, [config, covenantId, networkId, token.decimals]);
+
+  if (!visible) return null;
 
   return (
     <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
