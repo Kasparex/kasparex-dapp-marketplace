@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BuildDAppWizard } from '@/components/dapps/BuildDAppWizard';
 import type { DApp } from '@/lib/dapps';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 
 type Mode = 'build' | 'list';
 
@@ -18,6 +19,7 @@ function DAppsEditorNewPageContent() {
   const initialMode: Mode | null = modeParam === 'build' ? 'build' : modeParam === 'list' ? 'list' : null;
   const [mode, setMode] = useState<Mode | null>(initialMode);
   const [busy, setBusy] = useState(false);
+  const { confirm, alert } = useKxSystemDialog();
 
   const title = useMemo(() => {
     if (!mode) return 'New dApp';
@@ -40,20 +42,27 @@ function DAppsEditorNewPageContent() {
       goBack();
     } catch (e) {
       console.error(e);
-      alert('Failed to save dApp. Please try again.');
+      await alert({
+        title: 'Save failed',
+        message: 'Failed to save dApp. Please try again.',
+      });
     } finally {
       setBusy(false);
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!mode) {
       goBack();
       return;
     }
-    if (confirm('Are you sure you want to cancel? Your progress will be lost.')) {
-      setMode(null);
-    }
+    const ok = await confirm({
+      title: 'Discard progress?',
+      message: 'Are you sure you want to cancel? Your progress will be lost.',
+      confirmLabel: 'Discard',
+      destructive: true,
+    });
+    if (ok) setMode(null);
   };
 
   return (

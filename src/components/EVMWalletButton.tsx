@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
@@ -60,6 +61,7 @@ export function EVMWalletButton() {
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isNodeOpen, setIsNodeOpen] = useState(false);
   const isMobile = useIsMobileViewport();
+  const { alert } = useKxSystemDialog();
   const [showMobileL2Hint, setShowMobileL2Hint] = useState(false);
 
   // Get current network info
@@ -161,7 +163,10 @@ export function EVMWalletButton() {
     const handleCopyAddress = async () => {
       if (address) {
         if (!isBalanceVisible) {
-          alert('Please enable balance visibility to copy address');
+          await alert({
+            title: 'Balance hidden',
+            message: 'Please enable balance visibility to copy address.',
+          });
           return;
         }
         await navigator.clipboard.writeText(address);
@@ -307,7 +312,10 @@ export function EVMWalletButton() {
                         : null;
                   const copy = tokenAddress || address;
                   if (!isBalanceVisible) {
-                    alert('Please enable balance visibility to copy address');
+                    await alert({
+                      title: 'Balance hidden',
+                      message: 'Please enable balance visibility to copy address.',
+                    });
                     return;
                   }
                   await navigator.clipboard.writeText(copy);

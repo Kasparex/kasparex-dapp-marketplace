@@ -28,6 +28,7 @@ import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesComm
 import Link from 'next/link';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -117,6 +118,7 @@ export function ChroniclesCenterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
+  const { confirm, alert } = useKxSystemDialog();
   const { items, refresh } = useChroniclesCommunitySubmissions({
     authorAddress: state.address ?? undefined,
   });
@@ -157,11 +159,20 @@ export function ChroniclesCenterContent() {
     const existing = getCommunitySubmissionById(id);
     if (!existing) return;
     if (!state.isConnected || !state.provider || !state.address) {
-      alert('Connect your Kaspa wallet to delete this submission.');
+      await alert({
+        title: 'Wallet required',
+        message: 'Connect your Kaspa wallet to delete this submission.',
+      });
       return;
     }
     const deleteFee = HUB_DELETE_FEE_KAS.chronicles;
-    if (!confirm(`Archive "${existing.title}"? A ${deleteFee} KAS fee applies.`)) return;
+    const ok = await confirm({
+      title: 'Archive submission',
+      message: `Archive "${existing.title}"? A ${deleteFee} KAS fee applies.`,
+      confirmLabel: 'Archive',
+      destructive: true,
+    });
+    if (!ok) return;
 
     setArchivingId(id);
     try {
@@ -177,7 +188,10 @@ export function ChroniclesCenterContent() {
       if (!result.ok) throw new Error(result.error ?? 'Delete failed');
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to archive submission');
+      await alert({
+        title: 'Archive failed',
+        message: err instanceof Error ? err.message : 'Failed to archive submission',
+      });
     } finally {
       setArchivingId(null);
     }

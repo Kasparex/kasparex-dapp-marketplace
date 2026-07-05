@@ -31,6 +31,7 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -171,6 +172,7 @@ export function DAppDashboardContent() {
   const { listings, refresh } = useDirectoryListings(state.address ?? undefined);
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
+  const { confirm } = useKxSystemDialog();
 
   const [activeTab, setActiveTab] = useState<DAppDashboardTab>('overview');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
@@ -236,13 +238,13 @@ export function DAppDashboardContent() {
       nftStatus,
     ).effectiveKas;
     const feeLabel = listingActionFeeLabel(listing.paymentCurrency, deleteFeeKas);
-    if (
-      !confirm(
-        `Remove "${listing.name}" from the public directory? A ${feeLabel} fee applies.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Remove listing',
+      message: `Remove "${listing.name}" from the public directory? A ${feeLabel} fee applies.`,
+      confirmLabel: 'Remove',
+      destructive: true,
+    });
+    if (!ok) return;
 
     setDeletingId(id);
     setActionError(null);

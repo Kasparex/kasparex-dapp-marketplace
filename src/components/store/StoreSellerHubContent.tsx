@@ -17,6 +17,7 @@ import { parseStoreSellerTab, storeSellerTabHref, type StoreSellerTab } from '@/
 import type { Product, Purchase } from '@/lib/store/types';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -33,6 +34,7 @@ export function StoreSellerHubContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
+  const { confirm, alert } = useKxSystemDialog();
 
   const [activeTab, setActiveTab] = useState<StoreSellerTab>('overview');
   const [products, setProducts] = useState<Product[]>([]);
@@ -98,14 +100,23 @@ export function StoreSellerHubContent() {
 
   const handleDelete = async (productId: string) => {
     if (!state.address || !state.provider) {
-      alert('Connect your Kaspa wallet to delete this product.');
+      await alert({
+        title: 'Wallet required',
+        message: 'Connect your Kaspa wallet to delete this product.',
+      });
       return;
     }
     const product = products.find((p) => p.id === productId);
     if (!product) return;
 
     const deleteFee = HUB_DELETE_FEE_KAS.store;
-    if (!confirm(`Archive "${product.title}"? A ${deleteFee} KAS fee applies.`)) return;
+    const ok = await confirm({
+      title: 'Archive product',
+      message: `Archive "${product.title}"? A ${deleteFee} KAS fee applies.`,
+      confirmLabel: 'Archive',
+      destructive: true,
+    });
+    if (!ok) return;
 
     setActionProductId(productId);
     try {
@@ -125,7 +136,10 @@ export function StoreSellerHubContent() {
       const updatedProducts = await getProductsBySeller(state.address);
       setProducts(updatedProducts);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to archive product');
+      await alert({
+        title: 'Archive failed',
+        message: err instanceof Error ? err.message : 'Failed to archive product',
+      });
     } finally {
       setActionProductId(null);
     }

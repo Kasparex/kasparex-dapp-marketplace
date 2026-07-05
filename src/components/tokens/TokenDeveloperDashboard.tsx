@@ -16,6 +16,7 @@ import { useAccount } from 'wagmi';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 import { normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
 import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { Alert } from '@/components/Alert';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
@@ -42,6 +43,7 @@ export function TokenDeveloperDashboard() {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
+  const { confirm } = useKxSystemDialog();
 
   const {
     getAuthorListings,
@@ -91,13 +93,13 @@ export function TokenDeveloperDashboard() {
 
   const handleDelete = async (id: string) => {
     const deleteFee = HUB_DELETE_FEE_KAS.tokens;
-    if (
-      !window.confirm(
-        `Remove this listing from your dashboard? A ${deleteFee} KAS fee applies. The public page may still show until cache clears.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Remove listing',
+      message: `Remove this listing from your dashboard? A ${deleteFee} KAS fee applies. The public page may still show until cache clears.`,
+      confirmLabel: 'Remove',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await removeListing(id);
     } catch (e) {
@@ -123,7 +125,13 @@ export function TokenDeveloperDashboard() {
   };
 
   const handleUnassignWallet = async (id: string) => {
-    if (!window.confirm('Unassign your wallet from this token page? You can re-assign it later.')) return;
+    const ok = await confirm({
+      title: 'Unassign wallet',
+      message: 'Unassign your wallet from this token page? You can re-assign it later.',
+      confirmLabel: 'Unassign',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       const result = await unassignWallet(id);
       if (result) {

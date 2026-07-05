@@ -50,7 +50,7 @@ export function KxModalShell({
 
   return createPortal(
     <div
-      className={`kx-modal-overlay fixed inset-0 ${zIndexClass} flex items-center justify-center`}
+      className={`kx-modal-overlay fixed inset-0 ${zIndexClass} flex items-center justify-center p-4`}
       onClick={onOverlayClick}
       role="presentation"
     >

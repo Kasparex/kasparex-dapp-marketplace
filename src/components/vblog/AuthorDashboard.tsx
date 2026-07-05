@@ -12,6 +12,7 @@ import { ArticleList } from './ArticleList';
 import { AuthorPricing } from './AuthorPricing';
 import { Alert } from '@/components/Alert';
 import { useVBlogPricing } from '@/hooks/useVBlogPricing';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import type { VBlogDashboardNavTarget } from '@/components/vblog/VBlogSidebar';
 
 interface AuthorDashboardProps {
@@ -46,6 +47,7 @@ export function AuthorDashboard({
 
   const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles, articles } = useVBlog();
   const pricing = useVBlogPricing();
+  const { confirm } = useKxSystemDialog();
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -177,9 +179,13 @@ export function AuthorDashboard({
   };
 
   const handleDeleteArticle = async (articleId: string) => {
-    if (!confirm(`Deleting an article costs ${pricing.deleteFee} KAS and cannot be undone. Continue?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Delete article',
+      message: `Deleting an article costs ${pricing.deleteFee} KAS and cannot be undone. Continue?`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       const deleted = await deleteExistingArticle(articleId);

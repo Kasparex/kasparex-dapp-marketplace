@@ -3,6 +3,7 @@
 import { useState, useImperativeHandle, forwardRef } from 'react';
 import type { TimelineEntry, Category, EntryType, EntryStatus, EntryPriority } from '@/lib/updates';
 import { getCategoryLabel } from '@/lib/updates';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 
 interface UpdatesEditorProps {
   onEntryAdded?: () => void;
@@ -27,6 +28,7 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { confirm, alert } = useKxSystemDialog();
 
   const resetForm = () => {
     setTitle('');
@@ -60,7 +62,10 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
-      alert('Title and description are required');
+      await alert({
+        title: 'Missing fields',
+        message: 'Title and description are required.',
+      });
       return;
     }
 
@@ -93,7 +98,10 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
           setIsOpen(false);
           resetForm();
         } else {
-          alert(result.error || 'Failed to update entry');
+          await alert({
+            title: 'Update failed',
+            message: result.error || 'Failed to update entry',
+          });
         }
       } else {
         // Add new entry
@@ -112,20 +120,31 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
           setIsOpen(false);
           resetForm();
         } else {
-          alert(result.error || 'Failed to add entry');
+          await alert({
+            title: 'Add failed',
+            message: result.error || 'Failed to add entry',
+          });
         }
       }
     } catch (error: any) {
-      alert(error.message || 'An error occurred');
+      await alert({
+        title: 'Error',
+        message: error.message || 'An error occurred',
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!editingEntry || !confirm('Are you sure you want to delete this entry?')) {
-      return;
-    }
+    if (!editingEntry) return;
+    const ok = await confirm({
+      title: 'Delete entry',
+      message: 'Are you sure you want to delete this entry?',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
 
     setDeleting(true);
     try {
@@ -139,10 +158,16 @@ export const UpdatesEditor = forwardRef<UpdatesEditorHandle, UpdatesEditorProps>
         setIsOpen(false);
         resetForm();
       } else {
-        alert(result.error || 'Failed to delete entry');
+        await alert({
+          title: 'Delete failed',
+          message: result.error || 'Failed to delete entry',
+        });
       }
     } catch (error: any) {
-      alert(error.message || 'An error occurred');
+      await alert({
+        title: 'Error',
+        message: error.message || 'An error occurred',
+      });
     } finally {
       setDeleting(false);
     }

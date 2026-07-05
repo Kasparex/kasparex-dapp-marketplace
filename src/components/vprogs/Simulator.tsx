@@ -8,11 +8,13 @@
 import { useState, useEffect } from 'react';
 import { getVProgsSimulator } from '@/lib/vprogs/simulator';
 import type { VProgsDApp, VProgsUsageEvent } from '@/lib/vprogs/types';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 
 export function VProgsSimulator() {
   const [dApps, setDApps] = useState<VProgsDApp[]>([]);
   const [events, setEvents] = useState<VProgsUsageEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm } = useKxSystemDialog();
 
   const simulator = getVProgsSimulator();
 
@@ -33,11 +35,16 @@ export function VProgsSimulator() {
     }
   };
 
-  const handleClearState = () => {
-    if (confirm('Clear all simulator data?')) {
-      simulator.clearState();
-      loadData();
-    }
+  const handleClearState = async () => {
+    const ok = await confirm({
+      title: 'Clear simulator data',
+      message: 'Clear all simulator data?',
+      confirmLabel: 'Clear',
+      destructive: true,
+    });
+    if (!ok) return;
+    simulator.clearState();
+    loadData();
   };
 
   return (

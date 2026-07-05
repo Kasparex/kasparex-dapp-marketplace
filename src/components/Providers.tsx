@@ -12,6 +12,8 @@ import { AdsRegistryProvider } from '@/components/ads/AdsRegistryProvider';
 import { BalanceVisibilityProvider } from '@/hooks/useBalanceVisibility';
 import { getErrorMessage } from '@/lib/utils';
 import { ToasterProvider } from '@/components/ui/Toaster';
+import { KxSystemDialogProvider } from '@/components/ui/KxSystemDialog';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
@@ -573,6 +575,7 @@ const customDarkTheme = darkTheme({
 
 function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const isMobile = useIsMobileViewport();
 
   useEffect(() => {
     // Check initial theme from document or localStorage
@@ -599,7 +602,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
     <RainbowKitProvider
       theme={theme === 'dark' ? customDarkTheme : customLightTheme}
       initialChain={igraMainnet}
-      modalSize="wide"
+      modalSize={isMobile ? 'compact' : 'wide'}
     >
       {children}
     </RainbowKitProvider>
@@ -613,6 +616,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <EvmSubdomainReconnectHint />
         <BalanceVisibilityProvider>
           <ToasterProvider>
+            <KxSystemDialogProvider>
             <TooltipProvider>
               <KaspaWalletProvider>
                 <RainbowKitProviderWithTheme>
@@ -620,6 +624,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 </RainbowKitProviderWithTheme>
               </KaspaWalletProvider>
             </TooltipProvider>
+            </KxSystemDialogProvider>
           </ToasterProvider>
         </BalanceVisibilityProvider>
       </WagmiProvider>
