@@ -9,15 +9,18 @@ import { markHubContentDeleted } from '@/lib/hub/deletedContent';
 import { resetHubContentBootstrap, syncHubContentItem } from '@/lib/hub/contentSync';
 import { requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
+/** Global flat KAS delete fee for all hub content (before KREX tier discounts). */
+export const HUB_DELETE_FEE_KAS_STANDARD = 0.5;
+
 /** Global KAS delete fees by hub content kind (before KREX tier discounts). */
 export const HUB_DELETE_FEE_KAS: Record<HubContentKind, number> = {
-  vblog: 0.1,
-  tokens: 1,
-  dapps: 1,
-  chronicles: 1,
-  magazines: 1,
-  magazineIssues: 1,
-  store: 1,
+  vblog: HUB_DELETE_FEE_KAS_STANDARD,
+  tokens: HUB_DELETE_FEE_KAS_STANDARD,
+  dapps: HUB_DELETE_FEE_KAS_STANDARD,
+  chronicles: HUB_DELETE_FEE_KAS_STANDARD,
+  magazines: HUB_DELETE_FEE_KAS_STANDARD,
+  magazineIssues: HUB_DELETE_FEE_KAS_STANDARD,
+  store: HUB_DELETE_FEE_KAS_STANDARD,
 };
 
 export function getHubDeleteTreasuryAddress(): string {

@@ -23,9 +23,9 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import {
   buildCanonicalArticlePayload,
   fnv1aHex,
-  VBLOG_DELETE_BASE_FEE_KAS,
   VBLOG_CHUNK_SIZE_BYTES,
 } from '@/lib/vblog/pricing';
+import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import {
   splitPayloadToHexChunks,
   buildVBlogCommitPayloadHex,
@@ -469,7 +469,7 @@ export function useVBlog() {
     const result = await executeHubPaidDelete({
       kind: 'vblog',
       id: articleId,
-      feeKas: VBLOG_DELETE_BASE_FEE_KAS,
+      feeKas: HUB_DELETE_FEE_KAS.vblog,
       treasuryAddress: getVBlogTreasuryL1Address(),
       note: buildVBlogDeletePlainNote(existing.articleId ?? articleId, kaspaState.address),
       payload: buildVBlogDeletePayloadHex(existing.articleId ?? articleId, kaspaState.address),

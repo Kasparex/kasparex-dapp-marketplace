@@ -54,7 +54,6 @@ import {
   onHubContentVisibilityRefresh,
 } from '@/lib/hub/contentSync';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
-import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { collectTokenMediaCids } from '@/lib/ipfs/cidUtils';
 
 export type CreateTokenListingInput = {
