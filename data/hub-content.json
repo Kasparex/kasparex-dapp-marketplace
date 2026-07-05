@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-05T17:58:29.068Z",
+  "updatedAt": "2026-07-05T18:58:13.008Z",
   "vblog": [
     {
       "title": "test 2",
@@ -44,7 +44,97 @@
       }
     }
   ],
-  "tokens": [],
+  "tokens": [
+    {
+      "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
+      "symbol": "TEST",
+      "name": "test",
+      "description": "<p>test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test </p>",
+      "shortDescription": "test test test test test test test test test test test test test test test test test test test test test test test test test test test test",
+      "tags": [],
+      "listingNetwork": "krc20",
+      "network": "L1",
+      "logoUrl": "https://hub.kasparex.com/api/ipfs?path=bafkreigmrfu7yswgmfecrasfk74dlvt4syto7zh2judtbddqkrbc4l3nv4",
+      "logoCid": "bafkreigmrfu7yswgmfecrasfk74dlvt4syto7zh2judtbddqkrbc4l3nv4",
+      "featuredImageUrl": "https://hub.kasparex.com/api/ipfs?path=bafybeibv6kebgpe5frbi5nccwirkqm56idgfw4gmqirsthdc3idgdl4b3u",
+      "featuredImageCid": "bafybeibv6kebgpe5frbi5nccwirkqm56idgfw4gmqirsthdc3idgdl4b3u",
+      "pageConfig": {
+        "version": 1,
+        "defaultTab": "overview",
+        "sections": [
+          {
+            "type": "overview",
+            "enabled": true
+          },
+          {
+            "type": "tokenomics",
+            "enabled": true
+          },
+          {
+            "type": "roadmap",
+            "enabled": true
+          },
+          {
+            "type": "markets",
+            "enabled": true
+          },
+          {
+            "type": "swap",
+            "enabled": true
+          },
+          {
+            "type": "utility",
+            "enabled": true
+          },
+          {
+            "type": "comments",
+            "enabled": true
+          },
+          {
+            "type": "links",
+            "enabled": true
+          },
+          {
+            "type": "whitepaper",
+            "enabled": true
+          }
+        ]
+      },
+      "paidModuleIds": [],
+      "modulesConfig": {},
+      "assetKind": "fictional",
+      "ownership": "none",
+      "networks": [
+        {
+          "network": "krc20",
+          "primary": true,
+          "verified": false
+        }
+      ],
+      "listing": {
+        "verified": false,
+        "deployerVerified": false
+      },
+      "id": "tl-1783277891958-y42akz",
+      "listingId": "ktl-1783277877621-3yzdir",
+      "slug": "test-4",
+      "publishDate": "2026-07-05T18:58:11.958Z",
+      "status": "verified",
+      "txHash": "cfa2056eb220a2f2e381c812b32bcb70bc7be3089377fede9fba55b02f3e7171",
+      "commitTxHash": "cfa2056eb220a2f2e381c812b32bcb70bc7be3089377fede9fba55b02f3e7171",
+      "contentHash": "fde495c9",
+      "metadataCid": "bafkreignizhqmvcy53rmbfzyru4fubksz4er7ugo6rsj6i2qsec6naooa4",
+      "pricingSnapshot": {
+        "baseFeeKas": 25,
+        "sizeFeeKas": 3.82,
+        "modulesFeeKas": 0,
+        "networkFeeBufferKas": 0.1,
+        "totalKas": 5.78,
+        "payloadBytes": 1631,
+        "chunkCount": 10
+      }
+    }
+  ],
   "dapps": [],
   "chronicles": [],
   "magazines": [],
