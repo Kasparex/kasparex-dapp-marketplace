@@ -3,6 +3,7 @@
 import { VBlogArticle, VBlogComment } from './types';
 import { generateArticleSlug, generateMockCID, generateMockTxHash, generateMockArticleId } from './utils';
 import { registerMagazineSubmission } from '@/lib/magazines/submissions';
+import { mergeVblogArticles } from '@/lib/hub/contentSync';
 
 const STORAGE_KEYS = {
   articles: 'vblog_articles',
@@ -218,13 +219,23 @@ export function addComment(commentData: Omit<VBlogComment, 'id' | 'timestamp'>):
 /**
  * Save articles to storage
  */
-function saveArticles(articles: VBlogArticle[]): void {
+export function saveArticles(articles: VBlogArticle[]): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEYS.articles, JSON.stringify(articles));
+    window.dispatchEvent(new CustomEvent('vblog-articles-updated'));
   } catch (error) {
     console.error('Error saving articles:', error);
   }
+}
+
+/**
+ * Merge remote hub articles into local storage (cross-device sync).
+ */
+export function importRemoteArticles(remote: VBlogArticle[]): void {
+  if (typeof window === 'undefined' || !remote.length) return;
+  const merged = mergeVblogArticles(getAllArticles(), remote);
+  saveArticles(merged);
 }
 
 /**

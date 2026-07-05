@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { resolveHubMediaUrl } from '@/lib/hub/resolveMediaUrl';
 
 type VBlogFeaturedImageVariant = 'card' | 'hero' | 'list';
 
@@ -78,8 +79,8 @@ export function VBlogFeaturedImage({
   onImageClick?: () => void;
 }) {
   const [broken, setBroken] = useState(false);
-  const trimmed = src?.trim();
-  const showPlaceholder = !trimmed || broken;
+  const resolvedSrc = resolveHubMediaUrl(src);
+  const showPlaceholder = !resolvedSrc || broken;
 
   if (showPlaceholder) {
     return <VBlogFeaturedImagePlaceholder title={title} variant={variant} className={className} />;
@@ -88,7 +89,7 @@ export function VBlogFeaturedImage({
   const image = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={trimmed}
+      src={resolvedSrc}
       alt={title}
       className={imgClassName || className}
       onError={() => setBroken(true)}

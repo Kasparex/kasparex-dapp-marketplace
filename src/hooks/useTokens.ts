@@ -33,6 +33,7 @@ import {
   updatePublishedListing,
   deletePublishedListing,
   mergePublishedIntoRegistry,
+  importRemoteListings,
 } from '@/lib/tokens/data';
 import { getClaimableSeeds, type ClaimableSeed } from '@/lib/tokens/seedClaims';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
@@ -48,6 +49,8 @@ import {
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { Token } from '@/lib/tokens/types';
+import { pullAndMergeHubContent, syncHubContentItem, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import { collectTokenMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 export type CreateTokenListingInput = {
   symbol: string;
@@ -182,7 +185,30 @@ export function useTokens() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') loadListings();
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+
+    const bootstrap = async () => {
+      const remote = await pullAndMergeHubContent();
+      if (!cancelled && remote?.tokens?.length) {
+        importRemoteListings(remote.tokens);
+      }
+      if (!cancelled) loadListings();
+    };
+
+    void bootstrap();
+    const onUpdate = () => loadListings();
+    window.addEventListener('tokens-listings-updated', onUpdate);
+    const stopVisibility = onHubContentVisibilityRefresh(async () => {
+      const remote = await pullAndMergeHubContent();
+      if (remote?.tokens?.length) importRemoteListings(remote.tokens);
+      loadListings();
+    });
+    return () => {
+      cancelled = true;
+      window.removeEventListener('tokens-listings-updated', onUpdate);
+      stopVisibility();
+    };
   }, [loadListings]);
 
   const getListingBySlug = useCallback((slug: string) => getPublishedListingBySlug(slug), []);
@@ -387,6 +413,7 @@ export function useTokens() {
         });
       }
 
+      void syncHubContentItem('tokens', 'upsert', { item: listing, commitTxHash: bundle.commitTxHash });
       loadListings();
       return listing;
     },
@@ -413,6 +440,7 @@ export function useTokens() {
 
       if (quote.totalKas <= 0) {
         const updated = updatePublishedListing(id, listingUpdateFields(draft, existing));
+        if (updated) void syncHubContentItem('tokens', 'upsert', { item: updated });
         loadListings();
         return updated;
       }
@@ -457,6 +485,10 @@ export function useTokens() {
         });
       }
 
+      if (updated) {
+        void syncHubContentItem('tokens', 'upsert', { item: updated, commitTxHash: bundle.commitTxHash });
+      }
+
       loadListings();
       return updated;
     },
@@ -465,8 +497,13 @@ export function useTokens() {
 
   const removeListing = useCallback(
     async (id: string): Promise<boolean> => {
+      const existing = getPublishedListingById(id);
       const ok = deletePublishedListing(id);
-      if (ok) loadListings();
+      if (ok) {
+        void syncHubContentItem('tokens', 'delete', { id });
+        if (existing) void requestIpfsUnpin(collectTokenMediaCids(existing));
+        loadListings();
+      }
       return ok;
     },
     [loadListings],

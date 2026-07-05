@@ -6,6 +6,7 @@ import type { Token } from './types';
 import { generateTokenSlug } from './publish';
 import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
 import { tokenNetworkToListingNetwork } from './listingNetwork';
+import { mergeTokenListings } from '@/lib/hub/contentSync';
 
 const STORAGE_KEY = 'tokens_published_listings';
 
@@ -44,6 +45,14 @@ export function getAllPublishedListings(): PublishedTokenListing[] {
 function saveListings(listings: PublishedTokenListing[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(listings));
+  window.dispatchEvent(new CustomEvent('tokens-listings-updated'));
+}
+
+/** Merge remote hub token listings into local storage (cross-device sync). */
+export function importRemoteListings(remote: PublishedTokenListing[]): void {
+  if (typeof window === 'undefined' || !remote.length) return;
+  const merged = mergeTokenListings(getAllPublishedListings(), remote);
+  saveListings(merged);
 }
 
 export function getPublishedListingBySlug(slug: string): PublishedTokenListing | null {

@@ -46,15 +46,24 @@ export function HubMobileRightPanel({ panelId, open, onClose, title = 'Side pane
   const isMobile = useIsMobileViewport();
   useBodyScrollLock(open && isMobile);
 
-  if (!open || !isMobile || typeof document === 'undefined') return null;
+  if (!isMobile || typeof document === 'undefined') return null;
 
   return createPortal(
     <>
-      <div className="fixed inset-0 top-16 z-[44] bg-black/50 lg:hidden" aria-hidden onClick={onClose} />
+      <div
+        className={`fixed inset-0 top-16 z-[44] bg-black/50 transition-opacity duration-300 ease-in-out lg:hidden ${
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        aria-hidden={!open}
+        onClick={open ? onClose : undefined}
+      />
       <aside
         id={panelId}
         data-kx-right-drawer={open ? 'open' : 'closed'}
-        className="fixed top-16 right-0 z-[45] flex h-[calc(100dvh-4rem)] w-[min(100vw,320px)] flex-col border-l border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950 lg:hidden"
+        aria-hidden={!open}
+        className={`fixed top-16 right-0 z-[45] flex h-[calc(100dvh-4rem)] w-[min(100vw,320px)] flex-col border-l border-zinc-200 bg-white shadow-xl transition-all duration-300 ease-in-out motion-reduce:transition-none dark:border-zinc-800 dark:bg-zinc-950 lg:hidden ${
+          open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
+        }`}
         aria-label={title}
       >
         <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 shrink-0">

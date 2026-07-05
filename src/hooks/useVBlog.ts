@@ -10,6 +10,7 @@ import {
   deleteArticle,
   getCommentsForArticle,
   addComment,
+  importRemoteArticles,
 } from '@/lib/vblog/data';
 import { VBlogArticle, VBlogComment } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -39,6 +40,8 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getEnabledVBlogModuleIds, getArticlePaidModuleIds } from '@/lib/vblog/modules';
+import { pullAndMergeHubContent, syncHubContentItem, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import { collectVblogMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 /**
  * Hook for managing vBlog data
@@ -64,9 +67,30 @@ export function useVBlog() {
 
   // Load articles on mount - only on client side
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+
+    const bootstrap = async () => {
+      const remote = await pullAndMergeHubContent();
+      if (!cancelled && remote?.vblog?.length) {
+        importRemoteArticles(remote.vblog);
+      }
+      if (!cancelled) loadArticles();
+    };
+
+    void bootstrap();
+    const onUpdate = () => loadArticles();
+    window.addEventListener('vblog-articles-updated', onUpdate);
+    const stopVisibility = onHubContentVisibilityRefresh(async () => {
+      const remote = await pullAndMergeHubContent();
+      if (remote?.vblog?.length) importRemoteArticles(remote.vblog);
       loadArticles();
-    }
+    });
+    return () => {
+      cancelled = true;
+      window.removeEventListener('vblog-articles-updated', onUpdate);
+      stopVisibility();
+    };
   }, [loadArticles]);
 
   /**
@@ -254,6 +278,7 @@ export function useVBlog() {
         meta: { articleId, contentHash },
       });
     }
+    void syncHubContentItem('vblog', 'upsert', { item: newArticle, commitTxHash: bundle.commitTxHash });
     loadArticles(); // Reload articles
     return newArticle;
   }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, krexBalance]);
@@ -404,6 +429,9 @@ export function useVBlog() {
         meta: { articleId: chainArticleId, contentHash },
       });
     }
+    if (updated) {
+      void syncHubContentItem('vblog', 'upsert', { item: updated, commitTxHash: bundle.commitTxHash });
+    }
     loadArticles();
     return updated;
   }, [loadArticles, pricing, sendVBlogTxBundle, kaspaState.address, kaspaState.isConnected, kaspaState.provider, krexBalance]);
@@ -454,6 +482,8 @@ export function useVBlog() {
     }
     const deleted = deleteArticle(articleId);
     if (deleted) {
+      void syncHubContentItem('vblog', 'delete', { id: articleId });
+      void requestIpfsUnpin(collectVblogMediaCids(existing));
       loadArticles(); // Reload articles
     }
     return deleted;

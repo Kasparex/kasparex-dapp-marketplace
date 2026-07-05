@@ -8,6 +8,8 @@ import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currenci
 import { generateDAppSlug } from '@/lib/utils';
 import type { DApp, DeveloperLink } from '@/lib/dapps';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { mergeDirectoryListings, syncHubContentItem } from '@/lib/hub/contentSync';
+import { collectDappMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 export const DAPP_LISTING_FEE_KAS = 50;
 export const DAPP_LISTING_ACTION_FEE_KAS = 1;
@@ -190,6 +192,13 @@ function writeAllListings(listings: DirectoryListing[]): void {
   window.dispatchEvent(new CustomEvent('dapp-listing-submissions-updated'));
 }
 
+/** Merge remote hub dApp listings into local storage (cross-device sync). */
+export function importRemoteDirectoryListings(remote: DirectoryListing[]): void {
+  if (typeof window === 'undefined' || !remote.length) return;
+  const merged = mergeDirectoryListings(readAllListings(), remote);
+  writeAllListings(merged);
+}
+
 function generateUniqueSlug(name: string, excludeId?: string): string {
   const base = generateDAppSlug(name);
   const all = readAllListings();
@@ -264,6 +273,7 @@ export function saveDirectoryListing(
   const existing = readAllListings();
   existing.unshift(entry);
   writeAllListings(existing);
+  void syncHubContentItem('dapps', 'upsert', { item: entry, commitTxHash: entry.feeTxHash });
   return entry;
 }
 
@@ -339,6 +349,7 @@ export function updateDirectoryListing(
 
   all[index] = updated;
   writeAllListings(all);
+  void syncHubContentItem('dapps', 'upsert', { item: updated, commitTxHash: updated.feeTxHash });
   return updated;
 }
 
@@ -349,12 +360,15 @@ export function archiveDirectoryListing(id: string, submitterAddress: string): b
     (l) => l.id === id && l.submitterAddress.toLowerCase() === submitterAddress.toLowerCase(),
   );
   if (index === -1) return false;
+  const listing = all[index];
   all[index] = {
-    ...all[index],
+    ...listing,
     status: 'archived',
     updatedAt: new Date().toISOString(),
   };
   writeAllListings(all);
+  void syncHubContentItem('dapps', 'delete', { id });
+  void requestIpfsUnpin(collectDappMediaCids(listing));
   return true;
 }
 

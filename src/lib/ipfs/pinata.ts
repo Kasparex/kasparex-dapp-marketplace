@@ -195,6 +195,32 @@ class PinataService {
   }
 
   /**
+   * Unpin a hash from Pinata (frees storage when content is deleted).
+   */
+  async unpinHash(hash: string): Promise<boolean> {
+    if (!this.apiKey || !this.apiSecret) {
+      throw new Error('Pinata API credentials not configured');
+    }
+
+    const clean = hash.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '').trim();
+    if (!clean) return false;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/pinning/unpin/${encodeURIComponent(clean)}`, {
+        method: 'DELETE',
+        headers: {
+          pinata_api_key: this.apiKey,
+          pinata_secret_api_key: this.apiSecret,
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Pinata unpin error:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get Pinata gateway URL for a hash
    */
   getGatewayUrl(hash: string): string {
