@@ -1,24 +1,16 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
 import { useAdmin } from '@/hooks/useAdmin';
+import { KaspaL1WalletButton } from './KaspaL1WalletButton';
+import { EVMWalletButton } from './EVMWalletButton';
+import dynamic from 'next/dynamic';
 
 const TestnetBanner = dynamic(
   () => import('./TestnetBanner').then((mod) => ({ default: mod.TestnetBanner })),
-  { ssr: false }
-);
-
-const KaspaL1WalletButton = dynamic(
-  () => import('./KaspaL1WalletButton').then((mod) => ({ default: mod.KaspaL1WalletButton })),
-  { ssr: false }
-);
-
-const EVMWalletButton = dynamic(
-  () => import('./EVMWalletButton').then((mod) => ({ default: mod.EVMWalletButton })),
   { ssr: false }
 );
 import { useBalanceVisibility } from '@/hooks/useBalanceVisibility';
@@ -27,7 +19,7 @@ import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { HubMegaMenu } from '@/components/hub/HubMegaMenu';
 import { HubMenuSectionTitle } from '@/components/hub/hubMenuIcons';
-import { FooterSocialIcons } from '@/components/footer/FooterSocialIcons';
+import { MobileHeaderDrawer } from '@/components/MobileHeaderDrawer';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -164,6 +156,22 @@ export function Header() {
   const isMobile = useIsMobileViewport();
 
   useBodyScrollLock(mobileMenuOpen && isMobile);
+
+  // Close the drawer when RainbowKit connect / chain modals open so they are not obscured.
+  useEffect(() => {
+    if (!mobileMenuOpen || !isMobile) return;
+
+    const closeIfWalletModal = () => {
+      if (document.querySelector('[data-rk] [role="dialog"]')) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    closeIfWalletModal();
+    const observer = new MutationObserver(closeIfWalletModal);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [mobileMenuOpen, isMobile]);
 
   const currentSectionTitle = getCurrentSectionTitle(pathname);
   const currentProject = getCurrentProject(pathname);
@@ -369,9 +377,7 @@ export function Header() {
             <KaspaL1WalletButton />
           </div>
           <div className="flex-shrink-0">
-            <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs sm:text-sm">Loading...</div>}>
-              <EVMWalletButton />
-            </Suspense>
+            <EVMWalletButton />
           </div>
         </div>
 
@@ -415,91 +421,69 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile side drawer */}
-      {mobileMenuOpen ? (
-        <>
-          <div
-            className="fixed inset-0 top-16 z-[55] bg-black/50 lg:hidden"
-            aria-hidden
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <aside
-            className="fixed top-16 right-0 z-[56] h-[calc(100dvh-4rem)] w-[min(100vw,320px)] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl lg:hidden flex flex-col"
-            aria-label="Site menu"
-          >
-            <div className="flex flex-col gap-5 p-3 flex-1 min-h-0 overflow-y-auto overscroll-contain">
-              <section>
-                <HubMenuSectionTitle>Wallets</HubMenuSectionTitle>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2.5">
-                  <div className="kx-mobile-wallet-stack space-y-2.5">
-                    <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs w-full">Loading...</div>}>
-                      <EVMWalletButton />
-                    </Suspense>
-                    <KaspaL1WalletButton />
-                  </div>
-                </div>
-              </section>
-
-              <section>
-                <HubMenuSectionTitle>Account & tools</HubMenuSectionTitle>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-3">
-                  <HeaderRewardsPointsLink />
-                  <div className="flex items-stretch gap-2">
-                    <div className="flex flex-1 min-w-0 [&_a]:flex [&_a]:h-11 [&_a]:w-full [&_a]:items-center [&_a]:justify-center [&_a]:rounded-lg [&_a]:border [&_a]:border-zinc-200/80 [&_a]:dark:border-zinc-700/80 [&_a]:bg-white [&_a]:dark:bg-zinc-950 [&_a]:hover:bg-zinc-100 [&_a]:dark:hover:bg-zinc-800">
-                      <AdminLink />
-                    </div>
-                    <Tooltip content="What's new">
-                      <Link
-                        href="/updates"
-                        onClick={() => {
-                          localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
-                          setHasNewUpdates(false);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="relative flex h-11 flex-1 min-w-0 items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        aria-label="What's new"
-                      >
-                        <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {hasNewUpdates ? (
-                          <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950" />
-                        ) : null}
-                      </Link>
-                    </Tooltip>
-                    <Tooltip content={isBalanceVisible ? 'Hide balances' : 'Show balances'}>
-                      <button
-                        type="button"
-                        onClick={toggleBalanceVisibility}
-                        className="flex h-11 flex-1 min-w-0 items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
-                      >
-                        {isBalanceVisible ? (
-                          <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                          </svg>
-                        )}
-                      </button>
-                    </Tooltip>
-                  </div>
-                </div>
-              </section>
+      <MobileHeaderDrawer open={mobileMenuOpen && isMobile} onClose={() => setMobileMenuOpen(false)}>
+        <div className="flex flex-col gap-5 p-3 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <section>
+            <HubMenuSectionTitle>Wallets</HubMenuSectionTitle>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2.5">
+              <div className="kx-mobile-wallet-stack space-y-2.5">
+                <EVMWalletButton />
+                <KaspaL1WalletButton />
+              </div>
             </div>
+          </section>
 
-            <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800 px-3 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2 text-center">
-                Follow Kasparex
-              </p>
-              <FooterSocialIcons />
+          <section>
+            <HubMenuSectionTitle>Account & tools</HubMenuSectionTitle>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-3">
+              <HeaderRewardsPointsLink />
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="flex items-center justify-center">
+                  <AdminLink />
+                </div>
+                <Tooltip content="What's new">
+                  <Link
+                    href="/updates"
+                    onClick={() => {
+                      localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
+                      setHasNewUpdates(false);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="relative flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    aria-label="What's new"
+                  >
+                    <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {hasNewUpdates ? (
+                      <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950" />
+                    ) : null}
+                  </Link>
+                </Tooltip>
+                <Tooltip content={isBalanceVisible ? 'Hide balances' : 'Show balances'}>
+                  <button
+                    type="button"
+                    onClick={toggleBalanceVisibility}
+                    className="flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
+                  >
+                    {isBalanceVisible ? (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    )}
+                  </button>
+                </Tooltip>
+              </div>
             </div>
-          </aside>
-        </>
-      ) : null}
+          </section>
+        </div>
+      </MobileHeaderDrawer>
     </header>
   );
 }

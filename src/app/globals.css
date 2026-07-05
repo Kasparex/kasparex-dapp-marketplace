@@ -1361,17 +1361,12 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   }
 }
 
-/* RainbowKit connect / chain modals on mobile */
+/* RainbowKit connect / chain modals on mobile (overlay only, not the provider root) */
 @media (max-width: 1023px) {
-  [data-rk] {
+  [data-rk] > div:has([role='dialog']) {
     position: fixed !important;
     inset: 0 !important;
-    z-index: 2147483646 !important;
-  }
-
-  [data-rk] > div {
-    position: fixed !important;
-    inset: 0 !important;
+    z-index: 100000 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
