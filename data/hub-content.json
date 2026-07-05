@@ -1,84 +1,47 @@
 {
-  "updatedAt": "2026-07-05T15:38:02.146Z",
+  "updatedAt": "2026-07-05T15:41:41.184Z",
   "vblog": [
     {
-      "title": "Minecore game test article v2",
-      "description": "Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article..v.fgh",
-      "content": "<p>Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article1</p>",
-      "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-      "category": "Tutorial",
-      "tags": [
-        "test"
-      ],
-      "featuredImage": "https://hub.kasparex.com/api/ipfs?path=bafybeiegl7gbaxqtmmm6qra63wtt3nkxj6ongma4vjqewluphytyrcpfgy",
-      "primaryLink": "test",
-      "socialLinks": [
-        {
-          "label": "Test",
-          "url": "https://t.me/krextoken"
-        },
-        {
-          "label": "Test 2",
-          "url": "https://t.me/kasparex"
-        }
-      ],
+      "title": "test 2",
+      "description": "test 2 test 2 test 2 test 2 test 2 test 2 test 2",
+      "content": "<p>test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2 test 2</p>",
+      "category": "Introduction",
+      "tags": [],
+      "featuredImage": "https://hub.kasparex.com/api/ipfs?path=bafybeih4vy3c44firotyruzppkw3ysl4jrwyajgvvjb7izrwgx6hrb5pmm",
+      "socialLinks": [],
       "modules": {
-        "premiumSectionEnabled": true,
-        "premiumSectionContent": "<p>Minecore game test article Minecore game test article Minecore game test article Minecore game test <a href=\"https://gist.github.com/Manyfestation/be844fbe1e8c00ac990898e7a737bfec\" rel=\"noopener noreferrer\" target=\"_blank\">article</a> Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article1</p><p><br></p><p>Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article1</p><p><br></p><h2>Minecore game</h2><p><br></p><p> test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article Minecore game test article1</p>",
-        "premiumSectionPriceKas": 10,
-        "premiumSectionPayoutAddress": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-        "premiumSectionPayoutSplits": [
-          {
-            "address": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-            "sharePercent": 80
-          },
-          {
-            "address": "kaspa:qqen22aemekktrqu8sl29sqcphp7tmg2pfzrjf0k8a3nurhvujuxvq4vmf2kj",
-            "sharePercent": 20
-          }
-        ],
+        "premiumSectionEnabled": false,
         "tipBoxEnabled": false,
         "tipToRevealEnabled": false,
-        "premiumPollEnabled": true,
-        "premiumPoll": {
-          "question": "Question test 1",
-          "options": [
-            "Option 1",
-            "Option 2",
-            "Option 3"
-          ]
-        },
+        "premiumPollEnabled": false,
         "readingReceiptsEnabled": false
       },
-      "id": "article-1778176262854-8wwky24",
-      "slug": "minecore-game-test-article-v2",
-      "publishDate": "2026-05-07T17:51:02.855Z",
-      "cid": "QmmgLTlbQzdeArafrrvb1Y6yhOSoj1JvOwr2MutCC9z4",
-      "articleId": "vba-1778176253731-uvsy45",
-      "txHash": "2a33aa5cb5ebd4790359b129fbce9c4e9eb78ae2a9e62c803c2813dea4ab4eae",
-      "status": "verified",
-      "chunkTxHashes": [
-        "2a33aa5cb5ebd4790359b129fbce9c4e9eb78ae2a9e62c803c2813dea4ab4eae"
-      ],
-      "commitTxHash": "2a33aa5cb5ebd4790359b129fbce9c4e9eb78ae2a9e62c803c2813dea4ab4eae",
-      "contentHash": "ad74ed98",
-      "pricingSnapshot": {
-        "payloadBytes": 2502,
-        "chunkCount": 14,
-        "baseFeeKas": 1,
-        "sizeFeeKas": 0.01,
-        "networkFeeBufferKas": 0.05,
-        "totalKas": 0.22
-      },
-      "updatedAt": "2026-07-05T15:38:01.254Z",
       "layoutPreferences": {
-        "sidebarShownByDefault": false,
+        "sidebarShownByDefault": true,
         "rightPanelShownByDefault": true
       },
-      "paidModuleIds": [
-        "premium_section",
-        "premium_poll"
-      ]
+      "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
+      "paidModuleIds": [],
+      "id": "article-1783266100313-32njui2",
+      "slug": "test-2",
+      "publishDate": "2026-07-05T15:41:40.314Z",
+      "cid": "Qmn9LWGcVKhAa7iAICptRBMSn2yNwKmlTr7OzeI1YaW4",
+      "articleId": "vba-1783266090022-wibab8",
+      "txHash": "0f39dd4701e5817fbf8aa5b5494d9d7043a2cb73c59e37bbd20d9f86e04a2bf4",
+      "status": "verified",
+      "chunkTxHashes": [
+        "0f39dd4701e5817fbf8aa5b5494d9d7043a2cb73c59e37bbd20d9f86e04a2bf4"
+      ],
+      "commitTxHash": "0f39dd4701e5817fbf8aa5b5494d9d7043a2cb73c59e37bbd20d9f86e04a2bf4",
+      "contentHash": "6c4f9cd9",
+      "pricingSnapshot": {
+        "payloadBytes": 601,
+        "chunkCount": 4,
+        "baseFeeKas": 10,
+        "sizeFeeKas": 1.52,
+        "networkFeeBufferKas": 0.05,
+        "totalKas": 2.32
+      }
     }
   ],
   "tokens": [],
