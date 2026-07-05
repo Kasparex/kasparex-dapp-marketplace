@@ -1286,8 +1286,8 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   }
 }
 
-[role='dialog'],
-[aria-modal='true'] {
+[role='dialog'].kx-modal-panel,
+.kx-modal-overlay [role='dialog'] {
   max-height: min(calc(100dvh - 1.5rem), 920px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1361,71 +1361,80 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   }
 }
 
-/* RainbowKit connect / chain modals: role="dialog" is the full-viewport overlay */
+/* RainbowKit connect / chain modals */
 [data-rk] [role='dialog'] {
   position: fixed !important;
   inset: 0 !important;
+  z-index: 2147483646 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: max(1rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  transform: none !important;
+  box-sizing: border-box !important;
+  /* Cancel RainbowKit backdrop padding / negative inset trick */
   top: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   left: 0 !important;
-  z-index: 100000 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: row !important;
-  width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  max-height: none !important;
-  margin: 0 !important;
-  transform: none !important;
-  overflow-y: auto !important;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  padding: max(0.75rem, env(safe-area-inset-top, 0px))
-    max(0.75rem, env(safe-area-inset-right, 0px))
-    max(0.75rem, env(safe-area-inset-bottom, 0px))
-    max(0.75rem, env(safe-area-inset-left, 0px)) !important;
 }
 
-/* Inner panel: FocusTrap uses role="document" */
+/* FocusTrap panel (role="document") */
 [data-rk] [role='dialog'] [role='document'] {
   position: relative !important;
   top: auto !important;
-  left: auto !important;
   right: auto !important;
   bottom: auto !important;
+  left: auto !important;
   transform: none !important;
-  width: min(100%, 720px) !important;
-  max-width: calc(100vw - 1.5rem) !important;
-  max-height: min(calc(100dvh - 2rem), 640px) !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 2rem) !important;
   height: auto !important;
+  max-height: calc(100dvh - 2rem) !important;
   margin: auto !important;
-  overflow: hidden !important;
-  flex-shrink: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+  display: block !important;
 }
 
 [data-rk] [role='dialog'] [role='document'] > div {
-  max-height: min(calc(100dvh - 2rem), 640px) !important;
+  max-height: calc(100dvh - 2rem) !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+  [data-rk] [role='dialog'] [role='document'] {
+    max-width: min(720px, calc(100vw - 2rem)) !important;
+  }
+
+  [data-rk] ._1ckjpok3 {
+    min-width: min(720px, calc(100vw - 2rem)) !important;
+    width: min(720px, calc(100vw - 2rem)) !important;
+  }
 }
 
 @media (max-width: 1023px) {
   [data-rk] [role='dialog'] [role='document'] {
-    width: min(100%, 400px) !important;
-    max-height: min(calc(100dvh - 2rem), 560px) !important;
+    max-width: min(400px, calc(100vw - 2rem)) !important;
   }
 
-  [data-rk] [role='dialog'] [role='document'] > div {
-    max-height: min(calc(100dvh - 2rem), 560px) !important;
-  }
-
-  /* Override RainbowKit mobile bottom-sheet offsets */
   [data-rk] ._1ckjpok7 {
     margin-top: 0 !important;
     padding-bottom: 0 !important;
