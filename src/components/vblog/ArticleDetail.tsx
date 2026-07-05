@@ -383,12 +383,12 @@ export function ArticleDetail({
   };
 
   return (
-    <article className="w-full min-w-0 max-w-6xl mx-auto font-sans">
+    <article className="w-full min-w-0 max-w-full font-sans">
       <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 
-        <div className="relative flex flex-col lg:flex-row min-h-[360px]">
-          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+        <div className="relative flex min-h-[360px] min-w-0 flex-col lg:flex-row">
+          <div className="flex min-w-0 flex-1 flex-col justify-center p-8 sm:p-10 lg:p-12">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-6 leading-tight">
               {article.title}
             </h1>
@@ -424,7 +424,7 @@ export function ArticleDetail({
             </div>
           </div>
 
-          <div className="w-full lg:w-[40%] relative min-h-[260px] lg:min-h-full bg-zinc-100 dark:bg-zinc-800 border-l border-zinc-200 dark:border-zinc-800">
+          <div className="relative min-h-[260px] w-full min-w-0 shrink-0 bg-zinc-100 dark:bg-zinc-800 border-l border-zinc-200 dark:border-zinc-800 lg:min-h-full lg:w-[40%] lg:max-w-[45%]">
             <VBlogFeaturedImage
               src={article.featuredImage}
               title={article.title}

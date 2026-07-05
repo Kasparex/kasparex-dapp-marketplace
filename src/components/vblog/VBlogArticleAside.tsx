@@ -24,7 +24,7 @@ export function VBlogArticleAside({
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
-    <aside id="kasparex-vblog-side-panel" className="space-y-4 lg:sticky lg:top-6 self-start">
+    <div className="w-full min-w-0 space-y-4 lg:sticky lg:top-6">
       {topContent}
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>
@@ -59,6 +59,6 @@ export function VBlogArticleAside({
       ))}
 
       <PanelAdSlider slotId="HALO_VBLOG_RIGHT" id="ad-slot-vblog-article-aside" />
-    </aside>
+    </div>
   );
 }

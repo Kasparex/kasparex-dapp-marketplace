@@ -90,7 +90,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
       <Header />
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+        <div className="flex h-full min-w-0 flex-col lg:flex-row">
           <VBlogSidebar
             articles={articles}
             selectedCategory={null}
