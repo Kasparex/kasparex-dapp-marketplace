@@ -103,7 +103,7 @@ export const hubProjects: HubProject[] = [
   },
   {
     id: 'krex-nodes',
-    name: 'KREX Nodes',
+    name: 'Kasparex Nodes',
     category: 'Infrastructure',
     description: 'User-run nodes that support the Kasparex ecosystem and optionally earn rewards. Help power the network.',
     route: '/nodes',

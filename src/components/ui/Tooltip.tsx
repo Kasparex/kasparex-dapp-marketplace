@@ -4,6 +4,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { computeFloatingPlacement } from '@/lib/ui/floatingPosition';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 export const KASPPAREX_TOOLTIP_SURFACE_CLASS =
   'z-[100000] w-max max-w-sm rounded-lg bg-zinc-100 px-3 py-2.5 text-sm leading-snug text-zinc-800 shadow-xl border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-600';
@@ -29,21 +30,19 @@ function wrapChild(children: React.ReactNode): React.ReactElement {
   return <span className="inline-flex">{children}</span>;
 }
 
-const LONG_PRESS_MS = 400;
-
 /**
  * Desktop: hover tooltip following the cursor.
- * Mobile: tap-and-hold to show; releases on finger up.
+ * Mobile: tap to toggle open/closed.
  */
 export function Tooltip({ content, children, className = '' }: TooltipProps) {
+  const isMobile = useIsMobileViewport();
   const [open, setOpen] = React.useState(false);
   const [anchor, setAnchor] = React.useState({ x: 0, y: 0 });
   const [placement, setPlacement] = React.useState({ left: 0, top: 0 });
   const [ready, setReady] = React.useState(false);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLElement | null>(null);
   const contentRef = React.useRef(content);
-  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchActiveRef = React.useRef(false);
 
   contentRef.current = content;
 
@@ -53,17 +52,8 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
     onPointerEnter?: (ev: React.PointerEvent) => void;
     onPointerLeave?: (ev: React.PointerEvent) => void;
     onPointerMove?: (ev: React.PointerEvent) => void;
-    onPointerDown?: (ev: React.PointerEvent) => void;
-    onPointerUp?: (ev: React.PointerEvent) => void;
-    onPointerCancel?: (ev: React.PointerEvent) => void;
+    onClick?: (ev: React.MouseEvent) => void;
   };
-
-  const clearLongPress = React.useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
 
   const updatePlacement = React.useCallback((x: number, y: number) => {
     const el = tooltipRef.current;
@@ -79,6 +69,11 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
     setReady(true);
   }, []);
 
+  const setAnchorFromElement = React.useCallback((el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    setAnchor({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+  }, []);
+
   React.useLayoutEffect(() => {
     if (!open) {
       setReady(false);
@@ -87,55 +82,49 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
     updatePlacement(anchor.x, anchor.y);
   }, [open, anchor.x, anchor.y, updatePlacement]);
 
-  React.useEffect(() => () => clearLongPress(), [clearLongPress]);
+  React.useEffect(() => {
+    if (!isMobile || !open) return;
+    const onDocPointerDown = (e: PointerEvent) => {
+      const trigger = triggerRef.current;
+      const tooltip = tooltipRef.current;
+      const target = e.target as Node;
+      if (trigger?.contains(target) || tooltip?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDocPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onDocPointerDown, true);
+  }, [isMobile, open]);
 
   const merged = React.cloneElement(child, {
-    onPointerDown: (e: React.PointerEvent) => {
-      p.onPointerDown?.(e);
-      if (e.pointerType === 'touch') {
-        touchActiveRef.current = true;
-        clearLongPress();
-        const x = e.clientX;
-        const y = e.clientY;
-        longPressTimerRef.current = setTimeout(() => {
-          setAnchor({ x, y });
-          setOpen(true);
-        }, LONG_PRESS_MS);
+    ref: (node: HTMLElement | null) => {
+      triggerRef.current = node;
+      const childRef = (child as React.ReactElement & { ref?: React.Ref<HTMLElement> }).ref;
+      if (typeof childRef === 'function') childRef(node);
+      else if (childRef && typeof childRef === 'object') {
+        (childRef as React.MutableRefObject<HTMLElement | null>).current = node;
       }
     },
-    onPointerUp: (e: React.PointerEvent) => {
-      p.onPointerUp?.(e);
-      clearLongPress();
-      if (e.pointerType === 'touch' || touchActiveRef.current) {
-        touchActiveRef.current = false;
-        setOpen(false);
-      }
-    },
-    onPointerCancel: (e: React.PointerEvent) => {
-      p.onPointerCancel?.(e);
-      clearLongPress();
-      touchActiveRef.current = false;
-      setOpen(false);
+    onClick: (e: React.MouseEvent) => {
+      p.onClick?.(e);
+      if (!isMobile) return;
+      const el = e.currentTarget as HTMLElement;
+      setAnchorFromElement(el);
+      setOpen((v) => !v);
     },
     onPointerEnter: (e: React.PointerEvent) => {
       p.onPointerEnter?.(e);
-      if (e.pointerType === 'touch') return;
+      if (isMobile || e.pointerType === 'touch') return;
       setAnchor({ x: e.clientX, y: e.clientY });
       setOpen(true);
     },
     onPointerLeave: (e: React.PointerEvent) => {
       p.onPointerLeave?.(e);
-      if (e.pointerType === 'touch') return;
+      if (isMobile || e.pointerType === 'touch') return;
       setOpen(false);
     },
     onPointerMove: (e: React.PointerEvent) => {
       p.onPointerMove?.(e);
-      if (e.pointerType === 'touch') {
-        if (open) {
-          setAnchor({ x: e.clientX, y: e.clientY });
-        }
-        return;
-      }
+      if (isMobile || e.pointerType === 'touch') return;
       setAnchor({ x: e.clientX, y: e.clientY });
       if (open) updatePlacement(e.clientX, e.clientY);
     },
@@ -152,8 +141,11 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
               position: 'fixed',
               left: placement.left,
               top: placement.top,
-              pointerEvents: 'none',
+              pointerEvents: isMobile ? 'auto' : 'none',
               visibility: ready ? 'visible' : 'hidden',
+            }}
+            onClick={(e) => {
+              if (isMobile) e.stopPropagation();
             }}
           >
             {contentRef.current}

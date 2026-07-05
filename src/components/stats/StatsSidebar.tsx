@@ -15,7 +15,7 @@ const STATS_LINKS = [
 const QUICK_LINKS = [
   { href: '/hub', label: 'Hub' },
   { href: '/dapps', label: 'dApps' },
-  { href: '/nodes', label: 'KREX Nodes' },
+  { href: '/nodes', label: 'Kasparex Nodes' },
   { href: '/rewards', label: 'Rewards' },
 ] as const;
 
