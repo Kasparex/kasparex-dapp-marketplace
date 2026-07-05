@@ -1,44 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPageShell';
 
 export default function PartnershipsPage() {
     return (
-        <div className="flex flex-col min-h-screen">
-            <Header />
-
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                <div className="max-w-4xl mx-auto py-12">
-                    <Link
-                        href="/hub"
-                        className="inline-flex items-center gap-2 mb-8 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-                    >
-                        <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                            />
-                        </svg>
-                        Back to Home
-                    </Link>
-
-                    <div className="text-center mb-16">
-                        <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                            Partnerships
-                        </h1>
-                        <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                            Collaborate with Kasparex Hub to grow the Kaspa ecosystem together. We&apos;re looking for innovative dApps, artists, and developers.
-                        </p>
-                    </div>
+        <HubDocPageShell standalone>
+            <HubStandaloneIntro
+                title="Partnerships"
+                count={4}
+                countLabel="partnership benefit"
+                description="Collaborate with Kasparex Hub to grow the Kaspa ecosystem together. We are looking for innovative dApps, artists, and developers."
+            />
 
                     <div className="grid gap-8 mb-16">
                         <div className="p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 shadow-sm">
@@ -114,10 +87,6 @@ export default function PartnershipsPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-
-            <Footer />
-        </div>
+        </HubDocPageShell>
     );
 }

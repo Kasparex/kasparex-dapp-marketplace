@@ -3,7 +3,11 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
+import { AdSlider } from '@/components/ads/AdSlider';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export const metadata: Metadata = {
   title: 'Kasparex API · api.kasparex.com',
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function KasparexAPIPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
       
       <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
@@ -31,30 +35,51 @@ export default function KasparexAPIPage() {
           ]}
         />
 
-        <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 px-4 py-8 sm:px-6 sm:py-12 lg:px-12 dark:border-zinc-800">
-          <div className="mx-auto max-w-4xl">
-          {/* Hero - project style (cyan gradient, same as Nodes) */}
-          <div className={`relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent ${HUB_HALO_DESKTOP_ONLY}`}>
+        <div className={HUB_MAIN_COLUMN}>
+          <div className={`${HUB_MAIN_INNER} max-w-4xl`}>
+          <div className={`relative mb-12 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 dark:border-transparent dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}>
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#06b6d4,transparent_50%)]" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#0891b2,transparent_50%)]" />
             </div>
-            <div className="relative z-10 w-full text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-700 dark:text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
+            <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="w-full text-center lg:text-left">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500" />
                 </span>
                 api.kasparex.com
               </div>
-              <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight">
-                Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-500 dark:from-cyan-400 dark:to-cyan-300">API</span>
+              <h1 className="mb-6 text-4xl font-black leading-tight text-zinc-900 dark:text-white md:text-6xl">
+                Kasparex <span className="bg-gradient-to-r from-cyan-600 to-cyan-500 bg-clip-text text-transparent dark:from-cyan-400 dark:to-cyan-300">API</span>
               </h1>
-              <p className="kx-body max-w-2xl mx-auto leading-relaxed">
+              <p className="kx-body mx-auto max-w-2xl leading-relaxed lg:mx-0">
                 The coordination brain of the decentralized Kasparex network
               </p>
+              </div>
+              <div className="relative hidden w-[280px] shrink-0 items-center justify-center lg:flex">
+                <div className="pointer-events-none relative opacity-90">
+                  <div className="h-56 w-48 rotate-3 transform rounded-2xl border-2 border-cyan-500/30 bg-white/80 shadow-2xl shadow-cyan-500/10 dark:bg-zinc-900/80" />
+                </div>
+                <div
+                  id="ad-slot-api-halo"
+                  className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center scroll-mt-24"
+                >
+                  <AdSlider slotId="HALO_API_RIGHT" />
+                </div>
+              </div>
             </div>
           </div>
+
+          <div id="content" className="scroll-mt-4" />
+
+          <HubListingTitleRow
+            title="API documentation"
+            count={7}
+            countLabel="section"
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
 
           {/* What is the API */}
           <section id="what-is-api" className="mb-12">

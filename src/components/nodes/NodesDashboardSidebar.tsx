@@ -114,15 +114,6 @@ export function NodesDashboardSidebar() {
             </nav>
           </SidebarSection>
         </div>
-
-        <div className="mt-auto pt-4 space-y-2">
-          <Link href="/api" className="k-control-btn w-full">
-            API overview
-          </Link>
-          <Link href="/knowledge-base" className="k-control-btn w-full">
-            Knowledge base
-          </Link>
-        </div>
       </div>
     </UnifiedSidebar>
   );

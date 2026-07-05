@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { DAppIcon } from '@/components/dapps/DAppIcon';
 import { DAppCard } from '@/components/DAppCard';
 import { placeholderDApps } from '@/lib/dapps';
+import { HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 export default function StyleGuidePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -1508,7 +1511,7 @@ export default function StyleGuidePage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
       
       <main className="flex-1 flex">
@@ -1634,8 +1637,8 @@ export default function StyleGuidePage() {
         )}
 
           {/* Main Content */}
-        <div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-4rem)]">
-          <div className="max-w-6xl mx-auto px-16 py-12">
+        <div className="h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto font-sans text-base sm:text-[17px]">
+          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8 lg:px-16">
             {/* Back to Categories Link */}
             {selectedCategory && (
               <div className="mb-6">
@@ -1656,15 +1659,15 @@ export default function StyleGuidePage() {
               </div>
             )}
 
-            {/* Header */}
-              <div className="mb-8">
-                <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Kasparex Design System
-                </h1>
-                <p className="kx-body">
-                  Complete reference guide for all UI components and styling standards
-                </p>
-              </div>
+            <HubListingTitleRow
+              title="Design system reference"
+              count={categories.length}
+              countLabel="component category"
+              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            />
+            <p className="kx-body -mt-4 mb-8 max-w-3xl">
+              Complete reference guide for all UI components and styling standards used across Kasparex Hub.
+            </p>
 
             {/* Categories View */}
             {!selectedCategory && (

@@ -1,44 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPageShell';
 
 export default function LegalPage() {
     return (
-        <div className="flex flex-col min-h-screen">
-            <Header />
-
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                <div className="max-w-4xl mx-auto py-12">
-                    <Link
-                        href="/hub"
-                        className="inline-flex items-center gap-2 mb-8 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-                    >
-                        <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                            />
-                        </svg>
-                        Back to Home
-                    </Link>
-
-                    <div className="mb-16">
-                        <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                            Legal & Privacy
-                        </h1>
-                        <p className="text-zinc-600 dark:text-zinc-400">
-                            Last updated: February 6, 2026
-                        </p>
-                    </div>
+        <HubDocPageShell standalone>
+            <HubStandaloneIntro
+                title="Legal and privacy"
+                count={4}
+                countLabel="policy section"
+                description="Last updated: February 6, 2026"
+            />
 
                     <div className="prose prose-zinc dark:prose-invert max-w-none space-y-12">
                         <section>
@@ -81,10 +53,6 @@ export default function LegalPage() {
                             If you have any questions regarding our legal terms or privacy practices, please contact us at <a href="mailto:legal@kasparex.com" className="text-[#02abb8] hover:underline">legal@kasparex.com</a>.
                         </p>
                     </div>
-                </div>
-            </main>
-
-            <Footer />
-        </div>
+        </HubDocPageShell>
     );
 }

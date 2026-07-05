@@ -10,7 +10,8 @@ import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
 import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
-import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 export interface RevenueTreeDashboardProps {
   /** Optional address to view as public profile. If not provided, shows connected wallet's dashboard. */
@@ -52,15 +53,15 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
       {/* Main Content */}
       <div className={HUB_MAIN_COLUMN}>
         <div className={`${HUB_MAIN_INNER} space-y-6`}>
-          {/* Header */}
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-              Revenue Tree Dashboard
-            </h1>
-            <p className="kx-body">
-              One tree per wallet • Activation at 100 KAS • Maintenance 1000 KAS/30d or 10M KREX + 100 KAS/30d
-            </p>
-          </div>
+          <HubListingTitleRow
+            title="Available revenue trees"
+            count={activeTrees}
+            countLabel="active tree"
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
+          <p className="kx-body -mt-4 mb-6 max-w-3xl">
+            One tree per wallet. Activation at 100 KAS. Maintenance 1000 KAS/30d or 10M KREX + 100 KAS/30d.
+          </p>
 
           {!userWalletAddress && (
             <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-200 text-sm">

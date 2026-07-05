@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { KnowledgeBaseSidebar } from '@/components/knowledgeBase/KnowledgeBaseSidebar';
 import { KnowledgeBaseCard } from '@/components/knowledgeBase/KnowledgeBaseCard';
 import {
-  knowledgeBaseArticles,
   getArticlesByCategory,
   type KnowledgeBaseCategory,
 } from '@/lib/knowledgeBase';
+import { HubDocPageShell } from '@/components/hub/HubDocPageShell';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { FilterBar } from '@/components/FilterBar';
 
 export default function KnowledgeBasePage() {
   const [selectedCategory, setSelectedCategory] = useState<KnowledgeBaseCategory | 'all'>('all');
@@ -17,83 +18,48 @@ export default function KnowledgeBasePage() {
 
   const filteredArticles = useMemo(() => {
     let articles = getArticlesByCategory(selectedCategory);
-
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       articles = articles.filter(
         (article) =>
           article.title.toLowerCase().includes(query) ||
-          article.description.toLowerCase().includes(query)
+          article.description.toLowerCase().includes(query),
       );
     }
-
     return articles;
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row">
-          {/* Left Sidebar */}
-          <KnowledgeBaseSidebar
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
+    <HubDocPageShell sidebar={<KnowledgeBaseSidebar selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />}>
+      <HubListingTitleRow
+        title="Available articles"
+        count={filteredArticles.length}
+        countLabel="article"
+        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+      />
+      <p className="kx-body -mt-4 mb-6 max-w-3xl">Everything you need to know about the Kasparex ecosystem.</p>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-            <div className="max-w-6xl mx-auto">
-              {/* Hero Section */}
-              <div className="mb-6">
-                <h1 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Knowledge Base
-                </h1>
-                <p className="kx-body mb-4">
-                  Everything you need to know about the Kasparex ecosystem
-                </p>
-                <div className="k-search-container h-10 max-w-md overflow-visible">
-                  <input
-                    type="text"
-                    placeholder="Search articles..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`k-search-input h-10 w-full ${searchQuery.length > 0 ? 'is-typing' : ''}`.trim()}
-                  />
-                </div>
-              </div>
+      <div className="mb-8 flex flex-col gap-4">
+        <FilterBar
+          search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search articles...' }}
+          onReset={() => {
+            setSearchQuery('');
+            setSelectedCategory('all');
+          }}
+        />
+      </div>
 
-              {/* Results Count */}
-              <div className="mb-6">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {filteredArticles.length} {filteredArticles.length === 1 ? 'article' : 'articles'} found
-                  {selectedCategory !== 'all' && ` in ${selectedCategory}`}
-                  {searchQuery && ` matching "${searchQuery}"`}
-                </p>
-              </div>
-
-              {/* Articles Grid */}
-              {filteredArticles.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredArticles.map((article) => (
-                    <KnowledgeBaseCard key={article.id} article={article} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-zinc-600 dark:text-zinc-400">
-                    No articles found. Try adjusting your search or category filter.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+      {filteredArticles.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredArticles.map((article) => (
+            <KnowledgeBaseCard key={article.id} article={article} />
+          ))}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      ) : (
+        <div className="py-12 text-center">
+          <p className="kx-body">No articles found. Try adjusting your search or category filter.</p>
+        </div>
+      )}
+    </HubDocPageShell>
   );
 }
-

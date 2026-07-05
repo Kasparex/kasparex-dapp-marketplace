@@ -14,4 +14,5 @@ export const HUB_LISTING_TITLE = 'text-2xl font-bold text-zinc-900 dark:text-whi
 
 export const HUB_SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 
-export const HUB_SIDEBAR_BTN_ICON_ACTIVE = `${HUB_SIDEBAR_BTN_ICON} !text-white`;
+export const HUB_STANDALONE_MAIN =
+  'flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto font-sans text-base sm:text-[17px]';
