@@ -72,9 +72,7 @@ export function HubWalletGateModal({
         </div>
 
         <div className="p-5 space-y-4">
-          <MobileWalletUnavailableNotice
-            networks={showL1Connect && showEvmConnect ? 'both' : showL1Connect ? 'L1' : 'L2'}
-          />
+          {showL1Connect ? <MobileWalletUnavailableNotice networks="L1" /> : null}
           <p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
 
           <div className="flex flex-col items-start gap-2">
@@ -86,7 +84,7 @@ export function HubWalletGateModal({
 
           {!isMobile && showL1Connect ? <HubL1WalletOptions onConnected={onClose} /> : null}
 
-          {!isMobile && showEvmConnect ? (
+          {showEvmConnect ? (
             <ConnectButton.Custom>
               {({ openConnectModal, mounted }) => (
                 <button

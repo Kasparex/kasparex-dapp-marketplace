@@ -11,8 +11,6 @@ import { getChainById } from '@/lib/wagmi';
 import { useNetworkCompatibility } from '@/hooks/useNetworkCompatibility';
 import { CHAIN_IDS } from '@/lib/wagmi';
 import { L2ChainConnectLabel } from '@/components/wallet/L2ChainLogo';
-import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
-import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 interface NetworkAvailabilityBoxProps {
   dapp: DApp;
@@ -29,7 +27,6 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
   const compatibility = useNetworkCompatibility(dapp);
 
   const [showModal, setShowModal] = useState(false);
-  const isMobile = useIsMobileViewport();
   
   // Get network information for modal (L2: only chains with a deployed contract)
   const supportedChainIds =
@@ -49,8 +46,7 @@ export function NetworkAvailabilityBox({ dapp, accentColor = '#02abb8' }: Networ
   return (
     <div className="mb-6">
       <div className="space-y-2">
-        {isMobile ? <MobileWalletUnavailableNotice networks="L2" /> : null}
-        {!isConnected && !isMobile && (
+        {!isConnected && (
           <ConnectButton.Custom>
             {({ openConnectModal, mounted }) => {
               const ready = mounted;

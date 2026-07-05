@@ -38,7 +38,7 @@ export function StoreWalletBanner({ config, compact }: StoreWalletBannerProps) {
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-3">
-            {isMobile ? <MobileWalletUnavailableNotice networks="both" /> : null}
+            {isMobile ? <MobileWalletUnavailableNotice networks="L1" /> : null}
             <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
               {config.message ?? 'Connect your Kaspa wallet to use seller tools.'}
             </p>

@@ -24,7 +24,7 @@ export function MobileDesktopOnlyGate({
 
   return (
     <div className="mx-auto max-w-lg space-y-5 py-8">
-      <MobileWalletUnavailableNotice networks="both" defaultOpen />
+      <MobileWalletUnavailableNotice networks="L1" defaultOpen />
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <p className="text-xs font-black uppercase tracking-widest text-[#02abb8] mb-2">Desktop only</p>
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{title}</h2>

@@ -159,7 +159,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
         />
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <MobileWalletUnavailableNotice networks="both" />
+          <MobileWalletUnavailableNotice networks="L1" />
           {!isWalletConnected ? (
             <p className="text-center py-8 kx-body">
               Connect your wallet to purchase credits
