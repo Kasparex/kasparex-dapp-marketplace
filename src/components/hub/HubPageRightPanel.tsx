@@ -48,9 +48,9 @@ export function HubPageRightPanelGrid({
         {showDesktopPanel ? (
           <aside
             id={panelId}
-            className={`kx-hub-right-panel-aside hidden lg:flex min-w-0 w-full max-w-full flex-col ${asideColClass}`}
+            className={`hidden lg:flex min-w-0 w-full max-w-full flex-col space-y-6 ${asideColClass}`}
           >
-            <div className="kx-hub-right-panel-scroll space-y-6">{sidebar}</div>
+            {sidebar}
           </aside>
         ) : null}
       </div>
