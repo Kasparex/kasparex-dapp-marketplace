@@ -24,6 +24,7 @@ import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork } from '@/lib/tokens/listingNetwork';
 import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import {
+import {
   createPublishedListing,
   createSeedClaimListing,
   getAllPublishedListings,
@@ -33,7 +34,6 @@ import {
   updatePublishedListing,
   deletePublishedListing,
   mergePublishedIntoRegistry,
-  importRemoteListings,
 } from '@/lib/tokens/data';
 import { getClaimableSeeds, type ClaimableSeed } from '@/lib/tokens/seedClaims';
 import type { PublishedTokenListing, TokenAssetKind, TokenOnChainSnapshot, TokenNetworkEntry } from '@/lib/tokens/listingRecord';
@@ -49,7 +49,12 @@ import {
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { Token } from '@/lib/tokens/types';
-import { pullAndMergeHubContent, syncHubContentItem, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import {
+  bootstrapHubContent,
+  syncHubContentItem,
+  onHubContentVisibilityRefresh,
+} from '@/lib/hub/contentSync';
+import { markHubContentDeleted } from '@/lib/hub/deletedContent';
 import { collectTokenMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 export type CreateTokenListingInput = {
@@ -189,21 +194,14 @@ export function useTokens() {
     let cancelled = false;
 
     const bootstrap = async () => {
-      const remote = await pullAndMergeHubContent();
-      if (!cancelled && remote?.tokens?.length) {
-        importRemoteListings(remote.tokens);
-      }
+      await bootstrapHubContent();
       if (!cancelled) loadListings();
     };
 
     void bootstrap();
     const onUpdate = () => loadListings();
     window.addEventListener('tokens-listings-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(async () => {
-      const remote = await pullAndMergeHubContent();
-      if (remote?.tokens?.length) importRemoteListings(remote.tokens);
-      loadListings();
-    });
+    const stopVisibility = onHubContentVisibilityRefresh(() => loadListings());
     return () => {
       cancelled = true;
       window.removeEventListener('tokens-listings-updated', onUpdate);
@@ -498,9 +496,13 @@ export function useTokens() {
   const removeListing = useCallback(
     async (id: string): Promise<boolean> => {
       const existing = getPublishedListingById(id);
+      markHubContentDeleted('tokens', id);
       const ok = deletePublishedListing(id);
       if (ok) {
-        void syncHubContentItem('tokens', 'delete', { id });
+        const synced = await syncHubContentItem('tokens', 'delete', { id });
+        if (!synced) {
+          console.warn('[tokens] Local delete ok but hub registry sync failed.');
+        }
         if (existing) void requestIpfsUnpin(collectTokenMediaCids(existing));
         loadListings();
       }

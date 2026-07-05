@@ -6,14 +6,12 @@ import {
   removeHubContentFromMemory,
   upsertHubContentItem,
 } from '@/lib/hub/contentRegistry';
-import type { HubContentKind, HubContentSyncBody } from '@/lib/hub/contentTypes';
+import { HUB_CONTENT_KINDS, type HubContentKind, type HubContentSyncBody } from '@/lib/hub/contentTypes';
 
 export const dynamic = 'force-dynamic';
 
-const VALID_KINDS: HubContentKind[] = ['vblog', 'tokens', 'dapps', 'chronicles'];
-
 function isValidKind(value: string): value is HubContentKind {
-  return VALID_KINDS.includes(value as HubContentKind);
+  return HUB_CONTENT_KINDS.includes(value as HubContentKind);
 }
 
 export async function GET(request: NextRequest) {

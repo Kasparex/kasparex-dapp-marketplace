@@ -6,7 +6,7 @@ import type { Token } from './types';
 import { generateTokenSlug } from './publish';
 import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
 import { tokenNetworkToListingNetwork } from './listingNetwork';
-import { mergeTokenListings } from '@/lib/hub/contentSync';
+import { mergeTokenListings } from '@/lib/hub/contentMerge';
 
 const STORAGE_KEY = 'tokens_published_listings';
 

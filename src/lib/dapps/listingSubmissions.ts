@@ -8,7 +8,9 @@ import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currenci
 import { generateDAppSlug } from '@/lib/utils';
 import type { DApp, DeveloperLink } from '@/lib/dapps';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import { mergeDirectoryListings, syncHubContentItem } from '@/lib/hub/contentSync';
+import { mergeDirectoryListings } from '@/lib/hub/contentMerge';
+import { syncHubContentItem } from '@/lib/hub/contentSync';
+import { markHubContentDeleted } from '@/lib/hub/deletedContent';
 import { collectDappMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 export const DAPP_LISTING_FEE_KAS = 50;
@@ -367,6 +369,7 @@ export function archiveDirectoryListing(id: string, submitterAddress: string): b
     updatedAt: new Date().toISOString(),
   };
   writeAllListings(all);
+  markHubContentDeleted('dapps', id);
   void syncHubContentItem('dapps', 'delete', { id });
   void requestIpfsUnpin(collectDappMediaCids(listing));
   return true;

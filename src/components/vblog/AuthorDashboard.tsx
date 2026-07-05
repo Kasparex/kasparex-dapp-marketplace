@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { VBlogArticle } from '@/lib/vblog/types';
 import { useVBlog } from '@/hooks/useVBlog';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -22,6 +22,12 @@ interface AuthorDashboardProps {
   archiveCategoryFilter?: string | null;
 }
 
+type DashboardTab = 'create' | 'my-articles';
+
+function tabFromSearchParams(tab: string | null): DashboardTab {
+  return tab === 'archive' || tab === 'my-articles' ? 'my-articles' : 'create';
+}
+
 export function AuthorDashboard({
   createIntentKey = 0,
   editArticleId,
@@ -31,41 +37,72 @@ export function AuthorDashboard({
 }: AuthorDashboardProps) {
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Support both Kaspa and EVM wallets
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
   const isWalletConnected = kaspaState.isConnected || isEVMConnected;
 
   const { createNewArticle, updateExistingArticle, deleteExistingArticle, getAuthorArticles, loadArticles, articles } = useVBlog();
   const pricing = useVBlogPricing();
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'create' | 'my-articles'>('create');
   const [editingArticle, setEditingArticle] = useState<VBlogArticle | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const editAppliedRef = useRef(false);
+  const prevCreateIntentRef = useRef(createIntentKey);
+
+  const activeTab = tabFromSearchParams(searchParams.get('tab'));
+
+  const setActiveTab = useCallback(
+    (tab: DashboardTab) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (tab === 'my-articles') {
+        params.set('tab', 'archive');
+        params.delete('edit');
+      } else {
+        params.delete('tab');
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   useEffect(() => {
-    setActiveTab('create');
-    setEditingArticle(null);
-  }, [createIntentKey]);
+    if (createIntentKey > prevCreateIntentRef.current) {
+      setEditingArticle(null);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+      params.delete('edit');
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }
+    prevCreateIntentRef.current = createIntentKey;
+  }, [createIntentKey, pathname, router, searchParams]);
 
   useEffect(() => {
-    if (!editArticleId) return;
+    if (!editArticleId || editAppliedRef.current) return;
     const match = (articles || []).find((a) => a.id === editArticleId) || null;
     if (match) {
+      editAppliedRef.current = true;
       setEditingArticle(match);
-      setActiveTab('create');
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+      params.set('edit', editArticleId);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
-  }, [articles, editArticleId]);
+  }, [articles, editArticleId, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!navTarget) return;
 
     if (navTarget.section === 'create' || navTarget.section === 'pricing' || navTarget.section === 'modules') {
+      setEditingArticle(null);
       setActiveTab('create');
-      setEditingArticle(null);
     } else if (navTarget.section === 'archive') {
-      setActiveTab('my-articles');
       setEditingArticle(null);
+      setActiveTab('my-articles');
     }
 
     const anchorId =
@@ -81,7 +118,7 @@ export function AuthorDashboard({
       document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       onNavTargetHandled?.();
     });
-  }, [navTarget, onNavTargetHandled]);
+  }, [navTarget, onNavTargetHandled, setActiveTab]);
 
   const authorArticles = walletAddress ? getAuthorArticles(walletAddress) : [];
   const filteredAuthorArticles =
@@ -90,8 +127,6 @@ export function AuthorDashboard({
       : authorArticles.filter((article) => article.category === archiveCategoryFilter);
 
   const handleCreateArticle = async (articleData: Omit<VBlogArticle, 'id' | 'slug' | 'publishDate' | 'cid' | 'articleId' | 'txHash' | 'status'>) => {
-    // TODO: Get author from wallet connection
-    // For now, use the connected address
     if (!walletAddress) {
       throw new Error('Wallet not connected');
     }
@@ -127,10 +162,18 @@ export function AuthorDashboard({
   const handleEdit = (article: VBlogArticle) => {
     setEditingArticle(article);
     setActiveTab('create');
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('tab');
+    params.set('edit', article.id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handleCancelEdit = () => {
     setEditingArticle(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('edit');
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
 
   const handleDeleteArticle = async (articleId: string) => {
@@ -139,7 +182,10 @@ export function AuthorDashboard({
     }
 
     try {
-      await deleteExistingArticle(articleId);
+      const deleted = await deleteExistingArticle(articleId);
+      if (!deleted) {
+        throw new Error('Article could not be removed locally.');
+      }
       loadArticles();
       setSuccessMessage('Article deleted successfully!');
       setTimeout(() => {
@@ -147,22 +193,22 @@ export function AuthorDashboard({
       }, 2000);
     } catch (error) {
       console.error('Error deleting article:', error);
-      setSuccessMessage('Failed to delete article. Please try again.');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete article. Please try again.');
       setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+        setErrorMessage(null);
+      }, 4000);
     }
   };
 
   return (
     <div className="space-y-8">
       <div id="vblog-dashboard-create" className="scroll-mt-24" />
-      {/* Navigation Tabs */}
       <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
         <button
+          type="button"
           onClick={() => {
-            setActiveTab('create');
             setEditingArticle(null);
+            setActiveTab('create');
           }}
           className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'create'
             ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
@@ -172,27 +218,34 @@ export function AuthorDashboard({
           {editingArticle ? 'Edit Article' : 'Create Article'}
         </button>
         <button
+          type="button"
           onClick={() => {
-            setActiveTab('my-articles');
             setEditingArticle(null);
+            setActiveTab('my-articles');
           }}
           className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${activeTab === 'my-articles'
             ? 'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
             : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
         >
-          Archive ({authorArticles.length})
+          My Articles ({authorArticles.length})
         </button>
       </div>
 
-      {/* Pricing and Benefits Section */}
       {activeTab === 'create' ? (
         <div id="vblog-dashboard-pricing" className="scroll-mt-24">
           <AuthorPricing />
         </div>
       ) : null}
 
-      {/* Success Message Area */}
+      {errorMessage && (
+        <div className="fixed bottom-12 right-12 z-[100] animate-in slide-in-from-bottom-5">
+          <Alert type="error" onDismiss={() => setErrorMessage(null)}>
+            {errorMessage}
+          </Alert>
+        </div>
+      )}
+
       {successMessage && (
         <div className="fixed bottom-12 right-12 z-[100] animate-in slide-in-from-bottom-5">
           <Alert type="success" onDismiss={() => setSuccessMessage(null)}>
@@ -201,7 +254,6 @@ export function AuthorDashboard({
         </div>
       )}
 
-      {/* Content Area */}
       <div className="min-h-[400px]">
         {activeTab === 'create' ? (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
@@ -224,4 +276,3 @@ export function AuthorDashboard({
     </div>
   );
 }
-

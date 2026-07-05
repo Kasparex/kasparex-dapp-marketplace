@@ -3,7 +3,7 @@
 import { VBlogArticle, VBlogComment } from './types';
 import { generateArticleSlug, generateMockCID, generateMockTxHash, generateMockArticleId } from './utils';
 import { registerMagazineSubmission } from '@/lib/magazines/submissions';
-import { mergeVblogArticles } from '@/lib/hub/contentSync';
+import { mergeVblogArticles } from '@/lib/hub/contentMerge';
 
 const STORAGE_KEYS = {
   articles: 'vblog_articles',

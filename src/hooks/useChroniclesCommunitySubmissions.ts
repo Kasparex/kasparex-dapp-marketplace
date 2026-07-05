@@ -6,6 +6,7 @@ import {
   type ChroniclesCommunitySubmission,
   type ChroniclesContentKind,
 } from '@/lib/chronicles/communitySubmissions';
+import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
 
 export function useChroniclesCommunitySubmissions(filter?: {
   kind?: ChroniclesContentKind;
@@ -18,10 +19,20 @@ export function useChroniclesCommunitySubmissions(filter?: {
   }, [filter?.kind, filter?.authorAddress]);
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+    const bootstrap = async () => {
+      await bootstrapHubContent();
+      if (!cancelled) refresh();
+    };
+    void bootstrap();
     const onUpdate = () => refresh();
     window.addEventListener('chronicles-community-updated', onUpdate);
-    return () => window.removeEventListener('chronicles-community-updated', onUpdate);
+    const stopVisibility = onHubContentVisibilityRefresh(() => refresh());
+    return () => {
+      cancelled = true;
+      window.removeEventListener('chronicles-community-updated', onUpdate);
+      stopVisibility();
+    };
   }, [refresh]);
 
   return { items, refresh };

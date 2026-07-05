@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache';
 import { fetchJSON } from '@/lib/ipfs/gateway';
 import {
   EMPTY_HUB_CONTENT_REGISTRY,
+  HUB_CONTENT_KINDS,
   type HubContentKind,
   type HubContentRegistry,
 } from '@/lib/hub/contentTypes';
@@ -22,6 +23,9 @@ function normalizeRegistry(raw: unknown): HubContentRegistry {
     tokens: Array.isArray(data.tokens) ? data.tokens : [],
     dapps: Array.isArray(data.dapps) ? data.dapps : [],
     chronicles: Array.isArray(data.chronicles) ? data.chronicles : [],
+    magazines: Array.isArray(data.magazines) ? data.magazines : [],
+    magazineIssues: Array.isArray(data.magazineIssues) ? data.magazineIssues : [],
+    store: Array.isArray(data.store) ? data.store : [],
   };
 }
 
@@ -115,10 +119,12 @@ function mergeRegistries(...sources: HubContentRegistry[]): HubContentRegistry {
     tokens: [],
     dapps: [],
     chronicles: [],
+    magazines: [],
+    magazineIssues: [],
+    store: [],
   };
 
-  const kinds: HubContentKind[] = ['vblog', 'tokens', 'dapps', 'chronicles'];
-  for (const kind of kinds) {
+  for (const kind of HUB_CONTENT_KINDS) {
     const byId = new Map<string, (typeof merged)[typeof kind][number]>();
     for (const source of sources) {
       for (const item of source[kind] as Array<{ id: string; updatedAt?: string; publishDate?: string; submittedAt?: string }>) {
@@ -160,7 +166,7 @@ async function loadRegistryUncached(): Promise<HubContentRegistry> {
 
 export const getCachedHubContentRegistry = unstable_cache(
   async () => loadRegistryUncached(),
-  ['kasparex-hub-content-v1'],
+  ['kasparex-hub-content-v2'],
   { revalidate: 30, tags: ['hub-content'] },
 );
 

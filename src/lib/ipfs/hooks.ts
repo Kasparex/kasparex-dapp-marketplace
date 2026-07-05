@@ -9,10 +9,13 @@ import { useState, useCallback, useEffect } from 'react';
 import { getIPFSClient } from './client';
 import { IPFS_MAX_UPLOAD_BYTES, IPFS_MAX_UPLOAD_MB } from './limits';
 import { fetchJSON, fetchFile } from './gateway';
+import { formatHubUploadCid } from '@/lib/hub/ipfsStandard';
 
 export interface UseIPFSUploadResult {
   upload: (file: File | Blob, options?: { filename?: string; pin?: boolean }) => Promise<string | null>;
   uploadJSON: (data: Record<string, unknown>, options?: { pin?: boolean }) => Promise<string | null>;
+  /** Returns hub-standard proxy URL for a CID (for form fields and previews). */
+  formatCidUrl: (cid: string) => string;
   isUploading: boolean;
   error: Error | null;
   hash: string | null;
@@ -82,6 +85,7 @@ export function useIPFSUpload(): UseIPFSUploadResult {
   return {
     upload,
     uploadJSON,
+    formatCidUrl: formatHubUploadCid,
     isUploading,
     error,
     hash,

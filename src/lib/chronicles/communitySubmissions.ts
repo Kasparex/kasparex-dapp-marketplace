@@ -1,5 +1,9 @@
 import type { CharacterKind, ChronicleTimeline, VehicleKind } from '@/lib/chronicles/types';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { mergeChroniclesSubmissions } from '@/lib/hub/contentMerge';
+import { syncHubContentItem } from '@/lib/hub/contentSync';
+import { markHubContentDeleted } from '@/lib/hub/deletedContent';
+import { collectChroniclesMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 export type ChroniclesContentKind = 'chapter' | 'article' | 'character' | 'location' | 'vehicle';
 
@@ -99,6 +103,7 @@ export function saveCommunitySubmission(
     source: 'community',
   };
   writeAll([entry, ...readAll()]);
+  void syncHubContentItem('chronicles', 'upsert', { item: entry, commitTxHash: entry.feeTxHash });
   return entry;
 }
 
@@ -107,7 +112,17 @@ export function getCommunitySubmissionBySlug(slug: string): ChroniclesCommunityS
 }
 
 export function archiveCommunitySubmission(id: string): void {
+  const existing = readAll().find((i) => i.id === id);
   writeAll(readAll().map((i) => (i.id === id ? { ...i, status: 'archived' as const } : i)));
+  markHubContentDeleted('chronicles', id);
+  void syncHubContentItem('chronicles', 'delete', { id });
+  if (existing) void requestIpfsUnpin(collectChroniclesMediaCids(existing));
+}
+
+export function importRemoteChroniclesSubmissions(remote: ChroniclesCommunitySubmission[]): void {
+  if (typeof window === 'undefined' || !remote.length) return;
+  const merged = mergeChroniclesSubmissions(readAll(), remote);
+  writeAll(merged);
 }
 
 export function submissionFeeKas(kind: ChroniclesContentKind): number {

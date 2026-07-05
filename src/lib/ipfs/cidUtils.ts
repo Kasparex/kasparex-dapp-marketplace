@@ -63,6 +63,21 @@ export function collectChroniclesMediaCids(submission: { featuredImageUrl?: stri
   return extractCidsFromValues(submission.featuredImageUrl);
 }
 
+export function collectStoreMediaCids(product: {
+  thumbnailCid?: string | null;
+  assetCids?: string[];
+}): string[] {
+  return extractCidsFromValues(product.thumbnailCid, ...(product.assetCids ?? []));
+}
+
+export function collectMagazineMediaCids(issue: {
+  coverImage?: string | null;
+  previewImages?: string[];
+  cid?: string | null;
+}): string[] {
+  return extractCidsFromValues(issue.coverImage, issue.cid, ...(issue.previewImages ?? []));
+}
+
 /** Best-effort server-side Pinata unpin (non-blocking). */
 export async function requestIpfsUnpin(cids: string[]): Promise<void> {
   const unique = [...new Set(cids.map(cleanIpfsHash).filter(Boolean))];

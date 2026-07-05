@@ -29,7 +29,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 const TAB_LABELS: Record<DAppDashboardTab, string> = {

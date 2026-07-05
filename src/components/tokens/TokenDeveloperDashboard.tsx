@@ -14,7 +14,7 @@ import { useTokens } from '@/hooks/useTokens';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
-import { normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
+import { normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
 import { Alert } from '@/components/Alert';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {

@@ -2,6 +2,8 @@
 
 import { Magazine, MagazineIssue } from './types';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
+import { mergeMagazines, mergeMagazineIssues } from '@/lib/hub/contentMerge';
+import { syncHubContentItem } from '@/lib/hub/contentSync';
 
 const STORAGE_KEYS = {
     magazines: 'kasparex_magazines',
@@ -152,6 +154,9 @@ export function savePublishedMagazineIssue(magazine: Magazine, issue: MagazineIs
     if (ji >= 0) list[ji] = entry;
     else list.push(entry);
     localStorage.setItem(STORAGE_KEYS.issues, JSON.stringify(list));
+    window.dispatchEvent(new CustomEvent('kasparex-magazine-issues-updated'));
+    void syncHubContentItem('magazines', 'upsert', { item: mergedMag });
+    void syncHubContentItem('magazineIssues', 'upsert', { item: entry, commitTxHash: entry.bindingTxHash });
 }
 
 /** Create or reuse a slugged magazine heading for dashboard ownership. */
@@ -284,4 +289,20 @@ function getDefaultIssues(): MagazineIssue[] {
             treasuryPercentage: 5,
         }
     ];
+}
+
+/** Merge remote hub magazine catalog into local storage (cross-device sync). */
+export function importRemoteMagazineCatalog(remoteMagazines: Magazine[], remoteIssues: MagazineIssue[]): void {
+    if (typeof window === 'undefined') return;
+    if (remoteMagazines.length) {
+        const merged = mergeMagazines(getAllMagazines(), remoteMagazines);
+        localStorage.setItem(STORAGE_KEYS.magazines, JSON.stringify(merged));
+    }
+    if (remoteIssues.length) {
+        const stored = localStorage.getItem(STORAGE_KEYS.issues);
+        const local = stored ? (JSON.parse(stored) as MagazineIssue[]) : getDefaultIssues();
+        const mergedIssues = mergeMagazineIssues(Array.isArray(local) ? local : getDefaultIssues(), remoteIssues);
+        localStorage.setItem(STORAGE_KEYS.issues, JSON.stringify(mergedIssues));
+    }
+    window.dispatchEvent(new CustomEvent('kasparex-magazine-issues-updated'));
 }

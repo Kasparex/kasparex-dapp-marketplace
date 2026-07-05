@@ -10,7 +10,6 @@ import {
   deleteArticle,
   getCommentsForArticle,
   addComment,
-  importRemoteArticles,
 } from '@/lib/vblog/data';
 import { VBlogArticle, VBlogComment } from '@/lib/vblog/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -40,7 +39,12 @@ import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getEnabledVBlogModuleIds, getArticlePaidModuleIds } from '@/lib/vblog/modules';
-import { pullAndMergeHubContent, syncHubContentItem, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import {
+  bootstrapHubContent,
+  syncHubContentItem,
+  onHubContentVisibilityRefresh,
+} from '@/lib/hub/contentSync';
+import { markHubContentDeleted } from '@/lib/hub/deletedContent';
 import { collectVblogMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 /**
@@ -71,21 +75,14 @@ export function useVBlog() {
     let cancelled = false;
 
     const bootstrap = async () => {
-      const remote = await pullAndMergeHubContent();
-      if (!cancelled && remote?.vblog?.length) {
-        importRemoteArticles(remote.vblog);
-      }
+      await bootstrapHubContent();
       if (!cancelled) loadArticles();
     };
 
     void bootstrap();
     const onUpdate = () => loadArticles();
     window.addEventListener('vblog-articles-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(async () => {
-      const remote = await pullAndMergeHubContent();
-      if (remote?.vblog?.length) importRemoteArticles(remote.vblog);
-      loadArticles();
-    });
+    const stopVisibility = onHubContentVisibilityRefresh(() => loadArticles());
     return () => {
       cancelled = true;
       window.removeEventListener('vblog-articles-updated', onUpdate);
@@ -480,11 +477,15 @@ export function useVBlog() {
     if (tx.status === 'failed' || !tx.txHash) {
       throw new Error(tx.error ?? 'Delete transaction failed');
     }
+    markHubContentDeleted('vblog', articleId);
     const deleted = deleteArticle(articleId);
     if (deleted) {
-      void syncHubContentItem('vblog', 'delete', { id: articleId });
+      const synced = await syncHubContentItem('vblog', 'delete', { id: articleId });
+      if (!synced) {
+        console.warn('[vBlog] Local delete ok but hub registry sync failed. Content may reappear until server sync succeeds.');
+      }
       void requestIpfsUnpin(collectVblogMediaCids(existing));
-      loadArticles(); // Reload articles
+      loadArticles();
     }
     return deleted;
   }, [kaspaState.address, kaspaState.isConnected, kaspaState.provider, loadArticles]);

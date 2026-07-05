@@ -22,7 +22,7 @@ import { ChronicleThumb } from '@/components/chronicles/ChronicleFeaturedVisual'
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';

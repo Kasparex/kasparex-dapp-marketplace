@@ -5,10 +5,9 @@ import type { DApp } from '@/lib/dapps';
 import {
   directoryListingToDApp,
   getDirectoryListings,
-  importRemoteDirectoryListings,
   type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
-import { pullAndMergeHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
 
 export function useDirectoryListings(submitterAddress?: string | null) {
   const [listings, setListings] = useState<DirectoryListing[]>([]);
@@ -21,21 +20,14 @@ export function useDirectoryListings(submitterAddress?: string | null) {
     let cancelled = false;
 
     const bootstrap = async () => {
-      const remote = await pullAndMergeHubContent();
-      if (!cancelled && remote?.dapps?.length) {
-        importRemoteDirectoryListings(remote.dapps);
-      }
+      await bootstrapHubContent();
       if (!cancelled) refresh();
     };
 
     void bootstrap();
     const onUpdate = () => refresh();
     window.addEventListener('dapp-listing-submissions-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(async () => {
-      const remote = await pullAndMergeHubContent();
-      if (remote?.dapps?.length) importRemoteDirectoryListings(remote.dapps);
-      refresh();
-    });
+    const stopVisibility = onHubContentVisibilityRefresh(() => refresh());
     return () => {
       cancelled = true;
       window.removeEventListener('dapp-listing-submissions-updated', onUpdate);

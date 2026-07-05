@@ -12,6 +12,10 @@ import {
 } from './ipfs-registry';
 import type { Product, ProductRegistry, ProductRegistryEntry } from './types';
 import { demoProducts } from './demo-products';
+import { syncHubContentItem } from '@/lib/hub/contentSync';
+import { markHubContentDeleted } from '@/lib/hub/deletedContent';
+import { upsertHubStoreProduct, removeHubStoreProduct, getHubSyncedStoreProducts } from './hubSync';
+import { collectStoreMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 
 function buildDemoProducts(): Product[] {
   // Deterministic IDs/slugs so routes remain stable across refreshes
@@ -58,6 +62,13 @@ export async function getAllProducts(): Promise<Product[]> {
   const demoProducts = buildDemoProducts();
   
   if (!registry || registry.products.length === 0) {
+    const hubOnly = getHubSyncedStoreProducts();
+    if (hubOnly.length) {
+      const productMap = new Map<string, Product>();
+      demoProducts.forEach((p) => productMap.set(p.slug, p));
+      hubOnly.forEach((p) => productMap.set(p.slug, p));
+      return Array.from(productMap.values());
+    }
     return demoProducts;
   }
 
@@ -80,6 +91,10 @@ export async function getAllProducts(): Promise<Product[]> {
   
   // Add registry products (will overwrite demo products with same slug)
   products.forEach(p => productMap.set(p.slug, p));
+
+  getHubSyncedStoreProducts().forEach((p) => {
+    if (!productMap.has(p.slug)) productMap.set(p.slug, p);
+  });
   
   return Array.from(productMap.values());
 }
@@ -224,6 +239,9 @@ export async function createProduct(
       localStorage.setItem('store-registry-cid', registryCid);
     }
 
+    upsertHubStoreProduct(product);
+    void syncHubContentItem('store', 'upsert', { item: product });
+
     return { product, registryCid };
   } catch (error) {
     console.error('Failed to create product:', error);
@@ -309,6 +327,14 @@ export async function archiveProduct(
     if (registryCid && typeof window !== 'undefined') {
       localStorage.setItem('store-registry-cid', registryCid);
     }
+
+    if (product) {
+      markHubContentDeleted('store', productId);
+      removeHubStoreProduct(productId);
+      void syncHubContentItem('store', 'delete', { id: productId });
+      void requestIpfsUnpin(collectStoreMediaCids(product));
+    }
+
     return !!registryCid;
   } catch (error) {
     console.error('Failed to archive product:', error);

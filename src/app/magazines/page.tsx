@@ -10,6 +10,7 @@ import { MagazineSortFilters } from '@/components/magazines/MagazineSortFilters'
 import { FilterBar } from '@/components/FilterBar';
 import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
+import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
 
 export default function MagazinesPage() {
     const [magazines, setMagazines] = useState<Magazine[]>([]);
@@ -20,10 +21,25 @@ export default function MagazinesPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Load magazines
-        const data = getAllMagazines();
-        setMagazines(data);
-        setIsLoading(false);
+        let cancelled = false;
+        const load = async () => {
+            await bootstrapHubContent();
+            if (!cancelled) {
+                setMagazines(getAllMagazines());
+                setIsLoading(false);
+            }
+        };
+        void load();
+        const stop = onHubContentVisibilityRefresh(() => {
+            setMagazines(getAllMagazines());
+        });
+        const onIssues = () => setMagazines(getAllMagazines());
+        window.addEventListener('kasparex-magazine-issues-updated', onIssues);
+        return () => {
+            cancelled = true;
+            stop();
+            window.removeEventListener('kasparex-magazine-issues-updated', onIssues);
+        };
     }, []);
 
     const categories = useMemo(() => {

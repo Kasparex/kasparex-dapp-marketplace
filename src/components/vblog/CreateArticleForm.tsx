@@ -22,7 +22,7 @@ import { registerMagazineSubmission } from '@/lib/magazines/submissions';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { getVBlogModuleEffectivePriceKas, getEnabledVBlogModuleIds, getArticlePaidModuleIds, VBLOG_MODULE_OFFERS } from '@/lib/vblog/modules';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
-import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';

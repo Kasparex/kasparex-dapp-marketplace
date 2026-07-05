@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getBestGatewayUrl, extractCidFromIpfsUrl, getIpfsProxyPath } from '@/lib/ipfs/gateway';
+import { resolveHubMediaUrl } from '@/lib/hub/resolveMediaUrl';
 
 interface ImagePreviewProps {
   imageUrl: string;
@@ -15,40 +15,10 @@ interface ImagePreviewProps {
 }
 
 /**
- * Check if a string is an IPFS CID (starts with Qm or bafy)
- */
-function isIPFSCID(str: string): boolean {
-  if (!str) return false;
-  const clean = str.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
-  return /^(Qm|bafy|bafk)/i.test(clean) && clean.length > 20;
-}
-
-/**
- * Convert IPFS CID or URL to a displayable URL
+ * Convert IPFS CID or URL to a displayable URL (hub standard).
  */
 function normalizeImageUrl(url: string): string {
-  if (!url) return url;
-
-  if (url.startsWith('/api/ipfs')) {
-    return url;
-  }
-
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const cid = extractCidFromIpfsUrl(url);
-    if (cid) return getIpfsProxyPath(cid);
-    return url;
-  }
-
-  if (isIPFSCID(url)) {
-    return getBestGatewayUrl(url);
-  }
-
-  if (url.startsWith('ipfs://')) {
-    const cid = url.replace(/^ipfs:\/\//, '');
-    return getBestGatewayUrl(cid);
-  }
-
-  return url;
+  return resolveHubMediaUrl(url) || url;
 }
 
 export function ImagePreview({
