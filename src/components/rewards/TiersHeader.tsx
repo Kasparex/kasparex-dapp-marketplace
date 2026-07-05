@@ -1,6 +1,10 @@
 'use client';
 
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+
 export function TiersHeader() {
+  if (!SHOW_HUB_HALO_HEADERS) return null;
+
   return (
     <div
       id="tiers-intro"

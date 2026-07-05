@@ -1289,22 +1289,39 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   height: auto;
 }
 
-/* Mobile filter controls stack full width */
+/* Mobile filter controls stack full width inside filter sheet */
 @media (max-width: 767px) {
+  .kx-mobile-filter-stack {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   .kx-mobile-filter-stack > * {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .kx-mobile-filter-stack .k-control-group {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
 
   .kx-mobile-filter-stack .k-control-btn,
   .kx-mobile-filter-stack .k-filter-select,
   .kx-mobile-filter-stack button.k-control-btn {
     width: 100%;
+    max-width: 100%;
     justify-content: space-between;
+  }
+
+  .kx-mobile-filter-stack .kx-tab-strip,
+  .kx-mobile-filter-stack [class*='KxTabStrip'] {
+    max-width: 100%;
+    min-width: 0;
   }
 }
 

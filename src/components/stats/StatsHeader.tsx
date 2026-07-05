@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 export function StatsHeader({
   badge = 'Ecosystem Analytics',
@@ -14,6 +15,10 @@ export function StatsHeader({
   description: string;
   actions?: ReactNode;
 }) {
+  if (!SHOW_HUB_HALO_HEADERS) {
+    return actions ? <div className="mb-6 flex flex-wrap gap-3">{actions}</div> : null;
+  }
+
   return (
     <div className="scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
       <div className="absolute inset-0 overflow-hidden">

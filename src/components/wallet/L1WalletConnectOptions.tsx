@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { KASPA_WALLET_PROVIDERS } from '@/lib/kaspa/wallet';
 import {
   getMobileWalletInstallUrl,
@@ -15,7 +14,7 @@ import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 type ConnectableProvider = L1WalletProviderId;
 
 export interface L1WalletConnectOptionsProps {
-  onConnect: (provider: KaspaWalletProvider) => Promise<void>;
+  onConnect: (provider: ConnectableProvider) => Promise<void>;
   connecting: ConnectableProvider | null;
   error?: string | null;
   /** Mobile: show Kastle first (recommended for dApps). */

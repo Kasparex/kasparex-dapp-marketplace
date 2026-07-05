@@ -2,8 +2,34 @@
 
 import { AdSlider } from '@/components/ads/AdSlider';
 import Link from 'next/link';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 export function DonationsHeader() {
+  if (!SHOW_HUB_HALO_HEADERS) {
+    return (
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <Link href="/donations/studio#create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
+          Create L2 campaign
+        </Link>
+        <Link href="/donations/studio#covenant-create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
+          Create L1 covenant
+        </Link>
+        <Link href="/donations/dashboard" className="k-control-btn">
+          My campaigns
+        </Link>
+        <Link
+          href="/donations/help"
+          className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300"
+        >
+          Help · Donors &amp; walkthrough
+        </Link>
+        <Link href="/donations/studio" className="k-control-btn">
+          Open Studio
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
       <div className="absolute inset-0 opacity-20">

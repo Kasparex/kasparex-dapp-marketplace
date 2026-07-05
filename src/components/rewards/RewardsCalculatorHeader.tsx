@@ -1,6 +1,10 @@
 'use client';
 
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+
 export function RewardsCalculatorHeader() {
+  if (!SHOW_HUB_HALO_HEADERS) return null;
+
   return (
     <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-[#02abb8]/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
       <div className="absolute inset-0 overflow-hidden">

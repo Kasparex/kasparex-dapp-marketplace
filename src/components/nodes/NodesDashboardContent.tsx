@@ -23,6 +23,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { fetchNodeEpochReward } from '@/lib/nodes/operatorApi';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
 import nodeRewardTiers from '@/config/node-reward-tiers.json';
@@ -235,7 +236,7 @@ export function NodesDashboardContent() {
 
   return (
     <div className="space-y-10">
-      {/* Header - Donations style (cyan gradient, same structure) */}
+      {SHOW_HUB_HALO_HEADERS ? (
       <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#06b6d4,transparent_50%)]" />
@@ -287,6 +288,32 @@ export function NodesDashboardContent() {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/nodes?tab=setup"
+              scroll={false}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm tracking-wide hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border border-zinc-200 dark:border-zinc-700"
+            >
+              <span>Run a KREX Node</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+            <button
+              type="button"
+              onClick={() => goTab('enroll', myNode ? { enrollIntent: 'manage' } : { enrollIntent: 'register' })}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              {myNode ? 'Edit node details' : 'Enroll (get node secret)'}
+            </button>
+          </div>
+          <div className="w-full lg:max-w-xl">
+            <IncentivesAndEarnings incentives={incentives} embedded />
+          </div>
+        </div>
+      )}
 
       <NodesTabStrip activeTab={activeTab} onTab={goTab} />
 

@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { MobileFilterMenu } from '@/components/ui/MobileFilterMenu';
 
 export interface FilterBarSearchProps {
@@ -13,7 +12,7 @@ export interface FilterBarSearchProps {
 export interface FilterBarProps {
   /** Search input (value, onChange, placeholder). */
   search: FilterBarSearchProps;
-  /** Optional callback for Reset Filters button. When provided, the button is shown. */
+  /** Optional callback for Reset Filters in the mobile filter sheet footer. */
   onReset?: () => void;
   /** Label for the reset button. */
   resetLabel?: string;
@@ -66,14 +65,6 @@ export function FilterBar({
         >
           {children}
         </MobileFilterMenu>
-      ) : null}
-
-      {onReset != null ? (
-        <Tooltip content="Reset all filters">
-          <button type="button" onClick={onReset} className="k-control-btn whitespace-nowrap shrink-0 hidden md:inline-flex">
-            {resetLabel}
-          </button>
-        </Tooltip>
       ) : null}
     </div>
   );

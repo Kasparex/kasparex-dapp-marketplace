@@ -23,6 +23,7 @@ import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { FilterBar } from '@/components/FilterBar';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -164,6 +165,7 @@ export function DAppsHomeContent() {
 
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div className="max-w-7xl mx-auto">
+            {SHOW_HUB_HALO_HEADERS ? (
             <div className="relative mb-8 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
@@ -207,6 +209,11 @@ export function DAppsHomeContent() {
                 </div>
               </div>
             </div>
+            ) : (
+              <div className="mb-6">
+                <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
+              </div>
+            )}
 
             <div id="content" className="scroll-mt-4" />
 

@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 export type HubHaloBadgeVariant = 'pulse' | 'plain';
 export type HubHaloTheme = 'cyan' | 'violet';
@@ -61,6 +62,8 @@ export function HubHaloHeader(props: {
   /** Omit floating corner outline decorations (helps keep focus on a dense right-slot panel). */
   hideAccentFrames?: boolean;
 }) {
+  if (!SHOW_HUB_HALO_HEADERS) return null;
+
   const badgeVariant = props.badgeVariant ?? 'pulse';
   const theme = HALO_THEMES[props.theme ?? 'cyan'];
   const showAccentFrames = !props.hideAccentFrames;

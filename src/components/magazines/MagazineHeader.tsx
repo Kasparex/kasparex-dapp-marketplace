@@ -2,8 +2,17 @@
 
 import { MagazineDashboardButton } from './MagazineDashboardButton';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 export function MagazineHeader() {
+    if (!SHOW_HUB_HALO_HEADERS) {
+        return (
+            <div className="mb-6">
+                <MagazineDashboardButton variant="header" />
+            </div>
+        );
+    }
+
     return (
         <div className="relative mb-12 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
             <div className="absolute inset-0 opacity-20 dark:opacity-20">

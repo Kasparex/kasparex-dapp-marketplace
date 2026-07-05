@@ -66,7 +66,7 @@ export function MobileFilterMenu({
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed inset-x-0 bottom-0 z-[81] md:hidden flex flex-col max-h-[min(85dvh,640px)] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl"
+              className="fixed inset-x-0 bottom-0 z-[81] md:hidden flex flex-col h-[min(92dvh,820px)] max-h-[92dvh] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl overflow-hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Filters"

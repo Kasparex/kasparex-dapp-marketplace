@@ -4,6 +4,7 @@ import { AdSlider } from '@/components/ads/AdSlider';
 import { VBlogSourceSwitcher } from '@/components/vblog/VBlogSourceSwitcher';
 import { VBLOG_GRADIENT_TEXT } from '@/lib/vblog/theme';
 import type { VBlogSourceFilter } from '@/lib/vblog/source';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 interface VBlogHeaderProps {
   sourceFilter: VBlogSourceFilter;
@@ -11,6 +12,14 @@ interface VBlogHeaderProps {
 }
 
 export function VBlogHeader({ sourceFilter, onSourceFilterChange }: VBlogHeaderProps) {
+  if (!SHOW_HUB_HALO_HEADERS) {
+    return (
+      <div className="mb-6">
+        <VBlogSourceSwitcher value={sourceFilter} onChange={onSourceFilterChange} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative mb-8 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
       <div className="absolute inset-0 overflow-hidden">

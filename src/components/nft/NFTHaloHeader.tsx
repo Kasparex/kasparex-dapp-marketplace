@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 type NFTHaloHeaderProps = {
   variant?: 'hub' | 'collection';
@@ -14,6 +15,8 @@ export function NFTHaloHeader({
   collectionName,
   collectionDescription,
 }: NFTHaloHeaderProps) {
+  if (!SHOW_HUB_HALO_HEADERS) return null;
+
   const isHub = variant === 'hub';
 
   return (

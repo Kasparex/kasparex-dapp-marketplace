@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
+import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
 
 export const metadata: Metadata = {
   title: 'Kasparex API · api.kasparex.com',
@@ -33,6 +34,7 @@ export default function KasparexAPIPage() {
         <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 px-4 py-8 sm:px-6 sm:py-12 lg:px-12 dark:border-zinc-800">
           <div className="mx-auto max-w-4xl">
           {/* Hero - project style (cyan gradient, same as Nodes) */}
+          {SHOW_HUB_HALO_HEADERS ? (
           <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#06b6d4,transparent_50%)]" />
@@ -54,6 +56,7 @@ export default function KasparexAPIPage() {
               </p>
             </div>
           </div>
+          ) : null}
 
           {/* What is the API */}
           <section id="what-is-api" className="mb-12">
