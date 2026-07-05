@@ -14,6 +14,7 @@ import {
   type StorePaymentCurrency,
 } from '@/lib/store/currencies';
 import { KxModalHeader, KxModalSectionTitle, KxPaymentSummary } from '@/components/payments/KxPaymentUi';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
 const KREX_UNLIMITED_THRESHOLD = 100_000_000;
 
@@ -158,6 +159,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
         />
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <MobileWalletUnavailableNotice networks="both" />
           {!isWalletConnected ? (
             <p className="text-center py-8 kx-body">
               Connect your wallet to purchase credits

@@ -4,7 +4,9 @@ import { useHubAccess } from '@/hooks/useHubAccess';
 import { useHubWalletGate } from '@/hooks/useHubWalletGate';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubNetworkBadge } from '@/components/hub/HubNetworkBadge';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import type { HubWalletGateConfig } from '@/components/hub/HubWalletGateShell';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 type StoreWalletBannerProps = {
   config: HubWalletGateConfig;
@@ -14,6 +16,7 @@ type StoreWalletBannerProps = {
 export function StoreWalletBanner({ config, compact }: StoreWalletBannerProps) {
   const access = useHubAccess(config.requirement);
   const { l1Modal, closeL1Modal, promptHubGate } = useHubWalletGate();
+  const isMobile = useIsMobileViewport();
 
   if (access.isOpenable) return null;
 
@@ -34,7 +37,8 @@ export function StoreWalletBanner({ config, compact }: StoreWalletBannerProps) {
         }`}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-3">
+            {isMobile ? <MobileWalletUnavailableNotice networks="both" /> : null}
             <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
               {config.message ?? 'Connect your Kaspa wallet to use seller tools.'}
             </p>
@@ -42,8 +46,13 @@ export function StoreWalletBanner({ config, compact }: StoreWalletBannerProps) {
               <HubNetworkBadge badge={config.networkBadge} size="sm" />
             </div>
           </div>
-          <button type="button" onClick={openGate} className="k-cta-primary shrink-0 px-5 py-2.5 text-sm">
-            Connect wallet
+          <button
+            type="button"
+            onClick={openGate}
+            disabled={isMobile}
+            className="k-cta-primary shrink-0 px-5 py-2.5 text-sm disabled:opacity-60"
+          >
+            {isMobile ? 'Desktop required' : 'Connect wallet'}
           </button>
         </div>
       </div>

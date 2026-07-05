@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenDeveloperDashboard } from '@/components/tokens/TokenDeveloperDashboard';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import { TOKENS_GRADIENT_TEXT } from '@/lib/tokens/theme';
 
@@ -39,9 +40,11 @@ function TokensDashboardPageContent() {
                 </p>
               </div>
 
+              <MobileDesktopOnlyGate title="Token Builder" backHref="/tokens" backLabel="Back to Tokens">
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
                 <TokenDeveloperDashboard />
               </HubWalletGateShell>
+              </MobileDesktopOnlyGate>
             </div>
           </div>
         </div>

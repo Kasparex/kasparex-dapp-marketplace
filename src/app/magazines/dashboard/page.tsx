@@ -15,6 +15,7 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { MAGAZINES_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 
 export default function MagazinesDashboardPage() {
@@ -88,9 +89,11 @@ export default function MagazinesDashboardPage() {
                 <Header />
                 <main className="flex-1 flex items-center justify-center p-6">
                     <div className="max-w-lg w-full">
+                        <MobileDesktopOnlyGate title="Magazines Dashboard" backHref="/magazines" backLabel="Back to Magazines">
                         <HubWalletGateShell mode="replace" config={MAGAZINES_DASHBOARD_GATE}>
                             <div />
                         </HubWalletGateShell>
+                        </MobileDesktopOnlyGate>
                     </div>
                 </main>
                 <Footer />
@@ -106,6 +109,7 @@ export default function MagazinesDashboardPage() {
                 <MagazinesSidebar mode="utility" />
 
                 <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+                    <MobileDesktopOnlyGate title="Magazines Dashboard" backHref="/magazines" backLabel="Back to Magazines">
                     <div className="w-full">
                         <div className="mb-12">
                             <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
@@ -293,6 +297,7 @@ export default function MagazinesDashboardPage() {
                             </>
                         )}
                     </div>
+                    </MobileDesktopOnlyGate>
                 </main>
             </div>
 

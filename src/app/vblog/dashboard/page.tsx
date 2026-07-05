@@ -8,6 +8,7 @@ import { VBlogSidebar, type VBlogDashboardNavTarget } from '@/components/vblog/V
 import { useVBlog } from '@/hooks/useVBlog';
 import { useSearchParams } from 'next/navigation';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
@@ -75,6 +76,7 @@ function VBlogDashboardPageContent() {
                 </p>
               </div>
 
+              <MobileDesktopOnlyGate title="Creator Center" backHref="/vblog" backLabel="Back to vBlog">
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
                 <AuthorDashboard
                   createIntentKey={createIntentKey}
@@ -84,6 +86,7 @@ function VBlogDashboardPageContent() {
                   archiveCategoryFilter={selectedCategory}
                 />
               </HubWalletGateShell>
+              </MobileDesktopOnlyGate>
             </div>
           </div>
         </div>

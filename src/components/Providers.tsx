@@ -599,7 +599,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
     <RainbowKitProvider
       theme={theme === 'dark' ? customDarkTheme : customLightTheme}
       initialChain={igraMainnet}
-      modalSize="compact"
+      modalSize="wide"
     >
       {children}
     </RainbowKitProvider>

@@ -27,6 +27,7 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import Link from 'next/link';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -192,6 +193,7 @@ export function ChroniclesCenterContent() {
         totalListings: stats.totalListings,
       }}
     >
+      <MobileDesktopOnlyGate title="Chronicles Center" backHref="/chronicles" backLabel="Back to Chronicles">
       <div className="mb-10">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Chronicles dashboard</p>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
@@ -341,6 +343,7 @@ export function ChroniclesCenterContent() {
           )}
         </div>
       )}
+      </MobileDesktopOnlyGate>
     </ChroniclesPageShell>
   );
 }

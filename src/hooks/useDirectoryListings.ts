@@ -20,14 +20,14 @@ export function useDirectoryListings(submitterAddress?: string | null) {
     let cancelled = false;
 
     const bootstrap = async () => {
-      await bootstrapHubContent();
+      await bootstrapHubContent(['dapps']);
       if (!cancelled) refresh();
     };
 
     void bootstrap();
     const onUpdate = () => refresh();
     window.addEventListener('dapp-listing-submissions-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(() => refresh());
+    const stopVisibility = onHubContentVisibilityRefresh(() => refresh(), ['dapps']);
     return () => {
       cancelled = true;
       window.removeEventListener('dapp-listing-submissions-updated', onUpdate);

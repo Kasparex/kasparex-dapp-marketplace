@@ -11,6 +11,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccount, useBalance, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton, useChainModal } from '@rainbow-me/rainbowkit';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import { formatUnits } from 'viem';
 import { Avatar } from './Avatar';
 import { useBalanceVisibility, formatBalanceForDisplay, formatBalanceValueForDisplay, maskAddress, maskInsDomain } from '@/hooks/useBalanceVisibility';
@@ -57,6 +59,8 @@ export function EVMWalletButton() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isNodeOpen, setIsNodeOpen] = useState(false);
+  const isMobile = useIsMobileViewport();
+  const [showMobileL2Hint, setShowMobileL2Hint] = useState(false);
 
   // Get current network info
   const chain = chainId ? getChainById(chainId) : null;
@@ -544,6 +548,28 @@ export function EVMWalletButton() {
   }
 
   // If not connected, show Connect Wallet button
+  if (isMobile) {
+    return (
+      <div className="relative w-full">
+        <button
+          type="button"
+          onClick={() => setShowMobileL2Hint((v) => !v)}
+          className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Connect L2 Wallet
+        </button>
+        {showMobileL2Hint ? (
+          <div className="absolute right-0 left-0 mt-2 z-50">
+            <MobileWalletUnavailableNotice networks="L2" />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <ConnectButton.Custom>
       {({ openConnectModal, mounted }) => {

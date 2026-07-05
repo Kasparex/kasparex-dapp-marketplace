@@ -30,6 +30,7 @@ import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -272,6 +273,7 @@ export function DAppDashboardContent() {
         totalListings: stats.totalListings,
       }}
     >
+      <MobileDesktopOnlyGate title="dApps Center" backHref="/dapps" backLabel="Back to dApps">
       <div className="mb-10">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
@@ -452,6 +454,7 @@ export function DAppDashboardContent() {
           )}
         </div>
       )}
+      </MobileDesktopOnlyGate>
     </DAppPageShell>
   );
 }

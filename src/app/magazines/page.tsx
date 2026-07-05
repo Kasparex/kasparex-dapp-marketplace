@@ -23,7 +23,7 @@ export default function MagazinesPage() {
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
-            await bootstrapHubContent();
+            await bootstrapHubContent(['magazines', 'magazineIssues']);
             if (!cancelled) {
                 setMagazines(getAllMagazines());
                 setIsLoading(false);
@@ -32,7 +32,7 @@ export default function MagazinesPage() {
         void load();
         const stop = onHubContentVisibilityRefresh(() => {
             setMagazines(getAllMagazines());
-        });
+        }, ['magazines', 'magazineIssues']);
         const onIssues = () => setMagazines(getAllMagazines());
         window.addEventListener('kasparex-magazine-issues-updated', onIssues);
         return () => {

@@ -16,6 +16,7 @@ import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import { parseStoreSellerTab, storeSellerTabHref, type StoreSellerTab } from '@/lib/store/sellerTabs';
 import type { Product, Purchase } from '@/lib/store/types';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
+import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
@@ -142,6 +143,7 @@ export function StoreSellerHubContent() {
         onSellerTabChange: goTab,
       }}
     >
+      <MobileDesktopOnlyGate title="Store Seller Hub" backHref="/store" backLabel="Back to Store">
       <div className="mb-10">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Seller dashboard</p>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
@@ -361,6 +363,7 @@ export function StoreSellerHubContent() {
           )}
         </div>
       )}
+      </MobileDesktopOnlyGate>
     </StorePageShell>
   );
 }

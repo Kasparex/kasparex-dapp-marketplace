@@ -6,7 +6,9 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import type { ReactNode } from 'react';
 import { HubL1WalletOptions } from './HubL1WalletOptions';
 import { HubNetworkBadge } from './HubNetworkBadge';
+import { MobileWalletUnavailableNotice } from './MobileWalletUnavailableNotice';
 import type { HubWalletGateModalState } from '@/hooks/useHubWalletGate';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 interface HubWalletGateModalProps extends HubWalletGateModalState {
   isOpen: boolean;
@@ -25,6 +27,7 @@ export function HubWalletGateModal({
   showEvmConnect,
   icon,
 }: HubWalletGateModalProps) {
+  const isMobile = useIsMobileViewport();
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -69,6 +72,9 @@ export function HubWalletGateModal({
         </div>
 
         <div className="p-5 space-y-4">
+          <MobileWalletUnavailableNotice
+            networks={showL1Connect && showEvmConnect ? 'both' : showL1Connect ? 'L1' : 'L2'}
+          />
           <p className="text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
 
           <div className="flex flex-col items-start gap-2">
@@ -78,9 +84,9 @@ export function HubWalletGateModal({
             <HubNetworkBadge badge={networkBadge} size="md" />
           </div>
 
-          {showL1Connect ? <HubL1WalletOptions onConnected={onClose} /> : null}
+          {!isMobile && showL1Connect ? <HubL1WalletOptions onConnected={onClose} /> : null}
 
-          {showEvmConnect ? (
+          {!isMobile && showEvmConnect ? (
             <ConnectButton.Custom>
               {({ openConnectModal, mounted }) => (
                 <button

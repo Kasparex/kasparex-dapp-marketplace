@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { useAccount, useChainId, useSignMessage, useSwitchChain } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 import { CheckCircle2, Info } from 'lucide-react';
 import { CHAIN_IDS, igraMainnet } from '@/lib/wagmi';
 import { readRewardsL2SessionVerified, writeRewardsL2SessionVerified } from '@/lib/rewards/rewards-l2-session-verify';
@@ -28,6 +30,7 @@ export function RewardsL2Gate(props: {
   const target = CHAIN_IDS.IGRA_MAINNET;
   const onIgraMainnet = chainId === target && isConnected;
   const showSwitch = isConnected && !onIgraMainnet;
+  const isMobile = useIsMobileViewport();
 
   const [, setVerifyTick] = useState(0);
   const sessionOk = readRewardsL2SessionVerified(chainId, evm);
@@ -76,8 +79,12 @@ export function RewardsL2Gate(props: {
           {onIgraMainnet ? <span className="ml-2 text-emerald-600 dark:text-emerald-400">IGRA OK</span> : null}
         </span>
       </div>
+      {isMobile ? <MobileWalletUnavailableNotice networks="L2" /> : null}
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch sm:items-center min-w-0">
         {!isConnected ? (
+          isMobile ? (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Connect on desktop to verify your L2 wallet.</p>
+          ) : (
           <ConnectButton.Custom>
             {({ openConnectModal, mounted }) => (
               <button
@@ -90,6 +97,7 @@ export function RewardsL2Gate(props: {
               </button>
             )}
           </ConnectButton.Custom>
+          )
         ) : showSwitch ? (
           <button
             type="button"

@@ -24,6 +24,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -426,6 +427,7 @@ export function Header() {
           <section>
             <HubMenuSectionTitle>Wallets</HubMenuSectionTitle>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2.5">
+              <MobileWalletUnavailableNotice networks="both" />
               <div className="kx-mobile-wallet-stack space-y-2.5">
                 <EVMWalletButton />
                 <KaspaL1WalletButton />

@@ -21,13 +21,13 @@ export function useChroniclesCommunitySubmissions(filter?: {
   useEffect(() => {
     let cancelled = false;
     const bootstrap = async () => {
-      await bootstrapHubContent();
+      await bootstrapHubContent(['chronicles']);
       if (!cancelled) refresh();
     };
     void bootstrap();
     const onUpdate = () => refresh();
     window.addEventListener('chronicles-community-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(() => refresh());
+    const stopVisibility = onHubContentVisibilityRefresh(() => refresh(), ['chronicles']);
     return () => {
       cancelled = true;
       window.removeEventListener('chronicles-community-updated', onUpdate);

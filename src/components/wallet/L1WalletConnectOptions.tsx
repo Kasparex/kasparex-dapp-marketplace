@@ -10,6 +10,7 @@ import {
 import { useKaspaProviderProbe } from '@/hooks/useKaspaProviderProbe';
 import { L1WalletConnectLabel, type L1WalletProviderId } from '@/components/wallet/L1WalletLogo';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
 type ConnectableProvider = L1WalletProviderId;
 
@@ -74,14 +75,12 @@ export function L1WalletConnectOptions({
 
   return (
     <div className="space-y-2">
-      {(isMobile || isMobileUa) ? (
-        <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400 px-0.5">
-          On mobile, connect from a wallet&apos;s in-app browser (Kastle recommended). If no wallet is detected, install
-          the app and open Kasparex from Explore.
-        </p>
+      {isMobile || isMobileUa ? (
+        <MobileWalletUnavailableNotice networks="L1" />
       ) : null}
 
-      {ordered.map((provider) => {
+      {!(isMobile || isMobileUa)
+        ? ordered.map((provider) => {
         const installed = providerInstalled(provider, isInstalled);
         const label = installed
           ? `Connect ${KASPA_WALLET_PROVIDERS[provider].name}`
@@ -105,7 +104,8 @@ export function L1WalletConnectOptions({
             ) : null}
           </button>
         );
-      })}
+      })
+        : null}
 
       {connecting ? (
         <p className="px-1 text-xs text-zinc-500">Connecting…</p>

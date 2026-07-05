@@ -193,14 +193,14 @@ export function useTokens() {
     let cancelled = false;
 
     const bootstrap = async () => {
-      await bootstrapHubContent();
+      await bootstrapHubContent(['tokens']);
       if (!cancelled) loadListings();
     };
 
     void bootstrap();
     const onUpdate = () => loadListings();
     window.addEventListener('tokens-listings-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(() => loadListings());
+    const stopVisibility = onHubContentVisibilityRefresh(() => loadListings(), ['tokens']);
     return () => {
       cancelled = true;
       window.removeEventListener('tokens-listings-updated', onUpdate);

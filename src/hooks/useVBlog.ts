@@ -74,14 +74,14 @@ export function useVBlog() {
     let cancelled = false;
 
     const bootstrap = async () => {
-      await bootstrapHubContent();
+      await bootstrapHubContent(['vblog']);
       if (!cancelled) loadArticles();
     };
 
     void bootstrap();
     const onUpdate = () => loadArticles();
     window.addEventListener('vblog-articles-updated', onUpdate);
-    const stopVisibility = onHubContentVisibilityRefresh(() => loadArticles());
+    const stopVisibility = onHubContentVisibilityRefresh(() => loadArticles(), ['vblog']);
     return () => {
       cancelled = true;
       window.removeEventListener('vblog-articles-updated', onUpdate);
