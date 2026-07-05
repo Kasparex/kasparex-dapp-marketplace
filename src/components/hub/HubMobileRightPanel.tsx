@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { useMobileEdgeSwipe } from '@/hooks/useMobileEdgeSwipe';
 import type { ReactNode } from 'react';
 
 export interface HubMobileRightPanelProps {
@@ -14,7 +15,7 @@ export interface HubMobileRightPanelProps {
   children: ReactNode;
 }
 
-/** Fixed right-edge trigger for mobile right panel drawer. */
+/** Fixed right-edge trigger for mobile right panel drawer. @deprecated Use swipe-left gesture instead. */
 export function HubMobileRightPanelTrigger({
   panelId,
   onClick,
@@ -52,6 +53,7 @@ export function HubMobileRightPanel({ panelId, open, onClose, title = 'Side pane
       <div className="fixed inset-0 top-16 z-[44] bg-black/50 lg:hidden" aria-hidden onClick={onClose} />
       <aside
         id={panelId}
+        data-kx-right-drawer={open ? 'open' : 'closed'}
         className="fixed top-16 right-0 z-[45] flex h-[calc(100dvh-4rem)] w-[min(100vw,320px)] flex-col border-l border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950 lg:hidden"
         aria-label={title}
       >
@@ -76,13 +78,24 @@ export function HubMobileRightPanel({ panelId, open, onClose, title = 'Side pane
 }
 
 /** Hook: mobile drawer open state separate from desktop rightOpen preference. */
-export function useHubMobileRightPanel() {
+export function useHubMobileRightPanel(options?: { swipeEnabled?: boolean }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useIsMobileViewport();
+  const swipeEnabled = options?.swipeEnabled !== false;
 
   useEffect(() => {
     if (!isMobile) setDrawerOpen(false);
   }, [isMobile]);
+
+  useMobileEdgeSwipe({
+    enabled: isMobile && swipeEnabled,
+    rightOpen: drawerOpen,
+    onOpenRight: () => {
+      if (document.querySelector('[data-kx-left-sidebar][data-open="open"]')) return;
+      setDrawerOpen(true);
+    },
+    onCloseRight: () => setDrawerOpen(false),
+  });
 
   return {
     isMobile,

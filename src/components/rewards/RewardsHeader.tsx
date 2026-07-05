@@ -15,6 +15,7 @@ export function RewardsHeader(props: { onSessionVerifiedChange?: () => void }) {
   return (
     <HubHaloHeader
       id="rewards-intro"
+      showOnMobile
       hideAccentFrames
       badgeVariant="pulse"
       badgeLabel="Rewards hub"

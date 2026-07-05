@@ -7,11 +7,12 @@ import { footerLinkSections } from '@/lib/footerLinks';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
-const FOOTER_OBSERVER_ID = 'site-footer';
+export interface MobileFooterDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-export function MobileFooterDrawer() {
-  const [open, setOpen] = useState(false);
-  const [footerInView, setFooterInView] = useState(false);
+export function MobileFooterDrawer({ open, onOpenChange }: MobileFooterDrawerProps) {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobileViewport();
 
@@ -22,32 +23,13 @@ export function MobileFooterDrawer() {
   }, []);
 
   useEffect(() => {
-    if (!isMobile) {
-      setFooterInView(false);
-      return;
-    }
-
-    const footer = document.getElementById(FOOTER_OBSERVER_ID);
-    if (!footer) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setFooterInView(entry.isIntersecting),
-      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' },
-    );
-    observer.observe(footer);
-    return () => observer.disconnect();
-  }, [isMobile]);
-
-  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') onOpenChange(false);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
-
-  const showTrigger = isMobile && footerInView && !open;
+  }, [open, onOpenChange]);
 
   const drawer =
     open && mounted && typeof document !== 'undefined'
@@ -56,7 +38,7 @@ export function MobileFooterDrawer() {
             <div
               className="fixed inset-0 z-[90] bg-black/50 lg:hidden"
               aria-hidden
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
             />
             <div
               className="fixed inset-x-0 bottom-0 z-[91] lg:hidden flex flex-col max-h-[min(85dvh,640px)] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl"
@@ -69,7 +51,7 @@ export function MobileFooterDrawer() {
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Site links</p>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => onOpenChange(false)}
                   className="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   aria-label="Close site links"
                 >
@@ -93,7 +75,7 @@ export function MobileFooterDrawer() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
-                              onClick={() => setOpen(false)}
+                              onClick={() => onOpenChange(false)}
                             >
                               {link.icon}
                               <span>{link.label}</span>
@@ -102,7 +84,7 @@ export function MobileFooterDrawer() {
                             <Link
                               href={link.href}
                               className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
-                              onClick={() => setOpen(false)}
+                              onClick={() => onOpenChange(false)}
                             >
                               {link.icon}
                               <span>{link.label}</span>
@@ -120,28 +102,5 @@ export function MobileFooterDrawer() {
         )
       : null;
 
-  return (
-    <>
-      {showTrigger ? (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 pointer-events-none">
-          <div
-            className="pointer-events-auto flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4"
-          >
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="flex items-center gap-2 h-11 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md shadow-lg text-sm font-medium text-zinc-800 dark:text-zinc-200"
-              aria-label="Open site links menu"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-              Site links
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {drawer}
-    </>
-  );
+  return drawer;
 }

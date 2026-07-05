@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
 import {
   HubMobileRightPanel,
-  HubMobileRightPanelTrigger,
   useHubMobileRightPanel,
 } from '@/components/hub/HubMobileRightPanel';
 
@@ -35,15 +34,11 @@ export function HubPageRightPanelGrid({
   gridClassName = 'grid grid-cols-1 gap-8',
   hideToggle = false,
 }: HubPageRightPanelProps) {
-  const { isMobile, drawerOpen, openDrawer, closeDrawer } = useHubMobileRightPanel();
+  const { isMobile, drawerOpen, closeDrawer } = useHubMobileRightPanel();
   const showDesktopPanel = rightOpen && !isMobile;
 
   return (
     <>
-      {!hideToggle && isMobile ? (
-        <HubMobileRightPanelTrigger panelId={panelId} onClick={openDrawer} label={panelTitle} />
-      ) : null}
-
       <div className={`${gridClassName} ${showDesktopPanel ? 'lg:grid-cols-12' : ''}`}>
         <div className={`min-w-0 ${showDesktopPanel ? mainColClass : 'lg:col-span-12'}`}>{children}</div>
         {showDesktopPanel ? (

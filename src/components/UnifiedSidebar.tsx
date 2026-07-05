@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { useMobileEdgeSwipe } from '@/hooks/useMobileEdgeSwipe';
 
 export interface UnifiedSidebarProps {
   /** Prefix for localStorage keys: {prefix}-sidebar-hidden, {prefix}-sidebar-width */
@@ -67,6 +68,16 @@ export function UnifiedSidebar({
 
   useBodyScrollLock(isOpen && isMobile);
 
+  useMobileEdgeSwipe({
+    enabled: isMobile,
+    leftOpen: isOpen,
+    onOpenLeft: () => {
+      if (document.querySelector('[data-kx-right-drawer="open"]')) return;
+      setOpen(true);
+    },
+    onCloseLeft: () => setOpen(false),
+  });
+
   const hiddenKey = `${storageKeyPrefix}-sidebar-hidden`;
   const widthKey = `${storageKeyPrefix}-sidebar-width`;
 
@@ -118,23 +129,6 @@ export function UnifiedSidebar({
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button
-        type="button"
-        onClick={() => setOpen(!isOpen)}
-        className="fixed left-1 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white/95 p-1.5 text-zinc-500 shadow-lg backdrop-blur-sm transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 lg:hidden"
-        style={{ top: '4rem' }}
-        aria-label="Toggle menu"
-      >
-        <svg className="h-6 w-6 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {isOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
-
       {isOpen && (
         <div className="lg:hidden fixed inset-0 top-16 z-30 bg-black/50" onClick={() => setOpen(false)} aria-hidden />
       )}
@@ -154,6 +148,8 @@ export function UnifiedSidebar({
 
       <aside
         ref={sidebarRef}
+        data-kx-left-sidebar
+        data-open={isOpen ? 'open' : 'closed'}
         className={`
           fixed lg:sticky top-16 lg:top-0 left-0 z-40
           h-[calc(100vh-4rem)] lg:h-screen

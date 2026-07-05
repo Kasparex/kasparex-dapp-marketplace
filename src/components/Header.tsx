@@ -27,6 +27,7 @@ import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { HubMegaMenu } from '@/components/hub/HubMegaMenu';
 import { HubMenuSectionTitle } from '@/components/hub/hubMenuIcons';
+import { FooterSocialIcons } from '@/components/footer/FooterSocialIcons';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -443,8 +444,8 @@ export function Header() {
                 <HubMenuSectionTitle>Account & tools</HubMenuSectionTitle>
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-3">
                   <HeaderRewardsPointsLink />
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <div className="flex items-center justify-center">
+                  <div className="flex items-stretch gap-2">
+                    <div className="flex flex-1 min-w-0 [&_a]:flex [&_a]:h-11 [&_a]:w-full [&_a]:items-center [&_a]:justify-center [&_a]:rounded-lg [&_a]:border [&_a]:border-zinc-200/80 [&_a]:dark:border-zinc-700/80 [&_a]:bg-white [&_a]:dark:bg-zinc-950 [&_a]:hover:bg-zinc-100 [&_a]:dark:hover:bg-zinc-800">
                       <AdminLink />
                     </div>
                     <Tooltip content="What's new">
@@ -455,7 +456,7 @@ export function Header() {
                           setHasNewUpdates(false);
                           setMobileMenuOpen(false);
                         }}
-                        className="relative flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="relative flex h-11 flex-1 min-w-0 items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         aria-label="What's new"
                       >
                         <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -470,7 +471,7 @@ export function Header() {
                       <button
                         type="button"
                         onClick={toggleBalanceVisibility}
-                        className="flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        className="flex h-11 flex-1 min-w-0 items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
                       >
                         {isBalanceVisible ? (
@@ -488,6 +489,13 @@ export function Header() {
                   </div>
                 </div>
               </section>
+            </div>
+
+            <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800 px-3 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2 text-center">
+                Follow Kasparex
+              </p>
+              <FooterSocialIcons />
             </div>
           </aside>
         </>

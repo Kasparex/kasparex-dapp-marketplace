@@ -61,6 +61,8 @@ export function HubHaloHeader(props: {
   rightSlot?: ReactNode;
   /** Omit floating corner outline decorations (helps keep focus on a dense right-slot panel). */
   hideAccentFrames?: boolean;
+  /** When true, show the halo block on mobile as well (Rewards page). */
+  showOnMobile?: boolean;
 }) {
   const badgeVariant = props.badgeVariant ?? 'pulse';
   const theme = HALO_THEMES[props.theme ?? 'cyan'];
@@ -69,7 +71,7 @@ export function HubHaloHeader(props: {
   return (
     <section
       id={props.id}
-      className={`scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY} ${theme.section}`}
+      className={`scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800/50 ${props.showOnMobile ? '' : HUB_HALO_DESKTOP_ONLY} ${theme.section}`}
     >
       <div className="absolute inset-0 overflow-hidden">
         <div className={`absolute top-0 right-0 w-[60%] h-[80%] ${theme.radialTop} rounded-full blur-3xl`} />

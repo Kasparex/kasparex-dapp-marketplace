@@ -28,6 +28,7 @@ export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwit
         options={OPTIONS}
         ariaLabel="Network filter"
         className="w-full max-w-full"
+        fullWidth
         scrollable
       />
     </div>

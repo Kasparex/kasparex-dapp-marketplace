@@ -66,13 +66,13 @@ export function MobileFilterMenu({
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed inset-x-0 bottom-0 z-[81] md:hidden flex flex-col h-[min(92dvh,820px)] max-h-[92dvh] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl overflow-hidden"
+              className="fixed inset-x-0 bottom-0 z-[81] md:hidden flex flex-col max-h-[min(75dvh,520px)] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-label="Filters"
               style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
             >
-              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Filters</p>
                 <button
                   type="button"
@@ -85,11 +85,11 @@ export function MobileFilterMenu({
                   </svg>
                 </button>
               </div>
-              <div className="overflow-y-auto overscroll-contain flex-1 min-h-0 px-4 py-3">
-                <div className="flex flex-col gap-4 kx-mobile-filter-stack">{children}</div>
+              <div className="overflow-y-auto overscroll-contain shrink min-h-0 max-h-[calc(75dvh-7.5rem)] px-4 py-2.5">
+                <div className="flex flex-col gap-3 kx-mobile-filter-stack">{children}</div>
               </div>
               {onReset != null ? (
-                <div className="shrink-0 px-4 pt-2 pb-1 border-t border-zinc-200 dark:border-zinc-800">
+                <div className="shrink-0 px-4 py-2 border-t border-zinc-200 dark:border-zinc-800">
                   <button
                     type="button"
                     onClick={() => {

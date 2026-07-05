@@ -1,6 +1,15 @@
 'use client';
 
-import { getDefaultWallets, type Chain as RainbowKitChain } from '@rainbow-me/rainbowkit';
+import { connectorsForWallets, type Chain as RainbowKitChain } from '@rainbow-me/rainbowkit';
+import {
+  metaMaskWallet,
+  rabbyWallet,
+  coinbaseWallet,
+  walletConnectWallet,
+  okxWallet,
+  trustWallet,
+  injectedWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 import { createConfig, fallback, http } from 'wagmi';
 import { defineChain, type Chain } from 'viem';
 import { createKastleMipdBlockConnectors } from '@/lib/evm/kastleMipdBlock';
@@ -255,10 +264,28 @@ const wagmiChains = [
   withRainbowKitChainIcon(igraMainnet),
 ] as const;
 
-const { connectors: rainbowKitConnectors } = getDefaultWallets({
-  appName: 'Kasparex dApps',
-  projectId: walletConnectProjectId || 'default-project-id',
-});
+const walletConnectProjectIdValue = walletConnectProjectId || 'default-project-id';
+
+const rainbowKitConnectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Popular',
+      wallets: [
+        metaMaskWallet,
+        rabbyWallet,
+        coinbaseWallet,
+        okxWallet,
+        trustWallet,
+        walletConnectWallet,
+        injectedWallet,
+      ],
+    },
+  ],
+  {
+    appName: 'Kasparex dApps',
+    projectId: walletConnectProjectIdValue,
+  },
+);
 
 export const config = createConfig({
   chains: wagmiChains,

@@ -1295,7 +1295,7 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
     min-width: 0;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .kx-mobile-filter-stack > * {
@@ -1322,6 +1322,54 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   .kx-mobile-filter-stack [class*='KxTabStrip'] {
     max-width: 100%;
     min-width: 0;
+  }
+
+  .kx-mobile-filter-stack [data-sort-dropdown] {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 0.375rem;
+    box-shadow: none;
+  }
+
+  .kx-mobile-filter-stack .relative.overflow-visible,
+  .kx-mobile-filter-stack .relative.flex-shrink-0 {
+    overflow: visible;
+  }
+
+  .kx-mobile-filter-stack > .flex.items-center.gap-2 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .kx-mobile-filter-stack > .flex.items-center.gap-2 .k-control-icon-btn {
+    align-self: flex-start;
+  }
+}
+
+/* RainbowKit connect / chain modals on mobile */
+@media (max-width: 1023px) {
+  [data-rk] div[role='dialog'] {
+    max-height: min(85dvh, 640px) !important;
+    max-width: min(calc(100vw - 1.5rem), 420px) !important;
+    width: calc(100vw - 1.5rem) !important;
+    margin: auto !important;
+    inset: auto !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  [data-rk] div[role='dialog'] > div {
+    max-height: min(85dvh, 640px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
   }
 }
 

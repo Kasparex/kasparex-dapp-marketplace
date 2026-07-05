@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { HubProject } from '@/lib/hubProjects';
 import { HubProjectsMenuContent } from '@/components/hub/HubProjectsMenuContent';
+import { HubProjectsMegaMenuPanel } from '@/components/hub/HubProjectsMegaMenuPanel';
 import { HubProjectStatusBadge } from '@/components/hub/hubMenuIcons';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
@@ -48,7 +49,7 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
         position: 'fixed',
         top: rect.bottom + 8,
         left: rect.left,
-        width: 'min(calc(100vw - 2rem), 1080px)',
+        width: 'min(calc(100vw - 2rem), 720px)',
         zIndex: 101,
       });
     };
@@ -95,14 +96,22 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
         <div className="px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-800">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Hub projects</p>
         </div>
-        <div className="max-h-[min(calc(100dvh-6rem),520px)] overflow-y-auto overscroll-contain p-2">
-          <HubProjectsMenuContent
-            pathname={pathname}
-            currentProject={currentProject}
-            onNavigate={() => setOpen(false)}
-            columns={isMobile ? 1 : 3}
-            allowWrap
-          />
+        <div className={isMobile ? 'max-h-[min(calc(100dvh-6rem),520px)] overflow-y-auto overscroll-contain p-2' : 'max-h-[min(calc(100dvh-6rem),380px)] overflow-hidden'}>
+          {isMobile ? (
+            <HubProjectsMenuContent
+              pathname={pathname}
+              currentProject={currentProject}
+              onNavigate={() => setOpen(false)}
+              columns={1}
+              allowWrap
+            />
+          ) : (
+            <HubProjectsMegaMenuPanel
+              pathname={pathname}
+              currentProject={currentProject}
+              onNavigate={() => setOpen(false)}
+            />
+          )}
         </div>
       </div>
     </>
