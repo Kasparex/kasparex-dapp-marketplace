@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-05T15:41:41.184Z",
+  "updatedAt": "2026-07-05T15:54:17.684Z",
   "vblog": [
     {
       "title": "test 2",
@@ -44,7 +44,97 @@
       }
     }
   ],
-  "tokens": [],
+  "tokens": [
+    {
+      "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
+      "symbol": "TEST",
+      "name": "test",
+      "description": "<p>ete tet ert erte ryer yer yery reyd ydfhdher her ery dfher </p>",
+      "shortDescription": "testetete tet et et et",
+      "tags": [],
+      "listingNetwork": "krc20",
+      "network": "L1",
+      "logoUrl": "https://hub.kasparex.com/api/ipfs?path=bafkreig5qu2nzgzhfpzfh4ijo2p6cuntngjrh5rowe5tjge2afp3zgu6ku",
+      "logoCid": "bafkreig5qu2nzgzhfpzfh4ijo2p6cuntngjrh5rowe5tjge2afp3zgu6ku",
+      "featuredImageUrl": "https://hub.kasparex.com/api/ipfs?path=bafkreieoogpbi7aekgts7d4xddht37jrxrlcztnrtakgxzpjmesjrt57jq",
+      "featuredImageCid": "bafkreieoogpbi7aekgts7d4xddht37jrxrlcztnrtakgxzpjmesjrt57jq",
+      "pageConfig": {
+        "version": 1,
+        "defaultTab": "overview",
+        "sections": [
+          {
+            "type": "overview",
+            "enabled": true
+          },
+          {
+            "type": "tokenomics",
+            "enabled": false
+          },
+          {
+            "type": "roadmap",
+            "enabled": false
+          },
+          {
+            "type": "markets",
+            "enabled": false
+          },
+          {
+            "type": "swap",
+            "enabled": false
+          },
+          {
+            "type": "utility",
+            "enabled": false
+          },
+          {
+            "type": "comments",
+            "enabled": true
+          },
+          {
+            "type": "links",
+            "enabled": true
+          },
+          {
+            "type": "whitepaper",
+            "enabled": false
+          }
+        ]
+      },
+      "paidModuleIds": [],
+      "modulesConfig": {},
+      "assetKind": "fictional",
+      "ownership": "none",
+      "networks": [
+        {
+          "network": "krc20",
+          "primary": true,
+          "verified": false
+        }
+      ],
+      "listing": {
+        "verified": false,
+        "deployerVerified": false
+      },
+      "id": "tl-1783266856726-av1cux",
+      "listingId": "ktl-1783266843557-7m7ajm",
+      "slug": "test-4",
+      "publishDate": "2026-07-05T15:54:16.726Z",
+      "status": "verified",
+      "txHash": "89a6f87c31f2dcac6176b86d40515a2e1d08227dc5ff4564c3b7c9951ac78c1c",
+      "commitTxHash": "89a6f87c31f2dcac6176b86d40515a2e1d08227dc5ff4564c3b7c9951ac78c1c",
+      "contentHash": "ed1e6476",
+      "metadataCid": "bafkreicifzbvyjkigkhzuxbt3twqrljlltecfolgi3uttziq6ovviin2s4",
+      "pricingSnapshot": {
+        "baseFeeKas": 25,
+        "sizeFeeKas": 3.06,
+        "modulesFeeKas": 0,
+        "networkFeeBufferKas": 0.08,
+        "totalKas": 5.63,
+        "payloadBytes": 1338,
+        "chunkCount": 8
+      }
+    }
+  ],
   "dapps": [],
   "chronicles": []
 }
