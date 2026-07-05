@@ -3,7 +3,7 @@
  * Fetches KREX token balances from both L1 and L2 wallets
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount, useChainId } from 'wagmi';
 import { queryKREXBalance, type KREXBalanceResult } from '@/lib/krex/balance-query';
@@ -43,6 +43,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const fetchKREXBalance = useCallback(async () => {
     // If no wallets connected, reset state
@@ -50,10 +51,11 @@ export function useKREXBalance(): UseKREXBalanceReturn {
       setBalanceData({ l1: 0, l2: 0, total: 0 });
       setIsLoading(false);
       setError(null);
+      hasLoadedRef.current = false;
       return;
     }
 
-    setIsLoading(true);
+    if (!hasLoadedRef.current) setIsLoading(true);
     setError(null);
 
     try {
@@ -61,6 +63,7 @@ export function useKREXBalance(): UseKREXBalanceReturn {
         allowKasWareFallback: l1Provider === 'kasware',
       });
       setBalanceData(result);
+      hasLoadedRef.current = true;
     } catch (err) {
       console.error('Error fetching KREX balance:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch KREX balance');

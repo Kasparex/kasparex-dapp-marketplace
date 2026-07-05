@@ -17,7 +17,7 @@ import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { AuthorArticlesTab } from '@/components/vblog/AuthorArticlesTab';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { IconArticle, IconAuthor, IconComments, IconModules } from '@/components/dapps/icons/DAppTabIcons';
-import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
+import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useVBlogRightPanelOpen } from '@/hooks/useVBlogRightPanelOpen';
@@ -463,19 +463,40 @@ export function ArticleDetail({
           <div className="min-w-0 flex-1">
             <DAppTabs tabs={articleTabs} value={contentTab} onChange={setContentTab} />
           </div>
-          <div className="flex shrink-0 justify-end sm:items-center">
-            <DAppSidePanelToggle
-              open={rightOpen}
-              onToggle={() => setRightOpen(!rightOpen)}
-              panelId="kasparex-vblog-side-panel"
-            />
-          </div>
+          <HubPageRightPanelToggle
+            panelId="kasparex-vblog-side-panel"
+            rightOpen={rightOpen}
+            onToggle={() => setRightOpen(!rightOpen)}
+          />
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 xl:gap-12 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`min-w-0 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
-            <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
-              <div className="flex min-w-0 flex-col space-y-6">
+        <HubPageRightPanelGrid
+          panelId="kasparex-vblog-side-panel"
+          panelTitle="Article panel"
+          rightOpen={rightOpen}
+          onToggle={() => setRightOpen(!rightOpen)}
+          sidebar={
+            <ArticleSidebar
+              article={article}
+              tipBoxEnabled={Boolean(article.modules?.tipBoxEnabled)}
+              tipPresets={article.modules?.tipBox?.presets ?? [10, 50, 100]}
+              tipCurrencies={article.modules?.tipBox?.currencies}
+              customTipKas={customTipKas}
+              onCustomTipChange={setCustomTipKas}
+              onTip={(amount) => void handleTip(amount)}
+              isProcessingAction={isProcessingAction}
+              isWalletConnected={kaspaState.isConnected}
+              tipHubPointsBase={HUB_EARN_POINTS.vblogTip}
+              tipHubPointsTier={krexTier}
+            />
+          }
+          mainColClass="lg:col-span-7"
+          asideColClass="lg:col-span-5"
+          gridClassName="grid grid-cols-1 gap-8 xl:gap-12"
+          hideToggle
+        >
+          <SidePanelCollapsedContentWrap panelOpen={rightOpen}>
+            <div className="flex min-w-0 flex-col space-y-6">
                 {actionError ? (
                   <p className="text-sm text-red-600 dark:text-red-300">{actionError}</p>
                 ) : null}
@@ -594,27 +615,8 @@ export function ArticleDetail({
                   </div>
                 ) : null}
               </div>
-            </SidePanelCollapsedContentWrap>
-          </div>
-
-          {rightOpen ? (
-            <div className="min-w-0 lg:col-span-5">
-              <ArticleSidebar
-                article={article}
-                tipBoxEnabled={Boolean(article.modules?.tipBoxEnabled)}
-                tipPresets={article.modules?.tipBox?.presets ?? [10, 50, 100]}
-                tipCurrencies={article.modules?.tipBox?.currencies}
-                customTipKas={customTipKas}
-                onCustomTipChange={setCustomTipKas}
-                onTip={(amount) => void handleTip(amount)}
-                isProcessingAction={isProcessingAction}
-                isWalletConnected={kaspaState.isConnected}
-                tipHubPointsBase={HUB_EARN_POINTS.vblogTip}
-                tipHubPointsTier={krexTier}
-              />
-            </div>
-          ) : null}
-        </div>
+          </SidePanelCollapsedContentWrap>
+        </HubPageRightPanelGrid>
       </div>
 
       {showDeleteConfirm && (

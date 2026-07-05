@@ -15,14 +15,14 @@ type ChroniclesPageShellProps = {
 
 export function ChroniclesPageShell({ children, sidebar }: ChroniclesPageShellProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950 overflow-x-hidden">
       <Header />
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-x-hidden">
         <ChroniclesDashboardSidebar {...sidebar} />
 
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-          <div className="max-w-7xl mx-auto">{children}</div>
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-x-hidden overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
+          <div className="max-w-7xl mx-auto min-w-0 w-full">{children}</div>
         </main>
       </div>
 

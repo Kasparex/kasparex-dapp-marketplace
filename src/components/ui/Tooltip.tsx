@@ -5,9 +5,6 @@ import { createPortal } from 'react-dom';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { computeFloatingPlacement } from '@/lib/ui/floatingPosition';
 
-/**
- * Shared surface for Kasparex tooltips (wallet dropdowns, form hints, ads, games, etc.).
- */
 export const KASPPAREX_TOOLTIP_SURFACE_CLASS =
   'z-[100000] w-max max-w-sm rounded-lg bg-zinc-100 px-3 py-2.5 text-sm leading-snug text-zinc-800 shadow-xl border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-600';
 
@@ -22,9 +19,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
 export interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactNode;
-  /** @deprecated Position is ignored; tooltips follow the pointer with edge-aware flipping. */
   side?: 'top' | 'right' | 'bottom' | 'left';
-  /** @deprecated Alignment is ignored; tooltips follow the pointer with edge-aware flipping. */
   align?: 'start' | 'center' | 'end';
   className?: string;
 }
@@ -34,8 +29,11 @@ function wrapChild(children: React.ReactNode): React.ReactElement {
   return <span className="inline-flex">{children}</span>;
 }
 
+const LONG_PRESS_MS = 400;
+
 /**
- * Hover tooltip that follows the cursor and flips when near viewport edges.
+ * Desktop: hover tooltip following the cursor.
+ * Mobile: tap-and-hold to show; releases on finger up.
  */
 export function Tooltip({ content, children, className = '' }: TooltipProps) {
   const [open, setOpen] = React.useState(false);
@@ -43,6 +41,11 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
   const [placement, setPlacement] = React.useState({ left: 0, top: 0 });
   const [ready, setReady] = React.useState(false);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef(content);
+  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchActiveRef = React.useRef(false);
+
+  contentRef.current = content;
 
   const child = wrapChild(children);
 
@@ -50,7 +53,17 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
     onPointerEnter?: (ev: React.PointerEvent) => void;
     onPointerLeave?: (ev: React.PointerEvent) => void;
     onPointerMove?: (ev: React.PointerEvent) => void;
+    onPointerDown?: (ev: React.PointerEvent) => void;
+    onPointerUp?: (ev: React.PointerEvent) => void;
+    onPointerCancel?: (ev: React.PointerEvent) => void;
   };
+
+  const clearLongPress = React.useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   const updatePlacement = React.useCallback((x: number, y: number) => {
     const el = tooltipRef.current;
@@ -62,7 +75,7 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
       { width: rect.width, height: rect.height },
       { width: window.innerWidth, height: window.innerHeight },
     );
-    setPlacement(next);
+    setPlacement((prev) => (prev.left === next.left && prev.top === next.top ? prev : next));
     setReady(true);
   }, []);
 
@@ -72,24 +85,59 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
       return;
     }
     updatePlacement(anchor.x, anchor.y);
-  }, [open, anchor, content, updatePlacement]);
+  }, [open, anchor.x, anchor.y, updatePlacement]);
+
+  React.useEffect(() => () => clearLongPress(), [clearLongPress]);
 
   const merged = React.cloneElement(child, {
+    onPointerDown: (e: React.PointerEvent) => {
+      p.onPointerDown?.(e);
+      if (e.pointerType === 'touch') {
+        touchActiveRef.current = true;
+        clearLongPress();
+        const x = e.clientX;
+        const y = e.clientY;
+        longPressTimerRef.current = setTimeout(() => {
+          setAnchor({ x, y });
+          setOpen(true);
+        }, LONG_PRESS_MS);
+      }
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      p.onPointerUp?.(e);
+      clearLongPress();
+      if (e.pointerType === 'touch' || touchActiveRef.current) {
+        touchActiveRef.current = false;
+        setOpen(false);
+      }
+    },
+    onPointerCancel: (e: React.PointerEvent) => {
+      p.onPointerCancel?.(e);
+      clearLongPress();
+      touchActiveRef.current = false;
+      setOpen(false);
+    },
     onPointerEnter: (e: React.PointerEvent) => {
       p.onPointerEnter?.(e);
+      if (e.pointerType === 'touch') return;
       setAnchor({ x: e.clientX, y: e.clientY });
       setOpen(true);
     },
     onPointerLeave: (e: React.PointerEvent) => {
       p.onPointerLeave?.(e);
+      if (e.pointerType === 'touch') return;
       setOpen(false);
     },
     onPointerMove: (e: React.PointerEvent) => {
       p.onPointerMove?.(e);
-      setAnchor({ x: e.clientX, y: e.clientY });
-      if (open) {
-        updatePlacement(e.clientX, e.clientY);
+      if (e.pointerType === 'touch') {
+        if (open) {
+          setAnchor({ x: e.clientX, y: e.clientY });
+        }
+        return;
       }
+      setAnchor({ x: e.clientX, y: e.clientY });
+      if (open) updatePlacement(e.clientX, e.clientY);
     },
   } as Record<string, unknown>);
 
@@ -108,7 +156,7 @@ export function Tooltip({ content, children, className = '' }: TooltipProps) {
               visibility: ready ? 'visible' : 'hidden',
             }}
           >
-            {content}
+            {contentRef.current}
           </div>,
           document.body,
         )

@@ -5,7 +5,7 @@ import type { Token } from '@/lib/tokens/types';
 import type { TokenPageConfig } from '@/lib/tokens/listingRecord';
 import { getOrderedTabs, getOrderedOverviewSubsections } from '@/lib/tokens/pageConfig';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
-import { DAppSidePanelToggle } from '@/components/dapps/layout/DAppSidePanelToggle';
+import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useTokenRightPanelOpen } from '@/hooks/useTokenRightPanelOpen';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
@@ -148,20 +148,27 @@ export function TokenDetail({
             <DAppTabs tabs={tokenTabs} value={contentTab} onChange={setContentTab} />
           </div>
           {!preview ? (
-            <div className="flex shrink-0 justify-end sm:items-center">
-              <DAppSidePanelToggle
-                open={rightOpen}
-                onToggle={() => setRightOpen(!rightOpen)}
-                panelId="kasparex-token-side-panel"
-              />
-            </div>
+            <HubPageRightPanelToggle
+              panelId="kasparex-token-side-panel"
+              rightOpen={rightOpen}
+              onToggle={() => setRightOpen(!rightOpen)}
+            />
           ) : null}
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 xl:gap-10 ${!preview && rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`min-w-0 ${!preview && rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
-            <SidePanelCollapsedContentWrap panelOpen={preview ? false : rightOpen}>
-              <div className="flex min-w-0 flex-col">
+        <HubPageRightPanelGrid
+          panelId="kasparex-token-side-panel"
+          panelTitle="Token panel"
+          rightOpen={!preview && rightOpen}
+          onToggle={() => setRightOpen(!rightOpen)}
+          sidebar={<TokenAside token={token} />}
+          mainColClass="lg:col-span-8"
+          asideColClass="lg:col-span-4"
+          gridClassName="grid grid-cols-1 gap-8 xl:gap-10"
+          hideToggle
+        >
+          <SidePanelCollapsedContentWrap panelOpen={preview ? false : rightOpen}>
+            <div className="flex min-w-0 flex-col">
                 {contentTab === 'overview' ? (
                   <div id="token-overview" className={`${TOKEN_TAB_SECTION_CLASS} space-y-8 animate-in fade-in duration-300`}>
                     <TokenInfoSection token={token} />
@@ -203,15 +210,8 @@ export function TokenDetail({
                   </div>
                 ) : null}
               </div>
-            </SidePanelCollapsedContentWrap>
-          </div>
-
-          {!preview && rightOpen ? (
-            <div className="min-w-0 lg:col-span-4">
-              <TokenAside token={token} />
-            </div>
-          ) : null}
-        </div>
+          </SidePanelCollapsedContentWrap>
+        </HubPageRightPanelGrid>
       </div>
     </article>
   );

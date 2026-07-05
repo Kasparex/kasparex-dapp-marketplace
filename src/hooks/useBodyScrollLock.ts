@@ -2,29 +2,25 @@
 
 import { useEffect } from 'react';
 
-/** Prevent background scroll while overlays (modals, drawers) are open. */
+let lockCount = 0;
+let previousOverflow = '';
+
+/** Prevent background scroll while overlays (modals, drawers) are open. Uses ref counting. */
 export function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked || typeof document === 'undefined') return;
 
-    const { body } = document;
-    const scrollY = window.scrollY;
-    const prevOverflow = body.style.overflow;
-    const prevPosition = body.style.position;
-    const prevTop = body.style.top;
-    const prevWidth = body.style.width;
-
-    body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.width = '100%';
+    lockCount += 1;
+    if (lockCount === 1) {
+      previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
 
     return () => {
-      body.style.overflow = prevOverflow;
-      body.style.position = prevPosition;
-      body.style.top = prevTop;
-      body.style.width = prevWidth;
-      window.scrollTo(0, scrollY);
+      lockCount = Math.max(0, lockCount - 1);
+      if (lockCount === 0) {
+        document.body.style.overflow = previousOverflow;
+      }
     };
   }, [locked]);
 }

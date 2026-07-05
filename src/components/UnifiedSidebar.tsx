@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 export interface UnifiedSidebarProps {
   /** Prefix for localStorage keys: {prefix}-sidebar-hidden, {prefix}-sidebar-width */
@@ -47,6 +49,9 @@ export function UnifiedSidebar({
   const [sidebarWidth, setSidebarWidth] = useState(defaultWidth);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobileViewport();
+
+  useBodyScrollLock(isOpen && isMobile);
 
   const isControlledHidden = controlledHidden !== undefined;
   const isHidden = isControlledHidden ? controlledHidden : internalHidden;
@@ -117,8 +122,8 @@ export function UnifiedSidebar({
       <button
         type="button"
         onClick={() => setOpen(!isOpen)}
-        className="fixed left-4 z-40 flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-white p-1.5 text-zinc-500 shadow-lg transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 lg:hidden"
-        style={{ top: '5.5rem' }}
+        className="fixed left-1 z-40 flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white/95 p-1.5 text-zinc-500 shadow-lg backdrop-blur-sm transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950/95 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 lg:hidden"
+        style={{ top: '4rem' }}
         aria-label="Toggle menu"
       >
         <svg className="h-6 w-6 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +136,7 @@ export function UnifiedSidebar({
       </button>
 
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setOpen(false)} aria-hidden />
+        <div className="lg:hidden fixed inset-0 top-16 z-30 bg-black/50" onClick={() => setOpen(false)} aria-hidden />
       )}
 
       {isHidden && (

@@ -81,7 +81,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
   ];
 
   return (
-    <div>
+    <div className="min-w-0 max-w-full overflow-x-hidden">
       <Link
         href="/chronicles/chapters"
         className="text-base font-semibold text-zinc-500 hover:text-[#02abb8] inline-flex items-center gap-1 mb-6"
@@ -89,8 +89,8 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
         ← Chapters
       </Link>
 
-      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
-        <div className="min-w-0">
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] xl:grid-cols-[minmax(0,1fr)_minmax(0,340px)] items-start min-w-0">
+        <div className="min-w-0 max-w-full">
           <ChronicleFeaturedVisual
             imageUrl={chapter.featuredImageUrl}
             alt={chapter.title}

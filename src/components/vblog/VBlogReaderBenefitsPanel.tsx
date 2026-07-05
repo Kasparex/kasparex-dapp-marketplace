@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
@@ -9,7 +9,7 @@ import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { balanceToKrexVisualTier, KREX_TIER_UI } from '@/lib/rewards/tierUi';
 import { getVBlogModuleCombinedDiscountPercent } from '@/lib/vblog/modules';
-import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
@@ -20,12 +20,18 @@ function formatKrexMillions(balance: number): string {
   return balance.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+const TIER_TOOLTIP = <KrexTierPerksTooltipTable title="Reader tier perks" />;
+
 export function VBlogReaderBenefitsPanel({ className = '' }: { className?: string }) {
-  const { balance: krexBalance, tier } = useKREXBalance();
+  const { balance: krexBalance, tier, isLoading } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const stableBalanceRef = useRef(0);
+  if (!isLoading) stableBalanceRef.current = krexBalance;
+  const displayBalance = isLoading ? stableBalanceRef.current : krexBalance;
+  const tooltipContent = useMemo(() => TIER_TOOLTIP, []);
 
-  const visualTier = balanceToKrexVisualTier(krexBalance);
+  const visualTier = balanceToKrexVisualTier(displayBalance);
   const ui = KREX_TIER_UI[visualTier];
   const tierLabel = KREX_TIERS[tier].label;
   const moduleDiscount = getVBlogModuleCombinedDiscountPercent(tier, nftStatus);
@@ -37,53 +43,51 @@ export function VBlogReaderBenefitsPanel({ className = '' }: { className?: strin
 
   return (
     <>
-      <TooltipProvider>
-        <Tooltip content={<KrexTierPerksTooltipTable title="Reader tier perks" />}>
-          <aside
-            className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
-            aria-label="Reader benefits. Hover for KREX tier details."
+      <Tooltip content={tooltipContent}>
+        <aside
+          className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
+          aria-label="Reader benefits. Hover for KREX tier details."
+        >
+          <DAppSectionHeader
+            title="Benefits"
+            className="mb-2"
+            right={
+              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
+                {ui.label}
+              </span>
+            }
+          />
+          <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
+            Hold KREX. Unlock for Less. Earn More.
+          </h2>
+          <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+            <li>
+              <span className={ui.accent}>•</span>{' '}
+              {moduleDiscount > 0
+                ? `${moduleDiscount}% off premium modules (${tierLabel})`
+                : 'Stack 1M+ KREX for module discounts'}
+            </li>
+            <li>
+              <span className={ui.accent}>•</span> Tips earn +{tipPts} Hub Points at your tier
+              {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
+            </li>
+            <li>
+              <span className={ui.accent}>•</span> Premium unlocks earn +{unlockPts} Hub Points
+            </li>
+          </ul>
+          <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
+            <span className="font-semibold">{formatKrexMillions(displayBalance)} KREX held.</span>{' '}
+            {ui.statusText}
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsKrexWizardOpen(true)}
+            className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
           >
-            <DAppSectionHeader
-              title="Benefits"
-              className="mb-2"
-              right={
-                <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${ui.badge}`}>
-                  {ui.label}
-                </span>
-              }
-            />
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug mb-2.5">
-              Hold KREX. Unlock for Less. Earn More.
-            </h2>
-            <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
-              <li>
-                <span className={ui.accent}>•</span>{' '}
-                {moduleDiscount > 0
-                  ? `${moduleDiscount}% off premium modules (${tierLabel})`
-                  : 'Stack 1M+ KREX for module discounts'}
-              </li>
-              <li>
-                <span className={ui.accent}>•</span> Tips earn +{tipPts} Hub Points at your tier
-                {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
-              </li>
-              <li>
-                <span className={ui.accent}>•</span> Premium unlocks earn +{unlockPts} Hub Points
-              </li>
-            </ul>
-            <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
-              <span className="font-semibold">{formatKrexMillions(krexBalance)} KREX held.</span>{' '}
-              {ui.statusText}
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsKrexWizardOpen(true)}
-              className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
-            >
-              Buy KREX
-            </button>
-          </aside>
-        </Tooltip>
-      </TooltipProvider>
+            Buy KREX
+          </button>
+        </aside>
+      </Tooltip>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </>
   );

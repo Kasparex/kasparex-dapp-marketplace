@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 export type KxTabStripOption<T extends string = string> = {
   value: T;
@@ -12,11 +13,11 @@ export type KxTabStripOption<T extends string = string> = {
 };
 
 export function kxTabBtnClass(active: boolean, iconOnly = false) {
-  return `k-tab-btn${iconOnly ? ' k-tab-btn-icon' : ''}${active ? ' k-tab-btn-active' : ''}`;
+  return `k-tab-btn shrink-0${iconOnly ? ' k-tab-btn-icon' : ''}${active ? ' k-tab-btn-active' : ''}`;
 }
 
 export function kxGamesTabBtnClass(active: boolean) {
-  return `k-tab-btn${active ? ' k-games-tab-btn-active' : ''}`;
+  return `k-tab-btn shrink-0${active ? ' k-games-tab-btn-active' : ''}`;
 }
 
 export function KxTabStrip<T extends string>({
@@ -38,13 +39,16 @@ export function KxTabStrip<T extends string>({
   iconOnly?: boolean;
   scrollable?: boolean;
 }) {
+  const isMobile = useIsMobileViewport();
+  const isScrollable = scrollable || isMobile;
+
   return (
     <div
       className={[
         'k-control-group flex flex-nowrap items-stretch shrink-0',
-        fullWidth ? 'w-full min-w-0' : 'w-fit',
-        scrollable
-          ? 'overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+        fullWidth ? 'w-full min-w-0' : 'w-fit max-w-full',
+        isScrollable
+          ? 'kx-tab-strip-scroll overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory touch-pan-x'
           : '',
         className,
       ]
@@ -61,7 +65,7 @@ export function KxTabStrip<T extends string>({
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
-            className={kxTabBtnClass(active, iconOnly)}
+            className={`${kxTabBtnClass(active, iconOnly)}${isScrollable ? ' snap-start' : ''}`}
             aria-label={option.ariaLabel ?? option.label ?? option.title}
             aria-pressed={active}
           >
@@ -69,8 +73,6 @@ export function KxTabStrip<T extends string>({
           </button>
         );
 
-        // Icon-only tabs have no visible label, so always surface the unified tooltip.
-        // Labelled tabs opt in by providing an explicit `title` (short helper text).
         const showTooltip = iconOnly ? Boolean(tooltipLabel) : Boolean(option.title);
         if (showTooltip && tooltipLabel) {
           return (

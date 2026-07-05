@@ -7,6 +7,7 @@ const STORAGE_KEY = 'kasparex-dapp-right-panel-open';
 /** Persisted preference for DApp detail layout: whether the right column is visible. */
 export function useDAppRightPanelOpen(initial = true): [boolean, (next: boolean) => void] {
   const [open, setOpenState] = useState(initial);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -16,6 +17,7 @@ export function useDAppRightPanelOpen(initial = true): [boolean, (next: boolean)
     } catch {
       /* ignore */
     }
+    setHydrated(true);
   }, []);
 
   const setOpen = useCallback((next: boolean) => {
@@ -27,5 +29,5 @@ export function useDAppRightPanelOpen(initial = true): [boolean, (next: boolean)
     }
   }, []);
 
-  return [open, setOpen];
+  return [hydrated ? open : initial, setOpen];
 }

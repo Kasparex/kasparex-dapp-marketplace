@@ -9,6 +9,7 @@ const STORAGE_KEY = 'kasparex-games-right-panel-open';
  */
 export function useGamesRightPanelOpen(initial = true): [boolean, (next: boolean) => void] {
   const [open, setOpenState] = useState(initial);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -18,6 +19,7 @@ export function useGamesRightPanelOpen(initial = true): [boolean, (next: boolean
     } catch {
       /* ignore */
     }
+    setHydrated(true);
   }, []);
 
   const setOpen = useCallback((next: boolean) => {
@@ -29,5 +31,5 @@ export function useGamesRightPanelOpen(initial = true): [boolean, (next: boolean
     }
   }, []);
 
-  return [open, setOpen];
+  return [hydrated ? open : initial, setOpen];
 }

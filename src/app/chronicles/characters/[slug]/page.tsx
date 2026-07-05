@@ -142,7 +142,7 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
   ];
 
   return (
-    <div>
+    <div className="min-w-0 max-w-full overflow-x-hidden">
       <Link
         href="/chronicles/characters"
         className="text-sm font-semibold text-zinc-500 hover:text-[#02abb8] mb-6 inline-block"
@@ -150,8 +150,8 @@ export default async function ChronicleCharacterPage({ params }: PageProps) {
         ← Characters
       </Link>
 
-      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[1fr_320px] xl:grid-cols-[minmax(0,1fr)_340px] items-start">
-        <div className="min-w-0">
+      <div className="grid gap-10 xl:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)] xl:grid-cols-[minmax(0,1fr)_minmax(0,340px)] items-start min-w-0">
+        <div className="min-w-0 max-w-full">
           <ChronicleFeaturedVisual
             imageUrl={character.featuredImageUrl}
             alt={character.name}

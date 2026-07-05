@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { DAppTabs, type DAppTab } from './DAppTabs';
 import { useDAppRightPanelOpen } from '@/hooks/useDAppRightPanelOpen';
-import { DAppSidePanelToggle } from './DAppSidePanelToggle';
+import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { DAppsLayoutProvider, DAppsMainContent } from './DAppsLayoutContext';
 
 type Props<T extends string> = {
@@ -31,24 +31,25 @@ export function DAppsWithSidebarLayout<T extends string>({
           <div className="min-w-0 flex-1">
             <DAppTabs tabs={tabs} value={currentTab} onChange={onTabChange} />
           </div>
-          <div className="flex shrink-0 justify-end sm:items-center">
-            <DAppSidePanelToggle open={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
-          </div>
+          <HubPageRightPanelToggle
+            panelId="kasparex-dapp-side-panel"
+            rightOpen={rightOpen}
+            onToggle={() => setRightOpen(!rightOpen)}
+          />
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
-            <DAppsMainContent>{main}</DAppsMainContent>
-          </div>
-          {rightOpen ? (
-            <aside
-              id="kasparex-dapp-side-panel"
-              className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-5"
-            >
-              {sidebar}
-            </aside>
-          ) : null}
-        </div>
+        <HubPageRightPanelGrid
+          panelId="kasparex-dapp-side-panel"
+          panelTitle="Side panel"
+          rightOpen={rightOpen}
+          onToggle={() => setRightOpen(!rightOpen)}
+          sidebar={sidebar}
+          mainColClass="lg:col-span-7"
+          asideColClass="lg:col-span-5"
+          hideToggle
+        >
+          <DAppsMainContent>{main}</DAppsMainContent>
+        </HubPageRightPanelGrid>
       </div>
     </DAppsLayoutProvider>
   );

@@ -26,9 +26,12 @@ import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { HubMegaMenu } from '@/components/hub/HubMegaMenu';
+import { HubProjectsMenuContent } from '@/components/hub/HubProjectsMenuContent';
+import { HubMenuSectionTitle } from '@/components/hub/hubMenuIcons';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -158,8 +161,9 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
+  const isMobile = useIsMobileViewport();
 
-  useBodyScrollLock(mobileMenuOpen);
+  useBodyScrollLock(mobileMenuOpen && isMobile);
 
   const currentSectionTitle = getCurrentSectionTitle(pathname);
   const currentProject = getCurrentProject(pathname);
@@ -372,7 +376,7 @@ export function Header() {
         </div>
 
         {/* Mobile: menu trigger */}
-        <div className="flex lg:hidden items-center pr-2 sm:pr-4">
+        <div className="flex lg:hidden items-center pr-1">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
@@ -402,14 +406,24 @@ export function Header() {
             onClick={() => setMobileMenuOpen(false)}
           />
           <aside
-            className="fixed top-16 right-0 z-[56] h-[calc(100dvh-4rem)] w-[min(100vw,300px)] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl lg:hidden flex flex-col"
+            className="fixed top-16 right-0 z-[56] h-[calc(100dvh-4rem)] w-[min(100vw,320px)] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl lg:hidden flex flex-col"
             aria-label="Site menu"
           >
-            <div className="flex flex-col gap-5 p-4 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+            <div className="flex flex-col gap-5 p-3 flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <section>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 px-1 mb-2">
-                  Account & tools
-                </p>
+                <HubMenuSectionTitle>Wallets</HubMenuSectionTitle>
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2.5">
+                  <div className="kx-mobile-wallet-stack space-y-2.5">
+                    <KaspaL1WalletButton />
+                    <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs w-full">Loading...</div>}>
+                      <EVMWalletButton />
+                    </Suspense>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <HubMenuSectionTitle>Account & tools</HubMenuSectionTitle>
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-3">
                   <HeaderRewardsPointsLink />
                   <div className="grid grid-cols-4 gap-1.5">
@@ -476,15 +490,17 @@ export function Header() {
                 </div>
               </section>
 
-              <section className="mt-auto pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 px-1 mb-2">
-                  Wallets
-                </p>
-                <div className="kx-mobile-wallet-stack space-y-2.5">
-                  <KaspaL1WalletButton />
-                  <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs w-full">Loading...</div>}>
-                    <EVMWalletButton />
-                  </Suspense>
+              <section>
+                <HubMenuSectionTitle>Hub projects</HubMenuSectionTitle>
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                  <div className="max-h-[40dvh] overflow-y-auto overscroll-contain p-2">
+                    <HubProjectsMenuContent
+                      pathname={pathname}
+                      currentProject={currentProject}
+                      onNavigate={() => setMobileMenuOpen(false)}
+                      columns={1}
+                    />
+                  </div>
                 </div>
               </section>
             </div>

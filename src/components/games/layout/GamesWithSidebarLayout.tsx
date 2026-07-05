@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { GameTabs } from './GameTabs';
 import { useGamesRightPanelOpen } from '@/hooks/useGamesRightPanelOpen';
-import { GamesSidePanelToggle } from './GamesSidePanelToggle';
+import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { GamesLayoutProvider } from './GamesLayoutContext';
 
 type Props = {
@@ -28,26 +28,25 @@ export function GamesWithSidebarLayout({ tabs, currentTab, onTabChange, tabAlert
           <div className="min-w-0 flex-1">
             <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
           </div>
-          <div className="flex shrink-0 justify-end sm:items-center">
-            <GamesSidePanelToggle open={rightOpen} onToggle={() => setRightOpen(!rightOpen)} />
-          </div>
+          <HubPageRightPanelToggle
+            panelId="kasparex-games-side-panel"
+            rightOpen={rightOpen}
+            onToggle={() => setRightOpen(!rightOpen)}
+          />
         </div>
         {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
-        <div className={`grid grid-cols-1 gap-8 ${rightOpen ? 'lg:grid-cols-12' : ''}`}>
-          <div
-            className={`flex min-w-0 flex-col space-y-6 ${rightOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}
-          >
-            {main}
-          </div>
-          {rightOpen ? (
-            <aside
-              id="kasparex-games-side-panel"
-              className="flex min-w-0 max-w-full flex-col space-y-6 lg:col-span-4"
-            >
-              {sidebar}
-            </aside>
-          ) : null}
-        </div>
+        <HubPageRightPanelGrid
+          panelId="kasparex-games-side-panel"
+          panelTitle="Game panel"
+          rightOpen={rightOpen}
+          onToggle={() => setRightOpen(!rightOpen)}
+          sidebar={sidebar}
+          mainColClass="lg:col-span-8"
+          asideColClass="lg:col-span-4"
+          hideToggle
+        >
+          {main}
+        </HubPageRightPanelGrid>
       </div>
     </GamesLayoutProvider>
   );
