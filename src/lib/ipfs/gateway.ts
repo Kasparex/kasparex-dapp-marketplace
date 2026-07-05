@@ -139,11 +139,7 @@ export function getIpfsProxyPath(hash: string): string {
 
 function getIpfsProxyOrigin(): string {
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host.includes('127.0.0.1')) {
-      return window.location.origin;
-    }
-    return `https://${DOMAINS.hub}`;
+    return window.location.origin;
   }
   const site = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (site) return site.replace(/\/$/, '');
@@ -202,7 +198,7 @@ export function normalizeIpfsUrlForForm(value: string | null | undefined, cid?: 
 export function getBestGatewayUrl(hash: string): string {
   const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
   if (typeof window !== 'undefined') {
-    return getIpfsProxyUrl(cleanHash);
+    return getIpfsProxyPath(cleanHash);
   }
   return getGatewayUrl(cleanHash, DEFAULT_GATEWAYS[0]);
 }

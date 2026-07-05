@@ -1297,3 +1297,14 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
     justify-content: space-between;
   }
 }
+
+/* Full-width wallet connect buttons in mobile header drawer */
+.kx-mobile-wallet-stack > div,
+.kx-mobile-wallet-stack > * {
+  width: 100%;
+}
+
+.kx-mobile-wallet-stack button {
+  width: 100%;
+  justify-content: center;
+}

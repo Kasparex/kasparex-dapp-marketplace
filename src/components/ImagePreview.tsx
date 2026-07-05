@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
+import { getBestGatewayUrl, extractCidFromIpfsUrl, getIpfsProxyPath } from '@/lib/ipfs/gateway';
 
 interface ImagePreviewProps {
   imageUrl: string;
@@ -29,7 +29,13 @@ function isIPFSCID(str: string): boolean {
 function normalizeImageUrl(url: string): string {
   if (!url) return url;
 
+  if (url.startsWith('/api/ipfs')) {
+    return url;
+  }
+
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    const cid = extractCidFromIpfsUrl(url);
+    if (cid) return getIpfsProxyPath(cid);
     return url;
   }
 

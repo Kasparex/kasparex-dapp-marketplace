@@ -1,0 +1,107 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { footerLinkSections } from '@/lib/footerLinks';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+
+export function MobileFooterDrawer() {
+  const [open, setOpen] = useState(false);
+
+  useBodyScrollLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  return (
+    <>
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 pointer-events-none">
+        <div className="pointer-events-auto flex justify-center pb-[max(0.75rem,env(safe-area-inset-bottom))] px-4">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 h-11 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md shadow-lg text-sm font-medium text-zinc-800 dark:text-zinc-200"
+            aria-label="Open site links menu"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            Site links
+          </button>
+        </div>
+      </div>
+
+      {open ? (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 z-[90] bg-black/50"
+            aria-hidden
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="lg:hidden fixed inset-x-0 bottom-0 z-[91] max-h-[min(85dvh,640px)] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site links"
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Site links</p>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                aria-label="Close site links"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto overscroll-contain flex-1 px-4 py-3 space-y-5">
+              {footerLinkSections.map((section) => (
+                <div key={section.id}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-2">
+                    {section.title}
+                  </p>
+                  <ul className="space-y-1">
+                    {section.links.map((link) => (
+                      <li key={`${section.id}-${link.href}-${link.label}`}>
+                        {link.external ? (
+                          <a
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
+                            onClick={() => setOpen(false)}
+                          >
+                            {link.icon}
+                            <span>{link.label}</span>
+                          </a>
+                        ) : (
+                          <Link
+                            href={link.href}
+                            className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
+                            onClick={() => setOpen(false)}
+                          >
+                            {link.icon}
+                            <span>{link.label}</span>
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : null}
+    </>
+  );
+}
