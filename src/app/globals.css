@@ -1218,3 +1218,82 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   font-size: 16px;
   font-weight: 700;
 }
+
+/* Mobile-safe modal overlays and panels */
+.kx-modal-overlay {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px))
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, env(safe-area-inset-bottom, 0px))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+@media (max-width: 639px) {
+  .kx-modal-overlay {
+    align-items: flex-start;
+  }
+}
+
+.kx-modal-panel {
+  max-height: min(calc(100dvh - 1.5rem), 920px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex-shrink: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+@media (max-width: 639px) {
+  .kx-modal-panel {
+    margin-top: 0;
+  }
+}
+
+/* Legacy modals: improve any centered overlay containing a dialog */
+.fixed.inset-0.flex.items-center.justify-center:has([role='dialog']),
+.fixed.inset-0.flex.items-center.justify-center:has([aria-modal='true']) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px))
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, env(safe-area-inset-bottom, 0px))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+@media (max-width: 639px) {
+  .fixed.inset-0.flex.items-center.justify-center:has([role='dialog']),
+  .fixed.inset-0.flex.items-center.justify-center:has([aria-modal='true']) {
+    align-items: flex-start;
+  }
+}
+
+[role='dialog'],
+[aria-modal='true'] {
+  max-height: min(calc(100dvh - 1.5rem), 920px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Responsive media from IPFS and metadata */
+.kx-responsive-media,
+.kx-responsive-media img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile filter controls stack full width */
+@media (max-width: 767px) {
+  .kx-mobile-filter-stack > * {
+    width: 100%;
+  }
+
+  .kx-mobile-filter-stack .k-control-btn,
+  .kx-mobile-filter-stack .k-filter-select,
+  .kx-mobile-filter-stack button.k-control-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { MobileFilterMenu } from '@/components/ui/MobileFilterMenu';
 
 export interface FilterBarSearchProps {
   value: string;
@@ -20,13 +21,14 @@ export interface FilterBarProps {
   children?: ReactNode;
   /** Optional class for the wrapper. */
   className?: string;
-  /** When true, controls may wrap to a second row (e.g. Chronicles filters + view switcher). */
+  /** When true, controls may wrap to a second row on desktop (e.g. Chronicles filters + view switcher). */
   flexWrap?: boolean;
+  /** When true, show active indicator on mobile filter icon. */
+  hasActiveFilters?: boolean;
 }
 
 /**
- * Single-row filter bar: search, optional middle content (chips, sort, view, favorites, etc.), optional Reset.
- * Keeps all controls aligned (e.g. h-10) and prevents wrapping into a second row.
+ * Filter bar: search stays visible; other controls collapse under filter menu on mobile.
  */
 export function FilterBar({
   search,
@@ -35,14 +37,15 @@ export function FilterBar({
   children,
   className = '',
   flexWrap = false,
+  hasActiveFilters = false,
 }: FilterBarProps) {
   const isTyping = (search.value?.length ?? 0) > 0;
 
   return (
     <div
-      className={`flex ${flexWrap ? 'flex-wrap' : 'flex-nowrap'} items-center gap-3 min-h-10 overflow-visible ${className}`.trim()}
+      className={`flex flex-nowrap items-center gap-2 sm:gap-3 min-h-10 overflow-visible ${className}`.trim()}
     >
-      <div className="flex-1 min-w-[200px] shrink-0 overflow-visible">
+      <div className="flex-1 min-w-0 sm:min-w-[200px] shrink overflow-visible">
         <div className="k-search-container h-10">
           <input
             type="text"
@@ -53,14 +56,25 @@ export function FilterBar({
           />
         </div>
       </div>
-      {children}
-      {onReset != null && (
+
+      {children != null ? (
+        <MobileFilterMenu
+          onReset={onReset}
+          resetLabel={resetLabel}
+          hasActiveFilters={hasActiveFilters}
+          className={flexWrap ? 'flex-wrap' : 'flex-nowrap'}
+        >
+          {children}
+        </MobileFilterMenu>
+      ) : null}
+
+      {onReset != null ? (
         <Tooltip content="Reset all filters">
-          <button type="button" onClick={onReset} className="k-control-btn whitespace-nowrap shrink-0">
+          <button type="button" onClick={onReset} className="k-control-btn whitespace-nowrap shrink-0 hidden md:inline-flex">
             {resetLabel}
           </button>
         </Tooltip>
-      )}
+      ) : null}
     </div>
   );
 }

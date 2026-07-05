@@ -50,10 +50,11 @@ export function NFTCard({
             <img
               src={displayImageUrl}
               alt={`${collection?.name || collectionId} #${tokenId}`}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
+              className={`w-full h-full max-w-full object-cover transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               loading="lazy"
+              decoding="async"
               onLoad={() => setImageLoaded(true)}
               onError={() => {
                 setImageError(true);

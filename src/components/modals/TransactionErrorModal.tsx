@@ -16,10 +16,10 @@ export function TransactionErrorModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="kx-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" aria-hidden onClick={onClose} />
       <div
-        className="relative w-full max-w-md rounded-xl border border-red-200 dark:border-red-800 bg-white dark:bg-zinc-900 shadow-xl p-6 space-y-4"
+        className="kx-modal-panel relative w-full max-w-md rounded-xl border border-red-200 dark:border-red-800 bg-white dark:bg-zinc-900 shadow-xl p-6 space-y-4"
         role="alertdialog"
         aria-labelledby="tx-error-title"
         aria-describedby="tx-error-desc"

@@ -10,6 +10,8 @@ interface ImagePreviewProps {
   className?: string;
   onError?: () => void;
   onLoad?: () => void;
+  /** object-cover (default) or object-contain for logos/metadata art */
+  objectFit?: 'cover' | 'contain';
 }
 
 /**
@@ -17,9 +19,7 @@ interface ImagePreviewProps {
  */
 function isIPFSCID(str: string): boolean {
   if (!str) return false;
-  // Remove common prefixes
   const clean = str.replace(/^ipfs:\/\//, '').replace(/^\/?ipfs\//, '');
-  // Check if it looks like a CID (starts with Qm for v0 or bafy for v1)
   return /^(Qm|bafy|bafk)/i.test(clean) && clean.length > 20;
 }
 
@@ -28,24 +28,20 @@ function isIPFSCID(str: string): boolean {
  */
 function normalizeImageUrl(url: string): string {
   if (!url) return url;
-  
-  // If it's already a full URL, return as-is
+
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  
-  // If it's an IPFS CID, convert to gateway URL
+
   if (isIPFSCID(url)) {
     return getBestGatewayUrl(url);
   }
-  
-  // If it starts with ipfs://, convert it
+
   if (url.startsWith('ipfs://')) {
     const cid = url.replace(/^ipfs:\/\//, '');
     return getBestGatewayUrl(cid);
   }
-  
-  // Otherwise return as-is (might be a relative path)
+
   return url;
 }
 
@@ -56,12 +52,12 @@ export function ImagePreview({
   className = '',
   onError,
   onLoad,
+  objectFit = 'cover',
 }: ImagePreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [debouncedUrl, setDebouncedUrl] = useState(normalizeImageUrl(imageUrl));
 
-  // Debounce URL changes and normalize IPFS CIDs
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
@@ -87,20 +83,22 @@ export function ImagePreview({
   const aspectRatioClasses = {
     square: 'aspect-square',
     video: 'aspect-video',
-    auto: '',
+    auto: 'min-h-[4rem]',
   };
+
+  const objectFitClass = objectFit === 'contain' ? 'object-contain' : 'object-cover';
 
   if (!debouncedUrl || debouncedUrl.trim() === '') {
     return (
       <div
         className={`
-          flex items-center justify-center
+          flex items-center justify-center max-w-full
           bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700
           ${aspectRatioClasses[aspectRatio]}
           ${className}
         `}
       >
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">No image URL</p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 px-2 text-center">No image URL</p>
       </div>
     );
   }
@@ -109,7 +107,7 @@ export function ImagePreview({
     return (
       <div
         className={`
-          flex items-center justify-center
+          flex items-center justify-center max-w-full
           bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800
           ${aspectRatioClasses[aspectRatio]}
           ${className}
@@ -139,7 +137,7 @@ export function ImagePreview({
     <div
       className={`
         relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700
-        bg-zinc-100 dark:bg-zinc-800
+        bg-zinc-100 dark:bg-zinc-800 max-w-full
         ${aspectRatioClasses[aspectRatio]}
         ${className}
       `}
@@ -154,12 +152,13 @@ export function ImagePreview({
         alt={alt}
         onLoad={handleLoad}
         onError={handleError}
+        loading="lazy"
+        decoding="async"
         className={`
-          w-full h-full object-cover transition-opacity duration-300
+          w-full h-full max-w-full max-h-full ${objectFitClass} transition-opacity duration-300
           ${isLoading ? 'opacity-0' : 'opacity-100'}
         `}
       />
     </div>
   );
 }
-

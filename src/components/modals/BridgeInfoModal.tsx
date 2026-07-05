@@ -28,7 +28,7 @@ export function BridgeInfoModal({
     `On ${networkName}, transaction fees are paid in ${nativeSymbol}. If you don’t have ${nativeSymbol} yet, you’ll need to bridge it in before you can use dApps.`;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="kx-modal-overlay fixed inset-0 z-[99999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
       <div
         className="relative bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-md w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden"

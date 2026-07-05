@@ -4,9 +4,7 @@ import { useState, Suspense, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useAccount } from 'wagmi';
 import { useTheme } from './ThemeProvider';
-import { UserMenu } from './UserMenu';
 import { useAdmin } from '@/hooks/useAdmin';
 
 const TestnetBanner = dynamic(
@@ -29,6 +27,7 @@ import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 function AdminLink() {
   const { isAdmin } = useAdmin();
@@ -307,13 +306,16 @@ function getStatusBadge(status: HubProject['status'], isActive: boolean = false)
 export function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
-  const { isConnected } = useAccount();
   const { isVisible: isBalanceVisible, toggleVisibility: toggleBalanceVisibility } = useBalanceVisibility();
   const [logoError, setLogoError] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const megaMenuRef = useRef<HTMLDivElement>(null);
+
+  useBodyScrollLock(mobileMenuOpen);
 
   const currentSectionTitle = getCurrentSectionTitle(pathname);
   const currentProject = getCurrentProject(pathname);
@@ -326,6 +328,22 @@ export function Header() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!megaMenuOpen) return;
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (megaMenuRef.current && !megaMenuRef.current.contains(target)) {
+        setMegaMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+    };
+  }, [megaMenuOpen]);
 
   // Check for new updates
   useEffect(() => {
@@ -366,7 +384,7 @@ export function Header() {
               aria-label="Kasparex Hub home"
             >
               {!logoError ? (
-                <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                <div className="relative h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 flex-shrink-0">
                   <Image
                     src="/kasparex-oval.png"
                     alt="Kasparex Logo"
@@ -382,7 +400,7 @@ export function Header() {
                   <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 sm:text-xl">K</span>
                 </div>
               )}
-              <h1 className="flex items-center gap-2 whitespace-nowrap text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg lg:text-xl">
+              <h1 className="hidden md:flex items-center gap-2 whitespace-nowrap text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg lg:text-xl">
                 <span className="uppercase">
                   <span className="font-bold">KASPA</span>
                   <span className="font-normal">REX</span>
@@ -391,9 +409,10 @@ export function Header() {
               </h1>
             </Link>
           </Tooltip>
-          <span className="relative">
+          <span className="relative" ref={megaMenuRef}>
             <div
               onMouseEnter={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
                 if (hoverTimeoutRef.current) {
                   clearTimeout(hoverTimeoutRef.current);
                   hoverTimeoutRef.current = null;
@@ -401,22 +420,25 @@ export function Header() {
                 setMegaMenuOpen(true);
               }}
               onMouseLeave={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
                 hoverTimeoutRef.current = setTimeout(() => {
                   setMegaMenuOpen(false);
                 }, 500);
               }}
-              className="inline-flex items-center gap-2 cursor-pointer"
+              className="inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer min-w-0"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <button
-                  className="text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors"
+                  type="button"
+                  onClick={() => setMegaMenuOpen((v) => !v)}
+                  className="text-sm sm:text-base text-zinc-900 dark:text-zinc-100 hover:text-[#02abb8] transition-colors truncate max-w-[40vw] sm:max-w-none text-left"
                 >
                   {currentSectionTitle}
                 </button>
                 {currentProjectStatus && getStatusBadge(currentProjectStatus)}
               </div>
               <svg
-                className="w-4 h-4 text-zinc-900 dark:text-zinc-100"
+                className={`w-4 h-4 shrink-0 text-zinc-900 dark:text-zinc-100 transition-transform ${megaMenuOpen ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -426,20 +448,22 @@ export function Header() {
               {megaMenuOpen && (
                 <div
                   onMouseEnter={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
                     if (hoverTimeoutRef.current) {
                       clearTimeout(hoverTimeoutRef.current);
                       hoverTimeoutRef.current = null;
                     }
                   }}
                   onMouseLeave={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
                     hoverTimeoutRef.current = setTimeout(() => {
                       setMegaMenuOpen(false);
                     }, 500);
                   }}
-                  className="absolute top-full left-0 mt-2 w-[800px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
+                  className="absolute top-full left-0 mt-2 w-[min(calc(100vw-1rem),800px)] max-w-[800px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-[9999] overflow-hidden"
                 >
-                  <div className="p-2">
-                    <div className="grid grid-cols-3 gap-1">
+                  <div className="p-2 max-h-[min(calc(100dvh-5rem),480px)] overflow-y-auto overscroll-contain">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
                       {hubProjects.map((project) => {
                         const isExternal = project.route.startsWith('http');
 
@@ -474,6 +498,7 @@ export function Header() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className={linkClassName}
+                              onClick={() => setMegaMenuOpen(false)}
                             >
                               {linkContent}
                             </a>
@@ -485,6 +510,7 @@ export function Header() {
                             key={project.id}
                             href={project.route}
                             className={linkClassName}
+                            onClick={() => setMegaMenuOpen(false)}
                           >
                             {linkContent}
                           </Link>
@@ -498,15 +524,14 @@ export function Header() {
           </span>
         </div>
 
-        {/* Right side: Wallet Connect and Theme Toggle - no padding, flush to right */}
-        <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
+        {/* Right side: desktop actions */}
+        <div className="hidden lg:flex items-center gap-2 sm:gap-3 pr-2 sm:pr-4 lg:pr-6">
           <HeaderRewardsPointsLink />
           <AdminLink />
           <Tooltip content="What's new">
             <Link
               href="/updates"
               onClick={() => {
-                // Mark updates as viewed
                 localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
                 setHasNewUpdates(false);
               }}
@@ -634,7 +659,119 @@ export function Header() {
             </Suspense>
           </div>
         </div>
+
+        {/* Mobile: menu trigger */}
+        <div className="flex lg:hidden items-center pr-2 sm:pr-4">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="k-control-icon-btn"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile side drawer */}
+      {mobileMenuOpen ? (
+        <>
+          <div
+            className="fixed inset-0 top-16 z-[55] bg-black/50 lg:hidden"
+            aria-hidden
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <aside
+            className="fixed top-16 right-0 z-[56] h-[calc(100dvh-4rem)] w-[min(100vw,320px)] border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl lg:hidden flex flex-col overflow-y-auto overscroll-contain"
+            aria-label="Site menu"
+          >
+            <div className="p-4 space-y-4 flex-1">
+              <div className="flex items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <HeaderRewardsPointsLink />
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                <AdminLink />
+                <Tooltip content="What's new">
+                  <Link
+                    href="/updates"
+                    onClick={() => {
+                      localStorage.setItem('lastViewedUpdateCount', updateCount.toString());
+                      setHasNewUpdates(false);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="relative flex h-10 w-full items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    aria-label="What's new"
+                  >
+                    <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {hasNewUpdates ? (
+                      <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-950" />
+                    ) : null}
+                  </Link>
+                </Tooltip>
+                <Tooltip content={isBalanceVisible ? 'Hide balances' : 'Show balances'}>
+                  <button
+                    type="button"
+                    onClick={toggleBalanceVisibility}
+                    className="flex h-10 w-full items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    aria-label={isBalanceVisible ? 'Hide balances' : 'Show balances'}
+                  >
+                    {isBalanceVisible ? (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    )}
+                  </button>
+                </Tooltip>
+                <Tooltip content={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="flex h-10 w-full items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                  >
+                    {theme === 'dark' ? (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                      </svg>
+                    )}
+                  </button>
+                </Tooltip>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 px-1">Wallets</p>
+                <div className="space-y-2 w-full [&>*]:w-full">
+                  <KaspaL1WalletButton />
+                  <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs">Loading...</div>}>
+                    <EVMWalletButton />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </>
+      ) : null}
     </header>
   );
 }

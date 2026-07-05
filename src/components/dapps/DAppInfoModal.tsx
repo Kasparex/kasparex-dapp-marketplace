@@ -152,17 +152,20 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center px-16 py-4 bg-black/70 backdrop-blur-md"
+      className="kx-modal-overlay fixed inset-0 z-[9999] flex items-center justify-center px-3 sm:px-8 lg:px-16 py-3 sm:py-4 bg-black/70 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-[85vw] w-full max-h-[95vh] overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col"
+        className="kx-modal-panel bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-[min(100vw-1.5rem,85vw)] w-full max-h-[min(calc(100dvh-1.5rem),95vh)] overflow-hidden border border-zinc-200 dark:border-zinc-800 flex flex-col"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dapp-info-modal-title"
       >
         {/* Header */}
-        <div className="px-8 py-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+        <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+            <h2 id="dapp-info-modal-title" className="text-lg sm:text-2xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">
               {dapp.name}
             </h2>
             {dapp.version && (
@@ -487,7 +490,7 @@ export function DAppInfoModal({ dapp, contractAddress, onClose }: DAppInfoModalP
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+        <div className="px-4 sm:px-8 py-3 sm:py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
           <button
             onClick={onClose}
             className="px-5 py-2 bg-[#02abb8] text-white rounded-lg hover:bg-[#0299a3] transition-colors font-medium text-sm"
