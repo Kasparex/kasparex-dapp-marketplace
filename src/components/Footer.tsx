@@ -46,7 +46,7 @@ function FooterSocialIcons() {
 export function Footer() {
   return (
     <>
-      <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 mt-auto pb-20 lg:pb-0">
+      <footer id="site-footer" className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 mt-auto pb-20 lg:pb-0">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div id="ad-slot-footer" className="hidden lg:block mb-8 scroll-mt-4">
             <FooterAds />

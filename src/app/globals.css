@@ -1295,6 +1295,11 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
     width: 100%;
   }
 
+  .kx-mobile-filter-stack .k-control-group {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .kx-mobile-filter-stack .k-control-btn,
   .kx-mobile-filter-stack .k-filter-select,
   .kx-mobile-filter-stack button.k-control-btn {

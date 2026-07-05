@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 
 export interface MobileFilterMenuProps {
   children: ReactNode;
-  /** Optional reset action shown inside the mobile filter panel. */
   onReset?: () => void;
   resetLabel?: string;
-  /** When true, show a dot on the filter icon (active filters). */
   hasActiveFilters?: boolean;
   className?: string;
 }
@@ -27,8 +27,8 @@ function FilterIcon({ className }: { className?: string }) {
 }
 
 /**
- * On mobile, wraps filter controls behind a filter icon button.
- * On md+ screens, children render inline (desktop layout unchanged).
+ * On mobile, wraps filter controls in a bottom sheet (network switcher, sort, etc.).
+ * On md+ screens, children render inline.
  */
 export function MobileFilterMenu({
   children,
@@ -38,9 +38,14 @@ export function MobileFilterMenu({
   className = '',
 }: MobileFilterMenuProps) {
   const [open, setOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobileViewport();
 
-  useBodyScrollLock(open);
+  useBodyScrollLock(open && isMobile);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -51,29 +56,63 @@ export function MobileFilterMenu({
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (panelRef.current && !panelRef.current.contains(target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('touchstart', onPointerDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('touchstart', onPointerDown);
-    };
-  }, [open]);
+  const mobileSheet =
+    open && mounted && typeof document !== 'undefined'
+      ? createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[80] bg-black/50 md:hidden"
+              aria-hidden
+              onClick={() => setOpen(false)}
+            />
+            <div
+              className="fixed inset-x-0 bottom-0 z-[81] md:hidden flex flex-col max-h-[min(85dvh,640px)] rounded-t-2xl border border-zinc-200 dark:border-zinc-800 border-b-0 bg-white dark:bg-zinc-950 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Filters"
+              style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+            >
+              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Filters</p>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  aria-label="Close filters"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="overflow-y-auto overscroll-contain flex-1 min-h-0 px-4 py-3">
+                <div className="flex flex-col gap-4 kx-mobile-filter-stack">{children}</div>
+              </div>
+              {onReset != null ? (
+                <div className="shrink-0 px-4 pt-2 pb-1 border-t border-zinc-200 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onReset();
+                      setOpen(false);
+                    }}
+                    className="k-control-btn w-full"
+                  >
+                    {resetLabel}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </>,
+          document.body,
+        )
+      : null;
 
   return (
     <>
-      {/* Desktop: inline controls */}
       <div className={`hidden md:flex items-center gap-3 flex-wrap ${className}`.trim()}>{children}</div>
 
-      {/* Mobile: filter menu trigger */}
-      <div className="md:hidden relative shrink-0" ref={panelRef}>
+      <div className="md:hidden relative shrink-0">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -86,45 +125,9 @@ export function MobileFilterMenu({
             <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#02abb8] border border-white dark:border-zinc-950" />
           ) : null}
         </button>
-
-        {open ? (
-          <>
-            <div
-              className="fixed inset-0 z-[80] bg-black/40 md:hidden"
-              aria-hidden
-              onClick={() => setOpen(false)}
-            />
-            <div className="fixed left-0 right-0 top-16 z-[81] mx-3 mt-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl p-4 max-h-[min(calc(100dvh-5rem),520px)] overflow-y-auto overscroll-contain md:hidden">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Filters</p>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  aria-label="Close filters"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="flex flex-col gap-3 kx-mobile-filter-stack">{children}</div>
-              {onReset != null ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onReset();
-                    setOpen(false);
-                  }}
-                  className="k-control-btn w-full mt-3"
-                >
-                  {resetLabel}
-                </button>
-              ) : null}
-            </div>
-          </>
-        ) : null}
       </div>
+
+      {mobileSheet}
     </>
   );
 }

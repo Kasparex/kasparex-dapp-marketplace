@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
-import { detectKaspaWallets, formatKaspaAddress } from '@/lib/kaspa/wallet';
+import { formatKaspaAddress } from '@/lib/kaspa/wallet';
 import { getErrorMessage } from '@/lib/utils';
 import {
   useBalanceVisibility,
@@ -44,7 +44,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { NFTStatusBox } from '@/components/rewards/NFTStatusBox';
 import { useKnsPrimaryName } from '@/hooks/useKnsPrimaryName';
-import { L1WalletConnectLabel, L1WalletLogo } from '@/components/wallet/L1WalletLogo';
+import { L1WalletConnectOptions } from '@/components/wallet/L1WalletConnectOptions';
+import { L1WalletLogo } from '@/components/wallet/L1WalletLogo';
 
 const KasWareWalletButton = dynamic(
   () => import('./KasWareWalletButton').then((mod) => ({ default: mod.KasWareWalletButton })),
@@ -73,10 +74,6 @@ export function KaspaL1WalletButton() {
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isNodeOpen, setIsNodeOpen] = useState(false);
   const [isNftWizardOpen, setIsNftWizardOpen] = useState(false);
-
-  const detected = detectKaspaWallets();
-  const isKasWareInstalled = detected.some((w) => w.id === 'kasware' && w.isInstalled);
-  const isKastleInstalled = typeof window !== 'undefined' && !!(window as any).kastle;
 
   useEffect(() => {
     if (!open) return;
@@ -447,40 +444,14 @@ export function KaspaL1WalletButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 z-50">
+        <div className="absolute right-0 mt-2 w-[min(100vw-2rem,16rem)] sm:w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 z-50">
           <div className="p-2">
-            <button
-              onClick={() => handleConnect('kasware')}
-              disabled={!isKasWareInstalled || connecting !== null}
-              className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <L1WalletConnectLabel
-                provider="kasware"
-                label={isKasWareInstalled ? 'Connect KasWare' : 'Install KasWare'}
-              />
-            </button>
-            <button
-              onClick={() => handleConnect('kastle')}
-              disabled={!isKastleInstalled || connecting !== null}
-              className="w-full px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <L1WalletConnectLabel
-                provider="kastle"
-                label={isKastleInstalled ? 'Connect Kastle' : 'Install Kastle'}
-              />
-            </button>
-
-            {connecting && (
-              <div className="px-3 py-2 text-xs text-zinc-500">
-                Connecting…
-              </div>
-            )}
-
-            {error && (
-              <div className="px-3 py-2 text-xs text-red-600 dark:text-red-400">
-                {error}
-              </div>
-            )}
+            <L1WalletConnectOptions
+              compact
+              onConnect={handleConnect}
+              connecting={connecting}
+              error={error}
+            />
           </div>
         </div>
       )}

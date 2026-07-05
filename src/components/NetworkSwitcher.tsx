@@ -18,12 +18,18 @@ const OPTIONS: { value: DAppNetworkFilter; label: string; title: string }[] = [
 
 export function NetworkSwitcher({ value, onChange, className = '' }: NetworkSwitcherProps) {
   return (
-    <KxTabStrip
-      value={value}
-      onChange={onChange}
-      options={OPTIONS}
-      ariaLabel="Network filter"
-      className={className}
-    />
+    <div className={`min-w-0 w-full md:w-auto ${className}`.trim()}>
+      <p className="md:hidden text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-1.5">
+        Network
+      </p>
+      <KxTabStrip
+        value={value}
+        onChange={onChange}
+        options={OPTIONS}
+        ariaLabel="Network filter"
+        className="w-full max-w-full"
+        scrollable
+      />
+    </div>
   );
 }

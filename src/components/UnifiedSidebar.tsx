@@ -51,8 +51,6 @@ export function UnifiedSidebar({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobileViewport();
 
-  useBodyScrollLock(isOpen && isMobile);
-
   const isControlledHidden = controlledHidden !== undefined;
   const isHidden = isControlledHidden ? controlledHidden : internalHidden;
   const setHidden = (value: boolean) => {
@@ -66,6 +64,8 @@ export function UnifiedSidebar({
     if (!isControlledOpen) setInternalOpen(value);
     onOpenChange?.(value);
   };
+
+  useBodyScrollLock(isOpen && isMobile);
 
   const hiddenKey = `${storageKeyPrefix}-sidebar-hidden`;
   const widthKey = `${storageKeyPrefix}-sidebar-width`;
