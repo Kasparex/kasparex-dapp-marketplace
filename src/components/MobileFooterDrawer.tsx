@@ -32,7 +32,7 @@ export function MobileFooterDrawer() {
 
     const observer = new IntersectionObserver(
       ([entry]) => setFooterInView(entry.isIntersecting),
-      { threshold: 0.08, rootMargin: '0px 0px -2rem 0px' },
+      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' },
     );
     observer.observe(footer);
     return () => observer.disconnect();

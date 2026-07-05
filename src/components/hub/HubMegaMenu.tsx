@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HubProjectsMenuContent } from '@/components/hub/HubProjectsMenuContent';
 import { HubProjectStatusBadge } from '@/components/hub/hubMenuIcons';
@@ -18,6 +17,7 @@ export interface HubMegaMenuProps {
 export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: HubMegaMenuProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobileViewport();
@@ -36,6 +36,31 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || isMobile) return;
+
+    const updatePosition = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      setPanelStyle({
+        position: 'fixed',
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: 'min(calc(100vw - 2rem), 920px)',
+        zIndex: 101,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open, isMobile]);
 
   useEffect(() => {
     if (!open) return;
@@ -62,8 +87,9 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
         className={
           isMobile
             ? 'fixed left-3 right-3 top-[4.25rem] z-[101] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden'
-            : 'absolute left-0 top-full mt-2 z-[101] w-[min(calc(100vw-2rem),920px)] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden'
+            : 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden'
         }
+        style={isMobile ? undefined : panelStyle}
         role="menu"
       >
         <div className="px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-800">
@@ -110,7 +136,7 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {mounted && open ? (isMobile ? createPortal(panel, document.body) : panel) : null}
+      {mounted && open && typeof document !== 'undefined' ? createPortal(panel, document.body) : null}
     </div>
   );
 }
