@@ -4,9 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis } from '@/lib/kaspa/api';
-import { getProductsBySeller, archiveProduct } from '@/lib/store/products';
+import { getProductsBySeller, archiveProductLocal } from '@/lib/store/products';
 import { getPurchasesBySeller, getPurchasesByBuyer } from '@/lib/store/purchases';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { PurchasedItemsList } from '@/components/store/PurchasedItemsList';
@@ -18,8 +16,9 @@ import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import { parseStoreSellerTab, storeSellerTabHref, type StoreSellerTab } from '@/lib/store/sellerTabs';
 import type { Product, Purchase } from '@/lib/store/types';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
-
-const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
+import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
 const TAB_LABELS: Record<StoreSellerTab, string> = {
   overview: 'Overview',
@@ -96,29 +95,34 @@ export function StoreSellerHubContent() {
     return { totalRevenue, totalSales, recentSales };
   }, [purchases]);
 
-  const payActionFee = async () => {
-    if (!state.provider) throw new Error('Wallet not connected');
-    const result = await sendKaspaTransaction(state.provider, {
-      to: TREASURY,
-      amount: kasToSompis(SELLER_ACTION_FEE_KAS).toString(),
-    });
-    if (result.status === 'failed') throw new Error(result.error || 'Payment failed');
-  };
-
   const handleDelete = async (productId: string) => {
-    if (!state.address || !state.provider) return;
-    if (!confirm(`Archive this product? A ${SELLER_ACTION_FEE_KAS} KAS fee applies.`)) return;
+    if (!state.address || !state.provider) {
+      alert('Connect your Kaspa wallet to delete this product.');
+      return;
+    }
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const deleteFee = HUB_DELETE_FEE_KAS.store;
+    if (!confirm(`Archive "${product.title}"? A ${deleteFee} KAS fee applies.`)) return;
 
     setActionProductId(productId);
     try {
-      await payActionFee();
-      const success = await archiveProduct(productId, state.address);
-      if (success) {
-        const updatedProducts = await getProductsBySeller(state.address);
-        setProducts(updatedProducts);
-      } else {
-        alert('Failed to archive product');
-      }
+      const result = await executeHubPaidDelete({
+        kind: 'store',
+        id: productId,
+        feeKas: deleteFee,
+        payerProvider: state.provider as KaspaWalletProvider,
+        payerAddress: state.address,
+        mediaCids: collectStoreMediaCids(product),
+        removeLocal: async () => {
+          const archived = await archiveProductLocal(productId, state.address!);
+          return archived.ok;
+        },
+      });
+      if (!result.ok) throw new Error(result.error ?? 'Delete failed');
+      const updatedProducts = await getProductsBySeller(state.address);
+      setProducts(updatedProducts);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to archive product');
     } finally {
@@ -294,7 +298,7 @@ export function StoreSellerHubContent() {
                                 onClick={() => void handleDelete(product.id)}
                                 disabled={actionProductId === product.id}
                                 className="p-2 text-zinc-400 hover:text-red-500 transition-colors disabled:opacity-50"
-                                title={`Archive (${SELLER_ACTION_FEE_KAS} KAS)`}
+                                title={`Archive (${HUB_DELETE_FEE_KAS.store} KAS)`}
                               >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -1,5 +1,3 @@
-'use client';
-
 import type { HubContentKind } from '@/lib/hub/contentTypes';
 
 const STORAGE_KEY = 'kasparex_hub_deleted_content_v1';

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import {
   deleteHubContentItem,
-  getCachedHubContentRegistry,
+  getHubContentRegistry,
   registerHubContentInMemory,
   removeHubContentFromMemory,
   upsertHubContentItem,
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const kind = request.nextUrl.searchParams.get('kind')?.trim();
-    const registry = await getCachedHubContentRegistry();
+    const registry = await getHubContentRegistry();
 
     if (kind && isValidKind(kind)) {
       return NextResponse.json(
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       }
       removeHubContentFromMemory(kind, id);
       const registry = await deleteHubContentItem(kind, id);
+      revalidateTag('hub-content');
       return NextResponse.json({ ok: true, updatedAt: registry.updatedAt });
     }
 
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
 
     registerHubContentInMemory(kind, item as { id: string });
     const registry = await upsertHubContentItem(kind, item as { id: string });
+    revalidateTag('hub-content');
     return NextResponse.json({ ok: true, updatedAt: registry.updatedAt });
   } catch (e) {
     console.error('[hub/content POST]', e);

@@ -32,15 +32,15 @@ export function getAllArticles(): VBlogArticle[] {
     const parsed = JSON.parse(stored) as unknown;
     // Backward compatibility: accept multiple persisted shapes.
     if (Array.isArray(parsed)) {
-      return parsed.length === 0 ? getDefaultArticles() : (parsed as VBlogArticle[]);
+      return parsed as VBlogArticle[];
     }
     if (parsed && typeof parsed === 'object') {
       const anyParsed = parsed as any;
       if (Array.isArray(anyParsed.articles)) {
-        return anyParsed.articles.length === 0 ? getDefaultArticles() : (anyParsed.articles as VBlogArticle[]);
+        return anyParsed.articles as VBlogArticle[];
       }
       if (Array.isArray(anyParsed.items)) {
-        return anyParsed.items.length === 0 ? getDefaultArticles() : (anyParsed.items as VBlogArticle[]);
+        return anyParsed.items as VBlogArticle[];
       }
       // Map/object keyed by id → array.
       const values = Object.values(anyParsed);

@@ -14,7 +14,8 @@ import {
 import {
   CHRONICLES_CONTENT_KIND_LABELS,
   CHRONICLES_SUBMISSION_FEES_KAS,
-  archiveCommunitySubmission,
+  archiveCommunitySubmissionLocal,
+  getCommunitySubmissionById,
   type ChroniclesCommunitySubmission,
   type ChroniclesContentKind,
 } from '@/lib/chronicles/communitySubmissions';
@@ -26,6 +27,9 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import Link from 'next/link';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
+import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
 const TAB_LABELS: Record<ChroniclesCenterTab, string> = {
   overview: 'Overview',
@@ -149,11 +153,33 @@ export function ChroniclesCenterContent() {
   }, [items]);
 
   const handleArchive = async (id: string) => {
-    if (!confirm('Archive this community submission?')) return;
+    const existing = getCommunitySubmissionById(id);
+    if (!existing) return;
+    if (!state.isConnected || !state.provider || !state.address) {
+      alert('Connect your Kaspa wallet to delete this submission.');
+      return;
+    }
+    const deleteFee = HUB_DELETE_FEE_KAS.chronicles;
+    if (!confirm(`Archive "${existing.title}"? A ${deleteFee} KAS fee applies.`)) return;
+
     setArchivingId(id);
-    archiveCommunitySubmission(id);
-    refresh();
-    setArchivingId(null);
+    try {
+      const result = await executeHubPaidDelete({
+        kind: 'chronicles',
+        id,
+        feeKas: deleteFee,
+        payerProvider: state.provider as KaspaWalletProvider,
+        payerAddress: state.address,
+        mediaCids: collectChroniclesMediaCids(existing),
+        removeLocal: () => archiveCommunitySubmissionLocal(id),
+      });
+      if (!result.ok) throw new Error(result.error ?? 'Delete failed');
+      refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to archive submission');
+    } finally {
+      setArchivingId(null);
+    }
   };
 
   const chapterFee = CHRONICLES_SUBMISSION_FEES_KAS.chapter;

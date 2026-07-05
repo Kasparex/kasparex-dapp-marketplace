@@ -85,7 +85,7 @@ export function TokensBenefitsPanel({
     <>
       <Tooltip content={tooltipContent}>
         <aside
-          className={`w-full rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
+          className={`w-full min-w-0 max-w-full overflow-hidden rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
           aria-label="Token developer perks. Hover for KREX tier details."
         >
           <DAppSectionHeader

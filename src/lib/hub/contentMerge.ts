@@ -5,7 +5,7 @@ import type { ChroniclesCommunitySubmission } from '@/lib/chronicles/communitySu
 import type { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import type { Product } from '@/lib/store/types';
 import type { HubContentKind } from '@/lib/hub/contentTypes';
-import { filterOutDeleted } from '@/lib/hub/deletedContent';
+import { filterOutDeleted, getHubContentDeletedIds } from '@/lib/hub/deletedContent';
 
 function itemTimestamp(item: {
   updatedAt?: string;
@@ -25,8 +25,12 @@ function mergeById<T extends { id: string }>(
   remote: T[],
   extraFilter?: (item: T) => boolean,
 ): T[] {
+  const deleted = getHubContentDeletedIds(kind);
   const byId = new Map<string, T>();
-  for (const item of local) byId.set(item.id, item);
+  for (const item of local) {
+    if (deleted.has(item.id)) continue;
+    byId.set(item.id, item);
+  }
   for (const item of filterOutDeleted(kind, remote)) {
     if (extraFilter && !extraFilter(item)) continue;
     const existing = byId.get(item.id);

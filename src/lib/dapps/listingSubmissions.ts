@@ -10,8 +10,8 @@ import type { DApp, DeveloperLink } from '@/lib/dapps';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { mergeDirectoryListings } from '@/lib/hub/contentMerge';
 import { syncHubContentItem } from '@/lib/hub/contentSync';
-import { markHubContentDeleted } from '@/lib/hub/deletedContent';
-import { collectDappMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { finalizeHubContentDelete } from '@/lib/hub/paidDelete';
+import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 
 export const DAPP_LISTING_FEE_KAS = 50;
 export const DAPP_LISTING_ACTION_FEE_KAS = 1;
@@ -355,7 +355,7 @@ export function updateDirectoryListing(
   return updated;
 }
 
-export function archiveDirectoryListing(id: string, submitterAddress: string): boolean {
+export function archiveDirectoryListingLocal(id: string, submitterAddress: string): boolean {
   if (typeof window === 'undefined') return false;
   const all = readAllListings();
   const index = all.findIndex(
@@ -369,9 +369,24 @@ export function archiveDirectoryListing(id: string, submitterAddress: string): b
     updatedAt: new Date().toISOString(),
   };
   writeAllListings(all);
-  markHubContentDeleted('dapps', id);
-  void syncHubContentItem('dapps', 'delete', { id });
-  void requestIpfsUnpin(collectDappMediaCids(listing));
+  return true;
+}
+
+/** @deprecated Use executeHubPaidDelete from dashboards. */
+export function archiveDirectoryListing(id: string, submitterAddress: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const all = readAllListings();
+  const listing = all.find(
+    (l) => l.id === id && l.submitterAddress.toLowerCase() === submitterAddress.toLowerCase(),
+  );
+  if (!listing) return false;
+  if (!archiveDirectoryListingLocal(id, submitterAddress)) return false;
+  void finalizeHubContentDelete({
+    kind: 'dapps',
+    id,
+    mediaCids: collectDappMediaCids(listing),
+    removeLocal: () => true,
+  });
   return true;
 }
 

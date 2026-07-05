@@ -6,6 +6,7 @@ import {
   HubMobileRightPanel,
   useHubMobileRightPanel,
 } from '@/components/hub/HubMobileRightPanel';
+import { HubRightPanelAside } from '@/components/hub/HubRightPanelAside';
 
 type HubPageRightPanelProps = {
   panelId: string;
@@ -14,7 +15,7 @@ type HubPageRightPanelProps = {
   onToggle: () => void;
   sidebar: ReactNode;
   children: ReactNode;
-  /** Legacy col-span tokens; mapped to flex grow ratios on desktop (e.g. lg:col-span-7). */
+  /** Legacy col-span tokens; mapped to grid column spans on desktop (e.g. lg:col-span-7). */
   mainColClass?: string;
   asideColClass?: string;
   gridClassName?: string;
@@ -28,6 +29,26 @@ function parseLgColSpan(className: string, fallback: number): number {
 
 function layoutGapClass(gridClassName: string): string {
   return gridClassName.replace(/\bgrid\b/g, '').replace(/\bgrid-cols-\d+\b/g, '').trim();
+}
+
+const COL_SPAN_CLASS: Record<number, string> = {
+  1: 'lg:col-span-1',
+  2: 'lg:col-span-2',
+  3: 'lg:col-span-3',
+  4: 'lg:col-span-4',
+  5: 'lg:col-span-5',
+  6: 'lg:col-span-6',
+  7: 'lg:col-span-7',
+  8: 'lg:col-span-8',
+  9: 'lg:col-span-9',
+  10: 'lg:col-span-10',
+  11: 'lg:col-span-11',
+  12: 'lg:col-span-12',
+};
+
+function colSpanClass(span: number): string {
+  const clamped = Math.min(12, Math.max(1, span));
+  return COL_SPAN_CLASS[clamped] ?? 'lg:col-span-6';
 }
 
 /** Desktop right column + mobile edge drawer for Hub detail layouts. */
@@ -46,28 +67,24 @@ export function HubPageRightPanelGrid({
   const { isMobile, drawerOpen, closeDrawer } = useHubMobileRightPanel();
   const showDesktopPanel = rightOpen && !isMobile;
   const gapClass = layoutGapClass(gridClassName);
-  const mainFr = parseLgColSpan(mainColClass, 7);
-  const asideFr = parseLgColSpan(asideColClass, 5);
+  const mainSpan = colSpanClass(parseLgColSpan(mainColClass, 7));
+  const asideSpan = colSpanClass(parseLgColSpan(asideColClass, 5));
+
+  const wrappedSidebar = <HubRightPanelAside panelId={panelId}>{sidebar}</HubRightPanelAside>;
 
   return (
     <>
       {showDesktopPanel ? (
         <div
-          className={`flex w-full min-w-0 max-w-full flex-col lg:flex-row lg:items-start ${gapClass}`.trim()}
+          className={`grid w-full min-w-0 max-w-full grid-cols-1 lg:grid-cols-12 ${gapClass}`.trim()}
         >
-          <div className="min-w-0 max-w-full overflow-hidden" style={{ flex: `${mainFr} 1 0%` }}>
-            {children}
-          </div>
-          <aside
-            id={panelId}
-            className="hidden min-w-0 max-w-full shrink-0 flex-col space-y-6 overflow-hidden lg:flex"
-            style={{ flex: `${asideFr} 1 0%` }}
-          >
-            {sidebar}
+          <div className={`min-w-0 max-w-full overflow-hidden ${mainSpan}`}>{children}</div>
+          <aside className={`hidden min-w-0 max-w-full overflow-hidden lg:block ${asideSpan}`}>
+            {wrappedSidebar}
           </aside>
         </div>
       ) : (
-        <div className={`w-full min-w-0 max-w-full ${gapClass}`.trim()}>{children}</div>
+        <div className={`w-full min-w-0 max-w-full overflow-hidden ${gapClass}`.trim()}>{children}</div>
       )}
 
       <HubMobileRightPanel
@@ -76,7 +93,7 @@ export function HubPageRightPanelGrid({
         onClose={closeDrawer}
         title={panelTitle}
       >
-        {sidebar}
+        {wrappedSidebar}
       </HubMobileRightPanel>
     </>
   );

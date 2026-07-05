@@ -22,6 +22,13 @@ export {
   collectStoreMediaCids,
   collectMagazineMediaCids,
 } from '@/lib/ipfs/cidUtils';
+export {
+  HUB_DELETE_FEE_KAS,
+  executeHubPaidDelete,
+  finalizeHubContentDelete,
+  buildHubDeletePlainNote,
+  getHubDeleteTreasuryAddress,
+} from '@/lib/hub/paidDelete';
 
 import { normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { requestIpfsUnpin } from '@/lib/ipfs/cidUtils';

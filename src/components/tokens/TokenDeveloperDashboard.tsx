@@ -15,6 +15,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 import { normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
+import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { Alert } from '@/components/Alert';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
@@ -89,10 +90,20 @@ export function TokenDeveloperDashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Remove this listing from your dashboard? The public page may still show until cache clears.')) {
+    const deleteFee = HUB_DELETE_FEE_KAS.tokens;
+    if (
+      !window.confirm(
+        `Remove this listing from your dashboard? A ${deleteFee} KAS fee applies. The public page may still show until cache clears.`,
+      )
+    ) {
       return;
     }
-    await removeListing(id);
+    try {
+      await removeListing(id);
+    } catch (e) {
+      setSuccessMessage(e instanceof Error ? e.message : 'Could not remove listing.');
+      window.setTimeout(() => setSuccessMessage(null), 8000);
+    }
   };
 
   const handleVerifyDeployer = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {

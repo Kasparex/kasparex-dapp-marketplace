@@ -53,8 +53,9 @@ import {
   syncHubContentItem,
   onHubContentVisibilityRefresh,
 } from '@/lib/hub/contentSync';
-import { markHubContentDeleted } from '@/lib/hub/deletedContent';
-import { collectTokenMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
+import { collectTokenMediaCids } from '@/lib/ipfs/cidUtils';
 
 export type CreateTokenListingInput = {
   symbol: string;
@@ -495,19 +496,30 @@ export function useTokens() {
   const removeListing = useCallback(
     async (id: string): Promise<boolean> => {
       const existing = getPublishedListingById(id);
-      markHubContentDeleted('tokens', id);
-      const ok = deletePublishedListing(id);
-      if (ok) {
-        const synced = await syncHubContentItem('tokens', 'delete', { id });
-        if (!synced) {
-          console.warn('[tokens] Local delete ok but hub registry sync failed.');
-        }
-        if (existing) void requestIpfsUnpin(collectTokenMediaCids(existing));
-        loadListings();
+      if (!existing) return false;
+      if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
+        throw new Error('Kaspa wallet must be connected to delete a token listing.');
       }
-      return ok;
+
+      const result = await executeHubPaidDelete({
+        kind: 'tokens',
+        id,
+        feeKas: HUB_DELETE_FEE_KAS.tokens,
+        treasuryAddress: getTokensTreasuryL1Address(),
+        payerProvider: kaspaState.provider as KaspaWalletProvider,
+        payerAddress: kaspaState.address,
+        mediaCids: collectTokenMediaCids(existing),
+        removeLocal: () => deletePublishedListing(id),
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error ?? 'Delete failed');
+      }
+
+      loadListings();
+      return true;
     },
-    [loadListings],
+    [kaspaState.address, kaspaState.isConnected, kaspaState.provider, loadListings],
   );
 
   const verifyDeployer = useCallback(

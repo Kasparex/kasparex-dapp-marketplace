@@ -2,8 +2,8 @@ import type { CharacterKind, ChronicleTimeline, VehicleKind } from '@/lib/chroni
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { mergeChroniclesSubmissions } from '@/lib/hub/contentMerge';
 import { syncHubContentItem } from '@/lib/hub/contentSync';
-import { markHubContentDeleted } from '@/lib/hub/deletedContent';
-import { collectChroniclesMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { finalizeHubContentDelete } from '@/lib/hub/paidDelete';
+import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
 
 export type ChroniclesContentKind = 'chapter' | 'article' | 'character' | 'location' | 'vehicle';
 
@@ -111,12 +111,30 @@ export function getCommunitySubmissionBySlug(slug: string): ChroniclesCommunityS
   return readAll().find((i) => i.slug === slug && i.status === 'active') ?? null;
 }
 
-export function archiveCommunitySubmission(id: string): void {
+export function getCommunitySubmissionById(id: string): ChroniclesCommunitySubmission | null {
+  return readAll().find((i) => i.id === id) ?? null;
+}
+
+/** Local archive only. Pair with executeHubPaidDelete from dashboards. */
+export function archiveCommunitySubmissionLocal(id: string): boolean {
   const existing = readAll().find((i) => i.id === id);
+  if (!existing) return false;
   writeAll(readAll().map((i) => (i.id === id ? { ...i, status: 'archived' as const } : i)));
-  markHubContentDeleted('chronicles', id);
-  void syncHubContentItem('chronicles', 'delete', { id });
-  if (existing) void requestIpfsUnpin(collectChroniclesMediaCids(existing));
+  return true;
+}
+
+/** @deprecated Use executeHubPaidDelete from UI. Kept for legacy callers. */
+export function archiveCommunitySubmission(id: string): boolean {
+  const existing = readAll().find((i) => i.id === id);
+  if (!existing) return false;
+  if (!archiveCommunitySubmissionLocal(id)) return false;
+  void finalizeHubContentDelete({
+    kind: 'chronicles',
+    id,
+    mediaCids: collectChroniclesMediaCids(existing),
+    removeLocal: () => true,
+  });
+  return true;
 }
 
 export function importRemoteChroniclesSubmissions(remote: ChroniclesCommunitySubmission[]): void {

@@ -16,14 +16,13 @@ import {
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
-  archiveDirectoryListing,
+  archiveDirectoryListingLocal,
   calculateDirectoryListingFeeKas,
   getDirectoryListingById,
   listingActionFeeLabel,
   type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
-import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
@@ -31,6 +30,9 @@ import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
 const TAB_LABELS: Record<DAppDashboardTab, string> = {
   overview: 'Overview',
@@ -147,7 +149,7 @@ function ListingRow({
               disabled={isDeleting}
               onClick={() => onDelete(item.id)}
               className="p-2 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
-              title={`Delete (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
+              title={`Delete (${HUB_DELETE_FEE_KAS.dapps} KAS)`}
               aria-label="Delete listing"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -166,7 +168,6 @@ export function DAppDashboardContent() {
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
   const { listings, refresh } = useDirectoryListings(state.address ?? undefined);
-  const { payActionFee } = useDAppListingPayment();
   const { tier: krexTier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
@@ -221,14 +222,19 @@ export function DAppDashboardContent() {
   const handleEdit = (id: string) => goTab('create', id);
 
   const handleDelete = async (id: string) => {
-    if (!state.address) return;
+    if (!state.address || !state.provider) {
+      setActionError('Connect your Kaspa wallet to delete a listing.');
+      return;
+    }
     const listing = getDirectoryListingById(id);
     if (!listing) return;
 
-    const feeLabel = listingActionFeeLabel(
-      listing.paymentCurrency,
-      calculateDirectoryListingFeeKas(DAPP_LISTING_ACTION_FEE_KAS, krexTier, nftStatus).effectiveKas,
-    );
+    const deleteFeeKas = calculateDirectoryListingFeeKas(
+      HUB_DELETE_FEE_KAS.dapps,
+      krexTier,
+      nftStatus,
+    ).effectiveKas;
+    const feeLabel = listingActionFeeLabel(listing.paymentCurrency, deleteFeeKas);
     if (
       !confirm(
         `Remove "${listing.name}" from the public directory? A ${feeLabel} fee applies.`,
@@ -240,14 +246,16 @@ export function DAppDashboardContent() {
     setDeletingId(id);
     setActionError(null);
     try {
-      const deleteFeeKas = calculateDirectoryListingFeeKas(
-        DAPP_LISTING_ACTION_FEE_KAS,
-        krexTier,
-        nftStatus,
-      ).effectiveKas;
-      await payActionFee(listing.paymentCurrency, deleteFeeKas);
-      const ok = archiveDirectoryListing(id, state.address);
-      if (!ok) throw new Error('Failed to remove listing');
+      const result = await executeHubPaidDelete({
+        kind: 'dapps',
+        id,
+        feeKas: deleteFeeKas,
+        payerProvider: state.provider as KaspaWalletProvider,
+        payerAddress: state.address,
+        mediaCids: collectDappMediaCids(listing),
+        removeLocal: () => archiveDirectoryListingLocal(id, state.address!),
+      });
+      if (!result.ok) throw new Error(result.error ?? 'Failed to remove listing');
       refresh();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to remove listing');

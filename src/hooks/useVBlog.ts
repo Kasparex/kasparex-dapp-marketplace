@@ -44,8 +44,8 @@ import {
   syncHubContentItem,
   onHubContentVisibilityRefresh,
 } from '@/lib/hub/contentSync';
-import { markHubContentDeleted } from '@/lib/hub/deletedContent';
-import { collectVblogMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { executeHubPaidDelete } from '@/lib/hub/paidDelete';
+import { collectVblogMediaCids } from '@/lib/ipfs/cidUtils';
 
 /**
  * Hook for managing vBlog data
@@ -465,29 +465,26 @@ export function useVBlog() {
     if (!kaspaState.isConnected || !kaspaState.provider || !kaspaState.address) {
       throw new Error('Kaspa wallet must be connected to delete an article.');
     }
-    const treasury = getVBlogTreasuryL1Address();
-    const note = buildVBlogDeletePlainNote(existing.articleId ?? articleId, kaspaState.address);
-    const payload = buildVBlogDeletePayloadHex(existing.articleId ?? articleId, kaspaState.address);
-    const tx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-      to: treasury,
-      amount: String(kasToSompi(VBLOG_DELETE_BASE_FEE_KAS)),
-      note,
-      payload,
+
+    const result = await executeHubPaidDelete({
+      kind: 'vblog',
+      id: articleId,
+      feeKas: VBLOG_DELETE_BASE_FEE_KAS,
+      treasuryAddress: getVBlogTreasuryL1Address(),
+      note: buildVBlogDeletePlainNote(existing.articleId ?? articleId, kaspaState.address),
+      payload: buildVBlogDeletePayloadHex(existing.articleId ?? articleId, kaspaState.address),
+      payerProvider: kaspaState.provider as KaspaWalletProvider,
+      payerAddress: kaspaState.address,
+      mediaCids: collectVblogMediaCids(existing),
+      removeLocal: () => deleteArticle(articleId),
     });
-    if (tx.status === 'failed' || !tx.txHash) {
-      throw new Error(tx.error ?? 'Delete transaction failed');
+
+    if (!result.ok) {
+      throw new Error(result.error ?? 'Delete failed');
     }
-    markHubContentDeleted('vblog', articleId);
-    const deleted = deleteArticle(articleId);
-    if (deleted) {
-      const synced = await syncHubContentItem('vblog', 'delete', { id: articleId });
-      if (!synced) {
-        console.warn('[vBlog] Local delete ok but hub registry sync failed. Content may reappear until server sync succeeds.');
-      }
-      void requestIpfsUnpin(collectVblogMediaCids(existing));
-      loadArticles();
-    }
-    return deleted;
+
+    loadArticles();
+    return true;
   }, [kaspaState.address, kaspaState.isConnected, kaspaState.provider, loadArticles]);
 
   return {

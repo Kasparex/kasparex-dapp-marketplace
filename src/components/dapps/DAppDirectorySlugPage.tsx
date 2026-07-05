@@ -57,7 +57,7 @@ export function DAppDirectorySlugPage({ slug }: DAppDirectorySlugPageProps) {
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           <DAppSidebar dapp={dapp} />
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
+          <div className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6 lg:px-16 lg:py-12">
             <DirectoryDAppDetail dapp={dapp} listing={listing} />
             <DAppFooter contractAddress="" />
           </div>

@@ -74,7 +74,7 @@ export function TokenAside({ token }: { token: Token }) {
   }
 
   return (
-    <aside id="kasparex-token-side-panel" className="space-y-4 lg:sticky lg:top-6 self-start">
+    <aside id="kasparex-token-side-panel" className="w-full min-w-0 max-w-full space-y-4 lg:sticky lg:top-6 self-start">
       <TokensBenefitsPanel variant="panel" />
 
       {sections.map((sec) => (

@@ -13,9 +13,9 @@ import {
 import type { Product, ProductRegistry, ProductRegistryEntry } from './types';
 import { demoProducts } from './demo-products';
 import { syncHubContentItem } from '@/lib/hub/contentSync';
-import { markHubContentDeleted } from '@/lib/hub/deletedContent';
+import { finalizeHubContentDelete } from '@/lib/hub/paidDelete';
 import { upsertHubStoreProduct, removeHubStoreProduct, getHubSyncedStoreProducts } from './hubSync';
-import { collectStoreMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
+import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
 
 function buildDemoProducts(): Product[] {
   // Deterministic IDs/slugs so routes remain stable across refreshes
@@ -294,23 +294,23 @@ export async function incrementProductPurchaseCount(
 }
 
 /**
- * Archive product
+ * Archive product on IPFS registry (local + remote). Pair with executeHubPaidDelete from dashboards.
  */
-export async function archiveProduct(
+export async function archiveProductLocal(
   productId: string,
   sellerAddress: string
-): Promise<boolean> {
+): Promise<{ ok: boolean; product?: Product }> {
   try {
     const registry = await fetchProductRegistry();
     if (!registry) {
-      return false;
+      return { ok: false };
     }
 
     const entry = registry.products.find(
       (p) => p.id === productId && p.sellerAddress.toLowerCase() === sellerAddress.toLowerCase()
     );
     if (!entry) {
-      return false;
+      return { ok: false };
     }
 
     entry.status = 'archived';
@@ -329,17 +329,36 @@ export async function archiveProduct(
     }
 
     if (product) {
-      markHubContentDeleted('store', productId);
       removeHubStoreProduct(productId);
-      void syncHubContentItem('store', 'delete', { id: productId });
-      void requestIpfsUnpin(collectStoreMediaCids(product));
     }
 
-    return !!registryCid;
+    return { ok: !!registryCid, product: product ?? undefined };
   } catch (error) {
     console.error('Failed to archive product:', error);
-    return false;
+    return { ok: false };
   }
+}
+
+/**
+ * Archive product
+ */
+export async function archiveProduct(
+  productId: string,
+  sellerAddress: string
+): Promise<boolean> {
+  const result = await archiveProductLocal(productId, sellerAddress);
+  if (!result.ok || !result.product) {
+    return result.ok;
+  }
+
+  void finalizeHubContentDelete({
+    kind: 'store',
+    id: productId,
+    mediaCids: collectStoreMediaCids(result.product),
+    removeLocal: () => true,
+  });
+
+  return true;
 }
 
 export type ProductUpdateInput = Partial<
