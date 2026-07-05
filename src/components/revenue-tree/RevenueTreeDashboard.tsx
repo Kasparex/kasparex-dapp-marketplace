@@ -12,6 +12,7 @@ import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 
 export interface RevenueTreeDashboardProps {
   /** Optional address to view as public profile. If not provided, shows connected wallet's dashboard. */
