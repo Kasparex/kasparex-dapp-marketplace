@@ -1361,14 +1361,25 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   }
 }
 
-/* RainbowKit connect / chain modals: centered overlay on all viewports */
-[data-rk] > div:has([role='dialog']) {
+/* RainbowKit connect / chain modals: role="dialog" is the full-viewport overlay */
+[data-rk] [role='dialog'] {
   position: fixed !important;
   inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   z-index: 100000 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  transform: none !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -1378,7 +1389,8 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
     max(0.75rem, env(safe-area-inset-left, 0px)) !important;
 }
 
-[data-rk] [role='dialog'] {
+/* Inner panel: FocusTrap uses role="document" */
+[data-rk] [role='dialog'] [role='document'] {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -1396,7 +1408,7 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   flex-direction: column !important;
 }
 
-[data-rk] [role='dialog'] > div {
+[data-rk] [role='dialog'] [role='document'] > div {
   max-height: min(calc(100dvh - 2rem), 640px) !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
@@ -1404,13 +1416,26 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
 }
 
 @media (max-width: 1023px) {
-  [data-rk] [role='dialog'] {
+  [data-rk] [role='dialog'] [role='document'] {
     width: min(100%, 400px) !important;
     max-height: min(calc(100dvh - 2rem), 560px) !important;
   }
 
-  [data-rk] [role='dialog'] > div {
+  [data-rk] [role='dialog'] [role='document'] > div {
     max-height: min(calc(100dvh - 2rem), 560px) !important;
+  }
+
+  /* Override RainbowKit mobile bottom-sheet offsets */
+  [data-rk] ._1ckjpok7 {
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+    top: auto !important;
+  }
+
+  [data-rk] ._1ckjpok2,
+  [data-rk] ._1ckjpok6 {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
