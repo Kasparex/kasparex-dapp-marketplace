@@ -44,7 +44,6 @@ import {
   syncHubContentItem,
   onHubContentVisibilityRefresh,
 } from '@/lib/hub/contentSync';
-import { executeHubPaidDelete } from '@/lib/hub/paidDelete';
 import { collectVblogMediaCids } from '@/lib/ipfs/cidUtils';
 
 /**
