@@ -94,7 +94,7 @@ export function SortFilters({ sortBy, onSortChange, favoritesCount = 0, viewMode
   const isFavoritesActive = sortBy === 'favorites';
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 kx-mobile-filter-sort-row">
       {onViewModeChange ? (
         <KxTabStrip
           value={viewMode}
