@@ -10,6 +10,8 @@ export interface HubProjectsMenuContentProps {
   onNavigate?: () => void;
   /** multi-column on desktop mega menu */
   columns?: 1 | 2 | 3 | 4;
+  /** When true, project names wrap instead of truncating (desktop mega menu). */
+  allowWrap?: boolean;
   className?: string;
 }
 
@@ -18,6 +20,7 @@ export function HubProjectsMenuContent({
   currentProject,
   onNavigate,
   columns = 1,
+  allowWrap = false,
   className = '',
 }: HubProjectsMenuContentProps) {
   const normalizedPath = pathname === '/' ? '/dapps' : pathname;
@@ -62,7 +65,7 @@ export function HubProjectsMenuContent({
               const content = (
                 <>
                   <ProjectIcon className="w-4 h-4 shrink-0 k-sidebar-icon text-zinc-500 dark:text-zinc-400" />
-                  <span className="flex-1 min-w-0 truncate font-medium">{project.name}</span>
+                  <span className={`flex-1 min-w-0 font-medium ${allowWrap ? 'leading-snug' : 'truncate'}`}>{project.name}</span>
                   {project.status !== 'available' ? <HubProjectStatusBadge status={project.status} /> : null}
                 </>
               );

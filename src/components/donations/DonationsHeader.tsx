@@ -2,12 +2,12 @@
 
 import { AdSlider } from '@/components/ads/AdSlider';
 import Link from 'next/link';
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 export function DonationsHeader() {
-  if (!SHOW_HUB_HALO_HEADERS) {
-    return (
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+  return (
+    <>
+      <div className={`mb-6 flex flex-wrap items-center gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>
         <Link href="/donations/studio#create" className="k-control-btn !border-emerald-500/30 !bg-emerald-500/10 !text-emerald-800 dark:!text-emerald-300">
           Create L2 campaign
         </Link>
@@ -27,11 +27,7 @@ export function DonationsHeader() {
           Open Studio
         </Link>
       </div>
-    );
-  }
-
-  return (
-    <div className="relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent">
+      <div className={`relative mb-12 py-12 px-6 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/40 dark:to-zinc-950 border border-zinc-200 dark:border-transparent ${HUB_HALO_DESKTOP_ONLY}`}>
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,#10b981,transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,#059669,transparent_50%)]" />
@@ -84,5 +80,6 @@ export function DonationsHeader() {
         </div>
       </div>
     </div>
+    </>
   );
 }

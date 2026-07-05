@@ -14,7 +14,7 @@ import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
 import { AdSlider } from '@/components/ads/AdSlider';
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
 
 function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -155,8 +155,7 @@ function GamesContent() {
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
           <div className="max-w-7xl mx-auto">
             {/* Hero - same structure as dApps/Magazines */}
-            {SHOW_HUB_HALO_HEADERS ? (
-            <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
+            <div className={`relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.15),transparent_70%)] rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.1),transparent_70%)] rounded-full blur-3xl" />
@@ -198,7 +197,6 @@ function GamesContent() {
                 </div>
               </div>
             </div>
-            ) : null}
             <div id="content" className="scroll-mt-4" />
 
             {/* Page Header - above Sorting area (dApps pattern) */}

@@ -26,7 +26,6 @@ import Link from 'next/link';
 import { hubProjects, type HubProject } from '@/lib/hubProjects';
 import { HeaderRewardsPointsLink } from '@/components/HeaderRewardsPointsLink';
 import { HubMegaMenu } from '@/components/hub/HubMegaMenu';
-import { HubProjectsMenuContent } from '@/components/hub/HubProjectsMenuContent';
 import { HubMenuSectionTitle } from '@/components/hub/hubMenuIcons';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
@@ -375,8 +374,26 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile: menu trigger */}
-        <div className="flex lg:hidden items-center pr-1">
+        {/* Mobile: theme + menu */}
+        <div className="flex lg:hidden items-center gap-1 pr-1">
+          <Tooltip content={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="k-control-icon-btn"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              {theme === 'dark' ? (
+                <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </Tooltip>
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
@@ -414,10 +431,10 @@ export function Header() {
                 <HubMenuSectionTitle>Wallets</HubMenuSectionTitle>
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2.5">
                   <div className="kx-mobile-wallet-stack space-y-2.5">
-                    <KaspaL1WalletButton />
                     <Suspense fallback={<div className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs w-full">Loading...</div>}>
                       <EVMWalletButton />
                     </Suspense>
+                    <KaspaL1WalletButton />
                   </div>
                 </div>
               </section>
@@ -426,7 +443,7 @@ export function Header() {
                 <HubMenuSectionTitle>Account & tools</HubMenuSectionTitle>
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-3">
                   <HeaderRewardsPointsLink />
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <div className="flex items-center justify-center">
                       <AdminLink />
                     </div>
@@ -468,38 +485,6 @@ export function Header() {
                         )}
                       </button>
                     </Tooltip>
-                    <Tooltip content={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
-                      <button
-                        type="button"
-                        onClick={toggleTheme}
-                        className="flex h-11 w-full items-center justify-center rounded-lg border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                      >
-                        {theme === 'dark' ? (
-                          <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        ) : (
-                          <svg className="h-5 w-5 text-zinc-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                          </svg>
-                        )}
-                      </button>
-                    </Tooltip>
-                  </div>
-                </div>
-              </section>
-
-              <section>
-                <HubMenuSectionTitle>Hub projects</HubMenuSectionTitle>
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-                  <div className="max-h-[40dvh] overflow-y-auto overscroll-contain p-2">
-                    <HubProjectsMenuContent
-                      pathname={pathname}
-                      currentProject={currentProject}
-                      onNavigate={() => setMobileMenuOpen(false)}
-                      columns={1}
-                    />
                   </div>
                 </div>
               </section>

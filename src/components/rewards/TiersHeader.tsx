@@ -1,14 +1,12 @@
 'use client';
 
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
 
 export function TiersHeader() {
-  if (!SHOW_HUB_HALO_HEADERS) return null;
-
   return (
     <div
       id="tiers-intro"
-      className="scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50"
+      className={`scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/60 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}
     >
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.16),transparent_70%)] rounded-full blur-3xl" />

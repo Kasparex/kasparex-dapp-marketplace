@@ -13,7 +13,7 @@ import {
   AdsListingFilterControls,
   type AdsSortOption,
 } from '@/components/ads/AdsListingFilterControls';
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
   const sorted = [...ads];
@@ -99,8 +99,25 @@ function AdsListingPageContent() {
   return (
     <>
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {SHOW_HUB_HALO_HEADERS ? (
-        <div className="relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/40 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
+        <div className={`mb-6 flex flex-wrap gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>
+          <button
+            type="button"
+            onClick={() => openCreateWizard()}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create ad
+          </button>
+          <Link
+            href="/ads/overview"
+            className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
+          >
+            How it works
+          </Link>
+        </div>
+        <div className={`relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/40 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/20 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.1),transparent_70%)] rounded-full blur-3xl" />
@@ -139,26 +156,6 @@ function AdsListingPageContent() {
             </div>
           </div>
         </div>
-        ) : (
-          <div className="mb-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => openCreateWizard()}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create ad
-            </button>
-            <Link
-              href="/ads/overview"
-              className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-            >
-              How it works
-            </Link>
-          </div>
-        )}
 
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { hubProjects, type HubProject } from '@/lib/hubProjects';
+import type { HubProject } from '@/lib/hubProjects';
 import { HubProjectsMenuContent } from '@/components/hub/HubProjectsMenuContent';
 import { HubProjectStatusBadge } from '@/components/hub/hubMenuIcons';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -48,7 +48,7 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
         position: 'fixed',
         top: rect.bottom + 8,
         left: rect.left,
-        width: 'min(calc(100vw - 2rem), 920px)',
+        width: 'min(calc(100vw - 2rem), 1080px)',
         zIndex: 101,
       });
     };
@@ -100,7 +100,8 @@ export function HubMegaMenu({ currentSectionTitle, currentProject, pathname }: H
             pathname={pathname}
             currentProject={currentProject}
             onNavigate={() => setOpen(false)}
-            columns={isMobile ? 1 : 4}
+            columns={isMobile ? 1 : 3}
+            allowWrap
           />
         </div>
       </div>

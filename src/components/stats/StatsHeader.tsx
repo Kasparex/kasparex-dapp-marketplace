@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { AdSlider } from '@/components/ads/AdSlider';
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 export function StatsHeader({
   badge = 'Ecosystem Analytics',
@@ -15,12 +15,10 @@ export function StatsHeader({
   description: string;
   actions?: ReactNode;
 }) {
-  if (!SHOW_HUB_HALO_HEADERS) {
-    return actions ? <div className="mb-6 flex flex-wrap gap-3">{actions}</div> : null;
-  }
-
   return (
-    <div className="scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50">
+    <>
+      {actions ? <div className={`mb-6 flex flex-wrap gap-3 ${HUB_HALO_MOBILE_FALLBACK}`}>{actions}</div> : null}
+      <div className={`scroll-mt-24 relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)] rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.12),transparent_70%)] rounded-full blur-3xl" />
@@ -58,5 +56,6 @@ export function StatsHeader({
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -7,7 +7,7 @@ import { AdSlider } from '@/components/ads/AdSlider';
 import { ProtocolFamilyCard } from '@/components/protocols/ProtocolFamilyCard';
 import { ProtocolsIndexSidebar } from '@/components/protocols/ProtocolsIndexSidebar';
 import { PROTOCOL_FAMILIES } from '@/lib/protocolFamilies';
-import { SHOW_HUB_HALO_HEADERS } from '@/lib/hub/haloHeaders';
+import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 export function ProtocolsHomeContent() {
   return (
@@ -18,8 +18,21 @@ export function ProtocolsHomeContent() {
 
         <div className="relative min-w-0 flex-1 border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
           <div className="mx-auto max-w-7xl">
-            {SHOW_HUB_HALO_HEADERS ? (
-            <div className="relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950">
+            <div className={`mb-6 flex flex-wrap gap-4 ${HUB_HALO_MOBILE_FALLBACK}`}>
+              <a
+                href="#protocol-families"
+                className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:from-cyan-700 hover:to-teal-700"
+              >
+                Browse families
+              </a>
+              <Link
+                href="/protocols/kpx#tools"
+                className="rounded-xl border border-zinc-300 px-6 py-2.5 text-sm font-bold text-zinc-800 transition-colors hover:border-[#02abb8]/50 hover:text-[#02abb8] dark:border-zinc-600 dark:text-zinc-100 dark:hover:border-[#02abb8]/40"
+              >
+                KPX tools
+              </Link>
+            </div>
+            <div className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}>
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute right-0 top-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.12),transparent_70%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(6,182,212,0.16),transparent_70%)]" />
                 <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.09),transparent_70%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(34,211,238,0.12),transparent_70%)]" />
@@ -76,22 +89,6 @@ export function ProtocolsHomeContent() {
                 </div>
               </div>
             </div>
-            ) : (
-              <div className="mb-6 flex flex-wrap gap-4">
-                <a
-                  href="#protocol-families"
-                  className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:from-cyan-700 hover:to-teal-700"
-                >
-                  Browse families
-                </a>
-                <Link
-                  href="/protocols/kpx#tools"
-                  className="rounded-xl border border-zinc-300 px-6 py-2.5 text-sm font-bold text-zinc-800 transition-colors hover:border-[#02abb8]/50 hover:text-[#02abb8] dark:border-zinc-600 dark:text-zinc-100 dark:hover:border-[#02abb8]/40"
-                >
-                  KPX tools
-                </Link>
-              </div>
-            )}
 
             <div id="protocol-families" className="scroll-mt-24">
               <h2 className="mb-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Protocol families</h2>
