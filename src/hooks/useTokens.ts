@@ -24,7 +24,6 @@ import type { TokenListingNetwork } from '@/lib/tokens/listingNetwork';
 import { listingNetworkToTokenNetwork } from '@/lib/tokens/listingNetwork';
 import type { TokenPageSectionType } from '@/lib/tokens/listingRecord';
 import {
-import {
   createPublishedListing,
   createSeedClaimListing,
   getAllPublishedListings,
