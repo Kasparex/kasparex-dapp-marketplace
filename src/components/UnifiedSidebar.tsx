@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
-import { useMobileEdgeSwipe } from '@/hooks/useMobileEdgeSwipe';
+import { useRegisterMobileLeftDrawerSwipe } from '@/hooks/useRegisterMobileDrawerSwipe';
 
 export interface UnifiedSidebarProps {
   /** Prefix for localStorage keys: {prefix}-sidebar-hidden, {prefix}-sidebar-width */
@@ -68,14 +68,12 @@ export function UnifiedSidebar({
 
   useBodyScrollLock(isOpen && isMobile);
 
-  useMobileEdgeSwipe({
+  useRegisterMobileLeftDrawerSwipe({
     enabled: isMobile,
-    leftOpen: isOpen,
-    onOpenLeft: () => {
-      if (document.querySelector('[data-kx-right-drawer="open"]')) return;
-      setOpen(true);
-    },
-    onCloseLeft: () => setOpen(false),
+    isOpen,
+    onOpen: () => setOpen(true),
+    onClose: () => setOpen(false),
+    canOpen: () => !document.querySelector('[data-kx-right-drawer="open"]'),
   });
 
   const hiddenKey = `${storageKeyPrefix}-sidebar-hidden`;

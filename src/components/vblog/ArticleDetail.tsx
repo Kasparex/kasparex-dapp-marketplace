@@ -383,7 +383,7 @@ export function ArticleDetail({
   };
 
   return (
-    <article className="max-w-6xl mx-auto font-sans">
+    <article className="w-full min-w-0 max-w-6xl mx-auto font-sans">
       <div id="article-header" className="relative mb-10 rounded-2xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-900/45 border border-zinc-200 dark:border-zinc-800 select-text">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
 

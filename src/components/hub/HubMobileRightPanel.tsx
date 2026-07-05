@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
-import { useMobileEdgeSwipe } from '@/hooks/useMobileEdgeSwipe';
+import { useRegisterMobileRightDrawerSwipe } from '@/hooks/useRegisterMobileDrawerSwipe';
 import type { ReactNode } from 'react';
 
 export interface HubMobileRightPanelProps {
@@ -87,14 +87,12 @@ export function useHubMobileRightPanel(options?: { swipeEnabled?: boolean }) {
     if (!isMobile) setDrawerOpen(false);
   }, [isMobile]);
 
-  useMobileEdgeSwipe({
+  useRegisterMobileRightDrawerSwipe({
     enabled: isMobile && swipeEnabled,
-    rightOpen: drawerOpen,
-    onOpenRight: () => {
-      if (document.querySelector('[data-kx-left-sidebar][data-open="open"]')) return;
-      setDrawerOpen(true);
-    },
-    onCloseRight: () => setDrawerOpen(false),
+    isOpen: drawerOpen,
+    onOpen: () => setDrawerOpen(true),
+    onClose: () => setDrawerOpen(false),
+    canOpen: () => !document.querySelector('[data-kx-left-sidebar][data-open="open"]'),
   });
 
   return {

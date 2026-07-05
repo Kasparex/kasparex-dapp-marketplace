@@ -100,7 +100,7 @@ function VBlogPageInner() {
             activeView="explore"
           />
 
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto overflow-x-hidden border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
             <div className="max-w-7xl mx-auto">
               <VBlogHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 

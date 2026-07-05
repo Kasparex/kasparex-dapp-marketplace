@@ -39,14 +39,18 @@ export function HubPageRightPanelGrid({
 
   return (
     <>
-      <div className={`${gridClassName} ${showDesktopPanel ? 'lg:grid-cols-12' : ''}`}>
-        <div className={`min-w-0 ${showDesktopPanel ? mainColClass : 'lg:col-span-12'}`}>{children}</div>
+      <div
+        className={`w-full min-w-0 max-w-full ${gridClassName} ${showDesktopPanel ? 'lg:grid-cols-12' : ''}`}
+      >
+        <div className={`min-w-0 max-w-full ${showDesktopPanel ? mainColClass : 'lg:col-span-12'}`}>
+          {children}
+        </div>
         {showDesktopPanel ? (
           <aside
             id={panelId}
-            className={`hidden lg:flex min-w-0 max-w-full flex-col space-y-6 ${asideColClass}`}
+            className={`kx-hub-right-panel-aside hidden lg:flex min-w-0 w-full max-w-full flex-col ${asideColClass}`}
           >
-            {sidebar}
+            <div className="kx-hub-right-panel-scroll space-y-6">{sidebar}</div>
           </aside>
         ) : null}
       </div>

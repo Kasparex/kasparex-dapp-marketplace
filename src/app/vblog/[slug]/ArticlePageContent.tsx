@@ -110,7 +110,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
               { id: 'article-comments', label: 'Comments', count: commentCount > 0 ? commentCount : undefined, icon: <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8m-8 4h6M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4-.8L3 20l1.3-3.9A7.4 7.4 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> },
             ]}
           />
-          <div className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
+          <div className="flex-1 w-full min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto overflow-x-hidden bg-white dark:bg-zinc-950 text-base sm:text-[17px] border-l border-zinc-200 dark:border-zinc-800">
             <div className="w-full max-w-5xl mx-auto font-sans">
               <nav className="flex items-center gap-2 text-sm text-zinc-500 font-medium mb-8">
                 <Link href="/vblog" className="hover:text-[#02abb8] transition-colors">Articles</Link>

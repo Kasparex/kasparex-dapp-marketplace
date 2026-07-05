@@ -1415,3 +1415,28 @@ html:not(.dark) .kx-quill-editor .ql-editor a {
   width: 100%;
   justify-content: center;
 }
+
+/* Desktop hub right column: stay inside viewport, scroll internally */
+.kx-hub-right-panel-aside {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.kx-hub-right-panel-scroll {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+  .kx-hub-right-panel-scroll {
+    position: sticky;
+    top: 6rem;
+    max-height: calc(100dvh - 6.5rem);
+  }
+}

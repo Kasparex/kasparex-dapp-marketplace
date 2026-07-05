@@ -139,7 +139,7 @@ export function TokenDetail({
   };
 
   return (
-    <article className="mx-auto max-w-6xl font-sans">
+    <article className="w-full min-w-0 mx-auto max-w-6xl font-sans">
       <TokenPageHeader token={token} />
 
       <div className="flex w-full min-w-0 flex-col gap-6">
