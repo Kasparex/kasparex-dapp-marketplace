@@ -24,6 +24,8 @@ import { FilterBar } from '@/components/FilterBar';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
 const validCategories = categories.map((cat) => cat.id);
 
@@ -163,8 +165,8 @@ export function DAppsHomeContent() {
           />
         </div>
 
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
-          <div className="max-w-7xl mx-auto">
+        <div className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             <div className={`mb-6 ${HUB_HALO_MOBILE_FALLBACK}`}>
               <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
             </div>
@@ -214,17 +216,12 @@ export function DAppsHomeContent() {
 
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                  Available dApps
-                </h2>
-                <p className="kx-body">
-                  {filteredDApps.length} dApp{filteredDApps.length !== 1 ? 's' : ''} found
-                </p>
-              </div>
-              <VBlogDashboardBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
-            </div>
+            <HubListingTitleRow
+              title="Available dApps"
+              count={filteredDApps.length}
+              countLabel="dApp"
+              benefits={<VBlogDashboardBenefitsPanel variant="compact" className="w-full" />}
+            />
 
             <div className="flex flex-col gap-4 mb-6">
               <FilterBar

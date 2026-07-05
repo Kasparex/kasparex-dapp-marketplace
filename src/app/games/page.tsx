@@ -15,6 +15,10 @@ import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { GameListingFiltersBar } from '@/components/games/GameListingFiltersBar';
 
 function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -152,8 +156,8 @@ function GamesContent() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 relative">
-          <div className="max-w-7xl mx-auto">
+        <div className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             {/* Hero - same structure as dApps/Magazines */}
             <div className={`relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
               <div className="absolute inset-0 overflow-hidden">
@@ -199,22 +203,27 @@ function GamesContent() {
             </div>
             <div id="content" className="scroll-mt-4" />
 
-            {/* Page Header - above Sorting area (dApps pattern) */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                Available games
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''} found
-              </p>
-            </div>
+            <HubListingTitleRow
+              title="Available games"
+              count={filteredGames.length}
+              countLabel="game"
+              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            />
 
-            {/* Controls Area - single row via FilterBar */}
             <div className="flex flex-col gap-4 mb-6">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search games...' }}
                 onReset={handleResetFilters}
+                flexWrap
               >
+                <GameListingFiltersBar
+                  selectedGameTypes={selectedGameTypes}
+                  onGameTypeChange={setSelectedGameTypes}
+                  selectedDifficulties={selectedDifficulties}
+                  onDifficultyChange={setSelectedDifficulties}
+                  selectedStatuses={selectedStatuses}
+                  onStatusChange={setSelectedStatuses}
+                />
                 <GameSortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}
@@ -248,7 +257,7 @@ function GamesContent() {
 
 export default function GamesPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
       <Suspense fallback={
         <div className="flex flex-col min-h-screen">
           <Header />

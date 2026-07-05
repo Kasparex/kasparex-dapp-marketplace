@@ -28,6 +28,8 @@ import { useRewardsClaimVaultPoolBalances } from '@/hooks/useRewardsClaimVaultPo
 import { readMinecorePoolAndDailyHeadroom } from '@/lib/game/minecore/read-pool-daily-headroom';
 import { RewardsEarnSourcesTable } from '@/components/rewards/RewardsEarnSourcesTable';
 import { RewardsHistoryTable } from '@/components/rewards/RewardsHistoryTable';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 function normKaspa(a: string): string {
   try {
@@ -546,6 +548,12 @@ export function RewardsPageContent() {
 
       {hubTab === 'catalog' ? (
         <>
+          <HubListingTitleRow
+            title="Available rewards"
+            count={filtered.length}
+            countLabel="offer"
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
           <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
             <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">
               <FilterBar

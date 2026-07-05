@@ -1,36 +1,108 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { ProtocolFamilyCard } from '@/components/protocols/ProtocolFamilyCard';
 import { ProtocolsIndexSidebar } from '@/components/protocols/ProtocolsIndexSidebar';
-import { PROTOCOL_FAMILIES } from '@/lib/protocolFamilies';
+import { FilterBar } from '@/components/FilterBar';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
+import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { PROTOCOL_FAMILIES, type ProtocolFamily, type ProtocolFamilyStatus } from '@/lib/protocolFamilies';
+
+type ProtocolStatusFilter = 'all' | ProtocolFamilyStatus;
+type ProtocolSortOption = 'default' | 'alphabetical-az' | 'alphabetical-za' | 'status';
+
+const STATUS_TABS = [
+  { value: 'all' as const, label: 'All', title: 'All protocol families' },
+  { value: 'live' as const, label: 'Live', title: 'Live protocols' },
+  { value: 'preview' as const, label: 'Preview', title: 'Preview protocols' },
+  { value: 'planned' as const, label: 'Planned', title: 'Planned protocols' },
+];
+
+const SORT_OPTIONS = [
+  { value: 'default' as const, label: 'Default order' },
+  { value: 'alphabetical-az' as const, label: 'Alphabetical (A-Z)' },
+  { value: 'alphabetical-za' as const, label: 'Alphabetical (Z-A)' },
+  { value: 'status' as const, label: 'By status' },
+];
+
+function filterAndSortFamilies(
+  families: ProtocolFamily[],
+  statusFilter: ProtocolStatusFilter,
+  searchQuery: string,
+  sortBy: ProtocolSortOption,
+): ProtocolFamily[] {
+  let list = [...families];
+  if (statusFilter !== 'all') {
+    list = list.filter((f) => f.status === statusFilter);
+  }
+  if (searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase();
+    list = list.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        f.shortLabel.toLowerCase().includes(q) ||
+        f.description.toLowerCase().includes(q) ||
+        f.slug.toLowerCase().includes(q),
+    );
+  }
+  switch (sortBy) {
+    case 'alphabetical-az':
+      list.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'alphabetical-za':
+      list.sort((a, b) => b.name.localeCompare(a.name));
+      break;
+    case 'status': {
+      const order: Record<ProtocolFamilyStatus, number> = { live: 0, preview: 1, planned: 2 };
+      list.sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+      break;
+    }
+    default:
+      break;
+  }
+  return list;
+}
 
 export function ProtocolsHomeContent() {
+  const [statusFilter, setStatusFilter] = useState<ProtocolStatusFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<ProtocolSortOption>('default');
+
+  const filteredFamilies = useMemo(
+    () => filterAndSortFamilies(PROTOCOL_FAMILIES, statusFilter, searchQuery, sortBy),
+    [statusFilter, searchQuery, sortBy],
+  );
+
+  const handleResetFilters = () => {
+    setStatusFilter('all');
+    setSearchQuery('');
+    setSortBy('default');
+  };
+
   return (
     <>
       <Header />
-      <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col bg-zinc-50 dark:bg-zinc-950 lg:flex-row">
+      <main className={`flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row ${HUB_PAGE_BG}`}>
         <ProtocolsIndexSidebar />
 
-        <div className="relative min-w-0 flex-1 border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800">
-          <div className="mx-auto max-w-7xl">
+        <div className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             <div className={`mb-6 flex flex-wrap gap-4 ${HUB_HALO_MOBILE_FALLBACK}`}>
-              <a
-                href="#protocol-families"
-                className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:from-cyan-700 hover:to-teal-700"
-              >
-                Browse families
-              </a>
-              <Link
-                href="/protocols/kpx#tools"
-                className="rounded-xl border border-zinc-300 px-6 py-2.5 text-sm font-bold text-zinc-800 transition-colors hover:border-[#02abb8]/50 hover:text-[#02abb8] dark:border-zinc-600 dark:text-zinc-100 dark:hover:border-[#02abb8]/40"
-              >
-                KPX tools
-              </Link>
+              <KxTabStrip
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={STATUS_TABS.map((t) => ({ value: t.value, label: t.label, title: t.title }))}
+                ariaLabel="Protocol status"
+                scrollable
+              />
             </div>
             <div className={`relative mb-10 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-cyan-950/25 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}>
               <div className="absolute inset-0 overflow-hidden">
@@ -57,20 +129,13 @@ export function ProtocolsHomeContent() {
                     Pick a protocol family to open its hub: tools you can run today, HTTP APIs, use cases, and docs - starting with{' '}
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">kpx</span> on Kaspa.
                   </p>
-                  <div className="flex flex-wrap gap-4">
-                    <a
-                      href="#protocol-families"
-                      className="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:from-cyan-700 hover:to-teal-700"
-                    >
-                      Browse families
-                    </a>
-                    <Link
-                      href="/protocols/kpx#tools"
-                      className="rounded-xl border border-zinc-300 px-6 py-2.5 text-sm font-bold text-zinc-800 transition-colors hover:border-[#02abb8]/50 hover:text-[#02abb8] dark:border-zinc-600 dark:text-zinc-100 dark:hover:border-[#02abb8]/40"
-                    >
-                      KPX tools
-                    </Link>
-                  </div>
+                  <KxTabStrip
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                    options={STATUS_TABS.map((t) => ({ value: t.value, label: t.label, title: t.title }))}
+                    ariaLabel="Protocol status"
+                    scrollable
+                  />
                 </div>
                 <div className="relative hidden w-[280px] shrink-0 items-center justify-center lg:flex">
                   <div className="pointer-events-none relative opacity-90">
@@ -90,16 +155,47 @@ export function ProtocolsHomeContent() {
               </div>
             </div>
 
-            <div id="protocol-families" className="scroll-mt-24">
-              <h2 className="mb-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Protocol families</h2>
-              <p className="mb-6 kx-body">
-                Each card opens a dedicated page for that protocol (tools, APIs, use cases, and documentation).
-              </p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {PROTOCOL_FAMILIES.map((family) => (
-                  <ProtocolFamilyCard key={family.slug} family={family} />
-                ))}
-              </div>
+            <div id="protocol-families" className="scroll-mt-24" />
+
+            <HubListingTitleRow
+              title="Available protocol families"
+              count={filteredFamilies.length}
+              countLabel="family"
+              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            />
+
+            <div className="mb-6 flex flex-col gap-4">
+              <FilterBar
+                search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search protocols...' }}
+                onReset={handleResetFilters}
+                flexWrap
+              >
+                <KxFilterDropdown
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={SORT_OPTIONS}
+                  ariaLabel="Sort protocol families"
+                />
+              </FilterBar>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredFamilies.map((family) => (
+                <ProtocolFamilyCard key={family.slug} family={family} />
+              ))}
+            </div>
+
+            {filteredFamilies.length === 0 ? (
+              <p className="py-12 text-center kx-body">No protocol families match your filters.</p>
+            ) : null}
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/protocols/kpx#tools"
+                className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300"
+              >
+                KPX tools
+              </Link>
             </div>
           </div>
         </div>

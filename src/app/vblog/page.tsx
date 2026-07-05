@@ -25,6 +25,7 @@ import {
   type VBlogSortOption,
 } from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
 export default function VBlogPage() {
   return (
@@ -106,21 +107,12 @@ function VBlogPageInner() {
 
               <div id="content" className="scroll-mt-4" />
 
-              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 flex items-stretch gap-5">
-                  <span
-                    className="w-1 shrink-0 self-stretch rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
-                    aria-hidden="true"
-                  />
-                  <div className="min-w-0">
-                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight">Available articles</h2>
-                    <p className="kx-body">
-                      {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''} found
-                    </p>
-                  </div>
-                </div>
-                <VBlogDashboardBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
-              </div>
+              <HubListingTitleRow
+                title="Available articles"
+                count={filteredArticles.length}
+                countLabel="article"
+                benefits={<VBlogDashboardBenefitsPanel variant="compact" className="w-full" />}
+              />
 
               <div className="flex flex-col gap-4 mb-6">
                 <FilterBar

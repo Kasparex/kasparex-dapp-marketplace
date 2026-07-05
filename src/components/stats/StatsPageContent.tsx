@@ -4,6 +4,8 @@ import { useChainId } from 'wagmi';
 import { TreasuryBox } from '@/components/treasury/TreasuryBox';
 import { StatsCard } from '@/components/stats/StatsCard';
 import { STATS_PANEL } from '@/lib/stats/statsUi';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import {
   CONTRACT_KEYS,
   getContractsWithAddress,
@@ -20,12 +22,12 @@ export function StatsPageContent() {
 
   return (
     <section className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Overview</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Treasury and ecosystem metrics at a glance.
-        </p>
-      </div>
+      <HubListingTitleRow
+        title="Available metrics"
+        count={5}
+        countLabel="overview panel"
+        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className={`${STATS_PANEL} p-5 flex items-center justify-center min-h-[100px]`}>

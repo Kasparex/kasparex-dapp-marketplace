@@ -11,6 +11,9 @@ import { FilterBar } from '@/components/FilterBar';
 import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
 import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
+import { HUB_MAIN_COLUMN, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 export default function MagazinesPage() {
     const [magazines, setMagazines] = useState<Magazine[]>([]);
@@ -106,7 +109,7 @@ export default function MagazinesPage() {
     }, [magazines, selectedCategory, searchQuery, sortBy]);
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
             <Header />
 
             <div className="flex flex-1">
@@ -121,21 +124,22 @@ export default function MagazinesPage() {
                     onTagToggle={handleTagToggle}
                 />
 
-                <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
-                    <div className="w-full">
+                <main className={HUB_MAIN_COLUMN}>
+                    <div className="max-w-7xl mx-auto">
                         <div className="mb-12">
                             <MagazineHeader />
                         </div>
 
-                        {/* Page Header - above Sorting area (dApps pattern) */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-                                Available magazines
-                            </h2>
-                            <p className="kx-body">
-                                {filteredMagazines.length} magazine{filteredMagazines.length !== 1 ? 's' : ''} found
-                            </p>
-                        </div>
+                        <div id="content" className="scroll-mt-4" />
+
+                        <HubListingTitleRow
+                            title="Available magazines"
+                            count={filteredMagazines.length}
+                            countLabel="magazine"
+                            countLoading={isLoading}
+                            loadingText="Loading magazines..."
+                            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+                        />
 
                         {/* Controls Area - FilterBar (dApps pattern) */}
                         <div className="flex flex-col gap-4 mb-8">

@@ -99,21 +99,7 @@ export function GameCard({ game }: GameCardProps) {
         </div>
 
         <div className="mt-auto space-y-3">
-          <div className="pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">Entry Cost</span>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {game.entryCostKAS}
-                  </span>
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">KAS</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center justify-between gap-2 flex-wrap pt-3 border-t border-zinc-200/50 dark:border-zinc-800/50">
             <div className="px-3 py-1.5 text-sm font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300">
               <span className="mr-1.5 inline-flex align-middle text-zinc-500 dark:text-zinc-400">
                 <GameTypeIcon type={game.gameType} className="h-4 w-4" />

@@ -12,6 +12,8 @@ import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { FilterBar } from '@/components/FilterBar';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 export type ProductViewMode = 'grid' | 'compact' | 'table';
 
@@ -85,14 +87,16 @@ export default function StorePage() {
     >
       <StoreHeader />
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Available products</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {isLoading
-            ? 'Loading products...'
-            : `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length !== 1 ? 's' : ''} found`}
-        </p>
-      </div>
+      <div id="content" className="scroll-mt-4" />
+
+      <HubListingTitleRow
+        title="Available products"
+        count={filteredAndSortedProducts.length}
+        countLabel="product"
+        countLoading={isLoading}
+        loadingText="Loading products..."
+        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+      />
 
       <div className="flex flex-col gap-4 mb-8">
         <FilterBar

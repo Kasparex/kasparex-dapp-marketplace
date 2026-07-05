@@ -20,6 +20,8 @@ import { KxBadge } from '@/components/ui/KxBadge';
 import { chronicleTimelineBadgeVariant, chronicleTagBadgeVariant } from '@/lib/chronicles/chronicleTagBadge';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { communityChapterToMeta } from '@/lib/chronicles/communityAdapters';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 const timelines: { id: ChronicleTimeline; label: string }[] = [
   { id: 'past', label: 'Past' },
@@ -97,13 +99,12 @@ export function ChaptersListing({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{title}</h2>
-        <p className="kx-body">
-          {filtered.length} {countLabel}
-          {filtered.length !== 1 ? 's' : ''} found
-        </p>
-      </div>
+      <HubListingTitleRow
+        title={title === 'Chapters' ? 'Available chapters' : title}
+        count={filtered.length}
+        countLabel={countLabel}
+        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+      />
 
       <div className="flex flex-col gap-4 mb-6">
         <FilterBar

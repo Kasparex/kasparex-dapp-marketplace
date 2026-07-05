@@ -38,6 +38,7 @@ import type { TokenNetworkFilter } from '@/lib/tokens/networks';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 import { useTokens } from '@/hooks/useTokens';
 import { TOKEN_LISTING_VOTES_CHANGED_EVENT } from '@/lib/tokens/votes';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
 interface TokensPageContentProps {
   tokens: Token[];
@@ -163,24 +164,13 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
 
             <div id="content" className="scroll-mt-4" />
 
-            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex items-stretch gap-5">
-                <span
-                  className="w-1 shrink-0 self-stretch rounded-full shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
-                  style={{ backgroundColor: TOKENS_ACCENT }}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight">
-                    Available tokens
-                  </h2>
-                  <p className="kx-body">
-                    {filteredAndSortedTokens.length} token{filteredAndSortedTokens.length !== 1 ? 's' : ''} found
-                  </p>
-                </div>
-              </div>
-              <TokensBenefitsPanel variant="compact" className="w-full sm:w-auto sm:max-w-[min(100%,42rem)]" />
-            </div>
+            <HubListingTitleRow
+              title="Available tokens"
+              count={filteredAndSortedTokens.length}
+              countLabel="token"
+              accentColor={TOKENS_ACCENT}
+              benefits={<TokensBenefitsPanel variant="compact" className="w-full" />}
+            />
 
             <div className="flex flex-col gap-4 mb-6">
               <FilterBar

@@ -17,6 +17,9 @@ import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCr
 import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { totalRaisedWei } from '@/lib/donations/totals';
 import { filterCovenantCampaigns, covenantStatusCounts } from '@/lib/donations/covenantCrowdfund';
@@ -190,7 +193,7 @@ export default function DonationsListingPage() {
   }, [campaigns, metaByCreator]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
+    <div className={`min-h-screen flex flex-col ${HUB_PAGE_BG}`}>
       <Header />
       <div className="flex flex-1">
         <div className="hidden lg:block flex-shrink-0">
@@ -207,21 +210,18 @@ export default function DonationsListingPage() {
             statusCounts={statusCounts}
           />
         </div>
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             <DonationsHeader />
             <div id="content" className="scroll-mt-4" />
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">Campaigns</h2>
-              <p className="kx-body">
-                {isLoading
-                  ? 'Loading...'
-                  : `${totalVisible} campaign${totalVisible !== 1 ? 's' : ''} found`}
-                {!isLoading && filteredCovenantCampaigns.length > 0 ? (
-                  <span className="text-zinc-500"> · includes L1 covenant simulator campaigns on this device</span>
-                ) : null}
-              </p>
-            </div>
+            <HubListingTitleRow
+              title="Available campaigns"
+              count={totalVisible}
+              countLabel="campaign"
+              countLoading={isLoading}
+              loadingText="Loading campaigns..."
+              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            />
             <div className="flex flex-col gap-4 mb-6">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search campaigns...' }}

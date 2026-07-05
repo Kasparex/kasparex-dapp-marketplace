@@ -35,6 +35,7 @@ import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { ProfileTransactionsTab } from '@/components/profile/ProfileTransactionsTab';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 // heavy editors are opened as dedicated routes; keep Profile Hub lightweight
 
 /** Readable short form for an EVM address, e.g. 0x1234…abcd. */
@@ -295,7 +296,7 @@ export function ProfileHubContent({
   }, [searchParams, router, hrefTab]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
       <Header />
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
@@ -398,8 +399,8 @@ export function ProfileHubContent({
           </UnifiedSidebar>
 
           {/* Main content */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-            <div className="max-w-7xl mx-auto">
+          <div className={HUB_MAIN_COLUMN}>
+            <div className={HUB_MAIN_INNER}>
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <ProfileHaloHeader
                   displayName={displayName}

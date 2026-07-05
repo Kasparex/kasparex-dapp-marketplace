@@ -10,6 +10,9 @@ import { FilterBar } from '@/components/FilterBar';
 import { PLACEHOLDER_AI_AGENTS, filterAgentsByTab } from '@/lib/ai/agents';
 import { AI_LISTING_TABS } from '@/lib/ai/tabs';
 import type { AiHubSection, AiListingTab } from '@/lib/ai/types';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 export default function KasparexAiPage() {
   const [activeSection, setActiveSection] = useState<AiHubSection>('agents');
@@ -34,30 +37,25 @@ export default function KasparexAiPage() {
 
       {showAgentListing ? (
         <>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">AI agents</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {filteredAgents.length} agent{filteredAgents.length !== 1 ? 's' : ''} in catalog (layout preview)
-            </p>
-          </div>
+          <HubListingTitleRow
+            title="Available AI agents"
+            count={filteredAgents.length}
+            countLabel="agent"
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
 
           <div className="mb-6 flex flex-col gap-4">
-            <div className="flex items-center gap-1 p-1 k-control-group w-full overflow-x-auto flex-nowrap">
-              {AI_LISTING_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
-                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            <KxTabStrip
+              value={activeTab}
+              onChange={setActiveTab}
+              options={AI_LISTING_TABS.map((tab) => ({
+                value: tab.id,
+                label: tab.label,
+                title: tab.label,
+              }))}
+              ariaLabel="AI agent category"
+              scrollable
+            />
 
             <FilterBar
               search={{

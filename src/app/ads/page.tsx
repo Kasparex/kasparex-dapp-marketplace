@@ -13,6 +13,9 @@ import {
   AdsListingFilterControls,
   type AdsSortOption,
 } from '@/components/ads/AdsListingFilterControls';
+import { AdSlider } from '@/components/ads/AdSlider';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 
 function sortAds(ads: AdEntry[], sortBy: AdsSortOption): AdEntry[] {
@@ -122,49 +125,63 @@ function AdsListingPageContent() {
             <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.15),transparent_70%)] rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(2,171,184,0.1),transparent_70%)] rounded-full blur-3xl" />
           </div>
-          <div className="relative z-10">
-            <div className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#02abb8] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#02abb8]" />
-              </span>
-              Active campaigns
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            <div className="max-w-2xl">
+              <div className="inline-flex gap-2 px-3 py-1.5 rounded-full bg-[#02abb8]/10 border border-[#02abb8]/25 text-[#02abb8] text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#02abb8] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#02abb8]" />
+                </span>
+                Active campaigns
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
+                Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">Ads</span>
+              </h1>
+              <p className="kx-body max-w-xl leading-relaxed mb-6">
+                Browse time-locked ad campaigns across halo, sidebar, and footer placements. Filter by format and slot.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => openCreateWizard()}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Create ad
+                </button>
+                <Link
+                  href="/ads/overview"
+                  className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
+                >
+                  How it works
+                </Link>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-              Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-[#02abb8] dark:from-cyan-400 dark:to-[#02abb8]">Ads</span>
-            </h1>
-            <p className="kx-body max-w-xl leading-relaxed mb-6">
-              Browse time-locked ad campaigns across halo, sidebar, and footer placements. Filter by format and slot.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => openCreateWizard()}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-[#02abb8] hover:from-cyan-600 hover:to-[#029ca8] text-white rounded-xl font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all"
+            <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
+              <div className="relative opacity-90 pointer-events-none">
+                <div className="w-48 h-56 rounded-2xl border-2 border-cyan-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
+                <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+              </div>
+              <div
+                id="ad-slot-ads-halo"
+                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create ad
-              </button>
-              <Link
-                href="/ads/overview"
-                className="inline-flex items-center px-6 py-2.5 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl font-bold text-sm transition-colors"
-              >
-                How it works
-              </Link>
+                <AdSlider slotId="HALO_ADS_RIGHT" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">
-            Active campaigns
-          </h2>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {filteredAds.length} campaign{filteredAds.length !== 1 ? 's' : ''} found
-          </p>
-        </div>
+        <div id="content" className="scroll-mt-4" />
+
+        <HubListingTitleRow
+          title="Active campaigns"
+          count={filteredAds.length}
+          countLabel="campaign"
+          benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        />
 
         <div className="flex flex-col gap-4 mb-6">
           <FilterBar

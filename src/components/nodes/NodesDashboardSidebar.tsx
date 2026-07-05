@@ -1,17 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
-
-const QUICK_LINKS = [
-  { href: '/nodes?tab=setup', label: 'Run a KREX Node', icon: 'run' },
-  { href: '/api', label: 'API overview', icon: 'api' },
-  { href: '/knowledge-base', label: 'Knowledge base', icon: 'book' },
-  { href: 'https://github.com/Kasparex/kasparex-krex-node', label: 'GitHub repo', icon: 'external', external: true },
-] as const;
+import { HubSidebarActionButton } from '@/components/hub/HubSidebarActionButton';
 
 const NODES_SECTIONS = [
   { id: 'connect-register', label: 'Connect & Register', icon: 'link' },
@@ -92,27 +85,21 @@ export function NodesDashboardSidebar() {
     >
       <div className="h-full flex flex-col">
         <div className="space-y-6">
-          <div className="mb-2">
-            <div className="space-y-2">
-              <Link href="/nodes?tab=setup" className="k-control-btn w-full">
-                Run a KREX Node
-              </Link>
-            </div>
+          <div className="mb-2 space-y-2">
+            <HubSidebarActionButton
+              href="/nodes?tab=setup"
+              label="Run a KREX Node"
+              icon={ICONS.run}
+            />
+            <HubSidebarActionButton href="/api" label="API overview" icon={ICONS.api} />
+            <HubSidebarActionButton href="/knowledge-base" label="Knowledge base" icon={ICONS.book} />
+            <HubSidebarActionButton
+              href="https://github.com/Kasparex/kasparex-krex-node"
+              label="GitHub repo"
+              icon={ICONS.external}
+              external
+            />
           </div>
-
-          <SidebarSection title="Quick links">
-            <nav className="space-y-0.5">
-              {QUICK_LINKS.map((item) => (
-                <SidebarNavItem
-                  key={item.label}
-                  label={item.label}
-                  icon={ICONS[item.icon] ?? ICONS.node}
-                  href={item.href}
-                  external={Boolean((item as any).external)}
-                />
-              ))}
-            </nav>
-          </SidebarSection>
 
           <SidebarSection title="On this page">
             <nav className="space-y-0.5">

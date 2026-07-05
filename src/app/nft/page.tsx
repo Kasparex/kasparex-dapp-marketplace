@@ -19,6 +19,8 @@ import { NFT_TOOLS_ROADMAP } from '@/lib/nft/nftToolsRoadmap';
 import { NFT_TOOLS_MODULES } from '@/lib/nft/nftModules';
 import { fetchCollectionsByTickers, type Krc721Collection } from '@/lib/nft/kaspa-com-api';
 import { NFT_LISTING_TABS, NFT_LISTING_TAB_VALUES, type NftListingTab } from '@/lib/nft/listingTabs';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 function collectionMatchesQuery(c: CollectionConfig, q: string): boolean {
   const s = q.trim().toLowerCase();
@@ -189,28 +191,25 @@ function NFTPageContent() {
 
       {pageView === 'my-nfts' ? (
         <section id="nft-section-my-nfts" className="scroll-mt-24">
-          <div className="mb-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-lime-400 mb-1">Wallet</p>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">My NFTs</h2>
-            <p className="kx-body">NFTs held by your connected Kaspa address.</p>
-          </div>
+          <HubListingTitleRow
+            title="My NFTs"
+            count={0}
+            countLabel="collection"
+            showTilt
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
+          <p className="kx-body -mt-4 mb-6">NFTs held by your connected Kaspa address.</p>
           <UserNFTsTab />
         </section>
       ) : (
         <>
-          <div className="mb-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-lime-600 dark:text-lime-400 mb-1">
-              {heading.eyebrow}
-            </p>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-1">{heading.title}</h2>
-            <p className="kx-body max-w-3xl">{heading.description}</p>
-            {listingTab !== 'standard' ? (
-              <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
-                {resultCount} item{resultCount !== 1 ? 's' : ''}
-                {searchQuery.trim() ? ` · matching “${searchQuery.trim()}”` : ''}
-              </p>
-            ) : null}
-          </div>
+          <HubListingTitleRow
+            title={heading.title}
+            count={resultCount}
+            countLabel="item"
+            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          />
+          <p className="kx-body max-w-3xl -mt-4 mb-6">{heading.description}</p>
 
           <div className="flex flex-col gap-4 mb-8">
             <KxTabStrip

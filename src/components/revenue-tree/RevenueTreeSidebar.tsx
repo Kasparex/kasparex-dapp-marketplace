@@ -10,6 +10,7 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { RevenueTreeGuideModal } from './RevenueTreeGuideModal';
 import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
+import { HubSidebarActionButton } from '@/components/hub/HubSidebarActionButton';
 
 interface RevenueTreeSidebarProps {
   totalRevenue: number;
@@ -77,14 +78,32 @@ export function RevenueTreeSidebar({
           <SidebarHeader backHref="/dapps" backLabel="Back to dApps" onHide={onHide} />
         )}
       >
-        <SidebarSection title="Quick Links">
-          <nav className="space-y-0.5">
-            <SidebarNavItem href="/tree/dashboard" label="My Dashboard" icon={userIcon} active={pathname === '/tree/dashboard'} />
-            <SidebarNavItem href={flowHref} label="Tree Flow" icon={dashIcon} active={flowActive} />
-            <SidebarNavItem href="/tree/demo" label="How It Works" icon={playIcon} active={pathname === '/tree/demo'} />
-            <SidebarNavItem href="/tree/simulation" label="System Simulation" icon={simIcon} active={pathname === '/tree/simulation'} />
-          </nav>
-        </SidebarSection>
+        <div className="mb-6 space-y-2">
+          <HubSidebarActionButton
+            href="/tree/dashboard"
+            label="My Dashboard"
+            icon={userIcon}
+            active={pathname === '/tree/dashboard'}
+          />
+          <HubSidebarActionButton
+            href={flowHref}
+            label="Tree Flow"
+            icon={dashIcon}
+            active={flowActive}
+          />
+          <HubSidebarActionButton
+            href="/tree/demo"
+            label="How It Works"
+            icon={playIcon}
+            active={pathname === '/tree/demo'}
+          />
+          <HubSidebarActionButton
+            href="/tree/simulation"
+            label="System Simulation"
+            icon={simIcon}
+            active={pathname === '/tree/simulation'}
+          />
+        </div>
 
         <div className="mb-6 p-4 bg-gradient-to-br from-[#02abb8]/10 to-purple-500/10 rounded-xl border border-[#02abb8]/20">
           <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Quick Stats</div>

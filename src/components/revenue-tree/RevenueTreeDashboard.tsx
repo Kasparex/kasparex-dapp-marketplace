@@ -10,6 +10,7 @@ import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
 import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 
 export interface RevenueTreeDashboardProps {
   /** Optional address to view as public profile. If not provided, shows connected wallet's dashboard. */
@@ -49,8 +50,8 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6">
-        <div className="space-y-6">
+      <div className={HUB_MAIN_COLUMN}>
+        <div className={`${HUB_MAIN_INNER} space-y-6`}>
           {/* Header */}
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">

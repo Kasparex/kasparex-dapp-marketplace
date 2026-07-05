@@ -7,6 +7,7 @@ import {
   ChroniclesDashboardSidebar,
   type ChroniclesDashboardSidebarProps,
 } from '@/components/chronicles/ChroniclesDashboardSidebar';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 type ChroniclesPageShellProps = {
   children: ReactNode;
@@ -15,14 +16,14 @@ type ChroniclesPageShellProps = {
 
 export function ChroniclesPageShell({ children, sidebar }: ChroniclesPageShellProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950 overflow-x-hidden">
+    <div className={`flex flex-col min-h-screen overflow-x-hidden ${HUB_PAGE_BG}`}>
       <Header />
 
       <div className="flex flex-1 min-h-0 overflow-x-hidden">
         <ChroniclesDashboardSidebar {...sidebar} />
 
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-x-hidden overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-          <div className="max-w-7xl mx-auto min-w-0 w-full">{children}</div>
+        <main className={HUB_MAIN_COLUMN}>
+          <div className={`${HUB_MAIN_INNER} min-w-0 w-full`}>{children}</div>
         </main>
       </div>
 

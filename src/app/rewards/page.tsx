@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RewardsHubSection } from '@/components/rewards/RewardsHubSection';
 import { RewardsSidebar } from '@/components/rewards/RewardsSidebar';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export const metadata: Metadata = {
   title: 'Rewards · Kasparex',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RewardsPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
       <Header />
       <main className="flex-1 flex flex-col lg:flex-row">
         <div className="hidden lg:block flex-shrink-0">
@@ -21,8 +22,8 @@ export default function RewardsPage() {
           <RewardsSidebar />
         </div>
 
-        <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto bg-white dark:bg-zinc-950">
-          <div className="max-w-7xl mx-auto">
+        <div className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             <RewardsHubSection />
           </div>
         </div>

@@ -4,6 +4,9 @@ import { KaspaComSwapWidget } from '@/components/defi/KaspaComSwapWidget';
 import { SUPPORTED_DEXS } from '@/lib/defi/registry';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { KxTabStrip } from '@/components/ui/KxTabStrip';
+import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 function SwapsContent() {
   const searchParams = useSearchParams();
@@ -18,32 +21,27 @@ function SwapsContent() {
   const outputCurrency = searchParams.get('outputCurrency') || (tab === 'liquidity' ? defaultTokenB : undefined);
 
   return (
-    <div className="max-w-full mx-auto px-2 sm:px-4 py-4 lg:py-6">
+    <div className="max-w-full mx-auto px-2 sm:px-4 py-4 lg:py-6 font-sans text-base sm:text-[17px]">
       <div className="flex flex-col gap-8">
-        {/* DEX Selection Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit mx-auto border border-zinc-200 dark:border-zinc-800">
-          {SUPPORTED_DEXS.map((dex) => (
-            <button
-              key={dex.id}
-              onClick={() => setSelectedDex(dex.id)}
-              className={`
-                px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
-                ${selectedDex === dex.id 
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700' 
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}
-              `}
-            >
-              <div className="flex items-center gap-2">
-                {dex.name}
-                {dex.status === 'coming-soon' && (
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
-                    SOON
-                  </span>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
+        <HubListingTitleRow
+          title="Available DEX integrations"
+          count={SUPPORTED_DEXS.length}
+          countLabel="integration"
+          benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        />
+
+        <KxTabStrip
+          value={selectedDex}
+          onChange={setSelectedDex}
+          options={SUPPORTED_DEXS.map((dex) => ({
+            value: dex.id,
+            label: dex.name,
+            title: dex.name,
+          }))}
+          ariaLabel="DEX selection"
+          scrollable
+          className="mx-auto w-fit max-w-full"
+        />
 
         {/* Selected DEX Content */}
         <div className="w-full">
