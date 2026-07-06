@@ -6,9 +6,13 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getCovenantRuntime,
   getActiveCovenantRuntimeMode,
+  importVaultFromCovenantId,
   type CovenantVault,
   type CovenantVaultKind,
 } from '@/lib/covenant';
+import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
+import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
+import { loadMap, saveMap } from '@/lib/covenant/utils';
 
 interface UseCovenantLockboxReturn {
   vaults: CovenantVault[];
@@ -25,6 +29,7 @@ interface UseCovenantLockboxReturn {
     unlockAt: Date | null;
   }) => Promise<CovenantVault>;
   claimVault: (vaultId: string) => Promise<CovenantVault>;
+  importByCovenantId: (covenantId: string) => Promise<CovenantVault | null>;
 }
 
 export function useCovenantLockbox(): UseCovenantLockboxReturn {
@@ -126,6 +131,58 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     [refreshVaults, runtime, walletCtx]
   );
 
+  const importByCovenantId = useCallback(
+    async (covenantId: string) => {
+      if (!address) throw new Error('Connect your Kaspa wallet first');
+      setIsLoading(true);
+      setError(null);
+      try {
+        const imported = await importVaultFromCovenantId(
+          covenantId,
+          address,
+          DEFAULT_PROGRAMMABLE_NETWORK,
+        );
+        if (!imported) {
+          throw new Error('Covenant not found on KaspaCom indexer or kascov.');
+        }
+
+        const existing = Array.from(loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKey).values()).find(
+          (v) => v.covenantId === imported.covenantId,
+        );
+        if (existing) return existing;
+
+        const vault: CovenantVault = {
+          id: `import_${imported.covenantId.slice(0, 12)}`,
+          covenantId: imported.covenantId,
+          kind: 'escrow',
+          status: imported.status === 'claimed' ? 'claimed' : 'locked',
+          depositor: address,
+          beneficiary: imported.beneficiary,
+          amountSompi: imported.amountSompi,
+          memo: imported.templateLabel ? `Imported ${imported.templateLabel}` : 'Imported covenant',
+          unlockAt: null,
+          createdAt: Date.now(),
+          claimedAt: imported.status === 'claimed' ? Date.now() : null,
+          lockTxHash: imported.lockTxHash,
+          utxo: imported.utxo,
+        };
+
+        const stored = loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKey);
+        stored.set(vault.id, vault);
+        saveMap(COVENANT_LAB_CONFIG.storageKey, stored);
+        await refreshVaults();
+        return vault;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Import failed';
+        setError(msg);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [address, refreshVaults],
+  );
+
   return {
     vaults,
     isLoading,
@@ -135,5 +192,6 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     refreshVaults,
     createVault,
     claimVault,
+    importByCovenantId,
   };
 }

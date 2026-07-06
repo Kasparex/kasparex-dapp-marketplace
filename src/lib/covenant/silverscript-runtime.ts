@@ -7,7 +7,13 @@ import type {
   CreateVaultParams,
   VaultListFilter,
 } from './types';
-import { submitTemplateCovenantTx } from './silverscript-base';
+import {
+  executeCovenantDeploy,
+  executeCovenantSpend,
+  KPX_COVENANT_PAYLOAD_TEMPLATES,
+} from './execution';
+import { loadKaspaComCompiledContract, resolveSpendFunctionName } from './execution/artifacts';
+import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { normalizeAddr, randomHex, randomId } from './utils';
 import { loadMap, saveMap } from './utils';
 
@@ -45,13 +51,26 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
         ? Math.floor(params.unlockAt / 1000)
         : 0;
 
-    const tx = await submitTemplateCovenantTx(ctx, 'lockbox', {
-      kind: params.kind,
-      beneficiary: params.beneficiary,
-      depositor: params.depositor,
+    const networkId = DEFAULT_PROGRAMMABLE_NETWORK;
+    const tx = await executeCovenantDeploy(ctx, {
+      template: 'lockbox',
       amountSompi: params.amountSompi,
-      unlockTime: unlockSeconds,
-      memo: params.memo,
+      networkId,
+      payloadTemplate: KPX_COVENANT_PAYLOAD_TEMPLATES.lockbox,
+      payloadArgs: [
+        { name: 'beneficiary', type: 'address', value: params.beneficiary.trim() },
+        { name: 'depositor', type: 'address', value: params.depositor.trim() },
+        { name: 'unlockTimeMs', type: 'u64', value: String(unlockSeconds * 1000) },
+        { name: 'kind', type: 'string', value: params.kind },
+      ],
+      payloadMeta: params.memo.trim() ? { label: params.memo.trim().slice(0, 80) } : undefined,
+      params: {
+        kind: params.kind,
+        beneficiary: params.beneficiary,
+        depositor: params.depositor,
+        unlockTime: unlockSeconds,
+        memo: params.memo,
+      },
     });
 
     const id = randomId('vault');
@@ -99,17 +118,22 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       throw new Error('Vault is missing on-chain UTXO reference');
     }
 
-    const tx = await submitTemplateCovenantTx(
-      ctx,
-      'lockbox',
-      {
+    const compiled = await loadKaspaComCompiledContract('lockbox');
+    const functionName = resolveSpendFunctionName(compiled, 'claim');
+
+    const tx = await executeCovenantSpend(ctx, {
+      template: 'lockbox',
+      networkId: DEFAULT_PROGRAMMABLE_NETWORK,
+      functionName,
+      spendOutpoint: { txid: vault.utxo.txId, vout: vault.utxo.index },
+      inputAmountSompi: vault.amountSompi,
+      outputs: [{ address: vault.beneficiary, amountSompi: vault.amountSompi }],
+      params: {
         action: 'claim',
         vaultId,
         beneficiary: vault.beneficiary,
-        amountSompi: vault.amountSompi,
       },
-      vault.utxo
-    );
+    });
 
     const updated: CovenantVault = {
       ...vault,

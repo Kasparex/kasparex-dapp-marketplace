@@ -70,6 +70,7 @@ function compileSil(silvercPath, sourcePath) {
       contractName: compiled.contract_name ?? compiled.contractName ?? null,
       compilerVersion: compiled.compiler_version ?? compiled.compilerVersion ?? null,
       abi: compiled.abi ?? null,
+      compiled,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -95,6 +96,7 @@ for (const t of TEMPLATES) {
   let contractName = t.contract;
   let compilerVersion = null;
   let abi = null;
+  let compiled = null;
   let compileNote = 'Metadata stub. Build silverc and run npm run covenant:compile.';
 
   if (silvercPath && fs.existsSync(sourcePath)) {
@@ -104,6 +106,7 @@ for (const t of TEMPLATES) {
       contractName = result.contractName ?? contractName;
       compilerVersion = result.compilerVersion;
       abi = result.abi;
+      compiled = result.compiled ?? null;
       compileNote = `Compiled with silverc (${silvercPath})`;
     } else if (result) {
       compileNote = 'silverc ran but produced no script bytes (check constructor args or contract syntax)';
@@ -119,6 +122,7 @@ for (const t of TEMPLATES) {
     scriptHex,
     compilerVersion,
     abi,
+    compiled,
     note: compileNote,
   };
 

@@ -42,7 +42,7 @@ function canClaim(vault: CovenantVault, address: string | null): boolean {
 
 export function CovenantLockboxWidget() {
   const { state: kaspaState } = useKaspaWallet();
-  const { vaults, isLoading, error, createVault, claimVault, refreshVaults, runtimeMode, effectiveMode } =
+  const { vaults, isLoading, error, createVault, claimVault, refreshVaults, importByCovenantId, runtimeMode, effectiveMode } =
     useCovenantLockbox();
 
   const [tab, setTab] = useState<TabId>('create');
@@ -51,6 +51,7 @@ export function CovenantLockboxWidget() {
   const [amountKas, setAmountKas] = useState('0.1');
   const [memo, setMemo] = useState('');
   const [unlockLocal, setUnlockLocal] = useState('');
+  const [importId, setImportId] = useState('');
   const [busy, setBusy] = useState(false);
 
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
@@ -238,6 +239,36 @@ export function CovenantLockboxWidget() {
 
       {tab === 'vaults' && (
         <div className="space-y-4">
+          <div className={`${covenantPanelClass} space-y-2`}>
+            <CovenantFieldLabel
+              label="Import by covenant id"
+              htmlFor="lockbox-import-id"
+              tooltip="Paste a 64-char covenant id from KaspaCom Explorer to track an on-chain lock in this browser."
+            />
+            <input
+              id="lockbox-import-id"
+              type="text"
+              value={importId}
+              onChange={(e) => setImportId(e.target.value.trim().toLowerCase())}
+              placeholder="64-char hex covenant id"
+              className={`${covenantInputClass} font-mono text-sm`}
+              spellCheck={false}
+            />
+            <button
+              type="button"
+              disabled={busy || importId.length < 64}
+              onClick={() => {
+                setBusy(true);
+                void importByCovenantId(importId)
+                  .then(() => setImportId(''))
+                  .catch(console.error)
+                  .finally(() => setBusy(false));
+              }}
+              className={covenantSecondaryBtnClass}
+            >
+              Import from indexer
+            </button>
+          </div>
           <div className="flex justify-between items-center">
             <span className="kx-body">
               {myLocked.length} active, {vaults.length} total

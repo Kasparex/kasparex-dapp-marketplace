@@ -29,6 +29,12 @@ export {
   buildCrowdfundPledgeNote,
   buildVoucherCommitNote,
 } from './payload';
+export {
+  executeCovenantDeploy,
+  executeCovenantSpend,
+  importVaultFromCovenantId,
+  KPX_COVENANT_PAYLOAD_TEMPLATES,
+} from './execution';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

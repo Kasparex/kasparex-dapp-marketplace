@@ -33,6 +33,10 @@ export async function submitCovenantTransaction(
       ...request.params,
       scriptHex: artifact.scriptHex,
       contract: artifact.contract,
+      kind: request.kind,
+      functionName: request.functionName,
+      transactionPayloadHex: request.transactionPayloadHex,
+      compiled: request.compiled ?? artifact.compiled ?? undefined,
     },
   };
 

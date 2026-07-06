@@ -7,7 +7,7 @@ function readRuntimeMode(): CovenantRuntimeMode {
   if (raw === 'silverscript' || raw === 'hybrid' || raw === 'simulator') {
     return raw;
   }
-  return 'simulator';
+  return 'hybrid';
 }
 
 export const COVENANT_LAB_CONFIG: CovenantLabConfig = {

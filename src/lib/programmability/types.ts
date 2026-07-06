@@ -27,12 +27,19 @@ export type CovenantTemplate =
   | 'crowdfund'
   | 'voucher';
 
-/** Wallet or Hub covenant transaction request. */
+/** Wallet or Hub covenant transaction request (KaspaCom SDK aligned). */
 export interface CovenantTxRequest {
   template: CovenantTemplate;
+  /** deploy locks a new covenant UTXO; spend calls an entrypoint */
+  kind?: 'deploy' | 'spend';
+  functionName?: string;
   params: Record<string, unknown>;
   computeBudget?: ComputeBudget;
   spendOutpoint?: UtxoOutpoint;
+  /** KaspaCom CompiledContract subset for wallet-side tx building */
+  compiled?: Record<string, unknown> | null;
+  /** Hex-encoded tx.payload (deploy claims for indexer) */
+  transactionPayloadHex?: string;
 }
 
 /** Result from a covenant L1 transaction submission. */
@@ -59,5 +66,7 @@ export interface CovenantArtifactMeta {
   compiledAt: string;
   /** Compiled redeem script bytes (hex). Null until silverc output is committed. */
   scriptHex: string | null;
+  /** Full KaspaCom / silverc compiled contract when available */
+  compiled?: Record<string, unknown> | null;
   note?: string;
 }
