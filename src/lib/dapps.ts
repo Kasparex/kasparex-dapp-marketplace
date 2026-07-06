@@ -234,9 +234,9 @@ export const placeholderDApps: DApp[] = [
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'covenant-lab',
-    name: 'Covenant Lab',
-    slug: 'covenant-lab',
+    id: 'lockbox',
+    name: 'Lockbox',
+    slug: 'lockbox',
     category: 'general',
     utility: 'Lock KAS for someone with simple rules: release anytime (escrow) or only after a date (timelock).',
     process: 'Choose escrow or timelock, set who receives the KAS and how much, then create the lock. They claim when the rules allow.',
@@ -272,7 +272,7 @@ export const placeholderDApps: DApp[] = [
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },
-      { label: 'Covenant Lab', url: 'https://www.kasparex.com/dapps/covenant-lab' },
+      { label: 'Lockbox', url: 'https://www.kasparex.com/dapps/lockbox' },
       { label: 'Telegram', url: 'https://t.me/kasparex' },
     ],
     status: 'Mainnet',
@@ -298,7 +298,7 @@ export const placeholderDApps: DApp[] = [
     benefits: 'Fair staged payments for freelancers, builders, and projects without a middleman holding funds.',
     developer: 'Kasparex',
     developerLinks: [
-      { label: 'Covenant Lab', url: 'https://www.kasparex.com/dapps/covenant-lab' },
+      { label: 'Lockbox', url: 'https://www.kasparex.com/dapps/lockbox' },
       { label: 'Silverscript', url: 'https://github.com/kaspanet/silverscript' },
     ],
     status: 'Mainnet',
@@ -346,7 +346,7 @@ export const placeholderDApps: DApp[] = [
     benefits: 'Easy gifts, tips, and promo credits with a fixed expiry and single-use redemption.',
     developer: 'Kasparex',
     developerLinks: [
-      { label: 'Covenant Lab', url: 'https://www.kasparex.com/dapps/covenant-lab' },
+      { label: 'Lockbox', url: 'https://www.kasparex.com/dapps/lockbox' },
       { label: 'Telegram', url: 'https://t.me/kasparex' },
     ],
     status: 'Mainnet',

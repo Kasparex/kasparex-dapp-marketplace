@@ -215,7 +215,7 @@ export function DAppWidget({
     return renderShell(<GenesisDappWidget />, undefined);
   }
 
-  if (dapp.slug === 'covenant-lab') {
+  if (dapp.slug === 'lockbox') {
     return renderShell(<CovenantLockboxWidget />, undefined);
   }
 

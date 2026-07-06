@@ -13,11 +13,11 @@ import { KPX_COVENANT_PAYLOAD_TEMPLATES } from './kpxBranding';
 export type KpxCovenantFeeAction = 'deploy' | 'claim';
 
 const DEFAULT_DEPLOY_FEE_KAS: Record<CovenantTemplate, number> = {
-  lockbox: 0.1,
-  split: 0.12,
-  milestone: 0.15,
-  crowdfund: 0.12,
-  voucher: 0.08,
+  lockbox: 10,
+  split: 10,
+  milestone: 10,
+  crowdfund: 10,
+  voucher: 10,
 };
 
 const ENV_FEE_KEY: Record<CovenantTemplate, string> = {

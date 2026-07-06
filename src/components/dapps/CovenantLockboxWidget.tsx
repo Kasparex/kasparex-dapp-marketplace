@@ -316,7 +316,7 @@ export function CovenantLockboxWidget() {
       {tab === 'about' && (
         <CovenantHowItWorks>
           <p>
-            Covenant Lab lets you hold KAS for someone until rules you set are met. Think of it as a
+            Lockbox lets you hold KAS for someone until rules you set are met. Think of it as a
             simple safe deposit box on Kaspa.
           </p>
           <ul className="list-disc pl-5 space-y-2">

@@ -102,6 +102,6 @@ export const AI_SECTION_PLACEHOLDERS: Record<
   'l1-hooks': {
     title: 'L1 covenant and script hooks',
     description:
-      'Reserve covenant and Silverscript binding points for agent settlement, escrow, and governance once native L1 programmability is live. Integrates with Kasparex Protocols and Covenant Lab simulators.',
+      'Reserve covenant and Silverscript binding points for agent settlement, escrow, and governance once native L1 programmability is live. Integrates with Kasparex Protocols and Lockbox covenant simulators.',
   },
 };

@@ -29,7 +29,7 @@ export function TokenCovenantUtilitiesPanel({ token }: { token: Token }) {
       <DAppSectionHeader title="Covenant utilities" />
       <p className="kx-body-sm">
         Pre-built Kasparex covenant flows linked to this token project. Open a utility to configure escrow,
-        splits, milestones, and more in the Covenant Lab widgets.
+        splits, milestones, and more in the Lockbox covenant widgets.
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {templates.map((template) => (

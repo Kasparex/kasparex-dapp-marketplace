@@ -20,9 +20,9 @@ export type CovenantUtilityTemplate = {
 export const COVENANT_UTILITY_TEMPLATES: CovenantUtilityTemplate[] = [
   {
     id: 'lockbox',
-    label: 'Covenant Lockbox',
+    label: 'Lockbox',
     description: 'Timelock or escrow native KAS with covenant rules.',
-    dappSlug: 'covenant-lab',
+    dappSlug: 'lockbox',
     badge: 'Escrow',
   },
   {
