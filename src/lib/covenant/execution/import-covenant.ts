@@ -8,11 +8,12 @@ import type { CovenantVault, CovenantVaultKind } from '../types';
 
 export type ImportedCovenantVault = Pick<
   CovenantVault,
-  'covenantId' | 'beneficiary' | 'amountSompi' | 'status' | 'lockTxHash' | 'utxo' | 'templateLabel'
+  'covenantId' | 'beneficiary' | 'amountSompi' | 'status' | 'lockTxHash' | 'utxo'
 > & {
   source: 'kaspaCom' | 'kascov';
   genesisTxid?: string;
   covenantAddress?: string | null;
+  templateLabel?: string;
 };
 
 export async function importVaultFromCovenantId(

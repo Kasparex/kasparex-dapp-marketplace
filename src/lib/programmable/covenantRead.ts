@@ -50,7 +50,8 @@ function parseSompi(value: number | string | null | undefined): number | undefin
 
 function mapKaspaComDetail(detail: KaspaComCovenantDetail): CovenantReadDetail | null {
   const summary = detail.covenant;
-  const covenantId = summary?.covenantIdHex?.trim().toLowerCase();
+  if (!summary) return null;
+  const covenantId = summary.covenantIdHex?.trim().toLowerCase();
   if (!covenantId || !/^[a-f0-9]{64}$/.test(covenantId)) return null;
 
   const activeUtxos = summary.activeUtxos ?? 0;
