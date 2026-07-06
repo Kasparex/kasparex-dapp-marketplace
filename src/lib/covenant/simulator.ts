@@ -5,8 +5,6 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { buildLockboxCommitNote } from './payload';
-import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { CovenantRuntime } from './runtime';
 import type {
   CovenantVault,
@@ -75,24 +73,6 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     }
 
     const id = `vault_${Date.now()}_${randomHex(4)}`;
-    let lockTxHash = params.lockTxHash;
-
-    if (shouldUseLegacyTreasury(this.mode)) {
-      lockTxHash = await maybePayLegacyTreasury({
-        ctx,
-        amountSompi: params.amountSompi,
-        note: buildLockboxCommitNote({
-          vaultId: id,
-          kind: params.kind,
-          beneficiary: params.beneficiary,
-          amountSompi: params.amountSompi,
-        }),
-        dappId: 'covenant-lab',
-        actionType: 'covenant-lock',
-        amountKas: Number(BigInt(params.amountSompi)) / 1e8,
-        useLegacy: true,
-      });
-    }
 
     const vault: CovenantVault = {
       id,
@@ -106,7 +86,7 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),
       claimedAt: null,
-      lockTxHash,
+      lockTxHash: params.lockTxHash,
     };
 
     this.vaults.set(id, vault);

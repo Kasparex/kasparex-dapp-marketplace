@@ -26,7 +26,9 @@ export type EarnSource =
   | 'token_listing_create'
   | 'token_listing_update'
   | 'token_listing_verify'
-  | 'tokens_listing_vote';
+  | 'tokens_listing_vote'
+  | 'kpx_covenant_deploy'
+  | 'kpx_covenant_claim';
 
 export type HubLedgerEntry = {
   id: string;

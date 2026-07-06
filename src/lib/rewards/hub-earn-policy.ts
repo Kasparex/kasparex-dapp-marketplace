@@ -23,4 +23,6 @@ export const HUB_EARN_POINTS = {
   tokenListingUpdate: 15,
   tokenListingVerify: 1000,
   tokensListingVote: 5,
+  kpxCovenantDeploy: 60,
+  kpxCovenantClaim: 15,
 } as const;

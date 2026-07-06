@@ -17,6 +17,8 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 
 type TabId = 'create' | 'claim' | 'about';
 
@@ -24,6 +26,7 @@ export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
   const { openVouchers, loading, error, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
     useCovenantVoucher();
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('voucher');
   const [tab, setTab] = useState<TabId>('create');
   const [amountKas, setAmountKas] = useState('0.1');
   const [memo, setMemo] = useState('');
@@ -141,13 +144,24 @@ export function CovenantVoucherWidget() {
             />
           </div>
 
+          <KpxCovenantFeePanel
+            pricing={pricing}
+            krexTier={krexTier}
+            krexBalance={krexBalance}
+            lockAmountKas={parseFloat(amountKas) || 0}
+          />
+
           <button
             type="button"
             disabled={busy || !expires}
             onClick={() => void handleCreate()}
             className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Minting...' : 'Lock and mint voucher'}
+            {busy
+              ? 'Minting...'
+              : pricing.waived
+                ? 'Lock and mint voucher'
+                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
           </button>
         </div>
       )}

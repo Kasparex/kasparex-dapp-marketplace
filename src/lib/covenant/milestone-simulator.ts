@@ -1,8 +1,6 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { buildMilestoneCommitNote } from './payload';
-import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { MilestoneRuntime } from './milestone-runtime';
 import type { CreateMilestoneParams, MilestoneDeal, MilestoneStep } from './milestone-types';
 import {
@@ -49,22 +47,6 @@ class MilestoneSimulator implements MilestoneRuntime {
 
     const amounts = allocateBps(total, params.milestones.map((m) => m.shareBps));
     const id = randomId('ms');
-    let lockTxHash = params.lockTxHash;
-    if (shouldUseLegacyTreasury(this.mode)) {
-      lockTxHash = await maybePayLegacyTreasury({
-        ctx,
-        amountSompi: params.totalSompi,
-        note: buildMilestoneCommitNote({
-          dealId: id,
-          totalSompi: params.totalSompi,
-          beneficiary: params.beneficiary,
-        }),
-        dappId: 'covenant-milestone',
-        actionType: 'covenant-milestone-lock',
-        amountKas: Number(total) / 1e8,
-        useLegacy: true,
-      });
-    }
 
     const milestones: MilestoneStep[] = params.milestones.map((m, i) => ({
       id: `step_${i}_${randomHex(3)}`,
@@ -86,7 +68,7 @@ class MilestoneSimulator implements MilestoneRuntime {
       memo: params.memo.trim(),
       milestones,
       createdAt: Date.now(),
-      lockTxHash,
+      lockTxHash: params.lockTxHash,
     };
     this.deals.set(id, deal);
     this.persist();

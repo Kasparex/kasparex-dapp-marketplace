@@ -1,12 +1,14 @@
+/**
+ * @deprecated Use payKpxCovenantDeployFee from platform-fee.ts for deploy fees.
+ * Lock principal must never be sent to treasury.
+ */
+
 import type { CovenantWalletContext } from './context';
 import { COVENANT_LAB_CONFIG } from './config';
 import { payCovenantTreasury } from './treasury';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
-/**
- * Optional legacy treasury binding (Phase 1 simulator path only).
- * Silverscript mode uses real covenant UTXOs instead.
- */
+/** @deprecated */
 export async function maybePayLegacyTreasury(args: {
   ctx: CovenantWalletContext;
   amountSompi: string;
@@ -28,6 +30,7 @@ export async function maybePayLegacyTreasury(args: {
   });
 }
 
-export function shouldUseLegacyTreasury(mode: string): boolean {
-  return mode === 'simulator' && Boolean(COVENANT_LAB_CONFIG.treasuryAddress);
+/** @deprecated Simulators no longer charge treasury on lock principal. */
+export function shouldUseLegacyTreasury(_mode: string): boolean {
+  return false;
 }

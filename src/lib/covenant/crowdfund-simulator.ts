@@ -1,8 +1,6 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { buildCrowdfundPledgeNote } from './payload';
-import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { CrowdfundRuntime } from './crowdfund-runtime';
 import type {
   CreateCrowdfundParams,
@@ -71,23 +69,11 @@ class CrowdfundSimulator implements CrowdfundRuntime {
     ctx: CovenantWalletContext
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
-    let txHash: string | undefined;
-    if (shouldUseLegacyTreasury(this.mode)) {
-      txHash = await maybePayLegacyTreasury({
-        ctx,
-        amountSompi,
-        note: buildCrowdfundPledgeNote({ campaignId, amountSompi }),
-        dappId: 'covenant-crowdfund',
-        actionType: 'covenant-crowdfund-pledge',
-        amountKas: Number(BigInt(amountSompi)) / 1e8,
-        useLegacy: true,
-      });
-    }
     return this.pledgeInternal({
       campaignId,
       backer,
       amountSompi,
-      txHash,
+      txHash: undefined,
     });
   }
 

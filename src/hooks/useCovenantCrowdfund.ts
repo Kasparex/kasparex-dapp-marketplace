@@ -7,12 +7,17 @@ import {
   getCrowdfundRuntime,
   getActiveCovenantRuntimeMode,
   kasToSompiString,
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  resolveKpxCovenantDeployPrice,
   type CrowdfundCampaign,
 } from '@/lib/covenant';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function useCovenantCrowdfund() {
   const { state } = useKaspaWallet();
   const runtime = getCrowdfundRuntime();
+  const { tier: krexTier } = useKREXBalance();
   const [campaigns, setCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [allCampaigns, setAllCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,18 +55,26 @@ export function useCovenantCrowdfund() {
 
   const createCampaign = useCallback(
     async (args: { title: string; memo: string; goalKas: number; deadline: Date }) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      const campaign = await runtime.create({
-        creator: state.address,
-        title: args.title,
-        memo: args.memo,
-        goalSompi: kasToSompiString(args.goalKas),
-        deadline: args.deadline.getTime(),
+      if (!state.address || !state.provider) throw new Error('Connect wallet first');
+      const ctx = walletCtx();
+      const pricing = resolveKpxCovenantDeployPrice('crowdfund', krexTier);
+      const campaign = await runKpxCovenantDeployWithFee({
+        template: 'crowdfund',
+        pricing,
+        ctx,
+        create: () =>
+          runtime.create({
+            creator: state.address!,
+            title: args.title,
+            memo: args.memo,
+            goalSompi: kasToSompiString(args.goalKas),
+            deadline: args.deadline.getTime(),
+          }),
       });
       await refresh();
       return campaign;
     },
-    [refresh, runtime, state.address]
+    [refresh, runtime, state.address, state.provider, walletCtx, krexTier]
   );
 
   const pledge = useCallback(
@@ -85,10 +98,16 @@ export function useCovenantCrowdfund() {
         walletCtx().userAddress,
         walletCtx()
       );
+      awardKpxCovenantClaimPoints({
+        walletAddress: walletCtx().userAddress,
+        template: 'crowdfund',
+        instanceId: campaignId,
+        krexTier,
+      });
       await refresh();
       return c;
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier]
   );
 
   const refund = useCallback(

@@ -19,6 +19,8 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 
 type TabId = 'create' | 'deals' | 'about';
 
@@ -32,6 +34,7 @@ export function CovenantMilestoneWidget() {
   const { state } = useKaspaWallet();
   const { deals, loading, error, createDeal, claimStep, refresh, runtimeMode, effectiveMode } =
     useCovenantMilestone();
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone');
   const [tab, setTab] = useState<TabId>('create');
   const [beneficiary, setBeneficiary] = useState('');
   const [totalKas, setTotalKas] = useState('1');
@@ -172,13 +175,24 @@ export function CovenantMilestoneWidget() {
             />
           </div>
 
+          <KpxCovenantFeePanel
+            pricing={pricing}
+            krexTier={krexTier}
+            krexBalance={krexBalance}
+            lockAmountKas={parseFloat(totalKas) || 0}
+          />
+
           <button
             type="button"
             disabled={busy || !beneficiary.trim()}
             onClick={() => void handleCreate()}
             className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Creating...' : 'Fund milestone deal'}
+            {busy
+              ? 'Creating...'
+              : pricing.waived
+                ? 'Fund milestone deal'
+                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
           </button>
         </div>
       )}

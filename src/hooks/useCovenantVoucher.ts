@@ -9,12 +9,17 @@ import {
   kasToSompiString,
   randomHex,
   sha256Hex,
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  resolveKpxCovenantDeployPrice,
   type VoucherLock,
 } from '@/lib/covenant';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function useCovenantVoucher() {
   const { state } = useKaspaWallet();
   const runtime = getVoucherRuntime();
+  const { tier: krexTier } = useKREXBalance();
   const [vouchers, setVouchers] = useState<VoucherLock[]>([]);
   const [openVouchers, setOpenVouchers] = useState<VoucherLock[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,29 +59,42 @@ export function useCovenantVoucher() {
     async (args: { amountKas: number; memo: string; expiresAt: Date }) => {
       const secret = `kpx-${randomHex(16)}`;
       const secretHash = await sha256Hex(secret);
-      const voucher = await runtime.create(
-        {
-          creator: walletCtx().userAddress,
-          amountSompi: kasToSompiString(args.amountKas),
-          secretHash,
-          memo: args.memo,
-          expiresAt: args.expiresAt.getTime(),
-        },
-        walletCtx()
-      );
+      const pricing = resolveKpxCovenantDeployPrice('voucher', krexTier);
+      const voucher = await runKpxCovenantDeployWithFee({
+        template: 'voucher',
+        pricing,
+        ctx: walletCtx(),
+        create: () =>
+          runtime.create(
+            {
+              creator: walletCtx().userAddress,
+              amountSompi: kasToSompiString(args.amountKas),
+              secretHash,
+              memo: args.memo,
+              expiresAt: args.expiresAt.getTime(),
+            },
+            walletCtx(),
+          ),
+      });
       await refresh();
       return { voucher, secret };
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier]
   );
 
   const claimVoucher = useCallback(
     async (voucherId: string, secret: string) => {
       const v = await runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx());
+      awardKpxCovenantClaimPoints({
+        walletAddress: walletCtx().userAddress,
+        template: 'voucher',
+        instanceId: voucherId,
+        krexTier,
+      });
       await refresh();
       return v;
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier]
   );
 
   return {

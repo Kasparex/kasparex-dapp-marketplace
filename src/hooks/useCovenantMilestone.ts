@@ -7,13 +7,18 @@ import {
   getMilestoneRuntime,
   getActiveCovenantRuntimeMode,
   kasToSompiString,
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  resolveKpxCovenantDeployPrice,
   type MilestoneDeal,
   type MilestoneInput,
 } from '@/lib/covenant';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function useCovenantMilestone() {
   const { state } = useKaspaWallet();
   const runtime = getMilestoneRuntime();
+  const { tier: krexTier } = useKREXBalance();
   const [deals, setDeals] = useState<MilestoneDeal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,20 +56,27 @@ export function useCovenantMilestone() {
       memo: string;
       milestones: MilestoneInput[];
     }) => {
-      const deal = await runtime.create(
-        {
-          depositor: walletCtx().userAddress,
-          beneficiary: args.beneficiary,
-          totalSompi: kasToSompiString(args.totalKas),
-          memo: args.memo,
-          milestones: args.milestones,
-        },
-        walletCtx()
-      );
+      const pricing = resolveKpxCovenantDeployPrice('milestone', krexTier);
+      const deal = await runKpxCovenantDeployWithFee({
+        template: 'milestone',
+        pricing,
+        ctx: walletCtx(),
+        create: () =>
+          runtime.create(
+            {
+              depositor: walletCtx().userAddress,
+              beneficiary: args.beneficiary,
+              totalSompi: kasToSompiString(args.totalKas),
+              memo: args.memo,
+              milestones: args.milestones,
+            },
+            walletCtx(),
+          ),
+      });
       await refresh();
       return deal;
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier]
   );
 
   const claimStep = useCallback(
@@ -75,10 +87,16 @@ export function useCovenantMilestone() {
         walletCtx().userAddress,
         walletCtx()
       );
+      awardKpxCovenantClaimPoints({
+        walletAddress: walletCtx().userAddress,
+        template: 'milestone',
+        instanceId: `${dealId}:${stepId}`,
+        krexTier,
+      });
       await refresh();
       return deal;
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier]
   );
 
   return {

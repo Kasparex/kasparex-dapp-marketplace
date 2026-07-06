@@ -6,9 +6,13 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getSplitPaymentRuntime,
   getActiveCovenantRuntimeMode,
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  resolveKpxCovenantDeployPrice,
   type SplitPayment,
   type SplitRecipientInput,
 } from '@/lib/covenant';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 interface UseCovenantSplitReturn {
   splits: SplitPayment[];
@@ -36,6 +40,7 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
   const [error, setError] = useState<string | null>(null);
 
   const runtime = getSplitPaymentRuntime();
+  const { tier: krexTier } = useKREXBalance();
 
   const walletCtx = useCallback(() => {
     if (!isConnected || !address || !provider) {
@@ -74,15 +79,22 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const split = await runtime.createSplit(
-          {
-            depositor: walletCtx().userAddress,
-            totalSompi,
-            memo: args.memo,
-            recipients: args.recipients,
-          },
-          walletCtx()
-        );
+        const pricing = resolveKpxCovenantDeployPrice('split', krexTier);
+        const split = await runKpxCovenantDeployWithFee({
+          template: 'split',
+          pricing,
+          ctx: walletCtx(),
+          create: () =>
+            runtime.createSplit(
+              {
+                depositor: walletCtx().userAddress,
+                totalSompi,
+                memo: args.memo,
+                recipients: args.recipients,
+              },
+              walletCtx(),
+            ),
+        });
         await refreshSplits();
         return split;
       } catch (err) {
@@ -93,7 +105,7 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         setIsLoading(false);
       }
     },
-    [refreshSplits, runtime, walletCtx]
+    [refreshSplits, runtime, walletCtx, krexTier]
   );
 
   const claimShare = useCallback(
@@ -107,6 +119,12 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
           walletCtx().userAddress,
           walletCtx()
         );
+        awardKpxCovenantClaimPoints({
+          walletAddress: walletCtx().userAddress,
+          template: 'split',
+          instanceId: `${splitId}:${recipientId}`,
+          krexTier,
+        });
         await refreshSplits();
         return split;
       } catch (err) {
@@ -117,7 +135,7 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
         setIsLoading(false);
       }
     },
-    [refreshSplits, runtime, walletCtx]
+    [refreshSplits, runtime, walletCtx, krexTier]
   );
 
   return {

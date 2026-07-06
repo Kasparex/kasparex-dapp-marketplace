@@ -43,6 +43,18 @@ export {
   getKpxCovenantBrand,
   kpxCovenantPayloadMeta,
 } from './kpxBranding';
+export {
+  resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPoints,
+  getKpxCovenantTreasuryAddress,
+  type KpxCovenantDeployPrice,
+} from './kpxCovenantPricing';
+export { payKpxCovenantDeployFee, buildKpxCovenantFeeNote } from './platform-fee';
+export {
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  verifyKpxCovenantDeployOnServer,
+} from './kpxCovenantDeployClient';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

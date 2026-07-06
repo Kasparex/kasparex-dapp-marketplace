@@ -7,9 +7,13 @@ import {
   getCovenantRuntime,
   getActiveCovenantRuntimeMode,
   importVaultFromCovenantId,
+  runKpxCovenantDeployWithFee,
+  awardKpxCovenantClaimPoints,
+  resolveKpxCovenantDeployPrice,
   type CovenantVault,
   type CovenantVaultKind,
 } from '@/lib/covenant';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
 import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { loadMap, saveMap } from '@/lib/covenant/utils';
@@ -43,6 +47,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
   const [error, setError] = useState<string | null>(null);
 
   const runtime = getCovenantRuntime();
+  const { tier: krexTier } = useKREXBalance();
 
   const walletCtx = useCallback(() => {
     if (!isConnected || !address || !provider) {
@@ -88,17 +93,24 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const vault = await runtime.createVault(
-          {
-            kind: args.kind,
-            depositor: walletCtx().userAddress,
-            beneficiary: args.beneficiary,
-            amountSompi,
-            memo: args.memo,
-            unlockAt: unlockAtMs,
-          },
-          walletCtx()
-        );
+        const pricing = resolveKpxCovenantDeployPrice('lockbox', krexTier);
+        const vault = await runKpxCovenantDeployWithFee({
+          template: 'lockbox',
+          pricing,
+          ctx: walletCtx(),
+          create: () =>
+            runtime.createVault(
+              {
+                kind: args.kind,
+                depositor: walletCtx().userAddress,
+                beneficiary: args.beneficiary,
+                amountSompi,
+                memo: args.memo,
+                unlockAt: unlockAtMs,
+              },
+              walletCtx(),
+            ),
+        });
         await refreshVaults();
         return vault;
       } catch (err) {
@@ -109,7 +121,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [refreshVaults, runtime, walletCtx]
+    [refreshVaults, runtime, walletCtx, krexTier]
   );
 
   const claimVault = useCallback(
@@ -118,6 +130,12 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       setError(null);
       try {
         const vault = await runtime.claimVault(vaultId, walletCtx().userAddress, walletCtx());
+        awardKpxCovenantClaimPoints({
+          walletAddress: walletCtx().userAddress,
+          template: 'lockbox',
+          instanceId: vaultId,
+          krexTier,
+        });
         await refreshVaults();
         return vault;
       } catch (err) {
@@ -128,7 +146,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [refreshVaults, runtime, walletCtx]
+    [refreshVaults, runtime, walletCtx, krexTier]
   );
 
   const importByCovenantId = useCallback(

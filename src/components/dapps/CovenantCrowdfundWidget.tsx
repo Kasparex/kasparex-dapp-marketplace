@@ -19,6 +19,8 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 
 type TabId = 'browse' | 'create' | 'about';
 
@@ -26,6 +28,7 @@ export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
   const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
     useCovenantCrowdfund();
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('crowdfund');
   const [tab, setTab] = useState<TabId>('browse');
   const [title, setTitle] = useState('');
   const [memo, setMemo] = useState('');
@@ -135,13 +138,24 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
+          <KpxCovenantFeePanel
+            pricing={pricing}
+            krexTier={krexTier}
+            krexBalance={krexBalance}
+            actionLabel="launch"
+          />
+
           <button
             type="button"
             disabled={busy || !title || !deadline}
             onClick={() => void handleCreate()}
             className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Creating...' : 'Create campaign'}
+            {busy
+              ? 'Creating...'
+              : pricing.waived
+                ? 'Create campaign'
+                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
           </button>
         </div>
       )}

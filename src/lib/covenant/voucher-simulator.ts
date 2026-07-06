@@ -1,8 +1,6 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { buildVoucherCommitNote } from './payload';
-import { maybePayLegacyTreasury, shouldUseLegacyTreasury } from './legacy-treasury';
 import type { VoucherRuntime } from './voucher-runtime';
 import type { CreateVoucherParams, VoucherLock } from './voucher-types';
 import { loadMap, randomHex, randomId, saveMap, sha256Hex } from './utils';
@@ -36,22 +34,6 @@ class VoucherSimulator implements VoucherRuntime {
     }
 
     const id = randomId('vch');
-    let lockTxHash = params.lockTxHash;
-    if (shouldUseLegacyTreasury(this.mode)) {
-      lockTxHash = await maybePayLegacyTreasury({
-        ctx,
-        amountSompi: params.amountSompi,
-        note: buildVoucherCommitNote({
-          voucherId: id,
-          amountSompi: params.amountSompi,
-          secretHash: params.secretHash,
-        }),
-        dappId: 'covenant-voucher',
-        actionType: 'covenant-voucher-lock',
-        amountKas: Number(amount) / 1e8,
-        useLegacy: true,
-      });
-    }
 
     const voucher: VoucherLock = {
       id,
@@ -63,7 +45,7 @@ class VoucherSimulator implements VoucherRuntime {
       memo: params.memo.trim(),
       expiresAt: params.expiresAt,
       createdAt: Date.now(),
-      lockTxHash,
+      lockTxHash: params.lockTxHash,
       claimedBy: null,
       claimedAt: null,
     };

@@ -19,6 +19,8 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 
 type TabId = 'create' | 'splits' | 'about';
 
@@ -53,6 +55,7 @@ export function CovenantSplitWidget() {
   const { state: kaspaState } = useKaspaWallet();
   const { splits, isLoading, error, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
     useCovenantSplit();
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split');
 
   const [tab, setTab] = useState<TabId>('create');
   const [rows, setRows] = useState<RecipientRow[]>([
@@ -245,6 +248,13 @@ export function CovenantSplitWidget() {
             />
           </div>
 
+          <KpxCovenantFeePanel
+            pricing={pricing}
+            krexTier={krexTier}
+            krexBalance={krexBalance}
+            lockAmountKas={parseFloat(totalKas) || 0}
+          />
+
           <button
             type="button"
             disabled={
@@ -256,7 +266,11 @@ export function CovenantSplitWidget() {
             onClick={() => void handleCreate()}
             className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Creating...' : 'Create split payment'}
+            {busy
+              ? 'Creating...'
+              : pricing.waived
+                ? 'Create split payment'
+                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
           </button>
         </div>
       )}

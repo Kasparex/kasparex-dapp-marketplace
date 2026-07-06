@@ -22,6 +22,8 @@ import {
   KpxCovenantImportPanel,
   KpxCovenantShell,
 } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 
 type TabId = 'create' | 'vaults' | 'about';
 
@@ -47,6 +49,7 @@ export function CovenantLockboxWidget() {
   const { state: kaspaState } = useKaspaWallet();
   const { vaults, isLoading, error, createVault, claimVault, refreshVaults, importByCovenantId, runtimeMode, effectiveMode } =
     useCovenantLockbox();
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox');
 
   const [tab, setTab] = useState<TabId>('create');
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
@@ -213,20 +216,25 @@ export function CovenantLockboxWidget() {
             />
           </div>
 
+          <KpxCovenantFeePanel
+            pricing={pricing}
+            krexTier={krexTier}
+            krexBalance={krexBalance}
+            lockAmountKas={parseFloat(amountKas) || 0}
+          />
+
           <button
             type="button"
             disabled={busy || isLoading || !beneficiary.trim()}
             onClick={() => void handleCreate()}
             className={covenantPrimaryBtnClass}
           >
-            {busy ? 'Creating...' : 'Create lock'}
+            {busy
+              ? 'Creating...'
+              : pricing.waived
+                ? 'Create lock'
+                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
           </button>
-
-          {!COVENANT_LAB_CONFIG.treasuryAddress && (
-            <p className="text-xs text-zinc-500">
-              Simulator only until treasury is configured for real L1 payments.
-            </p>
-          )}
         </div>
       )}
 
