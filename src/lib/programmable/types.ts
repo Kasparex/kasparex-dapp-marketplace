@@ -1,5 +1,51 @@
 import type { ProgrammableNetworkId } from './config';
 
+export type CovenantReadSource = 'kaspaCom' | 'kascov';
+
+/** Normalized covenant read model used across KaspaCom indexer and kascov fallback. */
+export type CovenantReadDetail = {
+  source: CovenantReadSource;
+  covenant_id: string;
+  status?: string;
+  live_value?: number;
+  live_utxos?: number;
+  event_count?: number;
+  genesis_txid?: string | null;
+  born_value?: number;
+  template?: string;
+  address?: string | null;
+  decodedArgs?: Record<string, unknown> | null;
+};
+
+export type KaspaComCovenantSummary = {
+  activeUtxos?: number;
+  address?: string | null;
+  covenantIdHex?: string | null;
+  createdAtMs?: number | null;
+  decodedArgs?: Record<string, unknown> | null;
+  genesisTxidHex?: string | null;
+  scriptHashHex?: string;
+  template?: string | null;
+  totalAmountSompi?: number | string | null;
+  classificationKind?: string | null;
+  classificationStatus?: string | null;
+};
+
+export type KaspaComActionRow = {
+  action?: string | null;
+  covenantIdHex?: string | null;
+  txidHex?: string;
+  decodedArgs?: Record<string, unknown> | null;
+  template?: string | null;
+  [key: string]: unknown;
+};
+
+export type KaspaComCovenantDetail = {
+  covenant?: KaspaComCovenantSummary;
+  actions?: KaspaComActionRow[];
+  events?: Array<Record<string, unknown>>;
+};
+
 export type KascovCovenantStatus = 'active' | 'burned' | string;
 
 export type KascovCovenantSummary = {

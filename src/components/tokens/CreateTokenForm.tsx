@@ -599,7 +599,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
       return;
     }
     if (isRealToken && isKcc20Network && !onChainSnapshot) {
-      setError('Connect a KCC-20 covenant from kascov before publishing.');
+      setError('Connect a KCC-20 covenant before publishing.');
       return;
     }
     if (isRealToken && isL2Network && !onChainSnapshot) {

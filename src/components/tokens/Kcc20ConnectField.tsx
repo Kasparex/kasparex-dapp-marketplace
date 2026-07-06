@@ -55,7 +55,7 @@ export function Kcc20ConnectField({
       setResult(info);
       setNotFound(!info);
       if (!info) {
-        setError('kascov has not indexed this covenant yet. Deploy on testnet-10 and try again.');
+        setError('No indexed covenant found yet. Deploy on the selected network and try again.');
       }
     } catch {
       setResult(null);
@@ -89,7 +89,7 @@ export function Kcc20ConnectField({
         </KxFormFieldLabel>
         <p className="kx-body-sm mb-2">
           Paste the KCC-20 covenant id from your launchpad, or the genesis transaction id. Kasparex reads
-          public kascov data only; nothing is deployed from this form.
+          public KaspaCom indexer data (kascov fallback); nothing is deployed from this form.
         </p>
         <input
           type="text"
@@ -110,7 +110,7 @@ export function Kcc20ConnectField({
           disabled={disabled || isSearching || value.trim().length < 64}
           className="k-control-btn text-sm disabled:opacity-50"
         >
-          {isSearching ? 'Querying kascov…' : 'Look up covenant'}
+          {isSearching ? 'Looking up covenant…' : 'Look up covenant'}
         </button>
       ) : null}
 

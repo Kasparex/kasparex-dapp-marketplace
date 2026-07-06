@@ -8,7 +8,7 @@ import { Alert } from '@/components/Alert';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
 import { canUseProgrammableUtility, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
-import { fetchKascovCovenant } from '@/lib/programmable/kascovClient';
+import { covenantLiveValueSompi, resolveCovenantDetail } from '@/lib/programmable/covenantRead';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import { tokenHasModule } from '@/lib/tokens/modules';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
@@ -34,13 +34,13 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
     setChecking(true);
     setMessage(null);
     try {
-      const detail = await fetchKascovCovenant(covenantId, networkId);
+      const detail = await resolveCovenantDetail(covenantId, networkId);
       if (!detail) {
-        setMessage('Could not read covenant state from kascov.');
+        setMessage('Could not read covenant state from KaspaCom or kascov.');
         setPassed(false);
         return;
       }
-      const liveSompi = BigInt(detail.live_value ?? 0);
+      const liveSompi = BigInt(covenantLiveValueSompi(detail) ?? '0');
       const minRequired = config?.minBalanceSompi ? BigInt(config.minBalanceSompi) : BigInt(0);
 
       if (config?.holderOnly && liveSompi > BigInt(0)) {
@@ -72,7 +72,7 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
     <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
       <DAppSectionHeader title="Access gate" className="mb-1" />
       <p className="kx-body-sm">
-        Gated utility for covenant token holders. v1 uses read-only kascov covenant state; wallet-native
+        Gated utility for covenant token holders. v1 uses read-only KaspaCom / kascov covenant state; wallet-native
         holder proofs arrive with KCC-20 wallet APIs.
       </p>
 

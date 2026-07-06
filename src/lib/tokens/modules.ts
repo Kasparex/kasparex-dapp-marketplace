@@ -138,7 +138,7 @@ export const TOKEN_MODULE_OFFERS: TokenModuleOffer[] = [
     id: 'access_gate',
     title: 'Access Gate',
     description:
-      'Gate premium content or links for covenant token holders. Uses read-only kascov balance checks or tx proof.',
+      'Gate premium content or links for covenant token holders. Uses read-only KaspaCom / kascov balance checks or tx proof.',
     unlockPriceKas: 20,
   },
   {

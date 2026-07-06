@@ -14,6 +14,7 @@ import {
 import {
   DEFAULT_PROGRAMMABLE_NETWORK,
   kascovCovenantExplorerUrl,
+  programmableCovenantExplorerUrl,
   type ProgrammableNetworkId,
 } from '@/lib/programmable/config';
 
@@ -83,6 +84,16 @@ export function getNetworkAddressPlaceholder(network: TokenListingNetwork): stri
 }
 
 export function getProgrammableExplorerUrl(
+  covenantId: string | undefined,
+  network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK,
+): string | null {
+  const id = covenantId?.trim().toLowerCase();
+  if (!id || !/^[a-f0-9]{64}$/.test(id)) return null;
+  return programmableCovenantExplorerUrl(id, network);
+}
+
+/** Secondary explorer link when KaspaCom is primary. */
+export function getKascovExplorerUrl(
   covenantId: string | undefined,
   network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK,
 ): string | null {

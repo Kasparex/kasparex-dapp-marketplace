@@ -149,7 +149,7 @@ export function TokenListingArchive({
           const pill = paymentPill(listing.status);
           const canVerifyDeployer = listing.ownership !== 'deployer_verified';
           const isReal = listing.assetKind === 'real';
-          const kascovUrl =
+          const explorerUrl =
             listing.listingNetwork === 'kcc20'
               ? getProgrammableExplorerUrl(
                   listing.onChainSnapshot?.covenantId ?? listing.contractAddress,
@@ -182,14 +182,14 @@ export function TokenListingArchive({
                       <button type="button" onClick={() => onEdit(listing)} className="k-control-btn text-sm">
                         Edit
                       </button>
-                      {kascovUrl ? (
+                      {explorerUrl ? (
                         <a
-                          href={kascovUrl}
+                          href={explorerUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="k-control-btn col-span-2 text-sm text-center"
                         >
-                          View covenant on kascov
+                          View on KaspaCom Explorer
                         </a>
                       ) : null}
                       {canVerifyDeployer && isReal ? (

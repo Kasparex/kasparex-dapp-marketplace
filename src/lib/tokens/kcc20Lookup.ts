@@ -1,13 +1,15 @@
 /**
- * KCC-20 / programmable token lookup via kascov (read-only, client-side).
+ * KCC-20 / programmable token lookup (KaspaCom indexer + kascov fallback).
  */
 
 import { DEFAULT_PROGRAMMABLE_NETWORK, type ProgrammableNetworkId } from '@/lib/programmable/config';
 import {
-  extractKascovTemplateLabel,
-  fetchKascovCovenant,
-  fetchKascovTxCovenant,
-} from '@/lib/programmable/kascovClient';
+  covenantLiveValueSompi,
+  extractCovenantTemplateLabel,
+  resolveCovenantDetail,
+  resolveCovenantIdFromTx,
+} from '@/lib/programmable/covenantRead';
+import type { CovenantReadSource } from '@/lib/programmable/types';
 import type { TokenOnChainSnapshot } from './listingRecord';
 
 export type Kcc20TokenInfo = TokenOnChainSnapshot & {
@@ -19,12 +21,8 @@ export type Kcc20TokenInfo = TokenOnChainSnapshot & {
   liveValueSompi?: string;
   genesisTxid?: string;
   eventCount?: number;
+  readSource?: CovenantReadSource;
 };
-
-function sompiToRawString(sompi: number | undefined): string | undefined {
-  if (sompi == null || !Number.isFinite(sompi)) return undefined;
-  return String(Math.max(0, Math.floor(sompi)));
-}
 
 function covenantIdToTicker(covenantId: string): string {
   return `KCC${covenantId.slice(0, 6).toUpperCase()}`;
@@ -33,10 +31,10 @@ function covenantIdToTicker(covenantId: string): string {
 function detailToSnapshot(
   covenantId: string,
   networkId: ProgrammableNetworkId,
-  detail: NonNullable<Awaited<ReturnType<typeof fetchKascovCovenant>>>,
+  detail: NonNullable<Awaited<ReturnType<typeof resolveCovenantDetail>>>,
 ): Kcc20TokenInfo {
-  const templateLabel = extractKascovTemplateLabel(detail);
-  const liveSompi = detail.live_value;
+  const templateLabel = extractCovenantTemplateLabel(detail);
+  const liveSompi = covenantLiveValueSompi(detail);
   return {
     source: 'kcc20',
     ticker: covenantIdToTicker(covenantId),
@@ -46,12 +44,13 @@ function detailToSnapshot(
     networkId,
     status: detail.status,
     templateLabel,
-    minted: sompiToRawString(liveSompi),
-    maxSupply: sompiToRawString(detail.born_value ?? liveSompi),
+    minted: liveSompi,
+    maxSupply: liveSompi,
     decimals: 8,
     genesisTxid: detail.genesis_txid ?? undefined,
-    liveValueSompi: sompiToRawString(liveSompi),
+    liveValueSompi: liveSompi,
     eventCount: detail.event_count,
+    readSource: detail.source,
     fetchedAt: new Date().toISOString(),
   };
 }
@@ -62,8 +61,8 @@ export async function fetchKcc20ByCovenantId(
 ): Promise<Kcc20TokenInfo | null> {
   const id = covenantId.trim().toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(id)) return null;
-  const detail = await fetchKascovCovenant(id, network);
-  if (!detail?.covenant_id) return null;
+  const detail = await resolveCovenantDetail(id, network);
+  if (!detail) return null;
   return detailToSnapshot(id, network, detail);
 }
 
@@ -71,9 +70,9 @@ export async function fetchKcc20ByTxid(
   txid: string,
   network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK,
 ): Promise<Kcc20TokenInfo | null> {
-  const covenantId = await fetchKascovTxCovenant(txid, network);
-  if (!covenantId) return null;
-  return fetchKcc20ByCovenantId(covenantId, network);
+  const resolved = await resolveCovenantIdFromTx(txid, network);
+  if (!resolved) return null;
+  return fetchKcc20ByCovenantId(resolved.covenantId, network);
 }
 
 export async function resolveKcc20ConnectInput(

@@ -4,10 +4,15 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Token } from '@/lib/tokens/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
-import { kascovCovenantExplorerUrl, kascovDecodeUrl } from '@/lib/programmable/config';
+import {
+  DEFAULT_PROGRAMMABLE_NETWORK,
+  kascovCovenantExplorerUrl,
+  kascovDecodeUrl,
+  programmableCovenantExplorerUrl,
+} from '@/lib/programmable/config';
+import { covenantLiveValueSompi, resolveCovenantDetail } from '@/lib/programmable/covenantRead';
 import { isProgrammableToken, resolveProgrammableCovenantId } from '@/lib/programmable/eligibility';
-import { fetchKascovCovenant } from '@/lib/programmable/kascovClient';
+import type { CovenantReadSource } from '@/lib/programmable/types';
 import { formatKcc20Sompi } from '@/lib/tokens/kcc20Lookup';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
@@ -21,6 +26,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
   const [status, setStatus] = useState(token.onChainSnapshot?.status ?? 'unknown');
   const [liveValue, setLiveValue] = useState(token.onChainSnapshot?.liveValueSompi);
   const [templateLabel, setTemplateLabel] = useState(token.onChainSnapshot?.templateLabel);
+  const [readSource, setReadSource] = useState<CovenantReadSource | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
@@ -28,11 +34,12 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
     if (!covenantId) return;
     setIsRefreshing(true);
     try {
-      const detail = await fetchKascovCovenant(covenantId, networkId);
+      const detail = await resolveCovenantDetail(covenantId, networkId, { skipCache: true });
       if (detail) {
         setStatus(detail.status ?? 'unknown');
-        setLiveValue(detail.live_value != null ? String(detail.live_value) : undefined);
-        setTemplateLabel(detail.template ?? detail.utxos?.find((u) => u.template)?.template);
+        setLiveValue(covenantLiveValueSompi(detail));
+        setTemplateLabel(detail.template);
+        setReadSource(detail.source);
         setLastFetched(new Date().toISOString());
       }
     } finally {
@@ -47,15 +54,15 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
 
   if (!isProgrammableToken(token) || !covenantId) return null;
 
+  const kaspaComUrl = programmableCovenantExplorerUrl(covenantId, networkId);
   const kascovUrl = kascovCovenantExplorerUrl(covenantId, networkId);
-  const scriptHex = token.onChainSnapshot?.source === 'kcc20' ? undefined : undefined;
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
       <DAppSectionHeader title="Programmable L1 asset" className="mb-1" />
       <p className="kx-body-sm">
         This project is linked to a KCC-20 / covenant token on {networkId}. Status is fetched on demand from
-        kascov; Kasparex does not run a chain indexer.
+        the KaspaCom covenant indexer (kascov fallback); Kasparex does not run a chain indexer.
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -76,6 +83,9 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
           </span>
         ) : null}
         <span className="text-xs text-zinc-500 dark:text-zinc-400">Network: {networkId}</span>
+        {readSource ? (
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">via {readSource}</span>
+        ) : null}
       </div>
 
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -101,6 +111,14 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
 
       <div className="flex flex-wrap gap-2">
         <a
+          href={kaspaComUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="k-control-btn text-sm"
+        >
+          View on KaspaCom
+        </a>
+        <a
           href={kascovUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -109,7 +127,7 @@ export function ProgrammableAssetPanel({ token }: ProgrammableAssetPanelProps) {
           View on kascov
         </a>
         <a
-          href={kascovDecodeUrl(scriptHex)}
+          href={kascovDecodeUrl()}
           target="_blank"
           rel="noopener noreferrer"
           className="k-control-btn text-sm"
