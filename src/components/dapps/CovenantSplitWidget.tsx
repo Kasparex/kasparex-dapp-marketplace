@@ -19,10 +19,12 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
-type TabId = 'create' | 'splits' | 'about';
+type TabId = 'create' | 'splits' | 'metadata' | 'about';
 
 interface RecipientRow {
   key: string;
@@ -82,6 +84,7 @@ export function CovenantSplitWidget() {
   }, [rows, totalKas]);
 
   const openCount = useMemo(() => splits.filter((s) => s.status === 'open').length, [splits]);
+  const metadataInstances = useMemo(() => splitMetadataInstances(splits), [splits]);
 
   const updateRow = (key: string, patch: Partial<RecipientRow>) => {
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -140,6 +143,7 @@ export function CovenantSplitWidget() {
         tabs={[
           { id: 'create' as const, label: 'Create split' },
           { id: 'splits' as const, label: `Splits (${splits.length})` },
+          { id: 'metadata' as const, label: 'Metadata' },
           { id: 'about' as const, label: 'How it works' },
         ]}
         active={tab}
@@ -352,6 +356,15 @@ export function CovenantSplitWidget() {
             ))
           )}
         </div>
+      )}
+
+      {tab === 'metadata' && (
+        <KpxCovenantMetadataView
+          template="split"
+          runtimeMode={runtimeMode}
+          effectiveMode={effectiveMode}
+          instances={metadataInstances}
+        />
       )}
 
       {tab === 'about' && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantMilestone } from '@/hooks/useCovenantMilestone';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
@@ -19,10 +19,12 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
-type TabId = 'create' | 'deals' | 'about';
+type TabId = 'create' | 'deals' | 'metadata' | 'about';
 
 function defaultUnlock(days: number) {
   const d = new Date();
@@ -44,6 +46,7 @@ export function CovenantMilestoneWidget() {
   const [m3, setM3] = useState({ label: 'Final', pct: '20', unlock: defaultUnlock(21) });
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
 
   if (!state.isConnected) {
     return <KpxCovenantDisconnected template="milestone" />;
@@ -77,6 +80,7 @@ export function CovenantMilestoneWidget() {
         tabs={[
           { id: 'create' as const, label: 'New deal' },
           { id: 'deals' as const, label: `Deals (${deals.length})` },
+          { id: 'metadata' as const, label: 'Metadata' },
           { id: 'about' as const, label: 'How it works' },
         ]}
         active={tab}
@@ -258,6 +262,15 @@ export function CovenantMilestoneWidget() {
             ))
           )}
         </div>
+      )}
+
+      {tab === 'metadata' && (
+        <KpxCovenantMetadataView
+          template="milestone"
+          runtimeMode={runtimeMode}
+          effectiveMode={effectiveMode}
+          instances={metadataInstances}
+        />
       )}
 
       {tab === 'about' && (

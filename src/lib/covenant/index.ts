@@ -55,6 +55,17 @@ export {
   awardKpxCovenantClaimPoints,
   verifyKpxCovenantDeployOnServer,
 } from './kpxCovenantDeployClient';
+export {
+  lockboxMetadataInstances,
+  splitMetadataInstances,
+  milestoneMetadataInstances,
+  crowdfundMetadataInstances,
+  voucherMetadataInstances,
+  buildKpxCovenantTemplateMetadataRows,
+  isOnChainCovenantId,
+  type KpxCovenantMetadataInstance,
+  type KpxCovenantMetadataRow,
+} from './kpxCovenantMetadata';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

@@ -1,12 +1,6 @@
 'use client';
 
-import Link from 'next/link';
 import type { CovenantTemplate } from '@/lib/programmability/types';
-import {
-  DEFAULT_PROGRAMMABLE_NETWORK,
-  KASCOV_BASE_URL,
-  kaspaComCovenantExplorerBase,
-} from '@/lib/programmable/config';
 import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import type { CovenantRuntimeMode } from '@/lib/covenant/types';
 import {
@@ -46,7 +40,6 @@ export function KpxCovenantShell({
   const badge = covenantRuntimeBadge(
     (effectiveMode ?? runtimeMode ?? 'simulator') as CovenantRuntimeMode,
   );
-  const explorerBase = kaspaComCovenantExplorerBase(DEFAULT_PROGRAMMABLE_NETWORK);
 
   return (
     <CovenantWidgetShell>
@@ -71,30 +64,10 @@ export function KpxCovenantShell({
 
       {children}
 
-      <footer className="pt-2 border-t border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-500 dark:text-zinc-400 space-y-1">
+      <footer className="pt-2 border-t border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-500 dark:text-zinc-400">
         <p>
-          Kasparex covenant template. Deploys tag{' '}
-          <span className="font-mono text-zinc-600 dark:text-zinc-300">{brand.payloadTemplate}</span> on
-          chain for explorer recognition.
-        </p>
-        <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          <Link
-            href={explorerBase}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#02abb8] hover:underline"
-          >
-            KaspaCom Explorer
-          </Link>
-          <span aria-hidden>·</span>
-          <Link
-            href={KASCOV_BASE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#02abb8] hover:underline"
-          >
-            kascov
-          </Link>
+          On-chain references, covenant IDs, and explorer links live in the{' '}
+          <span className="font-medium text-zinc-600 dark:text-zinc-300">Metadata</span> tab.
         </p>
       </footer>
     </CovenantWidgetShell>

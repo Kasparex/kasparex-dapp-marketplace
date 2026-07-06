@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantVoucher } from '@/hooks/useCovenantVoucher';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
@@ -17,10 +17,12 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
-type TabId = 'create' | 'claim' | 'about';
+type TabId = 'create' | 'claim' | 'metadata' | 'about';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
@@ -37,6 +39,7 @@ export function CovenantVoucherWidget() {
   const [claimSecret, setClaimSecret] = useState('');
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const metadataInstances = useMemo(() => voucherMetadataInstances(openVouchers), [openVouchers]);
 
   if (!state.isConnected) {
     return <KpxCovenantDisconnected template="voucher" />;
@@ -77,6 +80,7 @@ export function CovenantVoucherWidget() {
         tabs={[
           { id: 'create' as const, label: 'Mint voucher' },
           { id: 'claim' as const, label: 'Redeem' },
+          { id: 'metadata' as const, label: 'Metadata' },
           { id: 'about' as const, label: 'How it works' },
         ]}
         active={tab}
@@ -234,6 +238,15 @@ export function CovenantVoucherWidget() {
             )}
           </div>
         </div>
+      )}
+
+      {tab === 'metadata' && (
+        <KpxCovenantMetadataView
+          template="voucher"
+          runtimeMode={runtimeMode}
+          effectiveMode={effectiveMode}
+          instances={metadataInstances}
+        />
       )}
 
       {tab === 'about' && (

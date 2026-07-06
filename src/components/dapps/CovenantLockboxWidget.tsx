@@ -22,10 +22,12 @@ import {
   KpxCovenantImportPanel,
   KpxCovenantShell,
 } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
-type TabId = 'create' | 'vaults' | 'about';
+type TabId = 'create' | 'vaults' | 'metadata' | 'about';
 
 function sompiToKas(sompi: string): string {
   const n = Number(BigInt(sompi)) / 1e8;
@@ -63,6 +65,7 @@ export function CovenantLockboxWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
   const myLocked = useMemo(() => vaults.filter((v) => v.status === 'locked'), [vaults]);
+  const metadataInstances = useMemo(() => lockboxMetadataInstances(vaults), [vaults]);
 
   const handleCreate = async () => {
     setBusy(true);
@@ -106,6 +109,7 @@ export function CovenantLockboxWidget() {
         tabs={[
           { id: 'create' as const, label: 'Create lock' },
           { id: 'vaults' as const, label: `Vaults (${vaults.length})` },
+          { id: 'metadata' as const, label: 'Metadata' },
           { id: 'about' as const, label: 'How it works' },
         ]}
         active={tab}
@@ -311,6 +315,15 @@ export function CovenantLockboxWidget() {
             ))
           )}
         </div>
+      )}
+
+      {tab === 'metadata' && (
+        <KpxCovenantMetadataView
+          template="lockbox"
+          runtimeMode={runtimeMode}
+          effectiveMode={effectiveMode}
+          instances={metadataInstances}
+        />
       )}
 
       {tab === 'about' && (

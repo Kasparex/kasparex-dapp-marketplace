@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
@@ -19,10 +19,12 @@ import {
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
+import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
-type TabId = 'browse' | 'create' | 'about';
+type TabId = 'browse' | 'create' | 'metadata' | 'about';
 
 export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
@@ -37,6 +39,7 @@ export function CovenantCrowdfundWidget() {
   const [pledgeAmounts, setPledgeAmounts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const metadataInstances = useMemo(() => crowdfundMetadataInstances(allCampaigns), [allCampaigns]);
 
   if (!state.isConnected) {
     return <KpxCovenantDisconnected template="crowdfund" />;
@@ -65,6 +68,7 @@ export function CovenantCrowdfundWidget() {
         tabs={[
           { id: 'browse' as const, label: 'Campaigns' },
           { id: 'create' as const, label: 'Launch' },
+          { id: 'metadata' as const, label: 'Metadata' },
           { id: 'about' as const, label: 'How it works' },
         ]}
         active={tab}
@@ -259,6 +263,15 @@ export function CovenantCrowdfundWidget() {
             })
           )}
         </div>
+      )}
+
+      {tab === 'metadata' && (
+        <KpxCovenantMetadataView
+          template="crowdfund"
+          runtimeMode={runtimeMode}
+          effectiveMode={effectiveMode}
+          instances={metadataInstances}
+        />
       )}
 
       {tab === 'about' && (
