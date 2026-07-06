@@ -26,7 +26,7 @@ import {
 } from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 
 export default function VBlogPage() {
@@ -91,7 +91,7 @@ function VBlogPageInner() {
       <Header />
 
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+        <HubPageAccentLayout projectId="kasparex-vblog">
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
@@ -103,7 +103,7 @@ function VBlogPageInner() {
             activeView="explore"
           />
 
-          <HubAccentScope projectId="kasparex-vblog" className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_COLUMN}>
             <div className={HUB_MAIN_INNER}>
               <VBlogHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
@@ -182,8 +182,8 @@ function VBlogPageInner() {
                 <VBlogRewardsSection />
               </div>
             </div>
-          </HubAccentScope>
-        </div>
+          </div>
+        </HubPageAccentLayout>
       </main>
 
       <Footer />

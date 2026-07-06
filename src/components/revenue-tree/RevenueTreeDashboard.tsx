@@ -10,7 +10,7 @@ import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
 import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
@@ -42,7 +42,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
     : 0;
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row">
+    <HubPageAccentLayout projectId="revenue-tree" className="flex-1">
       <div className="flex-shrink-0">
         <RevenueTreeSidebar
           totalRevenue={totalRevenue}
@@ -52,8 +52,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
         />
       </div>
 
-      {/* Main Content */}
-      <HubAccentScope projectId="revenue-tree" className={HUB_MAIN_COLUMN}>
+      <div className={HUB_MAIN_COLUMN}>
         <div className={`${HUB_MAIN_INNER} space-y-6`}>
           <HubListingTitleRow
             projectId="revenue-tree"
@@ -99,7 +98,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
             </>
           )}
         </div>
-      </HubAccentScope>
-    </div>
+      </div>
+    </HubPageAccentLayout>
   );
 }

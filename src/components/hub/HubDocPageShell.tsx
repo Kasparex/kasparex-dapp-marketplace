@@ -6,7 +6,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG, HUB_STANDALONE_MAIN } from '@/lib/hub/hubLayout';
 
 type HubDocPageShellProps = {
@@ -28,10 +28,12 @@ export function HubDocPageShell({
     <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
       <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
-        {sidebar}
-        <HubAccentScope projectId={projectId} className={standalone ? HUB_STANDALONE_MAIN : HUB_MAIN_COLUMN}>
-          <div className={standalone ? 'mx-auto w-full max-w-4xl' : HUB_MAIN_INNER}>{children}</div>
-        </HubAccentScope>
+        <HubPageAccentLayout projectId={projectId}>
+          {sidebar}
+          <div className={standalone ? HUB_STANDALONE_MAIN : HUB_MAIN_COLUMN}>
+            <div className={standalone ? 'mx-auto w-full max-w-4xl' : HUB_MAIN_INNER}>{children}</div>
+          </div>
+        </HubPageAccentLayout>
       </main>
       <Footer />
     </div>

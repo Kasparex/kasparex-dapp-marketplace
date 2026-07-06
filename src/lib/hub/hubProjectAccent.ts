@@ -6,6 +6,7 @@ export type HubProjectAccent = {
   accentId: KxListingAccent;
   hex: string;
   hexHover: string;
+  hexLight?: string;
   muted: string;
   border: string;
   shadow: string;
@@ -51,6 +52,7 @@ const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {
     accentId: 'tokens',
     hex: '#3b82f6',
     hexHover: '#2563eb',
+    hexLight: '#93c5fd',
     muted: 'rgba(59, 130, 246, 0.1)',
     border: 'rgba(59, 130, 246, 0.25)',
     shadow: 'rgba(59, 130, 246, 0.35)',
@@ -61,6 +63,7 @@ const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {
     accentId: 'games',
     hex: '#10b981',
     hexHover: '#059669',
+    hexLight: '#6ee7b7',
     muted: 'rgba(16, 185, 129, 0.1)',
     border: 'rgba(16, 185, 129, 0.25)',
     shadow: 'rgba(16, 185, 129, 0.35)',
@@ -71,6 +74,7 @@ const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {
     accentId: 'vblog',
     hex: '#02abb8',
     hexHover: '#019aa6',
+    hexLight: '#66dfe8',
     muted: 'rgba(2, 171, 184, 0.1)',
     border: 'rgba(2, 171, 184, 0.25)',
     shadow: 'rgba(2, 171, 184, 0.35)',
@@ -231,5 +235,6 @@ export function hubAccentCssVars(accent: HubProjectAccent): CSSProperties {
     '--hub-accent-muted': accent.muted,
     '--hub-accent-border': accent.border,
     '--hub-accent-shadow': accent.shadow,
+    '--hub-accent-light': accent.hexLight ?? accent.hex,
   } as CSSProperties;
 }

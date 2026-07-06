@@ -25,7 +25,7 @@ import { AdSlider } from '@/components/ads/AdSlider';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
 const validCategories = categories.map((cat) => cat.id);
@@ -140,6 +140,7 @@ export function DAppsHomeContent() {
       <Header />
 
       <main className="flex-1 flex flex-col lg:flex-row">
+        <HubPageAccentLayout projectId="kasparex-dapps">
         <div className="hidden lg:block flex-shrink-0">
           <Sidebar
             categories={selectedCategories}
@@ -166,7 +167,7 @@ export function DAppsHomeContent() {
           />
         </div>
 
-        <HubAccentScope projectId="kasparex-dapps" className={HUB_MAIN_COLUMN}>
+        <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
             <div className={`mb-6 ${HUB_HALO_MOBILE_FALLBACK}`}>
               <DAppSourceSwitcher value={sourceFilter} onChange={setSourceFilter} />
@@ -263,7 +264,8 @@ export function DAppsHomeContent() {
               )}
             </>
           </div>
-        </HubAccentScope>
+        </div>
+        </HubPageAccentLayout>
       </main>
 
       <Footer />

@@ -38,7 +38,7 @@ import type { TokenNetworkFilter } from '@/lib/tokens/networks';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 import { useTokens } from '@/hooks/useTokens';
 import { TOKEN_LISTING_VOTES_CHANGED_EVENT } from '@/lib/tokens/votes';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
@@ -147,21 +147,22 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       <Header />
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <TokensListingSidebar
-          tokens={allTokens}
-          utilityFilter={utilitySectionFilter}
-          moduleFilter={moduleSectionFilter}
-          onUtilityFilterChange={handleUtilitySectionChange}
-          onModuleFilterChange={handleModuleSectionChange}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          selectedTags={selectedTags}
-          onTagToggle={handleTagToggle}
-          showUtilityFilter
-        />
+        <HubPageAccentLayout projectId="kasparex-tokens">
+          <TokensListingSidebar
+            tokens={allTokens}
+            utilityFilter={utilitySectionFilter}
+            moduleFilter={moduleSectionFilter}
+            onUtilityFilterChange={handleUtilitySectionChange}
+            onModuleFilterChange={handleModuleSectionChange}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            selectedTags={selectedTags}
+            onTagToggle={handleTagToggle}
+            showUtilityFilter
+          />
 
-        <HubAccentScope projectId="kasparex-tokens" className={HUB_MAIN_COLUMN}>
-          <div className={HUB_MAIN_INNER}>
+          <div className={HUB_MAIN_COLUMN}>
+            <div className={HUB_MAIN_INNER}>
             <TokensHero sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
             <div id="content" className="scroll-mt-4" />
@@ -215,8 +216,9 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
             <div className="mt-10 mb-16">
               <TokensRewardsSection />
             </div>
+            </div>
           </div>
-        </HubAccentScope>
+        </HubPageAccentLayout>
       </main>
 
       <Footer />

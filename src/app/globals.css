@@ -456,6 +456,81 @@
   background: linear-gradient(to top, rgb(24 24 27 / 0.98) 70%, rgb(24 24 27 / 0));
 }
 
+/* Hub accent tokens (default: dApps cyan; overridden per page via HubAccentScope) */
+:root {
+  --hub-accent: #06b6d4;
+  --hub-accent-hover: #0891b2;
+  --hub-accent-light: #67e8f9;
+  --hub-accent-muted: rgba(6, 182, 212, 0.1);
+  --hub-accent-border: rgba(6, 182, 212, 0.25);
+  --hub-accent-shadow: rgba(6, 182, 212, 0.35);
+}
+
+.hub-tilt-bar {
+  background-color: var(--hub-accent);
+  box-shadow: 0 0 10px var(--hub-accent-shadow);
+}
+
+.hub-tilt-bar-sm {
+  background-color: var(--hub-accent);
+  box-shadow: 0 0 8px var(--hub-accent-shadow);
+}
+
+.hub-accent-text {
+  color: var(--hub-accent);
+}
+
+.dark .hub-accent-text {
+  color: var(--hub-accent-light, var(--hub-accent));
+}
+
+.hub-accent-bg-muted {
+  background-color: var(--hub-accent-muted);
+}
+
+.hub-filter-dropdown-item-active {
+  background-color: var(--hub-accent-muted);
+  color: var(--hub-accent);
+  font-weight: 500;
+}
+
+.hub-cta-btn {
+  background-color: var(--hub-accent) !important;
+  border-color: var(--hub-accent-border) !important;
+  color: white !important;
+}
+
+.hub-cta-btn:hover {
+  background-color: var(--hub-accent-hover) !important;
+}
+
+.hub-benefits-kicker {
+  color: var(--hub-accent);
+}
+
+.dark .hub-benefits-kicker {
+  color: var(--hub-accent-light, var(--hub-accent));
+}
+
+.hub-sidebar-action-active {
+  background-color: var(--hub-accent) !important;
+  border-color: var(--hub-accent-border) !important;
+  color: white !important;
+}
+
+.hub-panel-accent-border {
+  border-color: var(--hub-accent-border);
+}
+
+.hub-sidebar-reset-link {
+  color: rgb(113 113 122);
+  transition: color 0.2s;
+}
+
+.hub-sidebar-reset-link:hover {
+  color: var(--hub-accent);
+}
+
 /* Premium Sidebar Components - icon and title MUST stay on same line everywhere */
 .k-sidebar-item {
   @apply w-full relative flex flex-row items-center h-10 px-2 rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap flex-nowrap;
@@ -484,16 +559,26 @@
   transform: translateY(-50%);
   width: 3px;
   height: 60%;
-  background: #02abb8;
+  background: var(--hub-accent);
   border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px #02abb8;
+  box-shadow: 0 0 10px var(--hub-accent-shadow);
 }
 
 .k-sidebar-item-active {
-  @apply bg-[#02abb8]/10 text-zinc-900 dark:bg-[#02abb8]/20 dark:text-[#02abb8];
+  background-color: var(--hub-accent-muted);
+  color: var(--hub-accent);
 }
+
+.dark .k-sidebar-item-active {
+  color: var(--hub-accent-light, var(--hub-accent));
+}
+
 .k-sidebar-item-active .k-sidebar-icon {
-  @apply text-zinc-900 dark:text-[#02abb8];
+  color: var(--hub-accent);
+}
+
+.dark .k-sidebar-item-active .k-sidebar-icon {
+  color: var(--hub-accent-light, var(--hub-accent));
 }
 .k-sidebar-item-active .k-sidebar-count {
   @apply text-zinc-600 dark:text-zinc-400;
@@ -501,13 +586,15 @@
 
 /* Hub mega menu: active row uses white label text, turquoise icon only */
 .k-hub-mega-item-active {
-  @apply bg-[#02abb8]/10 dark:bg-[#02abb8]/20;
+  background-color: var(--hub-accent-muted);
 }
+
 .k-hub-mega-item-active .k-hub-mega-label {
   @apply text-zinc-900 dark:text-white font-medium;
 }
+
 .k-hub-mega-item-active .k-sidebar-icon {
-  @apply text-[#02abb8] dark:text-[#02abb8];
+  color: var(--hub-accent);
 }
 
 .k-sidebar-icon {
@@ -522,29 +609,41 @@
 }
 
 .k-sidebar-count {
-  @apply ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors group-hover:border-[#02abb8]/30;
+  @apply ml-auto text-[10px] px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 font-bold flex-shrink-0 border border-zinc-200 dark:border-zinc-800 transition-colors;
   position: absolute;
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
 }
 
-/* Icon color on hover: turquoise */
+.k-sidebar-item:hover .k-sidebar-count {
+  border-color: var(--hub-accent-border);
+}
+
 .k-sidebar-item:hover .k-sidebar-icon {
-  color: #02abb8;
+  color: var(--hub-accent);
 }
 
 /* Uniform Controls (use design tokens for surface alignment with search) */
 .k-control-btn {
-  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-[#02abb8]/30 transition-all active:scale-[0.98];
+  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-[0.98];
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
 }
 
+.k-control-btn:hover {
+  border-color: var(--hub-accent-border) !important;
+}
+
 .k-control-icon-btn {
-  @apply h-10 w-10 flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-[#02abb8] hover:border-[#02abb8]/30 transition-all active:scale-95;
+  @apply h-10 w-10 flex items-center justify-center rounded-xl text-zinc-600 dark:text-zinc-400 transition-all active:scale-95;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
+}
+
+.k-control-icon-btn:hover {
+  color: var(--hub-accent) !important;
+  border-color: var(--hub-accent-border) !important;
 }
 
 .k-control-group {
@@ -560,52 +659,18 @@
 }
 
 .k-tab-btn-active {
-  @apply bg-cyan-500/10 text-cyan-900 dark:text-cyan-300;
-}
-
-/* Hub accent scope: tilt, tabs, controls, and dropdown highlights follow project color */
-[data-hub-accent] {
-  --hub-accent: #06b6d4;
-  --hub-accent-hover: #0891b2;
-  --hub-accent-muted: rgba(6, 182, 212, 0.1);
-  --hub-accent-border: rgba(6, 182, 212, 0.25);
-  --hub-accent-shadow: rgba(6, 182, 212, 0.35);
-}
-
-[data-hub-accent] .k-tab-btn-active {
   background-color: var(--hub-accent-muted);
   color: var(--hub-accent);
 }
 
-[data-hub-accent] .k-control-btn:hover,
-[data-hub-accent] .k-control-icon-btn:hover {
-  border-color: var(--hub-accent-border) !important;
+.dark .k-tab-btn-active {
+  color: var(--hub-accent-light, var(--hub-accent));
 }
 
-[data-hub-accent] .k-control-icon-btn:hover {
-  color: var(--hub-accent) !important;
-}
-
-[data-hub-accent] .k-filter-select:hover {
-  border-color: var(--hub-accent-border) !important;
-}
-
-[data-hub-accent] .hub-filter-dropdown-item-active {
-  background-color: var(--hub-accent-muted);
-  color: var(--hub-accent);
-}
-
-[data-hub-accent] .k-sidebar-item:hover .k-sidebar-icon {
-  color: var(--hub-accent);
-}
-
-[data-hub-accent] .k-sidebar-count {
-  @apply group-hover:border-[color:var(--hub-accent-border)];
-}
-
-/* Kasparex Games tab strip: emerald accent (dApps keep cyan via .k-tab-btn-active) */
+/* Kasparex Games tab strip legacy class (prefer scoped --hub-accent via HubAccentScope) */
 .k-games-tab-btn-active {
-  @apply bg-emerald-500/10 text-emerald-900 dark:text-emerald-300;
+  background-color: var(--hub-accent-muted);
+  color: var(--hub-accent);
 }
 
 .k-tab-btn-icon {
@@ -624,8 +689,8 @@
 }
 
 .k-switch.k-switch-on {
-  background: rgba(2, 171, 184, 0.28);
-  border-color: rgba(2, 171, 184, 0.45);
+  background: color-mix(in srgb, var(--hub-accent) 28%, transparent);
+  border-color: var(--hub-accent-border);
 }
 
 .k-switch-thumb {
@@ -651,12 +716,16 @@
 
 /* Native selects aligned with k-control-btn surfaces */
 .k-filter-select {
-  @apply h-10 min-w-[140px] pl-3 pr-8 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer appearance-none bg-no-repeat transition-all hover:border-[#02abb8]/30;
+  @apply h-10 min-w-[140px] pl-3 pr-8 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer appearance-none bg-no-repeat transition-all;
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
   background-position: right 0.5rem center;
   background-size: 1.25rem 1.25rem;
+}
+
+.k-filter-select:hover {
+  border-color: var(--hub-accent-border) !important;
 }
 .dark .k-filter-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
@@ -666,9 +735,9 @@
 .k-modal-field-input {
   @apply w-full min-h-[2.75rem] rounded-xl border px-3 py-2 text-sm outline-none transition-colors;
   @apply border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-500;
-  @apply focus:border-[#02abb8]/50 focus:ring-2 focus:ring-[#02abb8]/20;
+  @apply focus:border-[color:var(--hub-accent-border)] focus:ring-2 focus:ring-[color:var(--hub-accent-muted)];
   @apply dark:border-zinc-600 dark:bg-zinc-950/55 dark:text-zinc-100 dark:placeholder:text-zinc-500;
-  @apply dark:focus:border-[#02abb8]/45 dark:focus:ring-[#02abb8]/15;
+  @apply dark:focus:border-[color:var(--hub-accent-border)] dark:focus:ring-[color:var(--hub-accent-muted)];
 }
 
 .k-modal-field-input:is(textarea) {

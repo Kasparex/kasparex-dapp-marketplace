@@ -530,7 +530,7 @@ export function RewardsPageContent() {
               }}
               className={`h-10 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
                 hubTab === t.id
-                  ? 'bg-[#02abb8]/10 text-[#017a84] dark:text-[#8ff1f8]'
+                  ? 'hub-filter-dropdown-item-active'
                   : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
               }`}
             >

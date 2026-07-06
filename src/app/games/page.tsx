@@ -18,7 +18,7 @@ import { listGames } from '@/lib/games/registry';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { GameListingFiltersBar } from '@/components/games/GameListingFiltersBar';
 
 function GamesContent() {
@@ -121,6 +121,7 @@ function GamesContent() {
       <Header />
 
       <main className="flex flex-1 flex-col lg:flex-row">
+        <HubPageAccentLayout projectId="kasparex-games">
         <div className="hidden flex-shrink-0 lg:block">
           <GamesSidebar
             selectedGameTypes={selectedGameTypes}
@@ -158,7 +159,7 @@ function GamesContent() {
           />
         </div>
 
-        <HubAccentScope projectId="kasparex-games" className={HUB_MAIN_COLUMN}>
+        <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
             <GamesHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
@@ -209,7 +210,8 @@ function GamesContent() {
               </div>
             )}
           </div>
-        </HubAccentScope>
+        </div>
+        </HubPageAccentLayout>
       </main>
 
       <Footer />

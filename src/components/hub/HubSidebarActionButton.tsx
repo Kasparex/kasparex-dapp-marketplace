@@ -12,7 +12,7 @@ export function HubSidebarActionButton(props: {
   external?: boolean;
 }) {
   const { href, label, icon, active = false, external = false } = props;
-  const className = `k-control-btn w-full justify-center gap-2 ${active ? '!bg-cyan-600 !text-white' : ''}`;
+  const className = `k-control-btn w-full justify-center gap-2 ${active ? 'hub-sidebar-action-active' : ''}`;
   const iconClass = active ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON;
 
   if (external) {

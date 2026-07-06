@@ -105,12 +105,12 @@ export function RevenueTreeSidebar({
           />
         </div>
 
-        <div className="mb-6 p-4 bg-gradient-to-br from-[#02abb8]/10 to-purple-500/10 rounded-xl border border-[#02abb8]/20">
+        <div className="hub-panel-accent-bg mb-6 rounded-xl border p-4 hub-panel-accent-border">
           <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Quick Stats</div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-600 dark:text-zinc-400">Total Revenue</span>
-              <span className="text-sm font-bold text-[#02abb8]">
+              <span className="hub-accent-text text-sm font-bold">
                 {totalRevenue.toFixed(2)} {nativeSymbol}
               </span>
             </div>
@@ -130,9 +130,9 @@ export function RevenueTreeSidebar({
             type="button"
             onClick={handleCopyLink}
             disabled={!address}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-[#02abb8] dark:hover:border-[#02abb8] text-zinc-900 dark:text-white rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-[color:var(--hub-accent-border)] text-zinc-900 dark:text-white rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-4 h-4 text-[#02abb8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="hub-accent-text w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             {address ? 'Copy Invite Link' : 'Connect Wallet'}
@@ -146,7 +146,7 @@ export function RevenueTreeSidebar({
         <button
           type="button"
           onClick={() => setShowGuide(true)}
-          className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-[#02abb8] to-purple-500 hover:from-[#0299a6] hover:to-purple-600 text-white font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-[#02abb8]/20"
+          className="hub-cta-btn w-full mt-6 px-4 py-3 font-bold text-sm uppercase tracking-wider rounded-lg transition-all shadow-lg"
         >
           <div className="flex items-center justify-center gap-2">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

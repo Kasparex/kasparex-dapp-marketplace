@@ -41,8 +41,7 @@ export function VBlogDashboardBenefitsPanel({
   const tierLabel = KREX_TIERS[tier].label;
   const tooltipContent = useMemo(() => TIER_TOOLTIP, []);
 
-  const buyKrexButtonClass =
-    'shrink-0 k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] dark:!bg-[#02abb8] dark:hover:!bg-[#028a94]';
+  const buyKrexButtonClass = 'hub-cta-btn shrink-0 k-control-btn !h-auto';
 
   if (variant === 'compact') {
     const feePerk =
@@ -58,7 +57,7 @@ export function VBlogDashboardBenefitsPanel({
         >
           <Tooltip content={tooltipContent}>
             <div className="flex items-center gap-2 min-w-0 cursor-help">
-              <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
+              <span className="hub-benefits-kicker text-xs font-black uppercase tracking-[0.12em] whitespace-nowrap">
                 Benefits
               </span>
               <span

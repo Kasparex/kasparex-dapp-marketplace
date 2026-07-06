@@ -170,7 +170,7 @@ export function UnifiedSidebar({
             const rect = sidebarRef.current.getBoundingClientRect();
             const isOnBorder = e.clientX >= rect.right - 4 && e.clientX <= rect.right;
             sidebarRef.current.style.cursor = isOnBorder ? 'col-resize' : '';
-            sidebarRef.current.style.borderRight = isOnBorder ? '2px solid #02abb8' : '';
+            sidebarRef.current.style.borderRight = isOnBorder ? '2px solid var(--hub-accent)' : '';
           }
         }}
         onMouseLeave={() => {

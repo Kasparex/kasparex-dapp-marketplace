@@ -9,7 +9,6 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { TOKENS_CTA_BTN } from '@/lib/tokens/theme';
 
 function formatKrexMillions(balance: number): string {
   if (balance >= 1_000_000) {
@@ -38,7 +37,7 @@ export function TokensBenefitsPanel({
   const tierLabel = KREX_TIERS[tier].label;
   const tooltipContent = useMemo(() => TIER_TOOLTIP, []);
 
-  const buyKrexButtonClass = `${TOKENS_CTA_BTN} shrink-0 !h-auto`;
+  const buyKrexButtonClass = 'hub-cta-btn shrink-0 k-control-btn !h-auto';
 
   if (variant === 'compact') {
     const feePerk =
@@ -52,7 +51,7 @@ export function TokensBenefitsPanel({
         >
           <Tooltip content={tooltipContent}>
             <div className="flex items-center gap-2 min-w-0 cursor-help">
-              <span className="text-xs font-black uppercase tracking-[0.12em] text-[#02abb8] dark:text-[#66dfe8] whitespace-nowrap">
+              <span className="hub-benefits-kicker text-xs font-black uppercase tracking-[0.12em] whitespace-nowrap">
                 Benefits
               </span>
               <span

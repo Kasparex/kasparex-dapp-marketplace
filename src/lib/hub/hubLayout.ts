@@ -7,8 +7,9 @@ export const HUB_MAIN_COLUMN =
 
 export const HUB_MAIN_INNER = 'max-w-7xl mx-auto';
 
-export const HUB_TILT_BAR =
-  'w-1 shrink-0 self-stretch rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12';
+export const HUB_TILT_BAR = 'hub-tilt-bar w-1 shrink-0 self-stretch rounded-full -skew-y-12';
+
+export const HUB_SIDEBAR_TILT = 'hub-tilt-bar-sm w-1 h-4 shrink-0 rounded-full';
 
 export const HUB_LISTING_TITLE = 'text-2xl font-bold text-zinc-900 dark:text-white leading-tight';
 

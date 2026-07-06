@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { NFTSidebar, type NFTSidebarProps } from '@/components/nft/NFTSidebar';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 type NFTPageShellProps = {
@@ -18,11 +18,13 @@ export function NFTPageShell({ children, sidebar }: NFTPageShellProps) {
       <Header />
 
       <div className="flex flex-1 min-h-0">
+        <HubPageAccentLayout projectId="kasparex-nft-tools">
         <NFTSidebar {...sidebar} />
 
-        <HubAccentScope projectId="kasparex-nft-tools" className={HUB_MAIN_COLUMN}>
+        <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>{children}</div>
-        </HubAccentScope>
+        </div>
+        </HubPageAccentLayout>
       </div>
 
       <Footer />

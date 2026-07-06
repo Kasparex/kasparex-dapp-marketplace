@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { HUB_SIDEBAR_TILT } from '@/lib/hub/hubLayout';
 
 export interface SidebarSectionProps {
   title: string;
@@ -19,8 +20,8 @@ export function SidebarSection({ title, icon, children, className = '', headingC
           <span>{title}</span>
         </div>
       ) : (
-        <div className="flex items-center gap-2 px-2 mb-3">
-          <span className="w-1 h-4 rounded-full bg-[#02abb8]" />
+        <div className="mb-3 flex items-center gap-2 px-2">
+          <span className={HUB_SIDEBAR_TILT} aria-hidden="true" />
           {icon != null ? <span className="k-sidebar-icon">{icon}</span> : null}
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 leading-tight">{title}</span>
         </div>

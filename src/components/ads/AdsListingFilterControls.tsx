@@ -92,7 +92,7 @@ export function AdsListingFilterControls({
               }}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                 slotFilter === 'all'
-                  ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                  ? 'hub-filter-dropdown-item-active'
                   : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
@@ -108,7 +108,7 @@ export function AdsListingFilterControls({
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   slotFilter === s.id
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    ? 'hub-filter-dropdown-item-active'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
@@ -145,7 +145,7 @@ export function AdsListingFilterControls({
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                   sortBy === opt.value
-                    ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                    ? 'hub-filter-dropdown-item-active'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >

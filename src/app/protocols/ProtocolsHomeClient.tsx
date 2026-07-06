@@ -10,7 +10,7 @@ import { ProtocolsIndexSidebar } from '@/components/protocols/ProtocolsIndexSide
 import { FilterBar } from '@/components/FilterBar';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
-import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
@@ -92,9 +92,10 @@ export function ProtocolsHomeContent() {
     <>
       <Header />
       <main className={`flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row ${HUB_PAGE_BG}`}>
+        <HubPageAccentLayout projectId="kasparex-protocols">
         <ProtocolsIndexSidebar />
 
-        <HubAccentScope projectId="kasparex-protocols" className={HUB_MAIN_COLUMN}>
+        <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
             <div className={`mb-6 flex flex-wrap gap-4 ${HUB_HALO_MOBILE_FALLBACK}`}>
               <KxTabStrip
@@ -200,7 +201,8 @@ export function ProtocolsHomeContent() {
               </Link>
             </div>
           </div>
-        </HubAccentScope>
+        </div>
+        </HubPageAccentLayout>
       </main>
       <Footer />
     </>

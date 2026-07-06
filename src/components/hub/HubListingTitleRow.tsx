@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { HUB_TILT_BAR, HUB_LISTING_TITLE } from '@/lib/hub/hubLayout';
-import { getHubProjectAccent } from '@/lib/hub/hubProjectAccent';
 
 export function HubListingTitleRow(props: {
   title: string;
@@ -12,7 +11,7 @@ export function HubListingTitleRow(props: {
   loadingText?: string;
   benefits?: ReactNode;
   showTilt?: boolean;
-  /** Hub project id for accent-colored tilt bar (e.g. kasparex-games). */
+  /** Reserved for layout hooks; tilt color follows HubAccentScope CSS variables. */
   projectId?: string;
   accentColor?: string;
   className?: string;
@@ -25,13 +24,8 @@ export function HubListingTitleRow(props: {
     loadingText = 'Loading...',
     benefits,
     showTilt = true,
-    projectId,
-    accentColor: accentColorProp,
     className = '',
   } = props;
-
-  const resolvedAccent = accentColorProp ?? (projectId ? getHubProjectAccent(projectId).hex : undefined);
-  const tiltShadow = projectId ? getHubProjectAccent(projectId).tiltShadow : undefined;
 
   const plural = count !== 1 ? 's' : '';
   const countText = countLoading
@@ -41,17 +35,7 @@ export function HubListingTitleRow(props: {
   return (
     <div className={`mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${className}`.trim()}>
       <div className="min-w-0 flex items-stretch gap-5">
-        {showTilt ? (
-          <span
-            className={HUB_TILT_BAR}
-            style={
-              resolvedAccent
-                ? { backgroundColor: resolvedAccent, boxShadow: tiltShadow ?? `0 0 10px ${resolvedAccent}59` }
-                : undefined
-            }
-            aria-hidden="true"
-          />
-        ) : null}
+        {showTilt ? <span className={HUB_TILT_BAR} aria-hidden="true" /> : null}
         <div className="min-w-0">
           <h2 className={HUB_LISTING_TITLE}>{title}</h2>
           <p className="kx-body">{countText}</p>
