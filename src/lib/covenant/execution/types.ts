@@ -5,7 +5,7 @@
  * @see https://github.com/KASPACOM/kaspacom-web-wallet/tree/feat/covenants-support/src/app/services/covenant/covenant-sdk
  */
 
-import type { CovenantTemplate } from '@/lib/programmability/types';
+import type { CovenantCompiledContract, CovenantTemplate } from '@/lib/programmability/types';
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
 
 export type CovenantTxKind = 'deploy' | 'spend';
@@ -21,14 +21,7 @@ export interface KaspaComCompiledAbiEntry {
 }
 
 /** Subset of silverc / KaspaCom CompiledContract stored in public/covenant/*.json */
-export interface KaspaComCompiledContract {
-  contract_name: string;
-  script: number[];
-  abi: KaspaComCompiledAbiEntry[];
-  ast?: Record<string, unknown>;
-  without_selector?: boolean;
-  tn10?: Record<string, unknown>;
-}
+export type KaspaComCompiledContract = CovenantCompiledContract;
 
 export interface KaspaComCovenantOutpoint {
   txid: string;
