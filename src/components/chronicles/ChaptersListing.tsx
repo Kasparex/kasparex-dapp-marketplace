@@ -100,6 +100,7 @@ export function ChaptersListing({
   return (
     <div>
       <HubListingTitleRow
+        projectId="krex-chronicles"
         title={title === 'Chapters' ? 'Available chapters' : title}
         count={filtered.length}
         countLabel={countLabel}

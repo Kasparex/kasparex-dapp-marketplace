@@ -30,8 +30,9 @@ export default function KnowledgeBasePage() {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <HubDocPageShell sidebar={<KnowledgeBaseSidebar selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />}>
+    <HubDocPageShell projectId="kasparex-dapps" sidebar={<KnowledgeBaseSidebar selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />}>
       <HubListingTitleRow
+        projectId="kasparex-dapps"
         title="Available articles"
         count={filteredArticles.length}
         countLabel="article"

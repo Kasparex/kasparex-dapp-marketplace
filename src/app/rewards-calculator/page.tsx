@@ -10,6 +10,7 @@ import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 export default function RewardsCalculatorPage() {
   return (
     <HubDocPageShell
+      projectId="kasparex-rewards"
       sidebar={
         <>
           <div className="hidden shrink-0 lg:block">
@@ -24,6 +25,7 @@ export default function RewardsCalculatorPage() {
       <RewardsCalculatorHeader />
       <div id="content" className="scroll-mt-4" />
       <HubListingTitleRow
+        projectId="kasparex-rewards"
         title="Reward simulator"
         count={1}
         countLabel="calculator"

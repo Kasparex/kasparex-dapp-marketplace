@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { StoreSidebar, type StoreSidebarProps } from '@/components/store/StoreSidebar';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 type StorePageShellProps = {
@@ -19,9 +20,9 @@ export function StorePageShell({ children, sidebar }: StorePageShellProps) {
       <div className="flex flex-1 min-h-0">
         <StoreSidebar {...sidebar} />
 
-        <main className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-store" className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>{children}</div>
-        </main>
+        </HubAccentScope>
       </div>
 
       <Footer />

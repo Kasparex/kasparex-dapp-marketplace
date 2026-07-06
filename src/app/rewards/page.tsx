@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RewardsHubSection } from '@/components/rewards/RewardsHubSection';
 import { RewardsSidebar } from '@/components/rewards/RewardsSidebar';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export const metadata: Metadata = {
@@ -22,11 +23,11 @@ export default function RewardsPage() {
           <RewardsSidebar />
         </div>
 
-        <div className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-rewards" className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
             <RewardsHubSection />
           </div>
-        </div>
+        </HubAccentScope>
       </main>
       <Footer />
     </div>

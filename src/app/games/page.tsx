@@ -6,21 +6,23 @@ import { Footer } from '@/components/Footer';
 import { GamesSidebar } from '@/components/games/GamesSidebar';
 import { GameSortFilters, type GameViewMode } from '@/components/games/GameSortFilters';
 import { GameGrid } from '@/components/games/GameGrid';
+import { GamesHeader } from '@/components/games/GamesHeader';
 import { GameType, GameDifficulty, GameStatus } from '@/lib/games/games';
 import { filterGames, getGameTypeCounts, getDifficultyCounts, getStatusCounts, GameFilterState } from '@/lib/games/filtering';
 import { sortGames, GameSortOption } from '@/lib/games/sorting';
+import { matchesGameSourceFilter, type GameSourceFilter } from '@/lib/games/source';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
-import { AdSlider } from '@/components/ads/AdSlider';
-import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { GameListingFiltersBar } from '@/components/games/GameListingFiltersBar';
 
 function GamesContent() {
+  const [sourceFilter, setSourceFilter] = useState<GameSourceFilter>('all');
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<GameDifficulty[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<GameStatus[]>([]);
@@ -29,18 +31,21 @@ function GamesContent() {
   const [sortBy, setSortBy] = useState<GameSortOption>('newest');
   const [viewMode, setViewMode] = useState<GameViewMode>('compact');
   const [displayedCount, setDisplayedCount] = useState(50);
-  const { favoritesSet, toggleFavorite, isFavorite } = useFavorites();
+  const { favoritesSet } = useFavorites();
   const { likes } = useLikes();
-  const games = useMemo(() => listGames(), []);
+  const allGames = useMemo(() => listGames(), []);
 
-  // Auto-switch from favorites view if no favorites remain
+  const games = useMemo(
+    () => allGames.filter((game) => matchesGameSourceFilter(game, sourceFilter)),
+    [allGames, sourceFilter],
+  );
+
   useEffect(() => {
     if (sortBy === 'favorites' && favoritesSet.size === 0) {
       setSortBy('newest');
     }
   }, [favoritesSet.size, sortBy]);
 
-  // Get counts based on current filters (excluding the count dimension itself)
   const gameTypeCounts = useMemo(() => {
     const filters: Omit<GameFilterState, 'gameType'> = {
       difficulty: selectedDifficulties,
@@ -68,7 +73,6 @@ function GamesContent() {
     return getStatusCounts(games, filters, searchQuery);
   }, [games, selectedGameTypes, selectedDifficulties, costRange, searchQuery]);
 
-  // Filter and sort games
   const filteredGames = useMemo(() => {
     const filters: GameFilterState = {
       gameType: selectedGameTypes,
@@ -78,7 +82,6 @@ function GamesContent() {
     };
     let filtered = filterGames(games, filters, searchQuery);
 
-    // If sorting by favorites, filter to only show favorites
     if (sortBy === 'favorites') {
       filtered = filtered.filter((game) => favoritesSet.has(game.id));
     }
@@ -86,15 +89,11 @@ function GamesContent() {
     return sortGames(filtered, sortBy, favoritesSet, likes);
   }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, favoritesSet, likes]);
 
-  // Reset displayed count when filters change
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy]);
+  }, [selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, sourceFilter]);
 
-  // Get games to display (limited by displayedCount)
-  const displayedGames = useMemo(() => {
-    return filteredGames.slice(0, displayedCount);
-  }, [filteredGames, displayedCount]);
+  const displayedGames = useMemo(() => filteredGames.slice(0, displayedCount), [filteredGames, displayedCount]);
 
   const hasMore = filteredGames.length > displayedCount;
   const showLoadMore = filteredGames.length >= 50;
@@ -109,15 +108,20 @@ function GamesContent() {
     setSelectedStatuses([]);
     setCostRange(undefined);
     setSearchQuery('');
+    setSourceFilter('all');
+  };
+
+  const handleCategoryFilter = (gameType: GameType) => {
+    setSelectedGameTypes([gameType]);
+    document.getElementById('content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
     <>
       <Header />
 
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div className="hidden lg:block flex-shrink-0">
+      <main className="flex flex-1 flex-col lg:flex-row">
+        <div className="hidden flex-shrink-0 lg:block">
           <GamesSidebar
             selectedGameTypes={selectedGameTypes}
             onGameTypeChange={setSelectedGameTypes}
@@ -135,7 +139,6 @@ function GamesContent() {
             onResetFilters={handleResetFilters}
           />
         </div>
-        {/* Mobile sidebar */}
         <div className="lg:hidden">
           <GamesSidebar
             selectedGameTypes={selectedGameTypes}
@@ -155,62 +158,21 @@ function GamesContent() {
           />
         </div>
 
-        {/* Main Content */}
-        <div className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-games" className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
-            {/* Hero - same structure as dApps/Magazines */}
-            <div className={`relative mb-10 py-12 px-6 sm:px-8 rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800/50 ${HUB_HALO_DESKTOP_ONLY}`}>
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-0 right-0 w-[60%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.15),transparent_70%)] rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.1),transparent_70%)] rounded-full blur-3xl" />
-              </div>
-              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                    </span>
-                    Games
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight">
-                    Kasparex <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">Games</span>
-                  </h1>
-                  <p className="kx-body max-w-xl leading-relaxed mb-8">
-                    Play and discover games on Kaspa. Connect a wallet to start.
-                  </p>
-                  <a href="#content" className="k-cta-primary">
-                    Browse games
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </a>
-                </div>
-                <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px]">
-                  <div className="relative opacity-90 pointer-events-none">
-                    <div className="w-48 h-56 rounded-2xl border-2 border-emerald-500/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-emerald-500/10 rotate-3 transform" />
-                    <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
-                    <div className="absolute top-4 left-4 right-4 bottom-4 rounded-lg border border-zinc-300 dark:border-zinc-700/50 flex items-center justify-center">
-                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Game</span>
-                    </div>
-                  </div>
-                  <div
-                    id="ad-slot-games-halo"
-                    className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
-                  >
-                    <AdSlider slotId="HALO_GAMES_RIGHT" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <GamesHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
+
             <div id="content" className="scroll-mt-4" />
 
             <HubListingTitleRow
+              projectId="kasparex-games"
               title="Available games"
               count={filteredGames.length}
               countLabel="game"
               benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
             />
 
-            <div className="flex flex-col gap-4 mb-6">
+            <div className="mb-6 flex flex-col gap-4">
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search games...' }}
                 onReset={handleResetFilters}
@@ -234,20 +196,20 @@ function GamesContent() {
               </FilterBar>
             </div>
 
-            <GameGrid games={displayedGames} viewMode={viewMode} />
+            <GameGrid games={displayedGames} viewMode={viewMode} onCategoryFilter={handleCategoryFilter} />
 
             {showLoadMore && hasMore && (
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={handleLoadMore}
-                  className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                  className="rounded-lg bg-zinc-900 px-6 py-3 font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
                   Load More
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />
@@ -257,13 +219,13 @@ function GamesContent() {
 
 export default function GamesPage() {
   return (
-    <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
+    <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Suspense fallback={
-        <div className="flex flex-col min-h-screen">
+        <div className="flex min-h-screen flex-col">
           <Header />
-          <main className="flex-1 flex items-center justify-center p-8">
+          <main className="flex flex-1 items-center justify-center p-8">
             <div className="text-center">
-              <div className="text-zinc-500 dark:text-zinc-400 mb-4">Loading games...</div>
+              <div className="mb-4 text-zinc-500 dark:text-zinc-400">Loading games...</div>
               <div className="animate-pulse text-sm text-zinc-400 dark:text-zinc-500">
                 Please wait
               </div>

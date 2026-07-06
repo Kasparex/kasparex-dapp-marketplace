@@ -39,7 +39,7 @@ export function AuthorInline({
         {linkHref ? (
           <Link
             href={linkHref}
-            className="font-semibold text-zinc-700 dark:text-zinc-300 hover:text-[#02abb8] dark:hover:text-[#66dfe8] transition-colors"
+            className="font-semibold text-zinc-700 transition-colors hover:text-[var(--hub-accent,#02abb8)] dark:text-zinc-300 dark:hover:text-[var(--hub-accent,#66dfe8)]"
             onClick={(e) => e.stopPropagation()}
           >
             {label}

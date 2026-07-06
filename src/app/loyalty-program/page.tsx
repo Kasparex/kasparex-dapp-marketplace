@@ -5,8 +5,9 @@ import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPage
 
 export default function LoyaltyProgramPage() {
     return (
-        <HubDocPageShell standalone>
+        <HubDocPageShell standalone projectId="kasparex-rewards">
             <HubStandaloneIntro
+                projectId="kasparex-rewards"
                 title="Loyalty program"
                 count={3}
                 countLabel="reward pillar"

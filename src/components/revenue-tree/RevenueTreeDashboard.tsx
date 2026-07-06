@@ -10,6 +10,7 @@ import { RevenueTreeNetworkNudge } from './RevenueTreeNetworkNudge';
 import { RevenueTreeActivationBox } from './RevenueTreeActivationBox';
 import { useRevenueTree } from '@/hooks/useRevenueTree';
 import { unifiedToRevenueTreeData } from '@/lib/revenue-tree/utils';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
@@ -52,9 +53,10 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
       </div>
 
       {/* Main Content */}
-      <div className={HUB_MAIN_COLUMN}>
+      <HubAccentScope projectId="revenue-tree" className={HUB_MAIN_COLUMN}>
         <div className={`${HUB_MAIN_INNER} space-y-6`}>
           <HubListingTitleRow
+            projectId="revenue-tree"
             title="Available revenue trees"
             count={activeTrees}
             countLabel="active tree"
@@ -97,7 +99,7 @@ export function RevenueTreeDashboard({ viewAddress }: RevenueTreeDashboardProps)
             </>
           )}
         </div>
-      </div>
+      </HubAccentScope>
     </div>
   );
 }

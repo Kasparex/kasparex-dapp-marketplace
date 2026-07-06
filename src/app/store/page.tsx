@@ -90,6 +90,7 @@ export default function StorePage() {
       <div id="content" className="scroll-mt-4" />
 
       <HubListingTitleRow
+        projectId="kasparex-store"
         title="Available products"
         count={filteredAndSortedProducts.length}
         countLabel="product"

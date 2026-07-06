@@ -239,6 +239,10 @@
 .kx-listing-card[data-kx-accent="revenueTree"]:focus-visible {
   border-color: rgb(34, 197, 94) !important; /* green-500 */
 }
+.kx-listing-card[data-kx-accent="ai"]:hover,
+.kx-listing-card[data-kx-accent="ai"]:focus-visible {
+  border-color: rgb(168, 85, 247) !important; /* purple-500 */
+}
 
 .kaspa .hover\:bg-zinc-100:hover {
   background-color: rgba(15, 42, 38, 0.9) !important;
@@ -557,6 +561,46 @@
 
 .k-tab-btn-active {
   @apply bg-cyan-500/10 text-cyan-900 dark:text-cyan-300;
+}
+
+/* Hub accent scope: tilt, tabs, controls, and dropdown highlights follow project color */
+[data-hub-accent] {
+  --hub-accent: #06b6d4;
+  --hub-accent-hover: #0891b2;
+  --hub-accent-muted: rgba(6, 182, 212, 0.1);
+  --hub-accent-border: rgba(6, 182, 212, 0.25);
+  --hub-accent-shadow: rgba(6, 182, 212, 0.35);
+}
+
+[data-hub-accent] .k-tab-btn-active {
+  background-color: var(--hub-accent-muted);
+  color: var(--hub-accent);
+}
+
+[data-hub-accent] .k-control-btn:hover,
+[data-hub-accent] .k-control-icon-btn:hover {
+  border-color: var(--hub-accent-border) !important;
+}
+
+[data-hub-accent] .k-control-icon-btn:hover {
+  color: var(--hub-accent) !important;
+}
+
+[data-hub-accent] .k-filter-select:hover {
+  border-color: var(--hub-accent-border) !important;
+}
+
+[data-hub-accent] .hub-filter-dropdown-item-active {
+  background-color: var(--hub-accent-muted);
+  color: var(--hub-accent);
+}
+
+[data-hub-accent] .k-sidebar-item:hover .k-sidebar-icon {
+  color: var(--hub-accent);
+}
+
+[data-hub-accent] .k-sidebar-count {
+  @apply group-hover:border-[color:var(--hub-accent-border)];
 }
 
 /* Kasparex Games tab strip: emerald accent (dApps keep cyan via .k-tab-btn-active) */

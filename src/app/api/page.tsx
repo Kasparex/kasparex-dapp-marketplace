@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 import { TableOfContentsSidebar } from '@/components/docs/TableOfContentsSidebar';
 import { AdSlider } from '@/components/ads/AdSlider';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
@@ -35,7 +36,7 @@ export default function KasparexAPIPage() {
           ]}
         />
 
-        <div className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-dapps" className={HUB_MAIN_COLUMN}>
           <div className={`${HUB_MAIN_INNER} max-w-4xl`}>
           <div className={`relative mb-12 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-cyan-50/50 to-zinc-100 px-6 py-12 dark:border-transparent dark:from-zinc-950 dark:via-cyan-950/40 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}>
             <div className="absolute inset-0 opacity-20">
@@ -75,6 +76,7 @@ export default function KasparexAPIPage() {
           <div id="content" className="scroll-mt-4" />
 
           <HubListingTitleRow
+            projectId="kasparex-dapps"
             title="API documentation"
             count={7}
             countLabel="section"
@@ -477,7 +479,7 @@ export default function KasparexAPIPage() {
             </div>
           </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

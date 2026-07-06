@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG, HUB_STANDALONE_MAIN } from '@/lib/hub/hubLayout';
 
 type HubDocPageShellProps = {
@@ -13,17 +14,24 @@ type HubDocPageShellProps = {
   sidebar?: ReactNode;
   /** Standalone pages without a sidebar column */
   standalone?: boolean;
+  /** Hub project id for accent-colored UI (defaults to kasparex-dapps). */
+  projectId?: string;
 };
 
-export function HubDocPageShell({ children, sidebar, standalone = false }: HubDocPageShellProps) {
+export function HubDocPageShell({
+  children,
+  sidebar,
+  standalone = false,
+  projectId = 'kasparex-dapps',
+}: HubDocPageShellProps) {
   return (
     <div className={`flex min-h-screen flex-col ${HUB_PAGE_BG}`}>
       <Header />
       <main className="flex min-h-[calc(100vh-4rem)] flex-1 flex-col lg:flex-row">
         {sidebar}
-        <div className={standalone ? HUB_STANDALONE_MAIN : HUB_MAIN_COLUMN}>
-          <div className={standalone ? 'mx-auto max-w-4xl w-full' : HUB_MAIN_INNER}>{children}</div>
-        </div>
+        <HubAccentScope projectId={projectId} className={standalone ? HUB_STANDALONE_MAIN : HUB_MAIN_COLUMN}>
+          <div className={standalone ? 'mx-auto w-full max-w-4xl' : HUB_MAIN_INNER}>{children}</div>
+        </HubAccentScope>
       </main>
       <Footer />
     </div>
@@ -38,6 +46,7 @@ export function HubStandaloneIntro(props: {
   benefits?: boolean;
   backHref?: string;
   backLabel?: string;
+  projectId?: string;
 }) {
   const {
     title,
@@ -47,6 +56,7 @@ export function HubStandaloneIntro(props: {
     benefits = true,
     backHref = '/hub',
     backLabel = 'Back to Hub',
+    projectId = 'kasparex-dapps',
   } = props;
 
   return (
@@ -60,6 +70,7 @@ export function HubStandaloneIntro(props: {
         </Link>
       ) : null}
       <HubListingTitleRow
+        projectId={projectId}
         title={title}
         count={count}
         countLabel={countLabel}

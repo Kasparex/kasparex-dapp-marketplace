@@ -26,6 +26,8 @@ import {
 } from '@/lib/vblog/listing';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 
 export default function VBlogPage() {
   return (
@@ -101,13 +103,14 @@ function VBlogPageInner() {
             activeView="explore"
           />
 
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 lg:pl-6 overflow-y-auto overflow-x-hidden border-l border-zinc-200 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
-            <div className="max-w-7xl mx-auto">
+          <HubAccentScope projectId="kasparex-vblog" className={HUB_MAIN_COLUMN}>
+            <div className={HUB_MAIN_INNER}>
               <VBlogHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
               <div id="content" className="scroll-mt-4" />
 
               <HubListingTitleRow
+                projectId="kasparex-vblog"
                 title="Available articles"
                 count={filteredArticles.length}
                 countLabel="article"
@@ -179,7 +182,7 @@ function VBlogPageInner() {
                 <VBlogRewardsSection />
               </div>
             </div>
-          </div>
+          </HubAccentScope>
         </div>
       </main>
 

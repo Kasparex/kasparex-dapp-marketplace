@@ -192,6 +192,7 @@ function NFTPageContent() {
       {pageView === 'my-nfts' ? (
         <section id="nft-section-my-nfts" className="scroll-mt-24">
           <HubListingTitleRow
+            projectId="kasparex-nft-tools"
             title="My NFTs"
             count={0}
             countLabel="collection"
@@ -204,6 +205,7 @@ function NFTPageContent() {
       ) : (
         <>
           <HubListingTitleRow
+            projectId="kasparex-nft-tools"
             title={heading.title}
             count={resultCount}
             countLabel="item"

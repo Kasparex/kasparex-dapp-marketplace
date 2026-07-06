@@ -177,6 +177,7 @@ function AdsListingPageContent() {
         <div id="content" className="scroll-mt-4" />
 
         <HubListingTitleRow
+          projectId="kasparex-ads"
           title="Active campaigns"
           count={filteredAds.length}
           countLabel="campaign"

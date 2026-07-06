@@ -1,4 +1,5 @@
-import type { Game, GameStatus, GameType, GameDifficulty } from './games';
+import type { Game, GamePublisher, GameType, GameDifficulty, GameStatus } from './games';
+import { KASPAREX_GAMES_AUTHOR_SEED } from '@/lib/hub/hubProjectAccent';
 
 export type GameCurrency = 'KAS' | 'KREX' | 'GRID' | 'DIAMONDS';
 export type GameSkuType = 'entry' | 'boost' | 'unlock' | 'slot' | 'other';
@@ -58,14 +59,21 @@ function baseGame(input: {
   status: GameStatus;
   entryCostKAS: number;
   developer: string;
+  publisher?: GamePublisher;
+  authorAddress?: string;
   version?: string;
   featuredImage?: string;
   gameUrl?: string;
   rewardConfig?: Game['rewardConfig'];
   createdAt?: string;
 }): Game {
+  const publisher = input.publisher ?? (input.developer.toLowerCase().includes('kasparex') ? 'kasparex' : 'community');
   return {
     ...input,
+    publisher,
+    authorAddress:
+      input.authorAddress ??
+      (publisher === 'kasparex' ? KASPAREX_GAMES_AUTHOR_SEED : `author:${input.developer}`),
     image: undefined,
     playCount: 0,
     likeCount: 0,

@@ -5,8 +5,9 @@ import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPage
 
 export default function PartnershipsPage() {
     return (
-        <HubDocPageShell standalone>
+        <HubDocPageShell standalone projectId="kasparex-dapps">
             <HubStandaloneIntro
+                projectId="kasparex-dapps"
                 title="Partnerships"
                 count={4}
                 countLabel="partnership benefit"

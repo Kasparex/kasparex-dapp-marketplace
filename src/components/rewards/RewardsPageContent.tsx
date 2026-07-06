@@ -549,6 +549,7 @@ export function RewardsPageContent() {
       {hubTab === 'catalog' ? (
         <>
           <HubListingTitleRow
+            projectId="kasparex-rewards"
             title="Available rewards"
             count={filtered.length}
             countLabel="offer"

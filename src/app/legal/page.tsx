@@ -4,8 +4,9 @@ import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPage
 
 export default function LegalPage() {
     return (
-        <HubDocPageShell standalone>
+        <HubDocPageShell standalone projectId="kasparex-dapps">
             <HubStandaloneIntro
+                projectId="kasparex-dapps"
                 title="Legal and privacy"
                 count={4}
                 countLabel="policy section"

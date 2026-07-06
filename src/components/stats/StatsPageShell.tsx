@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { StatsSidebar } from '@/components/stats/StatsSidebar';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export function StatsPageShell({ children }: { children: ReactNode }) {
@@ -14,9 +15,9 @@ export function StatsPageShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 min-h-0">
         <StatsSidebar />
 
-        <main className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-stats" className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>{children}</div>
-        </main>
+        </HubAccentScope>
       </div>
 
       <Footer />

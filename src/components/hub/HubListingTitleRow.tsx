@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { HUB_TILT_BAR, HUB_LISTING_TITLE } from '@/lib/hub/hubLayout';
+import { getHubProjectAccent } from '@/lib/hub/hubProjectAccent';
 
 export function HubListingTitleRow(props: {
   title: string;
@@ -11,6 +12,8 @@ export function HubListingTitleRow(props: {
   loadingText?: string;
   benefits?: ReactNode;
   showTilt?: boolean;
+  /** Hub project id for accent-colored tilt bar (e.g. kasparex-games). */
+  projectId?: string;
   accentColor?: string;
   className?: string;
 }) {
@@ -22,9 +25,13 @@ export function HubListingTitleRow(props: {
     loadingText = 'Loading...',
     benefits,
     showTilt = true,
-    accentColor,
+    projectId,
+    accentColor: accentColorProp,
     className = '',
   } = props;
+
+  const resolvedAccent = accentColorProp ?? (projectId ? getHubProjectAccent(projectId).hex : undefined);
+  const tiltShadow = projectId ? getHubProjectAccent(projectId).tiltShadow : undefined;
 
   const plural = count !== 1 ? 's' : '';
   const countText = countLoading
@@ -37,7 +44,11 @@ export function HubListingTitleRow(props: {
         {showTilt ? (
           <span
             className={HUB_TILT_BAR}
-            style={accentColor ? { backgroundColor: accentColor } : undefined}
+            style={
+              resolvedAccent
+                ? { backgroundColor: resolvedAccent, boxShadow: tiltShadow ?? `0 0 10px ${resolvedAccent}59` }
+                : undefined
+            }
             aria-hidden="true"
           />
         ) : null}

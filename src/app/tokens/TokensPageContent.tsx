@@ -38,6 +38,8 @@ import type { TokenNetworkFilter } from '@/lib/tokens/networks';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 import { useTokens } from '@/hooks/useTokens';
 import { TOKEN_LISTING_VOTES_CHANGED_EVENT } from '@/lib/tokens/votes';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HUB_MAIN_COLUMN, HUB_MAIN_INNER } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 
 interface TokensPageContentProps {
@@ -158,17 +160,17 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
           showUtilityFilter
         />
 
-        <div className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 overflow-y-auto border-l border-zinc-200 p-4 sm:p-6 lg:p-8 lg:pl-6 dark:border-zinc-800 font-sans text-base sm:text-[17px]">
-          <div className="mx-auto max-w-7xl">
+        <HubAccentScope projectId="kasparex-tokens" className={HUB_MAIN_COLUMN}>
+          <div className={HUB_MAIN_INNER}>
             <TokensHero sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
             <div id="content" className="scroll-mt-4" />
 
             <HubListingTitleRow
+              projectId="kasparex-tokens"
               title="Available tokens"
               count={filteredAndSortedTokens.length}
               countLabel="token"
-              accentColor={TOKENS_ACCENT}
               benefits={<TokensBenefitsPanel variant="compact" className="w-full" />}
             />
 
@@ -214,7 +216,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
               <TokensRewardsSection />
             </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

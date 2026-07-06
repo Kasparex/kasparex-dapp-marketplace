@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Game } from '@/lib/games/games';
+import { Game, type GameType } from '@/lib/games/games';
 import { GameCard } from './GameCard';
 
 interface GameGridProps {
   games: Game[];
   viewMode?: 'grid' | 'compact' | 'list';
+  onCategoryFilter?: (gameType: GameType) => void;
 }
 
-export function GameGrid({ games, viewMode = 'grid' }: GameGridProps) {
+export function GameGrid({ games, viewMode = 'grid', onCategoryFilter }: GameGridProps) {
   const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
   // Check sidebar state from localStorage
@@ -68,7 +69,7 @@ export function GameGrid({ games, viewMode = 'grid' }: GameGridProps) {
       <div className="space-y-4">
         {games.map((game) => (
           <div key={game.id} className="transform transition-all">
-            <GameCard game={game} />
+            <GameCard game={game} onCategoryFilter={onCategoryFilter} />
           </div>
         ))}
       </div>
@@ -79,7 +80,7 @@ export function GameGrid({ games, viewMode = 'grid' }: GameGridProps) {
     <div className={`grid ${gridCols} gap-4 items-stretch`}>
       {games.map((game) => (
         <div key={game.id} className="transform transition-all">
-          <GameCard game={game} />
+          <GameCard game={game} onCategoryFilter={onCategoryFilter} />
         </div>
       ))}
     </div>

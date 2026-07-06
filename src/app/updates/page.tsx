@@ -20,8 +20,9 @@ export default function UpdatesPage() {
   };
 
   return (
-    <HubDocPageShell sidebar={<DevelopmentSidebar />}>
+    <HubDocPageShell projectId="kasparex-dapps" sidebar={<DevelopmentSidebar />}>
       <HubListingTitleRow
+        projectId="kasparex-dapps"
         title="Development timeline"
         count={1}
         countLabel="hub roadmap"

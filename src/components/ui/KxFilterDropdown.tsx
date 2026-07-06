@@ -74,9 +74,9 @@ export function KxFilterDropdown<T extends string>({
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hub-filter-dropdown-item ${
                 value === option.value
-                  ? 'bg-[#02abb8]/10 text-[#02abb8] dark:bg-[#02abb8]/20 font-medium'
+                  ? 'hub-filter-dropdown-item-active font-medium'
                   : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >

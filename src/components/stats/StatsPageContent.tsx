@@ -23,6 +23,7 @@ export function StatsPageContent() {
   return (
     <section className="space-y-8">
       <HubListingTitleRow
+        projectId="kasparex-stats"
         title="Available metrics"
         count={5}
         countLabel="overview panel"

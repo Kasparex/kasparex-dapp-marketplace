@@ -12,6 +12,7 @@ import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
 import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
 import { HUB_MAIN_COLUMN, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
@@ -124,7 +125,7 @@ export default function MagazinesPage() {
                     onTagToggle={handleTagToggle}
                 />
 
-                <main className={HUB_MAIN_COLUMN}>
+                <HubAccentScope projectId="kasparex-magazines" className={HUB_MAIN_COLUMN}>
                     <div className="max-w-7xl mx-auto">
                         <div className="mb-12">
                             <MagazineHeader />
@@ -133,6 +134,7 @@ export default function MagazinesPage() {
                         <div id="content" className="scroll-mt-4" />
 
                         <HubListingTitleRow
+                            projectId="kasparex-magazines"
                             title="Available magazines"
                             count={filteredMagazines.length}
                             countLabel="magazine"
@@ -170,7 +172,7 @@ export default function MagazinesPage() {
                             </div>
                         )}
                     </div>
-                </main>
+                </HubAccentScope>
             </div>
 
             <Footer />

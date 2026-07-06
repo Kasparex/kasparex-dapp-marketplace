@@ -14,6 +14,7 @@ export default function TiersPage() {
 
   return (
     <HubDocPageShell
+      projectId="kasparex-rewards"
       sidebar={
         <>
           <div className="hidden shrink-0 lg:block">
@@ -28,6 +29,7 @@ export default function TiersPage() {
       <TiersHeader />
       <div id="content" className="scroll-mt-4" />
       <HubListingTitleRow
+        projectId="kasparex-rewards"
         title="Hub pts and tier perks"
         count={4}
         countLabel="reward category"

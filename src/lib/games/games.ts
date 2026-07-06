@@ -19,6 +19,8 @@ export type GameStatus =
   | 'coming-soon'
   | 'maintenance';
 
+export type GamePublisher = 'kasparex' | 'community';
+
 export interface Game {
   id: string;
   name: string;
@@ -33,6 +35,10 @@ export interface Game {
   featuredImage?: string; // 16:9 featured image
   createdAt?: string; // ISO date string for sorting
   developer: string;
+  /** Official Kasparex title or community-submitted game. */
+  publisher?: GamePublisher;
+  /** Wallet or seed for author identicon and profile link. */
+  authorAddress?: string;
   version?: string;
   // Reward configuration
   rewardConfig?: {

@@ -5,8 +5,9 @@ import { HubDocPageShell, HubStandaloneIntro } from '@/components/hub/HubDocPage
 
 export default function SupportPage() {
   return (
-    <HubDocPageShell standalone>
+    <HubDocPageShell standalone projectId="kasparex-dapps">
       <HubStandaloneIntro
+        projectId="kasparex-dapps"
         title="Support center"
         count={2}
         countLabel="contact channel"

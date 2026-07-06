@@ -24,6 +24,7 @@ function SwapsContent() {
     <div className="max-w-full mx-auto px-2 sm:px-4 py-4 lg:py-6 font-sans text-base sm:text-[17px]">
       <div className="flex flex-col gap-8">
         <HubListingTitleRow
+          projectId="kasparex-defi"
           title="Available DEX integrations"
           count={SUPPORTED_DEXS.length}
           countLabel="integration"

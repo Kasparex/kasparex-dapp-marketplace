@@ -17,6 +17,7 @@ import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCr
 import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
@@ -210,11 +211,12 @@ export default function DonationsListingPage() {
             statusCounts={statusCounts}
           />
         </div>
-        <main className={HUB_MAIN_COLUMN}>
+        <HubAccentScope projectId="kasparex-donations" className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
             <DonationsHeader />
             <div id="content" className="scroll-mt-4" />
             <HubListingTitleRow
+              projectId="kasparex-donations"
               title="Available campaigns"
               count={totalVisible}
               countLabel="campaign"
@@ -314,7 +316,7 @@ export default function DonationsListingPage() {
               </div>
             )}
           </div>
-        </main>
+        </HubAccentScope>
       </div>
       <Footer />
     </div>

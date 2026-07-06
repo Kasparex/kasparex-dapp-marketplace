@@ -38,6 +38,7 @@ export default function KasparexAiPage() {
       {showAgentListing ? (
         <>
           <HubListingTitleRow
+            projectId="kasparex-ai"
             title="Available AI agents"
             count={filteredAgents.length}
             countLabel="agent"
