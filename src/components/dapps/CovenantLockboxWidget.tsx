@@ -54,7 +54,7 @@ export function CovenantLockboxWidget() {
   const [tab, setTab] = useState<TabId>('create');
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
   const [beneficiary, setBeneficiary] = useState('');
-  const [amountKas, setAmountKas] = useState('0.1');
+  const [amountKas, setAmountKas] = useState('10');
   const [memo, setMemo] = useState('');
   const [unlockLocal, setUnlockLocal] = useState('');
   const [importId, setImportId] = useState('');
@@ -321,21 +321,41 @@ export function CovenantLockboxWidget() {
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              <strong>Escrow</strong>: lock coins for a buyer, seller, or collaborator. Only the
-              beneficiary address can release them.
+              <strong>Who holds the KAS?</strong> Nobody custodies it. When you create a lock, the
+              amount leaves your wallet and sits in a Kaspa L1 covenant output (a programmable UTXO).
+              Kasparex does not hold or control those coins.
             </li>
             <li>
-              <strong>Timelock</strong>: same idea, but the beneficiary must wait until a date you
-              pick before claiming.
+              <strong>Where is it locked?</strong> On Kaspa Layer 1, bound by covenant script rules
+              you chose (escrow or timelock). The lock is visible on-chain under a covenant ID. Only
+              a spend that satisfies those rules can move the funds.
             </li>
             <li>
-              <strong>No middleman</strong>: rules are enforced by covenant logic on Kaspa L1
-              (simulated here until wallets ship covenant support).
+              <strong>Who can release it?</strong> Only the beneficiary address you set. In escrow
+              mode they can claim as soon as the lock exists. In timelock mode they must wait until
+              the unlock date.
+            </li>
+            <li>
+              <strong>Platform fee vs lock amount</strong> The Hub deploy fee (shown in the fee panel)
+              is a separate KAS transfer to Kasparex treasury. It is not part of the locked principal
+              and does not go to the beneficiary.
+            </li>
+            <li>
+              <strong>Hybrid / simulator mode</strong> If your wallet cannot send covenant txs yet,
+              Lockbox tracks the same rules locally so you can test flows. Import by covenant ID when
+              the on-chain lock appears in an explorer.
+            </li>
+            <li>
+              <strong>Escrow</strong> Beneficiary can claim anytime after the lock is created.
+            </li>
+            <li>
+              <strong>Timelock</strong> Same beneficiary rules, but claiming is blocked until the
+              date you pick.
             </li>
           </ul>
           <p className="text-xs text-zinc-500">
             Useful for trades, freelance payments, savings goals, or any transfer where you want
-            clear release conditions.
+            clear release conditions without trusting a middleman.
           </p>
         </CovenantHowItWorks>
       )}

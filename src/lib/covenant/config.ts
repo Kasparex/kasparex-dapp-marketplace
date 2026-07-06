@@ -1,6 +1,6 @@
 import type { CovenantLabConfig, CovenantRuntimeMode } from './types';
 
-const MIN_LOCK_KAS = 0.05;
+const MIN_LOCK_KAS = 5;
 
 function readRuntimeMode(): CovenantRuntimeMode {
   const raw = process.env.NEXT_PUBLIC_COVENANT_RUNTIME?.trim().toLowerCase();
