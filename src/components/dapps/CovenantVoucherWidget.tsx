@@ -5,8 +5,6 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantVoucher } from '@/hooks/useCovenantVoucher';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import {
-  CovenantWidgetShell,
-  CovenantHeader,
   CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
@@ -18,6 +16,7 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 
 type TabId = 'create' | 'claim' | 'about';
 
@@ -37,11 +36,7 @@ export function CovenantVoucherWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
   if (!state.isConnected) {
-    return (
-      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-        Connect your wallet to create or redeem KAS gift vouchers.
-      </p>
-    );
+    return <KpxCovenantDisconnected template="voucher" />;
   }
 
   const handleCreate = async () => {
@@ -73,13 +68,7 @@ export function CovenantVoucherWidget() {
   };
 
   return (
-    <CovenantWidgetShell>
-      <CovenantHeader
-        title="Covenant Voucher"
-        subtitle="Send KAS as a digital gift card. Lock the amount, share a secret code with the recipient, and they can redeem it before it expires."
-        runtimeMode={runtimeMode}
-        effectiveMode={effectiveMode}
-      />
+    <KpxCovenantShell template="voucher" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
       <CovenantTabs
         tabs={[
@@ -260,6 +249,6 @@ export function CovenantVoucherWidget() {
           </p>
         </CovenantHowItWorks>
       )}
-    </CovenantWidgetShell>
+    </KpxCovenantShell>
   );
 }

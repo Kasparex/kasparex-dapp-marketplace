@@ -35,6 +35,14 @@ export {
   importVaultFromCovenantId,
   KPX_COVENANT_PAYLOAD_TEMPLATES,
 } from './execution';
+export {
+  KPX_COVENANT_BRAND_NAME,
+  KPX_COVENANT_BRANDS,
+  KPX_COVENANT_FAMILY,
+  KPX_COVENANT_META_APP,
+  getKpxCovenantBrand,
+  kpxCovenantPayloadMeta,
+} from './kpxBranding';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

@@ -6,8 +6,6 @@ import { useCovenantSplit } from '@/hooks/useCovenantSplit';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { SplitPayment, SplitRecipient } from '@/lib/covenant';
 import {
-  CovenantWidgetShell,
-  CovenantHeader,
   CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
@@ -20,6 +18,7 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 
 type TabId = 'create' | 'splits' | 'about';
 
@@ -128,21 +127,11 @@ export function CovenantSplitWidget() {
   };
 
   if (!kaspaState.isConnected) {
-    return (
-      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-        Connect your wallet to split one payment across multiple people.
-      </p>
-    );
+    return <KpxCovenantDisconnected template="split" />;
   }
 
   return (
-    <CovenantWidgetShell>
-      <CovenantHeader
-        title="Covenant Split"
-        subtitle="Send one KAS payment to several people at once. Set the total, choose each share, and everyone claims their part independently."
-        runtimeMode={runtimeMode}
-        effectiveMode={effectiveMode}
-      />
+    <KpxCovenantShell template="split" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
       <CovenantTabs
         tabs={[
@@ -376,6 +365,6 @@ export function CovenantSplitWidget() {
           </p>
         </CovenantHowItWorks>
       )}
-    </CovenantWidgetShell>
+    </KpxCovenantShell>
   );
 }

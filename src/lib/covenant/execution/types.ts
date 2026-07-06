@@ -44,7 +44,7 @@ export interface CovenantDeployRequest {
   template: CovenantTemplate;
   amountSompi: string;
   networkId: ProgrammableNetworkId;
-  /** Wallet-declared template for indexer payload claims, e.g. KpxLockboxV1 */
+  /** Wallet-declared template for indexer payload claims, e.g. KPX_Lockbox_V1 */
   payloadTemplate: string;
   payloadArgs?: KaspaComPayloadArg[];
   payloadMeta?: Record<string, string>;

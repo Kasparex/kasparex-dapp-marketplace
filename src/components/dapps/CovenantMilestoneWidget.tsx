@@ -6,8 +6,6 @@ import { useCovenantMilestone } from '@/hooks/useCovenantMilestone';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
-  CovenantWidgetShell,
-  CovenantHeader,
   CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
@@ -20,6 +18,7 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 
 type TabId = 'create' | 'deals' | 'about';
 
@@ -44,11 +43,7 @@ export function CovenantMilestoneWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
   if (!state.isConnected) {
-    return (
-      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-        Connect your wallet to create or claim milestone payments.
-      </p>
-    );
+    return <KpxCovenantDisconnected template="milestone" />;
   }
 
   const handleCreate = async () => {
@@ -73,13 +68,7 @@ export function CovenantMilestoneWidget() {
   };
 
   return (
-    <CovenantWidgetShell>
-      <CovenantHeader
-        title="Covenant Milestone"
-        subtitle="Pay someone in steps. Lock the full amount up front, then release each part on the dates you set."
-        runtimeMode={runtimeMode}
-        effectiveMode={effectiveMode}
-      />
+    <KpxCovenantShell template="milestone" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
       <CovenantTabs
         tabs={[
@@ -280,6 +269,6 @@ export function CovenantMilestoneWidget() {
           </p>
         </CovenantHowItWorks>
       )}
-    </CovenantWidgetShell>
+    </KpxCovenantShell>
   );
 }

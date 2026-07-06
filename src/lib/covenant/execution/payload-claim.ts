@@ -4,7 +4,10 @@
  */
 
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
+import { kpxCovenantPayloadMeta } from '@/lib/covenant/kpxBranding';
 import type { KaspaComPayloadArg } from './types';
+
+export { KPX_COVENANT_PAYLOAD_TEMPLATES } from '@/lib/covenant/kpxBranding';
 
 const PAYLOAD_NETWORK_KEY: Record<ProgrammableNetworkId, string> = {
   'testnet-10': 'tn10',
@@ -23,11 +26,7 @@ export function buildDeployPayloadEnvelope(input: {
       v: 1,
       tmpl: input.template,
       args: input.args ?? [],
-      meta: {
-        app: 'Kasparex Hub',
-        source: 'kasparex-connect-wallet',
-        ...input.meta,
-      },
+      meta: kpxCovenantPayloadMeta(input.meta),
     },
   };
 }
@@ -45,11 +44,3 @@ export function buildDeployPayloadHex(input: {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
-
-export const KPX_COVENANT_PAYLOAD_TEMPLATES = {
-  lockbox: 'KpxLockboxV1',
-  split: 'KpxSplitV1',
-  milestone: 'KpxMilestoneV1',
-  crowdfund: 'KpxCrowdfundV1',
-  voucher: 'KpxVoucherV1',
-} as const;

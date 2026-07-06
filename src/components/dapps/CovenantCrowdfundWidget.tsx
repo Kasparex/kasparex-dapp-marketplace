@@ -6,8 +6,6 @@ import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
-  CovenantWidgetShell,
-  CovenantHeader,
   CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
@@ -20,6 +18,7 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 
 type TabId = 'browse' | 'create' | 'about';
 
@@ -37,11 +36,7 @@ export function CovenantCrowdfundWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
   if (!state.isConnected) {
-    return (
-      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-        Connect your wallet to browse or launch a crowdfund campaign.
-      </p>
-    );
+    return <KpxCovenantDisconnected template="crowdfund" />;
   }
 
   const handleCreate = async () => {
@@ -61,13 +56,7 @@ export function CovenantCrowdfundWidget() {
   };
 
   return (
-    <CovenantWidgetShell>
-      <CovenantHeader
-        title="Covenant Crowdfund"
-        subtitle="Raise KAS for a project with a clear goal and deadline. If you hit the goal, the creator gets the funds. If not, backers can get their money back."
-        runtimeMode={runtimeMode}
-        effectiveMode={effectiveMode}
-      />
+    <KpxCovenantShell template="crowdfund" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
       <CovenantTabs
         tabs={[
@@ -285,6 +274,6 @@ export function CovenantCrowdfundWidget() {
           </p>
         </CovenantHowItWorks>
       )}
-    </CovenantWidgetShell>
+    </KpxCovenantShell>
   );
 }

@@ -6,8 +6,6 @@ import { useCovenantLockbox } from '@/hooks/useCovenantLockbox';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
 import {
-  CovenantWidgetShell,
-  CovenantHeader,
   CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
@@ -19,6 +17,11 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  KpxCovenantDisconnected,
+  KpxCovenantImportPanel,
+  KpxCovenantShell,
+} from '@/components/dapps/covenant/KpxCovenantShell';
 
 type TabId = 'create' | 'vaults' | 'about';
 
@@ -90,21 +93,11 @@ export function CovenantLockboxWidget() {
   };
 
   if (!kaspaState.isConnected) {
-    return (
-      <p className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
-        Connect your wallet to lock KAS with escrow or timelock rules.
-      </p>
-    );
+    return <KpxCovenantDisconnected template="lockbox" />;
   }
 
   return (
-    <CovenantWidgetShell>
-      <CovenantHeader
-        title="Covenant Lab"
-        subtitle="Lock KAS for someone else with simple rules. Use escrow so they can claim anytime, or timelock so they can only claim after a date you choose."
-        runtimeMode={runtimeMode}
-        effectiveMode={effectiveMode}
-      />
+    <KpxCovenantShell template="lockbox" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
       <CovenantTabs
         tabs={[
@@ -239,36 +232,19 @@ export function CovenantLockboxWidget() {
 
       {tab === 'vaults' && (
         <div className="space-y-4">
-          <div className={`${covenantPanelClass} space-y-2`}>
-            <CovenantFieldLabel
-              label="Import by covenant id"
-              htmlFor="lockbox-import-id"
-              tooltip="Paste a 64-char covenant id from KaspaCom Explorer to track an on-chain lock in this browser."
-            />
-            <input
-              id="lockbox-import-id"
-              type="text"
-              value={importId}
-              onChange={(e) => setImportId(e.target.value.trim().toLowerCase())}
-              placeholder="64-char hex covenant id"
-              className={`${covenantInputClass} font-mono text-sm`}
-              spellCheck={false}
-            />
-            <button
-              type="button"
-              disabled={busy || importId.length < 64}
-              onClick={() => {
-                setBusy(true);
-                void importByCovenantId(importId)
-                  .then(() => setImportId(''))
-                  .catch(console.error)
-                  .finally(() => setBusy(false));
-              }}
-              className={covenantSecondaryBtnClass}
-            >
-              Import from indexer
-            </button>
-          </div>
+          <KpxCovenantImportPanel
+            id="lockbox-import-id"
+            value={importId}
+            onChange={setImportId}
+            busy={busy}
+            onImport={() => {
+              setBusy(true);
+              void importByCovenantId(importId)
+                .then(() => setImportId(''))
+                .catch(console.error)
+                .finally(() => setBusy(false));
+            }}
+          />
           <div className="flex justify-between items-center">
             <span className="kx-body">
               {myLocked.length} active, {vaults.length} total
@@ -355,6 +331,6 @@ export function CovenantLockboxWidget() {
           </p>
         </CovenantHowItWorks>
       )}
-    </CovenantWidgetShell>
+    </KpxCovenantShell>
   );
 }
