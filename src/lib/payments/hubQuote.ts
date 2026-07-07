@@ -5,7 +5,6 @@
 import { getDAppNetworkType, type DApp } from '@/lib/dapps';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { KpxCovenantDeployPrice } from '@/lib/covenant/kpxCovenantPricing';
-import { getActionCost } from '@/lib/payments/config';
 import { calculateCost, formatPrice, formatPercent, type CostCalculatorInputs } from '@/lib/payments/calculator';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -75,6 +74,55 @@ export function covenantDeployToHubQuote(
   };
 }
 
+function costBreakdownToHubQuote(
+  breakdown: ReturnType<typeof calculateCost>,
+  options: {
+    tier: KREXTier;
+    krexBalance: number;
+    currency: string;
+    actionLabel?: string;
+    hubPoints?: number;
+    infoText?: string;
+    extraLines?: HubQuoteLine[];
+  },
+): HubQuoteDisplay {
+  const discountPercent = discountPercentForTier(options.krexBalance, options.tier);
+  const discountKas = breakdown.feeDiscountAmount;
+  const tierLabel = KREX_TIERS[options.tier].label;
+
+  const lines: HubQuoteLine[] = [
+    ...(options.extraLines ?? []),
+    {
+      label: options.actionLabel ?? 'Amount',
+      value: `${formatPrice(breakdown.baseCost)} ${options.currency}`,
+    },
+    {
+      label: `Platform fee (${formatPercent(breakdown.feePercent)}%, was ${formatPercent(breakdown.standardFeePercent)}%)`,
+      value: `${formatPrice(breakdown.feeAmount)} ${options.currency}`,
+    },
+    {
+      label: 'Recipient receives',
+      value: `${formatPrice(breakdown.breakdown.subtotal)} ${options.currency}`,
+    },
+  ];
+
+  const feeGross = breakdown.feeAmount + breakdown.feeDiscountAmount;
+
+  return {
+    lines,
+    subtotalKas: discountKas > 0 ? feeGross : undefined,
+    discountKas,
+    discountPercent,
+    totalKas: breakdown.finalCostWithFee,
+    currency: options.currency,
+    hubPoints: options.hubPoints,
+    hubPointsDetail: formatHubPointsTierLabel(options.tier),
+    infoText: options.infoText,
+    tierLabel,
+    hasKrexDiscount: discountKas > 0 && options.krexBalance >= KREX_TIERS.Tier1.minKREX,
+  };
+}
+
 export function calculateDAppHubQuote(
   inputs: CostCalculatorInputs & {
     dapp: DApp;
@@ -86,8 +134,6 @@ export function calculateDAppHubQuote(
 ): HubQuoteDisplay | null {
   const { dapp, chainId, currency, variableAmount, actionLabel, ...costInputs } = inputs;
   const tier = costInputs.krexTier;
-  const tierLabel = KREX_TIERS[tier].label;
-  const discountPercent = discountPercentForTier(costInputs.krexBalance, tier);
   const networkType = getDAppNetworkType(dapp);
   const breakdown = calculateCost({ dapp, ...costInputs });
 
@@ -95,76 +141,26 @@ export function calculateDAppHubQuote(
     return null;
   }
 
-  if (variableAmount && costInputs.overrideBaseCost != null) {
-    const payment = costInputs.overrideBaseCost;
-    const feeSubtotal = (payment * breakdown.standardFeePercent) / 100;
-    const discountKas = Math.round(feeSubtotal * (discountPercent / 100) * 100) / 100;
-    const rewards = getDefaultRewardsBreakdown(chainId);
-    const basePts = Math.round(payment * rewards.xpPerKas);
-    const hubPoints = computeEarnedHubPoints(basePts, tier);
+  const rewards = getDefaultRewardsBreakdown(chainId);
+  const hubBasePts =
+    variableAmount && costInputs.overrideBaseCost != null
+      ? Math.round(costInputs.overrideBaseCost * rewards.xpPerKas)
+      : networkType === 'L1'
+        ? HUB_EARN_POINTS.dappL1Interaction
+        : Math.round(breakdown.baseCost * rewards.xpPerKas);
+  const hubPoints = computeEarnedHubPoints(hubBasePts, tier);
 
-    const lines: HubQuoteLine[] = [
-      { label: 'Payment amount', value: `${formatPrice(payment)} ${currency}` },
-      {
-        label: `Platform fee (${formatPercent(breakdown.standardFeePercent)}%)`,
-        value: `${formatPrice(feeSubtotal)} ${currency}`,
-      },
-    ];
-
-    if (discountKas > 0) {
-      lines.push({ label: 'Fee subtotal', value: `${formatPrice(feeSubtotal)} ${currency}` });
-    }
-
-    return {
-      lines,
-      subtotalKas: discountKas > 0 ? feeSubtotal : undefined,
-      discountKas,
-      discountPercent,
-      totalKas: payment,
-      currency,
-      hubPoints,
-      hubPointsDetail: formatHubPointsTierLabel(tier),
-      infoText:
-        networkType === 'L1'
-          ? 'L1 dApps settle in KAS. KREX tier discounts apply as a percentage off eligible fees.'
-          : 'L2 dApps settle on Kasplex. Totals update live from the amount you enter in the widget.',
-      tierLabel,
-      hasKrexDiscount: discountKas > 0 && costInputs.krexBalance > 0,
-    };
-  }
-
-  const grossSubtotal =
-    costInputs.overrideBaseCost != null && costInputs.overrideBaseCost > 0
-      ? costInputs.overrideBaseCost
-      : getActionCost(dapp, costInputs.actionId, networkType);
-  const discountKas = Math.round(grossSubtotal * (discountPercent / 100) * 100) / 100;
-  const totalKas = Math.round((grossSubtotal - discountKas) * 100) / 100;
-
-  const lines: HubQuoteLine[] = [
-    {
-      label: actionLabel ?? 'Base fee',
-      value: `${formatPrice(grossSubtotal)} ${currency}`,
-    },
-  ];
-
-  const hubBase =
-    networkType === 'L1' ? HUB_EARN_POINTS.dappL1Interaction : HUB_EARN_POINTS.dappDirectoryList;
-  const hubPoints = computeEarnedHubPoints(hubBase, tier);
-
-  return {
-    lines,
-    subtotalKas: discountKas > 0 ? grossSubtotal : undefined,
-    discountKas,
-    discountPercent,
-    totalKas,
+  return costBreakdownToHubQuote(breakdown, {
+    tier,
+    krexBalance: costInputs.krexBalance,
     currency,
+    actionLabel: actionLabel ?? (variableAmount ? 'Payment amount' : 'Base fee'),
     hubPoints,
-    hubPointsDetail: formatHubPointsTierLabel(tier),
     infoText:
       networkType === 'L1'
-        ? 'L1 dApps settle in KAS. KREX tier discounts apply as a percentage off the action total.'
-        : 'Connect the matching network wallet when you are ready to transact.',
-    tierLabel,
-    hasKrexDiscount: discountKas > 0 && costInputs.krexBalance > 0,
-  };
+        ? 'L1 dApps settle in KAS. KREX tier discounts apply as a percentage off eligible fees.'
+        : variableAmount
+          ? 'L2 dApps settle on Kasplex. Totals update live from the amount you enter in the widget.'
+          : 'L2 totals include platform fees. KREX tier discounts reduce the fee portion of your payment.',
+  });
 }

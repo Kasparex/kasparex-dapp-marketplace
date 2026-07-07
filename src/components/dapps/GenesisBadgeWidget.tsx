@@ -7,7 +7,7 @@ import { GENESIS_BADGE_ABI } from '@/lib/contracts/abis';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { placeholderDApps } from '@/lib/dapps';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
-import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -20,8 +20,9 @@ import { TransactionTracker } from '@/components/transactions/TransactionTracker
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
-import { KX_BTN_PRIMARY } from '@/lib/hub/shellTokens';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { useQueryClient } from '@tanstack/react-query';
@@ -197,23 +198,96 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     }, 500);
   }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, refetchBadge, distributeRewardAfterTransaction]);
 
+  useSyncDAppWidgetQuote(null, 'unlock-or-boost', []);
+
+  const rewardsExtra = (
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950/60">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">You receive</p>
+      <div className="flex justify-between kx-body">
+        <span>{gridLabel}</span>
+        <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
+      </div>
+      <div className="flex justify-between kx-body">
+        <span>Hub pts</span>
+        <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
+      </div>
+      {multiplier > 1 ? (
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          ×{multiplier} tier multiplier (from your total KREX across connected wallets)
+        </p>
+      ) : null}
+      {onChainIsBaseOnly ? (
+        <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+          On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel},{' '}
+          {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
+          <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">
+            Open KAT Bridge ↗
+          </a>
+        </p>
+      ) : null}
+      {hasBadge ? (
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Badge progress: +1 boost, total spent increases</p>
+      ) : null}
+    </div>
+  );
+
+  const railActions = isConnected ? (
+    <button
+      type="button"
+      onClick={handleUnlockOrBoost}
+      disabled={isLoading || !contractAddress || valueWei < parseEther('10')}
+      className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {isLoading ? (
+        <span className="flex items-center justify-center gap-2">
+          <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          {isPendingWrite ? 'Confirm in wallet...' : 'Processing...'}
+        </span>
+      ) : hasBadge ? (
+        'Boost badge'
+      ) : (
+        'Unlock badge'
+      )}
+    </button>
+  ) : null;
+
+  useRegisterDAppWidgetRailSlot('actions', railActions, [isConnected, isLoading, contractAddress, valueWei, hasBadge, isPendingWrite]);
+  useRegisterDAppWidgetRailSlot('extraBreakdown', rewardsExtra, [
+    gridLabel,
+    gridReward,
+    xpReward,
+    multiplier,
+    onChainIsBaseOnly,
+    hasBadge,
+    gridRewardOnChain,
+    xpRewardOnChain,
+  ]);
+
   if (!isConnected) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
-        <DAppSectionHeader title="Genesis Badge" className="mb-3 justify-center" />
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Connect your wallet to unlock or boost your genesis badge.
-        </p>
-      </div>
+      <DAppWidgetShell title="Interact" heading="Genesis Badge" description="Connect your wallet to unlock or boost your genesis badge.">
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Connect your L2 wallet from the site header to continue.
+          </p>
+        </div>
+      </DAppWidgetShell>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <DAppSectionHeader
-        title="Genesis Badge"
-        hint={hasBadge ? 'Boost your badge and earn more tGRID and pts.' : 'Unlock a unique random badge. Earn tGRID and pts.'}
-      />
+    <DAppWidgetShell
+      title="Interact"
+      heading="Genesis Badge"
+      description={
+        hasBadge
+          ? 'Boost your badge and earn more tGRID and Hub points.'
+          : 'Unlock a unique random badge. Earn tGRID and Hub points.'
+      }
+    >
         {hasBadge && (
           <div
             className="mt-6 mx-auto max-w-sm rounded-2xl overflow-hidden border-2 border-amber-400/50 dark:border-amber-500/40 shadow-xl"
@@ -249,43 +323,6 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             </div>
           </div>
         )}
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
-        <DAppSectionHeader title="Payment breakdown" className="mb-3" />
-        <div className="space-y-2 text-base">
-          <div className="flex justify-between items-center">
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">You Pay</span>
-            <span className="font-bold text-zinc-900 dark:text-zinc-100">
-              {costBreakdown ? formatPrice(costBreakdown.finalCostWithFee) : '10'} {nativeSymbol}
-            </span>
-          </div>
-          <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-700">
-            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">You Receive</p>
-            <div className="flex justify-between kx-body">
-              <span>{gridLabel}</span>
-              <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
-            </div>
-            <div className="flex justify-between kx-body">
-              <span>pts</span>
-              <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
-            </div>
-            {multiplier > 1 && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                ×{multiplier} tier multiplier (from your total KREX across connected wallets)
-              </p>
-            )}
-            {onChainIsBaseOnly && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
-                <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
-              </p>
-            )}
-            {hasBadge && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Badge progress: +1 boost, total spent increases</p>
-            )}
-          </div>
-        </div>
-      </div>
-
       <KxAlertRegion>
         {displayError ? (
           <Alert type="error" compact region onDismiss={() => setError(null)}>
@@ -318,27 +355,6 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={handleUnlockOrBoost}
-        disabled={isLoading || !contractAddress || valueWei < parseEther('10')}
-        className={KX_BTN_PRIMARY}
-      >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            {isPendingWrite ? 'Confirm in wallet...' : 'Processing...'}
-          </span>
-        ) : hasBadge ? (
-          'Boost badge'
-        ) : (
-          'Unlock badge'
-        )}
-      </button>
-
       {contractAddress && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
           Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
@@ -367,6 +383,6 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         message={errorModalMessage}
         title={hasBadge ? 'Boost failed' : 'Unlock failed'}
       />
-    </div>
+    </DAppWidgetShell>
   );
 }

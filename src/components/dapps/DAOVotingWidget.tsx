@@ -7,6 +7,9 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { useDAOVoting, Proposal, Vote } from '@/hooks/useDAOVoting';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 
 export function DAOVotingWidget() {
   const { address, isConnected } = useAccount();
@@ -118,28 +121,48 @@ export function DAOVotingWidget() {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
+  useSyncDAppWidgetQuote(null, showSubmitForm ? 'submit-proposal' : 'cast-vote', [showSubmitForm]);
+
+  const railActions =
+    showSubmitForm && isConnected ? (
+      <button
+        type="button"
+        onClick={handleSubmitProposal}
+        disabled={isLoading || !title.trim() || !description.trim()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isLoading ? 'Submitting...' : 'Submit Proposal'}
+      </button>
+    ) : null;
+
+  useRegisterDAppWidgetRailSlot('actions', railActions, [showSubmitForm, isLoading, title, description, isConnected]);
+
   if (!isConnected) {
     return (
-      <div className="px-6 py-8 text-center">
-        <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-          Please connect your wallet to use DAO Voting
-        </p>
-      </div>
+      <DAppWidgetShell title="Interact" heading="DAO Voting" description="Submit and vote on future dApp ideas.">
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Connect your L2 wallet to use DAO Voting.</p>
+        </div>
+      </DAppWidgetShell>
     );
   }
 
   if (!contractAddress) {
     return (
-      <div className="px-6 py-8 text-center">
-        <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-          DAO Voting contract not deployed on this network
-        </p>
-      </div>
+      <DAppWidgetShell title="Interact" heading="DAO Voting" description="Submit and vote on future dApp ideas.">
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">DAO Voting contract not deployed on this network.</p>
+        </div>
+      </DAppWidgetShell>
     );
   }
 
   return (
-    <div className="px-6 py-6 space-y-6">
+    <DAppWidgetShell
+      title="Interact"
+      heading="DAO Voting"
+      description="Submit proposals and vote on future dApp ideas. Fees and Hub points are in the calculation breakdown."
+    >
       {/* Premium Header - Submit Proposal Button */}
       <div className="flex items-center justify-between">
         <div>
@@ -163,7 +186,7 @@ export function DAOVotingWidget() {
 
       {/* Submit Proposal Form - Premium Design */}
       {showSubmitForm && (
-        <div className="p-6 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-lg">
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-950/60 space-y-5">
           <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
             Submit New Proposal
           </h3>
@@ -200,13 +223,6 @@ export function DAOVotingWidget() {
                 {description.length}/2000 characters
               </p>
             </div>
-            <button
-              onClick={handleSubmitProposal}
-              disabled={isLoading || !title.trim() || !description.trim()}
-              className="w-full px-6 py-3.5 bg-[#02abb8] hover:bg-[#028a94] text-white font-bold rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {isLoading ? 'Submitting...' : 'Submit Proposal'}
-            </button>
           </div>
         </div>
       )}
@@ -374,6 +390,6 @@ export function DAOVotingWidget() {
           </div>
         )}
       </div>
-    </div>
+    </DAppWidgetShell>
   );
 }

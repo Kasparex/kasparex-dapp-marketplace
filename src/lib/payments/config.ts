@@ -66,6 +66,7 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         actionName: 'Send KREX',
         baseCost: 1.0,
         costL1: 1.0,
+        variableAmount: true,
       },
     ],
   },
