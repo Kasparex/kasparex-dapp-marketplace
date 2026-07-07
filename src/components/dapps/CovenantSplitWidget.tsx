@@ -63,8 +63,6 @@ export function CovenantSplitWidget() {
   const { state: kaspaState } = useKaspaWallet();
   const { splits, isLoading, error, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
     useCovenantSplit();
-  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split', rows.length);
-
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
   useRegisterWidgetTabLabel('splits', `Splits (${splits.length})`, [splits.length]);
@@ -72,6 +70,7 @@ export function CovenantSplitWidget() {
     { key: 'a', address: '', percent: '50' },
     { key: 'b', address: '', percent: '50' },
   ]);
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split', rows.length);
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
   const [busy, setBusy] = useState(false);
