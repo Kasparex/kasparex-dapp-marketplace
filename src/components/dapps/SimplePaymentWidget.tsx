@@ -26,7 +26,10 @@ import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { FeeDisplay } from '@/components/ui/FeeDisplay';
-import { useToast } from '@/hooks/useToast';
+import { Alert } from '@/components/Alert';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KX_BTN_PRIMARY } from '@/lib/hub/shellTokens';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
@@ -417,36 +420,9 @@ export function SimplePaymentWidget() {
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
 
-  const { toast } = useToast();
-  const lastToastedErrorRef = useRef<string | null>(null);
-
-  // Error toast when payment fails or is rejected
-  useEffect(() => {
-    if (!displayError) {
-      lastToastedErrorRef.current = null;
-      setShowErrorModal(false);
-      return;
-    }
-    const msg = String(displayError);
-    if (lastToastedErrorRef.current === msg) return;
-    lastToastedErrorRef.current = msg;
-    toast({
-      variant: 'error',
-      title: 'Payment failed',
-      description: msg,
-    });
-    setErrorModalMessage(msg);
-    setShowErrorModal(true);
-  }, [displayError, toast]);
-
   // Distribute rewards and reset form on success
   useEffect(() => {
     if (isConfirmed && !isConfirming && hash && simplePaymentDApp && contractAddress && address) {
-      toast({
-        variant: 'success',
-        title: 'Payment sent',
-        description: 'tGRID and points will be applied shortly. Check your wallet and dashboard.',
-      });
       setSuccessTxHash(hash);
       setShowSuccessModal(true);
       // Force refetch of all contract reads (tGRID balance, pts balance, etc.) so dashboard updates
@@ -506,7 +482,7 @@ export function SimplePaymentWidget() {
       }, 500);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- setPaymentAmount is stable from context
-  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address, toast]);
+  }, [isConfirmed, isConfirming, hash, simplePaymentDApp, contractAddress, distributeRewardAfterTransaction, paymentCostBreakdown, amount, recipientAddress, address]);
 
   // Reset form on success (legacy - kept for compatibility)
   if (isConfirmed && !isLoading && !hash) {
@@ -517,21 +493,19 @@ export function SimplePaymentWidget() {
   }
 
   return (
-    <div className="px-6 py-4 space-y-4">
-
+    <div className="space-y-4">
       {!isConnected ? (
-        <div className="text-center py-8">
-          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-            Please connect your wallet to use this dApp
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Connect your wallet to send a payment through this dApp.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Recipient Address Input */}
-          <div>
-            <label className="k-label">
-              Recipient Address
-            </label>
+          <div className="k-form-group !mb-0">
+            <KxFormFieldLabel tooltip="EVM address that will receive the payment.">
+              Recipient address
+            </KxFormFieldLabel>
             <input
               type="text"
               value={recipientAddress}
@@ -542,11 +516,10 @@ export function SimplePaymentWidget() {
             />
           </div>
 
-          {/* Amount Input */}
-          <div>
-            <label className="k-label flex items-center gap-2 whitespace-nowrap">
+          <div className="k-form-group !mb-0">
+            <KxFormFieldLabel tooltip="Amount before platform fee. KREX tier discounts apply in the side panel breakdown.">
               Amount ({nativeSymbol})
-            </label>
+            </KxFormFieldLabel>
             <input
               type="text"
               value={amount}
@@ -565,9 +538,8 @@ export function SimplePaymentWidget() {
             />
           </div>
 
-          {/* Fee Breakdown with Calculated Costs */}
           {amount && amountBigInt > 0n && (
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
               <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
                 Payment Breakdown
               </h3>
@@ -715,23 +687,19 @@ export function SimplePaymentWidget() {
             </div>
           )}
 
-          {/* Error Message */}
-          {displayError && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-400">{displayError}</p>
-            </div>
-          )}
+          <KxAlertRegion>
+            {displayError ? (
+              <Alert type="error" compact region onDismiss={() => setError(null)}>
+                <p>{String(displayError)}</p>
+              </Alert>
+            ) : null}
+            {isConfirmed && hash ? (
+              <Alert type="success" compact region>
+                <p>Payment sent. Transaction hash: {hash.slice(0, 10)}...</p>
+              </Alert>
+            ) : null}
+          </KxAlertRegion>
 
-          {/* Success Message */}
-          {isConfirmed && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-700 dark:text-green-400">
-                Payment sent successfully! Transaction hash: {hash?.slice(0, 10)}...
-              </p>
-            </div>
-          )}
-
-          {/* Debug Info - Collapsible */}
           <div className="mb-4">
             <button
               onClick={() => setShowDebugInfo(!showDebugInfo)}
@@ -780,8 +748,7 @@ export function SimplePaymentWidget() {
             <button
               onClick={handleSendPayment}
               disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
-              className="flex-1 px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#02abb8' }}
+              className={`${KX_BTN_PRIMARY} flex items-center justify-center gap-2`}
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">

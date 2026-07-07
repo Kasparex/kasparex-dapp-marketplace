@@ -4,7 +4,7 @@ import { DApp } from '@/lib/dapps';
 import { useDAppFeeCalculations } from '@/hooks/useDAppFeeCalculations';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { formatPrice } from '@/lib/payments/calculator';
-import { DAppInfoTimeline } from './DAppDescriptionsPanel';
+import { DAppInfoTimeline } from './DAppInfoTimeline';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface DAppFeesPanelProps {

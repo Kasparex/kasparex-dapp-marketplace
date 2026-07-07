@@ -12,6 +12,7 @@ import { DAppWalletGateModal } from './dapps/DAppWalletGateModal';
 import { DAppNetworkBadge } from './dapps/DAppNetworkBadge';
 import { HubWalletGateOverlay } from '@/components/hub/HubWalletGateOverlay';
 import { HUB_GATE_FRAME_CLASS } from '@/lib/hub/gateFrame';
+import { KX_WIDGET_DETAIL_PANEL } from '@/lib/hub/shellTokens';
 import { useDAppAccess } from '@/hooks/useDAppAccess';
 import { useDAppWalletGate } from '@/hooks/useDAppWalletGate';
 import { resolveWidgetEntry } from '@/lib/dapps/widgetRegistry';
@@ -158,7 +159,7 @@ export function DAppWidget({
 
   if (isDetail) {
     return (
-      <div className={isBlocked ? HUB_GATE_FRAME_CLASS : 'relative'}>
+      <div className={isBlocked ? HUB_GATE_FRAME_CLASS : `relative ${KX_WIDGET_DETAIL_PANEL}`}>
         {widgetBody}
         {gateOverlay}
       </div>

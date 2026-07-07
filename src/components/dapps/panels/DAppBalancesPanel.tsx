@@ -11,7 +11,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { KX_ASIDE_PANEL } from '@/lib/hub/shellTokens';
+import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 
 function formatFee(value: number): string {
   if (value >= 1_000_000) {
@@ -61,8 +61,8 @@ export function DAppBalancesPanel({ dapp }: { dapp: DApp }) {
   ];
 
   return (
-    <div className={KX_ASIDE_PANEL}>
-      <DAppSectionHeader title="Your balances" className="mb-3" />
+    <div className={KX_CALCULATION_ASIDE}>
+      <DAppSectionHeader title="Your balances" hint="Wallet balances used for fees and rewards on this dApp." className="mb-3" />
       <div className="space-y-2">
         {rows.map(({ token, balance }) => (
           <div key={token} className="flex items-center justify-between gap-3 text-sm">

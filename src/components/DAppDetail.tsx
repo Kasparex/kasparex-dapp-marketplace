@@ -13,8 +13,7 @@ import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
 import { DAppFeesPanel } from './dapps/panels/DAppFeesPanel';
 import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
-import { DAppMetadataPanel } from './dapps/panels/DAppMetadataPanel';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree, IconMetadata } from './dapps/icons/DAppTabIcons';
+import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from './dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { DAppDetailShell } from './dapps/shell/DAppDetailShell';
 import { DAppDetailProvider } from './dapps/shell/DAppDetailContext';
@@ -23,7 +22,6 @@ import type { DAppTab } from './dapps/layout/DAppTabs';
 
 const BASE_TABS = [
   { id: 'widget', label: 'DApp', icon: <IconDAppWidget /> },
-  { id: 'metadata', label: 'Metadata', icon: <IconMetadata /> },
   { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
   { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
   { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
@@ -89,12 +87,9 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
               <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
             </div>
           ) : null}
-          {tab === 'metadata' ? (
-            <DAppMetadataPanel dapp={mergedDApp} contractAddress={contractAddress} />
-          ) : null}
           {tab === 'descriptions' ? (
             <div className={KX_TAB_SECTION}>
-              <DAppDescriptionsPanel dapp={mergedDApp} />
+              <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
             </div>
           ) : null}
           {tab === 'fees' ? (

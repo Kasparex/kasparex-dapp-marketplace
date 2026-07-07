@@ -7,9 +7,8 @@ import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryD
 import { DirectoryDAppDescriptionsPanel } from '@/components/dapps/panels/DirectoryDAppDescriptionsPanel';
 import { DirectoryDAppFeesPanel } from '@/components/dapps/panels/DirectoryDAppFeesPanel';
 import { DAppRevenueTreePanel } from '@/components/dapps/panels/DAppRevenueTreePanel';
-import { DAppMetadataPanel } from '@/components/dapps/panels/DAppMetadataPanel';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree, IconMetadata } from '@/components/dapps/icons/DAppTabIcons';
+import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from '@/components/dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
@@ -18,7 +17,6 @@ import { KX_TAB_SECTION } from '@/lib/hub/shellTokens';
 
 const BASE_TABS = [
   { id: 'overview', label: 'Overview', icon: <IconDAppWidget /> },
-  { id: 'metadata', label: 'Metadata', icon: <IconMetadata /> },
   { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
   { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
   { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
@@ -68,10 +66,9 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
             <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} />
           </div>
         ) : null}
-        {tab === 'metadata' ? <DAppMetadataPanel dapp={dapp} listing={listing} /> : null}
         {tab === 'descriptions' ? (
           <div className={KX_TAB_SECTION}>
-            <DirectoryDAppDescriptionsPanel listing={listing} />
+            <DirectoryDAppDescriptionsPanel dapp={dapp} listing={listing} />
           </div>
         ) : null}
         {tab === 'fees' ? (

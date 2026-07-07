@@ -9,6 +9,7 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 
 function formatKrexMillions(balance: number): string {
   if (balance >= 1_000_000) {
@@ -75,7 +76,7 @@ export function DAppsBenefitsPanel({
     <>
       <Tooltip content={tooltipContent}>
         <aside
-          className={`w-full min-w-0 max-w-full overflow-hidden rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
+          className={`${KX_CALCULATION_ASIDE} w-full min-w-0 max-w-full cursor-help ${ui.panel} ${className}`.trim()}
           aria-label="dApp user perks. Hover for KREX tier details."
         >
           <DAppSectionHeader

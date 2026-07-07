@@ -18,7 +18,10 @@ import { DApp } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
-import { useToast } from '@/hooks/useToast';
+import { Alert } from '@/components/Alert';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { KX_BTN_PRIMARY } from '@/lib/hub/shellTokens';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { useQueryClient } from '@tanstack/react-query';
@@ -142,29 +145,22 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     }
   };
 
-  const lastToastedErrorRef = useRef<string | null>(null);
-  const { toast } = useToast();
+  const lastErrorRef = useRef<string | null>(null);
   useEffect(() => {
     if (!displayError) {
-      lastToastedErrorRef.current = null;
+      lastErrorRef.current = null;
       setShowErrorModal(false);
       return;
     }
     const msg = String(displayError);
-    if (lastToastedErrorRef.current === msg) return;
-    lastToastedErrorRef.current = msg;
-    toast({ variant: 'error', title: hasBadge ? 'Boost failed' : 'Unlock failed', description: msg });
+    if (lastErrorRef.current === msg) return;
+    lastErrorRef.current = msg;
     setErrorModalMessage(msg);
     setShowErrorModal(true);
-  }, [displayError, toast, hasBadge]);
+  }, [displayError, hasBadge]);
 
   useEffect(() => {
     if (!isConfirmed || !hash || !genesisBadgeDApp || !contractAddress || !address) return;
-    toast({
-      variant: 'success',
-      title: hasBadge ? 'Badge boosted' : 'Badge unlocked',
-      description: 'tGRID and pts will be applied shortly. Check your wallet and dashboard.',
-    });
     setSuccessTxHash(hash);
     setShowSuccessModal(true);
     queryClient.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'readContract' });
@@ -199,24 +195,25 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         dAppContractAddress: contractAddress as `0x${string}`,
       }).catch((err) => console.error('Reward distribution:', err));
     }, 500);
-  }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, toast, refetchBadge, distributeRewardAfterTransaction]);
+  }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, refetchBadge, distributeRewardAfterTransaction]);
 
   if (!isConnected) {
     return (
-      <div className="px-6 py-8 text-center">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Genesis Badge</h2>
-        <p className="kx-body">Connect your wallet to unlock or boost your genesis badge.</p>
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+        <DAppSectionHeader title="Genesis Badge" className="mb-3 justify-center" />
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Connect your wallet to unlock or boost your genesis badge.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="px-6 py-4 space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Genesis Badge</h2>
-        <p className="kx-body">
-          {hasBadge ? 'Boost your badge and earn more tGRID and pts.' : 'Unlock a unique random badge. Earn tGRID and pts.'}
-        </p>
+    <div className="space-y-5">
+      <DAppSectionHeader
+        title="Genesis Badge"
+        hint={hasBadge ? 'Boost your badge and earn more tGRID and pts.' : 'Unlock a unique random badge. Earn tGRID and pts.'}
+      />
         {hasBadge && (
           <div
             className="mt-6 mx-auto max-w-sm rounded-2xl overflow-hidden border-2 border-amber-400/50 dark:border-amber-500/40 shadow-xl"
@@ -252,11 +249,8 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
             </div>
           </div>
         )}
-      </div>
-
-      {/* Payment Breakdown */}
-      <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-3 uppercase tracking-wide">Payment Breakdown</h3>
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
+        <DAppSectionHeader title="Payment breakdown" className="mb-3" />
         <div className="space-y-2 text-base">
           <div className="flex justify-between items-center">
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">You Pay</span>
@@ -292,13 +286,14 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         </div>
       </div>
 
-      {displayError && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-700 dark:text-red-400">{displayError}</p>
-        </div>
-      )}
+      <KxAlertRegion>
+        {displayError ? (
+          <Alert type="error" compact region onDismiss={() => setError(null)}>
+            <p>{String(displayError)}</p>
+          </Alert>
+        ) : null}
+      </KxAlertRegion>
 
-      {/* Collapsible Debug */}
       <div>
         <button
           type="button"
@@ -327,8 +322,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         type="button"
         onClick={handleUnlockOrBoost}
         disabled={isLoading || !contractAddress || valueWei < parseEther('10')}
-        className="w-full py-3 px-4 text-lg font-bold text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        style={{ backgroundColor: '#02abb8' }}
+        className={KX_BTN_PRIMARY}
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
