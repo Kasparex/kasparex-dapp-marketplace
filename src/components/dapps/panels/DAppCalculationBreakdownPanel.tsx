@@ -18,8 +18,6 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
-import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
-import { KxAlert } from '@/components/ui/KxAlert';
 import type { ReactNode } from 'react';
 
 export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakdownPanel({
@@ -107,7 +105,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const tierConfig = KREX_TIERS[tier];
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
   const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
-  const totalLabel = quote?.totalLabel ?? 'Total to pay';
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -142,27 +139,33 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           </div>
 
           <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel}</p>
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
             <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
               {formatPrice(quote.totalKas)} {quote.currency}
             </p>
           </div>
 
           {quote.infoText ? (
-            <KxAlert variant="info" title="How this payment works">
+            <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
               {quote.infoText}
-            </KxAlert>
+            </div>
           ) : null}
 
           {quote.discountKas > 0 ? (
-            <KxAlert variant="success" title="KREX discount applied">
-              You save {formatPrice(quote.discountKas)} {discountCurrency} ({quote.discountPercent}% off{' '}
-              {quote.discountOffLabel}).
-            </KxAlert>
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+              KREX discount: -{formatPrice(quote.discountKas)} {discountCurrency} ({quote.discountPercent}%
+              off total).
+            </div>
           ) : null}
 
           {quote.hubPoints != null && quote.hubPoints > 0 ? (
-            <HubPointsEarnRow label="Earn on action:" points={quote.hubPoints} />
+            <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+              <span>Hub points on action</span>
+              <span className="font-semibold text-[#02abb8] tabular-nums">
+                +{quote.hubPoints.toLocaleString()} pts
+                {quote.hubPointsDetail ? ` (${quote.hubPointsDetail})` : ''}
+              </span>
+            </div>
           ) : null}
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">

@@ -75,9 +75,7 @@ const WIDGET_REGISTRY: WidgetEntry[] = [
 ];
 
 export function resolveWidgetEntry(dapp: DApp): WidgetEntry | null {
-  return (
-    WIDGET_REGISTRY.find((e) => e.slug === dapp.slug || e.id === dapp.id) ?? null
-  );
+  return WIDGET_REGISTRY.find((e) => e.slug === dapp.slug || e.id === dapp.id) ?? null;
 }
 
 export { WIDGET_REGISTRY };

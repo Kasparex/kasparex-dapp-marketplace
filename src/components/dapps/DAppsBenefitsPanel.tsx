@@ -9,7 +9,6 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { KrexTierPerksTooltipTable } from '@/components/rewards/KrexTierPerksTooltipTable';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 
 function formatKrexMillions(balance: number): string {
   if (balance >= 1_000_000) {
@@ -42,7 +41,7 @@ export function DAppsBenefitsPanel({
 
   if (variant === 'compact') {
     const feePerk =
-      discountPercent > 0 ? `${discountPercent}% fee discount` : 'Hold 1M+ KREX for fee discounts';
+      discountPercent > 0 ? `${discountPercent}% off total` : 'Hold 1M+ KREX for discounts';
 
     return (
       <>
@@ -76,7 +75,7 @@ export function DAppsBenefitsPanel({
     <>
       <Tooltip content={tooltipContent}>
         <aside
-          className={`${KX_CALCULATION_ASIDE} w-full min-w-0 max-w-full cursor-help ${ui.panel} ${className}`.trim()}
+          className={`w-full min-w-0 max-w-full cursor-help rounded-xl border p-3.5 shadow-lg ${ui.panel} ${className}`.trim()}
           aria-label="dApp user perks. Hover for KREX tier details."
         >
           <DAppSectionHeader
@@ -95,8 +94,8 @@ export function DAppsBenefitsPanel({
             <li>
               <span className={ui.accent}>•</span>{' '}
               {discountPercent > 0
-                ? `${discountPercent}% off dApp fees (${tierLabel})`
-                : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off fees`}
+                ? `${discountPercent}% off total (${tierLabel})`
+                : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off total`}
             </li>
             <li>
               <span className={ui.accent}>•</span> Hub Points on every interaction

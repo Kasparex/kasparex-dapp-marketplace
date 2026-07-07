@@ -1,9 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
+import { getDAppNetworkType } from '@/lib/dapps';
 import { DAppIcon } from './DAppIcon';
 import { DAppPageHeaderActions, useMergedDApp } from './DAppPageHeaderActions';
 import { KxTagChip } from '@/components/ui/KxTagChip';
@@ -15,8 +17,9 @@ import { KxBadge } from '@/components/ui/KxBadge';
 import { DAppNetworkBadge } from '@/components/dapps/DAppNetworkBadge';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { KX_DETAIL_HEADER } from '@/lib/hub/shellTokens';
-import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
+import { getDAppPaymentConfig } from '@/lib/payments/config';
+import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 
 function SocialLink({ label, url }: { label: string; url: string }) {
@@ -44,9 +47,17 @@ export function DAppPageHeader({
 }) {
   const router = useRouter();
   const { mergedDApp } = useMergedDApp(dapp, contractAddress);
-  const { totalRedeemable: hubPts, address: hubAddr } = useRedeemablePointsBreakdown();
+  const { actionId: quoteActionId } = usePaymentAmount();
   const category = getCategoryById(mergedDApp.category);
   const { wallet: authorWallet, name: authorCustomName } = resolveDAppAuthor(mergedDApp);
+  const networkType = getDAppNetworkType(mergedDApp);
+
+  const hubPtsBase = useMemo(() => {
+    const paymentConfig = getDAppPaymentConfig(mergedDApp, networkType);
+    const actionId =
+      quoteActionId ?? paymentConfig?.actions[0]?.actionId ?? 'use-dapp';
+    return getHubPointsBaseForAction(mergedDApp, actionId);
+  }, [mergedDApp, networkType, quoteActionId]);
 
   const featuredImage = mergedDApp.featuredImage || mergedDApp.image || null;
   const links = mergedDApp.developerLinks ?? [];
@@ -62,7 +73,7 @@ export function DAppPageHeader({
     '';
 
   const statusLabel = mergedDApp.status || 'Mainnet';
-  const hubPtsLabel = hubAddr ? `${formatLargeNumber(hubPts)} pts` : 'Hub pts';
+  const hubPtsLabel = `+${hubPtsBase} pts`;
 
   return (
     <div id="dapp-header" className={`${KX_DETAIL_HEADER} relative mb-8 scroll-mt-24 select-text`}>
@@ -93,7 +104,9 @@ export function DAppPageHeader({
               <KxBadge variant="zinc">{statusLabel}</KxBadge>
             </div>
             <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
-              <KxHubPtsBadge label={hubPtsLabel} title="Your redeemable Hub points" />
+              <span className="inline-flex items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 shadow-sm">
+                <KxHubPtsBadge label={hubPtsLabel} title="Base Hub points for this dApp action" />
+              </span>
             </div>
           </div>
 
