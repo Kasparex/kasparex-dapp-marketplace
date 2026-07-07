@@ -197,7 +197,7 @@ export function DAOVotingWidget() {
         <div className={`${KX_SURFACE_ROW} space-y-4`}>
           <DAppSectionHeader title="New proposal" className="!mb-0" />
           <div>
-            <KxFormFieldLabel htmlFor="dao-proposal-title" label="Title" hint="Max 200 characters" />
+            <KxFormFieldLabel tooltip="Max 200 characters">Title</KxFormFieldLabel>
             <input
               id="dao-proposal-title"
               type="text"
@@ -210,7 +210,7 @@ export function DAOVotingWidget() {
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{title.length}/200</p>
           </div>
           <div>
-            <KxFormFieldLabel htmlFor="dao-proposal-description" label="Description" hint="Max 2000 characters" />
+            <KxFormFieldLabel tooltip="Max 2000 characters">Description</KxFormFieldLabel>
             <textarea
               id="dao-proposal-description"
               value={description}
