@@ -9,6 +9,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { calculateCost, formatPrice } from '@/lib/payments/calculator';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KX_ASIDE_PANEL } from '@/lib/hub/shellTokens';
 import { KxCallout } from '@/components/kx/KxCallout';
@@ -16,6 +17,7 @@ import { KxCallout } from '@/components/kx/KxCallout';
 export function DAppFeeBreakdownPanel({ dapp }: { dapp: DApp }) {
   const { isConnected } = useAccount();
   const chainId = useChainId();
+  const nativeSymbol = getNativeCurrencySymbol(chainId);
   const { paymentAmount } = usePaymentAmount();
   const networkType = getDAppNetworkType(dapp);
   const { balance: krexBalance, tier } = useKREXBalance();
@@ -78,18 +80,18 @@ export function DAppFeeBreakdownPanel({ dapp }: { dapp: DApp }) {
             <div className="flex justify-between gap-2 text-zinc-500">
               <span>Base</span>
               <span className="tabular-nums text-zinc-800 dark:text-zinc-200">
-                {formatPrice(costBreakdown.baseCost, chainId)}
+                {formatPrice(costBreakdown.baseCost)} {nativeSymbol}
               </span>
             </div>
             {costBreakdown.costReductionAmount > 0 ? (
               <div className="flex justify-between gap-2 text-emerald-600 dark:text-emerald-400">
                 <span>Discount</span>
-                <span className="tabular-nums">-{formatPrice(costBreakdown.costReductionAmount, chainId)}</span>
+                <span className="tabular-nums">-{formatPrice(costBreakdown.costReductionAmount)} {nativeSymbol}</span>
               </div>
             ) : null}
             <div className="flex justify-between gap-2 font-semibold">
               <span>Total</span>
-              <span className="tabular-nums text-[#02abb8]">{formatPrice(costBreakdown.finalCost, chainId)}</span>
+              <span className="tabular-nums text-[#02abb8]">{formatPrice(costBreakdown.finalCost)} {nativeSymbol}</span>
             </div>
           </div>
         ))}
