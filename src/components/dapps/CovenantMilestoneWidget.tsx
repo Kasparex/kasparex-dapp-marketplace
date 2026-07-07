@@ -9,6 +9,7 @@ import {
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
+  CovenantTabPanel,
   covenantInputClass,
   covenantCardClass,
   covenantSmallInputClass,
@@ -196,6 +197,11 @@ export function CovenantMilestoneWidget() {
       )}
 
       {tab === 'deals' && (
+        <CovenantTabPanel
+          title="Deals"
+          heading="Your milestone deals"
+          description="Funded deals and milestone release status. Beneficiaries claim each slice on schedule."
+        >
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="kx-body">
@@ -256,18 +262,26 @@ export function CovenantMilestoneWidget() {
             ))
           )}
         </div>
+        </CovenantTabPanel>
       )}
 
       {tab === 'metadata' && (
+        <CovenantTabPanel
+          title="Metadata"
+          heading="On-chain references"
+          description="Covenant IDs, payload templates, and explorer links for your deals."
+        >
         <KpxCovenantMetadataView
           template="milestone"
           runtimeMode={runtimeMode}
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
+        </CovenantTabPanel>
       )}
 
       {tab === 'about' && (
+        <CovenantTabPanel title="How it works" heading="How Milestone works">
         <CovenantHowItWorks>
           <p>
             Covenant Milestone helps you pay for work in stages without handing over the full amount on day one.
@@ -289,6 +303,7 @@ export function CovenantMilestoneWidget() {
             Good for freelancers, builders, game quests, or any project with clear delivery steps.
           </p>
         </CovenantHowItWorks>
+        </CovenantTabPanel>
       )}
     </KpxCovenantShell>
   );

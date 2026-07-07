@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useReadContract, usePublicClient } from 'wagmi';
 import { DAPP_REGISTRY_ABI } from '@/lib/contracts/abis';
 import { getContractAddress, CONTRACT_ADDRESSES } from '@/lib/contracts/addresses';
@@ -68,23 +67,7 @@ export function useDAppFromContract(contractAddress: string | undefined, chainId
     },
   });
 
-  // Periodic polling effect - refetch every 30 seconds
-  useEffect(() => {
-    if (!dAppRegistryAddress || !contractAddress || !chainId || !contractAddress.startsWith('0x')) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      refetchDAppId();
-      if (dAppId) {
-        refetchDAppData();
-      }
-    }, 60000); // Poll every 60 seconds (reduced from 30s for better performance)
-
-    return () => clearInterval(interval);
-  }, [dAppRegistryAddress, contractAddress, chainId, dAppId, refetchDAppId, refetchDAppData]);
-
-  // Parse the tuple response
+  // Periodic polling is handled by react-query refetchInterval above.
   // getDApp returns: (string name, string version, string category, address contractAddress, 
   // address deployer, bool isActive, uint256 createdAt, address tokenAddress, 
   // string ticker, uint256 totalSupply, string ipfsCID)

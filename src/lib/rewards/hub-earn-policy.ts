@@ -2,6 +2,9 @@
  * Conservative hub redeemable points per verified action (tune independently from catalog prices).
  */
 
+/** Minimum KAS-equivalent spend to earn Hub Points on dApp actions. */
+export const HUB_POINTS_MIN_SPEND_KAS = 10;
+
 export const HUB_EARN_POINTS = {
   vblogArticleCreate: 120,
   vblogArticleUpdate: 10,

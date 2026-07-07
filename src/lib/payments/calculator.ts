@@ -6,6 +6,7 @@
 
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { getDAppPaymentConfig, getActionCost } from './config';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FEE_REDUCTION, type KREXTier } from '@/lib/rewards/types';
 
 export interface CostBreakdown {
@@ -42,6 +43,10 @@ export interface CostCalculatorInputs {
   overrideBaseCost?: number;
 }
 
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 /**
  * Calculate final cost for a dApp action with all discounts applied
  */
@@ -63,13 +68,27 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   const networkType = getDAppNetworkType(dapp);
   
   // Base cost = total price user pays (fee-inclusive). Fee is taken from this amount, not added on top.
-  const baseCost = overrideBaseCost != null && overrideBaseCost > 0
-    ? overrideBaseCost
-    : getActionCost(dapp, actionId, networkType);
+  const grossTotal =
+    overrideBaseCost != null && overrideBaseCost > 0
+      ? overrideBaseCost
+      : getActionCost(dapp, actionId, networkType);
+
+  const paymentConfig = getDAppPaymentConfig(dapp, networkType);
+  const actionDef = paymentConfig?.actions.find((a) => a.actionId === actionId);
+  const isVariableAmount =
+    !!actionDef?.variableAmount && overrideBaseCost != null && overrideBaseCost > 0;
+
+  // KREX tier discount on the full total for fixed-price actions; variable payments keep full total on-chain.
+  const tierDiscountPct =
+    !isVariableAmount && krexBalance >= KREX_TIERS.Tier1.minKREX
+      ? krexTierDiscountPercent(krexTier)
+      : 0;
+  const costReductionPercent = tierDiscountPct;
+  const costReductionAmount = round2((grossTotal * tierDiscountPct) / 100);
+  const totalPaid = round2(grossTotal - costReductionAmount);
   
-  // Get KREX tier configuration
   const tierConfig = KREX_TIERS[krexTier];
-  
+
   // Calculate fee percentage (base fee with reductions). vDonations L2: 10% to Revenue Tree; other dApps: 1%.
   const baseFee = (dapp.id === 'vdonations' || dapp.slug === 'vdonations') ? 10.0 : 1.0;
   let feePercent = baseFee;
@@ -93,17 +112,14 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     feePercent = Math.max(0, feePercent - nodeFeeReduction);
   }
   
-  // Fee-inclusive: total = baseCost, fee is a portion of it, recipient gets the rest
-  const costReductionPercent = 0;
-  const costReductionAmount = 0;
-  const totalPaid = baseCost;
+  // Fee-inclusive: total = totalPaid, fee is a portion of it, recipient gets the rest
   const feeAmount = (totalPaid * feePercent) / 100;
   const amountToRecipient = totalPaid - feeAmount;
   const feeAtStandardRate = (totalPaid * baseFee) / 100;
   const feeDiscountAmount = Math.max(0, feeAtStandardRate - feeAmount);
-  
+
   return {
-    baseCost: totalPaid,
+    baseCost: grossTotal,
     standardFeePercent: baseFee,
     feePercent,
     feeAmount,
@@ -111,9 +127,9 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
     costReductionPercent,
     costReductionAmount,
     finalCost: totalPaid,
-    finalCostWithFee: totalPaid, // Same as baseCost: total price (fee included)
+    finalCostWithFee: totalPaid,
     breakdown: {
-      baseCost: totalPaid,
+      baseCost: grossTotal,
       feeReduction: baseFee - feePercent,
       costReduction: costReductionAmount,
       subtotal: amountToRecipient,

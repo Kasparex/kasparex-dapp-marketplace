@@ -9,6 +9,7 @@ import {
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
+  CovenantTabPanel,
   covenantInputClass,
   covenantSmallInputClass,
   covenantCardClass,
@@ -276,6 +277,11 @@ export function CovenantSplitWidget() {
       )}
 
       {tab === 'splits' && (
+        <CovenantTabPanel
+          title="Splits"
+          heading="Your splits"
+          description="Open and completed payment splits. Each recipient claims their share independently."
+        >
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="kx-body">
@@ -352,18 +358,26 @@ export function CovenantSplitWidget() {
             ))
           )}
         </div>
+        </CovenantTabPanel>
       )}
 
       {tab === 'metadata' && (
+        <CovenantTabPanel
+          title="Metadata"
+          heading="On-chain references"
+          description="Covenant IDs, payload templates, and explorer links for your splits."
+        >
         <KpxCovenantMetadataView
           template="split"
           runtimeMode={runtimeMode}
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
+        </CovenantTabPanel>
       )}
 
       {tab === 'about' && (
+        <CovenantTabPanel title="How it works" heading="How Split works">
         <CovenantHowItWorks>
           <p>
             Covenant Split is for paying several people from one pot of KAS. You lock the total once;
@@ -387,6 +401,7 @@ export function CovenantSplitWidget() {
             Great for team payouts, creator revenue splits, prize pools, or treasury distributions.
           </p>
         </CovenantHowItWorks>
+        </CovenantTabPanel>
       )}
     </KpxCovenantShell>
   );

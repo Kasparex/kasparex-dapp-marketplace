@@ -2,9 +2,12 @@
 
 import type { DApp } from '@/lib/dapps';
 import { getDAppNetworkType } from '@/lib/dapps';
-import { getHubPointsBaseForAction, isCovenantDAppSlug } from '@/lib/payments/hubQuote';
+import { isCovenantDAppSlug, getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import { appendHubActivityEarn } from './appendHubActivityEarn';
-import { computeEarnedHubPoints } from './hub-points';
+import {
+  computeHubPointsForAction,
+  qualifiesForHubPointsSpend,
+} from './hub-points-eligibility';
 import type { EarnSource } from './hub-ledger-types';
 import type { KREXTier } from './types';
 
@@ -14,6 +17,11 @@ function earnSourceForDApp(dapp: DApp): EarnSource {
   return 'dapp_l2_interaction';
 }
 
+export type AwardDAppHubPointsResult = {
+  earned: number;
+  skipped?: 'no_wallet' | 'below_minimum_spend' | 'no_base_points' | 'ledger_write_failed';
+};
+
 /** Award redeemable Hub Points for a completed dApp action (no GRID or on-chain token mint). */
 export function awardDAppHubPoints(args: {
   walletRaw: string | null | undefined;
@@ -22,14 +30,32 @@ export function awardDAppHubPoints(args: {
   txHash: string;
   krexTier?: KREXTier;
   krexBalance?: number;
-}): number {
-  const base = getHubPointsBaseForAction(args.dapp, args.actionId);
-  if (base <= 0) return 0;
+  /** KAS-equivalent amount spent on the action (for minimum spend rule). Omit for fixed-fee actions. */
+  spendKas?: number | null;
+}): AwardDAppHubPointsResult {
+  const wallet = (args.walletRaw ?? '').trim();
+  if (!wallet) return { earned: 0, skipped: 'no_wallet' };
 
-  appendHubActivityEarn({
-    walletRaw: args.walletRaw,
+  const tier = args.krexTier ?? 'Tier0';
+  const baseRaw = getHubPointsBaseForAction(args.dapp, args.actionId);
+  if (baseRaw <= 0) return { earned: 0, skipped: 'no_base_points' };
+
+  if (args.spendKas != null && !qualifiesForHubPointsSpend(args.spendKas)) {
+    return { earned: 0, skipped: 'below_minimum_spend' };
+  }
+
+  const earned = computeHubPointsForAction({
+    dapp: args.dapp,
+    actionId: args.actionId,
+    tier,
+    spendKas: args.spendKas,
+  });
+  if (earned <= 0) return { earned: 0, skipped: 'no_base_points' };
+
+  const ledgerEntry = appendHubActivityEarn({
+    walletRaw: wallet,
     source: earnSourceForDApp(args.dapp),
-    redeemableDelta: base,
+    redeemableDelta: baseRaw,
     idempotencyKey: `dapp:${args.dapp.id ?? args.dapp.slug}:${args.actionId}:${args.txHash}`,
     krexTier: args.krexTier,
     krexBalance: args.krexBalance,
@@ -38,15 +64,11 @@ export function awardDAppHubPoints(args: {
       dappSlug: args.dapp.slug,
       actionId: args.actionId,
       txHash: args.txHash,
+      spendKas: args.spendKas,
     },
   });
 
-  try {
-    window.dispatchEvent(new Event('kasparex-hub-ledger'));
-  } catch {
-    /* ignore */
-  }
+  if (!ledgerEntry) return { earned: 0, skipped: 'ledger_write_failed' };
 
-  const tier = args.krexTier ?? 'Tier0';
-  return computeEarnedHubPoints(base, tier);
+  return { earned };
 }

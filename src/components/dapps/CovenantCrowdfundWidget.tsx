@@ -9,6 +9,7 @@ import {
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
+  CovenantTabPanel,
   covenantInputClass,
   covenantCardClass,
   covenantSmallInputClass,
@@ -159,6 +160,11 @@ export function CovenantCrowdfundWidget() {
       )}
 
       {tab === 'browse' && (
+        <CovenantTabPanel
+          title="Campaigns"
+          heading="Browse campaigns"
+          description="Active and completed crowdfunds. Pledge KAS or claim refunds when rules allow."
+        >
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="kx-body">
@@ -257,18 +263,26 @@ export function CovenantCrowdfundWidget() {
             })
           )}
         </div>
+        </CovenantTabPanel>
       )}
 
       {tab === 'metadata' && (
+        <CovenantTabPanel
+          title="Metadata"
+          heading="On-chain references"
+          description="Covenant IDs, payload templates, and explorer links for your campaigns."
+        >
         <KpxCovenantMetadataView
           template="crowdfund"
           runtimeMode={runtimeMode}
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
+        </CovenantTabPanel>
       )}
 
       {tab === 'about' && (
+        <CovenantTabPanel title="How it works" heading="How Crowdfund works">
         <CovenantHowItWorks>
           <p>
             Covenant Crowdfund is an all-or-nothing raise: money only moves to the creator if enough people pledge
@@ -294,6 +308,7 @@ export function CovenantCrowdfundWidget() {
             Useful for launches, community drops, charity drives, or any raise where trust matters.
           </p>
         </CovenantHowItWorks>
+        </CovenantTabPanel>
       )}
     </KpxCovenantShell>
   );

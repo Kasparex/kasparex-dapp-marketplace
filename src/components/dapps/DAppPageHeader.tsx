@@ -13,6 +13,8 @@ import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { DAppCovenantHeaderBadges } from '@/components/dapps/DAppCovenantHeaderBadges';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { DAppNetworkBadge } from '@/components/dapps/DAppNetworkBadge';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
@@ -47,7 +49,8 @@ export function DAppPageHeader({
 }) {
   const router = useRouter();
   const { mergedDApp } = useMergedDApp(dapp, contractAddress);
-  const { actionId: quoteActionId } = usePaymentAmount();
+  const { actionId: quoteActionId, paymentAmount } = usePaymentAmount();
+  const { tier } = useKREXBalance();
   const category = getCategoryById(mergedDApp.category);
   const { wallet: authorWallet, name: authorCustomName } = resolveDAppAuthor(mergedDApp);
   const networkType = getDAppNetworkType(mergedDApp);
@@ -103,7 +106,11 @@ export function DAppPageHeader({
             </div>
             {hubPtsBase > 0 ? (
               <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
-                <HubPointsEarnBadge points={hubPtsBase} size="sm" />
+                <HubPointsEarnBadge
+                  basePoints={hubPtsBase}
+                  tier={tier}
+                  spendKas={paymentAmount}
+                />
               </div>
             ) : null}
           </div>
@@ -133,6 +140,7 @@ export function DAppPageHeader({
                 {category.name}
               </KxListingCategoryChip>
             ) : null}
+            <DAppCovenantHeaderBadges dapp={mergedDApp} />
           </div>
         </div>
 

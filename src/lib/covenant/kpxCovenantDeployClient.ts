@@ -1,6 +1,7 @@
 'use client';
 
 import type { CovenantTemplate } from '@/lib/programmability/types';
+import { qualifiesForHubPointsSpend } from '@/lib/rewards/hub-points-eligibility';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { KREXTier } from '@/lib/rewards/types';
@@ -46,6 +47,29 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
 
   const created = await args.create();
 
+  const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
+  const idempotencyKey = feeTxHash
+    ? `kpx:deploy:${feeTxHash}`
+    : `kpx:deploy:local:${args.template}:${created.id}`;
+
+  if (qualifiesForHubPointsSpend(spendKas)) {
+    appendHubActivityEarn({
+      walletRaw: args.ctx.userAddress,
+      source: 'kpx_covenant_deploy',
+      redeemableDelta: HUB_EARN_POINTS.kpxCovenantDeploy,
+      idempotencyKey,
+      krexTier: args.pricing.krexTier,
+      meta: {
+        template: args.template,
+        instanceId: created.id,
+        covenantId: created.covenantId,
+        feeTxHash,
+        feeWaived: args.pricing.waived,
+        spendKas,
+      },
+    });
+  }
+
   if (feeTxHash) {
     const verified = await verifyKpxCovenantDeployOnServer({
       template: args.template,
@@ -56,24 +80,6 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
     });
     if (!verified.ok) {
       console.warn('[kpx-covenant] fee verify:', verified.error);
-    }
-  } else {
-    appendHubActivityEarn({
-      walletRaw: args.ctx.userAddress,
-      source: 'kpx_covenant_deploy',
-      redeemableDelta: HUB_EARN_POINTS.kpxCovenantDeploy,
-      idempotencyKey: `kpx:deploy:local:${args.template}:${created.id}`,
-      krexTier: args.pricing.krexTier,
-      meta: {
-        template: args.template,
-        instanceId: created.id,
-        feeWaived: true,
-      },
-    });
-    try {
-      window.dispatchEvent(new Event('kasparex-hub-ledger'));
-    } catch {
-      /* ignore */
     }
   }
 

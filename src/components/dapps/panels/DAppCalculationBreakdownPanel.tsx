@@ -5,7 +5,6 @@ import { useChainId } from 'wagmi';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { formatPrice } from '@/lib/payments/calculator';
 import {
@@ -36,7 +35,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const isCovenant = isCovenantDAppSlug(dapp.slug);
   const { paymentAmount, actionId: quoteActionId, hubQuote: customHubQuote } = usePaymentAmount();
   const { balance: krexBalance, tier } = useKREXBalance();
-  const { nftStatus } = useNFTStatus();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
 
   const paymentConfig = useMemo(() => getDAppPaymentConfig(dapp, networkType), [dapp, networkType]);
@@ -64,17 +62,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
       actionId: action.actionId,
       krexBalance: krexBalance || 0,
       krexTier: tier,
-      hasAnyNFT: !!(
-        nftStatus?.hasKREXPRIME ||
-        nftStatus?.hasPIXELKREX ||
-        (nftStatus?.partnerCollections && Object.values(nftStatus.partnerCollections || {}).some((v) => v))
-      ),
-      hasDiamondNFT: !!(
-        nftStatus?.hasDiamondKREXPRIME ||
-        nftStatus?.hasDiamondPIXELKREX ||
-        (nftStatus?.partnerDiamonds && Object.values(nftStatus.partnerDiamonds || {}).some((v) => v))
-      ),
-      hasRarestNFT: !!nftStatus?.hasRarestNFT,
+      hasAnyNFT: false,
+      hasDiamondNFT: false,
+      hasRarestNFT: false,
       variableAmount: !!action.variableAmount,
       actionLabel: action.actionName,
       overrideBaseCost:
@@ -91,7 +81,6 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     dapp,
     krexBalance,
     tier,
-    nftStatus,
     paymentAmount,
     chainId,
     currency,
@@ -163,7 +152,10 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
               <span>Hub points on action</span>
               <span className="inline-flex items-center gap-1.5">
-                <HubPointsEarnBadge points={quote.hubPoints} />
+                <HubPointsEarnBadge
+                  points={quote.hubPoints}
+                  spendKas={paymentAmount ?? quote.totalKas}
+                />
                 {quote.hubPointsDetail ? (
                   <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
                     ({quote.hubPointsDetail})

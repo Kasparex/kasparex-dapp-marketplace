@@ -8,6 +8,7 @@ import {
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
+  CovenantTabPanel,
   covenantInputClass,
   covenantPanelClass,
   covenantCardClass,
@@ -164,6 +165,11 @@ export function CovenantVoucherWidget() {
       )}
 
       {tab === 'claim' && (
+        <CovenantTabPanel
+          title="Redeem"
+          heading="Redeem a voucher"
+          description="Enter the voucher ID and secret code shared by the sender."
+        >
         <div className="space-y-4">
           <div className={covenantPanelClass}>
             <div>
@@ -231,18 +237,26 @@ export function CovenantVoucherWidget() {
             )}
           </div>
         </div>
+        </CovenantTabPanel>
       )}
 
       {tab === 'metadata' && (
+        <CovenantTabPanel
+          title="Metadata"
+          heading="On-chain references"
+          description="Covenant IDs, payload templates, and explorer links for your vouchers."
+        >
         <KpxCovenantMetadataView
           template="voucher"
           runtimeMode={runtimeMode}
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
+        </CovenantTabPanel>
       )}
 
       {tab === 'about' && (
+        <CovenantTabPanel title="How it works" heading="How Voucher works">
         <CovenantHowItWorks>
           <p>
             Covenant Voucher works like a gift card for KAS. You lock coins on-chain, then give someone a secret
@@ -268,6 +282,7 @@ export function CovenantVoucherWidget() {
             Great for tips, gifts, promo credits, or paying someone without needing their wallet address up front.
           </p>
         </CovenantHowItWorks>
+        </CovenantTabPanel>
       )}
     </KpxCovenantShell>
   );

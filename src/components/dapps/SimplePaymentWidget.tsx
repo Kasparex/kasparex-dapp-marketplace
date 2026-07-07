@@ -473,7 +473,10 @@ export function SimplePaymentWidget() {
       // Store transaction info before resetting
       const storedAmount = amount;
       const storedRecipient = recipientAddress;
-      const baseActionValue = paymentCostBreakdown?.baseCost || parseFloat(storedAmount || '1.0');
+      const baseActionValue =
+        parseFloat(storedAmount || amount || '0') ||
+        paymentCostBreakdown?.finalCostWithFee ||
+        0;
 
       // Store transaction in tracker
       storeTransaction({

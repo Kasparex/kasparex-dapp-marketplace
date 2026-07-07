@@ -9,6 +9,7 @@ import {
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
+  CovenantTabPanel,
   covenantInputClass,
   covenantCardClass,
   covenantSecondaryBtnClass,
@@ -246,7 +247,12 @@ export function CovenantLockboxWidget() {
       )}
 
       {tab === 'vaults' && (
-        <div className="space-y-4">
+        <CovenantTabPanel
+          title="Vaults"
+          heading="Your locks"
+          description="Track active and claimed locks. Import covenant IDs from KaspaCom or kascov."
+        >
+          <div className="space-y-4">
           <KpxCovenantImportPanel
             id="lockbox-import-id"
             value={importId}
@@ -317,20 +323,28 @@ export function CovenantLockboxWidget() {
               </div>
             ))
           )}
-        </div>
+          </div>
+        </CovenantTabPanel>
       )}
 
       {tab === 'metadata' && (
-        <KpxCovenantMetadataView
-          template="lockbox"
-          runtimeMode={runtimeMode}
-          effectiveMode={effectiveMode}
-          instances={metadataInstances}
-        />
+        <CovenantTabPanel
+          title="Metadata"
+          heading="On-chain references"
+          description="Covenant IDs, payload templates, and explorer links for your locks."
+        >
+          <KpxCovenantMetadataView
+            template="lockbox"
+            runtimeMode={runtimeMode}
+            effectiveMode={effectiveMode}
+            instances={metadataInstances}
+          />
+        </CovenantTabPanel>
       )}
 
       {tab === 'about' && (
-        <CovenantHowItWorks>
+        <CovenantTabPanel title="How it works" heading="How Lockbox works">
+          <CovenantHowItWorks>
           <p>
             Lockbox lets you hold KAS for someone until rules you set are met. Think of it as a
             simple safe deposit box on Kaspa.
@@ -374,6 +388,7 @@ export function CovenantLockboxWidget() {
             clear release conditions without trusting a middleman.
           </p>
         </CovenantHowItWorks>
+        </CovenantTabPanel>
       )}
     </KpxCovenantShell>
   );

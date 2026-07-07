@@ -147,6 +147,26 @@ export function CovenantError({ message }: { message: string }) {
   );
 }
 
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+
+export function CovenantTabPanel({
+  title,
+  heading,
+  description,
+  children,
+}: {
+  title: string;
+  heading?: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <DAppWidgetShell title={title} heading={heading ?? title} description={description}>
+      {children}
+    </DAppWidgetShell>
+  );
+}
+
 export function CovenantHowItWorks({ children }: { children: React.ReactNode }) {
   return <div className="space-y-4 kx-body text-zinc-700 dark:text-zinc-300">{children}</div>;
 }

@@ -6,9 +6,10 @@
 import { getDAppNetworkType, type DApp } from '@/lib/dapps';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import type { KpxCovenantDeployPrice } from '@/lib/covenant/kpxCovenantPricing';
-import { formatPrice, type CostCalculatorInputs } from '@/lib/payments/calculator';
+import { formatPrice, formatPercent, type CostCalculatorInputs, calculateCost } from '@/lib/payments/calculator';
 import { getActionCost } from '@/lib/payments/config';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
+import { computeHubPointsForAction } from '@/lib/rewards/hub-points-eligibility';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import { getUiNativeSymbol } from '@/lib/walletUi';
@@ -62,6 +63,39 @@ function discountPercentForTier(krexBalance: number, tier: KREXTier): number {
 function displayDiscountPercent(subtotal: number, discountKas: number): number {
   if (subtotal <= 0 || discountKas <= 0) return 0;
   return Math.round((discountKas / subtotal) * 100);
+}
+
+function costBreakdownToHubQuote(
+  breakdown: ReturnType<typeof calculateCost>,
+  currency: string,
+  tier: KREXTier,
+  krexBalance: number,
+  lines: HubQuoteLine[],
+  options: {
+    hubPoints?: number;
+    infoText?: string;
+  } = {},
+): HubQuoteDisplay {
+  const tierLabel = KREX_TIERS[tier].label;
+  const subtotalKas = breakdown.baseCost;
+  const discountKas = breakdown.costReductionAmount;
+  const totalKas = breakdown.finalCostWithFee;
+  const discountPercent = displayDiscountPercent(subtotalKas, discountKas);
+
+  return {
+    lines,
+    subtotalKas: discountKas > 0 ? subtotalKas : undefined,
+    discountKas,
+    discountPercent,
+    discountCurrency: currency,
+    totalKas,
+    currency,
+    hubPoints: options.hubPoints,
+    hubPointsDetail: formatHubPointsTierLabel(tier),
+    infoText: options.infoText,
+    tierLabel,
+    hasKrexDiscount: discountKas > 0 && krexBalance >= KREX_TIERS.Tier1.minKREX,
+  };
 }
 
 function totalDiscountQuote(
@@ -167,8 +201,14 @@ function l1TransferHubQuote(
   transferCurrency: 'KAS' | 'KREX',
   tier: KREXTier,
   krexBalance: number,
-  hubPoints: number,
+  dapp: DApp,
 ): HubQuoteDisplay {
+  const hubPoints = computeHubPointsForAction({
+    dapp,
+    actionId: transferCurrency === 'KREX' ? 'send-krex' : 'send-kas',
+    tier,
+    spendKas: amount,
+  });
   const lines: HubQuoteLine[] = [
     { label: 'Transfer amount', value: `${formatPrice(amount)} ${transferCurrency}` },
     { label: 'Network buffer', value: `${formatPrice(L1_NETWORK_BUFFER_KAS)} KAS` },
@@ -209,25 +249,31 @@ export function calculateDAppHubQuote(
   const tier = costInputs.krexTier;
   const slug = dapp.slug ?? '';
   const networkType = getDAppNetworkType(dapp);
-  const hubBase = getHubPointsBaseForAction(dapp, costInputs.actionId);
-  const hubPoints = computeEarnedHubPoints(hubBase, tier);
 
   if (variableAmount && (costInputs.overrideBaseCost == null || costInputs.overrideBaseCost <= 0)) {
     return null;
-  }
-
-  if (slug === 'send-kas' && costInputs.overrideBaseCost != null) {
-    return l1TransferHubQuote(costInputs.overrideBaseCost, 'KAS', tier, costInputs.krexBalance, hubPoints);
-  }
-
-  if (slug === 'send-krex' && costInputs.overrideBaseCost != null) {
-    return l1TransferHubQuote(costInputs.overrideBaseCost, 'KREX', tier, costInputs.krexBalance, hubPoints);
   }
 
   const grossTotal =
     costInputs.overrideBaseCost != null && costInputs.overrideBaseCost > 0
       ? costInputs.overrideBaseCost
       : getActionCost(dapp, costInputs.actionId, networkType);
+
+  const spendKas = variableAmount ? grossTotal : grossTotal;
+  const hubPoints = computeHubPointsForAction({
+    dapp,
+    actionId: costInputs.actionId,
+    tier,
+    spendKas,
+  });
+
+  if (slug === 'send-kas' && costInputs.overrideBaseCost != null) {
+    return l1TransferHubQuote(costInputs.overrideBaseCost, 'KAS', tier, costInputs.krexBalance, dapp);
+  }
+
+  if (slug === 'send-krex' && costInputs.overrideBaseCost != null) {
+    return l1TransferHubQuote(costInputs.overrideBaseCost, 'KREX', tier, costInputs.krexBalance, dapp);
+  }
 
   const lines: HubQuoteLine[] = [
     {
@@ -236,13 +282,26 @@ export function calculateDAppHubQuote(
     },
   ];
 
+  if (variableAmount) {
+    const breakdown = calculateCost({ dapp, ...costInputs });
+    if (breakdown.feePercent > 0) {
+      lines.push({
+        label: `Platform fee (${formatPercent(breakdown.feePercent)}%)`,
+        value: `${formatPrice(breakdown.feeAmount)} ${currency}`,
+      });
+    }
+    return costBreakdownToHubQuote(breakdown, currency, tier, costInputs.krexBalance, lines, {
+      hubPoints,
+      infoText:
+        'L2 dApps settle on your connected network. KREX tier perks reduce platform fees on variable payments.',
+    });
+  }
+
   return totalDiscountQuote(grossTotal, currency, tier, costInputs.krexBalance, lines, {
     hubPoints,
     infoText:
       networkType === 'L1'
         ? 'L1 dApps settle in KAS. KREX tier discounts apply to the total.'
-        : variableAmount
-          ? 'L2 dApps settle on your connected network. Totals update live from the amount you enter in the widget.'
-          : 'L2 totals include KREX tier discounts off the total amount.',
+        : 'L2 totals include KREX tier discounts off the total amount.',
   });
 }
