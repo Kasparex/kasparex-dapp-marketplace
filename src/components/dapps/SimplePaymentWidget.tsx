@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { SIMPLE_PAYMENT_ABI as SIMPLE_PAYMENT_ABI_IMPORT, SUBSCRIPTION_MANAGER_ABI } from '@/lib/contracts/abis';
-import { calculateFee, calculatePaymentAmount, formatKAS, parseKAS } from '@/lib/revenue/feeCalculator';
+import { calculateFee, calculatePaymentAmount, parseKAS } from '@/lib/revenue/feeCalculator';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
@@ -14,7 +14,7 @@ import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo, useRef } from 'react';
-import { calculateCost, formatPrice, formatPercent, type CostBreakdown } from '@/lib/payments/calculator';
+import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
 import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { formatLargeNumber } from '@/lib/rewards/calculator';
@@ -25,11 +25,11 @@ import { placeholderDApps } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
 import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
-import { FeeDisplay } from '@/components/ui/FeeDisplay';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { KX_BTN_PRIMARY } from '@/lib/hub/shellTokens';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
@@ -213,7 +213,6 @@ export function SimplePaymentWidget() {
   const [recipientAddress, setRecipientAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -419,6 +418,127 @@ export function SimplePaymentWidget() {
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
+  const amountNum = parseFloat(amount || '0');
+  const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
+
+  const rewardsExtraBreakdown =
+    amount && amountBigInt > 0n && paymentCostBreakdown ? (
+      <div className="space-y-1.5 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+        <div className="flex justify-between gap-2">
+          <span>Recipient receives</span>
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+            {formatPrice(paymentCostBreakdown.breakdown.subtotal)} {nativeSymbol}
+          </span>
+        </div>
+        {amountNum > 0
+          ? (() => {
+              const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
+              const tierConfig = KREX_TIERS[tier];
+              const mult = tierConfig?.multiplier ?? 1;
+              const tierConfigOnChain = KREX_TIERS[tierForChain];
+              const multOnChain = tierConfigOnChain?.multiplier ?? 1;
+              const gridReward = Math.round(amountNum * rewards.gridPerKas * mult);
+              const xpReward = Math.round(amountNum * rewards.xpPerKas * mult);
+              const gridRewardOnChain = Math.round(amountNum * rewards.gridPerKas * multOnChain);
+              const xpRewardOnChain = Math.round(amountNum * rewards.xpPerKas * multOnChain);
+              const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
+              return (
+                <>
+                  <div className="flex justify-between gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                    <span>You receive ({gridLabel})</span>
+                    <span className="text-[#02abb8] tabular-nums">{formatLargeNumber(gridReward)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span>Hub pts</span>
+                    <span className="font-semibold text-[#02abb8] tabular-nums">{formatLargeNumber(xpReward)}</span>
+                  </div>
+                  {mult > 1 ? (
+                    <p className="text-zinc-500 dark:text-zinc-400">×{mult} tier from total KREX</p>
+                  ) : null}
+                  {onChainIsBaseOnly ? (
+                    <p className="text-amber-600 dark:text-amber-400">
+                      On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel},{' '}
+                      {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 for the full ×{mult} reward.{' '}
+                      <a
+                        href="https://katbridge.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium underline hover:opacity-80"
+                      >
+                        KAT Bridge ↗
+                      </a>
+                    </p>
+                  ) : null}
+                </>
+              );
+            })()
+          : null}
+      </div>
+    ) : null;
+
+  const railActions = isConnected ? (
+    <button
+      type="button"
+      onClick={handleSendPayment}
+      disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
+      className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {isLoading ? (
+        <span className="flex items-center justify-center gap-2">
+          <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          {isPendingWrite ? 'Confirming...' : 'Processing...'}
+        </span>
+      ) : (
+        'Send payment'
+      )}
+    </button>
+  ) : null;
+
+  const railAlerts =
+    displayError || (isConfirmed && hash) ? (
+      <KxAlertRegion>
+        {displayError ? (
+          <Alert type="error" compact region onDismiss={() => setError(null)}>
+            <p>{String(displayError)}</p>
+          </Alert>
+        ) : null}
+        {isConfirmed && hash ? (
+          <Alert type="success" compact region>
+            <p>Payment sent. Transaction hash: {hash.slice(0, 10)}...</p>
+          </Alert>
+        ) : null}
+      </KxAlertRegion>
+    ) : null;
+
+  useRegisterDAppWidgetRailSlot('extraBreakdown', rewardsExtraBreakdown, [
+    amount,
+    amountBigInt,
+    paymentCostBreakdown,
+    nativeSymbol,
+    amountNum,
+    chainId,
+    tier,
+    tierForChain,
+    krexL2Balance,
+    gridLabel,
+  ]);
+  useRegisterDAppWidgetRailSlot('actions', railActions, [
+    isConnected,
+    isLoading,
+    recipientAddress,
+    amount,
+    amountBigInt,
+    contractAddress,
+    isPendingWrite,
+  ]);
+  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [displayError, isConfirmed, hash]);
 
   // Distribute rewards and reset form on success
   useEffect(() => {
@@ -493,301 +613,88 @@ export function SimplePaymentWidget() {
   }
 
   return (
-    <div className="space-y-4">
-      {!isConnected ? (
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Connect your wallet to send a payment through this dApp.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="k-form-group !mb-0">
-            <KxFormFieldLabel tooltip="EVM address that will receive the payment.">
-              Recipient address
-            </KxFormFieldLabel>
-            <input
-              type="text"
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
-              placeholder="0x..."
-              className="k-input"
-              disabled={isLoading}
-            />
+    <>
+      <DAppWidgetShell
+        title="Interact"
+        heading="Simple Payment"
+        description="Send native tokens to any address. Platform fee, KREX tier discounts, and rewards are calculated in the action panel."
+      >
+        {!isConnected ? (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Connect your wallet to send a payment through this dApp.
+            </p>
           </div>
-
-          <div className="k-form-group !mb-0">
-            <KxFormFieldLabel tooltip="Amount before platform fee. KREX tier discounts apply in the side panel breakdown.">
-              Amount ({nativeSymbol})
-            </KxFormFieldLabel>
-            <input
-              type="text"
-              value={amount}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Allow only numbers and decimal point
-                if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  setAmount(value);
-                  const num = parseFloat(value);
-                  setPaymentAmount(value && !isNaN(num) && num > 0 ? num : null);
-                }
-              }}
-              placeholder="0.0"
-              className="k-input"
-              disabled={isLoading}
-            />
-          </div>
-
-          {amount && amountBigInt > 0n && (
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950">
-              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                Payment Breakdown
-              </h3>
-              <div className="space-y-1 text-sm">
-                {paymentCostBreakdown && (paymentCostBreakdown.costReductionPercent > 0 || paymentCostBreakdown.feePercent < 1.0) ? (
-                  <>
-                    {paymentCostBreakdown.costReductionPercent > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-600 dark:text-zinc-400">Cost Reduction:</span>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          -{formatPercent(paymentCostBreakdown.costReductionPercent)}%
-                        </span>
-                      </div>
-                    )}
-                    {paymentCostBreakdown.feePercent < 1.0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-zinc-600 dark:text-zinc-400">Fee Reduction:</span>
-                        <span className="font-medium text-green-600 dark:text-green-400">
-                          {formatPercent(paymentCostBreakdown.feePercent)}% (reduced from 1%)
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400">
-                        {formatPrice(paymentCostBreakdown.finalCostWithFee)} {nativeSymbol}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
-                      <span>Fee ({formatPercent(paymentCostBreakdown.feePercent)}% included)</span>
-                      <span>-{formatPrice(paymentCostBreakdown.feeAmount)} {nativeSymbol}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
-                      <span>Recipient receives</span>
-                      <span>{formatPrice(paymentCostBreakdown.breakdown.subtotal)} {nativeSymbol}</span>
-                    </div>
-                    {(() => {
-                      const paymentNum = parseFloat(amount || '0');
-                      if (paymentNum <= 0) return null;
-                      const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tier];
-                      const mult = tierConfig?.multiplier ?? 1;
-                      const tierConfigOnChain = KREX_TIERS[tierForChain];
-                      const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-                      const gridReward = Math.round(paymentNum * rewards.gridPerKas * mult);
-                      const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
-                      const gridRewardOnChain = Math.round(paymentNum * rewards.gridPerKas * multOnChain);
-                      const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
-                      const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
-                      const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
-                      return (
-                        <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
-                          <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
-                            <span>You receive</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>{gridLabel}</span>
-                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>pts</span>
-                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
-                          </div>
-                          {mult > 1 && (
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                              (×{mult} tier from total KREX)
-                            </div>
-                          )}
-                          {onChainIsBaseOnly && (
-                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
-                              <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
-                            </p>
-                          )}
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {gridLabel}: 95% to you, 5% to treasury.
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">You pay</span>
-                      <span className="font-semibold text-green-600 dark:text-green-400">
-                        {formatPrice(parseFloat(formatKAS(amountBigInt)))} {nativeSymbol}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
-                      <span>Fee ({feePercentageNum / 100}% included)</span>
-                      <span>-{formatKAS(feeAmount)} {nativeSymbol}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-400">
-                      <span>Recipient receives</span>
-                      <span>{formatKAS(paymentAmount)} {nativeSymbol}</span>
-                    </div>
-                    {(() => {
-                      const paymentNum = parseFloat(amount || '0');
-                      if (paymentNum <= 0) return null;
-                      const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-                      const tierConfig = KREX_TIERS[tier];
-                      const mult = tierConfig?.multiplier ?? 1;
-                      const tierConfigOnChain = KREX_TIERS[tierForChain];
-                      const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-                      const gridReward = Math.round(paymentNum * rewards.gridPerKas * mult);
-                      const xpReward = Math.round(paymentNum * rewards.xpPerKas * mult);
-                      const gridRewardOnChain = Math.round(paymentNum * rewards.gridPerKas * multOnChain);
-                      const xpRewardOnChain = Math.round(paymentNum * rewards.xpPerKas * multOnChain);
-                      const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
-                      const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
-                      return (
-                        <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
-                          <div className="flex justify-between items-center font-semibold text-zinc-900 dark:text-zinc-100">
-                            <span>You receive</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>{gridLabel}</span>
-                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-zinc-600 dark:text-zinc-400">
-                            <span>pts</span>
-                            <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
-                          </div>
-                          {mult > 1 && (
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                              (×{mult} tier from total KREX)
-                            </div>
-                          )}
-                          {onChainIsBaseOnly && (
-                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel}, {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{mult} reward.{' '}
-                              <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">Open KAT Bridge ↗</a>
-                            </p>
-                          )}
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {gridLabel}: 95% to you, 5% to treasury.
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </>
-                )}
-              </div>
+        ) : (
+          <>
+            <div className="k-form-group !mb-0">
+              <KxFormFieldLabel tooltip="EVM address that will receive the payment.">
+                Recipient address
+              </KxFormFieldLabel>
+              <input
+                type="text"
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                placeholder="0x..."
+                className="k-input text-base"
+                disabled={isLoading}
+              />
             </div>
-          )}
 
-          <KxAlertRegion>
-            {displayError ? (
-              <Alert type="error" compact region onDismiss={() => setError(null)}>
-                <p>{String(displayError)}</p>
-              </Alert>
-            ) : null}
-            {isConfirmed && hash ? (
-              <Alert type="success" compact region>
-                <p>Payment sent. Transaction hash: {hash.slice(0, 10)}...</p>
-              </Alert>
-            ) : null}
-          </KxAlertRegion>
-
-          <div className="mb-4">
-            <button
-              onClick={() => setShowDebugInfo(!showDebugInfo)}
-              className="w-full flex items-center justify-between p-3 bg-zinc-100 dark:bg-zinc-900 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <span>Debug Info</span>
-              <svg
-                className={`w-4 h-4 transition-transform ${showDebugInfo ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {showDebugInfo && (
-              <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg text-xs space-y-1 border border-zinc-200 dark:border-zinc-800">
-                <p className="font-semibold">Debug Info:</p>
-                <p>Contract Address: {contractAddress || '❌ EMPTY - This is why button is disabled!'}</p>
-                <p>Chain ID: {chainId} (167012 = Kasplex Testnet, 38836 = Igra Testnet, 38833 = Igra Mainnet)</p>
-                <p>Recipient: {recipientAddress ? '✅ SET' : '❌ EMPTY'}</p>
-                <p>Amount: {amount || '❌ EMPTY'}</p>
-                <p>Amount (BigInt): {amountBigInt.toString()}</p>
-                <p>Has Access: {userHasAccess ? 'Yes' : 'No'} (subscription check disabled)</p>
-                <p className="font-semibold mt-2">Button Disabled Because:</p>
-                <ul className="list-disc list-inside ml-2">
-                  {isLoading && <li>Transaction in progress</li>}
-                  {!recipientAddress && <li>No recipient address</li>}
-                  {!amount && <li>No amount entered</li>}
-                  {amountBigInt === 0n && <li>Amount parsing failed (amountBigInt = 0)</li>}
-                  {!contractAddress && <li className="text-red-600 dark:text-red-400 font-bold">❌ NO CONTRACT ADDRESS - Check environment variables!</li>}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Final fee on CTA */}
-          {paymentCostBreakdown && amount && parseFloat(amount) > 0 && (
-            <div className="pt-2 pb-1">
-              <FeeDisplay breakdown={paymentCostBreakdown} label="You pay" compact currency={nativeSymbol} />
+            <div className="k-form-group !mb-0">
+              <KxFormFieldLabel tooltip="Amount before platform fee. Discounts update live in the calculation breakdown.">
+                Amount ({nativeSymbol})
+              </KxFormFieldLabel>
+              <input
+                type="text"
+                value={amount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    setAmount(value);
+                    const num = parseFloat(value);
+                    setPaymentAmount(value && !isNaN(num) && num > 0 ? num : null);
+                  }
+                }}
+                placeholder="0.0"
+                className="k-input text-base"
+                disabled={isLoading}
+              />
             </div>
-          )}
 
-          {/* Send Button */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleSendPayment}
-              disabled={isLoading || !recipientAddress || !amount || amountBigInt === 0n || !contractAddress}
-              className={`${KX_BTN_PRIMARY} flex items-center justify-center gap-2`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {isPendingWrite ? 'Confirming...' : 'Processing...'}
-                </span>
-              ) : (
-                'Send'
-              )}
-            </button>
-          </div>
-
-          {/* Contract Info */}
-          {contractAddress && (
-            <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            {contractAddress ? (
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 Contract: {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
               </p>
-            </div>
-          )}
+            ) : null}
 
-          {/* Transaction Tracker - Show after transaction */}
-          {hash && isConfirmed && (
-            <div className="mt-4 space-y-4">
-              <TransactionTracker txHash={hash} compact />
-              <RewardStatusBox
-                txHash={hash}
-                network="L2"
-                dAppId="simple-payment"
-                actionType="send-payment"
-                compact
-              />
-            </div>
-          )}
-        </div>
-      )}
+            {hash && isConfirmed ? (
+              <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                <TransactionTracker txHash={hash} compact />
+                <RewardStatusBox
+                  txHash={hash}
+                  network="L2"
+                  dAppId="simple-payment"
+                  actionType="send-payment"
+                  compact
+                />
+              </div>
+            ) : null}
+
+            <details className="rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                Developer debug
+              </summary>
+              <div className="space-y-1 border-t border-zinc-200 px-4 py-3 text-xs text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                <p>Chain ID: {chainId}</p>
+                <p>Contract: {contractAddress || 'not deployed on this network'}</p>
+                <p>Recipient set: {recipientAddress ? 'yes' : 'no'}</p>
+                <p>Amount valid: {amountBigInt > 0n ? 'yes' : 'no'}</p>
+              </div>
+            </details>
+          </>
+        )}
+      </DAppWidgetShell>
 
       <TransactionSuccessModal
         isOpen={showSuccessModal && !!successTxHash}
@@ -802,7 +709,7 @@ export function SimplePaymentWidget() {
         message={errorModalMessage}
         title="Payment failed"
       />
-    </div>
+    </>
   );
 }
 

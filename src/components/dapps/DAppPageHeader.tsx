@@ -1,10 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import type { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
-import { KxListingDetailHeader } from '@/components/kx/KxListingDetailHeader';
 import { DAppIcon } from './DAppIcon';
 import { DAppNetworkBadge } from './DAppNetworkBadge';
 import { DAppPageHeaderActions, useMergedDApp } from './DAppPageHeaderActions';
@@ -13,6 +12,8 @@ import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import { KX_DETAIL_HEADER } from '@/lib/hub/shellTokens';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 
 function SocialLink({ label, url }: { label: string; url: string }) {
@@ -21,7 +22,7 @@ function SocialLink({ label, url }: { label: string; url: string }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:border-[#02abb8]/40 hover:text-[#02abb8] dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
     >
       {label}
       <span aria-hidden="true">↗</span>
@@ -50,74 +51,93 @@ export function DAppPageHeader({
     ? [{ label: 'Website', url: websiteFromListing }, ...links.filter((l) => l.url !== websiteFromListing)]
     : links;
 
+  const excerpt =
+    listing?.shortDescription?.trim() ||
+    mergedDApp.utility?.trim() ||
+    mergedDApp.description?.trim() ||
+    '';
+
   const statusLabel = mergedDApp.status || 'Mainnet';
 
-  const chipsRow = (
-    <>
-      {mergedDApp.tags?.map((tag) => (
-        <KxTagChip key={tag} label={tag} prefix="" />
-      ))}
-      {category ? (
-        <KxListingCategoryChip
-          icon={category.emoji}
-          onClick={() => router.push(`/dapps?category=${encodeURIComponent(mergedDApp.category)}`)}
-          title={`Browse ${category.name}`}
-        >
-          {category.name}
-        </KxListingCategoryChip>
-      ) : null}
-    </>
-  );
-
-  const linksRow =
-    allLinks.length > 0 ? (
-      <div className="flex flex-wrap gap-2">
-        {allLinks.map((link) => (
-          <SocialLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
-        ))}
-      </div>
-    ) : null;
-
   return (
-    <KxListingDetailHeader
-      id="dapp-header"
-      compact
-      logo={
-        <DAppIcon
-          dAppName={mergedDApp.name}
-          category={mergedDApp.category}
-          dapp={mergedDApp}
-          size={56}
-          className="rounded-xl"
-        />
-      }
-      titleBlock={
-        <div>
-          <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100 leading-tight sm:text-2xl">
-            {mergedDApp.name}
-          </h1>
-          {authorWallet ? (
-            <AuthorInline
-              address={authorWallet}
-              displayName={authorCustomName}
-              className="mt-1.5"
+    <div id="dapp-header" className={`${KX_DETAIL_HEADER} relative mb-8 scroll-mt-24 select-text`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
+
+      <div className="relative flex min-h-[320px] flex-col lg:min-h-[360px] lg:flex-row">
+        <div className="relative flex w-full flex-1 flex-col p-6 sm:p-8 lg:w-1/2 lg:p-10">
+          <div className="mb-5 flex items-start gap-4">
+            <DAppIcon
+              dAppName={mergedDApp.name}
+              category={mergedDApp.category}
+              dapp={mergedDApp}
+              size={72}
+              className="flex-shrink-0 rounded-xl"
             />
-          ) : mergedDApp.developer ? (
-            <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">by {mergedDApp.developer}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-3xl">
+                {mergedDApp.name}
+              </h1>
+              {authorWallet ? (
+                <AuthorInline address={authorWallet} displayName={authorCustomName} className="mt-2" />
+              ) : mergedDApp.developer ? (
+                <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">by {mergedDApp.developer}</p>
+              ) : null}
+            </div>
+            <div className="flex flex-shrink-0 flex-col items-end gap-2">
+              <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
+              <KxBadge variant="zinc">{statusLabel}</KxBadge>
+            </div>
+          </div>
+
+          {excerpt ? (
+            <p className="kx-body mb-5 max-w-2xl select-text">{excerpt}</p>
           ) : null}
+
+          {allLinks.length > 0 ? (
+            <div className="mb-5 flex flex-wrap gap-2">
+              {allLinks.map((link) => (
+                <SocialLink key={`${link.label}-${link.url}`} label={link.label} url={link.url} />
+              ))}
+            </div>
+          ) : null}
+
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {mergedDApp.tags?.map((tag) => (
+              <KxTagChip key={tag} label={tag} prefix="" />
+            ))}
+            {category ? (
+              <KxListingCategoryChip
+                icon={category.emoji}
+                onClick={() => router.push(`/dapps?category=${encodeURIComponent(mergedDApp.category)}`)}
+                title={`Browse ${category.name}`}
+              >
+                {category.name}
+              </KxListingCategoryChip>
+            ) : null}
+          </div>
         </div>
-      }
-      topRight={
-        <div className="flex flex-col items-end gap-1.5">
-          <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
-          <KxBadge variant="zinc">{statusLabel}</KxBadge>
+
+        <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
+          {featuredImage ? (
+            <Image
+              src={featuredImage}
+              alt={mergedDApp.name}
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          ) : (
+            <KxListingFeaturedPlaceholder className="min-h-[220px] lg:min-h-full" iconClassName="h-16 w-16" />
+          )}
         </div>
-      }
-      linksRow={linksRow}
-      chipsRow={chipsRow}
-      footerRow={<DAppPageHeaderActions dapp={mergedDApp} contractAddress={contractAddress} />}
-      featuredImageUrl={featuredImage}
-      featuredAlt={mergedDApp.name}
-    />
+      </div>
+
+      <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
+        <div className="rounded-xl border border-zinc-200 bg-white/90 p-1 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+          <DAppPageHeaderActions dapp={mergedDApp} contractAddress={contractAddress} />
+        </div>
+      </div>
+    </div>
   );
 }

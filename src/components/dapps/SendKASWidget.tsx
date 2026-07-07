@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
-import { kasToSompis, sompisToKas } from '@/lib/kaspa/api';
+import { kasToSompis } from '@/lib/kaspa/api';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { KX_BTN_PRIMARY } from '@/lib/hub/shellTokens';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 
 export function SendKASWidget() {
   const { state } = useKaspaWallet();
-  const { balance: kasBalance, balanceInKas, isLoading: isBalanceLoading, refresh: refreshBalance } = useKaspaBalance();
+  const { balance: kasBalance, isLoading: isBalanceLoading, refresh: refreshBalance } = useKaspaBalance();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -51,12 +52,10 @@ export function SendKASWidget() {
       const amountNum = parseFloat(amount);
       const sompiAmount = kasToSompis(amountNum);
 
-      const transaction = {
+      const result = await sendKaspaTransaction(state.provider, {
         to: toAddress.trim(),
         amount: sompiAmount.toString(),
-      };
-
-      const result = await sendKaspaTransaction(state.provider, transaction);
+      });
 
       if (result.status === 'failed') {
         throw new Error(result.error || 'Transaction failed');
@@ -66,98 +65,33 @@ export function SendKASWidget() {
       setSuccess(true);
       setToAddress('');
       setAmount('');
-
-      // Refresh balance after successful transaction
       await refreshBalance();
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setSuccess(false);
         setTxHash(null);
       }, 5000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send transaction';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to send transaction');
       console.error('Send KAS error:', err);
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleMaxAmount = () => {
-    // For now, we can't get balance easily, so we'll skip this
-    // In a real implementation, you'd fetch balance and set max amount
-  };
+  const railActions = state.isConnected ? (
+    <button
+      type="button"
+      onClick={handleSend}
+      disabled={isSending || !toAddress.trim() || !amount || parseFloat(amount) <= 0}
+      className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {isSending ? 'Sending...' : 'Send KAS'}
+    </button>
+  ) : null;
 
-  if (!state.isConnected) {
-    return (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Connect KasWare or Kastle from the site header to send KAS.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-2 dark:border-zinc-700 dark:bg-zinc-950">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500 dark:text-zinc-400">Connected address</span>
-          <span className="font-mono text-zinc-900 dark:text-zinc-100">
-            {state.address ? `${state.address.slice(0, 8)}...${state.address.slice(-8)}` : 'N/A'}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500 dark:text-zinc-400">KAS balance</span>
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
-            {isBalanceLoading ? 'Loading...' : kasBalance || '0.00'} KAS
-          </span>
-        </div>
-      </div>
-
-      <div className="k-form-group !mb-0">
-        <KxFormFieldLabel tooltip="Valid Kaspa address starting with kaspa:">
-          Recipient address
-        </KxFormFieldLabel>
-        <input
-          id="toAddress"
-          type="text"
-          value={toAddress}
-          onChange={(e) => setToAddress(e.target.value)}
-          placeholder="kaspa:..."
-          className="k-input"
-          disabled={isSending}
-        />
-      </div>
-
-      <div className="k-form-group !mb-0">
-        <KxFormFieldLabel tooltip="Amount of KAS to send, excluding network fees.">
-          Amount (KAS)
-        </KxFormFieldLabel>
-        <div className="flex gap-2">
-          <input
-            id="amount"
-            type="number"
-            step="0.00000001"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            className="k-input"
-            disabled={isSending}
-          />
-          <button
-            type="button"
-            onClick={handleMaxAmount}
-            className="k-control-btn shrink-0"
-            disabled={isSending || isBalanceLoading || !balanceInKas || balanceInKas <= 0}
-          >
-            Max
-          </button>
-        </div>
-      </div>
-
+  const railAlerts =
+    error || (success && txHash) ? (
       <KxAlertRegion>
         {error ? (
           <Alert type="error" compact region onDismiss={() => setError(null)}>
@@ -170,14 +104,73 @@ export function SendKASWidget() {
           </Alert>
         ) : null}
       </KxAlertRegion>
+    ) : null;
 
-      <button
-        onClick={handleSend}
-        disabled={isSending || !toAddress.trim() || !amount || parseFloat(amount) <= 0}
-        className={KX_BTN_PRIMARY}
-      >
-        {isSending ? 'Sending...' : 'Send KAS'}
-      </button>
-    </div>
+  useRegisterDAppWidgetRailSlot('actions', railActions, [state.isConnected, isSending, toAddress, amount]);
+  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, txHash]);
+
+  return (
+    <DAppWidgetShell
+      title="Interact"
+      heading="Send KAS"
+      description="Send native KAS on Kaspa L1. Network fees apply separately from the amount you enter."
+    >
+      {!state.isConnected ? (
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-700 dark:bg-zinc-950">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Connect KasWare or Kastle from the site header to send KAS.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">Connected address</span>
+              <span className="font-mono text-zinc-900 dark:text-zinc-100">
+                {state.address ? `${state.address.slice(0, 8)}...${state.address.slice(-8)}` : 'N/A'}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+              <span className="text-zinc-500 dark:text-zinc-400">KAS balance</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {isBalanceLoading ? 'Loading...' : `${kasBalance || '0.00'} KAS`}
+              </span>
+            </div>
+          </div>
+
+          <div className="k-form-group !mb-0">
+            <KxFormFieldLabel tooltip="Valid Kaspa address starting with kaspa:">
+              Recipient address
+            </KxFormFieldLabel>
+            <input
+              id="toAddress"
+              type="text"
+              value={toAddress}
+              onChange={(e) => setToAddress(e.target.value)}
+              placeholder="kaspa:..."
+              className="k-input text-base"
+              disabled={isSending}
+            />
+          </div>
+
+          <div className="k-form-group !mb-0">
+            <KxFormFieldLabel tooltip="Amount of KAS to send, excluding network fees.">
+              Amount (KAS)
+            </KxFormFieldLabel>
+            <input
+              id="amount"
+              type="number"
+              step="0.00000001"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              className="k-input text-base"
+              disabled={isSending}
+            />
+          </div>
+        </>
+      )}
+    </DAppWidgetShell>
   );
 }
