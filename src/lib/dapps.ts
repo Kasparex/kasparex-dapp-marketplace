@@ -118,9 +118,9 @@ export const placeholderDApps: DApp[] = [
     slug: 'genesis-badge',
     featuredImage: 'https://static.wixstatic.com/media/de4185_e24452baae844a969d86c5fee890c56f~mv2.png',
     category: 'general',
-    utility: 'Unlock a unique genesis badge (random theme and title) or boost your existing badge. Each action supports the Revenue Tree and earns tGRID and pts.',
-    process: 'Pay 10 iKAS to unlock a random badge (first time) or boost your badge (subsequent). Revenue splits through the tree; you receive tGRID and pts with your multiplier.',
-    benefits: 'Unique on-chain badge, boost progress, tGRID and pts rewards, Revenue Tree integration. Same user can use unlimited times.',
+    utility: 'Unlock a unique genesis badge (random theme and title) or boost your existing badge. Each action supports the Revenue Tree and earns Hub Points.',
+    process: 'Pay 10 iKAS to unlock a random badge (first time) or boost your badge (subsequent). Revenue splits through the tree; Hub Points are credited to your Kaspa L1 wallet ledger.',
+    benefits: 'Unique on-chain badge, boost progress, Hub Points on each action, Revenue Tree integration. Same user can use unlimited times.',
     developer: 'Kasparex',
     developerLinks: [
       { label: 'Website', url: 'https://www.kasparex.com' },

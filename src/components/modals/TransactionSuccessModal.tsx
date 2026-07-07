@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getExplorerTxUrlForChain } from '@/lib/dapps/deployer';
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 
 export interface TransactionAddressRow {
   label: string;
@@ -16,8 +17,8 @@ export interface TransactionSuccessModalProps {
   onClose: () => void;
   txHash: string;
   chainId?: number;
-  gridAmount?: string;
-  pointsEarned?: number;
+  /** Hub Points earned (after KREX tier multiplier). */
+  hubPointsEarned?: number;
   /** Optional addresses to show (e.g. recipient) with copy + explorer. */
   addresses?: TransactionAddressRow[];
   /** Auto-close after this many ms (default 8000). Set to 0 to disable. */
@@ -29,8 +30,7 @@ export function TransactionSuccessModal({
   onClose,
   txHash,
   chainId = 38833,
-  gridAmount,
-  pointsEarned,
+  hubPointsEarned,
   addresses,
   autoCloseMs = 8000,
 }: TransactionSuccessModalProps) {
@@ -100,18 +100,10 @@ export function TransactionSuccessModal({
           ))}
         </div>
 
-        {(gridAmount != null && gridAmount !== '') || (pointsEarned != null && pointsEarned > 0) ? (
-          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-1 text-sm">
-            {gridAmount != null && gridAmount !== '' && (
-              <p className="text-zinc-700 dark:text-zinc-300">
-                tGRID / GRID: <span className="font-medium text-green-600 dark:text-green-400">{gridAmount}</span>
-              </p>
-            )}
-            {pointsEarned != null && pointsEarned > 0 && (
-              <p className="text-zinc-700 dark:text-zinc-300">
-                Points earned: <span className="font-medium text-green-600 dark:text-green-400">{pointsEarned}</span>
-              </p>
-            )}
+        {hubPointsEarned != null && hubPointsEarned > 0 ? (
+          <div className="flex items-center justify-between rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3 text-sm">
+            <span className="text-zinc-600 dark:text-zinc-400">Hub Points earned</span>
+            <HubPointsEarnBadge points={hubPointsEarned} size="md" />
           </div>
         ) : null}
 

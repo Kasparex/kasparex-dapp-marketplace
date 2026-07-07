@@ -12,7 +12,7 @@ import { KxTagChip } from '@/components/ui/KxTagChip';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
-import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { DAppNetworkBadge } from '@/components/dapps/DAppNetworkBadge';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
@@ -73,8 +73,6 @@ export function DAppPageHeader({
     '';
 
   const statusLabel = mergedDApp.status || 'Mainnet';
-  const hubPtsLabel = `+${hubPtsBase} pts`;
-
   return (
     <div id="dapp-header" className={`${KX_DETAIL_HEADER} relative mb-8 scroll-mt-24 select-text`}>
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent" />
@@ -103,11 +101,11 @@ export function DAppPageHeader({
               <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
               <KxBadge variant="zinc">{statusLabel}</KxBadge>
             </div>
-            <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
-              <span className="inline-flex items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 shadow-sm">
-                <KxHubPtsBadge label={hubPtsLabel} title="Base Hub points for this dApp action" />
-              </span>
-            </div>
+            {hubPtsBase > 0 ? (
+              <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
+                <HubPointsEarnBadge points={hubPtsBase} size="sm" />
+              </div>
+            ) : null}
           </div>
 
           {excerpt ? (

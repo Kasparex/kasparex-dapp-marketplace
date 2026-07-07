@@ -16,6 +16,7 @@ import {
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
@@ -159,11 +160,15 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           ) : null}
 
           {quote.hubPoints != null && quote.hubPoints > 0 ? (
-            <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
               <span>Hub points on action</span>
-              <span className="font-semibold text-[#02abb8] tabular-nums">
-                +{quote.hubPoints.toLocaleString()} pts
-                {quote.hubPointsDetail ? ` (${quote.hubPointsDetail})` : ''}
+              <span className="inline-flex items-center gap-1.5">
+                <HubPointsEarnBadge points={quote.hubPoints} />
+                {quote.hubPointsDetail ? (
+                  <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                    ({quote.hubPointsDetail})
+                  </span>
+                ) : null}
               </span>
             </div>
           ) : null}

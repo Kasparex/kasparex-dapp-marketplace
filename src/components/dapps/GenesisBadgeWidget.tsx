@@ -8,16 +8,14 @@ import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { placeholderDApps } from '@/lib/dapps';
 import { getNativeCurrencySymbol } from '@/lib/wagmi';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
-import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
-import { KREX_TIERS } from '@/lib/rewards/types';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
+import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import { DApp } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
-import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
@@ -44,6 +42,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [successHubPoints, setSuccessHubPoints] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -53,12 +52,15 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const genesisBadgeDApp = dappProp ?? (typeof window !== 'undefined' ? getGenesisBadgeDApp(require('@/lib/dapps').placeholderDApps) : undefined);
   const contractAddress = genesisBadgeDApp ? getDAppContractAddress(genesisBadgeDApp, chainId) : '';
 
-  const { balance: krexBalance, l2Balance: krexL2Balance, tier, tierForChain } = useKREXBalance();
+  const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
   const queryClient = useQueryClient();
   const nativeSymbol = getNativeCurrencySymbol(chainId);
-  const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
+
+  const hubPointsPreview = genesisBadgeDApp
+    ? computeEarnedHubPoints(getHubPointsBaseForAction(genesisBadgeDApp, 'unlock-or-boost'), tier)
+    : 0;
 
   const costBreakdown = useMemo((): CostBreakdown | null => {
     if (!genesisBadgeDApp) return null;
@@ -98,20 +100,6 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
-
-  const rewardsBreakdown = getDefaultRewardsBreakdown(chainId ?? undefined);
-  // Payment Breakdown uses total KREX tier (L1 + L2) so it adds up with connected wallets
-  const tierConfig = KREX_TIERS[tier];
-  const multiplier = tierConfig?.multiplier ?? 1;
-  const baseCost = 10;
-  const gridReward = Math.round(baseCost * rewardsBreakdown.gridPerKas * multiplier);
-  const xpReward = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplier);
-  // On-chain uses only tKREX on this network; show base amounts when L2 balance is 0
-  const tierConfigOnChain = KREX_TIERS[tierForChain];
-  const multiplierOnChain = tierConfigOnChain?.multiplier ?? 1;
-  const gridRewardOnChain = Math.round(baseCost * rewardsBreakdown.gridPerKas * multiplierOnChain);
-  const xpRewardOnChain = Math.round(baseCost * rewardsBreakdown.xpPerKas * multiplierOnChain);
-  const onChainIsBaseOnly = multiplier > 1 && multiplierOnChain === 1 && krexL2Balance === 0;
 
   const handleUnlockOrBoost = async () => {
     setError(null);
@@ -194,42 +182,19 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
         baseActionValue,
         txHash: hash,
         dAppContractAddress: contractAddress as `0x${string}`,
-      }).catch((err) => console.error('Reward distribution:', err));
+      })
+        .then((result) => {
+          if (result.hubPointsEarned != null && result.hubPointsEarned > 0) {
+            setSuccessHubPoints(result.hubPointsEarned);
+          } else if (hubPointsPreview > 0) {
+            setSuccessHubPoints(hubPointsPreview);
+          }
+        })
+        .catch((err) => console.error('Hub Points award:', err));
     }, 500);
-  }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, refetchBadge, distributeRewardAfterTransaction]);
+  }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, refetchBadge, distributeRewardAfterTransaction, hubPointsPreview]);
 
   useSyncDAppWidgetQuote(null, 'unlock-or-boost');
-
-  const rewardsExtra = (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950/60">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">You receive</p>
-      <div className="flex justify-between kx-body">
-        <span>{gridLabel}</span>
-        <span className="font-medium text-[#02abb8]">{formatLargeNumber(gridReward)}</span>
-      </div>
-      <div className="flex justify-between kx-body">
-        <span>Hub pts</span>
-        <span className="font-medium text-[#02abb8]">{formatLargeNumber(xpReward)}</span>
-      </div>
-      {multiplier > 1 ? (
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          ×{multiplier} tier multiplier (from your total KREX across connected wallets)
-        </p>
-      ) : null}
-      {onChainIsBaseOnly ? (
-        <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-          On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel},{' '}
-          {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 to get the full ×{multiplier} reward.{' '}
-          <a href="https://katbridge.com/" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:opacity-80">
-            Open KAT Bridge ↗
-          </a>
-        </p>
-      ) : null}
-      {hasBadge ? (
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Badge progress: +1 boost, total spent increases</p>
-      ) : null}
-    </div>
-  );
 
   const railActions = isConnected ? (
     <button
@@ -255,16 +220,6 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
   ) : null;
 
   useRegisterDAppWidgetRailSlot('actions', railActions, [isConnected, isLoading, contractAddress, valueWei, hasBadge, isPendingWrite]);
-  useRegisterDAppWidgetRailSlot('extraBreakdown', rewardsExtra, [
-    gridLabel,
-    gridReward,
-    xpReward,
-    multiplier,
-    onChainIsBaseOnly,
-    hasBadge,
-    gridRewardOnChain,
-    xpRewardOnChain,
-  ]);
 
   if (!isConnected) {
     return (
@@ -284,8 +239,8 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
       heading="Genesis Badge"
       description={
         hasBadge
-          ? 'Boost your badge and earn more tGRID and Hub points.'
-          : 'Unlock a unique random badge. Earn tGRID and Hub points.'
+          ? 'Boost your badge and earn Hub Points on each action.'
+          : 'Unlock a unique random badge and earn Hub Points.'
       }
     >
         {hasBadge && (
@@ -364,17 +319,15 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
       {hash && isConfirmed && (
         <div className="mt-4 space-y-4">
           <TransactionTracker txHash={hash} compact />
-          <RewardStatusBox txHash={hash} network="L2" dAppId="genesis-badge" actionType="unlock-or-boost" compact />
         </div>
       )}
 
       <TransactionSuccessModal
         isOpen={!!showSuccessModal && !!successTxHash}
-        onClose={() => { setShowSuccessModal(false); setSuccessTxHash(null); }}
+        onClose={() => { setShowSuccessModal(false); setSuccessTxHash(null); setSuccessHubPoints(null); }}
         txHash={successTxHash ?? ''}
         chainId={chainId ?? 38833}
-        gridAmount={formatLargeNumber(onChainIsBaseOnly ? gridRewardOnChain : gridReward)}
-        pointsEarned={onChainIsBaseOnly ? xpRewardOnChain : xpReward}
+        hubPointsEarned={successHubPoints ?? undefined}
         autoCloseMs={8000}
       />
       <TransactionErrorModal

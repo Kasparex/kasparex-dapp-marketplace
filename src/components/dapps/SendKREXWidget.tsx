@@ -13,6 +13,9 @@ import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
+import { placeholderDApps } from '@/lib/dapps';
+import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function SendKREXWidget() {
   const { state } = useKaspaWallet();
@@ -29,6 +32,8 @@ export function SendKREXWidget() {
   const [txHashCopied, setTxHashCopied] = useState(false);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
+  const { tier, balance: krexBal } = useKREXBalance();
+  const sendKrexDApp = placeholderDApps.find((d) => d.slug === 'send-krex');
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
   useSyncDAppWidgetQuote(parsedAmount, 'send-krex');
 
@@ -117,6 +122,16 @@ export function SendKREXWidget() {
 
       setTxHash(hash);
       setSuccess(true);
+      if (sendKrexDApp && state.address) {
+        awardDAppHubPoints({
+          walletRaw: state.address,
+          dapp: sendKrexDApp,
+          actionId: 'send-krex',
+          txHash: hash,
+          krexTier: tier,
+          krexBalance: krexBal ?? 0,
+        });
+      }
       setSentTo(recipientAddress);
       setSentAmount(amountNum.toString());
       setToAddress('');

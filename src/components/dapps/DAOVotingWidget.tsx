@@ -6,7 +6,6 @@ import { formatEther } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useDAOVoting, Vote } from '@/hooks/useDAOVoting';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
-import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
@@ -228,13 +227,6 @@ export function DAOVotingWidget() {
       {txHash && isConfirmed ? (
         <div className="space-y-3">
           <TransactionTracker txHash={txHash} compact />
-          <RewardStatusBox
-            txHash={txHash}
-            network="L2"
-            dAppId="dao-voting"
-            actionType={lastActionType || 'vote'}
-            compact
-          />
         </div>
       ) : null}
 

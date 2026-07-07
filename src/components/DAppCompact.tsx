@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { DApp, getDAppNetworkType, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useDAppXpReward } from '@/hooks/useDAppXpReward';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
 import { StatusIndicator } from './dapps/StatusIndicator';
@@ -59,9 +59,11 @@ function DAppCompactRow({ dapp, selectedNetwork = 'all' }: { dapp: DApp; selecte
                 <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                     <span className="truncate">{category?.emoji} {category?.name}</span>
                     <span>•</span>
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                      {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
-                    </span>
+                    {!isDirectoryListingDApp(mergedDApp) ? (
+                      <HubPointsEarnBadge points={xpReward} size="sm" />
+                    ) : (
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">N/A</span>
+                    )}
                 </div>
                 {mergedDApp.description && (
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 opacity-80">

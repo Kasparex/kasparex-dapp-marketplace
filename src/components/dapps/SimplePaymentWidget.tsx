@@ -14,17 +14,13 @@ import { TreasuryAutoDistribute } from '@/components/TreasuryAutoDistribute';
 import { getErrorMessage } from '@/lib/utils';
 import { useSafeError } from '@/hooks/useSafeError';
 import { useMemo, useRef } from 'react';
-import { calculateCost, formatPrice, type CostBreakdown } from '@/lib/payments/calculator';
-import { getDefaultRewardsBreakdown } from '@/lib/rewards/mockData';
-import { KREX_TIERS } from '@/lib/rewards/types';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
+import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { useAutomatedRewards } from '@/hooks/useAutomatedRewards';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { placeholderDApps } from '@/lib/dapps';
 import { storeTransaction } from '@/lib/transactions/tracker';
 import { TransactionTracker } from '@/components/transactions/TransactionTracker';
-import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { Alert } from '@/components/Alert';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
@@ -293,17 +289,6 @@ export function SimplePaymentWidget() {
   const paymentAmount = amountBigInt > 0n ? calculatePaymentAmount(amountBigInt, feePercentageNum) : 0n;
 
   const nativeSymbol = getNativeCurrencySymbol(chainId);
-
-  // Debug logging (after amountBigInt is declared)
-  console.log('SimplePaymentWidget Debug:', {
-    chainId,
-    contractAddress,
-    subscriptionManagerAddress,
-    hasContractAddress: !!contractAddress,
-    recipientAddress: !!recipientAddress,
-    amount,
-    amountBigInt: amountBigInt.toString(),
-  });
 
   // Write contract for sending payment
   const {
@@ -602,13 +587,6 @@ export function SimplePaymentWidget() {
             {hash && isConfirmed ? (
               <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
                 <TransactionTracker txHash={hash} compact />
-                <RewardStatusBox
-                  txHash={hash}
-                  network="L2"
-                  dAppId="simple-payment"
-                  actionType="send-payment"
-                  compact
-                />
               </div>
             ) : null}
 

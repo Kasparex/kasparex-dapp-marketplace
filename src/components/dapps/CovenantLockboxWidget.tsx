@@ -14,6 +14,8 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
+import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import {
   KpxCovenantDisconnected,
   KpxCovenantImportPanel,
@@ -124,6 +126,8 @@ export function CovenantLockboxWidget() {
     enabled: tab === 'create',
   });
 
+  const brand = getKpxCovenantBrand('lockbox');
+
   if (!kaspaState.isConnected) {
     return <KpxCovenantDisconnected template="lockbox" />;
   }
@@ -134,8 +138,12 @@ export function CovenantLockboxWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-5">
-          <div>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Create lock"
+          description={brand.tagline}
+        >
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Lock type"
               tooltip="Escrow lets the beneficiary claim whenever they are ready. Timelock waits until the date you set before they can claim."
@@ -151,24 +159,24 @@ export function CovenantLockboxWidget() {
                   key={k}
                   type="button"
                   onClick={() => setKind(k)}
-                  className={`flex-1 text-sm px-3 py-2.5 rounded-lg border transition-colors ${
+                  className={`flex-1 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
                     kind === k
                       ? 'border-[#02abb8] bg-[#02abb8]/10 text-[#02abb8]'
-                      : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-600'
+                      : 'border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600'
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
               {kind === 'escrow'
                 ? 'Beneficiary can claim as soon as the lock is created.'
                 : 'Beneficiary can claim only after the unlock date.'}
             </p>
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Who receives the KAS"
               htmlFor="lockbox-beneficiary"
@@ -184,7 +192,7 @@ export function CovenantLockboxWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
               htmlFor="lockbox-amount"
@@ -201,8 +209,8 @@ export function CovenantLockboxWidget() {
             />
           </div>
 
-          {kind === 'timelock' && (
-            <div>
+          {kind === 'timelock' ? (
+            <div className="k-form-group !mb-0">
               <CovenantFieldLabel
                 label="Unlock after"
                 htmlFor="lockbox-unlock"
@@ -216,9 +224,9 @@ export function CovenantLockboxWidget() {
                 className={covenantInputClass}
               />
             </div>
-          )}
+          ) : null}
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Memo (optional)"
               htmlFor="lockbox-memo"
@@ -234,8 +242,7 @@ export function CovenantLockboxWidget() {
               className={covenantInputClass}
             />
           </div>
-
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'vaults' && (

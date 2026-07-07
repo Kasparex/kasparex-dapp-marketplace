@@ -12,6 +12,9 @@ import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
+import { placeholderDApps } from '@/lib/dapps';
+import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 
 export function SendKASWidget() {
   const { state } = useKaspaWallet();
@@ -23,6 +26,8 @@ export function SendKASWidget() {
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
+  const { tier, balance: krexBalance } = useKREXBalance();
+  const sendKasDApp = placeholderDApps.find((d) => d.slug === 'send-kas');
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
   useSyncDAppWidgetQuote(parsedAmount, 'send-kas');
 
@@ -67,6 +72,16 @@ export function SendKASWidget() {
 
       setTxHash(result.txHash);
       setSuccess(true);
+      if (sendKasDApp && state.address && result.txHash) {
+        awardDAppHubPoints({
+          walletRaw: state.address,
+          dapp: sendKasDApp,
+          actionId: 'send-kas',
+          txHash: result.txHash,
+          krexTier: tier,
+          krexBalance: krexBalance ?? 0,
+        });
+      }
       setToAddress('');
       setAmount('');
       await refreshBalance();

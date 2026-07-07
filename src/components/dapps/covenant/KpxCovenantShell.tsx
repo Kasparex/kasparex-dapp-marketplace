@@ -4,11 +4,10 @@ import type { CovenantTemplate } from '@/lib/programmability/types';
 import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import type { CovenantRuntimeMode } from '@/lib/covenant/types';
 import {
-  CovenantWidgetShell,
-  CovenantRuntimeBadge,
   CovenantFieldLabel,
+  CovenantRuntimeBadge,
+  CovenantWidgetShell,
   covenantInputClass,
-  covenantPanelClass,
   covenantSecondaryBtnClass,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { covenantRuntimeBadge } from '@/lib/programmability/runtime-label';
@@ -85,17 +84,19 @@ export function KpxCovenantImportPanel({
   tooltip?: string;
 }) {
   return (
-    <div className={`${covenantPanelClass} space-y-2`}>
-      <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} />
-      <input
-        id={id}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
-        placeholder="64-char hex covenant id"
-        className={`${covenantInputClass} font-mono text-sm`}
-        spellCheck={false}
-      />
+    <div className="space-y-3">
+      <div className="k-form-group !mb-0">
+        <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} />
+        <input
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
+          placeholder="64-char hex covenant id"
+          className={`${covenantInputClass} font-mono`}
+          spellCheck={false}
+        />
+      </div>
       <button
         type="button"
         disabled={busy || value.length < 64}

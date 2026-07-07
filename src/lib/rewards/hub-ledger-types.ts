@@ -20,6 +20,7 @@ export type EarnSource =
   | 'magazine_issue_publish'
   | 'hub_ad_placement'
   | 'dapp_l1_interaction'
+  | 'dapp_l2_interaction'
   | 'krex_node_operator'
   | 'chronicles_article_create'
   | 'chronicles_quiz_complete'

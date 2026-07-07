@@ -1,28 +1,25 @@
 'use client';
 
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { covenantRuntimeBadge } from '@/lib/programmability/runtime-label';
 import type { CovenantRuntimeMode } from '@/lib/covenant/types';
 import {
   KX_BTN_PRIMARY,
   KX_BTN_SECONDARY,
-  KX_INPUT,
-  KX_PANEL_PADDING,
-  KX_SURFACE_INSET,
-  KX_SURFACE_ROW,
 } from '@/lib/hub/shellTokens';
 
-export const covenantInputClass = KX_INPUT;
-export const covenantSmallInputClass = KX_INPUT;
-export const covenantPanelClass = `${KX_SURFACE_INSET} ${KX_PANEL_PADDING} space-y-5`;
-export const covenantCardClass = `${KX_SURFACE_ROW} space-y-3 text-sm text-zinc-700 dark:text-zinc-300`;
+export const covenantInputClass = 'k-input text-base';
+export const covenantSmallInputClass = 'k-input text-sm';
+export const covenantPanelClass = 'space-y-5';
+export const covenantCardClass = 'rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 space-y-3 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300';
 export const covenantPrimaryBtnClass = KX_BTN_PRIMARY;
 export const covenantSecondaryBtnClass = KX_BTN_SECONDARY;
 
 export function CovenantWidgetShell({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
-      <div className="w-full space-y-5">{children}</div>
+      <div className="w-full space-y-6">{children}</div>
     </TooltipProvider>
   );
 }
@@ -54,9 +51,9 @@ export function CovenantHeader({
   }
 
   return (
-    <header className="text-center space-y-2">
-      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-      <p className="kx-body max-w-lg mx-auto">{subtitle}</p>
+    <header className="space-y-2">
+      <h2 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">{title}</h2>
+      <p className="kx-body">{subtitle}</p>
       <CovenantRuntimeBadge
         label={badge.label}
         tone={badge.tone}
@@ -87,7 +84,7 @@ export function CovenantRuntimeBadge({
 
   return (
     <Tooltip content={description}>
-      <div className={`inline-flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs cursor-help ${toneClass}`}>
+      <div className={`inline-flex flex-col items-start gap-1 px-3 py-2 rounded-lg border text-xs cursor-help ${toneClass}`}>
         <span className="font-semibold uppercase tracking-wide">{label}</span>
         {configuredMode && configuredMode !== label.toLowerCase().replace(' ', '') ? (
           <span className="opacity-80">Configured: {configuredMode}</span>
@@ -136,22 +133,9 @@ export function CovenantFieldLabel({
   htmlFor?: string;
 }) {
   return (
-    <div className="flex items-center gap-1.5 mb-2">
-      <label htmlFor={htmlFor} className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-      </label>
-      {tooltip ? (
-        <Tooltip content={tooltip}>
-          <button
-            type="button"
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-400 dark:border-zinc-600 text-[10px] text-zinc-500 dark:text-zinc-400 hover:border-[#02abb8] hover:text-[#02abb8]"
-            aria-label={`Help: ${label}`}
-          >
-            ?
-          </button>
-        </Tooltip>
-      ) : null}
-    </div>
+    <KxFormFieldLabel htmlFor={htmlFor} tooltip={tooltip}>
+      {label}
+    </KxFormFieldLabel>
   );
 }
 

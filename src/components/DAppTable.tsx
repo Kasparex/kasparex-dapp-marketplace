@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { DApp, getDAppNetworkType, isDirectoryListingDApp, type DAppNetworkFilter } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { generateDAppSlug } from '@/lib/utils';
-import { formatLargeNumber } from '@/lib/rewards/calculator';
 import { useDAppXpReward } from '@/hooks/useDAppXpReward';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { StatusIndicator } from './dapps/StatusIndicator';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { DAppIcon } from './dapps/DAppIcon';
@@ -92,9 +92,11 @@ function DAppTableRow({ dapp, selectedNetwork = 'all' }: DAppTableRowProps) {
         )}
       </td>
       <td className="py-4 px-4">
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-          {isDirectoryListingDApp(mergedDApp) ? 'N/A' : `${formatLargeNumber(xpReward)} pts`}
-        </span>
+        {isDirectoryListingDApp(mergedDApp) ? (
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">N/A</span>
+        ) : (
+          <HubPointsEarnBadge points={xpReward} size="sm" />
+        )}
       </td>
       <td className="py-4 px-4">
         {category && (

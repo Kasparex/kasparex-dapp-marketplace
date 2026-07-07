@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useMemo, useState } from 'react';
 import { useChainId } from 'wagmi';
-import { DApp } from '@/lib/dapps';
+import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
-import { CommentsSection } from './vblog/CommentsSection';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppWidgetActionRailProvider } from '@/lib/dapps/DAppWidgetActionRailContext';
@@ -37,6 +36,11 @@ const DAppWidget = dynamic(() => import('./DAppWidget').then((m) => m.DAppWidget
 
 const DAppRevenueTreePanel = dynamic(
   () => import('./dapps/panels/DAppRevenueTreePanel').then((m) => m.DAppRevenueTreePanel),
+  { ssr: false },
+);
+
+const CommentsSection = dynamic(
+  () => import('./vblog/CommentsSection').then((m) => m.CommentsSection),
   { ssr: false },
 );
 
@@ -92,9 +96,9 @@ function DAppDetailBody({
       onTabChange={setTab}
       showCalculationPanel={showCalculationPanel}
     >
-      {hasWidgetTabs ? (
-        <div className={widgetSection ? KX_TAB_SECTION : 'hidden'} aria-hidden={!widgetSection}>
-          <DAppWidgetSectionProvider section={widgetSection ?? defaultDAppDetailTab(dapp.slug)} onNavigate={setTab}>
+      {hasWidgetTabs && widgetSection ? (
+        <div className={KX_TAB_SECTION}>
+          <DAppWidgetSectionProvider section={widgetSection} onNavigate={setTab}>
             <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
           </DAppWidgetSectionProvider>
         </div>
@@ -122,14 +126,17 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   const chainId = useChainId();
 
   let contractAddress = propContractAddress || dapp.contractAddress || '';
+  const needsContractRead = Boolean(
+    !contractAddress && chainId && getDAppNetworkType(dapp) === 'L2',
+  );
   if (!contractAddress && chainId) {
     contractAddress = getDAppContractAddress(dapp, chainId) || '';
-    if (!contractAddress) {
+    if (!contractAddress && needsContractRead) {
       contractAddress = getContractAddress(chainId, 'DAppRegistry') || '';
     }
   }
   const { data: contractData } = useDAppFromContract(
-    contractAddress?.startsWith('0x') ? contractAddress : undefined,
+    needsContractRead && contractAddress?.startsWith('0x') ? contractAddress : undefined,
     chainId,
   );
 

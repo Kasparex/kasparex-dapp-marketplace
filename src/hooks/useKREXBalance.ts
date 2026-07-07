@@ -16,7 +16,7 @@ export interface UseKREXBalanceReturn {
   l2Balance: number;
   /** Tier from total (L1 + L2). Use for fee/cost UI. */
   tier: KREXTier;
-  /** Tier from this chain's balance only. Use for L2 dApp "You Receive" so it matches on-chain rewards. */
+  /** Tier from this chain's balance only. */
   tierForChain: KREXTier;
   isLoading: boolean;
   error: string | null;
