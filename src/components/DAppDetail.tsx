@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
-import { DAppWidget } from './DAppWidget';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
@@ -29,6 +28,12 @@ import {
   DAppWidgetTabLabelProvider,
   useWidgetTabLabelOverrides,
 } from '@/lib/dapps/DAppWidgetTabContext';
+import { DAppWidgetLoading } from '@/components/dapps/DAppWidgetLoading';
+
+const DAppWidget = dynamic(() => import('./DAppWidget').then((m) => m.DAppWidget), {
+  ssr: false,
+  loading: () => <DAppWidgetLoading />,
+});
 
 const DAppRevenueTreePanel = dynamic(
   () => import('./dapps/panels/DAppRevenueTreePanel').then((m) => m.DAppRevenueTreePanel),
@@ -76,6 +81,7 @@ function DAppDetailBody({
 
   const showCalculationPanel = isWidgetCalculationTab(tab, dapp.slug);
   const widgetSection = isWidgetPageTab(tab, dapp.slug) ? tab : null;
+  const hasWidgetTabs = tabs.some((t) => isWidgetPageTab(t.id, dapp.slug));
 
   return (
     <DAppDetailShell
@@ -86,12 +92,12 @@ function DAppDetailBody({
       onTabChange={setTab}
       showCalculationPanel={showCalculationPanel}
     >
-      {widgetSection ? (
-        <DAppWidgetSectionProvider section={widgetSection} onNavigate={setTab}>
-          <div className={KX_TAB_SECTION}>
+      {hasWidgetTabs ? (
+        <div className={widgetSection ? KX_TAB_SECTION : 'hidden'} aria-hidden={!widgetSection}>
+          <DAppWidgetSectionProvider section={widgetSection ?? defaultDAppDetailTab(dapp.slug)} onNavigate={setTab}>
             <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
-          </div>
-        </DAppWidgetSectionProvider>
+          </DAppWidgetSectionProvider>
+        </div>
       ) : null}
       {tab === 'descriptions' ? (
         <div className={KX_TAB_SECTION}>

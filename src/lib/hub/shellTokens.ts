@@ -40,6 +40,9 @@ export const KX_TAB_SECTION = 'scroll-mt-28 space-y-6';
 export const KX_DETAIL_HEADER =
   'relative mb-6 scroll-mt-24 overflow-hidden rounded-2xl border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700';
 
+export const KX_EMPTY_STATE =
+  'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-950/50';
+
 export const KX_ASIDE_PANEL = `${KX_PANEL} ${KX_PANEL_PADDING}`;
 
 export const KX_FORM_GRID = 'grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 xl:gap-8';

@@ -9,12 +9,13 @@ import {
   KX_INPUT,
   KX_PANEL_PADDING,
   KX_SURFACE_INSET,
+  KX_SURFACE_ROW,
 } from '@/lib/hub/shellTokens';
 
 export const covenantInputClass = KX_INPUT;
 export const covenantSmallInputClass = KX_INPUT;
 export const covenantPanelClass = `${KX_SURFACE_INSET} ${KX_PANEL_PADDING} space-y-5`;
-export const covenantCardClass = `${KX_SURFACE_INSET} p-4 space-y-3 text-sm text-zinc-700 dark:text-zinc-300`;
+export const covenantCardClass = `${KX_SURFACE_ROW} space-y-3 text-sm text-zinc-700 dark:text-zinc-300`;
 export const covenantPrimaryBtnClass = KX_BTN_PRIMARY;
 export const covenantSecondaryBtnClass = KX_BTN_SECONDARY;
 
@@ -156,7 +157,7 @@ export function CovenantFieldLabel({
 
 export function CovenantError({ message }: { message: string }) {
   return (
-    <div className="p-3 text-sm bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 rounded-lg">
+    <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-800 dark:text-rose-200">
       {message}
     </div>
   );

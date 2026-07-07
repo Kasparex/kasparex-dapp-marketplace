@@ -7,71 +7,23 @@ import {
   buildKpxCovenantExplorerLinkRows,
   buildKpxCovenantTemplateMetadataRows,
   type KpxCovenantMetadataInstance,
-  type KpxCovenantMetadataLink,
   type KpxCovenantMetadataRow,
 } from '@/lib/covenant/kpxCovenantMetadata';
-import { covenantPanelClass } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
+import { KX_INPUT } from '@/lib/hub/shellTokens';
 
-function MetadataLinks({ links }: { links: KpxCovenantMetadataLink[] }) {
-  return (
-    <span className="inline-flex flex-wrap gap-x-2 gap-y-1">
-      {links.map((link) => (
-        <a
-          key={`${link.label}-${link.href}`}
-          href={link.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#02abb8] hover:underline text-xs font-medium"
-        >
-          {link.label}
-        </a>
-      ))}
-    </span>
-  );
+function toTableRows(rows: KpxCovenantMetadataRow[]): KxDataTableRow[] {
+  return rows.map((row) => ({
+    label: row.label,
+    value: row.value,
+    mono: row.mono,
+    hint: row.hint,
+    links: row.links,
+  }));
 }
 
-function MetadataTable({ rows }: { rows: KpxCovenantMetadataRow[] }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-      <table className="w-full text-sm">
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.label}
-              className="border-b border-zinc-200 dark:border-zinc-800 last:border-b-0 align-top"
-            >
-              <th
-                scope="row"
-                className="w-[38%] sm:w-[34%] px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-900/60"
-              >
-                {row.label}
-              </th>
-              <td className="px-3 py-2.5 text-zinc-800 dark:text-zinc-200">
-                {row.value ? (
-                  <span className={row.mono ? 'font-mono text-xs break-all' : ''}>{row.value}</span>
-                ) : row.links?.length ? null : (
-                  <span className="text-zinc-400 dark:text-zinc-500 italic">
-                    {row.hint ?? 'Not available'}
-                  </span>
-                )}
-                {row.links?.length ? (
-                  <div className={row.value ? 'mt-1.5' : ''}>
-                    <MetadataLinks links={row.links} />
-                  </div>
-                ) : null}
-                {!row.value && row.links?.length && row.hint ? (
-                  <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">{row.hint}</p>
-                ) : null}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function MetadataSection({
+function MetadataBlock({
   title,
   description,
   children,
@@ -81,13 +33,8 @@ function MetadataSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`${covenantPanelClass} space-y-3`}>
-      <div>
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
-        {description ? (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{description}</p>
-        ) : null}
-      </div>
+    <section className="space-y-3">
+      <DAppSectionHeader title={title} hint={description} className="!mb-0" />
       {children}
     </section>
   );
@@ -131,52 +78,52 @@ export function KpxCovenantMetadataView({
   );
 
   return (
-    <div className="space-y-4">
-      <MetadataSection
+    <div className="space-y-6">
+      <MetadataBlock
         title="Template and runtime"
         description="Standard KPX covenant identifiers and the active execution mode for this widget."
       >
-        <MetadataTable rows={templateRows} />
-      </MetadataSection>
+        <KxDataTable rows={toTableRows(templateRows)} />
+      </MetadataBlock>
 
-      <MetadataSection
+      <MetadataBlock
         title="Explorers and indexers"
         description="Open the selected instance on KaspaCom, kascov, or the public Kaspa explorer."
       >
-        <MetadataTable rows={explorerRows} />
+        <KxDataTable rows={toTableRows(explorerRows)} />
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           Covenant IDs must be 64-char hex to link indexers. Transaction hashes open on KaspaCom and{' '}
           <Link
             href="https://explorer.kaspa.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#02abb8] hover:underline"
+            className="font-medium text-[#02abb8] hover:underline"
           >
             explorer.kaspa.org
           </Link>
           .
         </p>
-      </MetadataSection>
+      </MetadataBlock>
 
       {instances.length === 0 ? (
-        <MetadataSection title="Covenant instances">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">{emptyMessage}</p>
-        </MetadataSection>
+        <MetadataBlock title="Covenant instances">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{emptyMessage}</p>
+        </MetadataBlock>
       ) : (
-        <MetadataSection
+        <MetadataBlock
           title="Covenant instance"
           description="Technical metadata for a lock, split, campaign, or voucher tracked in this browser."
         >
           {instances.length > 1 ? (
             <div>
-              <label htmlFor="kpx-metadata-instance" className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <label htmlFor="kpx-metadata-instance" className="k-label">
                 Select instance
               </label>
               <select
                 id="kpx-metadata-instance"
                 value={selected?.id ?? ''}
                 onChange={(e) => setSelectedId(e.target.value)}
-                className="mt-1.5 w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100"
+                className={`${KX_INPUT} mt-1.5`}
               >
                 {instances.map((instance) => (
                   <option key={instance.id} value={instance.id}>
@@ -189,17 +136,17 @@ export function KpxCovenantMetadataView({
           ) : null}
 
           {selected ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{selected.title}</p>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selected.title}</p>
                 {selected.subtitle ? (
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">{selected.subtitle}</p>
                 ) : null}
               </div>
-              <MetadataTable rows={selected.rows} />
+              <KxDataTable rows={toTableRows(selected.rows)} />
             </div>
           ) : null}
-        </MetadataSection>
+        </MetadataBlock>
       )}
     </div>
   );

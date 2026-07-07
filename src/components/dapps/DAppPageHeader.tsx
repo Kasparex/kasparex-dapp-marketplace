@@ -12,6 +12,7 @@ import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
 import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
 import { KxBadge } from '@/components/ui/KxBadge';
+import { DAppNetworkBadge } from '@/components/dapps/DAppNetworkBadge';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { KX_DETAIL_HEADER } from '@/lib/hub/shellTokens';
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
@@ -88,6 +89,7 @@ export function DAppPageHeader({
               ) : null}
             </div>
             <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
+              <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
               <KxBadge variant="zinc">{statusLabel}</KxBadge>
             </div>
             <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">

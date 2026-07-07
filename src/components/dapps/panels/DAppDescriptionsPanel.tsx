@@ -3,7 +3,7 @@
 import { DApp } from '@/lib/dapps';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { DAppMetadataTable } from '@/components/dapps/DAppMetadataTable';
-import { KxPanel } from '@/components/kx/KxPanel';
+import { KX_FORM_PANEL } from '@/lib/hub/shellTokens';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 
 const BODY_CLASS = 'text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 whitespace-pre-line';
@@ -32,9 +32,9 @@ export function DAppDescriptionsPanel({
   if (!hasContent) {
     return (
       <div className="space-y-6">
-        <KxPanel>
+        <div className={`${KX_FORM_PANEL} space-y-6`}>
           <p className={`${BODY_CLASS} py-2`}>No description available for this dApp.</p>
-        </KxPanel>
+        </div>
         <DAppMetadataTable dapp={dapp} contractAddress={contractAddress} listing={listing} />
       </div>
     );
@@ -42,7 +42,7 @@ export function DAppDescriptionsPanel({
 
   return (
     <div className="space-y-6">
-      <KxPanel className="space-y-6">
+      <div className={`${KX_FORM_PANEL} space-y-6`}>
         {dapp.description ? (
           <Section title="Description" hint="What this dApp does and who it is for.">
             {dapp.description}
@@ -68,7 +68,7 @@ export function DAppDescriptionsPanel({
             {dapp.security}
           </Section>
         ) : null}
-      </KxPanel>
+      </div>
       <DAppMetadataTable dapp={dapp} contractAddress={contractAddress} listing={listing} />
     </div>
   );
