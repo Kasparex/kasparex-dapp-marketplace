@@ -7,12 +7,14 @@ import { Tooltip } from '@/components/ui/Tooltip';
 export function KxFormFieldLabel({
   children,
   className = '',
+  htmlFor,
   tooltip,
   layoutHint,
   required,
 }: {
   children: ReactNode;
   className?: string;
+  htmlFor?: string;
   tooltip?: string;
   layoutHint?: string;
   required?: boolean;
@@ -45,6 +47,14 @@ export function KxFormFieldLabel({
       ) : null}
     </span>
   );
+
+  if (htmlFor) {
+    return (
+      <label htmlFor={htmlFor} className="block mb-2 cursor-pointer">
+        {label}
+      </label>
+    );
+  }
 
   return label;
 }
