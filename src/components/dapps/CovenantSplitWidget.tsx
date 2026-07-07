@@ -21,6 +21,8 @@ import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/co
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
   useDAppWidgetSection,
@@ -61,7 +63,7 @@ export function CovenantSplitWidget() {
   const { state: kaspaState } = useKaspaWallet();
   const { splits, isLoading, error, createSplit, claimShare, refreshSplits, runtimeMode, effectiveMode } =
     useCovenantSplit();
-  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split');
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split', rows.length);
 
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
@@ -161,7 +163,7 @@ export function CovenantSplitWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
       </button>
     ),
-    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas],
+    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas, rows.length],
   });
 
   if (!kaspaState.isConnected) {
@@ -251,9 +253,9 @@ export function CovenantSplitWidget() {
               type="button"
               onClick={addRow}
               disabled={rows.length >= 8}
-              className="text-sm text-[#02abb8] hover:underline disabled:opacity-40"
+              className={KX_FORM_ADD_BTN_CLASS}
             >
-              + Add recipient
+              {covenantPremiumAddButtonLabel('split', rows.length)}
             </button>
           </div>
 

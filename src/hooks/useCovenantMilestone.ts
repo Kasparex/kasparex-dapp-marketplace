@@ -56,7 +56,9 @@ export function useCovenantMilestone() {
       memo: string;
       milestones: MilestoneInput[];
     }) => {
-      const pricing = resolveKpxCovenantDeployPrice('milestone', krexTier);
+      const pricing = resolveKpxCovenantDeployPrice('milestone', krexTier, {
+        premiumSlotCount: args.milestones.length,
+      });
       const deal = await runKpxCovenantDeployWithFee({
         template: 'milestone',
         pricing,

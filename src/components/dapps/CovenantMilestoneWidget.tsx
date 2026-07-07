@@ -21,6 +21,8 @@ import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/co
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
   useDAppWidgetSection,
@@ -30,38 +32,69 @@ import {
 
 type TabId = 'create' | 'deals' | 'metadata' | 'about';
 
+type MilestoneRow = {
+  key: string;
+  label: string;
+  pct: string;
+  unlock: string;
+};
+
 function defaultUnlock(days: number) {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 16);
 }
 
+function newMilestoneRow(days: number, label: string, pct: string): MilestoneRow {
+  return {
+    key: `m_${Math.random().toString(36).slice(2, 9)}`,
+    label,
+    pct,
+    unlock: defaultUnlock(days),
+  };
+}
+
 export function CovenantMilestoneWidget() {
   const { state } = useKaspaWallet();
   const { deals, loading, error, createDeal, claimStep, refresh, runtimeMode, effectiveMode } =
     useCovenantMilestone();
-  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone');
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
   useRegisterWidgetTabLabel('deals', `Deals (${deals.length})`, [deals.length]);
   const [beneficiary, setBeneficiary] = useState('');
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
-  const [m1, setM1] = useState({ label: 'Deposit', pct: '40', unlock: defaultUnlock(7) });
-  const [m2, setM2] = useState({ label: 'Delivery', pct: '40', unlock: defaultUnlock(14) });
-  const [m3, setM3] = useState({ label: 'Final', pct: '20', unlock: defaultUnlock(21) });
+  const [milestoneRows, setMilestoneRows] = useState<MilestoneRow[]>([
+    newMilestoneRow(7, 'Deposit', '50'),
+    newMilestoneRow(14, 'Delivery', '50'),
+  ]);
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone', milestoneRows.length);
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
 
+  const updateMilestoneRow = (key: string, patch: Partial<MilestoneRow>) => {
+    setMilestoneRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  };
+
+  const addMilestoneRow = () => {
+    if (milestoneRows.length >= 8) return;
+    const nextIndex = milestoneRows.length + 1;
+    setMilestoneRows((prev) => [...prev, newMilestoneRow(7 * nextIndex, `Milestone ${nextIndex}`, '')]);
+  };
+
+  const removeMilestoneRow = (key: string) => {
+    if (milestoneRows.length <= 2) return;
+    setMilestoneRows((prev) => prev.filter((row) => row.key !== key));
+  };
+
   const handleCreate = async () => {
     setBusy(true);
     try {
-      const rows = [m1, m2, m3];
-      const milestones = rows.map((r) => ({
-        label: r.label,
-        shareBps: Math.round(parseFloat(r.pct) * 100),
-        unlockAt: new Date(r.unlock).getTime(),
+      const milestones = milestoneRows.map((row) => ({
+        label: row.label,
+        shareBps: Math.round(parseFloat(row.pct) * 100),
+        unlockAt: new Date(row.unlock).getTime(),
       }));
       await createDeal({
         beneficiary: beneficiary.trim(),
@@ -92,7 +125,7 @@ export function CovenantMilestoneWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
       </button>
     ),
-    deps: [tab, busy, beneficiary, pricing, totalKas],
+    deps: [tab, busy, beneficiary, pricing, totalKas, milestoneRows.length],
   });
 
   if (!state.isConnected) {
@@ -146,37 +179,50 @@ export function CovenantMilestoneWidget() {
             <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1">
               Label · share % · unlock date
             </p>
-            {[m1, m2, m3].map((m, i) => (
-              <div key={i} className="grid grid-cols-3 gap-2">
-                <input
-                  className={covenantSmallInputClass}
-                  placeholder="Label"
-                  value={i === 0 ? m1.label : i === 1 ? m2.label : m3.label}
-                  onChange={(e) =>
-                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, label: e.target.value })
-                  }
-                />
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  className={covenantSmallInputClass}
-                  placeholder="%"
-                  value={i === 0 ? m1.pct : i === 1 ? m2.pct : m3.pct}
-                  onChange={(e) =>
-                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, pct: e.target.value })
-                  }
-                />
-                <input
-                  type="datetime-local"
-                  className={covenantSmallInputClass}
-                  value={i === 0 ? m1.unlock : i === 1 ? m2.unlock : m3.unlock}
-                  onChange={(e) =>
-                    (i === 0 ? setM1 : i === 1 ? setM2 : setM3)({ ...m, unlock: e.target.value })
-                  }
-                />
+            {milestoneRows.map((row) => (
+              <div key={row.key} className="flex gap-2 items-start">
+                <div className="grid flex-1 grid-cols-3 gap-2">
+                  <input
+                    className={covenantSmallInputClass}
+                    placeholder="Label"
+                    value={row.label}
+                    onChange={(e) => updateMilestoneRow(row.key, { label: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    className={covenantSmallInputClass}
+                    placeholder="%"
+                    value={row.pct}
+                    onChange={(e) => updateMilestoneRow(row.key, { pct: e.target.value })}
+                  />
+                  <input
+                    type="datetime-local"
+                    className={covenantSmallInputClass}
+                    value={row.unlock}
+                    onChange={(e) => updateMilestoneRow(row.key, { unlock: e.target.value })}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeMilestoneRow(row.key)}
+                  disabled={milestoneRows.length <= 2}
+                  className="mt-2.5 p-2 text-zinc-400 hover:text-red-500 disabled:opacity-30 rounded-lg border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
+                  aria-label="Remove milestone"
+                >
+                  ×
+                </button>
               </div>
             ))}
+            <button
+              type="button"
+              onClick={addMilestoneRow}
+              disabled={milestoneRows.length >= 8}
+              className={KX_FORM_ADD_BTN_CLASS}
+            >
+              {covenantPremiumAddButtonLabel('milestone', milestoneRows.length)}
+            </button>
           </div>
 
           <div className="k-form-group !mb-0">

@@ -12,6 +12,14 @@ import { KPX_COVENANT_PAYLOAD_TEMPLATES } from './kpxBranding';
 
 export type KpxCovenantFeeAction = 'deploy' | 'claim';
 
+/** Included recipient / milestone fields before per-slot premium fees apply. */
+export const COVENANT_FREE_SLOTS: Partial<Record<CovenantTemplate, number>> = {
+  split: 2,
+  milestone: 2,
+};
+
+export const COVENANT_EXTRA_SLOT_FEE_KAS = 5;
+
 const DEFAULT_DEPLOY_FEE_KAS: Record<CovenantTemplate, number> = {
   lockbox: 10,
   split: 10,
@@ -32,6 +40,9 @@ export interface KpxCovenantDeployPrice {
   template: CovenantTemplate;
   payloadTemplate: string;
   baseFeeKas: number;
+  premiumAddonKas: number;
+  extraSlotCount: number;
+  premiumSlotCount?: number;
   discountPercent: number;
   feeKas: number;
   feeSompi: string;
@@ -40,6 +51,36 @@ export interface KpxCovenantDeployPrice {
   hubPointsBase: number;
   hubPointsEarned: number;
   krexTier: KREXTier;
+}
+
+export type KpxCovenantDeployPriceOptions = {
+  premiumSlotCount?: number;
+};
+
+export function computeCovenantPremiumSlotAddon(
+  template: CovenantTemplate,
+  slotCount: number,
+): { includedSlots: number; extraSlotCount: number; addonKas: number } {
+  const includedSlots = COVENANT_FREE_SLOTS[template] ?? 0;
+  const extraSlotCount = Math.max(0, slotCount - includedSlots);
+  return {
+    includedSlots,
+    extraSlotCount,
+    addonKas: extraSlotCount * COVENANT_EXTRA_SLOT_FEE_KAS,
+  };
+}
+
+export function covenantPremiumAddButtonLabel(
+  template: 'split' | 'milestone',
+  currentSlotCount: number,
+): string {
+  const noun = template === 'split' ? 'Recipient' : 'Milestone';
+  const included = COVENANT_FREE_SLOTS[template] ?? 2;
+  const prefix = `+ Add ${noun}`;
+  if (currentSlotCount >= included) {
+    return `${prefix} (+${COVENANT_EXTRA_SLOT_FEE_KAS} KAS)`;
+  }
+  return prefix;
 }
 
 function readBaseDeployFeeKas(template: CovenantTemplate): number {
@@ -65,12 +106,19 @@ export function kasToSompiString(kas: number): string {
 export function resolveKpxCovenantDeployPrice(
   template: CovenantTemplate,
   krexTier: KREXTier,
+  options?: KpxCovenantDeployPriceOptions,
 ): KpxCovenantDeployPrice {
   const baseFeeKas = readBaseDeployFeeKas(template);
+  const slotAddon =
+    options?.premiumSlotCount != null
+      ? computeCovenantPremiumSlotAddon(template, options.premiumSlotCount)
+      : { extraSlotCount: 0, addonKas: 0 };
+  const premiumAddonKas = slotAddon.addonKas;
+  const grossFeeKas = baseFeeKas + premiumAddonKas;
   const discountPercent = krexTierDiscountPercent(krexTier);
   const treasuryConfigured = Boolean(getKpxCovenantTreasuryAddress());
   const discounted =
-    Math.round(baseFeeKas * (1 - discountPercent / 100) * 100_000_000) / 100_000_000;
+    Math.round(grossFeeKas * (1 - discountPercent / 100) * 100_000_000) / 100_000_000;
   const feeKas = treasuryConfigured ? Math.max(0.01, discounted) : 0;
   const waived = !treasuryConfigured || feeKas <= 0;
   const hubPointsBase = HUB_EARN_POINTS.kpxCovenantDeploy;
@@ -80,6 +128,9 @@ export function resolveKpxCovenantDeployPrice(
     template,
     payloadTemplate: KPX_COVENANT_PAYLOAD_TEMPLATES[template],
     baseFeeKas,
+    premiumAddonKas,
+    extraSlotCount: slotAddon.extraSlotCount,
+    premiumSlotCount: options?.premiumSlotCount,
     discountPercent,
     feeKas,
     feeSompi: kasToSompiString(feeKas),

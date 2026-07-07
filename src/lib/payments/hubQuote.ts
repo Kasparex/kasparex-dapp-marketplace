@@ -5,7 +5,10 @@
 
 import { getDAppNetworkType, type DApp } from '@/lib/dapps';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
-import type { KpxCovenantDeployPrice } from '@/lib/covenant/kpxCovenantPricing';
+import {
+  COVENANT_EXTRA_SLOT_FEE_KAS,
+  type KpxCovenantDeployPrice,
+} from '@/lib/covenant/kpxCovenantPricing';
 import { formatPrice, formatPercent, type CostCalculatorInputs, calculateCost } from '@/lib/payments/calculator';
 import { getActionCost } from '@/lib/payments/config';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
@@ -188,8 +191,22 @@ export function covenantDeployToHubQuote(
   }
   lines.push({ label: 'Base fee (deploy)', value: `${formatPrice(pricing.baseFeeKas)} KAS` });
 
+  if (pricing.premiumAddonKas > 0 && pricing.extraSlotCount > 0) {
+    const slotLabel =
+      pricing.template === 'split'
+        ? 'Extra recipients'
+        : pricing.template === 'milestone'
+          ? 'Extra milestones'
+          : 'Premium slots';
+    lines.push({
+      label: `${slotLabel} (${pricing.extraSlotCount} × ${COVENANT_EXTRA_SLOT_FEE_KAS} KAS)`,
+      value: `${formatPrice(pricing.premiumAddonKas)} KAS`,
+    });
+  }
+
+  const grossDeployFeeKas = pricing.baseFeeKas + pricing.premiumAddonKas;
   const quote = totalDiscountQuote(
-    pricing.waived ? 0 : pricing.baseFeeKas,
+    pricing.waived ? 0 : grossDeployFeeKas,
     'KAS',
     pricing.krexTier,
     krexBalance,

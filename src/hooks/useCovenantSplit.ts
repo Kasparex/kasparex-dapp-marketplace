@@ -79,7 +79,9 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const pricing = resolveKpxCovenantDeployPrice('split', krexTier);
+        const pricing = resolveKpxCovenantDeployPrice('split', krexTier, {
+          premiumSlotCount: args.recipients.length,
+        });
         const split = await runKpxCovenantDeployWithFee({
           template: 'split',
           pricing,
