@@ -5,15 +5,17 @@ import Image from 'next/image';
 import type { DApp } from '@/lib/dapps';
 import { getCategoryById } from '@/lib/categories';
 import { DAppIcon } from './DAppIcon';
-import { DAppNetworkBadge } from './DAppNetworkBadge';
 import { DAppPageHeaderActions, useMergedDApp } from './DAppPageHeaderActions';
 import { KxTagChip } from '@/components/ui/KxTagChip';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { resolveDAppAuthor } from '@/lib/dapps/deployer';
+import { KxHubPtsBadge } from '@/components/ui/KxHubPtsBadge';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
 import { KX_DETAIL_HEADER } from '@/lib/hub/shellTokens';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
+import { formatLargeNumber } from '@/lib/rewards/calculator';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 
 function SocialLink({ label, url }: { label: string; url: string }) {
@@ -41,6 +43,7 @@ export function DAppPageHeader({
 }) {
   const router = useRouter();
   const { mergedDApp } = useMergedDApp(dapp, contractAddress);
+  const { totalRedeemable: hubPts, address: hubAddr } = useRedeemablePointsBreakdown();
   const category = getCategoryById(mergedDApp.category);
   const { wallet: authorWallet, name: authorCustomName } = resolveDAppAuthor(mergedDApp);
 
@@ -58,6 +61,7 @@ export function DAppPageHeader({
     '';
 
   const statusLabel = mergedDApp.status || 'Mainnet';
+  const hubPtsLabel = hubAddr ? `${formatLargeNumber(hubPts)} pts` : 'Hub pts';
 
   return (
     <div id="dapp-header" className={`${KX_DETAIL_HEADER} relative mb-8 scroll-mt-24 select-text`}>
@@ -83,9 +87,13 @@ export function DAppPageHeader({
                 <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">by {mergedDApp.developer}</p>
               ) : null}
             </div>
-            <div className="flex flex-shrink-0 flex-col items-end gap-2">
-              <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
+            <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
               <KxBadge variant="zinc">{statusLabel}</KxBadge>
+            </div>
+            <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
+              <span className="inline-flex items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 shadow-sm">
+                <KxHubPtsBadge label={hubPtsLabel} title="Your redeemable Hub points" className="!text-emerald-700 dark:!text-emerald-300" />
+              </span>
             </div>
           </div>
 

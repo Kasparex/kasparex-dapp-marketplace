@@ -6,15 +6,12 @@ import { useCovenantMilestone } from '@/hooks/useCovenantMilestone';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
-  CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
-  covenantPanelClass,
   covenantCardClass,
   covenantSmallInputClass,
-  covenantPrimaryBtnClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -24,6 +21,11 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import {
+  useDAppWidgetSection,
+  useNavigateDAppWidgetTab,
+  useRegisterWidgetTabLabel,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'deals' | 'metadata' | 'about';
 
@@ -38,7 +40,9 @@ export function CovenantMilestoneWidget() {
   const { deals, loading, error, createDeal, claimStep, refresh, runtimeMode, effectiveMode } =
     useCovenantMilestone();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone');
-  const [tab, setTab] = useState<TabId>('create');
+  const tab = useDAppWidgetSection('create') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
+  useRegisterWidgetTabLabel('deals', `Deals (${deals.length})`, [deals.length]);
   const [beneficiary, setBeneficiary] = useState('');
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
@@ -64,7 +68,7 @@ export function CovenantMilestoneWidget() {
         memo,
         milestones,
       });
-      setTab('deals');
+      navigateTab('deals');
     } finally {
       setBusy(false);
     }
@@ -96,17 +100,6 @@ export function CovenantMilestoneWidget() {
 
   return (
     <KpxCovenantShell template="milestone" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      <CovenantTabs
-        tabs={[
-          { id: 'create' as const, label: 'New deal' },
-          { id: 'deals' as const, label: `Deals (${deals.length})` },
-          { id: 'metadata' as const, label: 'Metadata' },
-          { id: 'about' as const, label: 'How it works' },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
 
       {error && <CovenantError message={error} />}
 

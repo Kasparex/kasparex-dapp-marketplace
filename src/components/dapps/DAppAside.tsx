@@ -15,8 +15,8 @@ export function DAppAside({
 }) {
   return (
     <aside id="kasparex-dapp-side-panel" className="w-full min-w-0 max-w-full space-y-4 lg:sticky lg:top-6 self-start">
-      {showCalculationPanel ? <DAppWidgetActionPanel dapp={dapp} /> : null}
       <DAppsBenefitsPanel variant="panel" />
+      {showCalculationPanel ? <DAppWidgetActionPanel dapp={dapp} /> : null}
       <PanelAdSlider slotId="HALO_DAPPS_RIGHT" id="ad-slot-dapp-detail-aside" />
     </aside>
   );

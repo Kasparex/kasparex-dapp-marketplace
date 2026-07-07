@@ -6,15 +6,12 @@ import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
-  CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
-  covenantPanelClass,
   covenantCardClass,
   covenantSmallInputClass,
-  covenantPrimaryBtnClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -24,6 +21,11 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import {
+  useDAppWidgetSection,
+  useNavigateDAppWidgetTab,
+  useRegisterWidgetTabLabel,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'browse' | 'create' | 'metadata' | 'about';
 
@@ -32,7 +34,9 @@ export function CovenantCrowdfundWidget() {
   const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
     useCovenantCrowdfund();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('crowdfund');
-  const [tab, setTab] = useState<TabId>('browse');
+  const tab = useDAppWidgetSection('browse') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
+  useRegisterWidgetTabLabel('browse', `Campaigns (${allCampaigns.length})`, [allCampaigns.length]);
   const [title, setTitle] = useState('');
   const [memo, setMemo] = useState('');
   const [goalKas, setGoalKas] = useState('5');
@@ -52,7 +56,7 @@ export function CovenantCrowdfundWidget() {
         goalKas: parseFloat(goalKas),
         deadline: new Date(deadline),
       });
-      setTab('browse');
+      navigateTab('browse');
     } finally {
       setBusy(false);
     }
@@ -84,17 +88,6 @@ export function CovenantCrowdfundWidget() {
 
   return (
     <KpxCovenantShell template="crowdfund" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      <CovenantTabs
-        tabs={[
-          { id: 'browse' as const, label: 'Campaigns' },
-          { id: 'create' as const, label: 'Launch' },
-          { id: 'metadata' as const, label: 'Metadata' },
-          { id: 'about' as const, label: 'How it works' },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
 
       {error && <CovenantError message={error} />}
 

@@ -6,14 +6,11 @@ import { useCovenantLockbox } from '@/hooks/useCovenantLockbox';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
 import {
-  CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
-  covenantPanelClass,
   covenantCardClass,
-  covenantPrimaryBtnClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -27,6 +24,11 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import {
+  useDAppWidgetSection,
+  useNavigateDAppWidgetTab,
+  useRegisterWidgetTabLabel,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'vaults' | 'metadata' | 'about';
 
@@ -54,7 +56,9 @@ export function CovenantLockboxWidget() {
     useCovenantLockbox();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox');
 
-  const [tab, setTab] = useState<TabId>('create');
+  const tab = useDAppWidgetSection('create') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
+  useRegisterWidgetTabLabel('vaults', `Vaults (${vaults.length})`, [vaults.length]);
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
   const [beneficiary, setBeneficiary] = useState('');
   const [amountKas, setAmountKas] = useState('10');
@@ -80,7 +84,7 @@ export function CovenantLockboxWidget() {
         unlockAt,
       });
       setMemo('');
-      setTab('vaults');
+      navigateTab('vaults');
     } catch (e) {
       console.error(e);
     } finally {
@@ -127,17 +131,6 @@ export function CovenantLockboxWidget() {
 
   return (
     <KpxCovenantShell template="lockbox" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      <CovenantTabs
-        tabs={[
-          { id: 'create' as const, label: 'Create lock' },
-          { id: 'vaults' as const, label: `Vaults (${vaults.length})` },
-          { id: 'metadata' as const, label: 'Metadata' },
-          { id: 'about' as const, label: 'How it works' },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
 
       {error && <CovenantError message={error} />}
 

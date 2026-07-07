@@ -6,15 +6,12 @@ import { useCovenantSplit } from '@/hooks/useCovenantSplit';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { SplitPayment, SplitRecipient } from '@/lib/covenant';
 import {
-  CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
   covenantSmallInputClass,
-  covenantPanelClass,
   covenantCardClass,
-  covenantPrimaryBtnClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -24,6 +21,11 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import {
+  useDAppWidgetSection,
+  useNavigateDAppWidgetTab,
+  useRegisterWidgetTabLabel,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'splits' | 'metadata' | 'about';
 
@@ -60,7 +62,9 @@ export function CovenantSplitWidget() {
     useCovenantSplit();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split');
 
-  const [tab, setTab] = useState<TabId>('create');
+  const tab = useDAppWidgetSection('create') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
+  useRegisterWidgetTabLabel('splits', `Splits (${splits.length})`, [splits.length]);
   const [rows, setRows] = useState<RecipientRow[]>([
     { key: 'a', address: '', percent: '50' },
     { key: 'b', address: '', percent: '50' },
@@ -114,7 +118,7 @@ export function CovenantSplitWidget() {
         recipients,
       });
       setMemo('');
-      setTab('splits');
+      navigateTab('splits');
     } catch (e) {
       console.error(e);
     } finally {
@@ -166,16 +170,6 @@ export function CovenantSplitWidget() {
   return (
     <KpxCovenantShell template="split" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
-      <CovenantTabs
-        tabs={[
-          { id: 'create' as const, label: 'Create split' },
-          { id: 'splits' as const, label: `Splits (${splits.length})` },
-          { id: 'metadata' as const, label: 'Metadata' },
-          { id: 'about' as const, label: 'How it works' },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
 
       {error && <CovenantError message={error} />}
 

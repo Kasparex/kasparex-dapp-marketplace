@@ -141,11 +141,11 @@ export function DAppTabs<T extends string>(props: {
             key={t.id}
             type="button"
             onClick={() => props.onChange(t.id)}
-            className={kxTabBtnClass(props.value === t.id)}
+            className={`${kxTabBtnClass(props.value === t.id)} shrink-0`}
           >
             <span className="pointer-events-none inline-flex items-center justify-center gap-2 leading-none">
               {t.icon ? <span className="inline-flex shrink-0 items-center justify-center leading-none">{t.icon}</span> : null}
-              <span className="leading-none">{t.label}</span>
+              <span className="whitespace-nowrap leading-none">{t.label}</span>
               {t.rightAdornment ? <span className="inline-flex items-center leading-none">{t.rightAdornment}</span> : null}
             </span>
           </button>

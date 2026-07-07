@@ -5,25 +5,13 @@ import type { DApp } from '@/lib/dapps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryDAppOverviewPanel';
 import { DirectoryDAppDescriptionsPanel } from '@/components/dapps/panels/DirectoryDAppDescriptionsPanel';
-import { DirectoryDAppFeesPanel } from '@/components/dapps/panels/DirectoryDAppFeesPanel';
 import { DAppRevenueTreePanel } from '@/components/dapps/panels/DAppRevenueTreePanel';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from '@/components/dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
-import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppDetailShell } from '@/components/dapps/shell/DAppDetailShell';
 import { KX_TAB_SECTION } from '@/lib/hub/shellTokens';
-
-const BASE_TABS = [
-  { id: 'overview', label: 'Overview', icon: <IconDAppWidget /> },
-  { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
-  { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
-  { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
-  { id: 'comments', label: 'Comments', icon: <IconComments /> },
-] as const;
-
-type DirectoryTabId = (typeof BASE_TABS)[number]['id'];
+import { buildDAppDetailTabs } from '@/lib/dapps/buildDAppDetailTabs';
 
 function CommentsTabBadge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -40,27 +28,24 @@ type DirectoryDAppDetailProps = {
 };
 
 export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps) {
-  const [tab, setTab] = useState<DirectoryTabId>('overview');
+  const [tab, setTab] = useState('overview');
   const articleId = `dapp:${dapp.slug || dapp.id}`;
   const commentsCount = useDAppCommentsCount(articleId);
 
-  const tabs = useMemo((): readonly DAppTab<DirectoryTabId>[] => {
-    return BASE_TABS.map((t) =>
-      t.id === 'comments'
-        ? { ...t, rightAdornment: <CommentsTabBadge count={commentsCount} /> }
-        : t,
-    );
-  }, [commentsCount]);
+  const tabs = useMemo(
+    () =>
+      buildDAppDetailTabs({
+        dapp,
+        commentsCount,
+        commentsBadge: <CommentsTabBadge count={commentsCount} />,
+        includeOverview: true,
+      }),
+    [dapp, commentsCount],
+  );
 
   return (
     <PaymentAmountProvider>
-      <DAppDetailShell
-        dapp={dapp}
-        listing={listing}
-        tabs={tabs}
-        currentTab={tab}
-        onTabChange={setTab}
-      >
+      <DAppDetailShell dapp={dapp} listing={listing} tabs={tabs} currentTab={tab} onTabChange={setTab}>
         {tab === 'overview' ? (
           <div className={KX_TAB_SECTION}>
             <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} />
@@ -69,11 +54,6 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
         {tab === 'descriptions' ? (
           <div className={KX_TAB_SECTION}>
             <DirectoryDAppDescriptionsPanel dapp={dapp} listing={listing} />
-          </div>
-        ) : null}
-        {tab === 'fees' ? (
-          <div className={KX_TAB_SECTION}>
-            <DirectoryDAppFeesPanel listing={listing} />
           </div>
         ) : null}
         {tab === 'revenue-tree' ? (

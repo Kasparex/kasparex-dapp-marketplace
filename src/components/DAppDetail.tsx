@@ -12,24 +12,23 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppWidgetActionRailProvider } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
-import { DAppFeesPanel } from './dapps/panels/DAppFeesPanel';
 import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
-import { IconDAppWidget, IconDAppFees, IconOverview, IconComments, IconRevenueTree } from './dapps/icons/DAppTabIcons';
+import { IconComments } from './dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { DAppDetailShell } from './dapps/shell/DAppDetailShell';
 import { DAppDetailProvider } from './dapps/shell/DAppDetailContext';
 import { KX_TAB_SECTION } from '@/lib/hub/shellTokens';
-import type { DAppTab } from './dapps/layout/DAppTabs';
-
-const BASE_TABS = [
-  { id: 'widget', label: 'DApp', icon: <IconDAppWidget /> },
-  { id: 'descriptions', label: 'Description', icon: <IconOverview /> },
-  { id: 'fees', label: 'Fees & Costs', icon: <IconDAppFees /> },
-  { id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> },
-  { id: 'comments', label: 'Comments', icon: <IconComments /> },
-] as const;
-
-type DAppTabId = (typeof BASE_TABS)[number]['id'];
+import {
+  buildDAppDetailTabs,
+  defaultDAppDetailTab,
+  isWidgetPageTab,
+} from '@/lib/dapps/buildDAppDetailTabs';
+import { isWidgetCalculationTab } from '@/lib/dapps/widgetPageTabs';
+import {
+  DAppWidgetSectionProvider,
+  DAppWidgetTabLabelProvider,
+  useWidgetTabLabelOverrides,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 interface DAppDetailProps {
   dapp: DApp;
@@ -45,9 +44,71 @@ function CommentsTabBadge({ count }: { count: number }) {
   );
 }
 
+function DAppDetailBody({
+  dapp,
+  mergedDApp,
+  contractAddress,
+}: {
+  dapp: DApp;
+  mergedDApp: DApp;
+  contractAddress: string;
+}) {
+  const [tab, setTab] = useState(() => defaultDAppDetailTab(dapp.slug));
+  const labelOverrides = useWidgetTabLabelOverrides();
+  const articleId = `dapp:${dapp.slug || dapp.id || 'unknown'}`;
+  const commentsCount = useDAppCommentsCount(articleId);
+
+  const tabs = useMemo(
+    () =>
+      buildDAppDetailTabs({
+        dapp: mergedDApp,
+        commentsCount,
+        commentsBadge: <CommentsTabBadge count={commentsCount} />,
+        labelOverrides,
+      }),
+    [mergedDApp, commentsCount, labelOverrides],
+  );
+
+  const showCalculationPanel = isWidgetCalculationTab(tab, dapp.slug);
+  const widgetSection = isWidgetPageTab(tab, dapp.slug) ? tab : null;
+
+  return (
+    <DAppDetailShell
+      dapp={mergedDApp}
+      contractAddress={contractAddress}
+      tabs={tabs}
+      currentTab={tab}
+      onTabChange={setTab}
+      showCalculationPanel={showCalculationPanel}
+    >
+      {widgetSection ? (
+        <DAppWidgetSectionProvider section={widgetSection} onNavigate={setTab}>
+          <div className={KX_TAB_SECTION}>
+            <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
+          </div>
+        </DAppWidgetSectionProvider>
+      ) : null}
+      {tab === 'descriptions' ? (
+        <div className={KX_TAB_SECTION}>
+          <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
+        </div>
+      ) : null}
+      {tab === 'revenue-tree' ? (
+        <div className={KX_TAB_SECTION}>
+          <DAppRevenueTreePanel dapp={mergedDApp} />
+        </div>
+      ) : null}
+      {tab === 'comments' ? (
+        <div className={KX_TAB_SECTION}>
+          <CommentsSection articleId={articleId} dappSectionHeader />
+        </div>
+      ) : null}
+    </DAppDetailShell>
+  );
+}
+
 export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppDetailProps) {
   const chainId = useChainId();
-  const [tab, setTab] = useState<DAppTabId>('widget');
 
   let contractAddress = propContractAddress || dapp.contractAddress || '';
   if (!contractAddress && chainId) {
@@ -62,56 +123,15 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
   );
 
   const mergedDApp = mergeDAppData(contractData, dapp);
-  const articleId = `dapp:${dapp.slug || dapp.id || 'unknown'}`;
-  const commentsCount = useDAppCommentsCount(articleId);
-
-  const tabs = useMemo((): readonly DAppTab<DAppTabId>[] => {
-    return BASE_TABS.map((t) =>
-      t.id === 'comments'
-        ? { ...t, rightAdornment: <CommentsTabBadge count={commentsCount} /> }
-        : t,
-    );
-  }, [commentsCount]);
 
   return (
     <PaymentAmountProvider>
       <DAppWidgetActionRailProvider>
-        <DAppDetailProvider dapp={dapp} mergedDApp={mergedDApp} contractAddress={contractAddress}>
-          <DAppDetailShell
-            dapp={mergedDApp}
-            contractAddress={contractAddress}
-            tabs={tabs}
-            currentTab={tab}
-            onTabChange={setTab}
-            showCalculationPanel={tab === 'widget'}
-          >
-          {tab === 'widget' ? (
-            <div className={KX_TAB_SECTION}>
-              <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
-            </div>
-          ) : null}
-          {tab === 'descriptions' ? (
-            <div className={KX_TAB_SECTION}>
-              <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
-            </div>
-          ) : null}
-          {tab === 'fees' ? (
-            <div className={KX_TAB_SECTION}>
-              <DAppFeesPanel dapp={mergedDApp} contractAddress={contractAddress} />
-            </div>
-          ) : null}
-          {tab === 'revenue-tree' ? (
-            <div className={KX_TAB_SECTION}>
-              <DAppRevenueTreePanel dapp={mergedDApp} />
-            </div>
-          ) : null}
-          {tab === 'comments' ? (
-            <div className={KX_TAB_SECTION}>
-              <CommentsSection articleId={articleId} dappSectionHeader />
-            </div>
-          ) : null}
-        </DAppDetailShell>
-      </DAppDetailProvider>
+        <DAppWidgetTabLabelProvider>
+          <DAppDetailProvider dapp={dapp} mergedDApp={mergedDApp} contractAddress={contractAddress}>
+            <DAppDetailBody dapp={dapp} mergedDApp={mergedDApp} contractAddress={contractAddress} />
+          </DAppDetailProvider>
+        </DAppWidgetTabLabelProvider>
       </DAppWidgetActionRailProvider>
     </PaymentAmountProvider>
   );

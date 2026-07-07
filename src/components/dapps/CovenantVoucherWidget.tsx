@@ -5,14 +5,11 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantVoucher } from '@/hooks/useCovenantVoucher';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import {
-  CovenantTabs,
   CovenantFieldLabel,
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
-  covenantPanelClass,
   covenantCardClass,
-  covenantPrimaryBtnClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
@@ -22,6 +19,10 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import {
+  useDAppWidgetSection,
+  useNavigateDAppWidgetTab,
+} from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'claim' | 'metadata' | 'about';
 
@@ -30,7 +31,8 @@ export function CovenantVoucherWidget() {
   const { openVouchers, loading, error, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
     useCovenantVoucher();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('voucher');
-  const [tab, setTab] = useState<TabId>('create');
+  const tab = useDAppWidgetSection('create') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
   const [amountKas, setAmountKas] = useState('0.1');
   const [memo, setMemo] = useState('');
   const [expires, setExpires] = useState('');
@@ -53,7 +55,7 @@ export function CovenantVoucherWidget() {
       });
       setIssuedSecret(secret);
       setIssuedId(voucher.id);
-      setTab('claim');
+      navigateTab('claim');
     } finally {
       setBusy(false);
     }
@@ -96,17 +98,6 @@ export function CovenantVoucherWidget() {
 
   return (
     <KpxCovenantShell template="voucher" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      <CovenantTabs
-        tabs={[
-          { id: 'create' as const, label: 'Mint voucher' },
-          { id: 'claim' as const, label: 'Redeem' },
-          { id: 'metadata' as const, label: 'Metadata' },
-          { id: 'about' as const, label: 'How it works' },
-        ]}
-        active={tab}
-        onChange={setTab}
-      />
 
       {error && <CovenantError message={error} />}
 
