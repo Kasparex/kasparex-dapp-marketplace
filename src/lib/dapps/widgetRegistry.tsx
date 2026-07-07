@@ -6,51 +6,49 @@ import type { DApp } from '@/lib/dapps';
 import type { DAppTabDef } from './modules/types';
 import { DAppWidgetLoading } from '@/components/dapps/DAppWidgetLoading';
 
-const widgetLoading = { ssr: false, loading: () => <DAppWidgetLoading /> } as const;
-
 const SimplePaymentWidget = dynamic(
   () => import('@/components/dapps/SimplePaymentWidget').then((m) => m.SimplePaymentWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const DAOVotingWidget = dynamic(
   () => import('@/components/dapps/DAOVotingWidget').then((m) => m.DAOVotingWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const GenesisBadgeWidget = dynamic(
   () => import('@/components/dapps/GenesisBadgeWidget').then((m) => m.GenesisBadgeWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const GenesisDappWidget = dynamic(
   () => import('@/components/dapps/GenesisDappWidget').then((m) => m.GenesisDappWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const CovenantLockboxWidget = dynamic(
   () => import('@/components/dapps/CovenantLockboxWidget').then((m) => m.CovenantLockboxWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const CovenantSplitWidget = dynamic(
   () => import('@/components/dapps/CovenantSplitWidget').then((m) => m.CovenantSplitWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const CovenantMilestoneWidget = dynamic(
   () => import('@/components/dapps/CovenantMilestoneWidget').then((m) => m.CovenantMilestoneWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const CovenantCrowdfundWidget = dynamic(
   () => import('@/components/dapps/CovenantCrowdfundWidget').then((m) => m.CovenantCrowdfundWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const CovenantVoucherWidget = dynamic(
   () => import('@/components/dapps/CovenantVoucherWidget').then((m) => m.CovenantVoucherWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const SendKREXWidget = dynamic(
   () => import('@/components/dapps/SendKREXWidget').then((m) => m.SendKREXWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 const SendKASWidget = dynamic(
   () => import('@/components/dapps/SendKASWidget').then((m) => m.SendKASWidget),
-  widgetLoading,
+  { ssr: false, loading: () => <DAppWidgetLoading /> },
 );
 
 export type WidgetEntry = {
