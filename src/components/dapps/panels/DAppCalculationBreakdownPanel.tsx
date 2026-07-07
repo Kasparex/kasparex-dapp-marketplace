@@ -144,7 +144,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           {quote.discountKas > 0 ? (
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
               KREX discount: -{formatPrice(quote.discountKas)} {discountCurrency} ({quote.discountPercent}%
-              off total).
+              {quote.subtotalKas != null && quote.totalKas < quote.subtotalKas ? ' off total' : ' off platform fees'}).
             </div>
           ) : null}
 

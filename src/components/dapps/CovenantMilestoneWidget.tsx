@@ -10,6 +10,7 @@ import {
   CovenantError,
   CovenantHowItWorks,
   CovenantTabPanel,
+  CovenantCreateShell,
   covenantInputClass,
   covenantCardClass,
   covenantSmallInputClass,
@@ -104,8 +105,8 @@ export function CovenantMilestoneWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-5">
-          <div>
+        <CovenantCreateShell template="milestone" heading="New milestone deal">
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Who gets paid"
               htmlFor="milestone-beneficiary"
@@ -120,7 +121,7 @@ export function CovenantMilestoneWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
               htmlFor="milestone-total"
@@ -137,12 +138,12 @@ export function CovenantMilestoneWidget() {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="k-form-group !mb-0 space-y-3">
             <CovenantFieldLabel
               label="Milestones"
               tooltip="Each row is one payment slice. Percentages should add up to 100. The beneficiary can claim after each unlock date."
             />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1 mb-2">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1">
               Label · share % · unlock date
             </p>
             {[m1, m2, m3].map((m, i) => (
@@ -178,7 +179,7 @@ export function CovenantMilestoneWidget() {
             ))}
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Memo (optional)"
               htmlFor="milestone-memo"
@@ -192,8 +193,7 @@ export function CovenantMilestoneWidget() {
               onChange={(e) => setMemo(e.target.value)}
             />
           </div>
-
-        </div>
+        </CovenantCreateShell>
       )}
 
       {tab === 'deals' && (

@@ -10,6 +10,7 @@ import {
   CovenantError,
   CovenantHowItWorks,
   CovenantTabPanel,
+  CovenantCreateShell,
   covenantInputClass,
   covenantCardClass,
   covenantSmallInputClass,
@@ -92,8 +93,8 @@ export function CovenantCrowdfundWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-5">
-          <div>
+        <CovenantCreateShell template="crowdfund" heading="Launch campaign">
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Campaign title"
               htmlFor="crowdfund-title"
@@ -108,7 +109,7 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label={`Funding goal (KAS, min ${minKas})`}
               htmlFor="crowdfund-goal"
@@ -126,7 +127,7 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Deadline"
               htmlFor="crowdfund-deadline"
@@ -141,7 +142,7 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Description (optional)"
               htmlFor="crowdfund-memo"
@@ -155,8 +156,7 @@ export function CovenantCrowdfundWidget() {
               onChange={(e) => setMemo(e.target.value)}
             />
           </div>
-
-        </div>
+        </CovenantCreateShell>
       )}
 
       {tab === 'browse' && (

@@ -10,6 +10,7 @@ import {
   CovenantError,
   CovenantHowItWorks,
   CovenantTabPanel,
+  CovenantCreateShell,
   covenantInputClass,
   covenantSmallInputClass,
   covenantCardClass,
@@ -174,8 +175,8 @@ export function CovenantSplitWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className="space-y-5">
-          <div>
+        <CovenantCreateShell template="split" heading="Create split">
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
               htmlFor="split-total"
@@ -192,7 +193,7 @@ export function CovenantSplitWidget() {
             />
           </div>
 
-          <div className="space-y-4">
+          <div className="k-form-group !mb-0 space-y-4">
             <div className="flex justify-between items-center">
               <CovenantFieldLabel
                 label="Recipients"
@@ -256,7 +257,7 @@ export function CovenantSplitWidget() {
             </button>
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Memo (optional)"
               htmlFor="split-memo"
@@ -272,8 +273,7 @@ export function CovenantSplitWidget() {
               className={covenantInputClass}
             />
           </div>
-
-        </div>
+        </CovenantCreateShell>
       )}
 
       {tab === 'splits' && (

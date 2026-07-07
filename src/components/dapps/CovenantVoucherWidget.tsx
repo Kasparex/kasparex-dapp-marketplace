@@ -9,6 +9,7 @@ import {
   CovenantError,
   CovenantHowItWorks,
   CovenantTabPanel,
+  CovenantCreateShell,
   covenantInputClass,
   covenantPanelClass,
   covenantCardClass,
@@ -113,8 +114,8 @@ export function CovenantVoucherWidget() {
       )}
 
       {tab === 'create' && (
-        <div className="space-y-5">
-          <div>
+        <CovenantCreateShell template="voucher" heading="Mint voucher">
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
               htmlFor="voucher-amount"
@@ -131,7 +132,7 @@ export function CovenantVoucherWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Expires"
               htmlFor="voucher-expires"
@@ -146,7 +147,7 @@ export function CovenantVoucherWidget() {
             />
           </div>
 
-          <div>
+          <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Memo (optional)"
               htmlFor="voucher-memo"
@@ -160,8 +161,7 @@ export function CovenantVoucherWidget() {
               onChange={(e) => setMemo(e.target.value)}
             />
           </div>
-
-        </div>
+        </CovenantCreateShell>
       )}
 
       {tab === 'claim' && (

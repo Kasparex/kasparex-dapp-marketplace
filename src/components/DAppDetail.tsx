@@ -27,17 +27,8 @@ import {
   DAppWidgetTabLabelProvider,
   useWidgetTabLabelOverrides,
 } from '@/lib/dapps/DAppWidgetTabContext';
-import { DAppWidgetLoading } from '@/components/dapps/DAppWidgetLoading';
-
-const DAppWidget = dynamic(() => import('./DAppWidget').then((m) => m.DAppWidget), {
-  ssr: false,
-  loading: () => <DAppWidgetLoading />,
-});
-
-const DAppRevenueTreePanel = dynamic(
-  () => import('./dapps/panels/DAppRevenueTreePanel').then((m) => m.DAppRevenueTreePanel),
-  { ssr: false },
-);
+import { DAppWidget } from './DAppWidget';
+import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
 
 const CommentsSection = dynamic(
   () => import('./vblog/CommentsSection').then((m) => m.CommentsSection),

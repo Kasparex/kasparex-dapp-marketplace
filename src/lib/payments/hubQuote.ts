@@ -78,9 +78,22 @@ function costBreakdownToHubQuote(
 ): HubQuoteDisplay {
   const tierLabel = KREX_TIERS[tier].label;
   const subtotalKas = breakdown.baseCost;
-  const discountKas = breakdown.costReductionAmount;
-  const totalKas = breakdown.finalCostWithFee;
-  const discountPercent = displayDiscountPercent(subtotalKas, discountKas);
+  let discountKas = breakdown.costReductionAmount;
+  let discountPercent = displayDiscountPercent(subtotalKas, discountKas);
+  let totalKas = breakdown.finalCostWithFee;
+  let infoText = options.infoText;
+
+  // Variable payments: tier perks reduce fees, not the transfer total (show savings explicitly).
+  if (discountKas <= 0 && breakdown.feeDiscountAmount > 0) {
+    discountKas = breakdown.feeDiscountAmount;
+    discountPercent = displayDiscountPercent(
+      (breakdown.baseCost * breakdown.standardFeePercent) / 100,
+      discountKas,
+    );
+    infoText =
+      infoText ??
+      `KREX tier saves ${formatPrice(discountKas)} ${currency} on platform fees. You still send the full payment amount on-chain.`;
+  }
 
   return {
     lines,
@@ -92,9 +105,10 @@ function costBreakdownToHubQuote(
     currency,
     hubPoints: options.hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(tier),
-    infoText: options.infoText,
+    infoText,
     tierLabel,
-    hasKrexDiscount: discountKas > 0 && krexBalance >= KREX_TIERS.Tier1.minKREX,
+    hasKrexDiscount:
+      discountKas > 0 && krexBalance >= KREX_TIERS.Tier1.minKREX,
   };
 }
 
@@ -209,13 +223,19 @@ function l1TransferHubQuote(
     tier,
     spendKas: amount,
   });
+  const tierDiscountPct = discountPercentForTier(krexBalance, tier);
+  const bufferGross = L1_NETWORK_BUFFER_KAS;
+  const bufferNet = round2(bufferGross * (1 - tierDiscountPct / 100));
   const lines: HubQuoteLine[] = [
     { label: 'Transfer amount', value: `${formatPrice(amount)} ${transferCurrency}` },
-    { label: 'Network buffer', value: `${formatPrice(L1_NETWORK_BUFFER_KAS)} KAS` },
+    {
+      label: 'Network buffer',
+      value: `${formatPrice(bufferNet)} KAS${tierDiscountPct > 0 && bufferNet < bufferGross ? ` (${formatPrice(bufferGross)} before discount)` : ''}`,
+    },
   ];
 
   const bufferQuote = totalDiscountQuote(
-    L1_NETWORK_BUFFER_KAS,
+    bufferGross,
     'KAS',
     tier,
     krexBalance,
@@ -259,12 +279,11 @@ export function calculateDAppHubQuote(
       ? costInputs.overrideBaseCost
       : getActionCost(dapp, costInputs.actionId, networkType);
 
-  const spendKas = variableAmount ? grossTotal : grossTotal;
   const hubPoints = computeHubPointsForAction({
     dapp,
     actionId: costInputs.actionId,
     tier,
-    spendKas,
+    spendKas: grossTotal,
   });
 
   if (slug === 'send-kas' && costInputs.overrideBaseCost != null) {
@@ -282,8 +301,9 @@ export function calculateDAppHubQuote(
     },
   ];
 
+  const breakdown = calculateCost({ dapp, ...costInputs });
+
   if (variableAmount) {
-    const breakdown = calculateCost({ dapp, ...costInputs });
     if (breakdown.feePercent > 0) {
       lines.push({
         label: `Platform fee (${formatPercent(breakdown.feePercent)}%)`,
@@ -297,7 +317,7 @@ export function calculateDAppHubQuote(
     });
   }
 
-  return totalDiscountQuote(grossTotal, currency, tier, costInputs.krexBalance, lines, {
+  return costBreakdownToHubQuote(breakdown, currency, tier, costInputs.krexBalance, lines, {
     hubPoints,
     infoText:
       networkType === 'L1'
