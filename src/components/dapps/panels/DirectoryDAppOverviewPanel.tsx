@@ -84,6 +84,7 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
     return [...fromCids, ...fromUrls];
   }, [listing.optionalFileCids, listing.optionalFileNames, listing.optionalFileUrls]);
 
+  return (
     <div className="space-y-5">
         {listing.actionButtons.length > 0 ? (
           <KxPanel>
