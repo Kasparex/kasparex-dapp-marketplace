@@ -38,7 +38,8 @@ function EmbedContentInner() {
       )}
       <div className={hideHeader ? '' : 'p-4'}>
         <DAppWidget 
-          dapp={dapp} 
+          dapp={dapp}
+          variant="embed"
           hideHeader={hideHeader}
           hideFooter={hideFooter}
           hideIcons={hideIcons}

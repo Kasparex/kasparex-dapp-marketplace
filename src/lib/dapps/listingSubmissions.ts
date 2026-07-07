@@ -415,7 +415,9 @@ export function directoryListingToDApp(listing: DirectoryListing): DApp {
     developerLinks.push({ label: 'Website', url: listing.websiteUrl });
   }
   for (const link of listing.socialLinks) {
-    if (developerLinks.length >= 3) break;
+    developerLinks.push(link);
+  }
+  for (const link of listing.documentationLinks) {
     developerLinks.push(link);
   }
 
@@ -442,7 +444,7 @@ export function directoryListingToDApp(listing: DirectoryListing): DApp {
     category: listing.category,
     utility: listing.utility || listing.shortDescription,
     process: listing.process || listing.shortDescription,
-    benefits: listing.benefits || (listing.tags.length > 0 ? listing.tags.join(' · ') : listing.utility),
+    benefits: listing.benefits || listing.utility || listing.shortDescription,
     developer: 'Community',
     developerLinks: developerLinks.length > 0 ? developerLinks : undefined,
     status: 'Mainnet',

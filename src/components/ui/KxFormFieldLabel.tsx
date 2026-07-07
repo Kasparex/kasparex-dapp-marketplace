@@ -1,20 +1,50 @@
-import type { ReactNode } from 'react';
+'use client';
 
-/** Form field label with platform tilt accent (matches DAppSectionHeader). */
+import type { ReactNode } from 'react';
+import { Tooltip } from '@/components/ui/Tooltip';
+
+/** Form field label with platform tilt accent, optional tooltip and layout hint. */
 export function KxFormFieldLabel({
   children,
   className = '',
+  tooltip,
+  layoutHint,
+  required,
 }: {
   children: ReactNode;
   className?: string;
+  tooltip?: string;
+  layoutHint?: string;
+  required?: boolean;
 }) {
-  return (
-    <span className={`inline-flex items-center gap-2 min-w-0 ${className}`.trim()}>
+  const label = (
+    <span className={`inline-flex items-center gap-2 min-w-0 flex-wrap ${className}`.trim()}>
       <span
         className="h-3.5 w-0.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)] -skew-y-12"
         aria-hidden="true"
       />
-      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{children}</span>
+      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+        {children}
+        {required ? <span className="text-rose-500 ml-0.5" aria-hidden="true">*</span> : null}
+      </span>
+      {layoutHint ? (
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+          {layoutHint}
+        </span>
+      ) : null}
+      {tooltip ? (
+        <Tooltip content={tooltip}>
+          <button
+            type="button"
+            className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 hover:border-[#02abb8] hover:text-[#02abb8] dark:border-zinc-600 dark:text-zinc-400"
+            aria-label="Field help"
+          >
+            ?
+          </button>
+        </Tooltip>
+      ) : null}
     </span>
   );
+
+  return label;
 }

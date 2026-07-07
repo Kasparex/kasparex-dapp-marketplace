@@ -3,29 +3,25 @@
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import { covenantRuntimeBadge } from '@/lib/programmability/runtime-label';
 import type { CovenantRuntimeMode } from '@/lib/covenant/types';
+import {
+  KX_BTN_PRIMARY,
+  KX_BTN_SECONDARY,
+  KX_INPUT,
+  KX_PANEL_PADDING,
+  KX_SURFACE_INSET,
+} from '@/lib/hub/shellTokens';
 
-export const covenantInputClass =
-  'w-full px-3 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40 focus:border-[#02abb8]/60';
-
-export const covenantSmallInputClass =
-  'w-full px-2.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8]/40';
-
-export const covenantPanelClass =
-  'space-y-5 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-5 border border-zinc-200 dark:border-zinc-800';
-
-export const covenantCardClass =
-  'rounded-xl p-4 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 space-y-3 text-sm text-zinc-700 dark:text-zinc-300';
-
-export const covenantPrimaryBtnClass =
-  'w-full py-2.5 rounded-lg bg-[#02abb8] text-white font-medium hover:bg-[#028a94] transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-
-export const covenantSecondaryBtnClass =
-  'w-full py-2.5 rounded-lg border border-[#02abb8] text-[#02abb8] font-medium hover:bg-[#02abb8]/10 transition-colors disabled:opacity-50';
+export const covenantInputClass = KX_INPUT;
+export const covenantSmallInputClass = KX_INPUT;
+export const covenantPanelClass = `${KX_SURFACE_INSET} ${KX_PANEL_PADDING} space-y-5`;
+export const covenantCardClass = `${KX_SURFACE_INSET} p-4 space-y-3 text-sm text-zinc-700 dark:text-zinc-300`;
+export const covenantPrimaryBtnClass = KX_BTN_PRIMARY;
+export const covenantSecondaryBtnClass = KX_BTN_SECONDARY;
 
 export function CovenantWidgetShell({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
-      <div className="px-6 py-6 space-y-6 max-w-2xl mx-auto">{children}</div>
+      <div className="space-y-5 p-4 sm:p-5">{children}</div>
     </TooltipProvider>
   );
 }
@@ -35,19 +31,30 @@ export function CovenantHeader({
   subtitle,
   runtimeMode,
   effectiveMode,
+  compact = false,
 }: {
   title: string;
   subtitle: string;
   runtimeMode?: CovenantRuntimeMode | string;
   effectiveMode?: CovenantRuntimeMode | string;
+  compact?: boolean;
 }) {
-  const badge = covenantRuntimeBadge(
-    (effectiveMode ?? runtimeMode ?? 'simulator') as CovenantRuntimeMode
-  );
+  const badge = covenantRuntimeBadge((effectiveMode ?? runtimeMode ?? 'simulator') as CovenantRuntimeMode);
+
+  if (compact) {
+    return (
+      <CovenantRuntimeBadge
+        label={badge.label}
+        tone={badge.tone}
+        description={badge.description}
+        configuredMode={runtimeMode}
+      />
+    );
+  }
 
   return (
     <header className="text-center space-y-2">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
+      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
       <p className="kx-body max-w-lg mx-auto">{subtitle}</p>
       <CovenantRuntimeBadge
         label={badge.label}
@@ -78,13 +85,14 @@ export function CovenantRuntimeBadge({
         : 'text-amber-700 dark:text-amber-400 border-amber-500/40 bg-amber-500/10';
 
   return (
-    <div className={`inline-flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs ${toneClass}`}>
-      <span className="font-semibold uppercase tracking-wide">{label}</span>
-      <span>{description}</span>
-      {configuredMode && configuredMode !== label.toLowerCase().replace(' ', '') ? (
-        <span className="opacity-80">Configured: {configuredMode}</span>
-      ) : null}
-    </div>
+    <Tooltip content={description}>
+      <div className={`inline-flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-xs cursor-help ${toneClass}`}>
+        <span className="font-semibold uppercase tracking-wide">{label}</span>
+        {configuredMode && configuredMode !== label.toLowerCase().replace(' ', '') ? (
+          <span className="opacity-80">Configured: {configuredMode}</span>
+        ) : null}
+      </div>
+    </Tooltip>
   );
 }
 
@@ -128,10 +136,7 @@ export function CovenantFieldLabel({
 }) {
   return (
     <div className="flex items-center gap-1.5 mb-2">
-      <label
-        htmlFor={htmlFor}
-        className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-      >
+      <label htmlFor={htmlFor} className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
         {label}
       </label>
       {tooltip ? (
@@ -158,11 +163,7 @@ export function CovenantError({ message }: { message: string }) {
 }
 
 export function CovenantHowItWorks({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="space-y-4 kx-body text-zinc-700 dark:text-zinc-300">
-      {children}
-    </div>
-  );
+  return <div className="space-y-4 kx-body text-zinc-700 dark:text-zinc-300">{children}</div>;
 }
 
 export function shortKaspaAddr(addr: string): string {

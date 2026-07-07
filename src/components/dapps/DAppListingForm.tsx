@@ -42,6 +42,11 @@ const CHAIN_OPTIONS = DIRECTORY_LISTING_CHAINS.map((chain) => ({
 }));
 
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { DAppsBenefitsPanel } from '@/components/dapps/DAppsBenefitsPanel';
+import { DAppListingPreview } from '@/components/dapps/DAppListingPreview';
+import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
+import { KX_FORM_GRID, KX_STICKY_RAIL } from '@/lib/hub/shellTokens';
 
 function parseTags(raw: string): string[] {
   return raw
@@ -219,6 +224,53 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       !isUploading,
   );
 
+  const previewDraft = useMemo(
+    () => ({
+      name,
+      shortDescription,
+      fullDescription,
+      category,
+      tags: parseTags(tagsRaw),
+      networkLayer,
+      supportedChains: chains,
+      websiteUrl,
+      socialLinks: cleanLinks(socialLinks),
+      utility,
+      logoUrl: logoPreviewUrl,
+      featureImageUrl:
+        featureImageSource === 'url' && featureImageUrl.trim()
+          ? featureImageUrl.trim()
+          : featureImageCid
+            ? getBestGatewayUrl(featureImageCid)
+            : null,
+    }),
+    [
+      name,
+      shortDescription,
+      fullDescription,
+      category,
+      tagsRaw,
+      networkLayer,
+      chains,
+      websiteUrl,
+      socialLinks,
+      utility,
+      logoPreviewUrl,
+      featureImageSource,
+      featureImageUrl,
+      featureImageCid,
+    ],
+  );
+
+  const fieldLabel = (key: string) => {
+    const def = getFieldDef(key);
+    return (
+      <KxFormFieldLabel tooltip={def?.tooltip} layoutHint={def?.layoutHint} required={def?.required}>
+        {def?.label ?? key}
+      </KxFormFieldLabel>
+    );
+  };
+
   const uploadFile = async (file: File, maxSizeMb = IMAGE_MAX_SIZE_MB): Promise<string | null> => {
     const maxSize = maxSizeMb * 1024 * 1024;
     if (file.size > maxSize) {
@@ -390,11 +442,10 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-8">
-        <div className="space-y-6">
+    <form onSubmit={handleSubmit} className={KX_FORM_GRID}>
+      <div className="space-y-6">
           <div className="k-form-group">
-            <label className="k-label">Project name *</label>
+            {fieldLabel('name')}
             <input
               type="text"
               className="k-input"
@@ -406,7 +457,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Short description *</label>
+            {fieldLabel('shortDescription')}
             <textarea
               className="k-textarea min-h-[80px]"
               value={shortDescription}
@@ -742,31 +793,9 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
         </div>
 
-        <aside className="xl:sticky xl:top-6 h-fit space-y-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Card preview</p>
-            <div className="flex items-start gap-3">
-              <DAppIcon
-                dAppName={name.trim() || 'Project'}
-                category={category}
-                imageSrc={logoPreviewUrl ?? undefined}
-                size={48}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">
-                  {name.trim() || 'Project name'}
-                </p>
-                {listingCategory ? (
-                  <p className="text-[10px] text-zinc-500 mt-0.5">
-                    {listingCategory.emoji} {listingCategory.name}
-                  </p>
-                ) : null}
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                  {shortDescription.trim() || 'Short description appears on listing cards.'}
-                </p>
-              </div>
-            </div>
-          </div>
+        <aside className={KX_STICKY_RAIL}>
+          <DAppsBenefitsPanel variant="panel" />
+          <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
 
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
@@ -836,7 +865,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </div>
           ) : null}
         </aside>
-      </div>
     </form>
   );
 }

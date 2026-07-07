@@ -84,3 +84,17 @@ export function IconModules(props: { className?: string }) {
 }
 
 export { IconOverview, IconComments } from '@/components/games/icons/TabIcons';
+
+export function IconMetadata(props: { className?: string }) {
+  return (
+    <IconBase className={props.className}>
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+        <path
+          d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3zM9 11h6M9 15h4"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </IconBase>
+  );
+}

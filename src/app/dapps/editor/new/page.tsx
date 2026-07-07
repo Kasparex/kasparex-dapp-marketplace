@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -20,6 +20,12 @@ function DAppsEditorNewPageContent() {
   const [mode, setMode] = useState<Mode | null>(initialMode);
   const [busy, setBusy] = useState(false);
   const { confirm, alert } = useKxSystemDialog();
+
+  useEffect(() => {
+    if (modeParam === 'list') {
+      router.replace('/dapps/dashboard?tab=create');
+    }
+  }, [modeParam, router]);
 
   const title = useMemo(() => {
     if (!mode) return 'New dApp';
@@ -94,7 +100,7 @@ function DAppsEditorNewPageContent() {
               </button>
               <button
                 type="button"
-                onClick={() => setMode('list')}
+                onClick={() => router.push('/dapps/dashboard?tab=create')}
                 className="kx-listing-card block w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 text-left transition-colors dark:border-zinc-800 dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800"
               >
                 <div className="text-[15px] font-semibold text-zinc-900 dark:text-zinc-100">List an existing dApp</div>

@@ -11,6 +11,7 @@ import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
+import { getDirectoryListingBySlugServer, listingFeaturedImageUrl } from '@/lib/dapps/listingServer';
 
 interface PageProps {
   params: Promise<{
@@ -32,17 +33,27 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const dapp = getDAppBySlug(placeholderDApps, slug);
 
-  if (!dapp) {
+  if (dapp) {
     return buildHubOpenGraphMetadata({
-      title: 'dApp Not Found - Kasparex dApps',
+      title: `${dapp.name} - Kasparex dApps`,
+      description: dapp.description || dapp.utility,
+      image: dapp.featuredImage || dapp.image || dapp.logoImage,
+      path: `/dapps/${slug}`,
+    });
+  }
+
+  const listing = await getDirectoryListingBySlugServer(slug);
+  if (listing) {
+    return buildHubOpenGraphMetadata({
+      title: `${listing.name} - Kasparex dApps`,
+      description: listing.shortDescription || listing.fullDescription,
+      image: listingFeaturedImageUrl(listing),
       path: `/dapps/${slug}`,
     });
   }
 
   return buildHubOpenGraphMetadata({
-    title: `${dapp.name} - Kasparex dApps`,
-    description: dapp.description || dapp.utility,
-    image: dapp.featuredImage || dapp.image || dapp.logoImage,
+    title: 'dApp Not Found - Kasparex dApps',
     path: `/dapps/${slug}`,
   });
 }

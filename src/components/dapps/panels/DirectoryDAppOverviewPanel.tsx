@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
-import { getCategoryById } from '@/lib/categories';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import {
   contactXDisplayLabel,
@@ -11,9 +10,7 @@ import {
 } from '@/lib/dapps/listingSubmissions';
 import { DirectoryGalleryLightbox } from '@/components/dapps/DirectoryGalleryLightbox';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { DAppWidgetHeader } from '@/components/dapps/DAppWidgetHeader';
-import { DAppWidgetFooter } from '@/components/dapps/DAppWidgetFooter';
-import { covenantPanelClass } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KxPanel } from '@/components/kx/KxPanel';
 
 type DirectoryDAppOverviewPanelProps = {
   dapp: DApp;
@@ -45,8 +42,20 @@ function LinkGrid({ links, emptyLabel }: { links: { label: string; url: string }
   );
 }
 
+function normalizeTelegramUrl(handle: string): string {
+  const trimmed = handle.trim();
+  if (trimmed.startsWith('http')) return trimmed;
+  const user = trimmed.replace(/^@/, '');
+  return `https://t.me/${user}`;
+}
+
+function normalizeDiscordUrl(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('http')) return trimmed;
+  return `https://discord.gg/${trimmed}`;
+}
+
 export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverviewPanelProps) {
-  const category = getCategoryById(listing.category);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const galleryImages = useMemo(() => {
@@ -75,49 +84,10 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
     return [...fromCids, ...fromUrls];
   }, [listing.optionalFileCids, listing.optionalFileNames, listing.optionalFileUrls]);
 
-  const networkLabel =
-    listing.networkLayer === 'multichain'
-      ? 'Multi'
-      : `${listing.networkLayer} layer`;
-
-  return (
-    <div className="w-full overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-      <DAppWidgetHeader dapp={dapp} hideEmbed />
-
-      <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-        <header className="space-y-3 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {category ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                {category.emoji} {category.name}
-              </span>
-            ) : null}
-            <span className="inline-flex items-center px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Community
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              {networkLabel}
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{dapp.name}</h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{listing.shortDescription}</p>
-          {listing.tags.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-2 pt-1">
-              {listing.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </header>
-
+    <div className="space-y-5">
         {listing.actionButtons.length > 0 ? (
-          <div className={covenantPanelClass}>
-            <DAppSectionHeader title="Quick actions" />
+          <KxPanel>
+            <DAppSectionHeader title="Quick actions" className="mb-3" />
             <div className="flex flex-wrap gap-3">
               {listing.actionButtons.map((btn) => (
                 <a
@@ -131,12 +101,12 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
                 </a>
               ))}
             </div>
-          </div>
+          </KxPanel>
         ) : null}
 
         {listing.supportedChains.length > 0 ? (
-          <div className={covenantPanelClass}>
-            <DAppSectionHeader title="Supported chains" />
+          <KxPanel>
+            <DAppSectionHeader title="Supported chains" className="mb-3" />
             <div className="flex flex-wrap gap-2">
               {listing.supportedChains.map((chain) => (
                 <span
@@ -147,11 +117,11 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
                 </span>
               ))}
             </div>
-          </div>
+          </KxPanel>
         ) : null}
 
-        <div className={covenantPanelClass}>
-          <DAppSectionHeader title="Links" />
+        <KxPanel>
+          <DAppSectionHeader title="Links" className="mb-3" />
           <LinkGrid
             links={[
               ...(listing.websiteUrl ? [{ label: 'Website', url: listing.websiteUrl }] : []),
@@ -160,11 +130,11 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
             ]}
             emptyLabel="No links provided."
           />
-        </div>
+        </KxPanel>
 
         {galleryImages.length > 0 ? (
-          <div className={covenantPanelClass}>
-            <DAppSectionHeader title="Gallery" />
+          <KxPanel>
+            <DAppSectionHeader title="Gallery" className="mb-3" />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {galleryImages.map((image, index) => (
                 <button
@@ -181,12 +151,12 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
                 </button>
               ))}
             </div>
-          </div>
+          </KxPanel>
         ) : null}
 
         {optionalFiles.length > 0 ? (
-          <div className={covenantPanelClass}>
-            <DAppSectionHeader title="Files" />
+          <KxPanel>
+            <DAppSectionHeader title="Files" className="mb-3" />
             <div className="space-y-2">
               {optionalFiles.map((file) => (
                 <a
@@ -201,12 +171,12 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
                 </a>
               ))}
             </div>
-          </div>
+          </KxPanel>
         ) : null}
 
         {(listing.contactX || listing.contactEmail || listing.contactTelegram || listing.contactDiscord || listing.additionalNotes) ? (
-          <div className={covenantPanelClass}>
-            <DAppSectionHeader title="Project details" />
+          <KxPanel>
+            <DAppSectionHeader title="Project details" className="mb-3" />
             <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
               {listing.contactX ? (
                 <div>
@@ -235,13 +205,31 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
               {listing.contactTelegram ? (
                 <div>
                   <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Telegram</dt>
-                  <dd className="text-zinc-700 dark:text-zinc-300">{listing.contactTelegram}</dd>
+                  <dd>
+                    <a
+                      href={normalizeTelegramUrl(listing.contactTelegram)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#02abb8] hover:underline"
+                    >
+                      {listing.contactTelegram}
+                    </a>
+                  </dd>
                 </div>
               ) : null}
               {listing.contactDiscord ? (
                 <div>
                   <dt className="mb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Discord</dt>
-                  <dd className="text-zinc-700 dark:text-zinc-300">{listing.contactDiscord}</dd>
+                  <dd>
+                    <a
+                      href={normalizeDiscordUrl(listing.contactDiscord)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#02abb8] hover:underline"
+                    >
+                      {listing.contactDiscord}
+                    </a>
+                  </dd>
                 </div>
               ) : null}
             </dl>
@@ -251,11 +239,8 @@ export function DirectoryDAppOverviewPanel({ dapp, listing }: DirectoryDAppOverv
                 <p className="whitespace-pre-wrap kx-body">{listing.additionalNotes}</p>
               </div>
             ) : null}
-          </div>
+          </KxPanel>
         ) : null}
-      </div>
-
-      <DAppWidgetFooter dapp={dapp} hideMetaRow hideEmbed hideIcons hideStar hideHeart />
 
       {lightboxIndex !== null ? (
         <DirectoryGalleryLightbox
