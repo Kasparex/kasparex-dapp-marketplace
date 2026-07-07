@@ -18,7 +18,6 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
@@ -174,11 +173,7 @@ export function CovenantSplitWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <DAppWidgetShell
-          title="Interact"
-          heading="Create split"
-          description="Split one KAS payment across multiple recipients. Fee and Hub points appear in the calculation breakdown."
-        >
+        <div className="space-y-5">
           <div>
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
@@ -277,7 +272,7 @@ export function CovenantSplitWidget() {
             />
           </div>
 
-        </DAppWidgetShell>
+        </div>
       )}
 
       {tab === 'splits' && (

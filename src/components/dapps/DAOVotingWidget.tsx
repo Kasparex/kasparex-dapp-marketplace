@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { formatEther } from 'viem';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -10,6 +10,8 @@ import { RewardStatusBox } from '@/components/rewards/RewardStatusBox';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
+import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
+import { KxAlert } from '@/components/ui/KxAlert';
 
 export function DAOVotingWidget() {
   const { address, isConnected } = useAccount();
@@ -137,6 +139,19 @@ export function DAOVotingWidget() {
 
   useRegisterDAppWidgetRailSlot('actions', railActions, [showSubmitForm, isLoading, title, description, isConnected]);
 
+  const railAlerts = useMemo(() => {
+    if (!error) return null;
+    return (
+      <KxAlertRegion>
+        <KxAlert variant="error" title="Action failed">
+          {error}
+        </KxAlert>
+      </KxAlertRegion>
+    );
+  }, [error]);
+
+  useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error]);
+
   if (!isConnected) {
     return (
       <DAppWidgetShell title="Interact" heading="DAO Voting" description="Submit and vote on future dApp ideas.">
@@ -158,11 +173,7 @@ export function DAOVotingWidget() {
   }
 
   return (
-    <DAppWidgetShell
-      title="Interact"
-      heading="DAO Voting"
-      description="Submit proposals and vote on future dApp ideas. Fees and Hub points are in the calculation breakdown."
-    >
+    <DAppWidgetShell>
       {/* Premium Header - Submit Proposal Button */}
       <div className="flex items-center justify-between">
         <div>
@@ -224,13 +235,6 @@ export function DAOVotingWidget() {
               </p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
-          <p className="text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 

@@ -91,18 +91,18 @@ export function useSyncDAppWidgetQuote(
 
   useEffect(() => {
     const parsed = amount != null && !Number.isNaN(amount) && amount > 0 ? amount : null;
-    setWidgetQuote({ paymentAmount: parsed, actionId, hubQuote: null });
+    setWidgetQuote({ paymentAmount: parsed, actionId });
   }, [amount, actionId, setWidgetQuote]);
 
   useEffect(() => () => clearWidgetQuote(), [clearWidgetQuote]);
 }
 
 export function useSyncHubQuote(quote: HubQuoteDisplay | null, deps: DependencyList = []) {
-  const { setHubQuote, clearWidgetQuote } = usePaymentAmount();
+  const { setHubQuote } = usePaymentAmount();
 
   useEffect(() => {
     setHubQuote(quote);
-    return () => clearWidgetQuote();
+    return () => setHubQuote(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quote, setHubQuote, clearWidgetQuote, ...deps]);
+  }, [quote, setHubQuote, ...deps]);
 }

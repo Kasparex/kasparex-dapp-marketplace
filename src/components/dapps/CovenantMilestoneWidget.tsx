@@ -18,7 +18,6 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
@@ -104,11 +103,7 @@ export function CovenantMilestoneWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <DAppWidgetShell
-          title="Interact"
-          heading="Milestone deal"
-          description="Pay in steps as milestones unlock. Platform fee and Hub points are in the calculation breakdown."
-        >
+        <div className="space-y-5">
           <div>
             <CovenantFieldLabel
               label="Who gets paid"
@@ -197,7 +192,7 @@ export function CovenantMilestoneWidget() {
             />
           </div>
 
-        </DAppWidgetShell>
+        </div>
       )}
 
       {tab === 'deals' && (

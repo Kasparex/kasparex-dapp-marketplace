@@ -21,7 +21,6 @@ import {
 } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
@@ -135,11 +134,7 @@ export function CovenantLockboxWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <DAppWidgetShell
-          title="Interact"
-          heading="Create lock"
-          description="Lock KAS for a beneficiary with escrow or timelock rules. Platform fee and Hub points are in the calculation breakdown."
-        >
+        <div className="space-y-5">
           <div>
             <CovenantFieldLabel
               label="Lock type"
@@ -240,7 +235,7 @@ export function CovenantLockboxWidget() {
             />
           </div>
 
-        </DAppWidgetShell>
+        </div>
       )}
 
       {tab === 'vaults' && (

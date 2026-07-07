@@ -1,6 +1,6 @@
 /**
- * vBlog-style hub quote display: subtotal, % off total discount, final price, hub points.
- * Discount percent shown in UI is always derived from subtotal and discount amounts (not tier label alone).
+ * vBlog-style hub quote display: line items, optional subtotal, final price, hub points.
+ * Discount percent in UI is derived from amounts (not tier label alone).
  */
 
 import { getDAppNetworkType, type DApp } from '@/lib/dapps';
@@ -10,6 +10,8 @@ import { calculateCost, formatPrice, formatPercent, type CostCalculatorInputs } 
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { getUiNativeSymbol } from '@/lib/walletUi';
+import { getNativeCurrencySymbol } from '@/lib/wagmi';
 
 export type HubQuoteLine = {
   label: string;
@@ -18,20 +20,39 @@ export type HubQuoteLine = {
 
 export type HubQuoteDisplay = {
   lines: HubQuoteLine[];
-  /** Gross total before KREX discount (shown when discount applies). */
+  /** Gross amount before KREX discount (shown when discount applies). */
   subtotalKas?: number;
   discountKas: number;
   discountPercent: number;
+  /** Wording after discount percent, e.g. "platform fee" or "total". */
+  discountOffLabel: string;
+  /** Currency for the discount line (may differ from payment currency on L1 transfers). */
+  discountCurrency: string;
   totalKas: number;
   currency: string;
+  totalLabel?: string;
   hubPoints?: number;
   hubPointsDetail?: string;
   infoText?: string;
   tierLabel: string;
   hasKrexDiscount: boolean;
+  /** When true, only this quote may be shown (covenant widgets). */
+  authoritative?: boolean;
 };
 
 const L1_NETWORK_BUFFER_KAS = 0.001;
+
+const COVENANT_DAPP_SLUGS = new Set([
+  'lockbox',
+  'covenant-split',
+  'covenant-milestone',
+  'covenant-crowdfund',
+  'covenant-voucher',
+]);
+
+export function isCovenantDAppSlug(slug?: string): boolean {
+  return slug != null && COVENANT_DAPP_SLUGS.has(slug);
+}
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -42,20 +63,23 @@ function discountPercentForTier(krexBalance: number, tier: KREXTier): number {
   return krexTierDiscountPercent(tier);
 }
 
-/** vBlog: percent off total derived from amounts, not tier label alone. */
 function displayDiscountPercent(subtotal: number, discountKas: number): number {
   if (subtotal <= 0 || discountKas <= 0) return 0;
   return Math.round((discountKas / subtotal) * 100);
 }
 
-/** Quote currency matches the asset the dApp interacts with. */
+/** Quote currency matches the asset the dApp interacts with on the active chain. */
 export function quoteCurrencyForDApp(dapp: DApp, chainId?: number): string {
   const slug = dapp.slug ?? '';
   if (slug === 'send-krex') return 'KREX';
+  if (isCovenantDAppSlug(slug)) return 'KAS';
+
   const networkType = getDAppNetworkType(dapp);
   if (networkType === 'L1') return 'KAS';
-  if (chainId === 38833 || chainId === 38836) return 'iKAS';
-  return 'iKAS';
+  if (!chainId) return 'KAS';
+
+  const native = getNativeCurrencySymbol(chainId);
+  return getUiNativeSymbol(chainId, native);
 }
 
 /** Fixed hub points base per action (never scaled by transaction size). */
@@ -96,8 +120,11 @@ export function covenantDeployToHubQuote(
     subtotalKas: discountKas > 0 ? subtotalKas : undefined,
     discountKas,
     discountPercent,
+    discountOffLabel: 'total',
+    discountCurrency: 'KAS',
     totalKas,
     currency: 'KAS',
+    totalLabel: 'Platform fee to pay',
     hubPoints: pricing.hubPointsEarned,
     hubPointsDetail: formatHubPointsTierLabel(pricing.krexTier),
     infoText: pricing.waived
@@ -105,6 +132,7 @@ export function covenantDeployToHubQuote(
       : 'Fee is a separate KAS transfer to Kasparex treasury before your covenant deploy. Locked funds are not taken from this fee.',
     tierLabel,
     hasKrexDiscount: discountKas > 0 && krexBalance >= KREX_TIERS.Tier1.minKREX,
+    authoritative: true,
   };
 }
 
@@ -141,8 +169,11 @@ function l1TransferHubQuote(
     subtotalKas: discountKas > 0 ? feeSubtotal : undefined,
     discountKas,
     discountPercent,
+    discountOffLabel: 'network buffer',
+    discountCurrency: 'KAS',
     totalKas: round2(amount),
     currency: transferCurrency,
+    totalLabel: 'Transfer amount',
     hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(tier),
     infoText:
@@ -154,7 +185,7 @@ function l1TransferHubQuote(
   };
 }
 
-/** L2 fee-inclusive payments: discount applies to platform fee portion only (vBlog-style subtotal on fees). */
+/** L2 fee-inclusive payments: user pays the entered/fixed amount; discount reduces platform fee only. */
 function l2FeeInclusiveHubQuote(
   breakdown: ReturnType<typeof calculateCost>,
   options: {
@@ -190,11 +221,14 @@ function l2FeeInclusiveHubQuote(
 
   return {
     lines,
-    subtotalKas: discountKas > 0 ? feeGross : undefined,
+    subtotalKas: undefined,
     discountKas,
     discountPercent,
+    discountOffLabel: 'platform fee',
+    discountCurrency: options.currency,
     totalKas: payment,
     currency: options.currency,
+    totalLabel: 'Total to pay',
     hubPoints: options.hubPoints,
     hubPointsDetail: formatHubPointsTierLabel(options.tier),
     infoText: options.infoText,
@@ -243,7 +277,7 @@ export function calculateDAppHubQuote(
       networkType === 'L1'
         ? 'L1 dApps settle in KAS. KREX tier discounts apply to eligible platform fees.'
         : variableAmount
-          ? 'L2 dApps settle on Kasplex. Totals update live from the amount you enter in the widget.'
+          ? 'L2 dApps settle on your connected network. Totals update live from the amount you enter in the widget.'
           : 'L2 totals include platform fees. KREX tier discounts reduce the fee portion of your payment.',
   });
 }

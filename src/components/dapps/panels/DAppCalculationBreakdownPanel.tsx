@@ -8,17 +8,19 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { formatPrice } from '@/lib/payments/calculator';
-import { calculateDAppHubQuote, quoteCurrencyForDApp } from '@/lib/payments/hubQuote';
+import {
+  calculateDAppHubQuote,
+  isCovenantDAppSlug,
+  quoteCurrencyForDApp,
+} from '@/lib/payments/hubQuote';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
+import { KxAlert } from '@/components/ui/KxAlert';
 import type { ReactNode } from 'react';
-
-function currencyForDApp(dapp: DApp, chainId: number): string {
-  return quoteCurrencyForDApp(dapp, chainId);
-}
 
 export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakdownPanel({
   dapp,
@@ -30,8 +32,9 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   showWhenEmpty?: boolean;
 }) {
   const chainId = useChainId();
-  const currency = currencyForDApp(dapp, chainId);
+  const currency = quoteCurrencyForDApp(dapp, chainId);
   const networkType = getDAppNetworkType(dapp);
+  const isCovenant = isCovenantDAppSlug(dapp.slug);
   const { paymentAmount, actionId: quoteActionId, hubQuote: customHubQuote } = usePaymentAmount();
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
@@ -45,11 +48,11 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   );
 
   const waitingForAmount =
-    !customHubQuote && hasVariableActions && (paymentAmount == null || paymentAmount <= 0);
+    !customHubQuote && !isCovenant && hasVariableActions && (paymentAmount == null || paymentAmount <= 0);
 
   const computedQuote = useMemo(() => {
     if (customHubQuote) return customHubQuote;
-    if (!paymentConfig || waitingForAmount) return null;
+    if (isCovenant || !paymentConfig || waitingForAmount) return null;
 
     const action =
       (quoteActionId
@@ -82,6 +85,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
     });
   }, [
     customHubQuote,
+    isCovenant,
     paymentConfig,
     waitingForAmount,
     quoteActionId,
@@ -102,6 +106,8 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
 
   const tierConfig = KREX_TIERS[tier];
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
+  const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
+  const totalLabel = quote?.totalLabel ?? 'Total to pay';
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -129,40 +135,34 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
                 <span>Subtotal</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
-                  {formatPrice(quote.subtotalKas)} {quote.currency}
+                  {formatPrice(quote.subtotalKas)} {discountCurrency}
                 </span>
               </div>
             ) : null}
           </div>
 
           <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel}</p>
             <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
               {formatPrice(quote.totalKas)} {quote.currency}
             </p>
           </div>
 
           {quote.infoText ? (
-            <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+            <KxAlert variant="info" title="How this payment works">
               {quote.infoText}
-            </div>
+            </KxAlert>
           ) : null}
 
           {quote.discountKas > 0 ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
-              KREX discount: -{formatPrice(quote.discountKas)} {quote.currency} ({quote.discountPercent}%
-              off total).
-            </div>
+            <KxAlert variant="success" title="KREX discount applied">
+              You save {formatPrice(quote.discountKas)} {discountCurrency} ({quote.discountPercent}% off{' '}
+              {quote.discountOffLabel}).
+            </KxAlert>
           ) : null}
 
           {quote.hubPoints != null && quote.hubPoints > 0 ? (
-            <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-              <span>Hub points on action</span>
-              <span className="font-semibold text-[#02abb8] tabular-nums">
-                +{quote.hubPoints.toLocaleString()} pts
-                {quote.hubPointsDetail ? ` (${quote.hubPointsDetail})` : ''}
-              </span>
-            </div>
+            <HubPointsEarnRow label="Earn on action:" points={quote.hubPoints} />
           ) : null}
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">

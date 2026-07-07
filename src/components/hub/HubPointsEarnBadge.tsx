@@ -3,7 +3,7 @@
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import type { KREXTier } from '@/lib/rewards/types';
 
-/** Standard Hub lightning icon used for points labels across the Hub. */
+/** Global Hub Points earn display: lightning icon + emerald +N pts. Use this everywhere. */
 export function HubPointsLightningIcon({ className = 'h-3.5 w-3.5 shrink-0' }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -12,7 +12,7 @@ export function HubPointsLightningIcon({ className = 'h-3.5 w-3.5 shrink-0' }: {
   );
 }
 
-/** Standard Hub Points earn label (+N pts) used across the Hub. */
+/** Global Hub Points earn label (+N pts with lightning). Use HubPointsEarnRow in breakdown panels. */
 export function HubPointsEarnBadge({
   basePoints,
   tier,

@@ -17,7 +17,6 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
@@ -113,11 +112,7 @@ export function CovenantVoucherWidget() {
       )}
 
       {tab === 'create' && (
-        <DAppWidgetShell
-          title="Interact"
-          heading="Mint voucher"
-          description="Create a KAS gift card with a secret code. Platform fee and Hub points are in the calculation breakdown."
-        >
+        <div className="space-y-5">
           <div>
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
@@ -165,7 +160,7 @@ export function CovenantVoucherWidget() {
             />
           </div>
 
-        </DAppWidgetShell>
+        </div>
       )}
 
       {tab === 'claim' && (

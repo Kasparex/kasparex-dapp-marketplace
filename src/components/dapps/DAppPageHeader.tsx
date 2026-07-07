@@ -91,9 +91,7 @@ export function DAppPageHeader({
               <KxBadge variant="zinc">{statusLabel}</KxBadge>
             </div>
             <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
-              <span className="inline-flex items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 shadow-sm">
-                <KxHubPtsBadge label={hubPtsLabel} title="Your redeemable Hub points" className="!text-emerald-700 dark:!text-emerald-300" />
-              </span>
+              <KxHubPtsBadge label={hubPtsLabel} title="Your redeemable Hub points" />
             </div>
           </div>
 

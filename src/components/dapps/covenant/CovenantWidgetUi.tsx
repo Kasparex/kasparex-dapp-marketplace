@@ -21,7 +21,7 @@ export const covenantSecondaryBtnClass = KX_BTN_SECONDARY;
 export function CovenantWidgetShell({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
-      <div className="space-y-5 p-4 sm:p-5">{children}</div>
+      <div className="w-full space-y-5">{children}</div>
     </TooltipProvider>
   );
 }

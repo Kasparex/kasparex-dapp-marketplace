@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId, usePublicClient } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { DAO_VOTING_ABI } from '@/lib/contracts/abis';
 import { getContractAddress } from '@/lib/contracts/addresses';
 import { useSafeError } from './useSafeError';
-import { useToast } from '@/hooks/useToast';
 import { calculateCost, type CostBreakdown } from '@/lib/payments/calculator';
 import { useAutomatedRewards } from './useAutomatedRewards';
 import { useKREXBalance } from './useKREXBalance';
@@ -124,8 +123,6 @@ export function useDAOVoting(): UseDAOVotingReturn {
 
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
-  const { toast } = useToast();
-  const lastToastedErrorRef = useRef<string | null>(null);
 
   // Load proposals
   const loadProposals = useCallback(async () => {
@@ -382,11 +379,6 @@ export function useDAOVoting(): UseDAOVotingReturn {
   // Refresh proposals and distribute rewards when transaction is confirmed
   useEffect(() => {
     if (isConfirmed && !isConfirming && hash && daoVotingDApp && contractAddress && lastActionType && address) {
-      toast({
-        variant: 'success',
-        title: lastActionType === 'submit-proposal' ? 'Proposal submitted' : 'Vote recorded',
-        description: `Tx: ${hash.slice(0, 10)}...`,
-      });
       // Store action info before resetting
       const actionId = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'cast-vote';
       const actionType = lastActionType === 'submit-proposal' ? 'submit-proposal' : 'vote';
@@ -445,7 +437,7 @@ export function useDAOVoting(): UseDAOVotingReturn {
         });
       }, 500);
     }
-  }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost, address, getSubmissionCost, getVoteCost, toast]);
+  }, [isConfirmed, isConfirming, hash, daoVotingDApp, contractAddress, loadProposals, distributeRewardAfterTransaction, lastActionType, lastActionCost, address, getSubmissionCost, getVoteCost]);
 
   // Load proposals on mount and when proposalCount changes
   useEffect(() => {
@@ -454,20 +446,13 @@ export function useDAOVoting(): UseDAOVotingReturn {
     }
   }, [contractAddress, proposalCount, loadProposals]);
 
-  // Update error from transaction and show error toast once
+  // Update error from transaction; rail alerts handle user-facing feedback (no top-right toast).
   const currentTxError = safeWriteError || safeTxError || null;
   useEffect(() => {
     if (safeWriteError || safeTxError) {
       setError(currentTxError);
-      const msg = currentTxError ?? '';
-      if (msg && lastToastedErrorRef.current !== msg) {
-        lastToastedErrorRef.current = msg;
-        toast({ variant: 'error', title: 'Transaction failed', description: msg });
-      }
-    } else {
-      lastToastedErrorRef.current = null;
     }
-  }, [safeWriteError, safeTxError, currentTxError, toast]);
+  }, [safeWriteError, safeTxError, currentTxError]);
 
   // Calculate loading state - only true when actively processing, not after confirmation
   const isLoadingState = isLoading || (isPendingWrite && !isConfirmed) || (isConfirming && !isConfirmed);

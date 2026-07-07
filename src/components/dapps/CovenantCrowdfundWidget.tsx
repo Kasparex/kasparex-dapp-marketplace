@@ -18,7 +18,6 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
@@ -92,11 +91,7 @@ export function CovenantCrowdfundWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <DAppWidgetShell
-          title="Interact"
-          heading="Launch campaign"
-          description="Raise KAS with a clear goal and deadline. Platform fee and Hub points are in the calculation breakdown."
-        >
+        <div className="space-y-5">
           <div>
             <CovenantFieldLabel
               label="Campaign title"
@@ -160,7 +155,7 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
-        </DAppWidgetShell>
+        </div>
       )}
 
       {tab === 'browse' && (
