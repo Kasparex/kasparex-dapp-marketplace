@@ -421,57 +421,6 @@ export function SimplePaymentWidget() {
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
-  const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
-
-  const rewardsExtraBreakdown =
-    amount && amountBigInt > 0n && paymentCostBreakdown ? (
-      <div className="space-y-1.5 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-        {(amountNum ?? 0) > 0
-          ? (() => {
-              const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
-              const tierConfig = KREX_TIERS[tier];
-              const mult = tierConfig?.multiplier ?? 1;
-              const tierConfigOnChain = KREX_TIERS[tierForChain];
-              const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-              const gridReward = Math.round((amountNum ?? 0) * rewards.gridPerKas * mult);
-              const xpReward = Math.round((amountNum ?? 0) * rewards.xpPerKas * mult);
-              const gridRewardOnChain = Math.round((amountNum ?? 0) * rewards.gridPerKas * multOnChain);
-              const xpRewardOnChain = Math.round((amountNum ?? 0) * rewards.xpPerKas * multOnChain);
-              const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
-              return (
-                <>
-                  <div className="flex justify-between gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
-                    <span>You receive ({gridLabel})</span>
-                    <span className="text-[#02abb8] tabular-nums">{formatLargeNumber(gridReward)}</span>
-                  </div>
-                  <div className="flex justify-between gap-2">
-                    <span>Hub pts</span>
-                    <span className="font-semibold text-[#02abb8] tabular-nums">{formatLargeNumber(xpReward)}</span>
-                  </div>
-                  {mult > 1 ? (
-                    <p className="text-zinc-500 dark:text-zinc-400">×{mult} tier from total KREX</p>
-                  ) : null}
-                  {onChainIsBaseOnly ? (
-                    <p className="text-amber-600 dark:text-amber-400">
-                      On-chain you&apos;ll receive the base amount ({formatLargeNumber(gridRewardOnChain)} {gridLabel},{' '}
-                      {formatLargeNumber(xpRewardOnChain)} pts). Bridge tKREX to L2 for the full ×{mult} reward.{' '}
-                      <a
-                        href="https://katbridge.com/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium underline hover:opacity-80"
-                      >
-                        KAT Bridge ↗
-                      </a>
-                    </p>
-                  ) : null}
-                </>
-              );
-            })()
-          : null}
-      </div>
-    ) : null;
-
   const railActions = isConnected ? (
     <button
       type="button"
@@ -513,18 +462,6 @@ export function SimplePaymentWidget() {
       </KxAlertRegion>
     ) : null;
 
-  useRegisterDAppWidgetRailSlot('extraBreakdown', rewardsExtraBreakdown, [
-    amount,
-    amountBigInt,
-    paymentCostBreakdown,
-    nativeSymbol,
-    amountNum,
-    chainId,
-    tier,
-    tierForChain,
-    krexL2Balance,
-    gridLabel,
-  ]);
   useRegisterDAppWidgetRailSlot('actions', railActions, [
     isConnected,
     isLoading,

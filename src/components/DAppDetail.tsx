@@ -10,6 +10,7 @@ import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { CommentsSection } from './vblog/CommentsSection';
 import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
+import { DAppWidgetActionRailProvider } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
 import { DAppFeesPanel } from './dapps/panels/DAppFeesPanel';
 import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
@@ -74,14 +75,16 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
 
   return (
     <PaymentAmountProvider>
-      <DAppDetailProvider dapp={dapp} mergedDApp={mergedDApp} contractAddress={contractAddress}>
-        <DAppDetailShell
-          dapp={mergedDApp}
-          contractAddress={contractAddress}
-          tabs={tabs}
-          currentTab={tab}
-          onTabChange={setTab}
-        >
+      <DAppWidgetActionRailProvider>
+        <DAppDetailProvider dapp={dapp} mergedDApp={mergedDApp} contractAddress={contractAddress}>
+          <DAppDetailShell
+            dapp={mergedDApp}
+            contractAddress={contractAddress}
+            tabs={tabs}
+            currentTab={tab}
+            onTabChange={setTab}
+            showCalculationPanel={tab === 'widget'}
+          >
           {tab === 'widget' ? (
             <div className={KX_TAB_SECTION}>
               <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
@@ -109,6 +112,7 @@ export function DAppDetail({ dapp, contractAddress: propContractAddress }: DAppD
           ) : null}
         </DAppDetailShell>
       </DAppDetailProvider>
+      </DAppWidgetActionRailProvider>
     </PaymentAmountProvider>
   );
 }

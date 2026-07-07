@@ -18,7 +18,8 @@ import {
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -40,10 +41,6 @@ export function CovenantVoucherWidget() {
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => voucherMetadataInstances(openVouchers), [openVouchers]);
-
-  if (!state.isConnected) {
-    return <KpxCovenantDisconnected template="voucher" />;
-  }
 
   const handleCreate = async () => {
     if (!expires) return;
@@ -73,6 +70,30 @@ export function CovenantVoucherWidget() {
     }
   };
 
+  useCovenantWidgetRail(pricing, krexBalance, {
+    lockAmountKas: tab === 'create' ? parseFloat(amountKas) || 0 : undefined,
+    enabled: tab === 'create',
+    primaryAction: (
+      <button
+        type="button"
+        disabled={busy || !expires}
+        onClick={() => void handleCreate()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy
+          ? 'Minting...'
+          : pricing.waived
+            ? 'Mint voucher'
+            : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
+      </button>
+    ),
+    deps: [tab, busy, expires, pricing, amountKas],
+  });
+
+  if (!state.isConnected) {
+    return <KpxCovenantDisconnected template="voucher" />;
+  }
+
   return (
     <KpxCovenantShell template="voucher" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
@@ -100,7 +121,11 @@ export function CovenantVoucherWidget() {
       )}
 
       {tab === 'create' && (
-        <div className={covenantPanelClass}>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Mint voucher"
+          description="Create a KAS gift card with a secret code. Platform fee and Hub points are in the calculation breakdown."
+        >
           <div>
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
@@ -148,26 +173,7 @@ export function CovenantVoucherWidget() {
             />
           </div>
 
-          <KpxCovenantFeePanel
-            pricing={pricing}
-            krexTier={krexTier}
-            krexBalance={krexBalance}
-            lockAmountKas={parseFloat(amountKas) || 0}
-          />
-
-          <button
-            type="button"
-            disabled={busy || !expires}
-            onClick={() => void handleCreate()}
-            className={covenantPrimaryBtnClass}
-          >
-            {busy
-              ? 'Minting...'
-              : pricing.waived
-                ? 'Lock and mint voucher'
-                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
-          </button>
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'claim' && (

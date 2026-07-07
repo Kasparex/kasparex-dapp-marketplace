@@ -16,6 +16,7 @@ type Props<T extends string> = {
   tabs: readonly DAppTab<T>[];
   currentTab: T;
   onTabChange: (id: T) => void;
+  showCalculationPanel?: boolean;
   children: ReactNode;
 };
 
@@ -26,6 +27,7 @@ export function DAppDetailShell<T extends string>({
   tabs,
   currentTab,
   onTabChange,
+  showCalculationPanel = false,
   children,
 }: Props<T>) {
   return (
@@ -37,7 +39,9 @@ export function DAppDetailShell<T extends string>({
         currentTab={currentTab}
         onTabChange={onTabChange}
         main={children}
-        sidebar={<DAppAside dapp={dapp} contractAddress={contractAddress} />}
+        sidebar={
+          <DAppAside dapp={dapp} contractAddress={contractAddress} showCalculationPanel={showCalculationPanel} />
+        }
       />
     </>
   );

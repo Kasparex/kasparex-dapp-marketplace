@@ -20,7 +20,8 @@ import {
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -48,10 +49,6 @@ export function CovenantMilestoneWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
 
-  if (!state.isConnected) {
-    return <KpxCovenantDisconnected template="milestone" />;
-  }
-
   const handleCreate = async () => {
     setBusy(true);
     try {
@@ -73,6 +70,30 @@ export function CovenantMilestoneWidget() {
     }
   };
 
+  useCovenantWidgetRail(pricing, krexBalance, {
+    lockAmountKas: tab === 'create' ? parseFloat(totalKas) || 0 : undefined,
+    enabled: tab === 'create',
+    primaryAction: (
+      <button
+        type="button"
+        disabled={busy || !beneficiary.trim()}
+        onClick={() => void handleCreate()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy
+          ? 'Creating...'
+          : pricing.waived
+            ? 'Fund milestone deal'
+            : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
+      </button>
+    ),
+    deps: [tab, busy, beneficiary, pricing, totalKas],
+  });
+
+  if (!state.isConnected) {
+    return <KpxCovenantDisconnected template="milestone" />;
+  }
+
   return (
     <KpxCovenantShell template="milestone" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
 
@@ -90,7 +111,11 @@ export function CovenantMilestoneWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className={covenantPanelClass}>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Milestone deal"
+          description="Pay in steps as milestones unlock. Platform fee and Hub points are in the calculation breakdown."
+        >
           <div>
             <CovenantFieldLabel
               label="Who gets paid"
@@ -179,26 +204,7 @@ export function CovenantMilestoneWidget() {
             />
           </div>
 
-          <KpxCovenantFeePanel
-            pricing={pricing}
-            krexTier={krexTier}
-            krexBalance={krexBalance}
-            lockAmountKas={parseFloat(totalKas) || 0}
-          />
-
-          <button
-            type="button"
-            disabled={busy || !beneficiary.trim()}
-            onClick={() => void handleCreate()}
-            className={covenantPrimaryBtnClass}
-          >
-            {busy
-              ? 'Creating...'
-              : pricing.waived
-                ? 'Fund milestone deal'
-                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
-          </button>
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'deals' && (

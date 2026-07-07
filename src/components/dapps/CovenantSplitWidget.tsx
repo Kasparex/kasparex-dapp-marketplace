@@ -20,7 +20,8 @@ import {
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -132,6 +133,32 @@ export function CovenantSplitWidget() {
     }
   };
 
+  const splitTotal = parseFloat(totalKas) || 0;
+  useCovenantWidgetRail(pricing, krexBalance, {
+    lockAmountKas: tab === 'create' ? splitTotal : undefined,
+    enabled: tab === 'create',
+    primaryAction: (
+      <button
+        type="button"
+        disabled={
+          busy ||
+          isLoading ||
+          rows.some((r) => !r.address.trim()) ||
+          Math.abs(percentSum - 100) > 0.01
+        }
+        onClick={() => void handleCreate()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy
+          ? 'Creating...'
+          : pricing.waived
+            ? 'Create split payment'
+            : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
+      </button>
+    ),
+    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas],
+  });
+
   if (!kaspaState.isConnected) {
     return <KpxCovenantDisconnected template="split" />;
   }
@@ -153,7 +180,11 @@ export function CovenantSplitWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className={covenantPanelClass}>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Create split"
+          description="Split one KAS payment across multiple recipients. Fee and Hub points appear in the calculation breakdown."
+        >
           <div>
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
@@ -252,31 +283,7 @@ export function CovenantSplitWidget() {
             />
           </div>
 
-          <KpxCovenantFeePanel
-            pricing={pricing}
-            krexTier={krexTier}
-            krexBalance={krexBalance}
-            lockAmountKas={parseFloat(totalKas) || 0}
-          />
-
-          <button
-            type="button"
-            disabled={
-              busy ||
-              isLoading ||
-              rows.some((r) => !r.address.trim()) ||
-              Math.abs(percentSum - 100) > 0.01
-            }
-            onClick={() => void handleCreate()}
-            className={covenantPrimaryBtnClass}
-          >
-            {busy
-              ? 'Creating...'
-              : pricing.waived
-                ? 'Create split payment'
-                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
-          </button>
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'splits' && (

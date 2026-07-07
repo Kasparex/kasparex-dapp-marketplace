@@ -23,7 +23,8 @@ import {
   KpxCovenantShell,
 } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -98,6 +99,28 @@ export function CovenantLockboxWidget() {
     }
   };
 
+  const lockAmount = parseFloat(amountKas) || 0;
+
+  useCovenantWidgetRail(pricing, krexBalance, {
+    lockAmountKas: tab === 'create' ? lockAmount : undefined,
+    primaryAction: (
+      <button
+        type="button"
+        disabled={busy || isLoading || !beneficiary.trim()}
+        onClick={() => void handleCreate()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy
+          ? 'Creating...'
+          : pricing.waived
+            ? 'Create lock'
+            : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
+      </button>
+    ),
+    deps: [busy, isLoading, beneficiary, pricing, amountKas],
+    enabled: tab === 'create',
+  });
+
   if (!kaspaState.isConnected) {
     return <KpxCovenantDisconnected template="lockbox" />;
   }
@@ -119,7 +142,11 @@ export function CovenantLockboxWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className={covenantPanelClass}>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Create lock"
+          description="Lock KAS for a beneficiary with escrow or timelock rules. Platform fee and Hub points are in the calculation breakdown."
+        >
           <div>
             <CovenantFieldLabel
               label="Lock type"
@@ -220,26 +247,7 @@ export function CovenantLockboxWidget() {
             />
           </div>
 
-          <KpxCovenantFeePanel
-            pricing={pricing}
-            krexTier={krexTier}
-            krexBalance={krexBalance}
-            lockAmountKas={parseFloat(amountKas) || 0}
-          />
-
-          <button
-            type="button"
-            disabled={busy || isLoading || !beneficiary.trim()}
-            onClick={() => void handleCreate()}
-            className={covenantPrimaryBtnClass}
-          >
-            {busy
-              ? 'Creating...'
-              : pricing.waived
-                ? 'Create lock'
-                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
-          </button>
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'vaults' && (

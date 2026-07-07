@@ -10,15 +10,15 @@ export const KX_WIDGET_DETAIL_PANEL =
 
 /** Primary form surface for dApp widgets and hub editors (matches vBlog Create Article). */
 export const KX_FORM_PANEL =
-  'rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900';
+  'rounded-2xl border border-zinc-200 bg-zinc-100 p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900';
 
 export const KX_CALCULATION_ASIDE =
-  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.35)] dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-950';
+  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-100 to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.35)] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
 
 export const KX_PANEL_PADDING = 'p-4 sm:p-5';
 
 export const KX_SURFACE_INSET =
-  'rounded-xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/60';
+  'rounded-xl border border-zinc-200 bg-zinc-100/90 dark:border-zinc-800 dark:bg-zinc-950/60';
 
 export const KX_SURFACE_ROW =
   'rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/60 p-3';

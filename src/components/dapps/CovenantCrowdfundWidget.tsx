@@ -20,7 +20,8 @@ import {
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { KpxCovenantFeePanel } from '@/components/dapps/covenant/KpxCovenantFeePanel';
+import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
+import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -41,10 +42,6 @@ export function CovenantCrowdfundWidget() {
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => crowdfundMetadataInstances(allCampaigns), [allCampaigns]);
 
-  if (!state.isConnected) {
-    return <KpxCovenantDisconnected template="crowdfund" />;
-  }
-
   const handleCreate = async () => {
     if (!deadline) return;
     setBusy(true);
@@ -60,6 +57,30 @@ export function CovenantCrowdfundWidget() {
       setBusy(false);
     }
   };
+
+  useCovenantWidgetRail(pricing, krexBalance, {
+    lockAmountKas: tab === 'create' ? parseFloat(goalKas) || 0 : undefined,
+    enabled: tab === 'create',
+    primaryAction: (
+      <button
+        type="button"
+        disabled={busy || !title || !deadline}
+        onClick={() => void handleCreate()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy
+          ? 'Launching...'
+          : pricing.waived
+            ? 'Launch campaign'
+            : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
+      </button>
+    ),
+    deps: [tab, busy, title, deadline, pricing, goalKas],
+  });
+
+  if (!state.isConnected) {
+    return <KpxCovenantDisconnected template="crowdfund" />;
+  }
 
   return (
     <KpxCovenantShell template="crowdfund" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
@@ -78,7 +99,11 @@ export function CovenantCrowdfundWidget() {
       {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
-        <div className={covenantPanelClass}>
+        <DAppWidgetShell
+          title="Interact"
+          heading="Launch campaign"
+          description="Raise KAS with a clear goal and deadline. Platform fee and Hub points are in the calculation breakdown."
+        >
           <div>
             <CovenantFieldLabel
               label="Campaign title"
@@ -142,26 +167,7 @@ export function CovenantCrowdfundWidget() {
             />
           </div>
 
-          <KpxCovenantFeePanel
-            pricing={pricing}
-            krexTier={krexTier}
-            krexBalance={krexBalance}
-            actionLabel="launch"
-          />
-
-          <button
-            type="button"
-            disabled={busy || !title || !deadline}
-            onClick={() => void handleCreate()}
-            className={covenantPrimaryBtnClass}
-          >
-            {busy
-              ? 'Creating...'
-              : pricing.waived
-                ? 'Create campaign'
-                : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
-          </button>
-        </div>
+        </DAppWidgetShell>
       )}
 
       {tab === 'browse' && (
