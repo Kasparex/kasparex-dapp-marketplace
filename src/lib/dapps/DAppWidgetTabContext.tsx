@@ -48,8 +48,7 @@ export function useRegisterWidgetTabLabel(tabId: string, label: string, deps: De
   useEffect(() => {
     if (!register) return;
     register(tabId, label);
-    return () => register(tabId, null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Keep labels when switching away from widget tabs (widget unmounts).
   }, [tabId, label, register, ...deps]);
 }
 

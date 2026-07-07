@@ -49,7 +49,7 @@ export function useAutomatedRewards(): UseAutomatedRewardsReturn {
           txHash: options.txHash,
           krexTier: tier,
           krexBalance: krexBalance ?? 0,
-          spendKas: options.baseActionValue,
+          baseSpendKas: options.baseActionValue,
         });
 
         if (typeof window !== 'undefined') {

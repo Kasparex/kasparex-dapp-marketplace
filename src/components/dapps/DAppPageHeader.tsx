@@ -101,18 +101,14 @@ export function DAppPageHeader({
               ) : null}
             </div>
             <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
-              <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
-              <KxBadge variant="zinc">{statusLabel}</KxBadge>
-            </div>
-            {hubPtsBase > 0 ? (
-              <div className="flex flex-shrink-0 flex-col items-end justify-start gap-2">
+              {hubPtsBase > 0 ? (
                 <HubPointsEarnBadge
                   basePoints={hubPtsBase}
                   tier={tier}
-                  spendKas={paymentAmount}
+                  baseSpendKas={paymentAmount}
                 />
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
 
           {excerpt ? (
@@ -145,6 +141,10 @@ export function DAppPageHeader({
         </div>
 
         <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
+          <div className="absolute left-4 top-4 z-20 flex flex-col items-start gap-2 sm:left-6 sm:top-6">
+            <DAppNetworkBadge dapp={mergedDApp} preferRequired size="sm" />
+            <KxBadge variant="zinc">{statusLabel}</KxBadge>
+          </div>
           {featuredImage ? (
             <Image
               src={featuredImage}

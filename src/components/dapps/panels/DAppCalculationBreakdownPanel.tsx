@@ -95,6 +95,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const tierConfig = KREX_TIERS[tier];
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
   const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
+  const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -152,10 +153,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
               <span>Hub points on action</span>
               <span className="inline-flex items-center gap-1.5">
-                <HubPointsEarnBadge
-                  points={quote.hubPoints}
-                  spendKas={paymentAmount ?? quote.totalKas}
-                />
+                <HubPointsEarnBadge points={quote.hubPoints} baseSpendKas={baseSpendKas} />
                 {quote.hubPointsDetail ? (
                   <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
                     ({quote.hubPointsDetail})

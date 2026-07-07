@@ -221,7 +221,6 @@ function l1TransferHubQuote(
     dapp,
     actionId: transferCurrency === 'KREX' ? 'send-krex' : 'send-kas',
     tier,
-    spendKas: amount,
   });
   const tierDiscountPct = discountPercentForTier(krexBalance, tier);
   const bufferGross = L1_NETWORK_BUFFER_KAS;
@@ -283,7 +282,6 @@ export function calculateDAppHubQuote(
     dapp,
     actionId: costInputs.actionId,
     tier,
-    spendKas: grossTotal,
   });
 
   if (slug === 'send-kas' && costInputs.overrideBaseCost != null) {

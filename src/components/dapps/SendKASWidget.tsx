@@ -80,7 +80,7 @@ export function SendKASWidget() {
           txHash: result.txHash,
           krexTier: tier,
           krexBalance: krexBalance ?? 0,
-          spendKas: amountNum,
+          baseSpendKas: amountNum,
         });
       }
       setToAddress('');

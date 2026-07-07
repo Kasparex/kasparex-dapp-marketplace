@@ -6,6 +6,7 @@ import {
   qualifiesForHubPointsSpend,
 } from '@/lib/rewards/hub-points-eligibility';
 import type { KREXTier } from '@/lib/rewards/types';
+import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 
 /** Global Hub Points earn display: lightning icon + emerald +N pts. Use this everywhere. */
 export function HubPointsLightningIcon({ className = 'h-3.5 w-3.5 shrink-0' }: { className?: string }) {
@@ -21,6 +22,7 @@ export function HubPointsEarnBadge({
   basePoints,
   tier,
   points,
+  baseSpendKas,
   spendKas,
   className = '',
   size = 'sm',
@@ -29,31 +31,45 @@ export function HubPointsEarnBadge({
   basePoints?: number;
   tier?: KREXTier;
   points?: number;
-  /** When set, hides earn display if spend is below the 10 KAS minimum. */
+  /** Original transaction value before KREX discounts (for minimum spend eligibility). */
+  baseSpendKas?: number | null;
+  /** @deprecated Use baseSpendKas */
   spendKas?: number | null;
   className?: string;
   size?: 'sm' | 'md';
   showMinSpendTooltip?: boolean;
 }) {
+  const originalSpend = baseSpendKas ?? spendKas;
   const rawEarned =
     points ??
     (basePoints != null && tier != null ? computeEarnedHubPoints(basePoints, tier) : 0);
-  const belowMin = spendKas != null && !qualifiesForHubPointsSpend(spendKas);
-  const earned = belowMin ? 0 : rawEarned;
-  if (earned <= 0) return null;
+  if (rawEarned <= 0) return null;
 
+  const eligible =
+    originalSpend == null ||
+    !Number.isFinite(originalSpend) ||
+    qualifiesForHubPointsSpend(originalSpend);
   const sizeClass = size === 'md' ? 'text-sm gap-1.5' : 'text-xs gap-1';
   const iconClass = size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5';
-  const tooltip = showMinSpendTooltip ? HUB_POINTS_MIN_SPEND_TOOLTIP : undefined;
+  const colorClass = eligible
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : 'text-zinc-400 dark:text-zinc-500';
 
-  return (
+  const badge = (
     <span
-      title={tooltip}
-      className={`inline-flex cursor-help items-center font-bold text-emerald-600 dark:text-emerald-400 tabular-nums ${sizeClass} ${className}`.trim()}
+      className={`inline-flex cursor-help items-center font-bold tabular-nums ${colorClass} ${sizeClass} ${className}`.trim()}
     >
       <HubPointsLightningIcon className={`${iconClass} shrink-0`} />
-      +{earned} pts
+      +{rawEarned} pts
     </span>
+  );
+
+  if (!showMinSpendTooltip) return badge;
+
+  return (
+    <TooltipProvider>
+      <Tooltip content={HUB_POINTS_MIN_SPEND_TOOLTIP}>{badge}</Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -62,6 +78,7 @@ export function HubPointsEarnRow({
   basePoints,
   tier,
   points,
+  baseSpendKas,
   spendKas,
   className = '',
 }: {
@@ -69,20 +86,19 @@ export function HubPointsEarnRow({
   basePoints?: number;
   tier?: KREXTier;
   points?: number;
+  baseSpendKas?: number | null;
   spendKas?: number | null;
   className?: string;
 }) {
   const rawEarned =
     points ??
     (basePoints != null && tier != null ? computeEarnedHubPoints(basePoints, tier) : 0);
-  const belowMin = spendKas != null && !qualifiesForHubPointsSpend(spendKas);
-  const earned = belowMin ? 0 : rawEarned;
-  if (earned <= 0) return null;
+  if (rawEarned <= 0) return null;
 
   return (
     <div className={`flex items-center justify-end gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400 ${className}`.trim()}>
       <span className="font-semibold uppercase tracking-wide">{label}</span>
-      <HubPointsEarnBadge points={earned} spendKas={spendKas} />
+      <HubPointsEarnBadge points={rawEarned} baseSpendKas={baseSpendKas ?? spendKas} />
     </div>
   );
 }

@@ -155,7 +155,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     queryClient.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'readContract' });
     window.dispatchEvent(new CustomEvent('dapp-transaction-success'));
     refetchBadge?.();
-    const baseActionValue = costBreakdown?.finalCostWithFee ?? costBreakdown?.baseCost ?? 10;
+    const baseActionValue = costBreakdown?.baseCost ?? 10;
     storeTransaction({
       txHash: hash,
       network: 'L2',

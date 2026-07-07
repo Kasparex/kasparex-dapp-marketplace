@@ -52,7 +52,7 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
     ? `kpx:deploy:${feeTxHash}`
     : `kpx:deploy:local:${args.template}:${created.id}`;
 
-  if (qualifiesForHubPointsSpend(spendKas)) {
+  if (qualifiesForHubPointsSpend(args.pricing.baseFeeKas)) {
     appendHubActivityEarn({
       walletRaw: args.ctx.userAddress,
       source: 'kpx_covenant_deploy',

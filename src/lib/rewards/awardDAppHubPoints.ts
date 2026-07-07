@@ -30,7 +30,9 @@ export function awardDAppHubPoints(args: {
   txHash: string;
   krexTier?: KREXTier;
   krexBalance?: number;
-  /** KAS-equivalent amount spent on the action (for minimum spend rule). Omit for fixed-fee actions. */
+  /** Original (pre-discount) KAS-equivalent transaction value for minimum spend rule. */
+  baseSpendKas?: number | null;
+  /** @deprecated Use baseSpendKas */
   spendKas?: number | null;
 }): AwardDAppHubPointsResult {
   const wallet = (args.walletRaw ?? '').trim();
@@ -40,7 +42,8 @@ export function awardDAppHubPoints(args: {
   const baseRaw = getHubPointsBaseForAction(args.dapp, args.actionId);
   if (baseRaw <= 0) return { earned: 0, skipped: 'no_base_points' };
 
-  if (args.spendKas != null && !qualifiesForHubPointsSpend(args.spendKas)) {
+  const baseSpendKas = args.baseSpendKas ?? args.spendKas;
+  if (baseSpendKas != null && !qualifiesForHubPointsSpend(baseSpendKas)) {
     return { earned: 0, skipped: 'below_minimum_spend' };
   }
 
@@ -48,7 +51,6 @@ export function awardDAppHubPoints(args: {
     dapp: args.dapp,
     actionId: args.actionId,
     tier,
-    spendKas: args.spendKas,
   });
   if (earned <= 0) return { earned: 0, skipped: 'no_base_points' };
 
@@ -64,7 +66,8 @@ export function awardDAppHubPoints(args: {
       dappSlug: args.dapp.slug,
       actionId: args.actionId,
       txHash: args.txHash,
-      spendKas: args.spendKas,
+      spendKas: baseSpendKas,
+      baseSpendKas,
     },
   });
 

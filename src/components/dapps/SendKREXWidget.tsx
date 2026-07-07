@@ -130,7 +130,7 @@ export function SendKREXWidget() {
           txHash: hash,
           krexTier: tier,
           krexBalance: krexBal ?? 0,
-          spendKas: amountNum,
+          baseSpendKas: amountNum,
         });
       }
       setSentTo(recipientAddress);
