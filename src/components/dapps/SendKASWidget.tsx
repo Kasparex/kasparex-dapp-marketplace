@@ -24,7 +24,7 @@ export function SendKASWidget() {
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
-  useSyncDAppWidgetQuote(parsedAmount, 'send-kas', [amount]);
+  useSyncDAppWidgetQuote(parsedAmount, 'send-kas');
 
   const handleSend = async () => {
     if (!state.isConnected || !state.provider) {

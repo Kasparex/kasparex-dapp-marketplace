@@ -230,7 +230,7 @@ export function SimplePaymentWidget() {
   const queryClient = useQueryClient();
 
   const amountNum = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
-  useSyncDAppWidgetQuote(amountNum, 'send-payment', [amount]);
+  useSyncDAppWidgetQuote(amountNum, 'send-payment');
   const { clearWidgetQuote } = usePaymentAmount();
 
   // Calculate payment cost with discounts (use entered amount as base so breakdown matches actual payment)

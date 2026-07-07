@@ -30,7 +30,7 @@ export function SendKREXWidget() {
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
   const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
-  useSyncDAppWidgetQuote(parsedAmount, 'send-krex', [amount]);
+  useSyncDAppWidgetQuote(parsedAmount, 'send-krex');
 
   useEffect(() => {
     const fetchBalance = async () => {

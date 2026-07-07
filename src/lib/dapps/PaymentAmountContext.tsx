@@ -86,14 +86,13 @@ export function usePaymentAmount() {
 export function useSyncDAppWidgetQuote(
   amount: number | null | undefined,
   actionId: string | null,
-  deps: DependencyList = [],
 ) {
   const { setWidgetQuote, clearWidgetQuote } = usePaymentAmount();
 
   useEffect(() => {
     const parsed = amount != null && !Number.isNaN(amount) && amount > 0 ? amount : null;
     setWidgetQuote({ paymentAmount: parsed, actionId, hubQuote: null });
-  }, [amount, actionId, setWidgetQuote, ...deps]);
+  }, [amount, actionId, setWidgetQuote]);
 
   useEffect(() => () => clearWidgetQuote(), [clearWidgetQuote]);
 }

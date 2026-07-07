@@ -121,7 +121,7 @@ export function DAOVotingWidget() {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  useSyncDAppWidgetQuote(null, showSubmitForm ? 'submit-proposal' : 'cast-vote', [showSubmitForm]);
+  useSyncDAppWidgetQuote(null, showSubmitForm ? 'submit-proposal' : 'cast-vote');
 
   const railActions =
     showSubmitForm && isConnected ? (

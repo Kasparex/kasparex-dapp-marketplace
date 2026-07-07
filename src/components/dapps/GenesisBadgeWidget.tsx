@@ -198,7 +198,7 @@ export function GenesisBadgeWidget({ dapp: dappProp }: GenesisBadgeWidgetProps) 
     }, 500);
   }, [isConfirmed, hash, genesisBadgeDApp, contractAddress, address, costBreakdown, refetchBadge, distributeRewardAfterTransaction]);
 
-  useSyncDAppWidgetQuote(null, 'unlock-or-boost', []);
+  useSyncDAppWidgetQuote(null, 'unlock-or-boost');
 
   const rewardsExtra = (
     <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950/60">

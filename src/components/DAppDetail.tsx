@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useChainId } from 'wagmi';
 import { DApp } from '@/lib/dapps';
 import { DAppWidget } from './DAppWidget';
@@ -12,7 +13,6 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppWidgetActionRailProvider } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
-import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
 import { IconComments } from './dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { DAppDetailShell } from './dapps/shell/DAppDetailShell';
@@ -29,6 +29,11 @@ import {
   DAppWidgetTabLabelProvider,
   useWidgetTabLabelOverrides,
 } from '@/lib/dapps/DAppWidgetTabContext';
+
+const DAppRevenueTreePanel = dynamic(
+  () => import('./dapps/panels/DAppRevenueTreePanel').then((m) => m.DAppRevenueTreePanel),
+  { ssr: false },
+);
 
 interface DAppDetailProps {
   dapp: DApp;

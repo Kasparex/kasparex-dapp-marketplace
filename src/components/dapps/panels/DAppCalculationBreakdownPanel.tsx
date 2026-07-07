@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { useChainId } from 'wagmi';
 import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
@@ -8,8 +8,7 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getDAppPaymentConfig } from '@/lib/payments/config';
 import { formatPrice } from '@/lib/payments/calculator';
-import { calculateDAppHubQuote } from '@/lib/payments/hubQuote';
-import { getNativeCurrencySymbol } from '@/lib/wagmi';
+import { calculateDAppHubQuote, quoteCurrencyForDApp } from '@/lib/payments/hubQuote';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
@@ -18,13 +17,10 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import type { ReactNode } from 'react';
 
 function currencyForDApp(dapp: DApp, chainId: number): string {
-  const networkType = getDAppNetworkType(dapp);
-  if (networkType === 'L1') return 'KAS';
-  if (chainId === 38833 || chainId === 38836) return 'iKAS';
-  return getNativeCurrencySymbol(chainId);
+  return quoteCurrencyForDApp(dapp, chainId);
 }
 
-export function DAppCalculationBreakdownPanel({
+export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakdownPanel({
   dapp,
   footer,
   showWhenEmpty = false,
@@ -194,4 +190,4 @@ export function DAppCalculationBreakdownPanel({
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </aside>
   );
-}
+});

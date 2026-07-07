@@ -9,6 +9,7 @@ import {
   CovenantError,
   CovenantHowItWorks,
   covenantInputClass,
+  covenantPanelClass,
   covenantCardClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
