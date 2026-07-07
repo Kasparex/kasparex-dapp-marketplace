@@ -10,8 +10,10 @@ import { KREX_TIERS, NFT_FEE_REDUCTION, DIAMOND_NFT_FEE_REDUCTION, RAREST_NFT_FE
 
 export interface CostBreakdown {
   baseCost: number;
+  standardFeePercent: number;
   feePercent: number;
   feeAmount: number;
+  feeDiscountAmount: number;
   costReductionPercent: number;
   costReductionAmount: number;
   finalCost: number;
@@ -97,11 +99,15 @@ export function calculateCost(inputs: CostCalculatorInputs): CostBreakdown {
   const totalPaid = baseCost;
   const feeAmount = (totalPaid * feePercent) / 100;
   const amountToRecipient = totalPaid - feeAmount;
+  const feeAtStandardRate = (totalPaid * baseFee) / 100;
+  const feeDiscountAmount = Math.max(0, feeAtStandardRate - feeAmount);
   
   return {
     baseCost: totalPaid,
+    standardFeePercent: baseFee,
     feePercent,
     feeAmount,
+    feeDiscountAmount,
     costReductionPercent,
     costReductionAmount,
     finalCost: totalPaid,

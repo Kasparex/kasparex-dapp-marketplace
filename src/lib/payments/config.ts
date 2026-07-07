@@ -53,6 +53,7 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
         actionName: 'Send KAS',
         baseCost: 1.0,
         costL1: 1.0,
+        variableAmount: true,
       },
     ],
   },

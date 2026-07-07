@@ -11,6 +11,7 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 
 export function SendKASWidget() {
   const { state } = useKaspaWallet();
@@ -21,6 +22,9 @@ export function SendKASWidget() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+
+  const parsedAmount = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
+  useSyncDAppWidgetQuote(parsedAmount, 'send-kas', [amount]);
 
   const handleSend = async () => {
     if (!state.isConnected || !state.provider) {

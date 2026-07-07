@@ -45,3 +45,6 @@ export const KX_ASIDE_PANEL = `${KX_PANEL} ${KX_PANEL_PADDING}`;
 export const KX_FORM_GRID = 'grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 xl:gap-8';
 
 export const KX_STICKY_RAIL = 'xl:sticky xl:top-6 space-y-4 self-start';
+
+/** dApp widget tab: form panel on top, calculation breakdown + actions underneath. */
+export const KX_WIDGET_DETAIL_STACK = 'flex flex-col gap-6';

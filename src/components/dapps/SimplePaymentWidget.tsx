@@ -32,7 +32,7 @@ import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
-import { usePaymentAmount } from '@/lib/dapps/PaymentAmountContext';
+import { usePaymentAmount, useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Define ABI in proper JSON format as fallback to prevent bundling issues
@@ -227,8 +227,11 @@ export function SimplePaymentWidget() {
 
   // Automated rewards hook
   const { distributeRewardAfterTransaction } = useAutomatedRewards();
-  const { setPaymentAmount } = usePaymentAmount();
   const queryClient = useQueryClient();
+
+  const amountNum = amount && !Number.isNaN(parseFloat(amount)) ? parseFloat(amount) : null;
+  useSyncDAppWidgetQuote(amountNum, 'send-payment', [amount]);
+  const { clearWidgetQuote } = usePaymentAmount();
 
   // Calculate payment cost with discounts (use entered amount as base so breakdown matches actual payment)
   const paymentCostBreakdown = useMemo((): CostBreakdown | null => {
@@ -418,29 +421,22 @@ export function SimplePaymentWidget() {
   const safeWriteError = useSafeError(writeError);
   const safeTxError = useSafeError(txError);
   const displayError = error || safeWriteError || safeTxError;
-  const amountNum = parseFloat(amount || '0');
   const gridLabel = chainId === 167012 || chainId === 38836 ? 'tGRID' : 'GRID';
 
   const rewardsExtraBreakdown =
     amount && amountBigInt > 0n && paymentCostBreakdown ? (
       <div className="space-y-1.5 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-        <div className="flex justify-between gap-2">
-          <span>Recipient receives</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
-            {formatPrice(paymentCostBreakdown.breakdown.subtotal)} {nativeSymbol}
-          </span>
-        </div>
-        {amountNum > 0
+        {(amountNum ?? 0) > 0
           ? (() => {
               const rewards = getDefaultRewardsBreakdown(chainId ?? undefined);
               const tierConfig = KREX_TIERS[tier];
               const mult = tierConfig?.multiplier ?? 1;
               const tierConfigOnChain = KREX_TIERS[tierForChain];
               const multOnChain = tierConfigOnChain?.multiplier ?? 1;
-              const gridReward = Math.round(amountNum * rewards.gridPerKas * mult);
-              const xpReward = Math.round(amountNum * rewards.xpPerKas * mult);
-              const gridRewardOnChain = Math.round(amountNum * rewards.gridPerKas * multOnChain);
-              const xpRewardOnChain = Math.round(amountNum * rewards.xpPerKas * multOnChain);
+              const gridReward = Math.round((amountNum ?? 0) * rewards.gridPerKas * mult);
+              const xpReward = Math.round((amountNum ?? 0) * rewards.xpPerKas * mult);
+              const gridRewardOnChain = Math.round((amountNum ?? 0) * rewards.gridPerKas * multOnChain);
+              const xpRewardOnChain = Math.round((amountNum ?? 0) * rewards.xpPerKas * multOnChain);
               const onChainIsBaseOnly = mult > 1 && multOnChain === 1 && (krexL2Balance ?? 0) === 0;
               return (
                 <>
@@ -583,7 +579,7 @@ export function SimplePaymentWidget() {
         setRecipientAddress('');
         setAmount('');
         setError(null);
-        setPaymentAmount(null);
+        clearWidgetQuote();
       }, 0);
 
       // Distribute rewards after successful transaction (non-blocking)
@@ -652,8 +648,6 @@ export function SimplePaymentWidget() {
                   const value = e.target.value;
                   if (value === '' || /^\d*\.?\d*$/.test(value)) {
                     setAmount(value);
-                    const num = parseFloat(value);
-                    setPaymentAmount(value && !isNaN(num) && num > 0 ? num : null);
                   }
                 }}
                 placeholder="0.0"
