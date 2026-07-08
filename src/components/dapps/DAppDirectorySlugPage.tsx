@@ -8,7 +8,6 @@ import { DAppSidebar } from '@/components/DAppSidebar';
 import { DirectoryDAppDetail } from '@/components/dapps/DirectoryDAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
-import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import {
   directoryListingToDApp,
   getDirectoryListingBySlug,
@@ -53,7 +52,6 @@ export function DAppDirectorySlugPage({ slug }: DAppDirectorySlugPageProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <ReferralTracker contentType="dapp" contentSlug={slug} />
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           <DAppSidebar dapp={dapp} />

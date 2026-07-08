@@ -70,16 +70,16 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
-  'genesis-badge': {
-    dappId: 'genesis-badge',
-    networkType: 'L2',
+  'genesis-dapp': {
+    dappId: 'genesis-dapp',
+    networkType: 'L1',
     actions: [
       {
-        actionId: 'unlock-or-boost',
-        actionName: 'Unlock or Boost Badge',
+        actionId: 'leave-message',
+        actionName: 'Leave message',
         baseCost: 10.0,
-        costL2: 10.0,
-        nextStep: 'Badge unlocked or boosted',
+        costL1: 10.0,
+        nextStep: 'Message stored on-chain',
       },
     ],
   },

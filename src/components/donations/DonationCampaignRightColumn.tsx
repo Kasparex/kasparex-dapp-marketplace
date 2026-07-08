@@ -3,8 +3,6 @@
 import { useAccount, useChainId } from 'wagmi';
 import { formatEther } from 'viem';
 import { DonationLeaderboard } from './DonationLeaderboard';
-import { RevenueTree } from '@/components/revenue-tree/RevenueTree';
-import { generateDonationRevenueTree } from '@/lib/revenue-tree/mockData';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { useDonationPoints } from '@/hooks/useDonationPoints';
@@ -16,7 +14,6 @@ import { CampaignEndCountdown } from '@/components/donations/CampaignEndCountdow
 interface DonationCampaignRightColumnProps {
   campaign: DonationCampaign;
   creatorAddress: string;
-  /** Current L2 donation amount for Revenue Tree share preview (default 10). */
   previewDonationAmount?: number;
   metadata?: DonationCampaignMetadata | null;
   onL2DonationConfirmed?: () => void;
@@ -26,7 +23,7 @@ interface DonationCampaignRightColumnProps {
 export function DonationCampaignRightColumn({
   campaign,
   creatorAddress,
-  previewDonationAmount = 10,
+  previewDonationAmount: _previewDonationAmount = 10,
   metadata = null,
   onL2DonationConfirmed,
   onL2AmountChange,
@@ -42,13 +39,6 @@ export function DonationCampaignRightColumn({
     campaignId: campaign.campaignIdV2,
   });
 
-  const revenueTreeData = generateDonationRevenueTree(
-    creatorAddress,
-    userWalletAddress ?? undefined,
-    chainId ?? 38833,
-    campaign.active
-  );
-
   return (
     <div className="flex flex-col gap-6">
       <DonationBlock
@@ -58,7 +48,6 @@ export function DonationCampaignRightColumn({
         onL2AmountChange={onL2AmountChange}
       />
 
-      {/* Campaign summary */}
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Campaign summary</h3>
         <dl className="space-y-2 text-sm">
@@ -123,17 +112,6 @@ export function DonationCampaignRightColumn({
           donorCount={donorsTotal}
           raisedWei={raisedTotal}
           campaignId={campaign.campaignIdV2}
-        />
-      </div>
-
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden p-4">
-        <RevenueTree
-          data={revenueTreeData}
-          userWalletAddress={userWalletAddress ?? undefined}
-          isL2Only={true}
-          activationAmount={0}
-          amountSpent={previewDonationAmount > 0 ? previewDonationAmount : 10}
-          treeBps={1000}
         />
       </div>
     </div>

@@ -1,30 +1,36 @@
 /**
  * Genesis Dapp Type Definitions
- * Types for the Genesis Dapp vProgs implementation
  */
 
 export interface GenesisMessage {
   id: number;
+  /** Plain text excerpt for search and previews. */
   message: string;
+  contentHtml: string;
   author: string;
   timestamp: number;
+  payloadBytes: number;
+  chunkCount: number;
+  feeKas: number;
+  /** Simulated or on-chain reference (covenant-ready). */
+  txRef?: string;
 }
 
 export interface GenesisDappState {
   messageCount: number;
-  messageFee: string; // in wei/smallest unit
   maxMessageLength: number;
 }
 
 export interface LeaveMessageParams {
-  message: string;
+  contentHtml: string;
   author: string;
-  fee: string;
+  feeKas: number;
+  payloadBytes: number;
+  chunkCount: number;
 }
 
 export interface GenesisDappConfig {
   dAppId: number;
   contractAddress: string;
-  messageFee: string;
   maxMessageLength: number;
 }

@@ -13,7 +13,6 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { KREX_TIERS, NFT_COST_REDUCTION, DIAMOND_NFT_COST_REDUCTION, RAREST_NFT_COST_REDUCTION } from '@/lib/rewards/types';
 import { MagazineDashboardButton } from '@/components/magazines/MagazineDashboardButton';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
-import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { magazineIssueGateConfig } from '@/lib/hub/gateConfigs';
 import { useHubAccess } from '@/hooks/useHubAccess';
@@ -116,8 +115,6 @@ export default function IssueDetailPage() {
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
-            <ReferralTracker contentType="magazine" contentSlug={slug as string} issueNumber={parseInt(issueNumber as string)} />
-
             <div className="flex flex-1">
                 <MagazinesSidebar
                     mode="issue"

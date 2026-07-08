@@ -28,7 +28,6 @@ import {
   useWidgetTabLabelOverrides,
 } from '@/lib/dapps/DAppWidgetTabContext';
 import { DAppWidget } from './DAppWidget';
-import { DAppRevenueTreePanel } from './dapps/panels/DAppRevenueTreePanel';
 
 const CommentsSection = dynamic(
   () => import('./vblog/CommentsSection').then((m) => m.CommentsSection),
@@ -99,11 +98,7 @@ function DAppDetailBody({
           <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
         </div>
       ) : null}
-      {tab === 'revenue-tree' ? (
-        <div className={KX_TAB_SECTION}>
-          <DAppRevenueTreePanel dapp={mergedDApp} />
-        </div>
-      ) : null}
+
       {tab === 'comments' ? (
         <div className={KX_TAB_SECTION}>
           <CommentsSection articleId={articleId} dappSectionHeader />

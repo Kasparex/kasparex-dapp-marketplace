@@ -5,7 +5,6 @@ import type { DApp } from '@/lib/dapps';
 import type { DAppTabDef } from './modules/types';
 import { SimplePaymentWidget } from '@/components/dapps/SimplePaymentWidget';
 import { DAOVotingWidget } from '@/components/dapps/DAOVotingWidget';
-import { GenesisBadgeWidget } from '@/components/dapps/GenesisBadgeWidget';
 import { GenesisDappWidget } from '@/components/dapps/GenesisDappWidget';
 import { CovenantLockboxWidget } from '@/components/dapps/CovenantLockboxWidget';
 import { CovenantSplitWidget } from '@/components/dapps/CovenantSplitWidget';
@@ -25,7 +24,6 @@ export type WidgetEntry = {
 const WIDGET_REGISTRY: WidgetEntry[] = [
   { slug: 'simple-payment', id: '11', component: SimplePaymentWidget },
   { slug: 'dao-voting', component: DAOVotingWidget },
-  { slug: 'genesis-badge', component: GenesisBadgeWidget },
   { slug: 'genesis-dapp', component: GenesisDappWidget },
   { slug: 'lockbox', component: CovenantLockboxWidget },
   { slug: 'covenant-split', component: CovenantSplitWidget },

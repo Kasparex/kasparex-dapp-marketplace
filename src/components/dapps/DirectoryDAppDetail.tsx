@@ -5,7 +5,6 @@ import type { DApp } from '@/lib/dapps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryDAppOverviewPanel';
 import { DirectoryDAppDescriptionsPanel } from '@/components/dapps/panels/DirectoryDAppDescriptionsPanel';
-import { DAppRevenueTreePanel } from '@/components/dapps/panels/DAppRevenueTreePanel';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
@@ -56,11 +55,7 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
             <DirectoryDAppDescriptionsPanel dapp={dapp} listing={listing} />
           </div>
         ) : null}
-        {tab === 'revenue-tree' ? (
-          <div className={KX_TAB_SECTION}>
-            <DAppRevenueTreePanel dapp={dapp} />
-          </div>
-        ) : null}
+
         {tab === 'comments' ? (
           <div className={KX_TAB_SECTION}>
             <CommentsSection articleId={articleId} dappSectionHeader />

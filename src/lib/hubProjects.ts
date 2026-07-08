@@ -134,15 +134,6 @@ export const hubProjects: HubProject[] = [
     status: 'beta',
   },
   {
-    id: 'kasparex-ai',
-    name: 'Kasparex AI',
-    category: 'Infrastructure',
-    description:
-      'Autonomous AI agents on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.',
-    route: '/ai',
-    status: 'beta',
-  },
-  {
     id: 'kasparex-store',
     name: 'Kasparex Store',
     category: 'Marketplace',
@@ -165,13 +156,5 @@ export const hubProjects: HubProject[] = [
     description: 'Time-locked ad slots across the platform. Pay in KAS, choose a slot and duration, and your ad goes live in halo, sidebar, and footer placements.',
     route: '/ads',
     status: 'beta',
-  },
-  {
-    id: 'revenue-tree',
-    name: 'Revenue Tree',
-    category: 'Ecosystem',
-    description: 'Track your network, rewards, and structural flow in real-time. Visualize the Kasparex revenue distribution system.',
-    route: '/tree/dashboard',
-    status: 'available',
   },
 ];

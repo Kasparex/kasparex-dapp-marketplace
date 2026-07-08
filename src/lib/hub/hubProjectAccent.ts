@@ -200,26 +200,6 @@ const HUB_PROJECT_ACCENTS: Record<string, HubProjectAccent> = {
     shadow: 'rgba(236, 72, 153, 0.35)',
     tiltShadow: '0 0 10px rgba(236, 72, 153, 0.35)',
   },
-  'revenue-tree': {
-    projectId: 'revenue-tree',
-    accentId: 'revenueTree',
-    hex: '#22c55e',
-    hexHover: '#16a34a',
-    muted: 'rgba(34, 197, 94, 0.1)',
-    border: 'rgba(34, 197, 94, 0.25)',
-    shadow: 'rgba(34, 197, 94, 0.35)',
-    tiltShadow: '0 0 10px rgba(34, 197, 94, 0.35)',
-  },
-  'kasparex-ai': {
-    projectId: 'kasparex-ai',
-    accentId: 'ai',
-    hex: '#a855f7',
-    hexHover: '#9333ea',
-    muted: 'rgba(168, 85, 247, 0.1)',
-    border: 'rgba(168, 85, 247, 0.25)',
-    shadow: 'rgba(168, 85, 247, 0.35)',
-    tiltShadow: '0 0 10px rgba(168, 85, 247, 0.35)',
-  },
 };
 
 const DEFAULT_ACCENT = HUB_PROJECT_ACCENTS['kasparex-dapps'];

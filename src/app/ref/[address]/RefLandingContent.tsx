@@ -1,18 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { setCurrentReferrer } from '@/lib/revenue-tree/referral';
 
 interface RefLandingContentProps {
   referrerAddress: string;
 }
 
 export function RefLandingContent({ referrerAddress }: RefLandingContentProps) {
-  useEffect(() => {
-    setCurrentReferrer(referrerAddress);
-  }, [referrerAddress]);
-
   const short = `${referrerAddress.slice(0, 10)}…${referrerAddress.slice(-8)}`;
 
   return (
@@ -25,20 +19,14 @@ export function RefLandingContent({ referrerAddress }: RefLandingContentProps) {
           Referrer: <span className="font-mono text-sm text-zinc-800 dark:text-zinc-200">{short}</span>
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-500">
-          When you connect your wallet and use dApps, we’ll set this referrer once so you join their Revenue Tree.
+          Explore Kasparex dApps and hub projects to get started.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/dapps"
-            className="px-6 py-3 bg-[#02abb8] hover:bg-[#0299a6] text-white font-bold rounded-lg transition-colors"
-          >
+          <Link href="/dapps" className="k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8]">
             Browse dApps
           </Link>
-          <Link
-            href="/tree/dashboard"
-            className="px-6 py-3 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 font-bold rounded-lg transition-colors"
-          >
-            Revenue Tree
+          <Link href="/hub" className="k-control-btn">
+            Open Hub
           </Link>
         </div>
       </div>

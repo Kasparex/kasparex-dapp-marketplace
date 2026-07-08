@@ -1,11 +1,10 @@
-import { getDAppNetworkType, type DApp } from '@/lib/dapps';
+import type { DApp } from '@/lib/dapps';
 import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { getWidgetPageTabs } from '@/lib/dapps/widgetPageTabs';
 import {
   IconDAppWidget,
   IconOverview,
   IconComments,
-  IconRevenueTree,
   IconMetadata,
   IconWidgetCreate,
   IconWidgetList,
@@ -35,6 +34,7 @@ function iconForWidgetPageTab(tabId: string) {
     case 'splits':
     case 'deals':
     case 'claim':
+    case 'messages':
       return <IconWidgetList />;
     case 'metadata':
       return <IconMetadata />;
@@ -43,10 +43,6 @@ function iconForWidgetPageTab(tabId: string) {
     default:
       return <IconDAppWidget />;
   }
-}
-
-export function dappParticipatesInRevenueTree(dapp: DApp): boolean {
-  return getDAppNetworkType(dapp) === 'L2';
 }
 
 export function buildDAppDetailTabs({
@@ -79,10 +75,6 @@ export function buildDAppDetailTabs({
 
   tabs.push({ id: 'descriptions', label: 'Description', icon: <IconOverview /> });
 
-  if (dappParticipatesInRevenueTree(dapp)) {
-    tabs.push({ id: 'revenue-tree', label: 'Revenue Tree', icon: <IconRevenueTree /> });
-  }
-
   tabs.push({
     id: 'comments',
     label: 'Comments',
@@ -103,4 +95,9 @@ export function defaultDAppDetailTab(slug?: string): string {
   const widgetTabs = getWidgetPageTabs(slug);
   if (widgetTabs.length > 0) return widgetTabs[0].id;
   return 'widget';
+}
+
+/** @deprecated Revenue Tree dApp removed from the hub. */
+export function dappParticipatesInRevenueTree(_dapp: DApp): boolean {
+  return false;
 }

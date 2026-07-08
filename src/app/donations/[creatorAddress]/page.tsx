@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useChainId } from 'wagmi';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
 import { useDonationCampaignPage } from '@/hooks/useDonationCampaignPage';
 import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
@@ -99,7 +98,6 @@ function DonationCampaignPageContent() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      <ReferralTracker contentType="donation" contentSlug={creatorAddress} />
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">
           {/* Left sidebar - same as donations listing */}

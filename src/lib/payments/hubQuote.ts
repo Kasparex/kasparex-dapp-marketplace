@@ -9,6 +9,7 @@ import {
   COVENANT_EXTRA_SLOT_FEE_KAS,
   type KpxCovenantDeployPrice,
 } from '@/lib/covenant/kpxCovenantPricing';
+import type { GenesisMessageQuote } from '@/lib/genesis/pricing';
 import { formatPrice, formatPercent, type CostCalculatorInputs, calculateCost } from '@/lib/payments/calculator';
 import { getActionCost } from '@/lib/payments/config';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
@@ -167,10 +168,10 @@ export function quoteCurrencyForDApp(dapp: DApp, chainId?: number): string {
 export function getHubPointsBaseForAction(dapp: DApp, actionId: string): number {
   const slug = dapp.slug ?? '';
   if (slug === 'send-kas' || slug === 'send-krex') return HUB_EARN_POINTS.dappL1Interaction;
-  if (actionId === 'unlock-or-boost') return HUB_EARN_POINTS.dappDirectoryList;
   if (actionId === 'submit-proposal') return HUB_EARN_POINTS.dappDirectoryList;
   if (actionId === 'cast-vote') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'send-payment') return HUB_EARN_POINTS.dappDirectoryList;
+  if (actionId === 'leave-message') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'donation') return HUB_EARN_POINTS.crowdkasCampaignCreate;
   if (isCovenantDAppSlug(slug)) return HUB_EARN_POINTS.kpxCovenantDeploy;
   if (getDAppNetworkType(dapp) === 'L1') return HUB_EARN_POINTS.dappL1Interaction;
@@ -224,6 +225,33 @@ export function covenantDeployToHubQuote(
   }
 
   return { ...quote, authoritative: true };
+}
+
+export function genesisMessageToHubQuote(
+  quote: GenesisMessageQuote,
+  krexBalance: number,
+  krexTier: KREXTier,
+): HubQuoteDisplay {
+  const lines: HubQuoteLine[] = [
+    { label: 'Base fee (message)', value: `${formatPrice(quote.baseFeeKas)} KAS` },
+    {
+      label: `On-chain payload (${quote.chunkCount} chunk${quote.chunkCount === 1 ? '' : 's'})`,
+      value: `${formatPrice(quote.sizeFeeKas)} KAS`,
+    },
+    { label: 'Network buffer', value: `${formatPrice(quote.networkBufferKas)} KAS` },
+    { label: 'Payload bytes', value: String(quote.payloadBytes) },
+    { label: 'Chunk estimate', value: String(quote.chunkCount) },
+  ];
+
+  return totalDiscountQuote(quote.subtotalKas, 'KAS', krexTier, krexBalance, lines, {
+    hubPoints: computeHubPointsForAction({
+      dapp: { slug: 'genesis-dapp', networkType: 'L1' } as DApp,
+      actionId: 'leave-message',
+      tier: krexTier,
+    }),
+    infoText:
+      'Your message is stored on Kaspa L1. Larger messages use more payload chunks and increase the size fee.',
+  });
 }
 
 /** L1 native/KRC-20 transfers: tier discount applies to network buffer total. */

@@ -6,7 +6,6 @@ import { DAppDetail } from '@/components/DAppDetail';
 import { DAppDirectorySlugPage } from '@/components/dapps/DAppDirectorySlugPage';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
-import { ReferralTracker } from '@/components/revenue-tree/ReferralTracker';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
 import { getContractAddress } from '@/lib/contracts/addresses';
@@ -80,9 +79,6 @@ export default async function DAppPage({ params }: PageProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
-      {/* Referral Tracker */}
-      <ReferralTracker contentType="dapp" contentSlug={dappSlug} />
       
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col lg:flex-row">

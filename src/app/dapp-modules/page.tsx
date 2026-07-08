@@ -64,9 +64,6 @@ export default function DAppModulesPage() {
                 <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
                   List dApp
                 </Link>
-                <Link href="/tree/dashboard" className="k-control-btn w-full">
-                  Revenue Tree
-                </Link>
                 <Link href="/dapp-modules" className="k-control-btn w-full">
                   Modules
                 </Link>
@@ -84,9 +81,6 @@ export default function DAppModulesPage() {
               <div className="space-y-2">
                 <Link href="/u?tab=my-dapps&view=list-dapp" className="k-control-btn w-full">
                   List dApp
-                </Link>
-                <Link href="/tree/dashboard" className="k-control-btn w-full">
-                  Revenue Tree
                 </Link>
                 <Link href="/dapp-modules" className="k-control-btn w-full">
                   Modules

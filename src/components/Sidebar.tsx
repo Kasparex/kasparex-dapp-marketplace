@@ -168,9 +168,6 @@ export function Sidebar({
           <Link href="/dapps/dashboard" className="k-control-btn w-full">
             Dashboard
           </Link>
-          <Link href="/tree/dashboard" className="k-control-btn w-full">
-            Revenue Tree
-          </Link>
           <Link href="/dapp-modules" className="k-control-btn w-full">
             Modules
           </Link>
