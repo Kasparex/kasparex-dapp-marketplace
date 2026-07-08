@@ -70,8 +70,8 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
-  'genesis-dapp': {
-    dappId: 'genesis-dapp',
+  'kaspa-capsule': {
+    dappId: 'kaspa-capsule',
     networkType: 'L1',
     actions: [
       {

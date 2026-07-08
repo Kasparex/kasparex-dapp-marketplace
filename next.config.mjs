@@ -12,6 +12,8 @@ const nextConfig = {
       { source: '/points', destination: '/rewards', permanent: true },
       { source: '/rewards-and-points', destination: '/rewards', permanent: true },
       { source: '/rewards-and-points/tiers', destination: '/tiers', permanent: true },
+      { source: '/dapps/genesis-dapp', destination: '/dapps/kaspa-capsule', permanent: true },
+      { source: '/dapps/genesis-dapp/:path*', destination: '/dapps/kaspa-capsule/:path*', permanent: true },
     ];
   },
 

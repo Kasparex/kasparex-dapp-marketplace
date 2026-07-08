@@ -32,7 +32,7 @@ export const WIDGET_PAGE_TABS: Record<string, readonly DAppTabDef[]> = {
     { id: 'metadata', label: 'Metadata' },
     { id: 'about', label: 'How it works' },
   ],
-  'genesis-dapp': [
+  'kaspa-capsule': [
     { id: 'create', label: 'Leave message' },
     { id: 'messages', label: 'Messages' },
     { id: 'metadata', label: 'Metadata' },

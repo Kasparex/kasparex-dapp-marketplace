@@ -1,14 +1,15 @@
 /**
- * Genesis Dapp Simulator
- * Simulates Genesis Dapp functionality before covenant / vProgs production deploy.
+ * Kaspa Capsule local message registry (Hub archive until covenant indexer ships).
  */
 
 import { htmlToPlainText, normalizeQuillHtml } from '@/lib/richText/html';
 import { validateGenesisMessageHtml, GENESIS_MESSAGE_LIMITS } from '@/lib/genesis/limits';
-import type { GenesisMessage, GenesisDappState, LeaveMessageParams } from './genesis-types';
+import type { GenesisMessage, GenesisDappState, SaveMessageParams } from './genesis-types';
 import { getVProgsSimulator } from './simulator';
 
-const GENESIS_DAPP_ID = 1;
+const KASPA_CAPSULE_DAPP_ID = 1;
+const STORAGE_KEY = 'kaspa_capsule_state';
+const LEGACY_STORAGE_KEY = 'genesis_dapp_state';
 
 class GenesisDappSimulator {
   private messages: Map<number, GenesisMessage> = new Map();
@@ -16,7 +17,10 @@ class GenesisDappSimulator {
   private state: GenesisDappState;
 
   constructor() {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('genesis_dapp_state') : null;
+    const stored =
+      typeof window !== 'undefined'
+        ? localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY)
+        : null;
 
     if (stored) {
       try {
@@ -29,6 +33,7 @@ class GenesisDappSimulator {
         this.messageCount = parsed.messageCount || 0;
         this.state = parsed.state || this.getDefaultState();
         this.migrateLegacyMessages();
+        this.saveState();
       } catch {
         this.state = this.getDefaultState();
         this.reset();
@@ -54,15 +59,18 @@ class GenesisDappSimulator {
 
   private migrateLegacyMessages() {
     for (const [id, msg] of this.messages.entries()) {
-      if (!msg.contentHtml && msg.message) {
-        this.messages.set(id, {
-          ...msg,
-          contentHtml: msg.message,
-          payloadBytes: msg.payloadBytes ?? new TextEncoder().encode(msg.message).length,
-          chunkCount: msg.chunkCount ?? 1,
-          feeKas: msg.feeKas ?? 0,
-        });
-      }
+      const txHash = msg.txHash ?? msg.txRef ?? '';
+      const messageId = msg.messageId ?? `legacy-${id}`;
+      const contentHtml = msg.contentHtml || msg.message || '';
+      this.messages.set(id, {
+        ...msg,
+        messageId,
+        contentHtml,
+        txHash,
+        payloadBytes: msg.payloadBytes ?? new TextEncoder().encode(contentHtml).length,
+        chunkCount: msg.chunkCount ?? 1,
+        feeKas: msg.feeKas ?? 0,
+      });
     }
   }
 
@@ -75,21 +83,23 @@ class GenesisDappSimulator {
       state: this.state,
     };
 
-    localStorage.setItem('genesis_dapp_state', JSON.stringify(serializable));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   }
 
-  async leaveMessage(params: LeaveMessageParams): Promise<GenesisMessage> {
+  async saveMessage(params: SaveMessageParams): Promise<GenesisMessage> {
     const contentHtml = normalizeQuillHtml(params.contentHtml);
     const validationError = validateGenesisMessageHtml(contentHtml);
     if (validationError) throw new Error(validationError);
 
     const plain = htmlToPlainText(contentHtml);
     if (params.feeKas <= 0) throw new Error('Invalid fee quote');
+    if (!params.txHash.trim()) throw new Error('Missing on-chain transaction reference');
 
     this.messageCount++;
-    const txRef = `genesis:sim:${Date.now()}:${this.messageCount}`;
     const message: GenesisMessage = {
       id: this.messageCount,
+      messageId: params.messageId,
       message: plain,
       contentHtml,
       author: params.author,
@@ -97,7 +107,7 @@ class GenesisDappSimulator {
       payloadBytes: params.payloadBytes,
       chunkCount: params.chunkCount,
       feeKas: params.feeKas,
-      txRef,
+      txHash: params.txHash.trim(),
     };
 
     this.messages.set(message.id, message);
@@ -107,8 +117,8 @@ class GenesisDappSimulator {
     const simulator = getVProgsSimulator();
     simulator.recordUsageEvent({
       user: params.author,
-      dAppContract: 'genesis-dapp',
-      dAppId: GENESIS_DAPP_ID,
+      dAppContract: 'kaspa-capsule',
+      dAppId: KASPA_CAPSULE_DAPP_ID,
       actionType: 'leave-message',
       timestamp: message.timestamp,
     });
@@ -116,12 +126,26 @@ class GenesisDappSimulator {
     return message;
   }
 
+  async deleteMessage(messageId: number, author: string): Promise<void> {
+    const msg = this.messages.get(messageId);
+    if (!msg || msg.deletedAt) throw new Error('Message not found');
+    if (msg.author.trim().toLowerCase() !== author.trim().toLowerCase()) {
+      throw new Error('You can only delete your own messages');
+    }
+    this.messages.set(messageId, { ...msg, deletedAt: Date.now() });
+    this.saveState();
+  }
+
   async getMessage(messageId: number): Promise<GenesisMessage | null> {
-    return this.messages.get(messageId) || null;
+    const msg = this.messages.get(messageId);
+    if (!msg || msg.deletedAt) return null;
+    return msg;
   }
 
   async getMessages(offset: number = 0, limit: number = 200): Promise<GenesisMessage[]> {
-    const allMessages = Array.from(this.messages.values()).sort((a, b) => b.timestamp - a.timestamp);
+    const allMessages = Array.from(this.messages.values())
+      .filter((m) => !m.deletedAt)
+      .sort((a, b) => b.timestamp - a.timestamp);
     return allMessages.slice(offset, offset + limit);
   }
 
@@ -130,7 +154,7 @@ class GenesisDappSimulator {
   }
 
   getMessageCount(): number {
-    return this.messageCount;
+    return Array.from(this.messages.values()).filter((m) => !m.deletedAt).length;
   }
 
   clearMessages() {

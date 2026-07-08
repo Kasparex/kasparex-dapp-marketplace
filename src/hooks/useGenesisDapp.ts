@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getGenesisDappSimulator } from '@/lib/vprogs/genesis-simulator';
 import { computeGenesisMessageQuote } from '@/lib/genesis/pricing';
+import { sendKaspaCapsulePayment } from '@/lib/genesis/payment';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import type { DApp } from '@/lib/dapps';
 import type { GenesisMessage, GenesisDappState } from '@/lib/vprogs/genesis-types';
 
@@ -14,6 +16,7 @@ interface UseGenesisDappReturn {
   isLoading: boolean;
   error: string | null;
   leaveMessage: (contentHtml: string, dapp: DApp) => Promise<GenesisMessage>;
+  deleteMessage: (messageId: number) => Promise<void>;
   refreshMessages: () => Promise<void>;
   state: GenesisDappState | null;
   messageCount: number;
@@ -23,6 +26,7 @@ export function useGenesisDapp(): UseGenesisDappReturn {
   const { state: kaspaState } = useKaspaWallet();
   const address = kaspaState.address;
   const isConnected = kaspaState.isConnected;
+  const provider = kaspaState.provider;
   const { tier, balance: krexBalance } = useKREXBalance();
   const [messages, setMessages] = useState<GenesisMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +57,7 @@ export function useGenesisDapp(): UseGenesisDappReturn {
 
   const leaveMessage = useCallback(
     async (contentHtml: string, dapp: DApp) => {
-      if (!isConnected || !address) {
+      if (!isConnected || !address || !provider) {
         throw new Error('Please connect your wallet');
       }
 
@@ -62,30 +66,37 @@ export function useGenesisDapp(): UseGenesisDappReturn {
 
       try {
         const quote = computeGenesisMessageQuote(contentHtml, address, tier);
-        const newMessage = await simulator.leaveMessage({
+        const payment = await sendKaspaCapsulePayment({
+          provider: provider as KaspaWalletProvider,
+          author: address,
+          contentHtml,
+          totalKas: quote.totalKas,
+        });
+
+        const newMessage = await simulator.saveMessage({
           contentHtml,
           author: address,
           feeKas: quote.totalKas,
-          payloadBytes: quote.payloadBytes,
-          chunkCount: quote.chunkCount,
+          payloadBytes: payment.payloadBytes,
+          chunkCount: payment.chunkCount,
+          txHash: payment.txHash,
+          messageId: payment.messageId,
         });
 
-        if (newMessage.txRef) {
-          awardDAppHubPoints({
-            walletRaw: address,
-            dapp,
-            actionId: 'leave-message',
-            txHash: newMessage.txRef,
-            krexTier: tier,
-            krexBalance: krexBalance ?? 0,
-            baseSpendKas: quote.subtotalKas,
-          });
-        }
+        awardDAppHubPoints({
+          walletRaw: address,
+          dapp,
+          actionId: 'leave-message',
+          txHash: payment.txHash,
+          krexTier: tier,
+          krexBalance: krexBalance ?? 0,
+          baseSpendKas: quote.subtotalKas,
+        });
 
         await loadMessages();
         const updatedState = simulator.getState();
         setState(updatedState);
-        setMessageCount(updatedState.messageCount);
+        setMessageCount(simulator.getMessageCount());
         return newMessage;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to leave message';
@@ -95,7 +106,25 @@ export function useGenesisDapp(): UseGenesisDappReturn {
         setIsLoading(false);
       }
     },
-    [isConnected, address, simulator, loadMessages, tier, krexBalance],
+    [isConnected, address, provider, simulator, loadMessages, tier, krexBalance],
+  );
+
+  const deleteMessage = useCallback(
+    async (messageId: number) => {
+      if (!address) throw new Error('Please connect your wallet');
+
+      setError(null);
+      try {
+        await simulator.deleteMessage(messageId, address);
+        await loadMessages();
+        setMessageCount(simulator.getMessageCount());
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete message';
+        setError(errorMessage);
+        throw err;
+      }
+    },
+    [address, simulator, loadMessages],
   );
 
   const refreshMessages = useCallback(async () => {
@@ -111,6 +140,7 @@ export function useGenesisDapp(): UseGenesisDappReturn {
     isLoading,
     error,
     leaveMessage,
+    deleteMessage,
     refreshMessages,
     state,
     messageCount,

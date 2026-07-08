@@ -24,7 +24,7 @@ export type WidgetEntry = {
 const WIDGET_REGISTRY: WidgetEntry[] = [
   { slug: 'simple-payment', id: '11', component: SimplePaymentWidget },
   { slug: 'dao-voting', component: DAOVotingWidget },
-  { slug: 'genesis-dapp', component: GenesisDappWidget },
+  { slug: 'kaspa-capsule', component: GenesisDappWidget },
   { slug: 'lockbox', component: CovenantLockboxWidget },
   { slug: 'covenant-split', component: CovenantSplitWidget },
   { slug: 'covenant-milestone', component: CovenantMilestoneWidget },

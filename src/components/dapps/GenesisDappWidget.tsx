@@ -35,6 +35,10 @@ type TabId = 'create' | 'messages' | 'metadata' | 'about';
 
 const RECENT_PREVIEW_COUNT = 10;
 
+const CAPSULE_HEADING = 'Leave Your Message.';
+const CAPSULE_DESCRIPTION =
+  'Publish a rich-text note on Kaspa L1. Your message stays on-chain forever and appears in the Hub Capsule archive.';
+
 export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
   const { state: kaspaState } = useKaspaWallet();
   const { tier, balance: krexBalance } = useKREXBalance();
@@ -49,6 +53,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     isLoading,
     error,
     leaveMessage,
+    deleteMessage,
     refreshMessages,
     messageCount,
   } = useGenesisDapp();
@@ -79,7 +84,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     try {
       await leaveMessage(normalized, dapp);
       setContentHtml('');
-      setSuccess('Your message was saved. Welcome to Kaspa history.');
+      setSuccess('Your message was published on-chain and added to the Capsule archive.');
     } catch (e) {
       console.error(e);
     } finally {
@@ -103,7 +108,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting
-          ? 'Saving...'
+          ? 'Publishing...'
           : quote
             ? `Leave message (${quote.totalKas.toFixed(2)} KAS)`
             : 'Leave message'}
@@ -116,11 +121,11 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     return (
       <DAppWidgetShell
         title="Interact"
-        heading="Leave your message"
-        description="Connect your Kaspa wallet to compose a permanent on-chain message."
+        heading={CAPSULE_HEADING}
+        description={CAPSULE_DESCRIPTION}
       >
         <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center py-6">
-          Connect your wallet to use Genesis.
+          Connect your wallet to use Kaspa Capsule.
         </p>
       </DAppWidgetShell>
     );
@@ -129,7 +134,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
   if (tab === 'create') {
     return (
       <div className="space-y-8">
-        <DAppWidgetShell title="Interact" heading="Leave your message">
+        <DAppWidgetShell title="Interact" heading={CAPSULE_HEADING} description={CAPSULE_DESCRIPTION}>
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <KxFormFieldLabel>Your message</KxFormFieldLabel>
@@ -204,6 +209,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
             walletAddress={kaspaState.address}
             limit={RECENT_PREVIEW_COUNT}
             onSeeMore={() => navigateTab('messages')}
+            onDeleteMessage={deleteMessage}
             emptyLabel="No messages yet. Yours could be the first."
           />
         </div>
@@ -215,8 +221,8 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
     return (
       <CovenantTabPanel
         title="Messages"
-        heading="Genesis messages"
-        description="Every message left on Genesis, newest first. Filter by author or search the archive."
+        heading="Capsule messages"
+        description="Every message published through Kaspa Capsule, newest first. Filter by author or search the archive."
       >
         <div className="flex justify-end">
           <button
@@ -232,6 +238,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
           isLoading={isLoading}
           walletAddress={kaspaState.address}
           showFilters
+          onDeleteMessage={deleteMessage}
         />
       </CovenantTabPanel>
     );
@@ -242,18 +249,20 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
       <CovenantTabPanel
         title="Metadata"
         heading="On-chain references"
-        description="Covenant payload templates and message lineage when L1 covenant deploy is enabled."
+        description="Payload templates and message lineage. Covenant deploy wiring will attach when native covenant transactions ship."
       >
         <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300 space-y-3">
           <p>
-            Genesis messages use a canonical JSON payload (author + rich content) split into{' '}
+            Kaspa Capsule messages use a canonical JSON payload (author + rich content) split into{' '}
             {180}-byte chunks for Kaspa L1 storage, matching the vBlog article model.
           </p>
           <p className="text-xs text-zinc-500">
-            Runtime: simulator (local). Covenant deploy wiring will attach covenant IDs and explorer links per message when
-            wallets ship native covenant transactions.
+            Payments settle via the standard L1 treasury flow today. Each message includes an explorer link to its
+            commit transaction.
           </p>
-          <p className="text-xs font-mono text-zinc-500">{messageCount} message{messageCount === 1 ? '' : 's'} in local registry</p>
+          <p className="text-xs font-mono text-zinc-500">
+            {messageCount} message{messageCount === 1 ? '' : 's'} in Hub archive
+          </p>
         </div>
       </CovenantTabPanel>
     );
@@ -261,11 +270,11 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
 
   if (tab === 'about') {
     return (
-      <CovenantTabPanel title="How it works" heading="How Genesis works">
+      <CovenantTabPanel title="How it works" heading="How Kaspa Capsule works">
         <CovenantHowItWorks>
           <p>
-            Genesis is a permanent message board on Kaspa L1. Leave a rich-text note that becomes part of the early
-            ecosystem archive.
+            Kaspa Capsule is a permanent message board on Kaspa L1. Leave a rich-text note that becomes part of the
+            early ecosystem archive.
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>
@@ -275,7 +284,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
               <strong>Pay once</strong>: base fee plus payload size fee based on how many on-chain chunks your message needs.
             </li>
             <li>
-              <strong>Stored forever</strong>: messages are indexed locally today and will settle via covenant payloads on mainnet.
+              <strong>Stored forever</strong>: your L1 transaction and payload remain on-chain. The Hub archive can hide messages you delete locally.
             </li>
             <li>
               <strong>Hub Points</strong>: qualifying messages earn redeemable Hub Points on your connected wallet ledger.

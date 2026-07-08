@@ -245,7 +245,7 @@ export function genesisMessageToHubQuote(
 
   return totalDiscountQuote(quote.subtotalKas, 'KAS', krexTier, krexBalance, lines, {
     hubPoints: computeHubPointsForAction({
-      dapp: { slug: 'genesis-dapp', networkType: 'L1' } as DApp,
+      dapp: { slug: 'kaspa-capsule', networkType: 'L1' } as DApp,
       actionId: 'leave-message',
       tier: krexTier,
     }),
