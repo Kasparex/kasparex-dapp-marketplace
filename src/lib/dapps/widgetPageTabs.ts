@@ -39,6 +39,10 @@ export function getWidgetPageTabs(slug?: string): readonly DAppTabDef[] {
   return WIDGET_PAGE_TABS[slug] ?? [];
 }
 
+export function hasWidgetMetadataTab(slug?: string): boolean {
+  return getWidgetPageTabs(slug).some((t) => t.id === 'metadata');
+}
+
 /** Tabs where the calculation breakdown sidebar should be visible. */
 export function isWidgetCalculationTab(tabId: string, slug?: string): boolean {
   const widgetTabs = getWidgetPageTabs(slug);

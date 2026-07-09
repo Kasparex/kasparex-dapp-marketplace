@@ -11,6 +11,7 @@ import { mergeDAppData } from '@/lib/dapps/contractData';
 import { PaymentAmountProvider } from '@/lib/dapps/PaymentAmountContext';
 import { DAppWidgetActionRailProvider } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { DAppDescriptionsPanel } from './dapps/panels/DAppDescriptionsPanel';
+import { DAppMetadataPanel } from './dapps/panels/DAppMetadataPanel';
 import { IconComments } from './dapps/icons/DAppTabIcons';
 import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
 import { DAppDetailShell } from './dapps/shell/DAppDetailShell';
@@ -21,7 +22,7 @@ import {
   defaultDAppDetailTab,
   isWidgetPageTab,
 } from '@/lib/dapps/buildDAppDetailTabs';
-import { isWidgetCalculationTab } from '@/lib/dapps/widgetPageTabs';
+import { hasWidgetMetadataTab, isWidgetCalculationTab } from '@/lib/dapps/widgetPageTabs';
 import {
   DAppWidgetSectionProvider,
   DAppWidgetTabLabelProvider,
@@ -77,6 +78,8 @@ function DAppDetailBody({
   const widgetSection = isWidgetPageTab(tab, dapp.slug) ? tab : null;
   const hasWidgetTabs = tabs.some((t) => isWidgetPageTab(t.id, dapp.slug));
 
+  const showMetadataOnAbout = tab === 'about' && !hasWidgetMetadataTab(dapp.slug);
+
   return (
     <DAppDetailShell
       dapp={mergedDApp}
@@ -88,6 +91,13 @@ function DAppDetailBody({
     >
       {hasWidgetTabs && widgetSection ? (
         <div className={KX_TAB_SECTION}>
+          {widgetSection === 'metadata' ? (
+            <DAppMetadataPanel
+              dapp={mergedDApp}
+              contractAddress={contractAddress}
+              className="mb-6"
+            />
+          ) : null}
           <DAppWidgetSectionProvider section={widgetSection} onNavigate={setTab}>
             <DAppWidget dapp={dapp} variant="detail" autoPromptWhenBlocked hideHeader hideFooter hideFooterMetaRow />
           </DAppWidgetSectionProvider>
@@ -95,6 +105,13 @@ function DAppDetailBody({
       ) : null}
       {tab === 'about' ? (
         <div className={KX_TAB_SECTION}>
+          {showMetadataOnAbout ? (
+            <DAppMetadataPanel
+              dapp={mergedDApp}
+              contractAddress={contractAddress}
+              className="mb-6"
+            />
+          ) : null}
           <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
         </div>
       ) : null}

@@ -13,11 +13,15 @@ import {
   type CrowdfundCampaign,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
+import { placeholderDApps } from '@/lib/dapps';
+
+const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 
 export function useCovenantCrowdfund() {
   const { state } = useKaspaWallet();
   const runtime = getCrowdfundRuntime();
-  const { tier: krexTier } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const [campaigns, setCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [allCampaigns, setAllCampaigns] = useState<CrowdfundCampaign[]>([]);
   const [loading, setLoading] = useState(false);
@@ -85,10 +89,21 @@ export function useCovenantCrowdfund() {
         kasToSompiString(amountKas),
         walletCtx()
       );
+      const pledgeEntry = c.pledges[c.pledges.length - 1];
+      const txHash = pledgeEntry?.txHash ?? `cf:pledge:${pledgeEntry?.id ?? `${campaignId}:${Date.now()}`}`;
+      awardDAppHubPoints({
+        walletRaw: walletCtx().userAddress,
+        dapp: CROWDFUND_DAPP,
+        actionId: 'pledge',
+        txHash,
+        krexTier,
+        krexBalance: krexBalance ?? 0,
+        baseSpendKas: amountKas,
+      });
       await refresh();
       return c;
     },
-    [refresh, runtime, walletCtx]
+    [refresh, runtime, walletCtx, krexTier, krexBalance]
   );
 
   const claimFunds = useCallback(

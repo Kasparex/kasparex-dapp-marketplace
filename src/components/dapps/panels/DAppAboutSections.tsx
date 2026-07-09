@@ -40,7 +40,7 @@ export function DAppAboutSections({ fields }: { fields: DAppAboutFields }) {
   if (!hasContent) {
     return (
       <div className={`${KX_FORM_PANEL} space-y-6`}>
-        <p className={`${DAPP_ABOUT_BODY_CLASS} py-2`}>No description available for this dApp.</p>
+        <p className="kx-body py-2">No description available for this dApp.</p>
       </div>
     );
   }

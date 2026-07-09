@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { CrowdfundCampaign } from '@/lib/covenant/crowdfund-types';
 import {
   covenantCampaignBackerCount,
@@ -12,8 +13,16 @@ import {
 } from '@/lib/donations/covenantCrowdfund';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { shortKaspaAddr } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
+import { placeholderDApps } from '@/lib/dapps';
+
+const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
+const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
 
 export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: CrowdfundCampaign }) {
+  const router = useRouter();
   const raised = covenantCampaignRaisedKas(campaign);
   const goal = covenantCampaignGoalKas(campaign);
   const progress = covenantCampaignProgress(campaign);
@@ -21,38 +30,68 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
   const goalReached = covenantCampaignGoalReached(campaign);
   const backers = covenantCampaignBackerCount(campaign);
   const deadline = new Date(campaign.deadline);
+  const profilePath = `/u/${encodeURIComponent(campaign.creator)}`;
+  const statusLabel =
+    campaign.status === 'funding' ? 'FUNDING' : campaign.status === 'succeeded' ? 'SUCCEEDED' : 'FAILED';
 
   return (
-    <Link
-      href={`/donations/covenant/${campaign.id}`}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(`/donations/covenant/${campaign.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/donations/covenant/${campaign.id}`);
+        }
+      }}
+      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors cursor-pointer"
     >
       <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
         <img src={DEFAULT_DONATION_IMAGE} alt="" className="w-full h-full object-cover" />
       </div>
       <div className="p-4">
         <div className="flex justify-between items-start mb-2 gap-2">
-          <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
-            {shortKaspaAddr(campaign.creator)}
-          </span>
-          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
-            <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
-              L1 • Covenant
+          <div className="min-w-0 flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <Link href={profilePath} className="text-xs font-semibold text-[#02abb8] hover:underline">
+              Creator profile
+            </Link>
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
+              {shortKaspaAddr(campaign.creator)}
             </span>
-            {goalReached ? (
-              <span className="text-xs px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
-                Goal reached
-              </span>
+            <KxCopyIconButton value={campaign.creator} label="Copy creator wallet address" />
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              {statusLabel}
+            </span>
+            {isLive && PLEDGE_HUB_POINTS_BASE > 0 ? (
+              <HubPointsEarnBadge
+                basePoints={PLEDGE_HUB_POINTS_BASE}
+                tier="Tier0"
+                showMinSpendTooltip={false}
+                size="sm"
+              />
             ) : null}
-            {isLive ? (
-              <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
-                Active
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              <span className="text-xs px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                L1 • Covenant
               </span>
-            ) : (
-              <span className="text-xs px-2 py-0.5 rounded bg-zinc-400 dark:bg-zinc-500 text-white dark:text-zinc-950 font-medium">
-                Ended
-              </span>
-            )}
+              {goalReached ? (
+                <span className="text-xs px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
+                  Goal reached
+                </span>
+              ) : null}
+              {isLive ? (
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
+                  Active
+                </span>
+              ) : (
+                <span className="text-xs px-2 py-0.5 rounded bg-zinc-400 dark:bg-zinc-500 text-white dark:text-zinc-950 font-medium">
+                  Ended
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{campaign.title}</p>
@@ -69,6 +108,6 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
           {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
         </p>
       </div>
-    </Link>
+    </div>
   );
 }

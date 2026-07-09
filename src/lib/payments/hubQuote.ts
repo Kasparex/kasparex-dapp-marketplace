@@ -172,6 +172,7 @@ export function getHubPointsBaseForAction(dapp: DApp, actionId: string): number 
   if (actionId === 'cast-vote') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'send-payment') return HUB_EARN_POINTS.dappDirectoryList;
   if (actionId === 'leave-message') return HUB_EARN_POINTS.dappL1Interaction;
+  if (actionId === 'pledge' && slug === 'covenant-crowdfund') return HUB_EARN_POINTS.dappL1Interaction;
   if (actionId === 'donation') return HUB_EARN_POINTS.crowdkasCampaignCreate;
   if (isCovenantDAppSlug(slug)) return HUB_EARN_POINTS.kpxCovenantDeploy;
   if (getDAppNetworkType(dapp) === 'L1') return HUB_EARN_POINTS.dappL1Interaction;

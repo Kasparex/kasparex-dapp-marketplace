@@ -83,6 +83,20 @@ const DEFAULT_PAYMENT_CONFIGS: Record<string, PaymentConfig> = {
       },
     ],
   },
+  'covenant-crowdfund': {
+    dappId: 'covenant-crowdfund',
+    networkType: 'L1',
+    actions: [
+      {
+        actionId: 'pledge',
+        actionName: 'Pledge to campaign',
+        baseCost: 1.0,
+        costL1: 1.0,
+        nextStep: 'Pledge recorded',
+        variableAmount: true,
+      },
+    ],
+  },
   // Kasparex vDonations (L2 escrow donations)
   'vdonations': {
     dappId: 'vdonations',

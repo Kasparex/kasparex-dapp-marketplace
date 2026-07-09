@@ -7,6 +7,8 @@ import type {
   CrowdfundCampaign,
   PledgeParams,
 } from './crowdfund-types';
+import { buildCrowdfundPledgeNote } from './payload';
+import { payCovenantTreasury } from './treasury';
 import { loadMap, normalizeAddr, randomHex, randomId, saveMap } from './utils';
 
 const STORAGE = () => COVENANT_LAB_CONFIG.crowdfundStorageKey;
@@ -69,11 +71,21 @@ class CrowdfundSimulator implements CrowdfundRuntime {
     ctx: CovenantWalletContext
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
+    const amountKas = Number(amountSompi) / 1e8;
+    const txHash = await payCovenantTreasury({
+      provider: ctx.provider,
+      userAddress: backer,
+      amountSompi,
+      note: buildCrowdfundPledgeNote({ campaignId, amountSompi }),
+      dappId: 'covenant-crowdfund',
+      actionType: 'pledge',
+      amountKas,
+    });
     return this.pledgeInternal({
       campaignId,
       backer,
       amountSompi,
-      txHash: undefined,
+      txHash,
     });
   }
 

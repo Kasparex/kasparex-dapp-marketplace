@@ -3,19 +3,15 @@
 import { useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
-import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
-import { normalizeAddr } from '@/lib/covenant/utils';
+import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
   CovenantError,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
-  covenantCardClass,
-  covenantSmallInputClass,
-  covenantSecondaryBtnClass,
-  shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { CovenantCrowdfundBrowseCard } from '@/components/dapps/covenant/CovenantCrowdfundBrowseCard';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
@@ -182,84 +178,25 @@ export function CovenantCrowdfundWidget() {
           ) : allCampaigns.length === 0 ? (
             <p className="text-center text-zinc-500 py-8">No campaigns yet. Launch the first one.</p>
           ) : (
-            allCampaigns.map((c) => {
-              const raised = sompiToKasNumber(c.raisedSompi);
-              const goal = sompiToKasNumber(c.goalSompi);
-              const pct = goal > 0 ? Math.min(100, (raised / goal) * 100) : 0;
-              const isCreator =
-                state.address && normalizeAddr(state.address) === normalizeAddr(c.creator);
-              return (
-                <div key={c.id} className={covenantCardClass}>
-                  <div className="flex justify-between font-medium text-zinc-900 dark:text-zinc-100">
-                    <span>{c.title}</span>
-                    <span className="text-xs uppercase tracking-wide text-zinc-500">{c.status}</span>
-                  </div>
-                  {c.memo ? <p className="text-zinc-600 dark:text-zinc-400">{c.memo}</p> : null}
-                  <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#02abb8] transition-all" style={{ width: `${pct}%` }} />
-                  </div>
-                  <p>
-                    {raised.toFixed(4)} / {goal} KAS ({pct.toFixed(0)}%)
-                  </p>
-                  <p className="text-xs text-zinc-500">
-                    Creator {shortKaspaAddr(c.creator)} · ends {new Date(c.deadline).toLocaleString()}
-                  </p>
-                  {c.status === 'funding' && (
-                    <div className="flex gap-2 pt-1">
-                      <input
-                        type="number"
-                        min={minKas}
-                        step="0.01"
-                        className={covenantSmallInputClass}
-                        placeholder="Pledge KAS"
-                        value={pledgeAmounts[c.id] ?? ''}
-                        onChange={(e) =>
-                          setPledgeAmounts((p) => ({ ...p, [c.id]: e.target.value }))
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-[#02abb8] text-white rounded-lg text-sm font-medium hover:bg-[#028a94] shrink-0"
-                        onClick={() =>
-                          void pledge(c.id, parseFloat(pledgeAmounts[c.id] || '0')).then(() =>
-                            setPledgeAmounts((p) => ({ ...p, [c.id]: '' }))
-                          )
-                        }
-                      >
-                        Pledge
-                      </button>
-                    </div>
-                  )}
-                  {isCreator && c.status === 'succeeded' && !c.claimedAt && (
-                    <button
-                      type="button"
-                      className={covenantSecondaryBtnClass}
-                      onClick={() => void claimFunds(c.id)}
-                    >
-                      Claim raised funds
-                    </button>
-                  )}
-                  {c.status === 'failed' &&
-                    c.pledges
-                      .filter(
-                        (p) =>
-                          !p.refunded &&
-                          state.address &&
-                          normalizeAddr(p.backer) === normalizeAddr(state.address)
-                      )
-                      .map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          className={`${covenantSecondaryBtnClass} mt-2 text-xs`}
-                          onClick={() => void refund(c.id, p.id)}
-                        >
-                          Refund {sompiToKasNumber(p.amountSompi)} KAS
-                        </button>
-                      ))}
-                </div>
-              );
-            })
+            allCampaigns.map((c) => (
+              <CovenantCrowdfundBrowseCard
+                key={c.id}
+                campaign={c}
+                minKas={minKas}
+                walletAddress={state.address}
+                pledgeAmount={pledgeAmounts[c.id] ?? ''}
+                onPledgeAmountChange={(value) =>
+                  setPledgeAmounts((p) => ({ ...p, [c.id]: value }))
+                }
+                onPledge={() =>
+                  void pledge(c.id, parseFloat(pledgeAmounts[c.id] || '0')).then(() =>
+                    setPledgeAmounts((p) => ({ ...p, [c.id]: '' }))
+                  )
+                }
+                onClaim={() => void claimFunds(c.id)}
+                onRefund={(pledgeId) => void refund(c.id, pledgeId)}
+              />
+            ))
           )}
         </div>
         </CovenantTabPanel>
