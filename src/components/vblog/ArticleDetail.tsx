@@ -51,6 +51,9 @@ import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { krexToKasAmount, isBuiltinStoreCurrency } from '@/lib/store/currencies';
+import { toKasEq, formatKasEq } from '@/lib/pricing/registry';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { mergePricingTickers } from '@/lib/pricing/collectTickers';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { getIntegratedTokenForAuthor } from '@/lib/tokens/integratedTokens';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
@@ -163,6 +166,8 @@ export function ArticleDetail({
     return Array.from(set);
   }, [article.modules?.tipBox?.currencies, integratedTipToken]);
 
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(mergePricingTickers(tipCurrencies));
+
   const creditReaderEarn = (
     source: EarnSource,
     basePoints: number,
@@ -207,7 +212,8 @@ export function ArticleDetail({
     }
     const payerAddress = normalizeKaspaAddress(kaspaState.address);
     const kasEquivalent =
-      currency === 'KREX' ? krexToKasAmount(listAmount) : listAmount;
+      toKasEq(listAmount, currency, pricingSnapshot) ??
+      (currency === 'KREX' ? krexToKasAmount(listAmount) : listAmount);
     const payment = computeVBlogReaderPaymentSplit(kasEquivalent, krexTier, nftStatus, getVBlogPlatformFeeBps());
     const payoutSplits =
       moduleId === 'premium_unlock'
@@ -563,6 +569,7 @@ export function ArticleDetail({
               isWalletConnected={kaspaState.isConnected}
               tipHubPointsBase={HUB_EARN_POINTS.vblogTip}
               tipHubPointsTier={krexTier}
+              pricingSnapshot={pricingSnapshot}
             />
           }
           mainColClass="lg:col-span-7"

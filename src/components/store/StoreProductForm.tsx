@@ -10,6 +10,8 @@ import { createProduct, updateProduct } from '@/lib/store/products';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
 import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { formatKasEq, toKasEq, mergePricingTickers } from '@/lib/pricing';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -48,6 +50,9 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
   const integratedStore = getIntegratedTokenForWallet(state.address, 'store');
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(
+    mergePricingTickers([formData.paymentCurrency, integratedStore?.tick ?? '']),
+  );
 
   const paymentCurrencyOptions = useMemo(() => {
     const base: Array<{ value: string; label: string }> = STORE_PAYMENT_CURRENCIES.map((cur) => ({
@@ -339,6 +344,16 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 options={paymentCurrencyOptions}
                 ariaLabel="Payment currency"
               />
+              {formData.paymentCurrency !== 'KAS' && formData.priceKAS && pricingSnapshot ? (
+                <p className="text-xs text-zinc-500 mt-2">
+                  {(() => {
+                    const amount = parseFloat(formData.priceKAS);
+                    if (!Number.isFinite(amount) || amount <= 0) return null;
+                    const kasEq = toKasEq(amount, formData.paymentCurrency, pricingSnapshot);
+                    return kasEq != null ? `Listed value: ${formatKasEq(kasEq)}` : null;
+                  })()}
+                </p>
+              ) : null}
             </div>
             <p className="kx-body">
               {isEdit ? 'Update fee' : 'One-time listing fee'}:{' '}

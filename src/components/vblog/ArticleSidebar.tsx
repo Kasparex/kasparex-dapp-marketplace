@@ -21,6 +21,8 @@ import type { VBlogSocialLink } from '@/lib/vblog/types';
 import { getSocialLinkIconMeta } from '@/lib/socialLinkIcons';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import type { KREXTier } from '@/lib/rewards/types';
+import type { PricingSnapshot } from '@/lib/pricing/types';
+import { formatKasEq, toKasEq } from '@/lib/pricing/registry';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -150,6 +152,7 @@ interface ArticleSidebarProps {
   isWalletConnected?: boolean;
   tipHubPointsBase?: number;
   tipHubPointsTier?: KREXTier;
+  pricingSnapshot?: PricingSnapshot | null;
 }
 
 export function ArticleSidebar({
@@ -164,6 +167,7 @@ export function ArticleSidebar({
   isWalletConnected = false,
   tipHubPointsBase = 0,
   tipHubPointsTier = 'Tier0',
+  pricingSnapshot = null,
 }: ArticleSidebarProps) {
   const acceptedCurrencies = tipCurrencies && tipCurrencies.length > 0 ? tipCurrencies : ['KAS'];
   const [tipCurrency, setTipCurrency] = useState(acceptedCurrencies[0] ?? 'KAS');
@@ -178,6 +182,13 @@ export function ArticleSidebar({
     ? `https://explorer.kaspa.org/transactions/${article.txHash.replace(/^0x/, '')}`
     : undefined;
   const hasPremium = articleHasPremiumContent(article);
+
+  const formatTipLabel = (amount: number) => {
+    const label = `Tip ${amount} ${tipCurrency}`;
+    if (tipCurrency === 'KAS') return label;
+    const kasEq = toKasEq(amount, tipCurrency, pricingSnapshot);
+    return kasEq != null ? `${label} (${formatKasEq(kasEq)})` : label;
+  };
 
   const sections: VBlogAsideSection[] = [
     {
@@ -253,7 +264,7 @@ export function ArticleSidebar({
                     onClick={() => onTip?.(amount, tipCurrency)}
                     className="k-control-btn text-xs"
                   >
-                    Tip {amount} {tipCurrency}
+                    {formatTipLabel(amount)}
                   </button>
                 ))}
                 <input

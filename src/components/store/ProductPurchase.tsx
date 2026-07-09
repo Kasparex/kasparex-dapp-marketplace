@@ -13,11 +13,12 @@ import {
   getProductPaymentCurrency,
   getProductPriceOptions,
   isBuiltinStoreCurrency,
-  krexToKasAmount,
 } from '@/lib/store/currencies';
 import { buildKasKrexCurrencyOptions, buildKrc20CurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { formatKasEq, mergePricingTickers, toKasEq } from '@/lib/pricing';
 
 interface ProductPurchaseProps {
   product: Product;
@@ -40,6 +41,11 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const listedCurrency = getProductPaymentCurrency(product);
   const priceOptions = getProductPriceOptions(product);
   const [currency, setCurrency] = useState<string>(listedCurrency);
+  const pricingTickers = useMemo(
+    () => mergePricingTickers([listedCurrency, currency, 'KREX']),
+    [listedCurrency, currency],
+  );
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
 
   const currencyOptions = useMemo(() => {
     if (!isBuiltinStoreCurrency(listedCurrency)) {
@@ -55,11 +61,14 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     [priceOptions, currency, product.priceKAS],
   );
 
+  const unitKasEq = useMemo(
+    () => toKasEq(unitPrice, currency, pricingSnapshot) ?? unitPrice,
+    [unitPrice, currency, pricingSnapshot],
+  );
+
   const fee = useMemo(() => {
-    const totalKas =
-      currency === 'KREX' ? krexToKasAmount(unitPrice) : isBuiltinStoreCurrency(currency) ? unitPrice : unitPrice;
-    return calculatePlatformFee(totalKas, krexTier, nftStatus);
-  }, [currency, unitPrice, krexTier, nftStatus]);
+    return calculatePlatformFee(unitKasEq, krexTier, nftStatus);
+  }, [unitKasEq, krexTier, nftStatus]);
 
   const totalDisplay = useMemo(() => {
     if (selectedOption?.kind === 'krc20') {
@@ -76,7 +85,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
       promptGate();
       return;
     }
-    const ok = await purchase(1, currency);
+    const ok = await purchase(1, currency, pricingSnapshot);
     if (ok && onPurchaseComplete) onPurchaseComplete();
   };
 
@@ -93,9 +102,15 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
         <HubPaymentPanel
           title="Checkout"
           lines={[
-            { label: 'Unit price', value: totalDisplay },
-            { label: 'Platform fee', value: `${fee.feeAmount.toFixed(4)} KAS eq.` },
-            { label: 'Seller receives', value: `${fee.sellerRevenue.toFixed(4)} KAS eq.` },
+            {
+              label: 'Unit price',
+              value:
+                currency !== 'KAS' && unitKasEq !== unitPrice
+                  ? `${totalDisplay} (${formatKasEq(unitKasEq)})`
+                  : totalDisplay,
+            },
+            { label: 'Platform fee', value: `${fee.feeAmount.toFixed(4)} KAS` },
+            { label: 'Seller receives', value: `${fee.sellerRevenue.toFixed(4)} KAS` },
           ]}
           totalDisplay={totalDisplay}
           currencies={currencyOptions.length > 1 ? currencyOptions : undefined}

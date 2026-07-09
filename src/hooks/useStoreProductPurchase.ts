@@ -12,10 +12,11 @@ import {
   getProductPaymentCurrency,
   getProductPriceOptions,
   isBuiltinStoreCurrency,
-  krexToKasAmount,
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { toKasEq } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
@@ -36,7 +37,11 @@ export function useStoreProductPurchase(product: Product) {
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const purchase = useCallback(
-    async (quantity: number = 1, payCurrency: string = getProductPaymentCurrency(product)) => {
+    async (
+      quantity: number = 1,
+      payCurrency: string = getProductPaymentCurrency(product),
+      pricingSnapshot?: PricingSnapshot | null,
+    ) => {
       if (!state.isConnected || !state.address || !state.provider) {
         setError('Connect your Kaspa wallet to purchase');
         return false;
@@ -48,12 +53,7 @@ export function useStoreProductPurchase(product: Product) {
       }
 
       const totalPay = resolvePayAmount(product, quantity, payCurrency);
-      const totalKasEquivalent =
-        payCurrency === 'KREX'
-          ? krexToKasAmount(totalPay)
-          : isBuiltinStoreCurrency(payCurrency)
-            ? totalPay
-            : totalPay;
+      const totalKasEquivalent = toKasEq(totalPay, payCurrency, pricingSnapshot) ?? totalPay;
 
       setIsProcessing(true);
       setError(null);
