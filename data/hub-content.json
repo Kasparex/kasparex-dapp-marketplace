@@ -1,109 +1,121 @@
 {
-  "updatedAt": "2026-07-06T22:16:33.736Z",
-  "vblog": [
+  "updatedAt": "2026-07-09T18:26:36.187Z",
+  "vblog": [],
+  "tokens": [
     {
-      "title": "Kaspa Ecosystem Update: A New Era of Growth, Utility, and Innovation",
-      "description": "The Kaspa ecosystem is entering a new phase of growth. From major protocol upgrades like Toccata to expanding infrastructure, KRC-20 development, and rising dApp activity, Kaspa continues to strengthen its position as one of the most innovative networks in crypto. _",
-      "content": "<h2>Kaspa Ecosystem Update: </h2><h3>Toccata, KRC-20 Growth &amp; Major Infrastructure Expansion</h3><h3><br></h3><p>The Kaspa ecosystem continues to build momentum despite broader market volatility. While many projects across crypto are still focused on narratives and speculation, Kaspa remains focused on infrastructure, scalability, and real utility.</p><p><br></p><p>Built around BlockDAG architecture, Kaspa continues to stand out as one of the fastest and most technically advanced Layer 1 networks in the industry. Its unique approach enables high throughput, fast confirmations, and a more scalable foundation for future applications.</p><p><br></p><p>This foundation is becoming increasingly important as the ecosystem expands beyond simple transactions into more advanced infrastructure, token systems, and decentralized applications.</p><p><br></p><h3>Toccata Marks a Major Milestone</h3><p><br></p><p>One of the most significant recent developments is the Toccata upgrade.</p><p><br></p><p>Toccata represents a major technical evolution for Kaspa. It introduces powerful new capabilities that push the network closer to supporting more advanced programmable functionality.</p><p><br></p><p>This includes:</p><p><br></p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Native covenant support</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Transaction introspection</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>More advanced UTXO-based logic</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Better support for programmable asset systems</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Improved infrastructure for future applications</li></ol><p><br></p><p>This upgrade is especially important because it creates new possibilities for developers building on Kaspa.</p><p><br></p><p>Instead of simply focusing on speed, Kaspa is now expanding what can actually be built on top of the network.</p><p><br></p><p>That is a major shift.</p><p><br></p><p>KRC-20 Continues to Mature</p><p><br></p><h3>The KRC-20 ecosystem has also continued evolving.</h3><p><br></p><p>While market conditions have slowed speculative activity, the long-term infrastructure for KRC-20 keeps improving. More tools, better analytics, improved wallets, and stronger marketplace integrations are gradually making the ecosystem more mature.</p><p><br></p><p>This is a necessary phase.</p><p><br></p><p>Strong ecosystems are not built only during bullish periods. They are built during quieter periods when infrastructure improves and builders continue shipping.</p><p><br></p><p>KRC-20 is slowly transitioning from early experimentation toward stronger utility-focused use cases:</p><p><br></p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Community tokens</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Payment systems</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Gaming economies</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>NFT integrations</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Loyalty systems</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Ecosystem utility tokens</li></ol><p><br></p><p>The next phase will likely be defined by utility rather than hype.</p><p><br></p><p>Infrastructure Growth Across the Ecosystem</p><p><br></p><p>Kaspa’s infrastructure layer is also becoming stronger.</p><p><br></p><p>More explorers, dashboards, analytics platforms, wallets, and ecosystem tools are being developed to improve user experience and accessibility.</p><p><br></p><p>This matters because infrastructure is what turns a blockchain into a usable ecosystem.</p><p><br></p><p>Without strong infrastructure:</p><p><br></p><p>Adoption slows</p><p>User experience suffers</p><p>Developers face friction</p><p>New users struggle to onboard</p><p><br></p><p>Kaspa is steadily improving these areas.</p><p><br></p><p>The result is a stronger foundation for future growth.</p><p><br></p><p>The Bigger Picture</p><p><br></p><p>The bigger picture remains clear.</p><p><br></p><p>Kaspa is still early.</p><p><br></p><p>Compared to many larger ecosystems, Kaspa remains significantly undervalued relative to its technology, infrastructure, and long-term potential.</p><p><br></p><p>What makes Kaspa particularly interesting is that its growth is being driven by real technological progress rather than pure marketing.</p><p><br></p><p>The ecosystem is expanding.</p><p>The tooling is improving.</p><p>The infrastructure is strengthening.</p><p><br></p><p>And most importantly, utility is growing.</p><p><br></p><p>Final Thoughts</p><p><br></p><p>Kaspa continues to position itself as one of the most promising ecosystems in crypto.</p><p><br></p><p>The combination of BlockDAG architecture, ongoing protocol upgrades, expanding infrastructure, and growing ecosystem utility creates a strong long-term foundation.</p><p><br></p><p>The road ahead will not be defined by hype alone.</p><p><br></p><p>It will be defined by builders, infrastructure, and real adoption.</p><p><br></p><p>And right now, Kaspa continues moving in that direction.</p><p><br></p><p>The next chapter of the ecosystem may be its most important yet.</p>",
       "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-      "category": "Kaspa",
+      "symbol": "KREX",
+      "name": "KREX",
+      "description": "<p>test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test </p>",
+      "shortDescription": "test test test test test test test test test test test test test test test test test test test test test test test test",
       "tags": [
-        "Kaspa",
-        "KAS",
-        "BlockDAG",
-        "Toccata",
-        "KRC20",
-        "Kasplex",
-        "Kaspa Ecosystem",
-        "Crypto",
-        "Web3",
-        "DeFi"
+        "test"
       ],
-      "featuredImage": "https://hub.kasparex.com/api/ipfs?path=bafkreie2n74s5x5sgm4onddjiq2nr5ug6ekil6i7c4mb2xqtmpoojm2r4y",
-      "primaryLink": "https://hub.kasparex.com/vblog",
-      "socialLinks": [
+      "listingNetwork": "krc20",
+      "network": "L1",
+      "pageConfig": {
+        "version": 1,
+        "defaultTab": "overview",
+        "sections": [
+          {
+            "type": "overview",
+            "enabled": true
+          },
+          {
+            "type": "tokenomics",
+            "enabled": true
+          },
+          {
+            "type": "roadmap",
+            "enabled": true
+          },
+          {
+            "type": "markets",
+            "enabled": true
+          },
+          {
+            "type": "swap",
+            "enabled": true
+          },
+          {
+            "type": "utility",
+            "enabled": true
+          },
+          {
+            "type": "comments",
+            "enabled": true
+          },
+          {
+            "type": "links",
+            "enabled": true
+          },
+          {
+            "type": "whitepaper",
+            "enabled": true
+          }
+        ]
+      },
+      "paidModuleIds": [],
+      "modulesConfig": {
+        "markets": [
+          {
+            "name": "test test ",
+            "description": "<p>test test test test test test </p>",
+            "url": "https://test.com",
+            "venueType": "dex"
+          }
+        ]
+      },
+      "assetKind": "real",
+      "ownership": "none",
+      "deployerAddress": "kaspa:qzjlaf7h6pq2spewz8wfa6g2xwz29y0y6x57umyj6capdjvny9znur8j2lul8",
+      "maxSupply": 21000000000,
+      "totalSupply": 21000000000,
+      "decimals": 8,
+      "onChainSnapshot": {
+        "source": "krc20",
+        "ticker": "KREX",
+        "name": "KREX",
+        "maxSupply": "2100000000000000000",
+        "minted": "2100000000000000000",
+        "decimals": 8,
+        "deployer": "kaspa:qzjlaf7h6pq2spewz8wfa6g2xwz29y0y6x57umyj6capdjvny9znur8j2lul8",
+        "holderTotal": "2233",
+        "fetchedAt": "2026-07-09T18:24:29.715Z",
+        "state": "finished",
+        "pre": "0"
+      },
+      "networks": [
         {
-          "url": "https://x.com/krextoken"
-        },
-        {
-          "url": "https://t.me/krextoken"
-        },
-        {
-          "url": "https://bio.kasparex.com"
+          "network": "krc20",
+          "primary": true,
+          "verified": false
         }
       ],
-      "modules": {
-        "premiumSectionEnabled": true,
-        "premiumSectionContent": "<p class=\"mb-4\">Test:</p><p class=\"mb-4\">Premium Section Unlocks</p>",
-        "premiumSectionPriceKas": 10,
-        "premiumSectionPayoutAddress": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-        "premiumSectionPayoutSplits": [
-          {
-            "address": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-            "sharePercent": 100
-          }
-        ],
-        "tipBoxEnabled": true,
-        "tipBox": {
-          "presets": [
-            10,
-            50,
-            100
-          ],
-          "allowCustom": true,
-          "currencies": [
-            "KAS"
-          ]
-        },
-        "tipToRevealEnabled": true,
-        "tipToRevealContent": "<h2>Test:</h2><p>Tip-to-Reveal Bonus</p>",
-        "tipToRevealThresholdKas": 25,
-        "premiumPollEnabled": true,
-        "premiumPoll": {
-          "question": "Premium Polls",
-          "options": [
-            "Option 1",
-            "Option 2",
-            "Option 3"
-          ]
-        },
-        "readingReceiptsEnabled": true
+      "listing": {
+        "verified": false,
+        "deployerVerified": false
       },
-      "id": "article-1782766146961-qgfk1vd",
-      "slug": "kaspa-ecosystem-update-a-new-era-of-growth-utility-and-innovation",
-      "publishDate": "2026-06-29T20:49:06.962Z",
-      "cid": "QmU6fdYBgvyyJ87CA8L1nphhhnComFyzxiDKEOPalNGJ",
-      "articleId": "vba-1782766136548-kfrb0u",
-      "txHash": "9c680fa57ab656d8c0d2995a57596a1a2a98398f4f7c33d9efcbd3ed7b6a9349",
+      "id": "tl-1783621595034-vcdsci",
+      "listingId": "ktl-1783621571880-olrtbs",
+      "slug": "krex-2",
+      "publishDate": "2026-07-09T18:26:35.034Z",
       "status": "verified",
-      "chunkTxHashes": [
-        "9c680fa57ab656d8c0d2995a57596a1a2a98398f4f7c33d9efcbd3ed7b6a9349"
-      ],
-      "commitTxHash": "9c680fa57ab656d8c0d2995a57596a1a2a98398f4f7c33d9efcbd3ed7b6a9349",
-      "contentHash": "d85f88e0",
+      "txHash": "d861a26ff5b34a06af7b1e95c8e1f485a156a673a6d0d428de3e2287934133e8",
+      "commitTxHash": "d861a26ff5b34a06af7b1e95c8e1f485a156a673a6d0d428de3e2287934133e8",
+      "contentHash": "af4b1aac",
+      "metadataCid": "bafkreigsaderkph2ihdsxnxsmv3m2u7z34i74rnvj6ksbq6cdvilutap2q",
       "pricingSnapshot": {
-        "payloadBytes": 7198,
-        "chunkCount": 40,
-        "baseFeeKas": 1,
-        "sizeFeeKas": 0.01,
-        "networkFeeBufferKas": 0.05,
-        "totalKas": 0.22
-      },
-      "layoutPreferences": {
-        "sidebarShownByDefault": false,
-        "rightPanelShownByDefault": false
-      },
-      "updatedAt": "2026-07-06T22:16:32.017Z",
-      "paidModuleIds": [
-        "premium_section",
-        "tip_box",
-        "tip_to_reveal",
-        "premium_poll",
-        "reading_receipts_badges"
-      ]
+        "baseFeeKas": 25,
+        "sizeFeeKas": 4.22,
+        "modulesFeeKas": 0,
+        "networkFeeBufferKas": 0.11,
+        "totalKas": 5.87,
+        "payloadBytes": 1904,
+        "chunkCount": 11
+      }
     }
   ],
-  "tokens": [],
   "dapps": [],
   "chronicles": [],
   "magazines": [],
