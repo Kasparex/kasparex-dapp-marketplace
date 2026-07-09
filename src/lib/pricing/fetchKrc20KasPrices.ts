@@ -14,7 +14,7 @@ type KaspaComKrc20Row = {
 
 async function fetchTickerPrice(tick: string): Promise<TokenPriceRate | null> {
   const normalized = tick.trim().toUpperCase();
-  if (!normalized || normalized === 'KAS' || normalized === 'KREX') return null;
+  if (!normalized || normalized === 'KAS') return null;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -51,7 +51,7 @@ export async function fetchKrc20KasPrices(tickers: string[]): Promise<TokenPrice
     new Set(
       tickers
         .map((t) => t.trim().toUpperCase())
-        .filter((t) => t && t !== 'KAS' && t !== 'KREX'),
+        .filter((t) => t && t !== 'KAS'),
     ),
   );
   if (!unique.length) return [];

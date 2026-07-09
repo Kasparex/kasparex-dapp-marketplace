@@ -12,16 +12,30 @@ import {
   getProductPaymentCurrency,
   getProductPriceOptions,
   isBuiltinStoreCurrency,
+  krexToKasAmount,
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
-import { toKasEq } from '@/lib/pricing/registry';
+import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
-function resolvePayAmount(product: Product, quantity: number, payCurrency: string): number {
+function resolvePayAmount(
+  product: Product,
+  quantity: number,
+  payCurrency: string,
+  pricingSnapshot?: PricingSnapshot | null,
+): number {
   const qty = Math.max(1, Math.floor(quantity));
+  const listed = getProductPaymentCurrency(product);
+  if (listed === 'KAS' && payCurrency !== 'KAS') {
+    return resolveTokenAmountFromKas(product.priceKAS, payCurrency, pricingSnapshot) * qty;
+  }
+  if (listed === 'KREX' && payCurrency === 'KAS') {
+    const unitKas = toKasEq(product.priceKAS, 'KREX', pricingSnapshot) ?? krexToKasAmount(product.priceKAS);
+    return unitKas * qty;
+  }
   const option = getProductPriceOptions(product).find((o) => o.currency === payCurrency);
   return (option?.unitPrice ?? product.priceKAS) * qty;
 }
@@ -52,7 +66,7 @@ export function useStoreProductPurchase(product: Product) {
         return false;
       }
 
-      const totalPay = resolvePayAmount(product, quantity, payCurrency);
+      const totalPay = resolvePayAmount(product, quantity, payCurrency, pricingSnapshot);
       const totalKasEquivalent = toKasEq(totalPay, payCurrency, pricingSnapshot) ?? totalPay;
 
       setIsProcessing(true);

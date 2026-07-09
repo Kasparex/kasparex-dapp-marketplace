@@ -6,7 +6,10 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { DAPP_LISTING_FEE_KAS } from '@/lib/dapps/listingSubmissions';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 
@@ -35,6 +38,7 @@ async function transferKrex(
 export function useDAppListingPayment() {
   const { state } = useKaspaWallet();
   const { balance: krexL1Balance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +56,7 @@ export function useDAppListingPayment() {
 
       try {
         if (currency === 'KREX') {
-          const amountKrex = kasToKrexAmount(feeKas);
+          const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', pricingSnapshot);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance for listing fee');
           }
@@ -75,7 +79,7 @@ export function useDAppListingPayment() {
         setIsProcessing(false);
       }
     },
-    [state.isConnected, state.address, state.provider, krexL1Balance],
+    [state.isConnected, state.address, state.provider, krexL1Balance, pricingSnapshot],
   );
 
   const payListingFee = useCallback(

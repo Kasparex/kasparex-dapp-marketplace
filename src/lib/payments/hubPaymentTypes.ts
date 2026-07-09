@@ -2,7 +2,9 @@
  * Shared Hub payment currency types (KAS, KREX, integrated KRC-20 tickers).
  */
 
-import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { PricingSnapshot } from '@/lib/pricing/types';
+import { formatHubPaymentFromKas, formatTokenAmount } from '@/lib/pricing/registry';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 
 export type HubPaymentCurrencyKind = 'kas' | 'krex' | 'krc20';
 
@@ -39,17 +41,15 @@ export function buildKrc20CurrencyOption(tick: string, decimals = 8): HubPayment
 export function formatHubPaymentAmount(
   currency: HubPaymentCurrencyOption,
   kasAmount: number,
-  directAmount?: number,
+  opts?: { directAmount?: number; snapshot?: PricingSnapshot | null },
 ): string {
   if (currency.kind === 'krex') {
-    return `${kasToKrexAmount(kasAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
+    return formatHubPaymentFromKas(kasAmount, 'KREX', opts?.snapshot, { showKasSuffix: false });
   }
-  if (currency.kind === 'krc20' && directAmount != null) {
-    return `${directAmount.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${currency.tick ?? currency.id}`;
+  if (currency.kind === 'krc20' && opts?.directAmount != null) {
+    return formatTokenAmount(opts.directAmount, currency.tick ?? currency.id);
   }
-  const formatted =
-    Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
-  return `${formatted} KAS`;
+  return formatHubPaymentFromKas(kasAmount, 'KAS', opts?.snapshot, { showKasSuffix: false });
 }
 
 export type HubPaymentQuoteLine = {

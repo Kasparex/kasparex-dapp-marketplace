@@ -6,7 +6,8 @@ import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { formatKaspaWalletError } from '@/lib/kaspa/formatWalletError';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { kasToKrexAmount } from '@/lib/store/currencies';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 import { getAdsTreasuryL1Address } from '@/lib/ads/config';
 import { expectedPriceKrexFromTotalKas } from '@/lib/ads/adPriceValidation';
 import { sendAdsMetadataBindingTx } from '@/lib/ads/sendBindingTx';
@@ -50,6 +51,7 @@ async function transferKrex(
 export function useAdsPayment() {
   const { state } = useKaspaWallet();
   const { balance: krexL1Balance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +83,7 @@ export function useAdsPayment() {
 
       try {
         if (currency === 'KREX') {
-          const priceKrex = expectedPriceKrexFromTotalKas(priceKas);
+          const priceKrex = expectedPriceKrexFromTotalKas(priceKas, pricingSnapshot);
           let krexPaymentTxHash = existingKrexHash;
           if (!krexPaymentTxHash) {
             if (krexL1Balance + 1e-12 < priceKrex) {
@@ -103,7 +105,7 @@ export function useAdsPayment() {
         setIsProcessing(false);
       }
     },
-    [state.address, state.provider, krexL1Balance],
+    [state.address, state.provider, krexL1Balance, pricingSnapshot],
   );
 
   return { payAdCampaign, isProcessing, error, setError };
@@ -113,15 +115,13 @@ export async function transferKrexForAdsPayment(
   provider: KaspaWalletProvider,
   priceKas: number,
   treasuryAddress: string,
+  snapshot?: PricingSnapshot | null,
 ): Promise<string> {
-  const priceKrex = expectedPriceKrexFromTotalKas(priceKas);
+  const priceKrex = expectedPriceKrexFromTotalKas(priceKas, snapshot);
   return transferKrex(provider, priceKrex, treasuryAddress);
 }
 
-/** KREX peg amount for display (matches on-chain settlement). */
-export function adsPriceKrexFromKas(priceKas: number): number {
-  return expectedPriceKrexFromTotalKas(priceKas);
+/** KREX amount for display and settlement (market rate with peg fallback). */
+export function adsPriceKrexFromKas(priceKas: number, snapshot?: PricingSnapshot | null): number {
+  return expectedPriceKrexFromTotalKas(priceKas, snapshot);
 }
-
-/** Alias kept for callers that already import kasToKrexAmount semantics. */
-export { kasToKrexAmount };

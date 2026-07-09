@@ -22,7 +22,10 @@ import { getSocialLinkIconMeta } from '@/lib/socialLinkIcons';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { PricingSnapshot } from '@/lib/pricing/types';
-import { formatKasEq, toKasEq } from '@/lib/pricing/registry';
+import {
+  formatTokenAmount,
+  resolveTokenAmountFromKas,
+} from '@/lib/pricing/registry';
 
 function getArticleLinkEntries(article: VBlogArticle): Array<{ href: string; label: string }> {
   const entries: Array<{ href: string; label: string }> = [];
@@ -183,12 +186,22 @@ export function ArticleSidebar({
     : undefined;
   const hasPremium = articleHasPremiumContent(article);
 
-  const formatTipLabel = (amount: number) => {
-    const label = `Tip ${amount} ${tipCurrency}`;
-    if (tipCurrency === 'KAS') return label;
-    const kasEq = toKasEq(amount, tipCurrency, pricingSnapshot);
-    return kasEq != null ? `${label} (${formatKasEq(kasEq)})` : label;
+  const formatTipLabel = (kasAmount: number) => {
+    if (tipCurrency === 'KAS') return `Tip ${kasAmount} KAS`;
+    const tokenAmt = resolveTokenAmountFromKas(kasAmount, tipCurrency, pricingSnapshot);
+    return `Tip ${formatTokenAmount(tokenAmt, tipCurrency)} (= ${kasAmount} KAS)`;
   };
+
+  const payTip = (kasAmount: number) => {
+    const payAmount = resolveTokenAmountFromKas(kasAmount, tipCurrency, pricingSnapshot);
+    onTip?.(payAmount, tipCurrency);
+  };
+
+  const customTipKasNum = Number(customTipKas) || 0;
+  const customTipTokenPreview =
+    tipCurrency !== 'KAS' && customTipKasNum > 0
+      ? resolveTokenAmountFromKas(customTipKasNum, tipCurrency, pricingSnapshot)
+      : null;
 
   const sections: VBlogAsideSection[] = [
     {
@@ -261,7 +274,7 @@ export function ArticleSidebar({
                     key={amount}
                     type="button"
                     disabled={isProcessingAction || !isWalletConnected}
-                    onClick={() => onTip?.(amount, tipCurrency)}
+                    onClick={() => payTip(amount)}
                     className="k-control-btn text-xs"
                   >
                     {formatTipLabel(amount)}
@@ -271,12 +284,17 @@ export function ArticleSidebar({
                   value={customTipKas}
                   onChange={(e) => onCustomTipChange?.(e.target.value)}
                   className="k-input !h-10 !py-0 max-w-[120px] text-sm"
-                  aria-label={`Custom tip amount in ${tipCurrency}`}
+                  aria-label="Custom tip amount in KAS"
                 />
+                {customTipTokenPreview != null ? (
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {customTipKasNum} KAS → {formatTokenAmount(customTipTokenPreview, tipCurrency)}
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   disabled={isProcessingAction || !isWalletConnected}
-                  onClick={() => onTip?.(Number(customTipKas) || 1, tipCurrency)}
+                  onClick={() => payTip(customTipKasNum || 1)}
                   className="k-control-btn text-xs"
                 >
                   Custom tip

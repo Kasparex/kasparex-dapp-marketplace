@@ -21,6 +21,8 @@ import { detectKaspaWallets, getKaspaAddress, getWalletProvider, KASPA_WALLET_PR
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { formatHubPaymentFromKas } from '@/lib/pricing';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { getIPFSClient } from '@/lib/ipfs/client';
@@ -33,10 +35,7 @@ import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
-import {
-  STORE_PAYMENT_CURRENCIES,
-  formatPaymentLabel,
-} from '@/lib/store/currencies';
+import { STORE_PAYMENT_CURRENCIES } from '@/lib/store/currencies';
 import {
   adsPriceKrexFromKas,
   transferKrexForAdsPayment,
@@ -111,6 +110,7 @@ export function CreateAdWizard({
   const [syncAdsAfterPayment, setSyncAdsAfterPayment] = useState(false);
   const { payAdCampaign, isProcessing: isPayProcessing } = useAdsPayment();
   const { tier: krexTier, balance: krexBalance, l1Balance: krexL1Balance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
 
   const l1Ready = Boolean(kaspaState.address) && Boolean(kaspaState.provider);
 
@@ -127,8 +127,8 @@ export function CreateAdWizard({
   const premiumAddonKas = adPremiumAddonKas({ featuredHighlight, extendedExposure });
   const priceKas =
     discountedSlotKas > 0 ? Number((discountedSlotKas + premiumAddonKas).toFixed(8)) : 0;
-  const payLabel = formatPaymentLabel(paymentCurrency, priceKas);
-  const formatPrice = (kas: number) => formatPaymentLabel(paymentCurrency, kas);
+  const payLabel = formatHubPaymentFromKas(priceKas, paymentCurrency, pricingSnapshot);
+  const formatPrice = (kas: number) => formatHubPaymentFromKas(kas, paymentCurrency, pricingSnapshot);
   const krexCheckoutHint =
     'KREX checkout uses two wallet confirmations: your KREX campaign fee, then a 1 KAS binding payment that carries your metadata on-chain. If storage mass errors appear, compound UTXOs in KasWare (Wallet > UTXO > Compound) and retry.';
 
@@ -338,7 +338,7 @@ export function CreateAdWizard({
 
     const payCur = paymentCurrency;
     if (payCur === 'KREX') {
-      const priceKrex = adsPriceKrexFromKas(priceKas);
+      const priceKrex = adsPriceKrexFromKas(priceKas, pricingSnapshot);
       if (krexL1Balance + 1e-12 < priceKrex) {
         setError(`Insufficient KREX on your L1 wallet (${krexL1Balance.toFixed(2)} available, ${priceKrex} required).`);
         return;
@@ -366,8 +366,9 @@ export function CreateAdWizard({
           provider as KaspaWalletProvider,
           priceKas,
           treasuryAddress,
+          pricingSnapshot,
         );
-        priceKrex = adsPriceKrexFromKas(priceKas);
+        priceKrex = adsPriceKrexFromKas(priceKas, pricingSnapshot);
       }
 
       const meta = buildCampaignMetadataV1({

@@ -1,8 +1,10 @@
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
-import { minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { MINECORE_KREX_PER_KAS, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { kasToSompi } from '@/lib/ads/config';
 import { ADS_KREX_BINDING_FEE_KAS } from '@/lib/ads/constants';
 import { adPremiumAddonKas, type AdPremiumOptions } from '@/lib/ads/premiumAddons';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 
 /**
  * Distinct totals (KAS) for an ad: tier-discounted slot portion + optional flat premium add-ons.
@@ -22,9 +24,12 @@ export function allowedAdPricesKasFromBase(baseKas: number): number[] {
   return allowedAdTotalsKasFromSlotBase(baseKas, {});
 }
 
-export function expectedPriceKrexFromTotalKas(totalKas: number): number {
+export function expectedPriceKrexFromTotalKas(
+  totalKas: number,
+  snapshot?: PricingSnapshot | null,
+): number {
   if (!Number.isFinite(totalKas) || totalKas <= 0) return 0;
-  return minecoreKrexFromDiscountedKas(totalKas);
+  return resolveTokenAmountFromKas(totalKas, 'KREX', snapshot);
 }
 
 function metaPriceMatchesSlotBase(
@@ -57,10 +62,14 @@ export function isValidAdPriceMeta(
 
 function krexMetaMatchesPeg(metaPriceKas: number, metaPriceKrex: number): boolean {
   if (!Number.isFinite(metaPriceKrex) || metaPriceKrex <= 0) return false;
-  const peg = expectedPriceKrexFromTotalKas(metaPriceKas);
+  const peg = minecoreKrexFromDiscountedKas(metaPriceKas);
   const expSmallest = Math.floor(peg * 1e8);
   const metaSmallest = Math.floor(metaPriceKrex * 1e8);
-  return Math.abs(expSmallest - metaSmallest) <= 2;
+  if (Math.abs(expSmallest - metaSmallest) <= 2) return true;
+
+  const krexPerKas = metaPriceKrex / metaPriceKas;
+  const pegKrexPerKas = MINECORE_KREX_PER_KAS;
+  return krexPerKas >= pegKrexPerKas * 0.45 && krexPerKas <= pegKrexPerKas * 1.05;
 }
 
 /**

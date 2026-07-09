@@ -8,11 +8,9 @@ import { useAccount } from 'wagmi';
 import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
-import {
-  STORE_PAYMENT_CURRENCIES,
-  formatPaymentLabel,
-  type StorePaymentCurrency,
-} from '@/lib/store/currencies';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { formatHubPaymentFromKas } from '@/lib/pricing';
+import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { KxModalHeader, KxModalSectionTitle, KxPaymentSummary } from '@/components/payments/KxPaymentUi';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
@@ -72,6 +70,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
     collections: [],
   });
   const { balance: krexBalance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,7 +96,8 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
   const discount = getDiscount();
   const hasUnlimitedCredits = krexBalance >= KREX_UNLIMITED_THRESHOLD;
   const finalPriceKas = hasUnlimitedCredits ? 0 : selectedPackage.basePrice * (1 - discount / 100);
-  const payLabel = formatPaymentLabel(paymentCurrency, finalPriceKas);
+  const formatPrice = (kas: number) => formatHubPaymentFromKas(kas, paymentCurrency, pricingSnapshot);
+  const payLabel = formatPrice(finalPriceKas);
   const creditsToReceive = selectedPackage.credits;
 
   const handlePurchase = async () => {
@@ -118,7 +118,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
     setTxHash(null);
 
     try {
-      const hash = await payCredits(paymentCurrency, finalPriceKas, creditsToReceive);
+      const hash = await payCredits(paymentCurrency, finalPriceKas, creditsToReceive, pricingSnapshot);
       setTxHash(hash);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const success = await purchaseCredits(creditsToReceive, finalPriceKas, hash);
@@ -216,11 +216,11 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                         <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{pkg.credits}</div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-400">credits</div>
                         <div className="mt-2 text-sm font-bold text-[#02abb8] tabular-nums">
-                          {formatPaymentLabel(paymentCurrency, packagePriceKas)}
+                          {formatPrice(packagePriceKas)}
                         </div>
                         {discount > 0 && (
                           <div className="text-[10px] text-zinc-400 line-through tabular-nums">
-                            {formatPaymentLabel(paymentCurrency, pkg.basePrice)}
+                            {formatPrice(pkg.basePrice)}
                           </div>
                         )}
                       </button>
@@ -247,14 +247,14 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                 <p>
                   Base price:{' '}
                   <strong className="text-zinc-900 dark:text-zinc-100 tabular-nums">
-                    {formatPaymentLabel(paymentCurrency, selectedPackage.basePrice)}
+                    {formatPrice(selectedPackage.basePrice)}
                   </strong>
                 </p>
                 {discount > 0 && (
                   <p>
                     NFT discount ({discount}%):{' '}
                     <strong className="text-emerald-600 dark:text-emerald-400 tabular-nums">
-                      -{formatPaymentLabel(paymentCurrency, selectedPackage.basePrice * (discount / 100))}
+                      -{formatPrice(selectedPackage.basePrice * (discount / 100))}
                     </strong>
                   </p>
                 )}

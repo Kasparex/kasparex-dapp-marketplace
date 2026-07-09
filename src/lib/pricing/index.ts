@@ -4,10 +4,13 @@ export { buildPricingSnapshot, normalizePricingTickers } from './buildSnapshot';
 export { fetchKrc20KasPrices } from './fetchKrc20KasPrices';
 export { kasNativeRate, krexFixedPegRate } from './fixedPegs';
 export {
+  formatHubPaymentFromKas,
   formatKasEq,
+  formatTokenAmount,
   formatTokenWithKasEq,
   fromKasEq,
   getPriceRate,
+  resolveTokenAmountFromKas,
   tickersForCurrencies,
   toKasEq,
 } from './registry';

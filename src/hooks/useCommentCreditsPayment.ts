@@ -6,7 +6,9 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 
 const COMMENT_CREDITS_TREASURY =
@@ -39,7 +41,12 @@ export function useCommentCreditsPayment() {
   const [error, setError] = useState<string | null>(null);
 
   const payCredits = useCallback(
-    async (currency: StorePaymentCurrency, feeKas: number, credits: number): Promise<string> => {
+    async (
+      currency: StorePaymentCurrency,
+      feeKas: number,
+      credits: number,
+      pricingSnapshot?: PricingSnapshot | null,
+    ): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
         throw new Error('Connect your Kaspa wallet to purchase credits');
       }
@@ -54,7 +61,7 @@ export function useCommentCreditsPayment() {
         const treasuryAddress = COMMENT_CREDITS_TREASURY.replace(/^kaspa:/, '');
 
         if (currency === 'KREX') {
-          const amountKrex = kasToKrexAmount(feeKas);
+          const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', pricingSnapshot);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance');
           }

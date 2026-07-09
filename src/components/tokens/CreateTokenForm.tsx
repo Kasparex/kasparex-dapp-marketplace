@@ -23,6 +23,7 @@ import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payme
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { TokenModuleConfigFields } from '@/components/tokens/TokenModuleConfigFields';
 import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
@@ -165,6 +166,7 @@ function buildFormDraft(args: {
 export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCancelEdit }: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
   const { tier, balance: krexBalance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
   const { publishNewListing, updateExistingListing, discountPercent } = useTokens();
@@ -1117,6 +1119,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             totalDisplay={formatHubPaymentAmount(
               buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ?? buildKasKrexCurrencyOptions()[0],
               formQuote.totalKas,
+              { snapshot: pricingSnapshot },
             )}
             currencies={buildKasKrexCurrencyOptions()}
             selectedCurrencyId={paymentCurrency}

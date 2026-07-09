@@ -53,6 +53,52 @@ export function formatKasEq(kasEq: number, opts?: { prefix?: string }): string {
   return `${prefix}${formatted} KAS`;
 }
 
+/** Format a whole-token amount for display. */
+export function formatTokenAmount(amount: number, currency: string): string {
+  const cur = currency.trim().toUpperCase();
+  const maxFrac = cur === 'KREX' ? 2 : 8;
+  const formatted = amount.toLocaleString(undefined, { maximumFractionDigits: maxFrac });
+  if (cur === 'KREX') return `${formatted} KREX`;
+  if (cur === 'KAS') return `${formatted} KAS`;
+  return `${formatted} $${cur}`;
+}
+
+/** Resolve token amount to pay for a KAS-denominated hub price. */
+export function resolveTokenAmountFromKas(
+  kasAmount: number,
+  currency: string,
+  snapshot: PricingSnapshot | null | undefined,
+): number {
+  const converted = fromKasEq(kasAmount, currency, snapshot);
+  if (converted != null) return converted;
+  const cur = currency.trim().toUpperCase();
+  if (cur === 'KAS') return kasAmount;
+  if (cur === 'KREX') return kasToKrexAmount(kasAmount);
+  return kasAmount;
+}
+
+/** Display label for a KAS-denominated hub price in the selected currency. */
+export function formatHubPaymentFromKas(
+  kasAmount: number,
+  currency: string,
+  snapshot: PricingSnapshot | null | undefined,
+  opts?: { showKasSuffix?: boolean },
+): string {
+  const cur = currency.trim().toUpperCase();
+  const showKasSuffix = opts?.showKasSuffix ?? cur !== 'KAS';
+  if (cur === 'KAS') {
+    const formatted =
+      Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
+    return `${formatted} KAS`;
+  }
+  const tokenAmt = resolveTokenAmountFromKas(kasAmount, cur, snapshot);
+  const tokenLabel = formatTokenAmount(tokenAmt, cur);
+  if (!showKasSuffix) return tokenLabel;
+  const kasLabel =
+    Number.isInteger(kasAmount) ? `${kasAmount}` : kasAmount.toFixed(2).replace(/\.?0+$/, '');
+  return `${tokenLabel} (= ${kasLabel} KAS)`;
+}
+
 export function formatTokenWithKasEq(
   amount: number,
   currency: string,

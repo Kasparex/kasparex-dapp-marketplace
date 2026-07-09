@@ -18,7 +18,14 @@ import { buildKasKrexCurrencyOptions, buildKrc20CurrencyOption } from '@/lib/pay
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
-import { formatKasEq, mergePricingTickers, toKasEq } from '@/lib/pricing';
+import {
+  formatKasEq,
+  formatTokenAmount,
+  mergePricingTickers,
+  resolveTokenAmountFromKas,
+  toKasEq,
+} from '@/lib/pricing';
+import { getProductPaymentCurrency, krexToKasAmount } from '@/lib/store/currencies';
 
 interface ProductPurchaseProps {
   product: Product;
@@ -56,10 +63,16 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
 
   const selectedOption = currencyOptions.find((c) => c.id === currency) ?? currencyOptions[0];
 
-  const unitPrice = useMemo(
-    () => priceOptions.find((o) => o.currency === currency)?.unitPrice ?? product.priceKAS,
-    [priceOptions, currency, product.priceKAS],
-  );
+  const unitPrice = useMemo(() => {
+    const listed = getProductPaymentCurrency(product);
+    if (listed === 'KAS' && currency !== 'KAS') {
+      return resolveTokenAmountFromKas(product.priceKAS, currency, pricingSnapshot);
+    }
+    if (listed === 'KREX' && currency === 'KAS') {
+      return toKasEq(product.priceKAS, 'KREX', pricingSnapshot) ?? krexToKasAmount(product.priceKAS);
+    }
+    return priceOptions.find((o) => o.currency === currency)?.unitPrice ?? product.priceKAS;
+  }, [product, currency, priceOptions, pricingSnapshot]);
 
   const unitKasEq = useMemo(
     () => toKasEq(unitPrice, currency, pricingSnapshot) ?? unitPrice,
@@ -71,11 +84,8 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   }, [unitKasEq, krexTier, nftStatus]);
 
   const totalDisplay = useMemo(() => {
-    if (selectedOption?.kind === 'krc20') {
-      return `${unitPrice.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${selectedOption.tick}`;
-    }
-    if (currency === 'KREX') {
-      return `${unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} KREX`;
+    if (selectedOption?.kind === 'krc20' || currency === 'KREX') {
+      return formatTokenAmount(unitPrice, currency);
     }
     return `${unitPrice} KAS`;
   }, [selectedOption, unitPrice, currency]);

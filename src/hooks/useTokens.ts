@@ -7,7 +7,9 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { kasToSompi } from '@/lib/ads/config';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
-import { kasToKrexAmount, type StorePaymentCurrency } from '@/lib/store/currencies';
+import { type StorePaymentCurrency } from '@/lib/store/currencies';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 import { getTokensTreasuryL1Address } from '@/lib/tokens/config';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -177,6 +179,7 @@ export function useTokens() {
   const [isLoading, setIsLoading] = useState(true);
   const { state: kaspaState } = useKaspaWallet();
   const { tier, balance: krexBalance } = useKREXBalance();
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(['KREX']);
   const discountPercent = krexTierDiscountPercent(tier);
 
   const loadListings = useCallback(() => {
@@ -255,7 +258,7 @@ export function useTokens() {
 
       let commitTxHash: string;
       if (args.paymentCurrency === 'KREX') {
-        const amountKrex = kasToKrexAmount(paymentKas);
+        const amountKrex = resolveTokenAmountFromKas(paymentKas, 'KREX', pricingSnapshot);
         if (krexBalance + 1e-12 < amountKrex) {
           throw new Error('Insufficient KREX balance for listing payment');
         }
@@ -321,7 +324,7 @@ export function useTokens() {
 
       return { commitTxHash, contentHash, rootHash, chunkHexList, verified, lastError };
     },
-    [kaspaState.address, kaspaState.isConnected, kaspaState.provider, krexBalance],
+    [kaspaState.address, kaspaState.isConnected, kaspaState.provider, krexBalance, pricingSnapshot],
   );
 
   const publishNewListing = useCallback(

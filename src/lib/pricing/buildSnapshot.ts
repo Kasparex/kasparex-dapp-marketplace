@@ -18,12 +18,16 @@ export async function buildPricingSnapshot(tickers: string[]): Promise<PricingSn
 
   const rates: Record<string, TokenPriceRate> = {
     KAS: kasNativeRate(asOf),
-    KREX: krexFixedPegRate(asOf),
   };
 
-  const marketRates = await fetchKrc20KasPrices(normalized);
+  const toFetch = normalizePricingTickers([...normalized, 'KREX']);
+  const marketRates = await fetchKrc20KasPrices(toFetch);
   for (const rate of marketRates) {
     rates[rate.tick] = rate;
+  }
+
+  if (!rates.KREX) {
+    rates.KREX = krexFixedPegRate(asOf);
   }
 
   return { asOf, rates };

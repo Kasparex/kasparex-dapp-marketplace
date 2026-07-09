@@ -5,8 +5,9 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { kasToKrexAmount } from '@/lib/store/currencies';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { HubPaymentCurrencyOption } from '@/lib/payments/hubPaymentTypes';
 
 export function useHubPayment() {
@@ -23,6 +24,7 @@ export function useHubPayment() {
         amountDirect?: number;
         to: string;
         note?: string;
+        pricingSnapshot?: PricingSnapshot | null;
       },
     ): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
@@ -50,7 +52,7 @@ export function useHubPayment() {
         if (currency.kind === 'krex') {
           const feeKas = params.amountKas;
           if (feeKas == null || feeKas <= 0) throw new Error('Invalid payment amount');
-          const amountKrex = kasToKrexAmount(feeKas);
+          const amountKrex = resolveTokenAmountFromKas(feeKas, 'KREX', params.pricingSnapshot);
           if (krexL1Balance + 1e-12 < amountKrex) {
             throw new Error('Insufficient KREX balance');
           }
