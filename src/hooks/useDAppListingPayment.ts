@@ -6,7 +6,6 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';

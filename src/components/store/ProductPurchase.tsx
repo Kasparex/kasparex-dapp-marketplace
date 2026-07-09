@@ -13,6 +13,7 @@ import {
   getProductPaymentCurrency,
   getProductPriceOptions,
   isBuiltinStoreCurrency,
+  krexToKasAmount,
 } from '@/lib/store/currencies';
 import { buildKasKrexCurrencyOptions, buildKrc20CurrencyOption } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
@@ -25,7 +26,6 @@ import {
   resolveTokenAmountFromKas,
   toKasEq,
 } from '@/lib/pricing';
-import { getProductPaymentCurrency, krexToKasAmount } from '@/lib/store/currencies';
 
 interface ProductPurchaseProps {
   product: Product;
