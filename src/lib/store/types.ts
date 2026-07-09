@@ -3,10 +3,12 @@
  * IPFS-based product marketplace types
  */
 
+import type { StorePaymentCurrency } from './currencies';
+
 export type ProductNetwork = 'L1' | 'L2';
 export type ProductStatus = 'active' | 'archived';
 export type ProductCategory = 'Software' | 'Art' | 'Music' | 'Templates' | 'Other';
-export type StorePaymentCurrency = 'KAS' | 'KREX';
+export type { StorePaymentCurrency };
 
 export interface Product {
   id: string; // UUID

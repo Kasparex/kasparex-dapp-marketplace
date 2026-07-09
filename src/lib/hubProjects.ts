@@ -134,6 +134,15 @@ export const hubProjects: HubProject[] = [
     status: 'beta',
   },
   {
+    id: 'kasparex-ai',
+    name: 'Kasparex AI',
+    category: 'Infrastructure',
+    description:
+      'Autonomous AI agents on Kaspa L1 BlockDAG. Build, deploy, and monetise agent workflows with KAS, KREX, and future ARIA utility.',
+    route: '/ai',
+    status: 'beta',
+  },
+  {
     id: 'kasparex-store',
     name: 'Kasparex Store',
     category: 'Marketplace',

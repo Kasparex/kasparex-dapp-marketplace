@@ -362,6 +362,7 @@ export function ArticleDetail({
       setIsProcessingAction(true);
       const txs = await performSplitPayment('tip_box', amount, currency);
       const walletKey = txs.payerAddress;
+      const amountKas = txs.payment.totalKas;
       saveReaderEntitlement({
         wallet: walletKey,
         articleId: article.id,

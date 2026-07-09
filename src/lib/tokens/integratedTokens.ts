@@ -128,7 +128,7 @@ export function resolveHubUtilityProductStatus(
 
   if (productId === 'store' || productId === 'vblog_tips') {
     const network = token.listingNetwork;
-    if (network !== 'krc20' && token.network !== 'KRC20') return 'coming_soon';
+    if (network !== 'krc20') return 'coming_soon';
     return 'live';
   }
 

@@ -122,7 +122,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           }
         />
       </div>
-      <HubWalletGateModal {...l1Modal} onClose={closeL1Modal} />
+      {l1Modal ? <HubWalletGateModal isOpen onClose={closeL1Modal} {...l1Modal} /> : null}
     </>
   );
 }

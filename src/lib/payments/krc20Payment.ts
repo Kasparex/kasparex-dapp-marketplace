@@ -2,7 +2,7 @@
  * Generic KRC-20 L1 transfer helper (any ticker).
  */
 
-import type { KaspaWalletProvider } from '@/lib/kaspa/wallet';
+import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
 

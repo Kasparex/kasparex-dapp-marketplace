@@ -7,8 +7,8 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct, updateProduct } from '@/lib/store/products';
-import type { Product, ProductCategory, ProductNetwork, StorePaymentCurrency } from '@/lib/store/types';
-import { STORE_PAYMENT_CURRENCIES } from '@/lib/store/currencies';
+import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
+import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
 import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -50,13 +50,17 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const integratedStore = getIntegratedTokenForWallet(state.address, 'store');
 
   const paymentCurrencyOptions = useMemo(() => {
-    const base = STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }));
+    const base: Array<{ value: string; label: string }> = STORE_PAYMENT_CURRENCIES.map((cur) => ({
+      value: cur,
+      label: cur,
+    }));
     if (integratedStore && !base.some((o) => o.value === integratedStore.tick)) {
       base.push({ value: integratedStore.tick, label: `$${integratedStore.tick} (your listing)` });
     }
     return base;
   }, [integratedStore]);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
@@ -329,7 +333,9 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
               <label className="k-label">Payment currency *</label>
               <KxSegmentToggle
                 value={formData.paymentCurrency}
-                onChange={(paymentCurrency) => setFormData({ ...formData, paymentCurrency })}
+                onChange={(paymentCurrency) =>
+                  setFormData({ ...formData, paymentCurrency: paymentCurrency as StorePaymentCurrency })
+                }
                 options={paymentCurrencyOptions}
                 ariaLabel="Payment currency"
               />

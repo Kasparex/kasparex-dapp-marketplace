@@ -34,6 +34,7 @@ const MEGA_MENU_COLUMNS: { title: string; projectIds: string[] }[] = [
     title: 'Platform',
     projectIds: [
       'krex-nodes',
+      'kasparex-ai',
       'kasparex-rewards',
       'kasparex-stats',
       'kasparex-ads',

@@ -36,7 +36,6 @@ import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
 import {
   STORE_PAYMENT_CURRENCIES,
   formatPaymentLabel,
-  type StorePaymentCurrency,
 } from '@/lib/store/currencies';
 import {
   adsPriceKrexFromKas,
@@ -89,7 +88,7 @@ export function CreateAdWizard({
   const [durationDays, setDurationDays] = useState(7);
   const [featuredHighlight, setFeaturedHighlight] = useState(false);
   const [extendedExposure, setExtendedExposure] = useState(false);
-  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
+  const [paymentCurrency, setPaymentCurrency] = useState<AdPaymentCurrency>('KAS');
   const [imageSpecError, setImageSpecError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -337,7 +336,7 @@ export function CreateAdWizard({
       return;
     }
 
-    const payCur: AdPaymentCurrency = paymentCurrency;
+    const payCur = paymentCurrency;
     if (payCur === 'KREX') {
       const priceKrex = adsPriceKrexFromKas(priceKas);
       if (krexL1Balance + 1e-12 < priceKrex) {
