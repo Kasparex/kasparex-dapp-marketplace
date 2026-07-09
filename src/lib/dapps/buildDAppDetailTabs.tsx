@@ -3,7 +3,6 @@ import type { DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { getWidgetPageTabs } from '@/lib/dapps/widgetPageTabs';
 import {
   IconDAppWidget,
-  IconOverview,
   IconComments,
   IconMetadata,
   IconWidgetCreate,
@@ -38,8 +37,6 @@ function iconForWidgetPageTab(tabId: string) {
       return <IconWidgetList />;
     case 'metadata':
       return <IconMetadata />;
-    case 'about':
-      return <IconHowItWorks />;
     default:
       return <IconDAppWidget />;
   }
@@ -73,7 +70,7 @@ export function buildDAppDetailTabs({
     tabs.push({ id: 'widget', label: 'DApp', icon: <IconDAppWidget /> });
   }
 
-  tabs.push({ id: 'descriptions', label: 'Description', icon: <IconOverview /> });
+  tabs.push({ id: 'about', label: 'How it works', icon: <IconHowItWorks /> });
 
   tabs.push({
     id: 'comments',

@@ -7,7 +7,6 @@ import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
   CovenantError,
-  CovenantHowItWorks,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -26,7 +25,7 @@ import {
   useNavigateDAppWidgetTab,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
-type TabId = 'create' | 'claim' | 'metadata' | 'about';
+type TabId = 'create' | 'claim' | 'metadata';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
@@ -252,36 +251,6 @@ export function CovenantVoucherWidget() {
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
-        </CovenantTabPanel>
-      )}
-
-      {tab === 'about' && (
-        <CovenantTabPanel title="How it works" heading="How Voucher works">
-        <CovenantHowItWorks>
-          <p>
-            Covenant Voucher works like a gift card for KAS. You lock coins on-chain, then give someone a secret
-            code so only they can claim it.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Mint</strong>: choose an amount and expiry date. You get a voucher ID and a secret code.
-            </li>
-            <li>
-              <strong>Share off-chain</strong>: send the code to the recipient by message or email. Do not post it
-              publicly.
-            </li>
-            <li>
-              <strong>Redeem once</strong>: whoever enters the correct code first claims the KAS. Each voucher works
-              only one time.
-            </li>
-            <li>
-              <strong>Expires</strong>: unredeemed vouchers stop working after the expiry date you set.
-            </li>
-          </ul>
-          <p className="text-xs text-zinc-500">
-            Great for tips, gifts, promo credits, or paying someone without needing their wallet address up front.
-          </p>
-        </CovenantHowItWorks>
         </CovenantTabPanel>
       )}
     </KpxCovenantShell>

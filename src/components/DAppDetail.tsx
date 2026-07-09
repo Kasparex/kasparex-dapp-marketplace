@@ -93,7 +93,7 @@ function DAppDetailBody({
           </DAppWidgetSectionProvider>
         </div>
       ) : null}
-      {tab === 'descriptions' ? (
+      {tab === 'about' ? (
         <div className={KX_TAB_SECTION}>
           <DAppDescriptionsPanel dapp={mergedDApp} contractAddress={contractAddress} />
         </div>

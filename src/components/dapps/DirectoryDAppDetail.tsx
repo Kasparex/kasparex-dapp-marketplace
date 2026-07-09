@@ -50,7 +50,7 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
             <DirectoryDAppOverviewPanel dapp={dapp} listing={listing} />
           </div>
         ) : null}
-        {tab === 'descriptions' ? (
+        {tab === 'about' ? (
           <div className={KX_TAB_SECTION}>
             <DirectoryDAppDescriptionsPanel dapp={dapp} listing={listing} />
           </div>

@@ -150,6 +150,7 @@ export function CovenantError({ message }: { message: string }) {
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import type { CovenantTemplate } from '@/lib/programmability/types';
+import { DAPP_ABOUT_PROSE_CLASS } from '@/components/dapps/panels/dappAboutStyles';
 
 export function CovenantCreateShell({
   template,
@@ -187,7 +188,7 @@ export function CovenantTabPanel({
 }
 
 export function CovenantHowItWorks({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-4 text-sm text-zinc-700 dark:text-zinc-300">{children}</div>;
+  return <div className={DAPP_ABOUT_PROSE_CLASS}>{children}</div>;
 }
 
 export function shortKaspaAddr(addr: string): string {

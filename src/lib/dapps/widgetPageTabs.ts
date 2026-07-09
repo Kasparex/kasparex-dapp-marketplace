@@ -6,37 +6,31 @@ export const WIDGET_PAGE_TABS: Record<string, readonly DAppTabDef[]> = {
     { id: 'create', label: 'Create lock' },
     { id: 'vaults', label: 'Vaults' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
   'covenant-split': [
     { id: 'create', label: 'Create split' },
     { id: 'splits', label: 'Splits' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
   'covenant-milestone': [
     { id: 'create', label: 'New deal' },
     { id: 'deals', label: 'Deals' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
   'covenant-crowdfund': [
     { id: 'browse', label: 'Campaigns' },
     { id: 'create', label: 'Launch' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
   'covenant-voucher': [
     { id: 'create', label: 'Mint voucher' },
     { id: 'claim', label: 'Redeem' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
   'kaspa-capsule': [
     { id: 'create', label: 'Leave message' },
     { id: 'messages', label: 'Messages' },
     { id: 'metadata', label: 'Metadata' },
-    { id: 'about', label: 'How it works' },
   ],
 };
 

@@ -13,7 +13,6 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Alert } from '@/components/Alert';
 import {
-  CovenantHowItWorks,
   CovenantTabPanel,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { GenesisMessageList } from '@/components/dapps/genesis/GenesisMessageList';
@@ -31,7 +30,7 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 import { KX_FORM_PANEL } from '@/lib/hub/shellTokens';
 
-type TabId = 'create' | 'messages' | 'metadata' | 'about';
+type TabId = 'create' | 'messages' | 'metadata';
 
 const RECENT_PREVIEW_COUNT = 10;
 
@@ -264,33 +263,6 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
             {messageCount} message{messageCount === 1 ? '' : 's'} in Hub archive
           </p>
         </div>
-      </CovenantTabPanel>
-    );
-  }
-
-  if (tab === 'about') {
-    return (
-      <CovenantTabPanel title="How it works" heading="How Kaspa Capsule works">
-        <CovenantHowItWorks>
-          <p>
-            Kaspa Capsule is a permanent message board on Kaspa L1. Leave a rich-text note that becomes part of the
-            early ecosystem archive.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Compose</strong>: write with the same rich editor used in vBlog. Minimum and maximum character limits apply.
-            </li>
-            <li>
-              <strong>Pay once</strong>: base fee plus payload size fee based on how many on-chain chunks your message needs.
-            </li>
-            <li>
-              <strong>Stored forever</strong>: your L1 transaction and payload remain on-chain. The Hub archive can hide messages you delete locally.
-            </li>
-            <li>
-              <strong>Hub Points</strong>: qualifying messages earn redeemable Hub Points on your connected wallet ledger.
-            </li>
-          </ul>
-        </CovenantHowItWorks>
       </CovenantTabPanel>
     );
   }

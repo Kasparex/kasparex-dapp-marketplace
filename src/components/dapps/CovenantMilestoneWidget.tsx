@@ -8,7 +8,6 @@ import { normalizeAddr } from '@/lib/covenant/utils';
 import {
   CovenantFieldLabel,
   CovenantError,
-  CovenantHowItWorks,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -30,7 +29,7 @@ import {
   useRegisterWidgetTabLabel,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
-type TabId = 'create' | 'deals' | 'metadata' | 'about';
+type TabId = 'create' | 'deals' | 'metadata';
 
 type MilestoneRow = {
   key: string;
@@ -323,32 +322,6 @@ export function CovenantMilestoneWidget() {
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
-        </CovenantTabPanel>
-      )}
-
-      {tab === 'about' && (
-        <CovenantTabPanel title="How it works" heading="How Milestone works">
-        <CovenantHowItWorks>
-          <p>
-            Covenant Milestone helps you pay for work in stages without handing over the full amount on day one.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Fund once</strong>: you lock the total KAS for the whole deal.
-            </li>
-            <li>
-              <strong>Release on schedule</strong>: each milestone unlocks on its date. Only the beneficiary can
-              claim that slice.
-            </li>
-            <li>
-              <strong>No middleman</strong>: rules are enforced by covenant logic on Kaspa L1 (simulated here until
-              wallets ship covenant support).
-            </li>
-          </ul>
-          <p className="text-xs text-zinc-500">
-            Good for freelancers, builders, game quests, or any project with clear delivery steps.
-          </p>
-        </CovenantHowItWorks>
         </CovenantTabPanel>
       )}
     </KpxCovenantShell>

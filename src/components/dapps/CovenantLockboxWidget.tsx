@@ -8,7 +8,6 @@ import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
   CovenantError,
-  CovenantHowItWorks,
   CovenantTabPanel,
   covenantInputClass,
   covenantCardClass,
@@ -32,7 +31,7 @@ import {
   useRegisterWidgetTabLabel,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
-type TabId = 'create' | 'vaults' | 'metadata' | 'about';
+type TabId = 'create' | 'vaults' | 'metadata';
 
 function sompiToKas(sompi: string): string {
   const n = Number(BigInt(sompi)) / 1e8;
@@ -339,55 +338,6 @@ export function CovenantLockboxWidget() {
             effectiveMode={effectiveMode}
             instances={metadataInstances}
           />
-        </CovenantTabPanel>
-      )}
-
-      {tab === 'about' && (
-        <CovenantTabPanel title="How it works" heading="How Lockbox works">
-          <CovenantHowItWorks>
-          <p>
-            Lockbox lets you hold KAS for someone until rules you set are met. Think of it as a
-            simple safe deposit box on Kaspa.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Who holds the KAS?</strong> Nobody custodies it. When you create a lock, the
-              amount leaves your wallet and sits in a Kaspa L1 covenant output (a programmable UTXO).
-              Kasparex does not hold or control those coins.
-            </li>
-            <li>
-              <strong>Where is it locked?</strong> On Kaspa Layer 1, bound by covenant script rules
-              you chose (escrow or timelock). The lock is visible on-chain under a covenant ID. Only
-              a spend that satisfies those rules can move the funds.
-            </li>
-            <li>
-              <strong>Who can release it?</strong> Only the beneficiary address you set. In escrow
-              mode they can claim as soon as the lock exists. In timelock mode they must wait until
-              the unlock date.
-            </li>
-            <li>
-              <strong>Platform fee vs lock amount</strong> The Hub deploy fee (shown in the fee panel)
-              is a separate KAS transfer to Kasparex treasury. It is not part of the locked principal
-              and does not go to the beneficiary.
-            </li>
-            <li>
-              <strong>Hybrid / simulator mode</strong> If your wallet cannot send covenant txs yet,
-              Lockbox tracks the same rules locally so you can test flows. Import by covenant ID when
-              the on-chain lock appears in an explorer.
-            </li>
-            <li>
-              <strong>Escrow</strong> Beneficiary can claim anytime after the lock is created.
-            </li>
-            <li>
-              <strong>Timelock</strong> Same beneficiary rules, but claiming is blocked until the
-              date you pick.
-            </li>
-          </ul>
-          <p className="text-xs text-zinc-500">
-            Useful for trades, freelance payments, savings goals, or any transfer where you want
-            clear release conditions without trusting a middleman.
-          </p>
-        </CovenantHowItWorks>
         </CovenantTabPanel>
       )}
     </KpxCovenantShell>

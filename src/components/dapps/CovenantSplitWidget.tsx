@@ -8,7 +8,6 @@ import type { SplitPayment, SplitRecipient } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
   CovenantError,
-  CovenantHowItWorks,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -30,7 +29,7 @@ import {
   useRegisterWidgetTabLabel,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
-type TabId = 'create' | 'splits' | 'metadata' | 'about';
+type TabId = 'create' | 'splits' | 'metadata';
 
 interface RecipientRow {
   key: string;
@@ -374,34 +373,6 @@ export function CovenantSplitWidget() {
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
-        </CovenantTabPanel>
-      )}
-
-      {tab === 'about' && (
-        <CovenantTabPanel title="How it works" heading="How Split works">
-        <CovenantHowItWorks>
-          <p>
-            Covenant Split is for paying several people from one pot of KAS. You lock the total once;
-            each person claims only their share.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Set shares</strong>: assign a percentage to each recipient. They must add up to
-              100%.
-            </li>
-            <li>
-              <strong>Independent claims</strong>: recipients do not need to wait on each other. Each
-              claims their slice when ready.
-            </li>
-            <li>
-              <strong>Fixed rules</strong>: amounts are calculated from your split and enforced by
-              covenant logic (simulated here until wallets ship covenant support).
-            </li>
-          </ul>
-          <p className="text-xs text-zinc-500">
-            Great for team payouts, creator revenue splits, prize pools, or treasury distributions.
-          </p>
-        </CovenantHowItWorks>
         </CovenantTabPanel>
       )}
     </KpxCovenantShell>

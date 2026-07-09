@@ -8,7 +8,6 @@ import { normalizeAddr } from '@/lib/covenant/utils';
 import {
   CovenantFieldLabel,
   CovenantError,
-  CovenantHowItWorks,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -28,7 +27,7 @@ import {
   useRegisterWidgetTabLabel,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
-type TabId = 'browse' | 'create' | 'metadata' | 'about';
+type TabId = 'browse' | 'create' | 'metadata';
 
 export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
@@ -278,36 +277,6 @@ export function CovenantCrowdfundWidget() {
           effectiveMode={effectiveMode}
           instances={metadataInstances}
         />
-        </CovenantTabPanel>
-      )}
-
-      {tab === 'about' && (
-        <CovenantTabPanel title="How it works" heading="How Crowdfund works">
-        <CovenantHowItWorks>
-          <p>
-            Covenant Crowdfund is an all-or-nothing raise: money only moves to the creator if enough people pledge
-            before the deadline.
-          </p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>
-              <strong>Set a goal and deadline</strong>: backers know exactly what has to happen for the campaign to
-              succeed.
-            </li>
-            <li>
-              <strong>Pledge KAS</strong>: contributions are tracked on-chain style rules (simulated in this
-              prototype).
-            </li>
-            <li>
-              <strong>Goal met</strong>: the creator claims the pooled amount.
-            </li>
-            <li>
-              <strong>Goal missed</strong>: backers can request refunds instead of losing funds to a failed project.
-            </li>
-          </ul>
-          <p className="text-xs text-zinc-500">
-            Useful for launches, community drops, charity drives, or any raise where trust matters.
-          </p>
-        </CovenantHowItWorks>
         </CovenantTabPanel>
       )}
     </KpxCovenantShell>
