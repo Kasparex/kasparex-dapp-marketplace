@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import { kasToSompis } from '@/lib/kaspa/api';
-import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculatePlatformFee } from '@/lib/store/fees';
@@ -12,38 +11,18 @@ import { recordPurchase } from '@/lib/store/purchases';
 import {
   getProductPaymentCurrency,
   getProductPriceOptions,
+  isBuiltinStoreCurrency,
   krexToKasAmount,
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
-import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
 
 const STORE_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
-const KREX_PRIORITY_FEE_KAS = 0.1;
 
-function resolvePayAmount(product: Product, quantity: number, payCurrency: GameItemCurrency): number {
+function resolvePayAmount(product: Product, quantity: number, payCurrency: string): number {
   const qty = Math.max(1, Math.floor(quantity));
   const option = getProductPriceOptions(product).find((o) => o.currency === payCurrency);
   return (option?.unitPrice ?? product.priceKAS) * qty;
-}
-
-async function transferKrex(
-  provider: NonNullable<ReturnType<typeof useKaspaWallet>['state']['provider']>,
-  amountKrex: number,
-  to: string,
-): Promise<string> {
-  const amountSmallest = Math.floor(amountKrex * Math.pow(10, KREX_DECIMALS));
-  if (!Number.isFinite(amountSmallest) || amountSmallest <= 0) {
-    throw new Error('KREX amount too small to transfer');
-  }
-  const inscribeJson = {
-    p: 'KRC-20',
-    op: 'transfer',
-    tick: 'KREX',
-    amt: amountSmallest.toString(),
-    to,
-  };
-  return signKrc20Transfer(provider, JSON.stringify(inscribeJson), KRC20_TRANSFER_TYPE, to, KREX_PRIORITY_FEE_KAS);
 }
 
 export function useStoreProductPurchase(product: Product) {
@@ -57,7 +36,7 @@ export function useStoreProductPurchase(product: Product) {
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const purchase = useCallback(
-    async (quantity: number = 1, payCurrency: GameItemCurrency = getProductPaymentCurrency(product)) => {
+    async (quantity: number = 1, payCurrency: string = getProductPaymentCurrency(product)) => {
       if (!state.isConnected || !state.address || !state.provider) {
         setError('Connect your Kaspa wallet to purchase');
         return false;
@@ -70,7 +49,11 @@ export function useStoreProductPurchase(product: Product) {
 
       const totalPay = resolvePayAmount(product, quantity, payCurrency);
       const totalKasEquivalent =
-        payCurrency === 'KREX' ? krexToKasAmount(totalPay) : totalPay;
+        payCurrency === 'KREX'
+          ? krexToKasAmount(totalPay)
+          : isBuiltinStoreCurrency(payCurrency)
+            ? totalPay
+            : totalPay;
 
       setIsProcessing(true);
       setError(null);
@@ -84,7 +67,22 @@ export function useStoreProductPurchase(product: Product) {
 
         let purchaseTxHash: string;
 
-        if (payCurrency === 'KREX') {
+        if (!isBuiltinStoreCurrency(payCurrency)) {
+          const sellerToken = totalPay * sellerShare;
+          const platformToken = totalPay * platformShare;
+          purchaseTxHash = await transferKrc20(state.provider, {
+            tick: payCurrency,
+            amount: sellerToken,
+            to: product.sellerAddress,
+          });
+          if (platformToken > 1e-9) {
+            await transferKrc20(state.provider, {
+              tick: payCurrency,
+              amount: platformToken,
+              to: STORE_TREASURY_ADDRESS,
+            });
+          }
+        } else if (payCurrency === 'KREX') {
           if (krexL1Balance + 1e-12 < totalPay) {
             throw new Error('Insufficient KREX balance for this purchase');
           }
@@ -92,10 +90,18 @@ export function useStoreProductPurchase(product: Product) {
           const sellerKrex = totalPay * sellerShare;
           const platformKrex = totalPay * platformShare;
 
-          purchaseTxHash = await transferKrex(state.provider, sellerKrex, product.sellerAddress);
+          purchaseTxHash = await transferKrc20(state.provider, {
+            tick: 'KREX',
+            amount: sellerKrex,
+            to: product.sellerAddress,
+          });
 
           if (platformKrex > 1e-9) {
-            await transferKrex(state.provider, platformKrex, STORE_TREASURY_ADDRESS);
+            await transferKrc20(state.provider, {
+              tick: 'KREX',
+              amount: platformKrex,
+              to: STORE_TREASURY_ADDRESS,
+            });
           }
         } else {
           const sellerResult = await sendKaspaTransaction(state.provider, {

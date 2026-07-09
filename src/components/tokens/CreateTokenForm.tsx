@@ -17,7 +17,9 @@ import {
   TokenListingMediaPanel,
   type TokenListingMediaState,
 } from '@/components/tokens/TokenListingMediaPanel';
-import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, formatTokenModulePaymentLabel, type TokenModulesConfig } from '@/lib/tokens/modules';
+import { TOKEN_MODULE_OFFERS, type TokenModuleId, getTokenModuleDiscountPercent, getTokenModuleEffectivePriceKas, type TokenModulesConfig } from '@/lib/tokens/modules';
+import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
+import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { filterModulesForAssetKind, filterModuleOffersForListing, isIntegrationModule } from '@/lib/tokens/utilityEligibility';
 import { estimateTokenListingQuote } from '@/lib/tokens/pricing';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -162,7 +164,7 @@ function buildFormDraft(args: {
 
 export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCancelEdit }: CreateTokenFormProps) {
   const isEditMode = Boolean(listing);
-  const { tier } = useKREXBalance();
+  const { tier, balance: krexBalance } = useKREXBalance();
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
   const { publishNewListing, updateExistingListing, discountPercent } = useTokens();
@@ -679,9 +681,8 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
               </h3>
               <p className="kx-body">
                 {isEditMode
-                  ? `Update your landing page. Estimated cost: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunk${formQuote.chunkCount === 1 ? '' : 's'}).`
-                  : `List your token, verify ownership, and build a modular landing page. Estimated cost: ${formQuote.totalKas} KAS.`}
-                {discountPercent > 0 ? ` KREX tier discount: ${discountPercent}%.` : ''}
+                  ? 'Update your landing page content, modules, and on-chain listing metadata.'
+                  : 'List your token, verify deployer ownership after publish, and build a modular landing page.'}
               </p>
               {isEditMode && onCancelEdit ? (
                 <button type="button" onClick={onCancelEdit} className="mt-3 text-sm text-[#02abb8] hover:underline">
@@ -1061,21 +1062,29 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
             </div>
             {TOKEN_MODULE_OFFERS.filter((offer) =>
               filterModuleOffersForListing([offer], { assetKind, listingNetwork }).length > 0,
-            ).map((offer) => (
+            ).map((offer) => {
+              const paid = listing?.paidModuleIds?.includes(offer.id);
+              const effectiveKas = getTokenModuleEffectivePriceKas(offer.unlockPriceKas, tier);
+              return (
               <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
                 <KxInFormPremiumRow
                   flat
                   title={offer.title}
-                  description={offer.description}
-                  priceLabel={
-                    listing?.paidModuleIds?.includes(offer.id) ? 'Paid' : `+${offer.unlockPriceKas} KAS`
+                  description={
+                    offer.id === 'native_subscriptions'
+                      ? `${offer.description} (Preview: billing not live yet.)`
+                      : isIntegrationModule(offer.id) && isRealToken
+                        ? `${offer.description} Activates after deployer verify.`
+                        : offer.description
                   }
+                  priceLabel={paid ? 'Paid' : `+${effectiveKas} KAS`}
                   checked={enabledModules.has(offer.id)}
                   onToggle={() => toggleModule(offer.id)}
-                  disabled={listing?.paidModuleIds?.includes(offer.id) || isSubmitting}
+                  disabled={paid || isSubmitting}
                 />
               </div>
-            ))}
+            );
+            })}
             <TokenModuleConfigFields
               config={modulesConfig}
               onChange={setModulesConfig}
@@ -1090,87 +1099,60 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
         <div className="flex flex-col gap-4 xl:sticky xl:top-6">
           <TokensBenefitsPanel variant="panel" />
-          <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
-            <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-            <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-              <div className="flex justify-between">
-                <span>Base fee</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.baseFeeKas} KAS</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Size fee</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.sizeFeeKas} KAS</span>
-              </div>
-              {formQuote.moduleLines.map((line) => (
-                <div key={line.id} className="flex justify-between gap-2">
-                  <span className="truncate">{line.title}</span>
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">+{line.kas} KAS</span>
-                </div>
-              ))}
-              {formQuote.modulesFeeKas > 0 ? (
-                <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-                  <span>Modules subtotal</span>
-                  <span className="font-semibold text-[#02abb8]">{formQuote.modulesFeeKas} KAS</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between">
-                <span>Network buffer</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.networkFeeBufferKas} KAS</span>
-              </div>
-              {formQuote.discountKas > 0 ? (
-                <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-                  <span>KREX discount</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">-{formQuote.discountKas} KAS</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-1.5">
-                <span>Payload bytes</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.payloadBytes}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Chunk estimate</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formQuote.chunkCount}</span>
-              </div>
-            </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-              <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Pay with</p>
-              <KxSegmentToggle
-                value={paymentCurrency}
-                onChange={setPaymentCurrency}
-                options={STORE_PAYMENT_CURRENCIES.map((c) => ({ value: c, label: c }))}
-                ariaLabel="Payment currency"
-              />
-            </div>
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-              <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
-                {formatTokenModulePaymentLabel(paymentCurrency, formQuote.totalKas)}
-              </p>
-            </div>
-            <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-              One Kaspa L1 payment commits your listing payload on-chain. Chunk count and size fees follow the same model
-              as vBlog.
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting || !canPublish}
-              className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting
-                ? 'Publishing…'
-                : isEditMode
-                  ? `Update listing (${formQuote.totalKas} KAS)`
-                  : `Publish listing (${formQuote.totalKas} KAS)`}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsPreviewOpen(true)}
-              className="w-full k-control-btn"
-              disabled={isSubmitting}
-            >
-              Preview Token Page
-            </button>
-          </aside>
+          <HubPaymentPanel
+            lines={[
+              { label: 'Base fee', value: `${formQuote.baseFeeKas} KAS` },
+              { label: 'Size fee', value: `${formQuote.sizeFeeKas} KAS` },
+              ...formQuote.moduleLines.map((line) => ({
+                label: line.title,
+                value: `+${line.kas} KAS`,
+              })),
+              ...(formQuote.modulesFeeKas > 0
+                ? [{ label: 'Modules subtotal', value: `${formQuote.modulesFeeKas} KAS` }]
+                : []),
+              { label: 'Network buffer', value: `${formQuote.networkFeeBufferKas} KAS` },
+              { label: 'Payload bytes', value: String(formQuote.payloadBytes) },
+              { label: 'Chunk estimate', value: String(formQuote.chunkCount) },
+            ]}
+            totalDisplay={formatHubPaymentAmount(
+              buildKasKrexCurrencyOptions().find((c) => c.id === paymentCurrency) ?? buildKasKrexCurrencyOptions()[0],
+              formQuote.totalKas,
+            )}
+            currencies={buildKasKrexCurrencyOptions()}
+            selectedCurrencyId={paymentCurrency}
+            onCurrencyChange={(id) => setPaymentCurrency(id as StorePaymentCurrency)}
+            tier={tier}
+            krexBalance={krexBalance}
+            discountNote={
+              formQuote.discountKas > 0
+                ? `KREX discount: -${formQuote.discountKas} KAS (${discountPercent}% off).`
+                : undefined
+            }
+            infoText="One Kaspa L1 payment commits your listing payload on-chain. KREX pay still requires a connected Kaspa L1 wallet for the transfer."
+            footer={
+              <>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !canPublish}
+                  className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting
+                    ? 'Publishing…'
+                    : isEditMode
+                      ? 'Update listing'
+                      : 'Publish listing'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="w-full k-control-btn"
+                  disabled={isSubmitting}
+                >
+                  Preview Token Page
+                </button>
+              </>
+            }
+          />
         </div>
       </form>
       <TokenPreviewModal

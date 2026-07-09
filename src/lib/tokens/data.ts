@@ -206,7 +206,7 @@ export function createSeedClaimListing(
 
 export function mergePublishedIntoRegistry(baseTokens: Token[]): Token[] {
   const published = getAllPublishedListings().filter(
-    (l) => l.status === 'verified' || l.status === 'published' || l.status === 'verification_pending',
+    (l) => l.status === 'verified' || l.status === 'published' || l.status === 'payment_pending' || l.status === 'verification_pending',
   );
 
   // Latest listing per slug wins (listings are stored newest-first).

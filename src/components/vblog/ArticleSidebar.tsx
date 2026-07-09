@@ -145,7 +145,7 @@ interface ArticleSidebarProps {
   tipCurrencies?: string[];
   customTipKas?: string;
   onCustomTipChange?: (value: string) => void;
-  onTip?: (amount: number) => void;
+  onTip?: (amount: number, currency: string) => void;
   isProcessingAction?: boolean;
   isWalletConnected?: boolean;
   tipHubPointsBase?: number;
@@ -238,16 +238,10 @@ export function ArticleSidebar({
                     ariaLabel="Tip currency"
                     options={acceptedCurrencies.map((currency) => ({
                       value: currency,
-                      label: currency === 'KAS' ? 'KAS' : `${currency} (soon)`,
+                      label: currency,
                     }))}
                   />
                 </div>
-              ) : null}
-
-              {tipCurrency !== 'KAS' ? (
-                <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-                  {tipCurrency} tipping is coming soon. Switch to KAS to tip now.
-                </p>
               ) : null}
 
               <div className="flex flex-wrap items-center gap-2">
@@ -255,8 +249,8 @@ export function ArticleSidebar({
                   <button
                     key={amount}
                     type="button"
-                    disabled={isProcessingAction || !isWalletConnected || tipCurrency !== 'KAS'}
-                    onClick={() => onTip?.(amount)}
+                    disabled={isProcessingAction || !isWalletConnected}
+                    onClick={() => onTip?.(amount, tipCurrency)}
                     className="k-control-btn text-xs"
                   >
                     Tip {amount} {tipCurrency}
@@ -270,8 +264,8 @@ export function ArticleSidebar({
                 />
                 <button
                   type="button"
-                  disabled={isProcessingAction || !isWalletConnected || tipCurrency !== 'KAS'}
-                  onClick={() => onTip?.(Number(customTipKas) || 1)}
+                  disabled={isProcessingAction || !isWalletConnected}
+                  onClick={() => onTip?.(Number(customTipKas) || 1, tipCurrency)}
                   className="k-control-btn text-xs"
                 >
                   Custom tip

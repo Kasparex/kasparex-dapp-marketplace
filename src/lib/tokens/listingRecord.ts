@@ -12,6 +12,8 @@ import { filterModulesForAssetKind } from './utilityEligibility';
 
 export type TokenPublishStatus =
   | 'draft'
+  | 'payment_pending'
+  /** @deprecated Legacy listings; treated as payment_pending */
   | 'verification_pending'
   | 'verified'
   | 'published';

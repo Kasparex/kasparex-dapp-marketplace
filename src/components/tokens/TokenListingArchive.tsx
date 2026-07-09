@@ -17,6 +17,7 @@ import type { ClaimableSeed } from '@/lib/tokens/seedClaims';
 
 interface TokenListingArchiveProps {
   listings: PublishedTokenListing[];
+  highlightListingId?: string;
   onEdit: (listing: PublishedTokenListing) => void;
   onDelete?: (id: string) => void;
   onVerifyDeployer: (id: string, proof: { method: string; walletAddress: string; signature?: string }) => Promise<void> | void;
@@ -31,6 +32,7 @@ function paymentPill(status: PublishedTokenListing['status']): { label: string; 
     case 'verified':
     case 'published':
       return { label: 'Published', className: 'bg-[#02abb8]/15 text-[#02abb8] border-[#02abb8]/30' };
+    case 'payment_pending':
     case 'verification_pending':
       return { label: 'Payment pending', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' };
     default:
@@ -100,6 +102,7 @@ function ClaimableSeedsPanel({
 
 export function TokenListingArchive({
   listings,
+  highlightListingId,
   onEdit,
   onDelete,
   onVerifyDeployer,
@@ -157,7 +160,7 @@ export function TokenListingArchive({
                 )
               : null;
           return (
-            <KxListingCard key={listing.id} accent="tokens" className="flex h-full flex-col">
+            <KxListingCard key={listing.id} accent="tokens" className={`flex h-full flex-col ${highlightListingId === listing.id ? 'ring-2 ring-[#02abb8]/50' : ''}`}>
               <KxListingCardMedia aspectClass="aspect-[16/9]">
                 {featuredImageUrl ? (
                   <Image src={featuredImageUrl} alt={`${listing.name} featured`} fill className="object-cover" unoptimized />
@@ -196,9 +199,9 @@ export function TokenListingArchive({
                         <button
                           type="button"
                           onClick={() => openWizard(listing, 'deployer')}
-                          className="k-control-btn col-span-2 text-sm !border-[#02abb8]/40 !text-[#02abb8]"
+                          className="k-control-btn col-span-2 text-sm !border-[#02abb8] !bg-[#02abb8]/10 !text-[#02abb8] font-semibold"
                         >
-                          Verify with Deployer Wallet
+                          Verify deployer wallet (free)
                         </button>
                       ) : null}
                       {listing.ownership !== 'wallet_assigned' && listing.ownership !== 'deployer_verified' ? (

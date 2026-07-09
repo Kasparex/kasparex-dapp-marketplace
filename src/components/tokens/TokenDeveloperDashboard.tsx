@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CreateTokenForm } from '@/components/tokens/CreateTokenForm';
-import { TokenAuthorPricing } from '@/components/tokens/TokenAuthorPricing';
 import { TokenListingArchive } from '@/components/tokens/TokenListingArchive';
 import {
   EMPTY_TOKEN_LISTING_MEDIA,
@@ -18,6 +17,8 @@ import { normalizeIpfsUrlForForm } from '@/lib/hub/ipfsStandard';
 import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { Alert } from '@/components/Alert';
+import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
+import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
 function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMediaState {
   if (!listing) return { ...EMPTY_TOKEN_LISTING_MEDIA };
@@ -40,6 +41,7 @@ function mediaFromListing(listing: PublishedTokenListing | null): TokenListingMe
 export function TokenDeveloperDashboard() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const isMobile = useIsMobileViewport();
   const { state: kaspaState } = useKaspaWallet();
   const { address: evmAddress } = useAccount();
   const walletAddress = kaspaState.address || (evmAddress ? `evm:${evmAddress}` : null);
@@ -59,6 +61,7 @@ export function TokenDeveloperDashboard() {
   const [editingListing, setEditingListing] = useState<PublishedTokenListing | null>(null);
   const [media, setMedia] = useState<TokenListingMediaState>(EMPTY_TOKEN_LISTING_MEDIA);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [verifyBannerListing, setVerifyBannerListing] = useState<PublishedTokenListing | null>(null);
 
   const authorListings = walletAddress ? getAuthorListings(walletAddress) : [];
   const claimableSeeds = getClaimableSeedsForWallet(kaspaState.address);
@@ -81,13 +84,16 @@ export function TokenDeveloperDashboard() {
 
   const handlePublishSuccess = (listing: PublishedTokenListing) => {
     setSuccessMessage(
-      listing.status === 'verified'
+      listing.status === 'verified' || listing.status === 'published'
         ? `Token page published at /tokens/${listing.slug}`
-        : `Listing saved. Verification pending for /tokens/${listing.slug}`,
+        : `Listing saved. Payment pending for /tokens/${listing.slug}`,
     );
     setEditingListing(null);
     setMedia(EMPTY_TOKEN_LISTING_MEDIA);
     setActiveTab('archive');
+    if (listing.assetKind === 'real' && listing.ownership !== 'deployer_verified') {
+      setVerifyBannerListing(listing);
+    }
     window.setTimeout(() => setSuccessMessage(null), 8000);
   };
 
@@ -111,7 +117,8 @@ export function TokenDeveloperDashboard() {
   const handleVerifyDeployer = async (id: string, proof: { method: string; walletAddress: string; signature?: string }) => {
     const result = await verifyDeployer(id, proof);
     if (result) {
-      setSuccessMessage(`${result.symbol} deployer verified. +1000 Hub Points awarded. Listed under Developer UaaS.`);
+      setVerifyBannerListing(null);
+      setSuccessMessage(`${result.symbol} deployer verified. +1000 Hub Points awarded. Hub integrations can go live.`);
       window.setTimeout(() => setSuccessMessage(null), 8000);
     }
   };
@@ -173,6 +180,25 @@ export function TokenDeveloperDashboard() {
         </Alert>
       ) : null}
 
+      {verifyBannerListing ? (
+        <Alert type="info" title="Activate Hub integrations">
+          <p className="mb-3">
+            <strong>{verifyBannerListing.name}</strong> is published. Verify your deployer wallet (free signature) to
+            activate Store and vBlog integrations.
+          </p>
+          <button
+            type="button"
+            className="k-control-btn !border-[#02abb8] !text-[#02abb8]"
+            onClick={() => {
+              setActiveTab('archive');
+              setVerifyBannerListing(verifyBannerListing);
+            }}
+          >
+            Go to My tokens to verify
+          </button>
+        </Alert>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
         <button type="button" onClick={() => setActiveTab('create')} className={tabClass('create')}>
           {editingListing ? 'Edit listing' : 'Create listing'}
@@ -182,22 +208,33 @@ export function TokenDeveloperDashboard() {
         </button>
       </div>
 
-      {activeTab === 'create' ? (
-        <div id="tokens-dashboard-pricing" className="scroll-mt-24">
-          <TokenAuthorPricing />
-        </div>
-      ) : null}
-
       <div className="min-h-[400px]">
         {activeTab === 'create' ? (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-            <CreateTokenForm
-              listing={editingListing}
-              media={media}
-              onMediaChange={setMedia}
-              onSuccess={handlePublishSuccess}
-              onCancelEdit={editingListing ? () => setEditingListing(null) : undefined}
-            />
+            {isMobile ? (
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
+                <MobileWalletUnavailableNotice networks="L1" defaultOpen />
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  The full listing builder works best on desktop. On mobile you can manage published listings and verify
+                  deployer ownership.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('archive')}
+                  className="k-control-btn !border-[#02abb8] !text-[#02abb8]"
+                >
+                  Open My tokens
+                </button>
+              </div>
+            ) : (
+              <CreateTokenForm
+                listing={editingListing}
+                media={media}
+                onMediaChange={setMedia}
+                onSuccess={handlePublishSuccess}
+                onCancelEdit={editingListing ? () => setEditingListing(null) : undefined}
+              />
+            )}
           </div>
         ) : null}
 
@@ -205,6 +242,7 @@ export function TokenDeveloperDashboard() {
           <div id="tokens-dashboard-archive" className="scroll-mt-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <TokenListingArchive
               listings={authorListings}
+              highlightListingId={verifyBannerListing?.id}
               onEdit={(listing) => {
                 setEditingListing(listing);
                 setMedia(mediaFromListing(listing));

@@ -50,6 +50,9 @@ import { VBlogPremiumPoll } from '@/components/vblog/VBlogPremiumPoll';
 import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
+import { krexToKasAmount, isBuiltinStoreCurrency } from '@/lib/store/currencies';
+import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { getIntegratedTokenForAuthor } from '@/lib/tokens/integratedTokens';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
@@ -146,6 +149,20 @@ export function ArticleDetail({
     [article.modules, article.author],
   );
 
+  const integratedTipToken = useMemo(
+    () => getIntegratedTokenForAuthor(article.author, 'vblog_tips'),
+    [article.author],
+  );
+
+  const tipCurrencies = useMemo(() => {
+    const set = new Set<string>(['KAS', 'KREX']);
+    for (const c of article.modules?.tipBox?.currencies ?? []) {
+      if (c) set.add(c.toUpperCase());
+    }
+    if (integratedTipToken) set.add(integratedTipToken.tick);
+    return Array.from(set);
+  }, [article.modules?.tipBox?.currencies, integratedTipToken]);
+
   const creditReaderEarn = (
     source: EarnSource,
     basePoints: number,
@@ -182,13 +199,16 @@ export function ArticleDetail({
 
   const performSplitPayment = async (
     moduleId: 'premium_unlock' | 'tip_to_reveal_unlock' | 'tip_box',
-    listKas: number,
+    listAmount: number,
+    currency: string = 'KAS',
   ) => {
     if (!kaspaState.provider || !kaspaState.isConnected || !kaspaState.address) {
       throw new Error('Kaspa wallet required');
     }
     const payerAddress = normalizeKaspaAddress(kaspaState.address);
-    const payment = computeVBlogReaderPaymentSplit(listKas, krexTier, nftStatus, getVBlogPlatformFeeBps());
+    const kasEquivalent =
+      currency === 'KREX' ? krexToKasAmount(listAmount) : listAmount;
+    const payment = computeVBlogReaderPaymentSplit(kasEquivalent, krexTier, nftStatus, getVBlogPlatformFeeBps());
     const payoutSplits =
       moduleId === 'premium_unlock'
         ? resolvePremiumPayoutSplits(article.modules, article.author)
@@ -197,61 +217,115 @@ export function ArticleDetail({
       throw new Error('Author payout address is invalid');
     }
     const authorSplits = splitAuthorKasByPercent(payment.authorKas, payoutSplits);
-    const note = buildVBlogPremiumUnlockPlainNote({
-      articleId: article.id,
-      moduleId,
-      payerAddress,
-      amountKas: payment.totalKas,
-    });
-    const payload = buildVBlogPremiumUnlockPayloadHex({
-      articleId: article.id,
-      moduleId,
-      payerAddress,
-      amountKas: payment.totalKas,
-    });
+    const authorShare = payment.totalKas > 0 ? payment.authorKas / payment.totalKas : 1;
+    const platformShare = payment.totalKas > 0 ? payment.platformKas / payment.totalKas : 0;
 
-    const authorTxHashes: string[] = [];
-    for (const split of authorSplits) {
-      const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-        to: split.address,
-        amount: String(kasToSompi(split.kas)),
-        note,
-        payload,
-      });
-      if (authorTx.status === 'failed' || !authorTx.txHash) {
-        throw new Error(authorTx.error ?? 'Author payout transaction failed');
-      }
-      authorTxHashes.push(extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash);
-    }
-
-    const platformTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
-      to: getVBlogTreasuryL1Address(),
-      amount: String(kasToSompi(payment.platformKas)),
-      note: `${note}:fee`,
-      payload,
-    });
-    if (platformTx.status === 'failed' || !platformTx.txHash) {
-      throw new Error(platformTx.error ?? 'Platform fee transaction failed');
-    }
-    const platformTxHash = extractKaspaTransactionId(platformTx.txHash) ?? platformTx.txHash;
-
-    const verifyRes = await fetch('/api/vblog/modules/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payerAddress,
+    if (currency === 'KAS') {
+      const note = buildVBlogPremiumUnlockPlainNote({
         articleId: article.id,
         moduleId,
-        expectedAuthorAddress: payoutSplits[0].address,
-        expectedAuthorKas: payment.authorKas,
-        expectedPlatformKas: payment.platformKas,
-        authorTxHashes,
-        authorRecipientAddresses: payoutSplits.map((s) => s.address),
-        platformTxHash,
-      }),
-    });
-    const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string; points?: number };
-    if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
+        payerAddress,
+        amountKas: payment.totalKas,
+      });
+      const payload = buildVBlogPremiumUnlockPayloadHex({
+        articleId: article.id,
+        moduleId,
+        payerAddress,
+        amountKas: payment.totalKas,
+      });
+
+      const authorTxHashes: string[] = [];
+      for (const split of authorSplits) {
+        const authorTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+          to: split.address,
+          amount: String(kasToSompi(split.kas)),
+          note,
+          payload,
+        });
+        if (authorTx.status === 'failed' || !authorTx.txHash) {
+          throw new Error(authorTx.error ?? 'Author payout transaction failed');
+        }
+        authorTxHashes.push(extractKaspaTransactionId(authorTx.txHash) ?? authorTx.txHash);
+      }
+
+      const platformTx = await sendKaspaTransaction(kaspaState.provider as KaspaWalletProvider, {
+        to: getVBlogTreasuryL1Address(),
+        amount: String(kasToSompi(payment.platformKas)),
+        note: `${note}:fee`,
+        payload,
+      });
+      if (platformTx.status === 'failed' || !platformTx.txHash) {
+        throw new Error(platformTx.error ?? 'Platform fee transaction failed');
+      }
+      const platformTxHash = extractKaspaTransactionId(platformTx.txHash) ?? platformTx.txHash;
+
+      const verifyRes = await fetch('/api/vblog/modules/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payerAddress,
+          articleId: article.id,
+          moduleId,
+          expectedAuthorAddress: payoutSplits[0].address,
+          expectedAuthorKas: payment.authorKas,
+          expectedPlatformKas: payment.platformKas,
+          authorTxHashes,
+          authorRecipientAddresses: payoutSplits.map((s) => s.address),
+          platformTxHash,
+        }),
+      });
+      const verifyJson = (await verifyRes.json()) as { ok?: boolean; error?: string; points?: number };
+      if (!verifyJson.ok) throw new Error(verifyJson.error ?? 'Verification failed');
+      return { authorTxHashes, platformTxHash, payment, payerAddress };
+    }
+
+    if (!isBuiltinStoreCurrency(currency)) {
+      const authorTxHashes: string[] = [];
+      for (const split of authorSplits) {
+        const portion =
+          payment.authorKas > 0 ? listAmount * authorShare * (split.kas / payment.authorKas) : listAmount * authorShare;
+        const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+          tick: currency,
+          amount: portion,
+          to: split.address,
+          decimals: integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8,
+        });
+        authorTxHashes.push(hash);
+      }
+      const platformToken = listAmount * platformShare;
+      let platformTxHash = authorTxHashes[0] ?? '';
+      if (platformToken > 1e-9) {
+        platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+          tick: currency,
+          amount: platformToken,
+          to: getVBlogTreasuryL1Address(),
+          decimals: integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8,
+        });
+      }
+      return { authorTxHashes, platformTxHash, payment, payerAddress };
+    }
+
+    const tick = currency;
+    const authorTxHashes: string[] = [];
+    for (const split of authorSplits) {
+      const portion =
+        payment.authorKas > 0 ? listAmount * authorShare * (split.kas / payment.authorKas) : listAmount * authorShare;
+      const hash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+        tick,
+        amount: portion,
+        to: split.address,
+      });
+      authorTxHashes.push(hash);
+    }
+    const platformToken = listAmount * platformShare;
+    let platformTxHash = authorTxHashes[0] ?? '';
+    if (platformToken > 1e-9) {
+      platformTxHash = await transferKrc20(kaspaState.provider as KaspaWalletProvider, {
+        tick,
+        amount: platformToken,
+        to: getVBlogTreasuryL1Address(),
+      });
+    }
     return { authorTxHashes, platformTxHash, payment, payerAddress };
   };
 
@@ -282,11 +356,11 @@ export function ArticleDetail({
     }
   };
 
-  const handleTip = async (amountKas: number) => {
+  const handleTip = async (amount: number, currency: string = 'KAS') => {
     try {
       setActionError(null);
       setIsProcessingAction(true);
-      const txs = await performSplitPayment('tip_box', amountKas);
+      const txs = await performSplitPayment('tip_box', amount, currency);
       const walletKey = txs.payerAddress;
       saveReaderEntitlement({
         wallet: walletKey,
@@ -480,10 +554,10 @@ export function ArticleDetail({
               article={article}
               tipBoxEnabled={Boolean(article.modules?.tipBoxEnabled)}
               tipPresets={article.modules?.tipBox?.presets ?? [10, 50, 100]}
-              tipCurrencies={article.modules?.tipBox?.currencies}
+              tipCurrencies={tipCurrencies}
               customTipKas={customTipKas}
               onCustomTipChange={setCustomTipKas}
-              onTip={(amount) => void handleTip(amount)}
+              onTip={(amount, currency) => void handleTip(amount, currency)}
               isProcessingAction={isProcessingAction}
               isWalletConnected={kaspaState.isConnected}
               tipHubPointsBase={HUB_EARN_POINTS.vblogTip}

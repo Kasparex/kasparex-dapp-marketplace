@@ -72,8 +72,8 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
     <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
       <DAppSectionHeader title="Access gate" className="mb-1" />
       <p className="kx-body-sm">
-        Gated utility for covenant token holders. v1 uses read-only KaspaCom / kascov covenant state; wallet-native
-        holder proofs arrive with KCC-20 wallet APIs.
+        Gated content for programmable token projects. v1 checks covenant on-chain state (manual refresh on the
+        Overview tab). This is not a wallet balance check yet.
       </p>
 
       {config?.minBalanceSompi ? (
@@ -86,7 +86,7 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
       ) : null}
 
       {!kaspaState.isConnected ? (
-        <Alert type="info">Connect your Kaspa wallet to run the holder check.</Alert>
+        <Alert type="info">Connect your Kaspa wallet, then run an on-demand covenant state check.</Alert>
       ) : (
         <button
           type="button"
@@ -94,7 +94,7 @@ export function TokenAccessGatePanel({ token }: { token: Token }) {
           disabled={checking}
           className="k-control-btn text-sm disabled:opacity-50"
         >
-          {checking ? 'Checking…' : 'Check holder access'}
+          {checking ? 'Checking…' : 'Check covenant state'}
         </button>
       )}
 

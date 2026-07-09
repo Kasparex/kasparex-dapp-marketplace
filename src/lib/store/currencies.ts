@@ -1,12 +1,18 @@
 import { MINECORE_KREX_PER_KAS } from '@/lib/game/minecore/config';
 import type { Product } from './types';
 
-export type StorePaymentCurrency = 'KAS' | 'KREX';
+export type StorePaymentCurrency = 'KAS' | 'KREX' | (string & {});
 
-export const STORE_PAYMENT_CURRENCIES: StorePaymentCurrency[] = ['KAS', 'KREX'];
+export const STORE_PAYMENT_CURRENCIES: Array<'KAS' | 'KREX'> = ['KAS', 'KREX'];
+
+export function isBuiltinStoreCurrency(value: string): value is 'KAS' | 'KREX' {
+  return value === 'KAS' || value === 'KREX';
+}
 
 export function normalizeStorePaymentCurrency(value: unknown): StorePaymentCurrency {
-  return value === 'KREX' ? 'KREX' : 'KAS';
+  if (value === 'KREX') return 'KREX';
+  if (value === 'KAS' || value == null || value === '') return 'KAS';
+  return String(value).toUpperCase();
 }
 
 export function getProductPaymentCurrency(product: Pick<Product, 'paymentCurrency'>): StorePaymentCurrency {
@@ -24,6 +30,10 @@ export function krexToKasAmount(krex: number): number {
 export function getProductPriceOptions(product: Pick<Product, 'priceKAS' | 'paymentCurrency'>) {
   const listedCurrency = getProductPaymentCurrency(product);
   const unitPrice = product.priceKAS;
+
+  if (!isBuiltinStoreCurrency(listedCurrency)) {
+    return [{ currency: listedCurrency, unitPrice }];
+  }
 
   if (listedCurrency === 'KREX') {
     return [

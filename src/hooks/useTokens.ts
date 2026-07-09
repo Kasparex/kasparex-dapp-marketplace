@@ -385,7 +385,7 @@ export function useTokens() {
           txHash: bundle.commitTxHash,
           commitTxHash: bundle.commitTxHash,
           contentHash: bundle.contentHash,
-          status: bundle.verified ? 'verified' : 'verification_pending',
+          status: bundle.verified ? 'verified' : 'payment_pending',
           metadataCid,
           pricingSnapshot: {
             baseFeeKas: quote.baseFeeKas,
@@ -458,7 +458,7 @@ export function useTokens() {
           txHash: bundle.commitTxHash,
           commitTxHash: bundle.commitTxHash,
           contentHash: bundle.contentHash,
-          status: bundle.verified ? 'verified' : 'verification_pending',
+          status: bundle.verified ? 'verified' : 'payment_pending',
           pricingSnapshot: {
             baseFeeKas: quote.baseFeeKas,
             sizeFeeKas: quote.sizeFeeKas,
@@ -644,7 +644,7 @@ export function useTokens() {
       if (
         listing.status !== 'verified' &&
         listing.status !== 'published' &&
-        listing.status !== 'verification_pending'
+        listing.status !== 'payment_pending' && listing.status !== 'verification_pending'
       ) {
         return null;
       }

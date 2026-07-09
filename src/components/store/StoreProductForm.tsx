@@ -9,6 +9,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct, updateProduct } from '@/lib/store/products';
 import type { Product, ProductCategory, ProductNetwork, StorePaymentCurrency } from '@/lib/store/types';
 import { STORE_PAYMENT_CURRENCIES } from '@/lib/store/currencies';
+import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -46,7 +47,15 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const integratedStore = getIntegratedTokenForWallet(state.address, 'store');
+
+  const paymentCurrencyOptions = useMemo(() => {
+    const base = STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }));
+    if (integratedStore && !base.some((o) => o.value === integratedStore.tick)) {
+      base.push({ value: integratedStore.tick, label: `$${integratedStore.tick} (your listing)` });
+    }
+    return base;
+  }, [integratedStore]);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
 
@@ -321,7 +330,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
               <KxSegmentToggle
                 value={formData.paymentCurrency}
                 onChange={(paymentCurrency) => setFormData({ ...formData, paymentCurrency })}
-                options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                options={paymentCurrencyOptions}
                 ariaLabel="Payment currency"
               />
             </div>

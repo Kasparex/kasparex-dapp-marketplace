@@ -45,6 +45,19 @@ export function TokenListingCardContent({
 
       {ownershipLabel ? <div className="mb-2">{ownershipLabel}</div> : null}
 
+      {token.listingNetwork === 'kcc20' || token.onChainSnapshot?.source === 'kcc20' ? (
+        <div className="mb-2 flex flex-wrap gap-2">
+          <span className="rounded-md border border-[#02abb8]/30 bg-[#02abb8]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#02abb8]">
+            KCC-20
+          </span>
+          {token.onChainSnapshot?.templateLabel ? (
+            <span className="rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              {token.onChainSnapshot.templateLabel}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
       <p className="mb-3 flex-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
         {token.shortDescription || token.description}
       </p>
