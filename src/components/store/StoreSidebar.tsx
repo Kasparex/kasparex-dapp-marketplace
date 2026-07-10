@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
@@ -76,6 +76,46 @@ const productSectionIcon = (
   </svg>
 );
 
+function StoreListingQuickLinksFallback() {
+  return (
+    <div className="mb-6 space-y-2">
+      <div className="k-control-btn w-full justify-center gap-2 opacity-60">Seller Dashboard</div>
+      <div className="k-control-btn w-full justify-center gap-2 opacity-60">List Product</div>
+    </div>
+  );
+}
+
+function StoreListingQuickLinks() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const dashboardActive = pathname.startsWith('/store/dashboard');
+  const createActive = dashboardActive && searchParams.get('tab') === 'create';
+  const dashboardDefaultActive = dashboardActive && searchParams.get('tab') !== 'create';
+
+  return (
+    <div className="mb-6 space-y-2">
+      <Link
+        href="/store/dashboard"
+        className={`k-control-btn w-full justify-center gap-2 ${dashboardDefaultActive ? '!bg-cyan-600 !text-white' : ''}`}
+      >
+        <svg className={dashboardDefaultActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        Seller Dashboard
+      </Link>
+      <Link
+        href="/store/dashboard?tab=create"
+        className={`k-control-btn w-full justify-center gap-2 ${createActive ? '!bg-cyan-600 !text-white' : ''}`}
+      >
+        <svg className={createActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        List Product
+      </Link>
+    </div>
+  );
+}
+
 export function StoreSidebar({
   mode,
   categories = defaultCategories,
@@ -86,8 +126,6 @@ export function StoreSidebar({
   sellerTab = 'products',
   onSellerTabChange,
 }: StoreSidebarProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [activeProductSection, setActiveProductSection] = useState<string>('product-overview');
   const productSectionObserverRef = useRef<IntersectionObserver | null>(null);
@@ -164,10 +202,6 @@ export function StoreSidebar({
     </div>
   );
 
-  const dashboardActive = pathname.startsWith('/store/dashboard');
-  const createActive = dashboardActive && searchParams.get('tab') === 'create';
-  const dashboardDefaultActive = dashboardActive && searchParams.get('tab') !== 'create';
-
   return (
     <UnifiedSidebar
       storageKeyPrefix="store"
@@ -176,26 +210,9 @@ export function StoreSidebar({
     >
       {isListing && (
         <>
-          <div className="mb-6 space-y-2">
-            <Link
-              href="/store/dashboard"
-              className={`k-control-btn w-full justify-center gap-2 ${dashboardDefaultActive ? '!bg-cyan-600 !text-white' : ''}`}
-            >
-              <svg className={dashboardDefaultActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Seller Dashboard
-            </Link>
-            <Link
-              href="/store/dashboard?tab=create"
-              className={`k-control-btn w-full justify-center gap-2 ${createActive ? '!bg-cyan-600 !text-white' : ''}`}
-            >
-              <svg className={createActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              List Product
-            </Link>
-          </div>
+          <Suspense fallback={<StoreListingQuickLinksFallback />}>
+            <StoreListingQuickLinks />
+          </Suspense>
           <SidebarCategories
             title="Categories"
             items={categoryItems}
