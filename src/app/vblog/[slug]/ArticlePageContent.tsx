@@ -11,6 +11,7 @@ import { useVBlog } from '@/hooks/useVBlog';
 import { notFound } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { VBlogArticle } from '@/lib/vblog/types';
+import { bootstrapHubContent } from '@/lib/hub/contentSync';
 
 interface ArticlePageContentProps {
   slug: string;
@@ -30,6 +31,10 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
   const [article, setArticle] = useState<VBlogArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [contentTab, setContentTab] = useState<ArticleContentTab>('article');
+
+  useEffect(() => {
+    void bootstrapHubContent(['tokens', 'vblog']);
+  }, []);
 
   useEffect(() => {
     const foundArticle = getArticle(slug);

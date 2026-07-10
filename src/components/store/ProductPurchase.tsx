@@ -11,20 +11,18 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import {
   getProductPaymentCurrency,
-  getProductPriceOptions,
   isBuiltinStoreCurrency,
-  krexToKasAmount,
 } from '@/lib/store/currencies';
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
+import { useIntegratedToken } from '@/hooks/useIntegratedToken';
+import { resolveStoreUnitPrice } from '@/lib/store/checkoutPriceOptions';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import {
   formatKasEq,
   formatTokenAmount,
   mergePricingTickers,
-  resolveTokenAmountFromKas,
   toKasEq,
 } from '@/lib/pricing';
 
@@ -47,11 +45,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const { purchase, isProcessing, error, success, txHash } = useStoreProductPurchase(product);
 
   const listedCurrency = getProductPaymentCurrency(product);
-  const priceOptions = getProductPriceOptions(product);
-  const sellerIntegratedToken = useMemo(
-    () => getIntegratedTokenForWallet(product.sellerAddress, 'store'),
-    [product.sellerAddress],
-  );
+  const sellerIntegratedToken = useIntegratedToken(product.sellerAddress, 'store').token;
   const [currency, setCurrency] = useState<string>(listedCurrency);
   const pricingTickers = useMemo(
     () => mergePricingTickers([listedCurrency, currency, 'KREX', sellerIntegratedToken?.tick ?? '']),
@@ -66,23 +60,10 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
 
   const selectedOption = currencyOptions.find((c) => c.id === currency) ?? currencyOptions[0];
 
-  const unitPrice = useMemo(() => {
-    const listed = getProductPaymentCurrency(product);
-    if (listed === 'KAS' && currency !== 'KAS') {
-      return resolveTokenAmountFromKas(product.priceKAS, currency, pricingSnapshot);
-    }
-    if (listed === 'KREX' && currency === 'KAS') {
-      return toKasEq(product.priceKAS, 'KREX', pricingSnapshot) ?? krexToKasAmount(product.priceKAS);
-    }
-    if (!isBuiltinStoreCurrency(listed) && isBuiltinStoreCurrency(currency)) {
-      const nativeKas = toKasEq(product.priceKAS, listed, pricingSnapshot) ?? product.priceKAS;
-      if (currency === 'KREX') {
-        return resolveTokenAmountFromKas(nativeKas, 'KREX', pricingSnapshot);
-      }
-      return nativeKas;
-    }
-    return priceOptions.find((o) => o.currency === currency)?.unitPrice ?? product.priceKAS;
-  }, [product, currency, priceOptions, pricingSnapshot]);
+  const unitPrice = useMemo(
+    () => resolveStoreUnitPrice(product, currency, pricingSnapshot),
+    [product, currency, pricingSnapshot],
+  );
 
   const unitKasEq = useMemo(
     () => toKasEq(unitPrice, currency, pricingSnapshot) ?? unitPrice,

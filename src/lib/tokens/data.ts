@@ -8,6 +8,17 @@ import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
 import { tokenNetworkToListingNetwork } from './listingNetwork';
 import { mergeTokenListings } from '@/lib/hub/contentMerge';
 import { GRID_L1_MAINNET } from './grid-l1-canonical';
+import type { TokenListingNetwork } from './listingNetwork';
+
+function resolveSeedListingNetwork(token: Token): TokenListingNetwork {
+  const primary = token.networks?.find((entry) => entry.primary) ?? token.networks?.[0];
+  if (primary?.network === 'krc20') return 'krc20';
+  if (primary?.network === 'kcc20') return 'kcc20';
+  if (primary?.network === 'l2_igra') return 'l2_igra';
+  if (primary?.network === 'l2_kasplex') return 'l2_kasplex';
+  if (token.slug === 'grid' || token.symbol?.trim().toUpperCase() === 'GRID') return 'krc20';
+  return tokenNetworkToListingNetwork(token.network, token.contractAddress);
+}
 
 const STORAGE_KEY = 'tokens_published_listings';
 
@@ -150,9 +161,7 @@ export function createSeedClaimListing(
 
   const ownership: TokenOwnershipStatus = options?.ownership ?? 'deployer_verified';
   const deployerVerified = ownership === 'deployer_verified';
-  const listingNetwork =
-    token.networks?.[0]?.network ??
-    tokenNetworkToListingNetwork(token.network, token.contractAddress);
+  const listingNetwork = resolveSeedListingNetwork(token);
   const primaryAddress =
     token.networks?.[0]?.contractAddress ?? token.contractAddress;
   const pageConfig = applyPageSectionConfig(createDefaultPageConfig(), {

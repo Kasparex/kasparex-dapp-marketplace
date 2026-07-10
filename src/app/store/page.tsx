@@ -14,6 +14,7 @@ import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { bootstrapHubContent } from '@/lib/hub/contentSync';
 
 export type ProductViewMode = 'grid' | 'compact' | 'table';
 
@@ -31,6 +32,10 @@ export default function StorePage() {
   const categoryCounts = useMemo(() => getCategoryCounts(products), [products]);
 
   useEffect(() => {
+    void bootstrapHubContent(['tokens', 'store']);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       setIsLoading(true);
@@ -45,7 +50,9 @@ export default function StorePage() {
         if (!cancelled) setIsLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredAndSortedProducts = useMemo(() => {

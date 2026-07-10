@@ -55,8 +55,8 @@ import { toKasEq, formatKasEq, resolveTokenAmountFromKas } from '@/lib/pricing/r
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { mergePricingTickers } from '@/lib/pricing/collectTickers';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { useIntegratedToken } from '@/hooks/useIntegratedToken';
 import { buildIntegratedPaymentCurrencyIds } from '@/lib/payments/hubPaymentTypes';
-import { getIntegratedTokenForAuthor } from '@/lib/tokens/integratedTokens';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
 export type ArticleContentTab = 'article' | 'author' | 'author-posts' | 'modules' | 'comments';
@@ -153,10 +153,7 @@ export function ArticleDetail({
     [article.modules, article.author],
   );
 
-  const integratedTipToken = useMemo(
-    () => getIntegratedTokenForAuthor(article.author, 'vblog_tips'),
-    [article.author],
-  );
+  const integratedTipToken = useIntegratedToken(article.author, 'vblog_tips').token;
 
   const tipCurrencies = useMemo(() => {
     const set = new Set<string>(['KAS', 'KREX']);

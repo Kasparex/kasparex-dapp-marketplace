@@ -43,7 +43,14 @@ function walletMatchesListing(wallet: string, listing: PublishedTokenListing): b
 }
 
 function listingHasUtilityModule(listing: PublishedTokenListing): boolean {
-  return (listing.paidModuleIds ?? []).includes('utility_integrations');
+  if ((listing.paidModuleIds ?? []).includes('utility_integrations')) return true;
+  if (
+    listing.ownership === 'deployer_verified' &&
+    (listing.modulesConfig?.utilityProducts ?? []).length > 0
+  ) {
+    return true;
+  }
+  return false;
 }
 
 function listingHasProduct(listing: PublishedTokenListing, productId: HubUtilityProductId): boolean {
@@ -61,14 +68,15 @@ export function resolveListingTicker(listing: PublishedTokenListing): string | n
 }
 
 function isEligibleKrc20Listing(listing: PublishedTokenListing): boolean {
-  return (
-    listing.assetKind === 'real' &&
-    listing.listingNetwork === 'krc20' &&
-    Boolean(resolveListingTicker(listing))
-  );
+  if (listing.assetKind !== 'real' || !resolveListingTicker(listing)) return false;
+  if (listing.listingNetwork === 'krc20') return true;
+  if (listing.networks?.some((entry) => entry.network === 'krc20')) return true;
+  // Legacy seed claims (e.g. GRID) used kaspa_l1 before krc20 was set explicitly.
+  if (listing.listingNetwork === 'kaspa_l1') return true;
+  return false;
 }
 
-function toIntegratedToken(listing: PublishedTokenListing): IntegratedToken | null {
+export function integratedTokenFromListing(listing: PublishedTokenListing): IntegratedToken | null {
   const tick = resolveListingTicker(listing);
   if (!tick) return null;
   return {
@@ -80,19 +88,24 @@ function toIntegratedToken(listing: PublishedTokenListing): IntegratedToken | nu
   };
 }
 
+function toIntegratedToken(listing: PublishedTokenListing): IntegratedToken | null {
+  return integratedTokenFromListing(listing);
+}
+
 export function isHubProductWired(productId: HubUtilityProductId): boolean {
   return WIRED_HUB_UTILITY_PRODUCTS.includes(productId);
 }
 
-export function findIntegratedListingForWallet(
+export function findIntegratedListingInList(
   wallet: string | null | undefined,
   productId: HubUtilityProductId,
+  listings: PublishedTokenListing[],
   options?: { requireVerified?: boolean },
 ): PublishedTokenListing | null {
   if (!wallet) return null;
   const requireVerified = options?.requireVerified ?? true;
 
-  for (const listing of getAllPublishedListings()) {
+  for (const listing of listings) {
     if (!isEligibleKrc20Listing(listing)) continue;
     if (!walletMatchesListing(wallet, listing)) continue;
     if (!listingHasUtilityModule(listing)) continue;
@@ -101,6 +114,14 @@ export function findIntegratedListingForWallet(
     return listing;
   }
   return null;
+}
+
+export function findIntegratedListingForWallet(
+  wallet: string | null | undefined,
+  productId: HubUtilityProductId,
+  options?: { requireVerified?: boolean },
+): PublishedTokenListing | null {
+  return findIntegratedListingInList(wallet, productId, getAllPublishedListings(), options);
 }
 
 export function getIntegratedTokenForWallet(

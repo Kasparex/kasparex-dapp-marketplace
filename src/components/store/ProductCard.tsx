@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/store/types';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
@@ -9,9 +10,13 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
+import { useIntegratedToken } from '@/hooks/useIntegratedToken';
+import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
-import { getProductPaymentCurrency, getProductPriceOptions } from '@/lib/store/currencies';
+import { getProductPaymentCurrency } from '@/lib/store/currencies';
+import { buildStoreCheckoutPriceOptions } from '@/lib/store/checkoutPriceOptions';
+import { mergePricingTickers } from '@/lib/pricing/collectTickers';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface ProductCardProps {
@@ -24,10 +29,19 @@ export function ProductCard({ product }: ProductCardProps) {
   const gateConfig = storeProductGateConfig(product);
   const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
   const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
+  const { token: sellerIntegratedToken } = useIntegratedToken(product.sellerAddress, 'store');
 
   const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : undefined;
   const listedCurrency = getProductPaymentCurrency(product);
-  const priceOptions = getProductPriceOptions(product);
+  const pricingTickers = useMemo(
+    () => mergePricingTickers([listedCurrency, 'KREX', sellerIntegratedToken?.tick ?? '']),
+    [listedCurrency, sellerIntegratedToken?.tick],
+  );
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
+  const priceOptions = useMemo(
+    () => buildStoreCheckoutPriceOptions(product, sellerIntegratedToken, pricingSnapshot),
+    [product, sellerIntegratedToken, pricingSnapshot],
+  );
 
   const goToProduct = () => {
     router.push(`/store/${product.slug}`);
@@ -59,7 +73,7 @@ export function ProductCard({ product }: ProductCardProps) {
             promptGate();
             return;
           }
-          const ok = await purchase(quantity, currency as GameItemCurrency);
+          const ok = await purchase(quantity, currency as GameItemCurrency, pricingSnapshot);
           if (ok) {
             router.push(`/store/${product.slug}`);
           }
