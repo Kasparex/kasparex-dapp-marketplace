@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { StoreSellerTab } from '@/lib/store/sellerTabs';
 import { storeSellerTabHref } from '@/lib/store/sellerTabs';
 import type { ProductCategory, Product } from '@/lib/store/types';
@@ -240,36 +239,10 @@ export function StoreSidebar({
         </SidebarSection>
       )}
 
-      {isProduct && currentProduct && (
-        <SidebarSection title="Product Details">
-          <div className="px-3 py-2">
-            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4">{currentProduct.title}</h4>
-            <div className="space-y-4">
-              <div>
-                <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Price</div>
-                <div className="text-lg font-black text-cyan-600 dark:text-cyan-400">
-                  {currentProduct.priceKAS} {getProductPaymentCurrency(currentProduct)}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Category</div>
-                <div className="inline-flex items-center gap-2 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-xs font-bold">
-                  <StoreCategoryIcon id={currentProduct.category} />
-                  {currentProduct.category}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1">Network</div>
-                <div className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${currentProduct.network === 'L1' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'}`}>
-                  {currentProduct.network} Network
-                </div>
-              </div>
-            </div>
-            <Link href="/store/dashboard" className="mt-4 inline-block text-xs font-bold text-[#02abb8] hover:underline">
-              Seller dashboard
-            </Link>
-          </div>
-        </SidebarSection>
+      {isProduct && (
+        <Suspense fallback={<StoreListingQuickLinksFallback />}>
+          <StoreListingQuickLinks />
+        </Suspense>
       )}
 
       {isProduct && currentProduct && (

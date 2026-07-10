@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
+import { StoreBuyerBenefitsPanel } from '@/components/store/StoreBuyerBenefitsPanel';
 import { StoreProductPremiumPanel } from '@/components/store/StoreProductPremiumPanel';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { getProductBySlug } from '@/lib/store/products';
@@ -166,6 +167,7 @@ export default function ProductPage({ params }: PageProps) {
                 }
               }}
             />
+            <StoreBuyerBenefitsPanel />
             <StoreProductPremiumPanel product={product} hasAccess={hasAccess} />
           </div>
         </div>

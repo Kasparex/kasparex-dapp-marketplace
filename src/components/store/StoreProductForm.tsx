@@ -16,6 +16,7 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { contentForRichEditor } from '@/lib/richText/html';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm, extractCidFromIpfsUrl } from '@/lib/hub/ipfsStandard';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
@@ -31,8 +32,9 @@ import {
   buildSellerListingCurrencyOptions,
   toHubPaymentMenuOptions,
 } from '@/lib/payments/hubPaymentTypes';
-import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
-import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { StoreSellerBenefitsPanel } from '@/components/store/StoreSellerBenefitsPanel';
+import { StoreListingCalculationPanel } from '@/components/store/StoreListingCalculationPanel';
+import { estimateStoreListingQuote } from '@/lib/store/listingQuote';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -55,7 +57,8 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const isEdit = Boolean(product);
   const router = useRouter();
   const { state } = useKaspaWallet();
-  const { balance: krexBalance } = useKREXBalance();
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const { nftStatus } = useNFTStatus();
   const { upload, isUploading } = useIPFSUpload();
 
   const [formData, setFormData] = useState({
@@ -76,7 +79,6 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
-  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const [showPurchaseCount, setShowPurchaseCount] = useState(true);
   const [publicListing, setPublicListing] = useState(true);
   const [enableBuyerComments, setEnableBuyerComments] = useState(false);
@@ -107,6 +109,17 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
   const actionFee = isEdit ? SELLER_ACTION_FEE_KAS : LISTING_FEE_KAS;
 
+  const listingQuote = useMemo(
+    () =>
+      estimateStoreListingQuote({
+        baseFeeKas: actionFee,
+        enabledModules,
+        krexTier: tier,
+        nftStatus,
+      }),
+    [actionFee, enabledModules, tier, nftStatus],
+  );
+
   const resolvedThumbnailCid = useMemo(
     () => thumbnailCid ?? extractCidFromIpfsUrl(thumbnailUrl.trim()) ?? null,
     [thumbnailCid, thumbnailUrl],
@@ -129,7 +142,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
     if (!state.provider) throw new Error('Wallet not connected');
     const result = await sendKaspaTransaction(state.provider, {
       to: TREASURY,
-      amount: kasToSompis(actionFee).toString(),
+      amount: kasToSompis(listingQuote.totalKas).toString(),
     });
     if (result.status === 'failed') throw new Error(result.error || 'Payment failed');
     return result.txHash;
@@ -306,6 +319,46 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
               required
               disabled={isProcessing}
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <KxFormFieldLabel>
+                Price <span className="text-red-500">*</span>
+              </KxFormFieldLabel>
+              <input
+                type="number"
+                step="0.0001"
+                min="0"
+                className="k-input"
+                value={formData.priceKAS}
+                onChange={(e) => setFormData({ ...formData, priceKAS: e.target.value })}
+                placeholder="0.0000"
+                required
+                disabled={isProcessing}
+              />
+            </div>
+            <div>
+              <KxFormFieldLabel>Listed payment currency</KxFormFieldLabel>
+              <HubPaymentCurrencyDropdown
+                value={formData.paymentCurrency}
+                onChange={(paymentCurrency) =>
+                  setFormData({ ...formData, paymentCurrency: paymentCurrency as StorePaymentCurrency })
+                }
+                options={paymentCurrencyOptions}
+                ariaLabel="Listed payment currency"
+              />
+              {formData.paymentCurrency !== 'KAS' && formData.priceKAS && pricingSnapshot ? (
+                <p className="text-xs text-zinc-500 mt-2">
+                  {(() => {
+                    const amount = parseFloat(formData.priceKAS);
+                    if (!Number.isFinite(amount) || amount <= 0) return null;
+                    const kasEq = toKasEq(amount, formData.paymentCurrency, pricingSnapshot);
+                    return kasEq != null ? `Listed value: ${formatKasEq(kasEq)}` : null;
+                  })()}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div>
@@ -487,84 +540,31 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       </div>
 
       <div className="flex flex-col gap-4 xl:sticky xl:top-6">
-        <HubBenefitsPanel hideBuyButton />
+        <StoreSellerBenefitsPanel />
 
-        <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
-          <DAppSectionHeader title="Listing & pricing" className="mb-1" />
-
-          <div>
-            <KxFormFieldLabel>
-              Price <span className="text-red-500">*</span>
-            </KxFormFieldLabel>
-            <input
-              type="number"
-              step="0.0001"
-              min="0"
-              className="k-input mb-3"
-              value={formData.priceKAS}
-              onChange={(e) => setFormData({ ...formData, priceKAS: e.target.value })}
-              placeholder="0.0000"
-              required
-              disabled={isProcessing}
-            />
-            <KxFormFieldLabel>Listed payment currency</KxFormFieldLabel>
-            <HubPaymentCurrencyDropdown
-              value={formData.paymentCurrency}
-              onChange={(paymentCurrency) =>
-                setFormData({ ...formData, paymentCurrency: paymentCurrency as StorePaymentCurrency })
-              }
-              options={paymentCurrencyOptions}
-              ariaLabel="Listed payment currency"
-            />
-            {formData.paymentCurrency !== 'KAS' && formData.priceKAS && pricingSnapshot ? (
-              <p className="text-xs text-zinc-500 mt-2">
-                {(() => {
-                  const amount = parseFloat(formData.priceKAS);
-                  if (!Number.isFinite(amount) || amount <= 0) return null;
-                  const kasEq = toKasEq(amount, formData.paymentCurrency, pricingSnapshot);
-                  return kasEq != null ? `Listed value: ${formatKasEq(kasEq)}` : null;
-                })()}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">
-              {isEdit ? 'Update fee' : 'Listing fee'}
-            </p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-              {actionFee} KAS
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-[#02abb8]/10 border border-[#02abb8]/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-            Listing fees are paid in KAS to the Store treasury. Buyers can pay in KAS or any verified
-            token you have enabled under Kasparex Tokens utility.
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsKrexWizardOpen(true)}
-            className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
-          >
-            Buy KREX for tier perks
-          </button>
-
-          <button
-            type="submit"
-            disabled={!canSubmit || isProcessing || isUploading || !resolvedThumbnailCid}
-            className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isUploading
-              ? 'Uploading...'
-              : isProcessing
-                ? 'Processing...'
-                : isEdit
-                  ? `Save changes (${actionFee} KAS fee)`
-                  : `Publish (${actionFee} KAS fee)`}
-          </button>
-        </aside>
-        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
+        <StoreListingCalculationPanel
+          quote={listingQuote}
+          isEdit={isEdit}
+          tier={tier}
+          krexBalance={krexBalance}
+          footer={
+            <>
+              <button
+                type="submit"
+                disabled={!canSubmit || isProcessing || isUploading || !resolvedThumbnailCid}
+                className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading
+                  ? 'Uploading...'
+                  : isProcessing
+                    ? 'Processing...'
+                    : isEdit
+                      ? `Save changes (${listingQuote.totalKas} KAS fee)`
+                      : `Publish (${listingQuote.totalKas} KAS fee)`}
+              </button>
+            </>
+          }
+        />
       </div>
     </form>
   );

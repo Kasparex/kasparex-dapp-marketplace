@@ -60,7 +60,7 @@ export function formatTokenAmount(amount: number, currency: string): string {
   const formatted = amount.toLocaleString(undefined, { maximumFractionDigits: maxFrac });
   if (cur === 'KREX') return `${formatted} KREX`;
   if (cur === 'KAS') return `${formatted} KAS`;
-  return `${formatted} $${cur}`;
+  return `${formatted} ${cur}`;
 }
 
 /** Resolve token amount to pay for a KAS-denominated hub price. */
@@ -108,7 +108,7 @@ export function formatTokenWithKasEq(
   const native =
     isBuiltinStoreCurrency(cur) || cur === 'KAS'
       ? `${amount.toLocaleString(undefined, { maximumFractionDigits: cur === 'KREX' ? 2 : 8 })} ${cur}`
-      : `${amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} $${cur}`;
+      : `${amount.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${cur}`;
 
   if (cur === 'KAS') return native;
 
