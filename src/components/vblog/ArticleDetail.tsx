@@ -51,10 +51,11 @@ import { HubPointsEarnRow } from '@/components/hub/HubPointsEarnBadge';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { krexToKasAmount, isBuiltinStoreCurrency } from '@/lib/store/currencies';
-import { toKasEq, formatKasEq } from '@/lib/pricing/registry';
+import { toKasEq, formatKasEq, resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { mergePricingTickers } from '@/lib/pricing/collectTickers';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
+import { buildIntegratedPaymentCurrencyIds } from '@/lib/payments/hubPaymentTypes';
 import { getIntegratedTokenForAuthor } from '@/lib/tokens/integratedTokens';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
@@ -166,7 +167,19 @@ export function ArticleDetail({
     return Array.from(set);
   }, [article.modules?.tipBox?.currencies, integratedTipToken]);
 
-  const { snapshot: pricingSnapshot } = usePricingSnapshot(mergePricingTickers(tipCurrencies));
+  const premiumCurrencies = useMemo(
+    () => buildIntegratedPaymentCurrencyIds(integratedTipToken),
+    [integratedTipToken],
+  );
+
+  const [premiumCurrency, setPremiumCurrency] = useState('KAS');
+
+  const { snapshot: pricingSnapshot } = usePricingSnapshot(
+    mergePricingTickers([...tipCurrencies, ...premiumCurrencies, premiumCurrency]),
+  );
+
+  const integratedTokenDecimals = (currency: string) =>
+    integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8;
 
   const creditReaderEarn = (
     source: EarnSource,
@@ -294,7 +307,7 @@ export function ArticleDetail({
           tick: currency,
           amount: portion,
           to: split.address,
-          decimals: integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8,
+          decimals: integratedTokenDecimals(currency),
         });
         authorTxHashes.push(hash);
       }
@@ -305,7 +318,7 @@ export function ArticleDetail({
           tick: currency,
           amount: platformToken,
           to: getVBlogTreasuryL1Address(),
-          decimals: integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8,
+          decimals: integratedTokenDecimals(currency),
         });
       }
       return { authorTxHashes, platformTxHash, payment, payerAddress };
@@ -339,7 +352,11 @@ export function ArticleDetail({
     try {
       setActionError(null);
       setIsProcessingAction(true);
-      const txs = await performSplitPayment('premium_unlock', premiumListKas);
+      const payAmount =
+        premiumCurrency === 'KAS'
+          ? premiumListKas
+          : resolveTokenAmountFromKas(premiumListKas, premiumCurrency, pricingSnapshot);
+      const txs = await performSplitPayment('premium_unlock', payAmount, premiumCurrency);
       const walletKey = txs.payerAddress;
       saveReaderEntitlement({
         wallet: walletKey,
@@ -609,6 +626,10 @@ export function ArticleDetail({
                         isProcessing={isProcessingAction}
                         isWalletConnected={kaspaState.isConnected}
                         payoutSplits={premiumPayoutSplits}
+                        paymentCurrencies={premiumCurrencies}
+                        selectedCurrency={premiumCurrency}
+                        onCurrencyChange={setPremiumCurrency}
+                        pricingSnapshot={pricingSnapshot}
                         onUnlock={() => {
                           if (!kaspaState.isConnected) {
                             setShowConnectWallet(true);

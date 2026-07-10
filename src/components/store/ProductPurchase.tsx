@@ -15,9 +15,10 @@ import {
   isBuiltinStoreCurrency,
   krexToKasAmount,
 } from '@/lib/store/currencies';
-import { buildKasKrexCurrencyOptions, buildKrc20CurrencyOption } from '@/lib/payments/hubPaymentTypes';
+import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import {
   formatKasEq,
@@ -47,19 +48,21 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
 
   const listedCurrency = getProductPaymentCurrency(product);
   const priceOptions = getProductPriceOptions(product);
+  const sellerIntegratedToken = useMemo(
+    () => getIntegratedTokenForWallet(product.sellerAddress, 'store'),
+    [product.sellerAddress],
+  );
   const [currency, setCurrency] = useState<string>(listedCurrency);
   const pricingTickers = useMemo(
-    () => mergePricingTickers([listedCurrency, currency, 'KREX']),
-    [listedCurrency, currency],
+    () => mergePricingTickers([listedCurrency, currency, 'KREX', sellerIntegratedToken?.tick ?? '']),
+    [listedCurrency, currency, sellerIntegratedToken?.tick],
   );
   const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
 
-  const currencyOptions = useMemo(() => {
-    if (!isBuiltinStoreCurrency(listedCurrency)) {
-      return [buildKrc20CurrencyOption(listedCurrency)];
-    }
-    return buildKasKrexCurrencyOptions();
-  }, [listedCurrency]);
+  const currencyOptions = useMemo(
+    () => buildHubCheckoutCurrencyOptions({ listedCurrency, integratedToken: sellerIntegratedToken }),
+    [listedCurrency, sellerIntegratedToken],
+  );
 
   const selectedOption = currencyOptions.find((c) => c.id === currency) ?? currencyOptions[0];
 
@@ -70,6 +73,13 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
     }
     if (listed === 'KREX' && currency === 'KAS') {
       return toKasEq(product.priceKAS, 'KREX', pricingSnapshot) ?? krexToKasAmount(product.priceKAS);
+    }
+    if (!isBuiltinStoreCurrency(listed) && isBuiltinStoreCurrency(currency)) {
+      const nativeKas = toKasEq(product.priceKAS, listed, pricingSnapshot) ?? product.priceKAS;
+      if (currency === 'KREX') {
+        return resolveTokenAmountFromKas(nativeKas, 'KREX', pricingSnapshot);
+      }
+      return nativeKas;
     }
     return priceOptions.find((o) => o.currency === currency)?.unitPrice ?? product.priceKAS;
   }, [product, currency, priceOptions, pricingSnapshot]);

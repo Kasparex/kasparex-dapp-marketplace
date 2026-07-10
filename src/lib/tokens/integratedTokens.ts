@@ -50,20 +50,30 @@ function listingHasProduct(listing: PublishedTokenListing, productId: HubUtility
   return (listing.modulesConfig?.utilityProducts ?? []).includes(productId);
 }
 
+/** Resolve KRC-20 tick from snapshot or listing symbol (seed claims may lack snapshot). */
+export function resolveListingTicker(listing: PublishedTokenListing): string | null {
+  const fromSnapshot = listing.onChainSnapshot?.ticker?.trim().toUpperCase();
+  if (fromSnapshot) return fromSnapshot;
+  if (listing.assetKind === 'real' && listing.listingNetwork === 'krc20' && listing.symbol?.trim()) {
+    return listing.symbol.trim().toUpperCase();
+  }
+  return null;
+}
+
 function isEligibleKrc20Listing(listing: PublishedTokenListing): boolean {
   return (
     listing.assetKind === 'real' &&
     listing.listingNetwork === 'krc20' &&
-    Boolean(listing.onChainSnapshot?.ticker)
+    Boolean(resolveListingTicker(listing))
   );
 }
 
 function toIntegratedToken(listing: PublishedTokenListing): IntegratedToken | null {
-  const tick = listing.onChainSnapshot?.ticker?.toUpperCase();
+  const tick = resolveListingTicker(listing);
   if (!tick) return null;
   return {
     tick,
-    decimals: listing.onChainSnapshot?.decimals ?? 8,
+    decimals: listing.onChainSnapshot?.decimals ?? listing.decimals ?? 8,
     symbol: listing.symbol,
     listingSlug: listing.slug,
     listing,

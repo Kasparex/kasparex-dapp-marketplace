@@ -4,7 +4,8 @@
 
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { formatHubPaymentFromKas, formatTokenAmount } from '@/lib/pricing/registry';
-import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { isBuiltinStoreCurrency, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { IntegratedToken } from '@/lib/tokens/integratedTokens';
 
 export type HubPaymentCurrencyKind = 'kas' | 'krex' | 'krc20';
 
@@ -36,6 +37,30 @@ export function buildKrc20CurrencyOption(tick: string, decimals = 8): HubPayment
     tick: upper,
     decimals,
   };
+}
+
+export function buildHubCheckoutCurrencyOptions(opts: {
+  listedCurrency: string;
+  integratedToken?: IntegratedToken | null;
+}): HubPaymentCurrencyOption[] {
+  const listed = opts.listedCurrency.trim().toUpperCase();
+  if (!isBuiltinStoreCurrency(listed)) {
+    return [buildKrc20CurrencyOption(listed)];
+  }
+  const options = [...buildKasKrexCurrencyOptions()];
+  const integrated = opts.integratedToken;
+  if (integrated && !options.some((option) => option.id === integrated.tick)) {
+    options.push(buildKrc20CurrencyOption(integrated.tick, integrated.decimals));
+  }
+  return options;
+}
+
+export function buildIntegratedPaymentCurrencyIds(integratedToken?: IntegratedToken | null): string[] {
+  const currencies = ['KAS', 'KREX'];
+  if (integratedToken && !currencies.includes(integratedToken.tick)) {
+    currencies.push(integratedToken.tick);
+  }
+  return currencies;
 }
 
 export function formatHubPaymentAmount(

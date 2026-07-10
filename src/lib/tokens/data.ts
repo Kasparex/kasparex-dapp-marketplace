@@ -7,6 +7,7 @@ import { generateTokenSlug } from './publish';
 import { createDefaultPageConfig, applyPageSectionConfig } from './pageConfig';
 import { tokenNetworkToListingNetwork } from './listingNetwork';
 import { mergeTokenListings } from '@/lib/hub/contentMerge';
+import { GRID_L1_MAINNET } from './grid-l1-canonical';
 
 const STORAGE_KEY = 'tokens_published_listings';
 
@@ -199,6 +200,22 @@ export function createSeedClaimListing(
         }))
       : undefined,
   };
+
+  if (listingNetwork === 'krc20' && token.symbol?.trim()) {
+    const tickerKrc20 =
+      token.slug === 'grid' ? GRID_L1_MAINNET.tickerKrc20 : token.symbol.trim().toLowerCase();
+    listing.onChainSnapshot = {
+      source: 'krc20',
+      ticker: tickerKrc20,
+      decimals: token.decimals ?? 8,
+      deployer:
+        token.slug === 'grid'
+          ? GRID_L1_MAINNET.deployerKaspa.replace(/^kaspa:/i, '')
+          : undefined,
+      fetchedAt: now,
+    };
+  }
+
   listings.unshift(listing);
   saveListings(listings);
   return listing;

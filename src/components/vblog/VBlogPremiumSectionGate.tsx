@@ -4,7 +4,10 @@ import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
+import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { formatAddress } from '@/lib/vblog/utils';
+import { formatHubPaymentFromKas } from '@/lib/pricing';
+import type { PricingSnapshot } from '@/lib/pricing/types';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { ResolvedPayoutSplit } from '@/lib/vblog/paymentSplit';
 
@@ -22,6 +25,10 @@ type VBlogPremiumSectionGateProps = {
   isProcessing?: boolean;
   isWalletConnected?: boolean;
   payoutSplits?: ResolvedPayoutSplit[];
+  paymentCurrencies?: string[];
+  selectedCurrency?: string;
+  onCurrencyChange?: (currency: string) => void;
+  pricingSnapshot?: PricingSnapshot | null;
   onUnlock: () => void;
 };
 
@@ -69,6 +76,10 @@ export function VBlogPremiumSectionGate({
   isProcessing = false,
   isWalletConnected = true,
   payoutSplits = [],
+  paymentCurrencies = ['KAS'],
+  selectedCurrency = 'KAS',
+  onCurrencyChange,
+  pricingSnapshot = null,
   onUnlock,
 }: VBlogPremiumSectionGateProps) {
   if (unlocked) {
@@ -81,6 +92,13 @@ export function VBlogPremiumSectionGate({
   }
 
   const hasDiscount = discountPercent > 0 && effectivePriceKas < listPriceKas;
+  const payCurrency = selectedCurrency || 'KAS';
+  const listPriceLabel = formatHubPaymentFromKas(listPriceKas, payCurrency, pricingSnapshot, {
+    showKasSuffix: false,
+  });
+  const effectivePriceLabel = formatHubPaymentFromKas(effectivePriceKas, payCurrency, pricingSnapshot, {
+    showKasSuffix: payCurrency !== 'KAS',
+  });
 
   const triggerUnlock = () => {
     if (isProcessing) return;
@@ -102,7 +120,7 @@ export function VBlogPremiumSectionGate({
       <div
         role="button"
         tabIndex={isProcessing ? -1 : 0}
-        aria-label={`Unlock premium content for ${effectivePriceKas} KAS`}
+        aria-label={`Unlock premium content for ${effectivePriceLabel}`}
         aria-disabled={isProcessing}
         onClick={triggerUnlock}
         onKeyDown={(e) => {
@@ -119,12 +137,28 @@ export function VBlogPremiumSectionGate({
           Premium Content
         </p>
 
+        {paymentCurrencies.length > 1 && onCurrencyChange ? (
+          <div
+            className="shrink-0"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="presentation"
+          >
+            <KxSegmentToggle
+              value={payCurrency}
+              onChange={onCurrencyChange}
+              options={paymentCurrencies.map((currency) => ({ value: currency, label: currency }))}
+              ariaLabel="Premium unlock payment currency"
+            />
+          </div>
+        ) : null}
+
         <div className="space-y-1 shrink-0">
           {hasDiscount ? (
-            <p className="text-xs text-zinc-500 line-through tabular-nums">{listPriceKas} KAS</p>
+            <p className="text-xs text-zinc-500 line-through tabular-nums">{listPriceLabel}</p>
           ) : null}
           <p className="text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">
-            {effectivePriceKas} KAS
+            {effectivePriceLabel}
           </p>
           {hasDiscount ? (
             <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">

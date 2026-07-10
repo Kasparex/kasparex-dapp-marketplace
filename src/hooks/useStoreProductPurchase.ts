@@ -36,6 +36,13 @@ function resolvePayAmount(
     const unitKas = toKasEq(product.priceKAS, 'KREX', pricingSnapshot) ?? krexToKasAmount(product.priceKAS);
     return unitKas * qty;
   }
+  if (!isBuiltinStoreCurrency(listed) && isBuiltinStoreCurrency(payCurrency)) {
+    const nativeKas = toKasEq(product.priceKAS, listed, pricingSnapshot) ?? product.priceKAS;
+    if (payCurrency === 'KREX') {
+      return resolveTokenAmountFromKas(nativeKas, 'KREX', pricingSnapshot) * qty;
+    }
+    return nativeKas * qty;
+  }
   const option = getProductPriceOptions(product).find((o) => o.currency === payCurrency);
   return (option?.unitPrice ?? product.priceKAS) * qty;
 }

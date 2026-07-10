@@ -1,6 +1,7 @@
 'use client';
 
 import { getAllPublishedListings } from '@/lib/tokens/data';
+import { resolveListingTicker } from '@/lib/tokens/integratedTokens';
 import { tickersForCurrencies } from './registry';
 
 /** Collect KRC-20 tickers from published listings with utility integrations (client localStorage). */
@@ -10,7 +11,7 @@ export function collectIntegratedUtilityTickers(): string[] {
 
   for (const listing of listings) {
     if (listing.assetKind !== 'real' || listing.listingNetwork !== 'krc20') continue;
-    const tick = listing.onChainSnapshot?.ticker?.toUpperCase();
+    const tick = resolveListingTicker(listing);
     if (!tick) continue;
     const hasUtility = (listing.paidModuleIds ?? []).includes('utility_integrations');
     const hasProduct = (listing.modulesConfig?.utilityProducts ?? []).length > 0;
