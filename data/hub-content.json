@@ -1,18 +1,24 @@
 {
-  "updatedAt": "2026-07-09T18:26:36.187Z",
+  "updatedAt": "2026-07-10T10:02:30.843Z",
   "vblog": [],
   "tokens": [
     {
-      "author": "kaspa:qzeegrxt993rkwkupx0u8yd8sz94atpeg4e7x8yrjav8x7wgulxszc8svhenj",
-      "symbol": "KREX",
-      "name": "KREX",
-      "description": "<p>test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test test </p>",
-      "shortDescription": "test test test test test test test test test test test test test test test test test test test test test test test test",
+      "author": "kaspa:qzdfxy68rdcwyukrpja0dcc4994p3w49tlermjdvkgnqej77ajhqw6pgxlwfp",
+      "symbol": "GRID",
+      "name": "GRID",
+      "description": "<p>GRID has a fixed supply of 10B on Kaspa L1. L2 deployments are operational layers used for rewards and utility across Kasparex dApps. GRID is earned through Proof-of-Utility by actively using dApps, tools, services, and can be used for perks, upgrades, and reward programs.</p>",
+      "shortDescription": "GRID is earned through Proof-of-Utility by actively using dApps, tools, services, and can be used for perks, upgrades, and reward programs.",
       "tags": [
-        "test"
+        "global",
+        "reward",
+        "token",
+        "kaspa",
+        "grid"
       ],
       "listingNetwork": "krc20",
       "network": "L1",
+      "logoUrl": "https://hub.kasparex.com/api/ipfs?path=bafkreib5wlxsxtddl6jbzbxyyvc3celvz6mty4lsno7pfymagi5scy7p6e",
+      "featuredImageUrl": "https://hub.kasparex.com/api/ipfs?path=bafkreieux74insivvwuk4stzsszrgwdou67et73qmjv7nd3salpo2yrzci",
       "pageConfig": {
         "version": 1,
         "defaultTab": "overview",
@@ -55,64 +61,152 @@
           }
         ]
       },
-      "paidModuleIds": [],
-      "modulesConfig": {
-        "markets": [
-          {
-            "name": "test test ",
-            "description": "<p>test test test test test test </p>",
-            "url": "https://test.com",
-            "venueType": "dex"
-          }
-        ]
-      },
+      "paidModuleIds": [
+        "roadmap_editor",
+        "timeline_builder",
+        "utility_integrations",
+        "premium_analytics",
+        "featured_listing",
+        "highlighted_profile",
+        "on_chain_poll"
+      ],
       "assetKind": "real",
-      "ownership": "none",
-      "deployerAddress": "kaspa:qzjlaf7h6pq2spewz8wfa6g2xwz29y0y6x57umyj6capdjvny9znur8j2lul8",
-      "maxSupply": 21000000000,
-      "totalSupply": 21000000000,
+      "ownership": "deployer_verified",
+      "deployerAddress": "kaspa:qzdfxy68rdcwyukrpja0dcc4994p3w49tlermjdvkgnqej77ajhqw6pgxlwfp",
+      "maxSupply": 10000000000,
+      "totalSupply": 10000000000,
       "decimals": 8,
       "onChainSnapshot": {
         "source": "krc20",
-        "ticker": "KREX",
-        "name": "KREX",
-        "maxSupply": "2100000000000000000",
-        "minted": "2100000000000000000",
+        "ticker": "GRID",
+        "name": "GRID",
+        "maxSupply": "1000000000000000000",
+        "minted": "1000000000000000000",
         "decimals": 8,
-        "deployer": "kaspa:qzjlaf7h6pq2spewz8wfa6g2xwz29y0y6x57umyj6capdjvny9znur8j2lul8",
-        "holderTotal": "2233",
-        "fetchedAt": "2026-07-09T18:24:29.715Z",
+        "deployer": "kaspa:qzdfxy68rdcwyukrpja0dcc4994p3w49tlermjdvkgnqej77ajhqw6pgxlwfp",
+        "holderTotal": "2",
+        "fetchedAt": "2026-07-03T23:27:46.820Z",
         "state": "finished",
-        "pre": "0"
+        "pre": "1000000000000000000"
       },
       "networks": [
         {
           "network": "krc20",
           "primary": true,
-          "verified": false
+          "verified": true
         }
       ],
       "listing": {
-        "verified": false,
-        "deployerVerified": false
+        "verified": true,
+        "deployerVerified": true
       },
-      "id": "tl-1783621595034-vcdsci",
-      "listingId": "ktl-1783621571880-olrtbs",
-      "slug": "krex-2",
-      "publishDate": "2026-07-09T18:26:35.034Z",
+      "id": "tl-1783121847309-yd00iy",
+      "listingId": "ktl-1783121834466-0he3pg",
+      "slug": "grid",
+      "publishDate": "2026-07-03T23:37:27.309Z",
       "status": "verified",
-      "txHash": "d861a26ff5b34a06af7b1e95c8e1f485a156a673a6d0d428de3e2287934133e8",
-      "commitTxHash": "d861a26ff5b34a06af7b1e95c8e1f485a156a673a6d0d428de3e2287934133e8",
-      "contentHash": "af4b1aac",
-      "metadataCid": "bafkreigsaderkph2ihdsxnxsmv3m2u7z34i74rnvj6ksbq6cdvilutap2q",
+      "txHash": "97cbe9dd9d8d06bcf84b064733f7c2d0e31899ee5dbd63cde696c9419cba97c5",
+      "commitTxHash": "97cbe9dd9d8d06bcf84b064733f7c2d0e31899ee5dbd63cde696c9419cba97c5",
+      "contentHash": "82c7f6cb",
+      "metadataCid": "bafkreigoetj74oxy7lmtisjikmqreik5hywcfufuft4jjkskrlvx7g3f44",
       "pricingSnapshot": {
-        "baseFeeKas": 25,
-        "sizeFeeKas": 4.22,
+        "baseFeeKas": 5,
+        "sizeFeeKas": 0,
         "modulesFeeKas": 0,
-        "networkFeeBufferKas": 0.11,
-        "totalKas": 5.87,
-        "payloadBytes": 1904,
-        "chunkCount": 11
+        "networkFeeBufferKas": 0.51,
+        "totalKas": 5.51,
+        "payloadBytes": 9030,
+        "chunkCount": 51
+      },
+      "ownershipProof": {
+        "method": "deployer_signature",
+        "walletAddress": "kaspa:qzdfxy68rdcwyukrpja0dcc4994p3w49tlermjdvkgnqej77ajhqw6pgxlwfp",
+        "signature": "725297deaf70dee6ff5c0dac7ec9ccc2ddddc91abe63ca2b2a1e073b66f89579c24980e9568b08db81a2a64a6e7f5549b57eb5ef2e3f94944bcc208f833b0898",
+        "verifiedAt": "2026-07-03T23:39:26.399Z"
+      },
+      "updatedAt": "2026-07-10T10:02:29.551Z",
+      "category": "Governance",
+      "modulesConfig": {
+        "roadmap": [
+          {
+            "date": "Phase 1 - Q2 2026",
+            "title": "Foundation & Deployment",
+            "description": "<p>Launch GRID as the official canonical ecosystem reward token of Kasparex with L1 foundation and L2 operational support.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Deploy canonical GRID on Kaspa KRC-20</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Set max supply to 10B GRID</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Premint 100% of supply</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Establish GRID as global reward token</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Prepare treasury structure for future distribution</li></ol>",
+            "status": "completed"
+          },
+          {
+            "date": "Phase 2 - Q2–Q3 2026",
+            "title": "L2 Onboarding & Network Integration",
+            "description": "<p>Integrate GRID with major Kaspa L2 environments to enable smart contract utility and cross-network reward distribution.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Onboard GRID to Kasplex L2</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Onboard GRID to Igra L2</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Enable L2 wallet support</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Connect reward tracking across networks</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Build unified multi-network GRID accounting</li></ol>",
+            "status": "in-progress"
+          },
+          {
+            "date": "Phase 3 - Q3 2026",
+            "title": "Reward Engine Launch",
+            "description": "<p>Launch the first version of the GRID reward engine powering ecosystem-wide reward distribution.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Activate reward calculator</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Launch dynamic reward multipliers</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Enable KREX tier boosts</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Enable NFT-based reward boosts</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Introduce seasonal reward bonuses</li></ol>",
+            "status": "upcoming"
+          },
+          {
+            "date": "Phase 4 - Q3–Q4 2026",
+            "title": "Dapp Reward Integration",
+            "description": "<p>Expand GRID utility across Kasparex dApps and core ecosystem tools.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward dApp activity with GRID</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward engagement actions</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward content creation</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward ecosystem participation</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Add cross-dApp reward tracking</li></ol>",
+            "status": "upcoming"
+          },
+          {
+            "date": "Phase 5 - Q4 2026",
+            "title": "Gaming Rewards & Quests",
+            "description": "<p>Bring GRID into games, quests, missions, and interactive engagement systems.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Launch GRID game rewards</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Daily quests and challenges</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Seasonal events</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Competitive leaderboards</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Special event bonuses</li></ol>",
+            "status": "upcoming"
+          },
+          {
+            "date": "Phase 6 - Q4 2026 - Q1 2027",
+            "title": "Node Rewards & Infrastructure Incentives",
+            "description": "<p>Reward infrastructure contributors and node operators supporting the ecosystem.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward GRID node operators</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Reward infrastructure contributors</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Incentivize uptime and reliability</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Create validator incentive programs</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Strengthen network activity</li></ol>",
+            "status": "upcoming"
+          },
+          {
+            "date": "Phase 7 - Q1 2027",
+            "title": "Utility & Token Sinks",
+            "description": "<p>Introduce powerful utility and token sink mechanisms to strengthen GRID demand and ecosystem sustainability.</p><h2>Goals</h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Premium dApp unlocks</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Feature access payments</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Boost activations</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>NFT upgrades</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Burn mechanics for perks</li></ol>",
+            "status": "upcoming"
+          }
+        ],
+        "utilityProducts": [
+          "vblog_tips",
+          "dapps_payments",
+          "store"
+        ],
+        "poll": {
+          "question": "What should we prioritize next?",
+          "options": [
+            "More utility",
+            "Marketing push",
+            "Exchange listings"
+          ],
+          "onChainEnabled": false
+        },
+        "markets": [
+          {
+            "name": "Coinex",
+            "description": "<p>Test description for Coinex centralized exchange. <strong>Test</strong> description for Coinex centralized exchange</p>",
+            "url": "https://www.coinex.com/en/exchange/krex-usdt",
+            "venueType": "cex"
+          },
+          {
+            "name": "Ascendex",
+            "description": "<p>Test description for Ascendex centralized exchange. </p>",
+            "url": "https://ascendex.com/en/cashtrade-spottrading/usdt/krex",
+            "venueType": "cex"
+          },
+          {
+            "name": "KaspaCom L1",
+            "description": "<p>Test description for KaspaCom L1 decentralized exchange. </p>",
+            "url": "https://www.kaspa.com/marketplace/token/KREX",
+            "venueType": "dex"
+          }
+        ],
+        "roadmapOutro": "<blockquote>GRID aims to become the core reward and utility token of the Kasparex ecosystem, connecting L1 and L2 networks, powering rewards, incentivizing participation, and enabling sustainable growth across dApps, games, content, and digital economies.</blockquote>",
+        "roadmapIntro": "<p>GRID aims to become the core reward and utility token of the Kasparex ecosystem, connecting L1 and L2 networks, powering rewards, incentivizing participation, and enabling sustainable growth across dApps, games, content, and digital economies.</p>"
       }
     }
   ],
