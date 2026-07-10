@@ -32,51 +32,100 @@ export function buildKrc20CurrencyOption(tick: string, decimals = 8): HubPayment
   const upper = tick.toUpperCase();
   return {
     id: upper,
-    label: `$${upper}`,
+    label: upper,
     kind: 'krc20',
     tick: upper,
     decimals,
   };
 }
 
+function dedupeIntegratedTokens(
+  integratedToken?: IntegratedToken | null,
+  integratedTokens?: IntegratedToken[],
+): IntegratedToken[] {
+  const seen = new Set<string>();
+  const out: IntegratedToken[] = [];
+  for (const token of [...(integratedTokens ?? []), ...(integratedToken ? [integratedToken] : [])]) {
+    if (!token?.tick) continue;
+    const tick = token.tick.toUpperCase();
+    if (seen.has(tick)) continue;
+    seen.add(tick);
+    out.push({ ...token, tick });
+  }
+  return out;
+}
+
+/** Seller listing form: KAS default, KREX, then verified integrated tokens. */
+export function buildSellerListingCurrencyOptions(
+  integratedTokens?: IntegratedToken[],
+): HubPaymentCurrencyOption[] {
+  const options = [...buildKasKrexCurrencyOptions()];
+  for (const token of integratedTokens ?? []) {
+    if (!options.some((option) => option.id === token.tick)) {
+      options.push(buildKrc20CurrencyOption(token.tick, token.decimals));
+    }
+  }
+  return options;
+}
+
+/**
+ * Buyer checkout: seller token(s) first, then KAS, then KREX.
+ * KAS remains the default selection in UI even when a token is listed first.
+ */
 export function buildHubCheckoutCurrencyOptions(opts: {
   listedCurrency: string;
   integratedToken?: IntegratedToken | null;
   integratedTokens?: IntegratedToken[];
 }): HubPaymentCurrencyOption[] {
   const listed = opts.listedCurrency.trim().toUpperCase();
-  if (!isBuiltinStoreCurrency(listed)) {
-    return [buildKrc20CurrencyOption(listed)];
+  const integratedList = dedupeIntegratedTokens(opts.integratedToken, opts.integratedTokens);
+
+  const ordered: HubPaymentCurrencyOption[] = [];
+  const pushUnique = (option: HubPaymentCurrencyOption) => {
+    if (!ordered.some((o) => o.id === option.id)) ordered.push(option);
+  };
+
+  for (const token of integratedList) {
+    pushUnique(buildKrc20CurrencyOption(token.tick, token.decimals));
   }
 
-  const options = [...buildKasKrexCurrencyOptions()];
-  const integratedList = [
-    ...(opts.integratedTokens ?? []),
-    ...(opts.integratedToken ? [opts.integratedToken] : []),
-  ];
-
-  for (const integrated of integratedList) {
-    if (!integrated?.tick) continue;
-    if (!options.some((option) => option.id === integrated.tick)) {
-      options.push(buildKrc20CurrencyOption(integrated.tick, integrated.decimals));
+  if (!isBuiltinStoreCurrency(listed)) {
+    const listedOpt = buildKrc20CurrencyOption(listed);
+    const existingIdx = ordered.findIndex((o) => o.id === listed);
+    if (existingIdx >= 0) {
+      const [item] = ordered.splice(existingIdx, 1);
+      ordered.unshift(item);
+    } else {
+      ordered.unshift(listedOpt);
     }
   }
 
-  return options;
+  for (const builtin of buildKasKrexCurrencyOptions()) {
+    pushUnique(builtin);
+  }
+
+  return ordered;
 }
 
+/** Tips / premium unlock: integrated token(s) first, then KAS, then KREX. */
 export function buildIntegratedPaymentCurrencyIds(
   integratedToken?: IntegratedToken | null,
   integratedTokens?: IntegratedToken[],
 ): string[] {
-  const currencies = ['KAS', 'KREX'];
-  const all = [...(integratedTokens ?? []), ...(integratedToken ? [integratedToken] : [])];
-  for (const token of all) {
-    if (token?.tick && !currencies.includes(token.tick)) {
-      currencies.push(token.tick);
-    }
+  const currencies: string[] = [];
+  const integratedList = dedupeIntegratedTokens(integratedToken, integratedTokens);
+  for (const token of integratedList) {
+    if (!currencies.includes(token.tick)) currencies.push(token.tick);
   }
+  if (!currencies.includes('KAS')) currencies.push('KAS');
+  if (!currencies.includes('KREX')) currencies.push('KREX');
   return currencies;
+}
+
+export function toHubPaymentMenuOptions(
+  options: HubPaymentCurrencyOption[],
+): Array<{ value: string; label: string }> {
+  return options.map((option) => ({ value: option.id, label: option.label }));
 }
 
 export function formatHubPaymentAmount(

@@ -54,6 +54,6 @@ export function buildStoreCheckoutPriceOptions(
   return hubOptions.map((option) => ({
     currency: option.id,
     unitPrice: resolveStoreUnitPrice(product, option.id, snapshot),
-    label: option.kind === 'krc20' ? `$${option.tick ?? option.id}` : option.label,
+    label: option.label,
   }));
 }

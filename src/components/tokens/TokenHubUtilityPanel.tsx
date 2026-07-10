@@ -80,7 +80,7 @@ export function TokenHubUtilityPanel({ token }: { token: Token }) {
               </div>
               <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{product.description}</p>
               {status === 'live' && tick ? (
-                <p className="mt-2 text-xs font-semibold text-[#02abb8]">Accepting ${tick}</p>
+                <p className="mt-2 text-xs font-semibold text-[#02abb8]">Accepting {tick}</p>
               ) : null}
               {meta.detail ? (
                 <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-400">{meta.detail}</p>

@@ -6,6 +6,8 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { categories, type Category } from '@/lib/categories';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -23,7 +25,7 @@ import {
   type DirectoryListing,
   type NetworkLayer,
 } from '@/lib/dapps/listingSubmissions';
-import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
@@ -805,10 +807,10 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case tracking-normal">
                 Pay with *
               </span>
-              <KxSegmentToggle
+              <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
                 ariaLabel="Listing fee currency"
               />
             </div>

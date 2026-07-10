@@ -15,6 +15,7 @@ import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
+import { htmlToPlainText } from '@/lib/richText/html';
 import { buildStoreCheckoutPriceOptions } from '@/lib/store/checkoutPriceOptions';
 import { mergePricingTickers } from '@/lib/pricing/registry';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -61,9 +62,9 @@ export function ProductCard({ product }: ProductCardProps) {
         titleAccessory={
           <KxBadge variant={product.network === 'L1' ? 'sky' : 'teal'}>{product.network}</KxBadge>
         }
-        description={<p className={KX_CARD_EXCERPT}>{product.description}</p>}
+        description={<p className={KX_CARD_EXCERPT}>{htmlToPlainText(product.description)}</p>}
         priceOptions={priceOptions}
-        defaultCurrency={listedCurrency}
+        defaultCurrency="KAS"
         quantitySelector={{ min: 1, max: 99 }}
         buyDisabled={isProcessing || !state.isConnected}
         buyLabel={isProcessing ? 'Processing...' : success ? 'Purchased!' : 'Buy'}

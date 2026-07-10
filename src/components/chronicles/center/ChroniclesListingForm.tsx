@@ -4,12 +4,14 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { calculateDirectoryListingFeeKas, listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
-import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import {
   CHRONICLES_CONTENT_KIND_LABELS,
   saveCommunitySubmission,
@@ -373,10 +375,10 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case tracking-normal">
                 Pay with *
               </span>
-              <KxSegmentToggle
+              <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
                 ariaLabel="Listing fee currency"
               />
             </div>

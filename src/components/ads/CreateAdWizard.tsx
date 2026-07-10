@@ -32,10 +32,11 @@ import { defaultFormatForSlot, validateUploadedImageFile } from '@/lib/ads/creat
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
-import { STORE_PAYMENT_CURRENCIES } from '@/lib/store/currencies';
 import {
   adsPriceKrexFromKas,
   transferKrexForAdsPayment,
@@ -883,10 +884,10 @@ export function CreateAdWizard({
                     ) : null}
                   </span>
                 </KxModalSectionTitle>
-                <KxSegmentToggle
+                <HubPaymentCurrencyDropdown
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
-                  options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                  options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
                   ariaLabel="Ad payment currency"
                 />
               </div>

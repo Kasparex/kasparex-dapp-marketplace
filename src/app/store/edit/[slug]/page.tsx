@@ -69,9 +69,7 @@ function EditProductInner({ params }: PageProps) {
       ) : !isOwner ? (
         <p className="text-center text-zinc-500 py-12">Only the seller can edit this listing.</p>
       ) : (
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
-          <StoreProductForm product={product} />
-        </div>
+        <StoreProductForm product={product} />
       )}
     </StorePageShell>
   );

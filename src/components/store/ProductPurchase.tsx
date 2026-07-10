@@ -11,7 +11,6 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import {
   getProductPaymentCurrency,
-  isBuiltinStoreCurrency,
 } from '@/lib/store/currencies';
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
@@ -46,7 +45,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
 
   const listedCurrency = getProductPaymentCurrency(product);
   const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
-  const [currency, setCurrency] = useState<string>(listedCurrency);
+  const [currency, setCurrency] = useState<string>('KAS');
   const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
   const pricingTickers = useMemo(
     () => mergePricingTickers([listedCurrency, currency, 'KREX', ...sellerIntegratedTokens.map((t) => t.tick)]),
@@ -122,7 +121,6 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           currencies={currencyOptions.length > 1 ? currencyOptions : undefined}
           selectedCurrencyId={currency}
           onCurrencyChange={setCurrency}
-          currencyToggleMode="menu"
           tier={krexTier}
           krexBalance={krexBalance}
           footer={

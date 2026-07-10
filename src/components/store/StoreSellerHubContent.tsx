@@ -22,14 +22,6 @@ import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectStoreMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
-const TAB_LABELS: Record<StoreSellerTab, string> = {
-  overview: 'Overview',
-  purchased: 'My Purchases',
-  products: 'My Products',
-  sales: 'Sales',
-  create: 'List Product',
-};
-
 export function StoreSellerHubContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -158,32 +150,25 @@ export function StoreSellerHubContent() {
       }}
     >
       <MobileDesktopOnlyGate title="Store Seller Hub" backHref="/store" backLabel="Back to Store">
-      <div className="mb-10">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Seller dashboard</p>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-          Store <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
-        </h1>
-        {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
+      <div className="mb-8">
+        <p className="mb-4 text-xs font-black uppercase tracking-widest text-[#02abb8]">
+          Seller dashboard
+        </p>
+        <div className="flex items-center gap-3 mb-2">
+          <span
+            className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)]"
+            aria-hidden="true"
+          />
+          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
+            Store <span className="text-[#02abb8]">Center</span>
+          </h1>
+        </div>
+        <p className="kx-body max-w-3xl">
+          List digital products, track sales, and manage your Store listings.
+        </p>
       </div>
 
       <StoreWalletBanner config={STORE_DASHBOARD_GATE} />
-
-      <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-8 flex-wrap">
-        {(Object.keys(TAB_LABELS) as StoreSellerTab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => goTab(tab)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              activeTab === tab
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-            }`}
-          >
-            {TAB_LABELS[tab]}
-          </button>
-        ))}
-      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
@@ -192,13 +177,11 @@ export function StoreSellerHubContent() {
       )}
 
       {activeTab === 'create' ? (
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
-          {state.isConnected ? (
-            <StoreProductForm />
-          ) : (
-            <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a product.</p>
-          )}
-        </div>
+        state.isConnected ? (
+          <StoreProductForm />
+        ) : (
+          <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a product.</p>
+        )
       ) : !state.isConnected ? (
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-12 text-center">
           <p className="text-zinc-600 dark:text-zinc-400">Connect your Kaspa wallet to view seller stats and manage products.</p>

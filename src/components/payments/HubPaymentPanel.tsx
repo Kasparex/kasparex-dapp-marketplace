@@ -2,8 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
-import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
@@ -17,7 +16,6 @@ export function HubPaymentPanel({
   currencies,
   selectedCurrencyId,
   onCurrencyChange,
-  currencyToggleMode = 'segment',
   discountNote,
   infoText,
   tier,
@@ -32,7 +30,6 @@ export function HubPaymentPanel({
   currencies?: HubPaymentCurrencyOption[];
   selectedCurrencyId?: string;
   onCurrencyChange?: (id: string) => void;
-  currencyToggleMode?: 'segment' | 'menu';
   discountNote?: string;
   infoText?: string;
   tier?: KREXTier;
@@ -64,21 +61,12 @@ export function HubPaymentPanel({
       {showCurrency ? (
         <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
           <p className="mb-2 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
-          {currencyToggleMode === 'menu' ? (
-            <GameCurrencyMenu
-              value={selectedCurrencyId}
-              onChange={onCurrencyChange}
-              options={currencies.map((c) => ({ value: c.id, label: c.label }))}
-              ariaLabel="Payment currency"
-            />
-          ) : (
-            <KxSegmentToggle
-              value={selectedCurrencyId}
-              onChange={onCurrencyChange}
-              options={currencies.map((c) => ({ value: c.id, label: c.label }))}
-              ariaLabel="Payment currency"
-            />
-          )}
+          <HubPaymentCurrencyDropdown
+            value={selectedCurrencyId}
+            onChange={onCurrencyChange}
+            options={currencies.map((c) => ({ value: c.id, label: c.label }))}
+            ariaLabel="Payment currency"
+          />
         </div>
       ) : null}
 

@@ -4,7 +4,7 @@ import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
-import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { formatAddress } from '@/lib/vblog/utils';
 import { formatHubPaymentFromKas } from '@/lib/pricing';
 import type { PricingSnapshot } from '@/lib/pricing/types';
@@ -144,7 +144,7 @@ export function VBlogPremiumSectionGate({
             onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
           >
-            <KxSegmentToggle
+            <HubPaymentCurrencyDropdown
               value={payCurrency}
               onChange={onCurrencyChange}
               options={paymentCurrencies.map((currency) => ({ value: currency, label: currency }))}

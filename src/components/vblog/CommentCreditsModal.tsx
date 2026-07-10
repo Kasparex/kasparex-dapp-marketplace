@@ -8,9 +8,11 @@ import { useAccount } from 'wagmi';
 import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { formatHubPaymentFromKas } from '@/lib/pricing';
-import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { KxModalHeader, KxModalSectionTitle, KxPaymentSummary } from '@/components/payments/KxPaymentUi';
 import { MobileWalletUnavailableNotice } from '@/components/hub/MobileWalletUnavailableNotice';
 
@@ -231,10 +233,10 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
 
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-3">
                 <KxModalSectionTitle className="mb-2">Pay with</KxModalSectionTitle>
-                <KxSegmentToggle
+                <HubPaymentCurrencyDropdown
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
-                  options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                  options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
                   ariaLabel="Comment credits payment currency"
                 />
               </div>

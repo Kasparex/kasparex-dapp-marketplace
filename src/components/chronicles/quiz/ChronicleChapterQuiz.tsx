@@ -7,9 +7,11 @@ import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { calculateDirectoryListingFeeKas, listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxAlert } from '@/components/ui/KxAlert';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { CHRONICLES_PANEL } from '@/lib/chronicles/typography';
 import { KxCategoryKicker } from '@/components/ui/KxCategoryKicker';
 import { refreshServerHubBalance } from '@/lib/rewards/serverHubBalanceCoordinator';
@@ -198,10 +200,10 @@ export function ChronicleChapterQuiz({
             <DAppSectionHeader title="Entry fee" className="mb-0" />
             <div>
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block">Pay with *</span>
-              <KxSegmentToggle
+              <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={STORE_PAYMENT_CURRENCIES.map((cur) => ({ value: cur, label: cur }))}
+                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
                 ariaLabel="Quiz entry currency"
               />
             </div>
