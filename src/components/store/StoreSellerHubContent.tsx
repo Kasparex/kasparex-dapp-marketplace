@@ -10,6 +10,7 @@ import { StorePurchasedGrid } from '@/components/store/StorePurchasedGrid';
 import { StoreSellerProductList } from '@/components/store/StoreSellerProductList';
 import { StoreWalletBanner } from '@/components/store/StoreWalletBanner';
 import { StoreProductForm } from '@/components/store/StoreProductForm';
+import { StoreSellerPricing } from '@/components/store/StoreSellerPricing';
 import { parseStoreSellerTab, storeSellerTabHref, type StoreSellerTab } from '@/lib/store/sellerTabs';
 import type { Product, Purchase } from '@/lib/store/types';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
@@ -185,9 +186,14 @@ export function StoreSellerHubContent() {
 
         <div className="min-h-[400px]">
           {activeTab === 'create' ? (
-            <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-8">
               {state.isConnected ? (
-                <StoreProductForm />
+                <>
+                  <div id="store-dashboard-pricing" className="scroll-mt-24">
+                    <StoreSellerPricing />
+                  </div>
+                  <StoreProductForm />
+                </>
               ) : (
                 <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a product.</p>
               )}

@@ -13,6 +13,12 @@ export type GameCurrencyMenuOption = {
   rowTooltip?: ReactNode;
 };
 
+const ACCENT_SELECTED_CLASS = {
+  default:
+    'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
+  store: 'bg-[#02abb8]/10 font-medium text-[#02abb8] dark:bg-[#02abb8]/20 dark:text-[#66dfe8]',
+} as const;
+
 /**
  * Stylized currency picker; menu is portaled to `document.body` with fixed positioning so it is not clipped by
  * parent `overflow-hidden` (e.g. {@link KxListingCard}).
@@ -25,6 +31,7 @@ export function GameCurrencyMenu(props: {
   align?: 'left' | 'right';
   className?: string;
   buttonClassName?: string;
+  accent?: keyof typeof ACCENT_SELECTED_CLASS;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -32,6 +39,8 @@ export function GameCurrencyMenu(props: {
   const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const domId = useId();
   const listboxId = `${domId}-listbox`;
+  const accent = props.accent ?? 'default';
+  const selectedRowClass = ACCENT_SELECTED_CLASS[accent];
 
   const updateMenuPosition = () => {
     const el = buttonRef.current;
@@ -105,7 +114,7 @@ export function GameCurrencyMenu(props: {
                   }}
                   className={`w-full px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                     o.value === props.value
-                      ? 'bg-emerald-500/10 font-medium text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                      ? selectedRowClass
                       : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
                   }`}
                 >

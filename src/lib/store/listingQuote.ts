@@ -2,6 +2,11 @@ import { calculateDirectoryListingFeeKas } from '@/lib/dapps/listingSubmissions'
 import type { KREXTier, NFTStatus } from '@/lib/rewards/types';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 
+export const STORE_LISTING_FEE_KAS = 50;
+export const STORE_UPDATE_FEE_KAS = 1;
+/** @deprecated Use STORE_UPDATE_FEE_KAS */
+export const SELLER_ACTION_FEE_KAS = STORE_UPDATE_FEE_KAS;
+
 export type StoreListingModuleLine = {
   id: StoreModuleId;
   title: string;

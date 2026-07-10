@@ -13,15 +13,17 @@ import { CommentCreditsModal } from '@/components/vblog/CommentCreditsModal';
 import { CommentsInfoModal } from '@/components/vblog/CommentsInfoModal';
 import { Alert } from '@/components/Alert';
 import { Avatar } from '@/components/Avatar';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 
 interface StoreCommentsSectionProps {
     productId: string;
+    showSectionHeader?: boolean;
 }
 
 const COMMENTS_PER_PAGE = 5;
 const COMMENTS_LOAD_MORE = 10;
 
-export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
+export function StoreCommentsSection({ productId, showSectionHeader = false }: StoreCommentsSectionProps) {
     const { state: kaspaState } = useKaspaWallet();
     const { address: evmAddress, isConnected: isEVMConnected } = useAccount();
     const { comments: allComments, isLoading: commentsLoading, addComment, deleteComment } = useStoreComments(productId);
@@ -150,12 +152,15 @@ export function StoreCommentsSection({ productId }: StoreCommentsSectionProps) {
                 onClose={() => setShowInfoModal(false)}
             />
 
-            <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-                {/* Header with Collapse and Info */}
+            <div className={showSectionHeader ? 'space-y-6' : 'mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800'}>
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                        On-Chain Comments ({commentsCount})
-                    </h2>
+                    {showSectionHeader ? (
+                        <DAppSectionHeader title="Comments" className="!mb-0" />
+                    ) : (
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                            On-Chain Comments ({commentsCount})
+                        </h2>
+                    )}
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowInfoModal(true)}

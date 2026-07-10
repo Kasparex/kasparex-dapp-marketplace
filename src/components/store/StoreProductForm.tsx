@@ -27,7 +27,7 @@ import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
-import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { StorePaymentCurrencyDropdown } from '@/components/payments/StorePaymentCurrencyDropdown';
 import {
   buildSellerListingCurrencyOptions,
   toHubPaymentMenuOptions,
@@ -39,8 +39,7 @@ import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 
-const LISTING_FEE_KAS = 50;
-export const SELLER_ACTION_FEE_KAS = 1;
+import { STORE_LISTING_FEE_KAS, STORE_UPDATE_FEE_KAS } from '@/lib/store/listingQuote';
 const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
 const FORM_PANEL_CLASS =
@@ -107,7 +106,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
 
   const categories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templates', 'Other'];
-  const actionFee = isEdit ? SELLER_ACTION_FEE_KAS : LISTING_FEE_KAS;
+  const actionFee = isEdit ? STORE_UPDATE_FEE_KAS : STORE_LISTING_FEE_KAS;
 
   const listingQuote = useMemo(
     () =>
@@ -302,7 +301,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             <p className="kx-body">
               {isEdit
                 ? `Update your listing. A ${actionFee} KAS fee applies when you save changes.`
-                : `Add product details buyers see on the Store. Listing fee: ${LISTING_FEE_KAS} KAS.`}
+                : `Add product details buyers see on the Store. Listing fee: ${STORE_LISTING_FEE_KAS} KAS.`}
             </p>
           </div>
 
@@ -340,7 +339,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             </div>
             <div>
               <KxFormFieldLabel>Listed payment currency</KxFormFieldLabel>
-              <HubPaymentCurrencyDropdown
+              <StorePaymentCurrencyDropdown
                 value={formData.paymentCurrency}
                 onChange={(paymentCurrency) =>
                   setFormData({ ...formData, paymentCurrency: paymentCurrency as StorePaymentCurrency })

@@ -16,6 +16,8 @@ export function HubPaymentCurrencyDropdown<T extends string = string>({
   ariaLabel = 'Payment currency',
   className,
   align,
+  accent = 'default',
+  buttonClassName,
 }: {
   value: T;
   onChange: (next: T) => void;
@@ -23,6 +25,8 @@ export function HubPaymentCurrencyDropdown<T extends string = string>({
   ariaLabel?: string;
   className?: string;
   align?: 'left' | 'right';
+  accent?: 'default' | 'store';
+  buttonClassName?: string;
 }) {
   if (options.length <= 1) return null;
 
@@ -34,6 +38,8 @@ export function HubPaymentCurrencyDropdown<T extends string = string>({
       ariaLabel={ariaLabel}
       className={className ?? 'w-full min-w-0'}
       align={align}
+      accent={accent}
+      buttonClassName={buttonClassName}
     />
   );
 }

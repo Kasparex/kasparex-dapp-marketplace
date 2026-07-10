@@ -22,6 +22,7 @@ export function HubPaymentPanel({
   krexBalance = 0,
   footer,
   className = '',
+  currencyAccent = 'default',
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -36,6 +37,7 @@ export function HubPaymentPanel({
   krexBalance?: number;
   footer?: ReactNode;
   className?: string;
+  currencyAccent?: 'default' | 'store';
 }) {
   const showCurrency =
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
@@ -66,6 +68,7 @@ export function HubPaymentPanel({
             onChange={onCurrencyChange}
             options={currencies.map((c) => ({ value: c.id, label: c.label }))}
             ariaLabel="Payment currency"
+            accent={currencyAccent}
           />
         </div>
       ) : null}

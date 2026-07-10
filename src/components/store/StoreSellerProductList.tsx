@@ -11,7 +11,7 @@ import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
-import { SELLER_ACTION_FEE_KAS } from '@/components/store/StoreProductForm';
+import { SELLER_ACTION_FEE_KAS } from '@/lib/store/listingQuote';
 
 type StoreSellerProductListProps = {
   products: Product[];

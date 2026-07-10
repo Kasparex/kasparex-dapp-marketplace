@@ -123,6 +123,7 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           onCurrencyChange={setCurrency}
           tier={krexTier}
           krexBalance={krexBalance}
+          currencyAccent="store"
           footer={
             <>
               {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}

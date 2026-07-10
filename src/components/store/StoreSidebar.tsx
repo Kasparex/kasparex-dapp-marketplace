@@ -1,18 +1,21 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StoreSellerTab } from '@/lib/store/sellerTabs';
 import { storeSellerTabHref } from '@/lib/store/sellerTabs';
 import type { ProductCategory, Product } from '@/lib/store/types';
+import {
+  STORE_PRODUCT_TABS,
+  type StoreProductContentTab,
+} from '@/lib/store/productPageSections';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
 import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
-import { STORE_PRODUCT_SECTIONS } from '@/lib/store/productPageSections';
 import { HUB_SIDEBAR_BTN_ICON, HUB_SIDEBAR_BTN_ICON_ACTIVE } from '@/lib/hub/hubLayout';
 
 export interface StoreSidebarProps {
@@ -24,6 +27,8 @@ export interface StoreSidebarProps {
   currentProduct?: Product;
   sellerTab?: StoreSellerTab;
   onSellerTabChange?: (tab: StoreSellerTab) => void;
+  productContentTab?: StoreProductContentTab;
+  onProductTabChange?: (tab: StoreProductContentTab) => void;
 }
 
 function StoreCategoryIcon({ id, className = '' }: { id: string; className?: string }) {
@@ -124,45 +129,13 @@ export function StoreSidebar({
   currentProduct,
   sellerTab = 'products',
   onSellerTabChange,
+  productContentTab = 'product',
+  onProductTabChange,
 }: StoreSidebarProps) {
   const router = useRouter();
-  const [activeProductSection, setActiveProductSection] = useState<string>('product-overview');
-  const productSectionObserverRef = useRef<IntersectionObserver | null>(null);
   const isListing = mode === 'listing';
   const isProduct = mode === 'product';
   const isDashboard = mode === 'dashboard';
-
-  useEffect(() => {
-    if (!isProduct) return;
-
-    productSectionObserverRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveProductSection(entry.target.id);
-          }
-        });
-      },
-      { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 },
-    );
-
-    STORE_PRODUCT_SECTIONS.forEach((section) => {
-      const element = document.getElementById(section.id);
-      if (element) productSectionObserverRef.current?.observe(element);
-    });
-
-    return () => {
-      productSectionObserverRef.current?.disconnect();
-    };
-  }, [isProduct, currentProduct?.id]);
-
-  const scrollToProductSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveProductSection(sectionId);
-    }
-  };
 
   const backHref = isListing ? '/hub' : '/store';
   const backLabel = isListing ? 'Back to Hub' : 'Back to Store';
@@ -184,6 +157,14 @@ export function StoreSidebar({
     onCategoryChange(newCats);
   };
 
+  const goProductTab = (tab: StoreProductContentTab) => {
+    onProductTabChange?.(tab);
+    window.setTimeout(() => {
+      const section = STORE_PRODUCT_TABS.find((item) => item.id === tab);
+      document.getElementById(section?.sidebarId ?? '')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
   const categoryItems = categories?.map((cat) => ({
     id: cat,
     label: cat,
@@ -191,21 +172,10 @@ export function StoreSidebar({
     icon: <StoreCategoryIcon id={cat} className="opacity-70 group-hover:text-[#02abb8]" />,
   })) ?? [];
 
-  const storeFooter = (
-    <div className="flex items-center gap-3 p-4 bg-transparent border-t border-zinc-200 dark:border-zinc-800">
-      <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-black text-[10px]">KS</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">Kasparex Store</p>
-        <p className="text-[9px] font-bold text-zinc-500 uppercase">Digital Marketplace</p>
-      </div>
-    </div>
-  );
-
   return (
     <UnifiedSidebar
       storageKeyPrefix="store"
       header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
-      footer={storeFooter}
     >
       {isListing && (
         <>
@@ -245,21 +215,21 @@ export function StoreSidebar({
         </Suspense>
       )}
 
-      {isProduct && currentProduct && (
+      {isProduct && currentProduct && onProductTabChange ? (
         <SidebarSection title="On this page" className="mt-2">
           <nav className="space-y-1">
-            {STORE_PRODUCT_SECTIONS.map((section) => (
+            {STORE_PRODUCT_TABS.map((section) => (
               <SidebarNavItem
                 key={section.id}
                 label={section.label}
                 icon={productSectionIcon}
-                active={activeProductSection === section.id}
-                onClick={() => scrollToProductSection(section.id)}
+                active={productContentTab === section.id}
+                onClick={() => goProductTab(section.id)}
               />
             ))}
           </nav>
         </SidebarSection>
-      )}
+      ) : null}
     </UnifiedSidebar>
   );
 }
