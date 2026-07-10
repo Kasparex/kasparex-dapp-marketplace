@@ -152,10 +152,10 @@ export function StoreCommentsSection({ productId, showSectionHeader = false }: S
                 onClose={() => setShowInfoModal(false)}
             />
 
-            <div className={showSectionHeader ? 'space-y-6' : 'mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800'}>
-                <div className="flex items-center justify-between mb-6">
+            <div className={showSectionHeader ? undefined : 'mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-800'}>
+                <div className={`flex items-center justify-between gap-3 ${showSectionHeader ? 'mb-4' : 'mb-6'}`}>
                     {showSectionHeader ? (
-                        <DAppSectionHeader title="Comments" className="!mb-0" />
+                        <DAppSectionHeader title="Comments" className="!mb-0 min-w-0 flex-1" />
                     ) : (
                         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                             On-Chain Comments ({commentsCount})

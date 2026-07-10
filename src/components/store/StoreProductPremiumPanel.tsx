@@ -3,11 +3,12 @@
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { summarizeProductAssets } from '@/lib/store/assetSummary';
 import type { Product } from '@/lib/store/types';
+import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
 
 interface StoreProductPremiumPanelProps {
   product: Product;
   hasAccess: boolean;
-  embedded?: boolean;
+  variant?: 'sidebar' | 'embedded';
 }
 
 function AssetPreviewTable({ product }: { product: Product }) {
@@ -17,65 +18,43 @@ function AssetPreviewTable({ product }: { product: Product }) {
     return <p className="kx-body">Seller has not attached downloadable files yet.</p>;
   }
 
-  return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 bg-zinc-50 text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80">
-            <th className="px-3 py-2.5">Detail</th>
-            <th className="px-3 py-2.5">Value</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-          <tr>
-            <td className="px-3 py-2.5 font-medium text-zinc-600 dark:text-zinc-400">Files included</td>
-            <td className="px-3 py-2.5 font-bold text-zinc-900 dark:text-zinc-100">{fileCount}</td>
-          </tr>
-          {formats.length > 0 ? (
-            <tr>
-              <td className="px-3 py-2.5 font-medium text-zinc-600 dark:text-zinc-400">Formats</td>
-              <td className="px-3 py-2.5 font-bold text-zinc-900 dark:text-zinc-100">{formats.join(', ')}</td>
-            </tr>
-          ) : null}
-          {product.content?.trim() ? (
-            <tr>
-              <td className="px-3 py-2.5 font-medium text-zinc-600 dark:text-zinc-400">Unlock text</td>
-              <td className="px-3 py-2.5 font-bold text-zinc-900 dark:text-zinc-100">Included</td>
-            </tr>
-          ) : null}
-          {rows.map((row, index) => (
-            <tr key={`${row.label}-${index}`}>
-              <td
-                className="max-w-[8rem] truncate px-3 py-2.5 font-medium text-zinc-600 dark:text-zinc-400"
-                title={row.label}
-              >
-                {row.label}
-              </td>
-              <td className="px-3 py-2.5">
-                <span className="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                  {row.format}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const tableRows: KxDataTableRow[] = [
+    { label: 'Files included', value: String(fileCount), mono: false },
+  ];
+
+  if (formats.length > 0) {
+    tableRows.push({ label: 'Formats', value: formats.join(', '), mono: false });
+  }
+
+  if (product.content?.trim()) {
+    tableRows.push({ label: 'Unlock text', value: 'Included', mono: false });
+  }
+
+  for (const row of rows) {
+    tableRows.push({
+      label: row.label,
+      valueNode: (
+        <span className="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+          {row.format}
+        </span>
+      ),
+      mono: false,
+    });
+  }
+
+  return <KxDataTable rows={tableRows} />;
 }
 
 export function StoreProductPremiumPanel({
   product,
   hasAccess,
-  embedded = false,
+  variant = 'sidebar',
 }: StoreProductPremiumPanelProps) {
   const panel = hasAccess ? (
     <div className="space-y-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
       <div>
         <h3 className="text-base font-black text-zinc-900 dark:text-zinc-100">Premium content unlocked</h3>
-        <p className="mt-1 kx-body">
-          Your purchase includes the files below. Download them from the Product tab.
-        </p>
+        <p className="mt-1 kx-body">Your purchase includes the files below. Download them from the Product tab.</p>
       </div>
       <AssetPreviewTable product={product} />
       {product.assetCids.length > 0 ? (
@@ -108,11 +87,7 @@ export function StoreProductPremiumPanel({
     </div>
   );
 
-  if (embedded) return panel;
+  if (variant === 'embedded') return panel;
 
-  return (
-    <div id="product-content" className="scroll-mt-24">
-      {panel}
-    </div>
-  );
+  return panel;
 }

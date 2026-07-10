@@ -1,13 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
-import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import type { StoreProductContentTab } from '@/lib/store/productPageSections';
 import { DAppTabs, type DAppTab } from '@/components/dapps/layout/DAppTabs';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { SidePanelCollapsedContentWrap } from '@/components/layout/SidePanelCollapsedContentWrap';
 import { useStoreRightPanelOpen } from '@/hooks/useStoreRightPanelOpen';
@@ -15,15 +14,11 @@ import { useStoreComments } from '@/hooks/useStoreComments';
 import { ProductPurchase } from '@/components/store/ProductPurchase';
 import { StoreBuyerBenefitsPanel } from '@/components/store/StoreBuyerBenefitsPanel';
 import { StoreProductPremiumPanel } from '@/components/store/StoreProductPremiumPanel';
+import { StoreProductInfoSection } from '@/components/store/StoreProductInfoSection';
 import { StoreCommentsSection } from '@/components/store/StoreCommentsSection';
 import { StoreSellerProductsTab } from '@/components/store/StoreSellerProductsTab';
 
 export type { StoreProductContentTab };
-
-function formatSellerAddress(address: string): string {
-  if (address.length <= 20) return address;
-  return `${address.slice(0, 12)}...${address.slice(-8)}`;
-}
 
 const IconProduct = () => (
   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
@@ -72,7 +67,6 @@ export function StoreProductDetail({
   const { comments } = useStoreComments(product.id);
   const commentCount = comments.length;
   const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : null;
-  const listedCurrency = getProductPaymentCurrency(product);
 
   const productTabs: readonly DAppTab<StoreProductContentTab>[] = useMemo(
     () => [
@@ -99,6 +93,7 @@ export function StoreProductDetail({
     <div className="space-y-6">
       <StoreBuyerBenefitsPanel />
       <ProductPurchase product={product} onPurchaseComplete={onPurchaseComplete} />
+      <StoreProductPremiumPanel product={product} hasAccess={hasAccess} variant="sidebar" />
     </div>
   );
 
@@ -130,7 +125,6 @@ export function StoreProductDetail({
           <div className="flex min-w-0 flex-col space-y-6">
             {contentTab === 'product' ? (
               <div id="store-tab-product" className="scroll-mt-24 space-y-6">
-                <DAppSectionHeader title="Product" className="mb-0" />
                 {thumbnailUrl ? (
                   <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                     <img src={thumbnailUrl} alt={product.title} className="h-auto w-full object-cover" loading="lazy" />
@@ -140,21 +134,7 @@ export function StoreProductDetail({
                   <h1 className="mb-4 text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                     {product.title}
                   </h1>
-                  <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
-                    <span
-                      className={`rounded px-2.5 py-1 font-bold uppercase tracking-wider ${
-                        product.network === 'L1'
-                          ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'
-                          : 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                      }`}
-                    >
-                      {product.network}
-                    </span>
-                    <span className="rounded border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300">
-                      {product.category}
-                    </span>
-                  </div>
-                  <p className="kx-body">{product.description}</p>
+                  <KxRichTextContent html={product.description} className="kx-prose" />
                 </div>
 
                 {hasAccess ? (
@@ -163,10 +143,8 @@ export function StoreProductDetail({
                       Purchased content
                     </h2>
                     {product.content ? (
-                      <div className="prose dark:prose-invert mb-8 max-w-none rounded-xl border border-zinc-100 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
-                        <p className="kx-body-sm whitespace-pre-wrap font-mono text-zinc-700 dark:text-zinc-300">
-                          {product.content}
-                        </p>
+                      <div className="mb-8 rounded-xl border border-zinc-100 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/50">
+                        <KxRichTextContent html={product.content} className="kx-prose" />
                       </div>
                     ) : null}
                     {product.assetCids && product.assetCids.length > 0 ? (
@@ -195,28 +173,18 @@ export function StoreProductDetail({
               </div>
             ) : null}
 
-            {contentTab === 'info' ? (
-              <div id="store-tab-info" className="scroll-mt-24">
-                <DAppSectionHeader title="Info" className="mb-4" />
-                <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                  <table className="w-full text-left text-sm">
-                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                      <InfoRow label="Price" value={`${product.priceKAS} ${listedCurrency}`} />
-                      <InfoRow label="Category" value={product.category} />
-                      <InfoRow label="Network" value={`${product.network} Network`} />
-                      <InfoRow label="Seller" value={formatSellerAddress(product.sellerAddress)} />
-                      <InfoRow label="Purchases" value={String(product.purchaseCount ?? 0)} />
-                      <InfoRow label="Listed currency" value={listedCurrency} />
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : null}
+            {contentTab === 'info' ? <StoreProductInfoSection product={product} /> : null}
 
             {contentTab === 'modules' ? (
-              <div id="store-tab-modules" className="scroll-mt-24">
-                <DAppSectionHeader title="Modules" className="mb-4" />
-                <StoreProductPremiumPanel product={product} hasAccess={hasAccess} embedded />
+              <div id="store-tab-modules" className="scroll-mt-24 space-y-4">
+                <DAppSectionHeader title="Modules" className="mb-0" />
+                <p className="kx-body text-zinc-600 dark:text-zinc-400">
+                  Optional seller modules such as featured badges, buyer support links, and purchase limits will
+                  appear here when enabled on this listing.
+                </p>
+                {hasAccess ? (
+                  <StoreProductPremiumPanel product={product} hasAccess={hasAccess} variant="embedded" />
+                ) : null}
               </div>
             ) : null}
 
@@ -235,14 +203,5 @@ export function StoreProductDetail({
         </SidePanelCollapsedContentWrap>
       </HubPageRightPanelGrid>
     </div>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <tr>
-      <td className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-zinc-500">{label}</td>
-      <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-zinc-100">{value}</td>
-    </tr>
   );
 }
