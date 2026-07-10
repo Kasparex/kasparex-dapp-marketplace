@@ -16,6 +16,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Software',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['node', 'guide', 'software'],
     status: 'active',
   },
   {
@@ -28,6 +29,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Art',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['art', 'branding', 'design'],
     status: 'active',
   },
   {
@@ -40,6 +42,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Music',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['music', 'electronic', 'audio'],
     status: 'active',
   },
   {
@@ -52,6 +55,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Templates',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['template', 'nextjs', 'dapp'],
     status: 'active',
   },
   {
@@ -65,6 +69,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Other',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['krex', 'tokenomics', 'analysis'],
     status: 'active',
   },
   {
@@ -77,6 +82,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Software',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['smart-contract', 'l2', 'defi'],
     status: 'active',
   },
   {
@@ -89,6 +95,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Templates',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['ui', 'components', 'react'],
     status: 'active',
   },
   {
@@ -101,6 +108,7 @@ export const demoProducts: Omit<Product, 'id' | 'slug' | 'createdAt' | 'purchase
     category: 'Art',
     assetCids: [],
     thumbnailCid: '',
+    tags: ['visualization', 'dag', 'art'],
     status: 'active',
   },
 ];

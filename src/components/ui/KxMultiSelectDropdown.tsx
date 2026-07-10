@@ -71,7 +71,7 @@ export function KxMultiSelectDropdown({
     accent === 'store' ? 'bg-[#02abb8] border-[#02abb8]' : 'bg-emerald-600 border-emerald-600';
 
   return (
-    <div className="relative flex-shrink-0 overflow-visible w-full" ref={containerRef}>
+    <div className="relative flex-shrink-0 overflow-visible w-auto" ref={containerRef}>
       <button
         type="button"
         aria-label={ariaLabel}

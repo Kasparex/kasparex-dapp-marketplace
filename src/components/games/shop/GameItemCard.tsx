@@ -592,7 +592,11 @@ export function GameItemCard(props: {
                     type="button"
                     onClick={() => void props.onBuy({ currency: cur, quantity })}
                     disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                    className={`${props.buyButtonClassName ?? primaryCtaClass} h-10 min-h-[2.5rem] w-full whitespace-normal text-xs leading-tight sm:w-auto sm:shrink-0 sm:self-stretch sm:text-[13px]`}
+                    className={
+                      props.buyButtonClassName
+                        ? `${props.buyButtonClassName} w-full whitespace-nowrap sm:w-auto`
+                        : `${primaryCtaClass} min-h-[2.75rem] w-full whitespace-normal text-xs leading-tight sm:w-auto sm:shrink-0 sm:text-[13px]`
+                    }
                   >
                     {props.buyLabel === 'Locked'
                       ? 'Locked'

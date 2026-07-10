@@ -126,7 +126,6 @@ export default function StorePage() {
           search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
           onReset={handleResetFilters}
           hasActiveFilters={hasActiveFilters}
-          flexWrap
         >
           <StoreListingFilters
             selectedCategories={selectedCategories}

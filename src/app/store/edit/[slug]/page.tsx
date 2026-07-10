@@ -44,7 +44,7 @@ function EditProductInner({ params }: PageProps) {
     product.sellerAddress.toLowerCase() === state.address.toLowerCase();
 
   return (
-    <StorePageShell sidebar={{ mode: 'listing' }}>
+    <StorePageShell sidebar={{ mode: 'listing', backHref: '/store', backLabel: 'Back to Store' }}>
       <div className="mb-10">
         <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Seller tools</p>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
@@ -85,7 +85,7 @@ export default function StoreEditPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <StorePageShell sidebar={{ mode: 'listing' }}>
+        <StorePageShell sidebar={{ mode: 'listing', backHref: '/store', backLabel: 'Back to Store' }}>
           <div className="py-20 flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500" />
           </div>

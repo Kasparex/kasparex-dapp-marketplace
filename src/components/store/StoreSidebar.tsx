@@ -33,6 +33,9 @@ export interface StoreSidebarProps {
   onSellerTabChange?: (tab: StoreSellerTab) => void;
   productContentTab?: StoreProductContentTab;
   onProductTabChange?: (tab: StoreProductContentTab) => void;
+  /** Override default back navigation (listing → Hub, dashboard/product → Store). */
+  backHref?: string;
+  backLabel?: string;
 }
 
 function StoreCategoryIcon({ id, className = '' }: { id: string; className?: string }) {
@@ -138,14 +141,16 @@ export function StoreSidebar({
   onSellerTabChange,
   productContentTab = 'product',
   onProductTabChange,
+  backHref: backHrefOverride,
+  backLabel: backLabelOverride,
 }: StoreSidebarProps) {
   const router = useRouter();
   const isListing = mode === 'listing';
   const isProduct = mode === 'product';
   const isDashboard = mode === 'dashboard';
 
-  const backHref = isListing ? '/hub' : '/store';
-  const backLabel = isListing ? 'Back to Hub' : 'Back to Store';
+  const backHref = backHrefOverride ?? (isListing ? '/hub' : '/store');
+  const backLabel = backLabelOverride ?? (isListing ? 'Back to Hub' : 'Back to Store');
 
   const goSellerTab = (tab: StoreSellerTab) => {
     if (onSellerTabChange) {
@@ -197,7 +202,7 @@ export function StoreSidebar({
             multi={true}
             collapsedItemCount={5}
           />
-          {onTagToggle ? (
+          {allTags.length > 0 && onTagToggle ? (
             <SidebarTags
               title="Tags"
               tags={allTags}
