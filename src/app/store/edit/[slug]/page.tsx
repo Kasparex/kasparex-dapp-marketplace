@@ -6,6 +6,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { getProductBySlug } from '@/lib/store/products';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { StoreProductForm } from '@/components/store/StoreProductForm';
+import { StoreSellerPricing } from '@/components/store/StoreSellerPricing';
 import { StoreWalletBanner } from '@/components/store/StoreWalletBanner';
 import { STORE_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import type { Product } from '@/lib/store/types';
@@ -69,7 +70,12 @@ function EditProductInner({ params }: PageProps) {
       ) : !isOwner ? (
         <p className="text-center text-zinc-500 py-12">Only the seller can edit this listing.</p>
       ) : (
-        <StoreProductForm product={product} />
+        <div className="space-y-8">
+          <div id="store-edit-pricing" className="scroll-mt-24">
+            <StoreSellerPricing />
+          </div>
+          <StoreProductForm product={product} />
+        </div>
       )}
     </StorePageShell>
   );

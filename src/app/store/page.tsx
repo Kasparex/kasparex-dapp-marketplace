@@ -5,13 +5,16 @@ import { StoreHeader } from '@/components/store/StoreHeader';
 import { StorePageShell } from '@/components/store/StorePageShell';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { getAllProducts } from '@/lib/store/products';
-import { getCategoryCounts } from '@/lib/store/filtering';
+import { getCategoryCounts, getListedCurrencies, filterProducts } from '@/lib/store/filtering';
+import { getProductTagsFromCatalog } from '@/lib/store/tags';
 import { ProductSortFilters } from '@/components/store/ProductSortFilters';
+import { StoreListingFilters } from '@/components/store/StoreListingFilters';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { FilterBar } from '@/components/FilterBar';
 import { sortProducts, type SortOption } from '@/lib/store/sorting';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { StoreBuyerBenefitsPanel } from '@/components/store/StoreBuyerBenefitsPanel';
 import { bootstrapHubContent } from '@/lib/hub/contentSync';
@@ -24,12 +27,16 @@ export default function StorePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<StorePaymentCurrency[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<ProductNetwork | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ProductViewMode>('grid');
 
   const categoryCounts = useMemo(() => getCategoryCounts(products), [products]);
+  const listedCurrencies = useMemo(() => getListedCurrencies(products), [products]);
+  const allTags = useMemo(() => getProductTagsFromCatalog(products), [products]);
 
   useEffect(() => {
     void bootstrapHubContent(['tokens', 'store']).catch(() => {});
@@ -56,31 +63,36 @@ export default function StorePage() {
   }, []);
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = products;
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((p) => selectedCategories.includes(p.category));
-    }
-    if (selectedNetwork !== 'all') {
-      filtered = filtered.filter((p) => p.network === selectedNetwork);
-    }
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.title.toLowerCase().includes(searchLower) ||
-          p.description.toLowerCase().includes(searchLower) ||
-          p.category.toLowerCase().includes(searchLower),
-      );
-    }
+    const filtered = filterProducts(products, {
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      network: selectedNetwork,
+      currencies: selectedCurrencies.length > 0 ? selectedCurrencies : undefined,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
+      search: searchQuery || undefined,
+    });
     return sortProducts(filtered, sortBy);
-  }, [products, selectedCategories, selectedNetwork, searchQuery, sortBy]);
+  }, [products, selectedCategories, selectedCurrencies, selectedTags, selectedNetwork, searchQuery, sortBy]);
 
   const handleResetFilters = () => {
     setSelectedCategories([]);
+    setSelectedCurrencies([]);
+    setSelectedTags([]);
     setSelectedNetwork('all');
     setSearchQuery('');
     setSortBy('newest');
   };
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+
+  const hasActiveFilters =
+    selectedCategories.length > 0 ||
+    selectedCurrencies.length > 0 ||
+    selectedTags.length > 0 ||
+    selectedNetwork !== 'all' ||
+    searchQuery.length > 0 ||
+    sortBy !== 'newest';
 
   return (
     <StorePageShell
@@ -90,6 +102,9 @@ export default function StorePage() {
         selectedCategories,
         onCategoryChange: setSelectedCategories,
         categoryCounts,
+        allTags,
+        selectedTags,
+        onTagToggle: handleTagToggle,
       }}
     >
       <StoreHeader />
@@ -110,7 +125,16 @@ export default function StorePage() {
         <FilterBar
           search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search products...' }}
           onReset={handleResetFilters}
+          hasActiveFilters={hasActiveFilters}
+          flexWrap
         >
+          <StoreListingFilters
+            selectedCategories={selectedCategories}
+            onCategoriesChange={setSelectedCategories}
+            selectedCurrencies={selectedCurrencies}
+            onCurrenciesChange={setSelectedCurrencies}
+            currencyOptions={listedCurrencies}
+          />
           <KxFilterDropdown
             value={selectedNetwork}
             onChange={setSelectedNetwork}

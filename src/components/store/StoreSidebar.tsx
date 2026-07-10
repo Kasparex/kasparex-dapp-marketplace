@@ -15,6 +15,7 @@ import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
 import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
+import { SidebarTags } from '../sidebar/SidebarTags';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
 import { HUB_SIDEBAR_BTN_ICON, HUB_SIDEBAR_BTN_ICON_ACTIVE } from '@/lib/hub/hubLayout';
 
@@ -24,6 +25,9 @@ export interface StoreSidebarProps {
   selectedCategories?: ProductCategory[];
   onCategoryChange?: (categories: ProductCategory[]) => void;
   categoryCounts?: Record<ProductCategory, number>;
+  allTags?: string[];
+  selectedTags?: string[];
+  onTagToggle?: (tag: string) => void;
   currentProduct?: Product;
   sellerTab?: StoreSellerTab;
   onSellerTabChange?: (tab: StoreSellerTab) => void;
@@ -126,6 +130,9 @@ export function StoreSidebar({
   selectedCategories = [],
   onCategoryChange,
   categoryCounts = { Software: 0, Art: 0, Music: 0, Templates: 0, Other: 0 },
+  allTags = [],
+  selectedTags = [],
+  onTagToggle,
   currentProduct,
   sellerTab = 'products',
   onSellerTabChange,
@@ -190,6 +197,16 @@ export function StoreSidebar({
             multi={true}
             collapsedItemCount={5}
           />
+          {onTagToggle ? (
+            <SidebarTags
+              title="Tags"
+              tags={allTags}
+              selectedTags={selectedTags}
+              onToggle={onTagToggle}
+              className="mt-6"
+              searchPlaceholder="Search tags..."
+            />
+          ) : null}
         </>
       )}
 

@@ -60,6 +60,8 @@ export function GameItemCard(props: {
   titleAccessory?: React.ReactNode;
   title: string;
   category: string;
+  /** Rendered below the title row (e.g. author credit). */
+  titleBelow?: ReactNode;
   description: React.ReactNode;
   /** Blueprint-style split (e.g. Fabrication). When set, prefer over a flat `effects` list. */
   specifications?: GameItemEffectLine[];
@@ -168,6 +170,10 @@ export function GameItemCard(props: {
 
   const listingAccent = props.kxListingAccent ?? 'games';
   const hubChrome = listingAccent === 'hub' || listingAccent === 'store';
+  const currencyMenuAccent = hubChrome ? 'store' : 'default';
+  const currencyMenuButtonClass = hubChrome
+    ? 'k-input flex h-10 w-full min-w-0 items-center justify-between gap-2 !py-0 text-left text-sm font-semibold tabular-nums sm:w-auto sm:flex-1 sm:min-w-[170px]'
+    : 'flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-0 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900 sm:w-auto sm:flex-1 sm:min-w-[170px]';
   const quantityLabelLayout = props.quantityLabelLayout ?? 'inline';
   const pricingActionsLayout = props.pricingActionsLayout ?? 'split';
   const hideQuantityLabel = props.hideQuantityLabel ?? false;
@@ -450,6 +456,8 @@ export function GameItemCard(props: {
           </div>
         </div>
 
+        {props.titleBelow ? <div className="mb-3 min-w-0">{props.titleBelow}</div> : null}
+
         <div className="mb-4 min-h-0 flex-grow">
           <div className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description}</div>
 
@@ -537,6 +545,8 @@ export function GameItemCard(props: {
                       return { value: o.currency, label: txt, disabled: o.disabled };
                     })}
                     className="w-full min-w-0 sm:flex-initial"
+                    accent={currencyMenuAccent}
+                    buttonClassName={currencyMenuButtonClass}
                   />
                 ) : (
                   <div className={calculationBoxClass}>{calculationBoxBody}</div>
@@ -559,7 +569,7 @@ export function GameItemCard(props: {
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:justify-between">
                   {options.length > 1 ? (
                     <GameCurrencyMenu
                       ariaLabel="Payment currency"
@@ -571,6 +581,8 @@ export function GameItemCard(props: {
                         return { value: o.currency, label: txt, disabled: o.disabled };
                       })}
                       className="w-full sm:w-auto sm:flex-1 sm:min-w-[170px]"
+                      accent={currencyMenuAccent}
+                      buttonClassName={currencyMenuButtonClass}
                     />
                   ) : (
                     <div className={`${calculationBoxClass} sm:w-auto sm:flex-1`}>{calculationBoxBody}</div>
@@ -580,7 +592,7 @@ export function GameItemCard(props: {
                     type="button"
                     onClick={() => void props.onBuy({ currency: cur, quantity })}
                     disabled={props.buyDisabled || Boolean(selected?.disabled)}
-                    className={`${props.buyButtonClassName ?? primaryCtaClass} min-h-[2.75rem] w-full whitespace-normal text-xs leading-tight sm:w-auto sm:shrink-0 sm:text-[13px]`}
+                    className={`${props.buyButtonClassName ?? primaryCtaClass} h-10 min-h-[2.5rem] w-full whitespace-normal text-xs leading-tight sm:w-auto sm:shrink-0 sm:self-stretch sm:text-[13px]`}
                   >
                     {props.buyLabel === 'Locked'
                       ? 'Locked'

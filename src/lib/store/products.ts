@@ -374,6 +374,7 @@ export type ProductUpdateInput = Partial<
     | 'assetCids'
     | 'assetFileNames'
     | 'thumbnailCid'
+    | 'tags'
   >
 >;
 
@@ -412,6 +413,7 @@ export async function updateProduct(
       slug: nextSlug,
       description: updates.description?.trim() ?? product.description,
       content: updates.content !== undefined ? updates.content.trim() || undefined : product.content,
+      tags: updates.tags !== undefined ? updates.tags : product.tags,
     };
 
     const productCid = await uploadProduct(updated, `${updated.slug}-metadata.json`);

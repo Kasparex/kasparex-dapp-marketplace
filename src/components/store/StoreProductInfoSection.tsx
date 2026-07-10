@@ -4,6 +4,8 @@ import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
+import { StoreProductTags } from '@/components/store/StoreProductTags';
+import { normalizeStoreProductTags } from '@/lib/store/tags';
 
 function formatSellerAddress(address: string): string {
   if (address.length <= 20) return address;
@@ -34,6 +36,7 @@ function CategoryBadge({ category }: { category: Product['category'] }) {
 
 export function StoreProductInfoSection({ product }: { product: Product }) {
   const listedCurrency = getProductPaymentCurrency(product);
+  const tags = normalizeStoreProductTags(product.tags);
 
   const metadataRows: KxDataTableRow[] = [
     {
@@ -47,6 +50,14 @@ export function StoreProductInfoSection({ product }: { product: Product }) {
       mono: false,
     },
   ];
+
+  if (tags.length > 0) {
+    metadataRows.push({
+      label: 'Tags',
+      valueNode: <StoreProductTags tags={tags} />,
+      mono: false,
+    });
+  }
 
   const listingRows: KxDataTableRow[] = [
     { label: 'Price', value: `${product.priceKAS} ${listedCurrency}`, mono: false },

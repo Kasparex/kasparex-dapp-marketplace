@@ -3,14 +3,20 @@
  * Client-side filtering for products
  */
 
+import { getProductPaymentCurrency } from './currencies';
+import { productMatchesTags } from './tags';
 import type { Product, ProductCategory, ProductNetwork } from './types';
+import type { StorePaymentCurrency } from './currencies';
 
 export interface ProductFilters {
   category?: ProductCategory | 'all';
+  categories?: ProductCategory[];
   network?: ProductNetwork | 'all';
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  tags?: string[];
+  currencies?: StorePaymentCurrency[];
 }
 
 /**
@@ -21,7 +27,14 @@ export function filterProducts(
   filters: ProductFilters
 ): Product[] {
   return products.filter((product) => {
-    // Category filter
+    // Category filter (multi)
+    if (filters.categories && filters.categories.length > 0) {
+      if (!filters.categories.includes(product.category)) {
+        return false;
+      }
+    }
+
+    // Category filter (single)
     if (filters.category && filters.category !== 'all') {
       if (product.category !== filters.category) {
         return false;
@@ -35,13 +48,30 @@ export function filterProducts(
       }
     }
 
+    // Listed payment currency filter
+    if (filters.currencies && filters.currencies.length > 0) {
+      const listed = getProductPaymentCurrency(product);
+      if (!filters.currencies.includes(listed)) {
+        return false;
+      }
+    }
+
+    // Tag filter
+    if (filters.tags && filters.tags.length > 0) {
+      if (!productMatchesTags(product, filters.tags)) {
+        return false;
+      }
+    }
+
     // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
+      const tagHaystack = (product.tags ?? []).join(' ').toLowerCase();
       const matchesSearch =
         product.title.toLowerCase().includes(searchLower) ||
         product.description.toLowerCase().includes(searchLower) ||
-        product.category.toLowerCase().includes(searchLower);
+        product.category.toLowerCase().includes(searchLower) ||
+        tagHaystack.includes(searchLower);
       if (!matchesSearch) {
         return false;
       }
@@ -99,4 +129,15 @@ export function getNetworkCounts(products: Product[]): Record<ProductNetwork, nu
     counts[product.network] = (counts[product.network] || 0) + 1;
   });
   return counts;
+}
+
+/**
+ * Distinct listed payment currencies from products.
+ */
+export function getListedCurrencies(products: Product[]): StorePaymentCurrency[] {
+  const currencies = new Set<StorePaymentCurrency>();
+  products.forEach((product) => {
+    currencies.add(getProductPaymentCurrency(product));
+  });
+  return Array.from(currencies).sort((a, b) => a.localeCompare(b));
 }

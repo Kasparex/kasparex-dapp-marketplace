@@ -17,6 +17,7 @@ export function KxMultiSelectDropdown({
   showFilter = false,
   triggerClassName = 'k-control-btn min-w-[140px] h-10 w-full',
   menuClassName = 'w-64',
+  accent = 'default',
 }: {
   values: string[];
   onChange: (next: string[]) => void;
@@ -27,6 +28,7 @@ export function KxMultiSelectDropdown({
   showFilter?: boolean;
   triggerClassName?: string;
   menuClassName?: string;
+  accent?: 'default' | 'store';
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -64,6 +66,9 @@ export function KxMultiSelectDropdown({
       : values.length === 1
         ? options.find((o) => o.value === values[0])?.label ?? values[0]
         : `${values.length} selected`;
+
+  const checkedBoxClass =
+    accent === 'store' ? 'bg-[#02abb8] border-[#02abb8]' : 'bg-emerald-600 border-emerald-600';
 
   return (
     <div className="relative flex-shrink-0 overflow-visible w-full" ref={containerRef}>
@@ -110,7 +115,7 @@ export function KxMultiSelectDropdown({
                 >
                   <span
                     className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
-                      checked ? 'bg-emerald-600 border-emerald-600' : 'border-zinc-300 dark:border-zinc-700'
+                      checked ? checkedBoxClass : 'border-zinc-300 dark:border-zinc-700'
                     }`}
                   >
                     {checked && (

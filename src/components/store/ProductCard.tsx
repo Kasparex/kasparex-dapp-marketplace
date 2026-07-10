@@ -19,6 +19,8 @@ import { htmlToPlainText } from '@/lib/richText/html';
 import { buildStoreCheckoutPriceOptions } from '@/lib/store/checkoutPriceOptions';
 import { mergePricingTickers } from '@/lib/pricing/registry';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { AuthorInline } from '@/components/ui/AuthorInline';
+import { formatAddress } from '@/lib/vblog/utils';
 
 interface ProductCardProps {
   product: Product;
@@ -59,6 +61,14 @@ export function ProductCard({ product }: ProductCardProps) {
         onCardNavigate={goToProduct}
         title={product.title}
         category={product.category}
+        titleBelow={
+          <AuthorInline
+            address={product.sellerAddress}
+            displayName={formatAddress(product.sellerAddress)}
+            href={`/u/${encodeURIComponent(product.sellerAddress)}`}
+            className="min-w-0"
+          />
+        }
         titleAccessory={
           <KxBadge variant={product.network === 'L1' ? 'sky' : 'teal'}>{product.network}</KxBadge>
         }

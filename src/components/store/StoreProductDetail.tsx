@@ -17,6 +17,10 @@ import { StoreProductPremiumPanel } from '@/components/store/StoreProductPremium
 import { StoreProductInfoSection } from '@/components/store/StoreProductInfoSection';
 import { StoreCommentsSection } from '@/components/store/StoreCommentsSection';
 import { StoreSellerProductsTab } from '@/components/store/StoreSellerProductsTab';
+import { AuthorInline } from '@/components/ui/AuthorInline';
+import { StoreProductTags } from '@/components/store/StoreProductTags';
+import { normalizeStoreProductTags } from '@/lib/store/tags';
+import { formatAddress } from '@/lib/vblog/utils';
 
 export type { StoreProductContentTab };
 
@@ -67,6 +71,7 @@ export function StoreProductDetail({
   const { comments } = useStoreComments(product.id);
   const commentCount = comments.length;
   const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : null;
+  const productTags = normalizeStoreProductTags(product.tags);
 
   const productTabs: readonly DAppTab<StoreProductContentTab>[] = useMemo(
     () => [
@@ -134,6 +139,15 @@ export function StoreProductDetail({
                   <h1 className="mb-4 text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                     {product.title}
                   </h1>
+                  <AuthorInline
+                    address={product.sellerAddress}
+                    displayName={formatAddress(product.sellerAddress)}
+                    href={`/u/${encodeURIComponent(product.sellerAddress)}`}
+                    className="mb-4"
+                  />
+                  {productTags.length > 0 ? (
+                    <StoreProductTags tags={productTags} className="mb-4" />
+                  ) : null}
                   <KxRichTextContent html={product.description} className="kx-prose" />
                 </div>
 
