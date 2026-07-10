@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-10T14:13:34.339Z",
+  "updatedAt": "2026-07-10T14:37:01.718Z",
   "vblog": [],
   "tokens": [
     {
@@ -105,9 +105,9 @@
       "slug": "grid",
       "publishDate": "2026-07-03T23:37:27.309Z",
       "status": "verified",
-      "txHash": "a6c4c339186b6f59f4631909c801adbb1019954363a9bf3c371cabdae20c4de5",
-      "commitTxHash": "a6c4c339186b6f59f4631909c801adbb1019954363a9bf3c371cabdae20c4de5",
-      "contentHash": "a0fe77cb",
+      "txHash": "ed0b7a50a2ba03b6f15d5d345cedd20c33f5652bb193a001bff08feb61f2a428",
+      "commitTxHash": "ed0b7a50a2ba03b6f15d5d345cedd20c33f5652bb193a001bff08feb61f2a428",
+      "contentHash": "5e8ef182",
       "metadataCid": "bafkreigoetj74oxy7lmtisjikmqreik5hywcfufuft4jjkskrlvx7g3f44",
       "pricingSnapshot": {
         "baseFeeKas": 5,
@@ -115,7 +115,7 @@
         "modulesFeeKas": 0,
         "networkFeeBufferKas": 0.51,
         "totalKas": 5.51,
-        "payloadBytes": 9043,
+        "payloadBytes": 9051,
         "chunkCount": 51
       },
       "ownershipProof": {
@@ -124,7 +124,7 @@
         "signature": "725297deaf70dee6ff5c0dac7ec9ccc2ddddc91abe63ca2b2a1e073b66f89579c24980e9568b08db81a2a64a6e7f5549b57eb5ef2e3f94944bcc208f833b0898",
         "verifiedAt": "2026-07-03T23:39:26.399Z"
       },
-      "updatedAt": "2026-07-10T14:13:32.564Z",
+      "updatedAt": "2026-07-10T14:36:59.784Z",
       "category": "Governance",
       "modulesConfig": {
         "roadmap": [
@@ -175,7 +175,8 @@
           "vblog_tips",
           "dapps_payments",
           "games",
-          "vdonations"
+          "vdonations",
+          "store"
         ],
         "poll": {
           "question": "What should we prioritize next?",
