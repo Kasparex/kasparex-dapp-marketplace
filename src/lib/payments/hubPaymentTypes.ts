@@ -28,6 +28,15 @@ export function buildKasKrexCurrencyOptions(): HubPaymentCurrencyOption[] {
   ];
 }
 
+export type KasKrexPaymentCurrency = 'KAS' | 'KREX';
+
+export function buildKasKrexMenuOptions(): Array<{ value: KasKrexPaymentCurrency; label: string }> {
+  return buildKasKrexCurrencyOptions().map((option) => ({
+    value: option.id as KasKrexPaymentCurrency,
+    label: option.label,
+  }));
+}
+
 export function buildKrc20CurrencyOption(tick: string, decimals = 8): HubPaymentCurrencyOption {
   const upper = tick.toUpperCase();
   return {
@@ -122,10 +131,10 @@ export function buildIntegratedPaymentCurrencyIds(
   return currencies;
 }
 
-export function toHubPaymentMenuOptions(
+export function toHubPaymentMenuOptions<T extends string = string>(
   options: HubPaymentCurrencyOption[],
-): Array<{ value: string; label: string }> {
-  return options.map((option) => ({ value: option.id, label: option.label }));
+): Array<{ value: T; label: string }> {
+  return options.map((option) => ({ value: option.id as T, label: option.label }));
 }
 
 export function formatHubPaymentAmount(

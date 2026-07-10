@@ -7,7 +7,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { categories, type Category } from '@/lib/categories';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
@@ -810,7 +810,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
+                options={buildKasKrexMenuOptions()}
                 ariaLabel="Listing fee currency"
               />
             </div>

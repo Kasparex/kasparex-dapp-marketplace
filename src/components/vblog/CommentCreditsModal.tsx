@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/lib/utils';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { formatHubPaymentFromKas } from '@/lib/pricing';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
@@ -236,7 +236,7 @@ export function CommentCreditsModal({ isOpen, onClose }: CommentCreditsModalProp
                 <HubPaymentCurrencyDropdown
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
-                  options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
+                  options={buildKasKrexMenuOptions()}
                   ariaLabel="Comment credits payment currency"
                 />
               </div>

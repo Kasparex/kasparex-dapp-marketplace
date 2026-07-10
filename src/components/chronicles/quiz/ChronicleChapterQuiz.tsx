@@ -8,7 +8,7 @@ import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { calculateDirectoryListingFeeKas, listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxAlert } from '@/components/ui/KxAlert';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
@@ -203,7 +203,7 @@ export function ChronicleChapterQuiz({
               <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
+                options={buildKasKrexMenuOptions()}
                 ariaLabel="Quiz entry currency"
               />
             </div>

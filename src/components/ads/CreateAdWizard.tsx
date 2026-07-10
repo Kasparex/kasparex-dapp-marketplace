@@ -33,7 +33,7 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxInFormPremiumList, KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
@@ -887,7 +887,7 @@ export function CreateAdWizard({
                 <HubPaymentCurrencyDropdown
                   value={paymentCurrency}
                   onChange={setPaymentCurrency}
-                  options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
+                  options={buildKasKrexMenuOptions()}
                   ariaLabel="Ad payment currency"
                 />
               </div>

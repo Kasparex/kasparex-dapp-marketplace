@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
-import { buildKasKrexCurrencyOptions, toHubPaymentMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -378,7 +378,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               <HubPaymentCurrencyDropdown
                 value={paymentCurrency}
                 onChange={setPaymentCurrency}
-                options={toHubPaymentMenuOptions(buildKasKrexCurrencyOptions())}
+                options={buildKasKrexMenuOptions()}
                 ariaLabel="Listing fee currency"
               />
             </div>
