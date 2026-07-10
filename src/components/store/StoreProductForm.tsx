@@ -31,7 +31,10 @@ import {
   buildSellerListingCurrencyOptions,
   toHubPaymentMenuOptions,
 } from '@/lib/payments/hubPaymentTypes';
-import { StoreDashboardBenefitsPanel } from '@/components/store/StoreDashboardBenefitsPanel';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { STORE_MODULE_OFFERS, type StoreModuleId } from '@/lib/store/modules';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 
 const LISTING_FEE_KAS = 50;
@@ -40,6 +43,9 @@ const TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
 
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
+
+const PREMIUM_MODULE_CARD_CLASS =
+  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm';
 
 type StoreProductFormProps = {
   product?: Product;
@@ -70,6 +76,16 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const [showPurchaseCount, setShowPurchaseCount] = useState(true);
+  const [publicListing, setPublicListing] = useState(true);
+  const [enableBuyerComments, setEnableBuyerComments] = useState(false);
+  const [enabledModules, setEnabledModules] = useState<Record<StoreModuleId, boolean>>({
+    featured_badge: false,
+    buyer_support: false,
+    purchase_limit: false,
+  });
+  const [buyerSupportUrl, setBuyerSupportUrl] = useState('');
 
   const { tokens: integratedStoreTokens } = useIntegratedTokens(state.address, 'store');
   const { snapshot: pricingSnapshot } = usePricingSnapshot(
@@ -390,10 +406,88 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
             ) : null}
           </KxAlertRegion>
         </div>
+
+        <div className={`${FORM_PANEL_CLASS} space-y-4`}>
+          <div>
+            <DAppSectionHeader title="Advanced options" className="mb-0" />
+            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+              Control how your listing appears and behaves on the Store.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <KxInFormPremiumRow
+              title="Public listing"
+              description="Show this product in Store browse grids and search results."
+              checked={publicListing}
+              disabled={isProcessing || isUploading}
+              onToggle={() => setPublicListing((v) => !v)}
+            />
+            <KxInFormPremiumRow
+              title="Show purchase count"
+              description="Display how many times this product has been purchased."
+              checked={showPurchaseCount}
+              disabled={isProcessing || isUploading}
+              onToggle={() => setShowPurchaseCount((v) => !v)}
+            />
+            <KxInFormPremiumRow
+              title="Enable buyer comments"
+              description="Allow verified buyers to leave comments on your product page."
+              checked={enableBuyerComments}
+              disabled={isProcessing || isUploading}
+              onToggle={() => setEnableBuyerComments((v) => !v)}
+            />
+          </div>
+        </div>
+
+        <div
+          id="store-dashboard-modules"
+          className={`${FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}
+        >
+          <div className="space-y-2">
+            <DAppSectionHeader title="Premium modules" className="mb-0" />
+            <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+              Optional seller modules
+            </h4>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Toggle modules on to enhance your listing. Store module billing will roll out in a future update.
+            </p>
+          </div>
+          {STORE_MODULE_OFFERS.map((offer) => {
+            const enabled = enabledModules[offer.id];
+            return (
+              <div key={offer.id} className={PREMIUM_MODULE_CARD_CLASS}>
+                <KxInFormPremiumRow
+                  flat
+                  title={offer.title}
+                  description={offer.description}
+                  priceLabel={offer.unlockPriceKas > 0 ? `+${offer.unlockPriceKas} KAS` : 'Free'}
+                  checked={enabled}
+                  disabled={isProcessing || isUploading}
+                  onToggle={() =>
+                    setEnabledModules((prev) => ({ ...prev, [offer.id]: !prev[offer.id] }))
+                  }
+                />
+                {enabled && offer.id === 'buyer_support' ? (
+                  <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <KxFormFieldLabel>Support URL</KxFormFieldLabel>
+                    <input
+                      type="url"
+                      className="k-input"
+                      value={buyerSupportUrl}
+                      onChange={(e) => setBuyerSupportUrl(e.target.value)}
+                      placeholder="https://..."
+                      disabled={isProcessing || isUploading}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 xl:sticky xl:top-6">
-        <StoreDashboardBenefitsPanel />
+        <HubBenefitsPanel hideBuyButton />
 
         <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.4)]">
           <DAppSectionHeader title="Listing & pricing" className="mb-1" />
@@ -449,6 +543,14 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           </div>
 
           <button
+            type="button"
+            onClick={() => setIsKrexWizardOpen(true)}
+            className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
+          >
+            Buy KREX for tier perks
+          </button>
+
+          <button
             type="submit"
             disabled={!canSubmit || isProcessing || isUploading || !resolvedThumbnailCid}
             className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] hover:!bg-[#028a94] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -462,6 +564,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                   : `Publish (${actionFee} KAS fee)`}
           </button>
         </aside>
+        <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
       </div>
     </form>
   );

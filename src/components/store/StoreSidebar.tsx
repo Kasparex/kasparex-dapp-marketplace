@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import type { StoreSellerTab } from '@/lib/store/sellerTabs';
 import { storeSellerTabHref } from '@/lib/store/sellerTabs';
@@ -11,10 +11,10 @@ import type { ProductCategory, Product } from '@/lib/store/types';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
 import { SidebarSection } from '../sidebar/SidebarSection';
-import { SidebarQuickActions } from '../sidebar/SidebarQuickActions';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
 import { STORE_PRODUCT_SECTIONS } from '@/lib/store/productPageSections';
+import { HUB_SIDEBAR_BTN_ICON, HUB_SIDEBAR_BTN_ICON_ACTIVE } from '@/lib/hub/hubLayout';
 
 export interface StoreSidebarProps {
   mode: 'listing' | 'product' | 'dashboard';
@@ -23,8 +23,6 @@ export interface StoreSidebarProps {
   onCategoryChange?: (categories: ProductCategory[]) => void;
   categoryCounts?: Record<ProductCategory, number>;
   currentProduct?: Product;
-  sellerRevenue?: number;
-  totalSales?: number;
   sellerTab?: StoreSellerTab;
   onSellerTabChange?: (tab: StoreSellerTab) => void;
 }
@@ -44,15 +42,6 @@ const defaultCategories: ProductCategory[] = ['Software', 'Art', 'Music', 'Templ
 
 const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string; icon: ReactNode }[] = [
   {
-    id: 'overview',
-    label: 'Overview',
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-      </svg>
-    ),
-  },
-  {
     id: 'purchased',
     label: 'My Purchases',
     icon: (
@@ -67,15 +56,6 @@ const SELLER_TAB_ITEMS: { id: StoreSellerTab; label: string; icon: ReactNode }[]
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-  },
-  {
-    id: 'sales',
-    label: 'Sales History',
-    icon: (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
   },
@@ -103,12 +83,11 @@ export function StoreSidebar({
   onCategoryChange,
   categoryCounts = { Software: 0, Art: 0, Music: 0, Templates: 0, Other: 0 },
   currentProduct,
-  sellerRevenue = 0,
-  totalSales = 0,
-  sellerTab = 'overview',
+  sellerTab = 'products',
   onSellerTabChange,
 }: StoreSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [activeProductSection, setActiveProductSection] = useState<string>('product-overview');
   const productSectionObserverRef = useRef<IntersectionObserver | null>(null);
@@ -159,27 +138,6 @@ export function StoreSidebar({
     router.push(storeSellerTabHref(tab));
   };
 
-  const quickActionsListing = [
-    {
-      id: 'dashboard',
-      label: 'My Dashboard',
-      href: '/store/dashboard',
-      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
-    },
-    {
-      id: 'create',
-      label: 'Add New',
-      href: '/store/dashboard?tab=create',
-      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>,
-    },
-    {
-      id: 'purchased',
-      label: 'My Purchases',
-      href: '/store/dashboard?tab=purchased',
-      icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>,
-    },
-  ];
-
   const handleCategoryToggle = (id: string) => {
     if (!onCategoryChange) return;
     const cat = id as ProductCategory;
@@ -206,6 +164,10 @@ export function StoreSidebar({
     </div>
   );
 
+  const dashboardActive = pathname.startsWith('/store/dashboard');
+  const createActive = dashboardActive && searchParams.get('tab') === 'create';
+  const dashboardDefaultActive = dashboardActive && searchParams.get('tab') !== 'create';
+
   return (
     <UnifiedSidebar
       storageKeyPrefix="store"
@@ -214,10 +176,26 @@ export function StoreSidebar({
     >
       {isListing && (
         <>
-          <SidebarQuickActions
-            items={quickActionsListing}
-            activeId={pathname.startsWith('/store/dashboard') ? 'dashboard' : undefined}
-          />
+          <div className="mb-6 space-y-2">
+            <Link
+              href="/store/dashboard"
+              className={`k-control-btn w-full justify-center gap-2 ${dashboardDefaultActive ? '!bg-cyan-600 !text-white' : ''}`}
+            >
+              <svg className={dashboardDefaultActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Seller Dashboard
+            </Link>
+            <Link
+              href="/store/dashboard?tab=create"
+              className={`k-control-btn w-full justify-center gap-2 ${createActive ? '!bg-cyan-600 !text-white' : ''}`}
+            >
+              <svg className={createActive ? HUB_SIDEBAR_BTN_ICON_ACTIVE : HUB_SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              List Product
+            </Link>
+          </div>
           <SidebarCategories
             title="Categories"
             items={categoryItems}

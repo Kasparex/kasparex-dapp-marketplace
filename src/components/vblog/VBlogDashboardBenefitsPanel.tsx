@@ -24,9 +24,11 @@ const TIER_TOOLTIP = <KrexTierPerksTooltipTable title="KREX tier perks" />;
 export function VBlogDashboardBenefitsPanel({
   className = '',
   variant = 'panel',
+  hideBuyButton = false,
 }: {
   className?: string;
   variant?: 'panel' | 'compact';
+  hideBuyButton?: boolean;
 }) {
   const pricing = useVBlogPricing();
   const { balance: krexBalance, tier, isLoading } = useKREXBalance();
@@ -124,13 +126,15 @@ export function VBlogDashboardBenefitsPanel({
             <span className="font-semibold">{formatKrexMillions(displayBalance)} KREX held.</span>{' '}
             {ui.statusText}
           </div>
-          <button
-            type="button"
-            onClick={() => setIsKrexWizardOpen(true)}
-            className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
-          >
-            Buy KREX
-          </button>
+          {!hideBuyButton ? (
+            <button
+              type="button"
+              onClick={() => setIsKrexWizardOpen(true)}
+              className={`mt-2.5 w-full ${buyKrexButtonClass} !py-2 !text-sm`}
+            >
+              Buy KREX
+            </button>
+          ) : null}
         </aside>
       </Tooltip>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />

@@ -1,20 +1,17 @@
-export type StoreSellerTab = 'overview' | 'purchased' | 'products' | 'sales' | 'create';
+export type StoreSellerTab = 'purchased' | 'products' | 'create';
 
 export function parseStoreSellerTab(value: string | null): StoreSellerTab {
   switch (value) {
     case 'purchased':
       return 'purchased';
-    case 'products':
-      return 'products';
-    case 'sales':
-      return 'sales';
     case 'create':
       return 'create';
+    case 'products':
     default:
-      return 'overview';
+      return 'products';
   }
 }
 
 export function storeSellerTabHref(tab: StoreSellerTab): string {
-  return tab === 'overview' ? '/store/dashboard' : `/store/dashboard?tab=${tab}`;
+  return tab === 'products' ? '/store/dashboard' : `/store/dashboard?tab=${tab}`;
 }
