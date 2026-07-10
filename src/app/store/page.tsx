@@ -32,7 +32,7 @@ export default function StorePage() {
   const categoryCounts = useMemo(() => getCategoryCounts(products), [products]);
 
   useEffect(() => {
-    void bootstrapHubContent(['tokens', 'store']);
+    void bootstrapHubContent(['tokens', 'store']).catch(() => {});
   }, []);
 
   useEffect(() => {

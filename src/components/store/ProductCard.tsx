@@ -16,7 +16,7 @@ import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
 import { getProductPaymentCurrency } from '@/lib/store/currencies';
 import { buildStoreCheckoutPriceOptions } from '@/lib/store/checkoutPriceOptions';
-import { mergePricingTickers } from '@/lib/pricing/collectTickers';
+import { mergePricingTickers } from '@/lib/pricing/registry';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 
 interface ProductCardProps {

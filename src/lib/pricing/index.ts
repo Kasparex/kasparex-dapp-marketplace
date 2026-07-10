@@ -10,8 +10,8 @@ export {
   formatTokenWithKasEq,
   fromKasEq,
   getPriceRate,
+  mergePricingTickers,
   resolveTokenAmountFromKas,
   tickersForCurrencies,
   toKasEq,
 } from './registry';
-export { collectIntegratedUtilityTickers, mergePricingTickers } from './collectTickers';

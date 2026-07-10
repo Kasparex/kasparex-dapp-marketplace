@@ -1,4 +1,3 @@
-import type { GameItemPriceOption } from '@/components/games/shop/GameItemCard';
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import {
   getProductPaymentCurrency,
@@ -7,9 +6,17 @@ import {
   krexToKasAmount,
 } from '@/lib/store/currencies';
 import type { Product } from '@/lib/store/types';
-import type { IntegratedToken } from '@/lib/tokens/integratedTokens';
+import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 import { resolveTokenAmountFromKas, toKasEq } from '@/lib/pricing/registry';
 import type { PricingSnapshot } from '@/lib/pricing/types';
+
+export type StoreCheckoutPriceOption = {
+  currency: string;
+  unitPrice: number;
+  label?: string;
+  originalUnitPrice?: number;
+  disabled?: boolean;
+};
 
 export function resolveStoreUnitPrice(
   product: Product,
@@ -37,7 +44,7 @@ export function buildStoreCheckoutPriceOptions(
   product: Product,
   integratedToken: IntegratedToken | null | undefined,
   snapshot: PricingSnapshot | null | undefined,
-): GameItemPriceOption[] {
+): StoreCheckoutPriceOption[] {
   const listedCurrency = getProductPaymentCurrency(product);
   const hubOptions = buildHubCheckoutCurrencyOptions({
     listedCurrency,

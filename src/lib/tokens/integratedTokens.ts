@@ -1,135 +1,37 @@
 /**
- * Resolve Hub utility integrations from published listings (localStorage only, no network).
+ * Client helpers for Hub utility integrations (localStorage listings).
  */
 
 import { getAllPublishedListings } from './data';
+import {
+  findIntegratedListingInList,
+  integratedTokenFromListing,
+  type HubUtilityProductStatus,
+  type IntegratedToken,
+  WIRED_HUB_UTILITY_PRODUCTS,
+  isHubProductWired,
+  resolveHubUtilityProductStatus,
+  resolveListingTicker,
+} from './integrationCore';
 import type { PublishedTokenListing } from './listingRecord';
 import type { HubUtilityProductId } from './utilityRegistry';
-import type { Token } from './types';
-import { tokenHasModule } from './modules';
 
-/** Products with real checkout wired in v1. */
-export const WIRED_HUB_UTILITY_PRODUCTS: HubUtilityProductId[] = ['store', 'vblog_tips'];
-
-export type IntegratedToken = {
-  tick: string;
-  decimals: number;
-  symbol: string;
-  listingSlug: string;
-  listing: PublishedTokenListing;
+export type { HubUtilityProductStatus, IntegratedToken };
+export {
+  WIRED_HUB_UTILITY_PRODUCTS,
+  findIntegratedListingInList,
+  integratedTokenFromListing,
+  isHubProductWired,
+  resolveHubUtilityProductStatus,
+  resolveListingTicker,
 };
-
-function canonicalizeWalletKey(input: string): string {
-  const raw = String(input || '').trim().toLowerCase();
-  if (!raw) return raw;
-  if (raw.startsWith('evm:')) return raw;
-  if (raw.endsWith('.kas')) return raw;
-  if (raw.startsWith('kaspa:')) return raw;
-  if (/^q[a-z0-9]{30,}$/i.test(raw)) return `kaspa:${raw}`;
-  return raw;
-}
-
-function listingWalletKeys(listing: PublishedTokenListing): string[] {
-  const keys = new Set<string>();
-  if (listing.author) keys.add(canonicalizeWalletKey(listing.author));
-  const deployer = listing.onChainSnapshot?.deployer;
-  if (deployer) keys.add(canonicalizeWalletKey(deployer));
-  return Array.from(keys);
-}
-
-function walletMatchesListing(wallet: string, listing: PublishedTokenListing): boolean {
-  const key = canonicalizeWalletKey(wallet);
-  return listingWalletKeys(listing).some((k) => k === key);
-}
-
-function listingHasUtilityModule(listing: PublishedTokenListing): boolean {
-  if ((listing.paidModuleIds ?? []).includes('utility_integrations')) return true;
-  if (
-    listing.ownership === 'deployer_verified' &&
-    (listing.modulesConfig?.utilityProducts ?? []).length > 0
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function listingHasProduct(listing: PublishedTokenListing, productId: HubUtilityProductId): boolean {
-  return (listing.modulesConfig?.utilityProducts ?? []).includes(productId);
-}
-
-/** Resolve KRC-20 tick from snapshot or listing symbol (seed claims may lack snapshot). */
-export function resolveListingTicker(listing: PublishedTokenListing): string | null {
-  const fromSnapshot = listing.onChainSnapshot?.ticker?.trim().toUpperCase();
-  if (fromSnapshot) return fromSnapshot;
-  if (listing.assetKind === 'real' && listing.listingNetwork === 'krc20' && listing.symbol?.trim()) {
-    return listing.symbol.trim().toUpperCase();
-  }
-  return null;
-}
-
-function isEligibleKrc20Listing(listing: PublishedTokenListing): boolean {
-  if (listing.assetKind !== 'real' || !resolveListingTicker(listing)) return false;
-  if (listing.listingNetwork === 'krc20') return true;
-  if (listing.networks?.some((entry) => entry.network === 'krc20')) return true;
-  // Legacy seed claims (e.g. GRID) used kaspa_l1 before krc20 was set explicitly.
-  if (listing.listingNetwork === 'kaspa_l1') return true;
-  return false;
-}
-
-export function integratedTokenFromListing(listing: PublishedTokenListing): IntegratedToken | null {
-  const tick = resolveListingTicker(listing);
-  if (!tick) return null;
-  return {
-    tick,
-    decimals: listing.onChainSnapshot?.decimals ?? listing.decimals ?? 8,
-    symbol: listing.symbol,
-    listingSlug: listing.slug,
-    listing,
-  };
-}
-
-function toIntegratedToken(listing: PublishedTokenListing): IntegratedToken | null {
-  return integratedTokenFromListing(listing);
-}
-
-export function isHubProductWired(productId: HubUtilityProductId): boolean {
-  return WIRED_HUB_UTILITY_PRODUCTS.includes(productId);
-}
-
-export function findIntegratedListingInList(
-  wallet: string | null | undefined,
-  productId: HubUtilityProductId,
-  listings: PublishedTokenListing[],
-  options?: { requireVerified?: boolean },
-): PublishedTokenListing | null {
-  if (!wallet) return null;
-  const requireVerified = options?.requireVerified ?? true;
-
-  for (const listing of listings) {
-    if (!isEligibleKrc20Listing(listing)) continue;
-    if (!walletMatchesListing(wallet, listing)) continue;
-    if (!listingHasUtilityModule(listing)) continue;
-    if (!listingHasProduct(listing, productId)) continue;
-    if (requireVerified && listing.ownership !== 'deployer_verified') continue;
-    return listing;
-  }
-  return null;
-}
-
-export function findIntegratedListingForWallet(
-  wallet: string | null | undefined,
-  productId: HubUtilityProductId,
-  options?: { requireVerified?: boolean },
-): PublishedTokenListing | null {
-  return findIntegratedListingInList(wallet, productId, getAllPublishedListings(), options);
-}
 
 export function getIntegratedTokenForWallet(
   wallet: string | null | undefined,
   productId: HubUtilityProductId,
 ): IntegratedToken | null {
   const listing = findIntegratedListingForWallet(wallet, productId);
-  return listing ? toIntegratedToken(listing) : null;
+  return listing ? integratedTokenFromListing(listing) : null;
 }
 
 export function getIntegratedTokenForAuthor(
@@ -139,29 +41,10 @@ export function getIntegratedTokenForAuthor(
   return getIntegratedTokenForWallet(authorAddress, productId);
 }
 
-export type HubUtilityProductStatus = 'live' | 'pending_verify' | 'coming_soon';
-
-export function resolveHubUtilityProductStatus(
-  token: Token,
+export function findIntegratedListingForWallet(
+  wallet: string | null | undefined,
   productId: HubUtilityProductId,
-): HubUtilityProductStatus {
-  if (!isHubProductWired(productId)) return 'coming_soon';
-
-  const hasModule = tokenHasModule(token.paidModuleIds ?? [], 'utility_integrations');
-  const selected = (token.modulesConfig?.utilityProducts ?? []).includes(productId);
-  const instant = Boolean(token.listing?.instantUtility);
-
-  if (!hasModule && !instant) return 'coming_soon';
-  if (!selected && !instant) return 'coming_soon';
-
-  if (token.assetKind === 'fictional' || token.assetKind == null) return 'coming_soon';
-  if (!token.listing?.deployerVerified) return 'pending_verify';
-
-  if (productId === 'store' || productId === 'vblog_tips') {
-    const network = token.listingNetwork;
-    if (network !== 'krc20') return 'coming_soon';
-    return 'live';
-  }
-
-  return 'coming_soon';
+  options?: { requireVerified?: boolean },
+): PublishedTokenListing | null {
+  return findIntegratedListingInList(wallet, productId, getAllPublishedListings(), options);
 }

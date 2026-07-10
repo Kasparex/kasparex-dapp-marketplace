@@ -5,7 +5,7 @@ import type { Token } from '@/lib/tokens/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HUB_UTILITY_PRODUCTS, getHubUtilityProduct, resolveTokenUtilityProducts } from '@/lib/tokens/utilityRegistry';
 import { tokenHasModule } from '@/lib/tokens/modules';
-import { resolveHubUtilityProductStatus } from '@/lib/tokens/integratedTokens';
+import { resolveHubUtilityProductStatus } from '@/lib/tokens/integrationCore';
 import { TOKENS_ACCENT } from '@/lib/tokens/theme';
 
 function statusMeta(status: ReturnType<typeof resolveHubUtilityProductStatus>): {

@@ -5,7 +5,7 @@
 import type { PricingSnapshot } from '@/lib/pricing/types';
 import { formatHubPaymentFromKas, formatTokenAmount } from '@/lib/pricing/registry';
 import { isBuiltinStoreCurrency, type StorePaymentCurrency } from '@/lib/store/currencies';
-import type { IntegratedToken } from '@/lib/tokens/integratedTokens';
+import type { IntegratedToken } from '@/lib/tokens/integrationCore';
 
 export type HubPaymentCurrencyKind = 'kas' | 'krex' | 'krc20';
 

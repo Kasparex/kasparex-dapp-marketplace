@@ -15,6 +15,7 @@ import { ToasterProvider } from '@/components/ui/Toaster';
 import { KxSystemDialogProvider } from '@/components/ui/KxSystemDialog';
 import { useIsMobileViewport } from '@/hooks/useIsMobileViewport';
 import { TooltipProvider } from '@/components/ui/Tooltip';
+import { ChunkLoadRecovery } from '@/components/ChunkLoadRecovery';
 
 // CRITICAL: Global error handler to intercept React Query's error serialization
 // We need to patch React Query's internal error handling to convert function-type errors
@@ -612,6 +613,7 @@ function RainbowKitProviderWithTheme({ children }: { children: React.ReactNode }
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
+      <ChunkLoadRecovery />
       <WagmiProvider config={config} reconnectOnMount>
         <EvmSubdomainReconnectHint />
         <BalanceVisibilityProvider>

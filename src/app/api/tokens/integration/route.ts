@@ -3,7 +3,7 @@ import { getHubContentRegistry } from '@/lib/hub/contentRegistry';
 import {
   findIntegratedListingInList,
   integratedTokenFromListing,
-} from '@/lib/tokens/integratedTokens';
+} from '@/lib/tokens/integrationCore';
 import type { HubUtilityProductId } from '@/lib/tokens/utilityRegistry';
 import type { PublishedTokenListing } from '@/lib/tokens/listingRecord';
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const registry = await getHubContentRegistry();
     const listings = (registry.tokens ?? []) as PublishedTokenListing[];
     const listing = findIntegratedListingInList(wallet, product, listings);
-    const token = listing ? integratedTokenFromListing(listing) : null;
+    const token = listing ? integratedTokenFromListing(listing, { includeListing: false }) : null;
 
     return NextResponse.json(
       { ok: true, token },

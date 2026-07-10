@@ -1,8 +1,7 @@
 'use client';
 
 import { getAllPublishedListings } from '@/lib/tokens/data';
-import { resolveListingTicker } from '@/lib/tokens/integratedTokens';
-import { tickersForCurrencies } from './registry';
+import { resolveListingTicker } from '@/lib/tokens/integrationCore';
 
 /** Collect KRC-20 tickers from published listings with utility integrations (client localStorage). */
 export function collectIntegratedUtilityTickers(): string[] {
@@ -21,8 +20,4 @@ export function collectIntegratedUtilityTickers(): string[] {
   }
 
   return Array.from(ticks);
-}
-
-export function mergePricingTickers(...groups: string[][]): string[] {
-  return tickersForCurrencies(groups.flat());
 }

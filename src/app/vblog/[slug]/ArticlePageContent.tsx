@@ -33,7 +33,7 @@ export function ArticlePageContent({ slug }: ArticlePageContentProps) {
   const [contentTab, setContentTab] = useState<ArticleContentTab>('article');
 
   useEffect(() => {
-    void bootstrapHubContent(['tokens', 'vblog']);
+    void bootstrapHubContent(['tokens', 'vblog']).catch(() => {});
   }, []);
 
   useEffect(() => {

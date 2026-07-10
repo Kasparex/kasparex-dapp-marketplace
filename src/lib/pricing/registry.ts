@@ -127,3 +127,7 @@ export function tickersForCurrencies(currencies: string[]): string[] {
     ),
   );
 }
+
+export function mergePricingTickers(...groups: string[][]): string[] {
+  return tickersForCurrencies(groups.flat());
+}

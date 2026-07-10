@@ -53,7 +53,7 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { krexToKasAmount, isBuiltinStoreCurrency } from '@/lib/store/currencies';
 import { toKasEq, formatKasEq, resolveTokenAmountFromKas } from '@/lib/pricing/registry';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
-import { mergePricingTickers } from '@/lib/pricing/collectTickers';
+import { mergePricingTickers } from '@/lib/pricing/registry';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
 import { useIntegratedToken } from '@/hooks/useIntegratedToken';
 import { buildIntegratedPaymentCurrencyIds } from '@/lib/payments/hubPaymentTypes';
