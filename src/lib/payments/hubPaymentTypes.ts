@@ -42,23 +42,39 @@ export function buildKrc20CurrencyOption(tick: string, decimals = 8): HubPayment
 export function buildHubCheckoutCurrencyOptions(opts: {
   listedCurrency: string;
   integratedToken?: IntegratedToken | null;
+  integratedTokens?: IntegratedToken[];
 }): HubPaymentCurrencyOption[] {
   const listed = opts.listedCurrency.trim().toUpperCase();
   if (!isBuiltinStoreCurrency(listed)) {
     return [buildKrc20CurrencyOption(listed)];
   }
+
   const options = [...buildKasKrexCurrencyOptions()];
-  const integrated = opts.integratedToken;
-  if (integrated && !options.some((option) => option.id === integrated.tick)) {
-    options.push(buildKrc20CurrencyOption(integrated.tick, integrated.decimals));
+  const integratedList = [
+    ...(opts.integratedTokens ?? []),
+    ...(opts.integratedToken ? [opts.integratedToken] : []),
+  ];
+
+  for (const integrated of integratedList) {
+    if (!integrated?.tick) continue;
+    if (!options.some((option) => option.id === integrated.tick)) {
+      options.push(buildKrc20CurrencyOption(integrated.tick, integrated.decimals));
+    }
   }
+
   return options;
 }
 
-export function buildIntegratedPaymentCurrencyIds(integratedToken?: IntegratedToken | null): string[] {
+export function buildIntegratedPaymentCurrencyIds(
+  integratedToken?: IntegratedToken | null,
+  integratedTokens?: IntegratedToken[],
+): string[] {
   const currencies = ['KAS', 'KREX'];
-  if (integratedToken && !currencies.includes(integratedToken.tick)) {
-    currencies.push(integratedToken.tick);
+  const all = [...(integratedTokens ?? []), ...(integratedToken ? [integratedToken] : [])];
+  for (const token of all) {
+    if (token?.tick && !currencies.includes(token.tick)) {
+      currencies.push(token.tick);
+    }
   }
   return currencies;
 }

@@ -16,7 +16,7 @@ import {
 import { buildHubCheckoutCurrencyOptions } from '@/lib/payments/hubPaymentTypes';
 import type { Product } from '@/lib/store/types';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useIntegratedToken } from '@/hooks/useIntegratedToken';
+import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { resolveStoreUnitPrice } from '@/lib/store/checkoutPriceOptions';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import {
@@ -45,17 +45,22 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
   const { purchase, isProcessing, error, success, txHash } = useStoreProductPurchase(product);
 
   const listedCurrency = getProductPaymentCurrency(product);
-  const sellerIntegratedToken = useIntegratedToken(product.sellerAddress, 'store').token;
+  const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
   const [currency, setCurrency] = useState<string>(listedCurrency);
+  const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
   const pricingTickers = useMemo(
-    () => mergePricingTickers([listedCurrency, currency, 'KREX', sellerIntegratedToken?.tick ?? '']),
-    [listedCurrency, currency, sellerIntegratedToken?.tick],
+    () => mergePricingTickers([listedCurrency, currency, 'KREX', ...sellerIntegratedTokens.map((t) => t.tick)]),
+    [listedCurrency, currency, integratedTicks],
   );
   const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
 
   const currencyOptions = useMemo(
-    () => buildHubCheckoutCurrencyOptions({ listedCurrency, integratedToken: sellerIntegratedToken }),
-    [listedCurrency, sellerIntegratedToken],
+    () =>
+      buildHubCheckoutCurrencyOptions({
+        listedCurrency,
+        integratedTokens: sellerIntegratedTokens,
+      }),
+    [listedCurrency, sellerIntegratedTokens],
   );
 
   const selectedOption = currencyOptions.find((c) => c.id === currency) ?? currencyOptions[0];

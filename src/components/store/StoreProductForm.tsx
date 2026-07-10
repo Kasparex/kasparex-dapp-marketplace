@@ -9,7 +9,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct, updateProduct } from '@/lib/store/products';
 import type { Product, ProductCategory, ProductNetwork } from '@/lib/store/types';
 import { STORE_PAYMENT_CURRENCIES, type StorePaymentCurrency } from '@/lib/store/currencies';
-import { getIntegratedTokenForWallet } from '@/lib/tokens/integratedTokens';
+import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { formatKasEq, toKasEq, mergePricingTickers } from '@/lib/pricing';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
@@ -49,9 +49,12 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
   const [thumbnailName, setThumbnailName] = useState<string | null>(null);
   const [assetCids, setAssetCids] = useState<string[]>(product?.assetCids ?? []);
   const [assetFileNames, setAssetFileNames] = useState<string[]>(product?.assetFileNames ?? []);
-  const integratedStore = getIntegratedTokenForWallet(state.address, 'store');
+  const { tokens: integratedStoreTokens } = useIntegratedTokens(state.address, 'store');
   const { snapshot: pricingSnapshot } = usePricingSnapshot(
-    mergePricingTickers([formData.paymentCurrency, integratedStore?.tick ?? '']),
+    mergePricingTickers([
+      formData.paymentCurrency,
+      ...integratedStoreTokens.map((token) => token.tick),
+    ]),
   );
 
   const paymentCurrencyOptions = useMemo(() => {
@@ -59,11 +62,13 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
       value: cur,
       label: cur,
     }));
-    if (integratedStore && !base.some((o) => o.value === integratedStore.tick)) {
-      base.push({ value: integratedStore.tick, label: `$${integratedStore.tick} (your listing)` });
+    for (const token of integratedStoreTokens) {
+      if (!base.some((o) => o.value === token.tick)) {
+        base.push({ value: token.tick, label: `$${token.tick} (your listing)` });
+      }
     }
     return base;
-  }, [integratedStore]);
+  }, [integratedStoreTokens]);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');

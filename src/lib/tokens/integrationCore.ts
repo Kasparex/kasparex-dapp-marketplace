@@ -32,8 +32,10 @@ function canonicalizeWalletKey(input: string): string {
 function listingWalletKeys(listing: PublishedTokenListing): string[] {
   const keys = new Set<string>();
   if (listing.author) keys.add(canonicalizeWalletKey(listing.author));
-  const deployer = listing.onChainSnapshot?.deployer;
+  const deployer = listing.onChainSnapshot?.deployer ?? listing.deployerAddress;
   if (deployer) keys.add(canonicalizeWalletKey(deployer));
+  const proofWallet = listing.ownershipProof?.walletAddress;
+  if (proofWallet) keys.add(canonicalizeWalletKey(proofWallet));
   return Array.from(keys);
 }
 
@@ -44,6 +46,7 @@ function walletMatchesListing(wallet: string, listing: PublishedTokenListing): b
 
 function listingHasUtilityModule(listing: PublishedTokenListing): boolean {
   if ((listing.paidModuleIds ?? []).includes('utility_integrations')) return true;
+  if (listing.listing?.instantUtility) return true;
   if (
     listing.ownership === 'deployer_verified' &&
     (listing.modulesConfig?.utilityProducts ?? []).length > 0
@@ -54,6 +57,9 @@ function listingHasUtilityModule(listing: PublishedTokenListing): boolean {
 }
 
 function listingHasProduct(listing: PublishedTokenListing, productId: HubUtilityProductId): boolean {
+  if (listing.listing?.instantUtility) {
+    return productId === 'store' || productId === 'vdonations' || productId === 'vblog_tips';
+  }
   return (listing.modulesConfig?.utilityProducts ?? []).includes(productId);
 }
 
@@ -61,9 +67,10 @@ function listingHasProduct(listing: PublishedTokenListing, productId: HubUtility
 export function resolveListingTicker(listing: PublishedTokenListing): string | null {
   const fromSnapshot = listing.onChainSnapshot?.ticker?.trim().toUpperCase();
   if (fromSnapshot) return fromSnapshot;
-  if (listing.assetKind === 'real' && listing.listingNetwork === 'krc20' && listing.symbol?.trim()) {
-    return listing.symbol.trim().toUpperCase();
-  }
+  const symbol = listing.symbol?.trim().toUpperCase();
+  if (!symbol || listing.assetKind !== 'real') return null;
+  if (listing.listingNetwork === 'krc20' || listing.listingNetwork === 'kaspa_l1') return symbol;
+  if (listing.networks?.some((entry) => entry.network === 'krc20')) return symbol;
   return null;
 }
 
@@ -104,8 +111,20 @@ export function findIntegratedListingInList(
   listings: PublishedTokenListing[],
   options?: { requireVerified?: boolean },
 ): PublishedTokenListing | null {
-  if (!wallet) return null;
+  return (
+    findAllIntegratedListingsForWallet(wallet, productId, listings, options)[0] ?? null
+  );
+}
+
+export function findAllIntegratedListingsForWallet(
+  wallet: string | null | undefined,
+  productId: HubUtilityProductId,
+  listings: PublishedTokenListing[],
+  options?: { requireVerified?: boolean },
+): PublishedTokenListing[] {
+  if (!wallet) return [];
   const requireVerified = options?.requireVerified ?? true;
+  const matches: PublishedTokenListing[] = [];
 
   for (const listing of listings) {
     if (!isEligibleKrc20Listing(listing)) continue;
@@ -113,9 +132,33 @@ export function findIntegratedListingInList(
     if (!listingHasUtilityModule(listing)) continue;
     if (!listingHasProduct(listing, productId)) continue;
     if (requireVerified && listing.ownership !== 'deployer_verified') continue;
-    return listing;
+    matches.push(listing);
   }
-  return null;
+  return matches;
+}
+
+/** All verified utility-integrated KRC-20 tokens for a hub product (registry-wide). */
+export function listIntegratedTokensForProduct(
+  productId: HubUtilityProductId,
+  listings: PublishedTokenListing[],
+  options?: { requireVerified?: boolean },
+): IntegratedToken[] {
+  const requireVerified = options?.requireVerified ?? true;
+  const tokens: IntegratedToken[] = [];
+  const seen = new Set<string>();
+
+  for (const listing of listings) {
+    if (!isEligibleKrc20Listing(listing)) continue;
+    if (!listingHasUtilityModule(listing)) continue;
+    if (!listingHasProduct(listing, productId)) continue;
+    if (requireVerified && listing.ownership !== 'deployer_verified') continue;
+    const token = integratedTokenFromListing(listing, { includeListing: false });
+    if (!token || seen.has(token.tick)) continue;
+    seen.add(token.tick);
+    tokens.push(token);
+  }
+
+  return tokens;
 }
 
 export type HubUtilityProductStatus = 'live' | 'pending_verify' | 'coming_soon';
@@ -138,7 +181,7 @@ export function resolveHubUtilityProductStatus(
 
   if (productId === 'store' || productId === 'vblog_tips') {
     const network = token.listingNetwork;
-    if (network !== 'krc20') return 'coming_soon';
+    if (network !== 'krc20' && network !== 'kaspa_l1') return 'coming_soon';
     return 'live';
   }
 

@@ -10,7 +10,7 @@ import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { GameItemCard } from '@/components/games/shop/GameItemCard';
 import type { GameItemCurrency } from '@/components/games/shop/GameItemCard';
 import { useStoreProductPurchase } from '@/hooks/useStoreProductPurchase';
-import { useIntegratedToken } from '@/hooks/useIntegratedToken';
+import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { KX_CARD_EXCERPT } from '@/lib/ui/kxTypography';
@@ -29,18 +29,19 @@ export function ProductCard({ product }: ProductCardProps) {
   const gateConfig = storeProductGateConfig(product);
   const { promptGate, isOpenable, l1Modal, closeL1Modal } = useHubListingGate(gateConfig);
   const { purchase, isProcessing, error, success, clearError } = useStoreProductPurchase(product);
-  const { token: sellerIntegratedToken } = useIntegratedToken(product.sellerAddress, 'store');
+  const { tokens: sellerIntegratedTokens } = useIntegratedTokens(product.sellerAddress, 'store');
 
   const thumbnailUrl = product.thumbnailCid ? getBestGatewayUrl(product.thumbnailCid) : undefined;
   const listedCurrency = getProductPaymentCurrency(product);
+  const integratedTicks = sellerIntegratedTokens.map((t) => t.tick).join(',');
   const pricingTickers = useMemo(
-    () => mergePricingTickers([listedCurrency, 'KREX', sellerIntegratedToken?.tick ?? '']),
-    [listedCurrency, sellerIntegratedToken?.tick],
+    () => mergePricingTickers([listedCurrency, 'KREX', ...sellerIntegratedTokens.map((t) => t.tick)]),
+    [listedCurrency, integratedTicks],
   );
   const { snapshot: pricingSnapshot } = usePricingSnapshot(pricingTickers);
   const priceOptions = useMemo(
-    () => buildStoreCheckoutPriceOptions(product, sellerIntegratedToken, pricingSnapshot),
-    [product, sellerIntegratedToken, pricingSnapshot],
+    () => buildStoreCheckoutPriceOptions(product, sellerIntegratedTokens, pricingSnapshot),
+    [product, sellerIntegratedTokens, pricingSnapshot],
   );
 
   const goToProduct = () => {

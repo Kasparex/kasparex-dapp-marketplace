@@ -42,13 +42,13 @@ export function resolveStoreUnitPrice(
 
 export function buildStoreCheckoutPriceOptions(
   product: Product,
-  integratedToken: IntegratedToken | null | undefined,
+  integratedTokens: IntegratedToken[] | null | undefined,
   snapshot: PricingSnapshot | null | undefined,
 ): StoreCheckoutPriceOption[] {
   const listedCurrency = getProductPaymentCurrency(product);
   const hubOptions = buildHubCheckoutCurrencyOptions({
     listedCurrency,
-    integratedToken,
+    integratedTokens: integratedTokens ?? [],
   });
 
   return hubOptions.map((option) => ({

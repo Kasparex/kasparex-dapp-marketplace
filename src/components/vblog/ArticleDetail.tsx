@@ -55,7 +55,7 @@ import { toKasEq, formatKasEq, resolveTokenAmountFromKas } from '@/lib/pricing/r
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { mergePricingTickers } from '@/lib/pricing/registry';
 import { transferKrc20 } from '@/lib/payments/krc20Payment';
-import { useIntegratedToken } from '@/hooks/useIntegratedToken';
+import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { buildIntegratedPaymentCurrencyIds } from '@/lib/payments/hubPaymentTypes';
 import { KxListingCategoryChip } from '@/components/ui/KxListingCategoryChip';
 
@@ -153,20 +153,23 @@ export function ArticleDetail({
     [article.modules, article.author],
   );
 
-  const integratedTipToken = useIntegratedToken(article.author, 'vblog_tips').token;
+  const { tokens: integratedTipTokens } = useIntegratedTokens(article.author, 'vblog_tips');
+  const integratedTipToken = integratedTipTokens[0] ?? null;
 
   const tipCurrencies = useMemo(() => {
     const set = new Set<string>(['KAS', 'KREX']);
     for (const c of article.modules?.tipBox?.currencies ?? []) {
       if (c) set.add(c.toUpperCase());
     }
-    if (integratedTipToken) set.add(integratedTipToken.tick);
+    for (const token of integratedTipTokens) {
+      set.add(token.tick);
+    }
     return Array.from(set);
-  }, [article.modules?.tipBox?.currencies, integratedTipToken]);
+  }, [article.modules?.tipBox?.currencies, integratedTipTokens]);
 
   const premiumCurrencies = useMemo(
-    () => buildIntegratedPaymentCurrencyIds(integratedTipToken),
-    [integratedTipToken],
+    () => buildIntegratedPaymentCurrencyIds(integratedTipToken, integratedTipTokens),
+    [integratedTipToken, integratedTipTokens],
   );
 
   const [premiumCurrency, setPremiumCurrency] = useState('KAS');
@@ -175,8 +178,10 @@ export function ArticleDetail({
     mergePricingTickers([...tipCurrencies, ...premiumCurrencies, premiumCurrency]),
   );
 
-  const integratedTokenDecimals = (currency: string) =>
-    integratedTipToken?.tick === currency ? integratedTipToken.decimals : 8;
+  const integratedTokenDecimals = (currency: string) => {
+    const match = integratedTipTokens.find((token) => token.tick === currency);
+    return match?.decimals ?? 8;
+  };
 
   const creditReaderEarn = (
     source: EarnSource,
