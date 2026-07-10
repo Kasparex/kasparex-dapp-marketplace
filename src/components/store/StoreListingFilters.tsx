@@ -31,7 +31,7 @@ export function StoreListingFilters({
   );
 
   return (
-    <div className="contents">
+    <>
       <KxMultiSelectDropdown
         values={selectedCategories}
         onChange={(next) => onCategoriesChange(next as ProductCategory[])}
@@ -56,6 +56,6 @@ export function StoreListingFilters({
         triggerClassName="k-control-btn min-w-[160px] h-10"
         menuClassName="w-64"
       />
-    </div>
+    </>
   );
 }

@@ -110,7 +110,7 @@ export function MobileFilterMenu({
 
   return (
     <>
-      <div className={`hidden md:flex items-center gap-3 min-w-0 overflow-x-auto ${className || 'flex-nowrap'}`.trim()}>{children}</div>
+      <div className={`hidden md:flex items-center gap-3 overflow-visible ${className}`.trim()}>{children}</div>
 
       <div className="md:hidden relative shrink-0">
         <button
