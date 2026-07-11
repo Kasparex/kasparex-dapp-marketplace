@@ -47,9 +47,9 @@ export function StoreListingFilters({
         values={selectedCurrencies}
         onChange={(next) => onCurrenciesChange(next as StorePaymentCurrency[])}
         options={cryptoOptions}
-        ariaLabel="Filter by cryptocurrency"
-        placeholder="Cryptocurrency"
-        filterPlaceholder="Filter currencies…"
+        ariaLabel="Filter by crypto"
+        placeholder="Crypto"
+        filterPlaceholder="Filter crypto…"
         showFilter
         triggerClassName="k-control-btn min-w-[160px] h-10"
         menuClassName="w-64"

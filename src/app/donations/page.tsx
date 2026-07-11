@@ -14,7 +14,7 @@ import { DonationsHeader } from '@/components/donations/DonationsHeader';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
 import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
 import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCrowdfundCampaignCard';
-import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, DonationCryptocurrencyFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
+import { DonationCategoryFilter, DonationTagMultiFilter, DonationCryptocurrencyFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
@@ -226,7 +226,7 @@ export default function DonationsListingPage() {
         </div>
         <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
-            <DonationsHeader />
+            <DonationsHeader networkFilter={selectedNetwork} onNetworkFilterChange={setSelectedNetwork} />
             <div id="content" className="scroll-mt-4" />
             <HubListingTitleRow
               projectId="kasparex-donations"
@@ -243,7 +243,6 @@ export default function DonationsListingPage() {
                 onReset={handleResetFilters}
                 flexWrap={true}
               >
-                <DonationNetworkFilter value={selectedNetwork} onChange={setSelectedNetwork} />
                 <DonationCategoryFilter values={selectedCategories} onChange={setSelectedCategories} />
                 <DonationTagMultiFilter
                   allTags={allTags}

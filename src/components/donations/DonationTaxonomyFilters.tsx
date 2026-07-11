@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { DONATION_CATEGORIES } from '@/lib/donations/categories';
 import {
   HubCategoryMultiFilter,
-  HubCryptocurrencyMultiFilter,
+  HubCryptoMultiFilter,
   HubTagsMultiFilter,
 } from '@/components/hub/HubMultiSelectFilters';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
@@ -88,12 +88,10 @@ export function DonationCryptocurrencyFilter({
   const currencyOptions = useMemo(() => options, [options]);
 
   return (
-    <HubCryptocurrencyMultiFilter
+    <HubCryptoMultiFilter
       values={values}
       onChange={onChange}
       options={currencyOptions}
-      placeholder="Cryptocurrency"
-      filterPlaceholder="Filter currencies…"
     />
   );
 }

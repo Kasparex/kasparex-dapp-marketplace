@@ -2,7 +2,7 @@
 
 import {
   HubCategoryMultiFilter,
-  HubCryptocurrencyMultiFilter,
+  HubCryptoMultiFilter,
   HubTagsMultiFilter,
 } from '@/components/hub/HubMultiSelectFilters';
 import { VBlogSortFilters, type VBlogSortOption } from '@/components/vblog/VBlogSortFilters';
@@ -84,12 +84,10 @@ export function VBlogListingFiltersBar({
           filterPlaceholder="Filter tags…"
         />
       ) : null}
-      <HubCryptocurrencyMultiFilter
+      <HubCryptoMultiFilter
         values={selectedCurrencies}
         onChange={onCurrenciesChange}
         options={currencyOptions}
-        placeholder="Cryptocurrency"
-        filterPlaceholder="Filter currencies…"
       />
       <KxMultiSelectDropdown
         values={magazineValues}

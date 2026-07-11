@@ -1,6 +1,6 @@
 'use client';
 
-import { HubCryptocurrencyMultiFilter } from '@/components/hub/HubMultiSelectFilters';
+import { HubCryptoMultiFilter } from '@/components/hub/HubMultiSelectFilters';
 
 export function TokenCryptocurrencyFilter({
   selectedCurrencies,
@@ -14,12 +14,10 @@ export function TokenCryptocurrencyFilter({
   if (currencyOptions.length === 0) return null;
 
   return (
-    <HubCryptocurrencyMultiFilter
+    <HubCryptoMultiFilter
       values={selectedCurrencies}
       onChange={onCurrenciesChange}
       options={currencyOptions}
-      placeholder="Cryptocurrency"
-      filterPlaceholder="Filter currencies…"
     />
   );
 }

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { gameTypes, difficultyLevels, type GameType, type GameDifficulty, type GameStatus } from '@/lib/games/games';
-import { HubCryptocurrencyMultiFilter } from '@/components/hub/HubMultiSelectFilters';
+import { HubCryptoMultiFilter } from '@/components/hub/HubMultiSelectFilters';
 
 export function GameListingFiltersBar({
   selectedGameTypes,
@@ -51,12 +51,10 @@ export function GameListingFiltersBar({
         triggerClassName="k-control-btn min-w-[140px] h-10"
         menuClassName="w-64"
       />
-      <HubCryptocurrencyMultiFilter
+      <HubCryptoMultiFilter
         values={selectedCurrencies}
         onChange={onCurrencyChange}
         options={currencyOptions}
-        placeholder="Cryptocurrency"
-        filterPlaceholder="Filter currencies…"
       />
       <KxMultiSelectDropdown
         values={selectedStatuses}

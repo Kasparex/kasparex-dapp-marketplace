@@ -17,7 +17,7 @@ import type { Category } from '@/lib/categories';
 import { categories } from '@/lib/categories';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
-import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { HubNetworkFilterDropdown } from '@/components/hub/HubNetworkFilterDropdown';
 import { DAppSourceSwitcher, type DAppSourceFilter } from '@/components/dapps/DAppSourceSwitcher';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { FilterBar } from '@/components/FilterBar';
@@ -253,8 +253,6 @@ export function DAppsHomeContent() {
                 flexWrap
               >
                 <DAppListingFiltersBar
-                  selectedCategories={selectedCategories}
-                  onCategoriesChange={handleCategoryChange}
                   selectedTags={selectedTags}
                   onTagsChange={setSelectedTags}
                   tagOptions={allTags}
@@ -262,7 +260,7 @@ export function DAppsHomeContent() {
                   onCurrenciesChange={setSelectedCurrencies}
                   currencyOptions={currencyOptions}
                 />
-                <NetworkSwitcher value={networkFilter} onChange={setNetworkFilter} />
+                <HubNetworkFilterDropdown value={networkFilter} onChange={setNetworkFilter} />
                 <SortFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}

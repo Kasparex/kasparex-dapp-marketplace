@@ -84,14 +84,14 @@ export function HubTagsMultiFilter({
   );
 }
 
-export function HubCryptocurrencyMultiFilter({
+export function HubCryptoMultiFilter({
   values,
   onChange,
   options,
-  placeholder = 'Cryptocurrency',
-  ariaLabel = 'Filter by cryptocurrency',
-  filterPlaceholder = 'Filter currencies…',
-  triggerClassName = 'k-control-btn min-w-[160px] h-10',
+  placeholder = 'Crypto',
+  ariaLabel = 'Filter by crypto',
+  filterPlaceholder = 'Filter crypto…',
+  triggerClassName = 'k-control-btn min-w-[120px] h-10',
 }: {
   values: string[];
   onChange: (next: string[]) => void;
@@ -117,3 +117,6 @@ export function HubCryptocurrencyMultiFilter({
     />
   );
 }
+
+/** @deprecated Use HubCryptoMultiFilter */
+export const HubCryptocurrencyMultiFilter = HubCryptoMultiFilter;

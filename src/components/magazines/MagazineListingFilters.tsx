@@ -2,7 +2,7 @@
 
 import {
   HubCategoryMultiFilter,
-  HubCryptocurrencyMultiFilter,
+  HubCryptoMultiFilter,
   HubTagsMultiFilter,
 } from '@/components/hub/HubMultiSelectFilters';
 import { MagazineSortFilters } from '@/components/magazines/MagazineSortFilters';
@@ -55,12 +55,10 @@ export function MagazineListingFiltersBar({
           filterPlaceholder="Filter tags…"
         />
       ) : null}
-      <HubCryptocurrencyMultiFilter
+      <HubCryptoMultiFilter
         values={selectedCurrencies}
         onChange={onCurrenciesChange}
         options={currencyOptions}
-        placeholder="Cryptocurrency"
-        filterPlaceholder="Filter currencies…"
       />
       <MagazineSortFilters sortBy={sortBy} onSortChange={onSortChange} />
     </>

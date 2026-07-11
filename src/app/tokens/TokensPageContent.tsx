@@ -9,7 +9,7 @@ import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenListingFiltersBar } from '@/components/tokens/TokenSortFilters';
 import { TokenCryptocurrencyFilter } from '@/components/tokens/TokenListingFilters';
 import { getTokenListingCurrencies } from '@/lib/hub/listingCurrencies';
-import { NetworkSwitcher } from '@/components/NetworkSwitcher';
+import { HubNetworkFilterDropdown } from '@/components/hub/HubNetworkFilterDropdown';
 import { FilterBar } from '@/components/FilterBar';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { VIEW_MODE_OPTIONS, type ViewMode } from '@/components/SortFilters';
@@ -200,7 +200,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                   ariaLabel="View mode"
                   iconOnly
                 />
-                <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
+                <HubNetworkFilterDropdown value={networkFilter} onChange={handleNetworkFilterChange} />
                 <TokenCryptocurrencyFilter
                   selectedCurrencies={selectedCurrencies}
                   onCurrenciesChange={setSelectedCurrencies}
