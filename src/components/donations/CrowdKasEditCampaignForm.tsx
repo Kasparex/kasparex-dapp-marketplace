@@ -15,6 +15,7 @@ import { formatEther } from 'viem';
 export type CrowdKasEditFormState = {
   title: string;
   description: string;
+  mainContent?: string;
   category?: string;
   tags?: string[];
   goals?: string[];
