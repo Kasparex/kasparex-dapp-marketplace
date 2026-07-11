@@ -169,7 +169,7 @@ function resolveL2EscrowModuleLines(opts: {
       ? pending.filter((id) => !excludePaidModuleIds.includes(id))
       : pending;
 
-  const lines = ids.map((id) => {
+  const lines: CrowdKasModuleAddonLine[] = ids.map((id) => {
     const offer = DONATION_MODULE_OFFERS[id];
     const ikas = getDonationModulePriceKas(offer.basePriceKas, krexBalance, krexTier, nft);
     return { id, label: offer.title, kas: ikas };

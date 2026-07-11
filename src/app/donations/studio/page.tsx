@@ -63,6 +63,7 @@ import {
   validateL2CampaignCreateForm,
   validateL2CampaignEditForm,
 } from '@/lib/donations/formValidation';
+import { getHiddenV2CampaignIds, hideV2CampaignInStudio } from '@/lib/donations/studioHiddenCampaigns';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -293,9 +294,7 @@ function DonationsStudioPageContent() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editOnChainLock, setEditOnChainLock] = useState<EditOnChainLock | null>(null);
   const [editModulesConfig, setEditModulesConfig] = useState<CrowdKasModulesConfig>({});
-  const [deleteCampaignId, setDeleteCampaignId] = useState<bigint | null>(null);
-  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  const [deleteErrorMsg, setDeleteErrorMsg] = useState<string | null>(null);
+  const [hiddenV2Bump, setHiddenV2Bump] = useState(0);
 
   const searchParams = useSearchParams();
   const pricing = useCrowdKasPricing();
@@ -326,7 +325,13 @@ function DonationsStudioPageContent() {
     return covenantCampaigns.filter((c) => normalizeAddr(c.creator) === norm);
   }, [covenantCampaigns, kaspaState.address]);
 
-  const myCampaignsCount = myCampaignsV2.length + myCovenantCampaigns.length + (hasCampaign ? 1 : 0);
+  const visibleMyCampaignsV2 = useMemo(() => {
+    void hiddenV2Bump;
+    const hidden = getHiddenV2CampaignIds();
+    return myCampaignsV2.filter((c) => !hidden.has(c.campaignId.toString()));
+  }, [myCampaignsV2, hiddenV2Bump]);
+
+  const myCampaignsCount = visibleMyCampaignsV2.length + myCovenantCampaigns.length + (hasCampaign ? 1 : 0);
   const l2CreateDraft = useMemo((): CrowdKasPricingDraft => {
     const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
     return {
@@ -489,15 +494,40 @@ function DonationsStudioPageContent() {
   };
 
   const handleDeleteCovenantCampaign = async (campaignId: string) => {
+    const campaign = covenantCampaigns.find((c) => c.id === campaignId);
+    if (!campaign) return;
+    const backers = campaign.pledges.filter((p) => !p.refunded).length;
+    if (backers > 0) {
+      window.alert('Cannot delete a campaign that has received pledges.');
+      return;
+    }
     if (!window.confirm('Delete this L1 covenant campaign permanently? This cannot be undone.')) return;
-    const creator = covenantCampaigns.find((c) => c.id === campaignId)?.creator;
     try {
-      await deleteCovenantCampaign(campaignId, creator);
+      await deleteCovenantCampaign(campaignId, campaign.creator);
       if (editingCovenantId === campaignId) closeEditCampaignForm();
       void refreshCovenantCampaigns();
     } catch (e) {
       setEditErrorMsg(getErrorMessage(e, 'Failed to delete campaign'));
     }
+  };
+
+  const handleDeleteL2Campaign = (campaignId: bigint) => {
+    const campaign = myCampaignsV2.find((c) => c.campaignId === campaignId);
+    if (!campaign) return;
+    const canDelete =
+      campaign.active &&
+      campaign.raisedWei === 0n &&
+      campaign.donorCount === 0n &&
+      (campaign.l1RecordedTotalWei ?? 0n) === 0n &&
+      (campaign.l1RecordedDonationCount ?? 0n) === 0n;
+    if (!canDelete) {
+      window.alert('Cannot delete a campaign that has received donations.');
+      return;
+    }
+    if (!window.confirm('Delete this L2 campaign from your studio? This cannot be undone.')) return;
+    hideV2CampaignInStudio(campaignId);
+    setHiddenV2Bump((v) => v + 1);
+    if (editingV2CampaignId === campaignId) closeEditCampaignForm();
   };
 
   const syncEditImageFromMetadata = (meta: DonationCampaignMetadata | null) => {
@@ -773,32 +803,6 @@ function DonationsStudioPageContent() {
     });
   };
 
-  const confirmDeleteCampaign = async () => {
-    if (!igraEscrowV2Address || deleteCampaignId == null) return;
-    if (!address) {
-      setDeleteErrorMsg('Connect your Igra (EVM) wallet to cancel this campaign. No KAS platform fee applies.');
-      return;
-    }
-    setDeleteSubmitting(true);
-    setDeleteErrorMsg(null);
-    try {
-      const hash = await writeContractAsync({
-        chainId: VDONATIONS_CHAIN_ID,
-        address: igraEscrowV2Address as Address,
-        abi: DONATION_ESCROW_V2_ABI,
-        functionName: 'cancelCampaign',
-        args: [deleteCampaignId],
-      });
-      await waitForTransactionReceipt(wagmiChainConfig, { hash });
-      setDeleteCampaignId(null);
-      void refetchMyCampaignsV2();
-    } catch (e) {
-      setDeleteErrorMsg(getErrorMessage(e, 'Delete failed'));
-    } finally {
-      setDeleteSubmitting(false);
-    }
-  };
-
   const loadEditFormV2 = async (campaignId: bigint, ipfsHash: string, l1Address: string, targetWei: bigint, deadline: bigint) => {
     if (!ipfsHash) return;
     setEditingV2CampaignId(campaignId);
@@ -1038,55 +1042,6 @@ function DonationsStudioPageContent() {
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      {deleteCampaignId != null && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-campaign-title"
-        >
-          <button
-            type="button"
-            className="absolute inset-0 cursor-default"
-            aria-label="Close dialog"
-            onClick={() => setDeleteCampaignId(null)}
-          />
-          <div className="relative z-[1] max-w-md w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
-            <h3 id="delete-campaign-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Delete this campaign?
-            </h3>
-            <p className="kx-body mt-3">
-              This action is <strong className="text-red-700 dark:text-red-400">irreversible</strong>. On-chain campaign #
-              {deleteCampaignId.toString()} will be cancelled and removed from your studio list. No KAS platform fee applies.
-              Your Igra wallet only signs the free <code className="font-mono text-xs">cancelCampaign</code> transaction (network gas in iKAS).
-            </p>
-            {deleteErrorMsg ? (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-3">{deleteErrorMsg}</p>
-            ) : null}
-            <div className="flex flex-wrap justify-end gap-2 mt-6">
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-medium"
-                onClick={() => {
-                  setDeleteCampaignId(null);
-                  setDeleteErrorMsg(null);
-                }}
-                disabled={deleteSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-                onClick={() => void confirmDeleteCampaign()}
-                disabled={deleteSubmitting || !address || !igraEscrowV2Address}
-              >
-                {deleteSubmitting ? 'Deleting…' : 'Delete permanently'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
         <HubPageAccentLayout projectId="kasparex-donations">
           <div className="hidden lg:block flex-shrink-0">
@@ -1808,7 +1763,7 @@ function DonationsStudioPageContent() {
                               </div>
                             ) : (
                               <CrowdKasMyCampaignsPanel
-                                l2Campaigns={myCampaignsV2}
+                                l2Campaigns={visibleMyCampaignsV2}
                                 covenantCampaigns={myCovenantCampaigns}
                                 creatorAddress={address as Address | undefined}
                                 isLoading={myCampaignsV2Loading}
@@ -1818,7 +1773,7 @@ function DonationsStudioPageContent() {
                                   void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
                                 }}
                                 onClaim={handleClaimV2}
-                                onDelete={setDeleteCampaignId}
+                                onDelete={handleDeleteL2Campaign}
                                 onEditCovenant={loadCovenantEditForm}
                                 onDeleteCovenant={(id) => void handleDeleteCovenantCampaign(id)}
                               />
