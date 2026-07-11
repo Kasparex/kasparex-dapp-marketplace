@@ -94,6 +94,7 @@ export function CrowdKasMyCampaignsPanel({
   const filteredL2 = useMemo(() => {
     const q = search.trim().toLowerCase();
     return l2Campaigns.filter((c) => {
+      if (!c.active) return false;
       const meta = metadataById[c.campaignId.toString()];
       const title = meta?.title?.toLowerCase() ?? '';
       const isLive = c.active && Number(c.deadline) > nowSec;
@@ -272,8 +273,11 @@ export function CrowdKasMyCampaignsPanel({
                     <button
                       type="button"
                       disabled={!canDeleteCampaign}
-                      onClick={() => onDelete(c.campaignId)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(c.campaignId);
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                     >
                       Delete
                     </button>

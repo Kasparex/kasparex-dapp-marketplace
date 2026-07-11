@@ -7,7 +7,10 @@ import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 /** Campaign metadata stored on IPFS (JSON) */
 export interface DonationCampaignMetadata {
   title: string;
+  /** Short teaser shown on cards and above main content (max 300 chars in studio). */
   description: string;
+  /** Primary campaign body (rich text, no character limit). */
+  mainContent?: string;
   /** Curated category label (optional). */
   category?: string;
   /** Freeform tags (optional). Stored normalized (lowercase/trimmed) by the editor. */

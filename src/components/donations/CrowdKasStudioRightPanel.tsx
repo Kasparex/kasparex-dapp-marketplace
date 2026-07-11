@@ -16,6 +16,7 @@ type L1PanelProps = {
   submitDisabled?: boolean;
   isSubmitting?: boolean;
   onPreview?: () => void;
+  onCancel?: () => void;
   error?: string | null;
 };
 
@@ -29,11 +30,12 @@ type L2PanelProps = {
   submitDisabled?: boolean;
   isSubmitting?: boolean;
   onPreview?: () => void;
+  onCancel?: () => void;
   error?: string | null;
 };
 
 export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
-  const { infoText, submitLabel, submittingLabel, onSubmit, submitDisabled, isSubmitting, onPreview, error } = props;
+  const { infoText, submitLabel, submittingLabel, onSubmit, submitDisabled, isSubmitting, onPreview, onCancel, error } = props;
 
   return (
     <div className="flex flex-col gap-4 xl:sticky xl:top-6">
@@ -49,6 +51,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           submitDisabled={submitDisabled}
           isSubmitting={isSubmitting}
           onPreview={onPreview}
+          onCancel={onCancel}
           error={error}
         />
       ) : (
@@ -61,6 +64,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           submitDisabled={submitDisabled}
           isSubmitting={isSubmitting}
           onPreview={onPreview}
+          onCancel={onCancel}
           error={error}
         />
       )}

@@ -61,7 +61,8 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
     const { state } = useKaspaWallet();
     const { error, createCampaign, runtimeMode, effectiveMode } = useCovenantCrowdfund();
     const [title, setTitle] = useState('');
-    const [memo, setMemo] = useState('');
+    const [shortDescription, setShortDescription] = useState('');
+    const [mainContent, setMainContent] = useState('');
     const [goalKas, setGoalKas] = useState('5');
     const [deadline, setDeadline] = useState('');
     const [category, setCategory] = useState('');
@@ -91,7 +92,8 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
       });
       onPricingDraftChange?.({
         title,
-        description: memo,
+        description: shortDescription,
+        mainContent,
         category: category || undefined,
         tags,
         imageUrl: imageSource === 'url' ? imageUrl.trim() : undefined,
@@ -107,11 +109,12 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
       imageCid,
       imageSource,
       imageUrl,
-      memo,
+      mainContent,
       modules,
       onPricingDraftChange,
       onPricingInputsChange,
       payoutSplitRecipientCount,
+      shortDescription,
       tags,
       title,
     ]);
@@ -134,13 +137,14 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
       try {
         const campaign = await createCampaign({
           title,
-          memo,
+          memo: shortDescription,
           goalKas: parseFloat(goalKas),
           deadline: new Date(deadline),
         });
         setCreatedId(campaign.id);
         setTitle('');
-        setMemo('');
+        setShortDescription('');
+        setMainContent('');
         setTags([]);
         setCategory('');
         setImageUrl('');
@@ -195,23 +199,32 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         </div>
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
-            <KxFormFieldLabel>Description</KxFormFieldLabel>
+            <KxFormFieldLabel>Short Description</KxFormFieldLabel>
             <span
               className={`text-xs ${
-                getCrowdKasCharacterCount(memo.replace(/<[^>]*>/g, '')) > CROWDKAS_CONTENT_LIMITS.description.max
+                getCrowdKasCharacterCount(shortDescription) > CROWDKAS_CONTENT_LIMITS.description.max
                   ? 'text-red-500'
                   : 'text-zinc-500'
               }`}
             >
-              {getCrowdKasCharacterCount(memo.replace(/<[^>]*>/g, ''))} / {CROWDKAS_CONTENT_LIMITS.description.max}
+              {getCrowdKasCharacterCount(shortDescription)} / {CROWDKAS_CONTENT_LIMITS.description.max}
             </span>
           </div>
-          <KxRichTextEditor
-            value={memo}
-            onChange={setMemo}
-            minRows={6}
-            placeholder="What are you raising for?"
+          <textarea
+            className="k-input text-base w-full resize-y min-h-[4.5rem]"
+            placeholder="Brief summary for cards and listings"
+            value={shortDescription}
             maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+            onChange={(e) => setShortDescription(e.target.value)}
+          />
+        </div>
+        <div>
+          <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+          <KxRichTextEditor
+            value={mainContent}
+            onChange={setMainContent}
+            minRows={14}
+            placeholder="Primary campaign story and details"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -332,7 +345,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
                     </span>
                   </Tooltip>
                 </p>
-                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+                <div className="my-6 rounded-xl border border-amber-300/60 dark:border-amber-500/40 bg-amber-50/90 dark:bg-amber-950/30 p-4 text-sm text-amber-950 dark:text-amber-100">
                   L1 covenant full logic will be available once covenants are live, integrated, and ready on Kaspa. Until
                   then, simulator mode lets you draft campaigns and preview pricing.
                 </div>

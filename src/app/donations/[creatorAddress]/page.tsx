@@ -20,6 +20,7 @@ import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { CrowdKasPublicModules } from '@/components/donations/CrowdKasPublicModules';
+import { CrowdKasPremiumSectionUnlock } from '@/components/donations/CrowdKasPremiumSectionUnlock';
 import { useQuery } from '@tanstack/react-query';
 
 function DonationCampaignPageContent() {
@@ -225,10 +226,29 @@ function DonationCampaignPageContent() {
                     />
                     {metadataLoading && <p className="text-zinc-500 dark:text-zinc-400 text-sm">Loading description...</p>}
                     {!metadataLoading && metadata?.description && (
+                      <div className="mb-6">
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Short description</h3>
+                        <p className="text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap">
+                          {metadata.description.replace(/<[^>]*>/g, '')}
+                        </p>
+                      </div>
+                    )}
+                    {!metadataLoading && metadata?.mainContent?.trim() ? (
+                      <div className="prose prose-zinc dark:prose-invert max-w-none mb-6">
+                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 not-prose">Main content</h3>
+                        <KxRichTextContent html={metadata.mainContent} className="kx-prose" />
+                      </div>
+                    ) : !metadataLoading && metadata?.description ? (
                       <div className="prose prose-zinc dark:prose-invert max-w-none mb-6">
                         <KxRichTextContent html={metadata.description} className="kx-prose" />
                       </div>
-                    )}
+                    ) : null}
+
+                    <CrowdKasPremiumSectionUnlock
+                      campaign={campaign}
+                      metadata={metadata}
+                      onDonationRecorded={refetchCampaign}
+                    />
 
                     {metadata?.goals && metadata.goals.length > 0 && (
                       <div>

@@ -150,9 +150,10 @@ export function useCovenantCrowdfund() {
   );
 
   const deleteCampaign = useCallback(
-    async (campaignId: string) => {
-      if (!state.address) throw new Error('Connect wallet first');
-      await runtime.deleteCampaign(campaignId, state.address);
+    async (campaignId: string, creatorOverride?: string) => {
+      const creator = creatorOverride ?? state.address;
+      if (!creator) throw new Error('Connect wallet first');
+      await runtime.deleteCampaign(campaignId, creator);
       await refresh();
     },
     [refresh, runtime, state.address],

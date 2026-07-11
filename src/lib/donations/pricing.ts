@@ -31,6 +31,7 @@ export interface CrowdKasModuleAddonLine {
 export interface CrowdKasPricingDraft {
   title: string;
   description: string;
+  mainContent?: string;
   category?: string;
   tags?: string[];
   goals?: string[];
@@ -95,6 +96,7 @@ export function buildCanonicalCrowdKasPayload(draft: CrowdKasPricingDraft, actio
     action,
     title: draft.title.trim(),
     description: draft.description.trim(),
+    mainContent: (draft.mainContent ?? '').trim(),
     category: (draft.category ?? '').trim(),
     tags: (draft.tags ?? []).map((t) => t.trim()).filter(Boolean),
     goals: (draft.goals ?? []).map((g) => g.trim()).filter(Boolean),

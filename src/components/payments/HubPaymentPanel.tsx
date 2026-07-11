@@ -57,7 +57,10 @@ export function HubPaymentPanel({
 
       <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
         {lines.map((line) => (
-          <div key={line.label} className="flex justify-between gap-2">
+          <div
+            key={line.label}
+            className={`flex justify-between gap-2${line.dividerBefore ? ' border-t border-zinc-200 dark:border-zinc-700 pt-1.5' : ''}`}
+          >
             <span className="truncate">{line.label}</span>
             <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
               {line.value}

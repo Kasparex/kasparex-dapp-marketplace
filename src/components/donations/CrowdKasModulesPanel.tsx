@@ -26,6 +26,8 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { CROWDKAS_FREE_MODULE_CARD_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
+import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
+import { CROWDKAS_PREMIUM_SECTION_OFFER } from '@/lib/donations/premiumSection';
 
 export function CrowdKasModulesPanel({
   modules,
@@ -187,6 +189,26 @@ export function CrowdKasModulesPanel({
             ) : null}
           </div>
         ) : null}
+
+        <div className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
+          <KxInFormPremiumRow
+            flat
+            title={CROWDKAS_PREMIUM_SECTION_OFFER.title}
+            description={CROWDKAS_PREMIUM_SECTION_OFFER.description}
+            priceLabel="Free to enable"
+            checked={Boolean(modules.premiumSectionEnabled)}
+            onToggle={() =>
+              onChange({
+                ...modules,
+                premiumSectionEnabled: !modules.premiumSectionEnabled,
+              })
+            }
+            accent="hub"
+          />
+          {modules.premiumSectionEnabled ? (
+            <CrowdKasPremiumSectionFields modules={modules} onChange={onChange} />
+          ) : null}
+        </div>
 
         {(Object.keys(DONATION_MODULE_OFFERS) as DonationPaidModuleId[]).map((id) => {
           const offer = DONATION_MODULE_OFFERS[id];

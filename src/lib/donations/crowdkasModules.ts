@@ -47,6 +47,12 @@ export interface CrowdKasModulesConfig {
   thankYouMessage?: string;
   payoutSplitEnabled?: boolean;
   payoutSplitRecipients?: CrowdKasPayoutSplitRow[];
+  /** Premium section unlocks (vBlog-style paid content for donors). */
+  premiumSectionEnabled?: boolean;
+  premiumSectionContent?: string;
+  premiumSectionPriceKas?: number;
+  premiumSectionPayoutAddress?: string;
+  premiumSectionPayoutSplits?: CrowdKasPayoutSplitRow[];
   /** Paid modules selected at create time (unlocked separately on-chain). */
   pendingPaidModules?: DonationPaidModuleId[];
 }
@@ -71,6 +77,20 @@ export function cleanCrowdKasModulesConfig(config: CrowdKasModulesConfig): Crowd
     if (rows.length) out.payoutSplitRecipients = rows;
   }
   if (config.pendingPaidModules?.length) out.pendingPaidModules = config.pendingPaidModules;
+  if (config.premiumSectionEnabled) {
+    out.premiumSectionEnabled = true;
+    const content = config.premiumSectionContent?.trim();
+    if (content) out.premiumSectionContent = content;
+    if (config.premiumSectionPriceKas != null && config.premiumSectionPriceKas > 0) {
+      out.premiumSectionPriceKas = config.premiumSectionPriceKas;
+    }
+    const payoutAddr = config.premiumSectionPayoutAddress?.trim();
+    if (payoutAddr) out.premiumSectionPayoutAddress = payoutAddr;
+    const premiumSplits = (config.premiumSectionPayoutSplits ?? [])
+      .map((r) => ({ address: r.address.trim(), sharePercent: r.sharePercent }))
+      .filter((r) => r.address && r.sharePercent > 0);
+    if (premiumSplits.length) out.premiumSectionPayoutSplits = premiumSplits;
+  }
   return Object.keys(out).length > 0 ? out : undefined;
 }
 

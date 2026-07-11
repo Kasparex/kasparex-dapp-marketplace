@@ -229,6 +229,7 @@ function DonationsStudioPageContent() {
   const [createForm, setCreateForm] = useState<StudioCampaignForm>({
     title: '',
     description: '',
+    mainContent: '',
     category: undefined,
     tags: [],
     goals: [],
@@ -251,6 +252,7 @@ function DonationsStudioPageContent() {
   const [editForm, setEditForm] = useState<StudioCampaignForm>({
     title: '',
     description: '',
+    mainContent: '',
     category: undefined,
     tags: [],
     goals: [],
@@ -281,6 +283,8 @@ function DonationsStudioPageContent() {
   const [editOnChainLock, setEditOnChainLock] = useState<EditOnChainLock | null>(null);
   const [editModulesConfig, setEditModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [deleteCampaignId, setDeleteCampaignId] = useState<bigint | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteErrorMsg, setDeleteErrorMsg] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const pricing = useCrowdKasPricing();
@@ -317,6 +321,7 @@ function DonationsStudioPageContent() {
     return {
       title: createForm.title,
       description: createForm.description || '',
+      mainContent: createForm.mainContent || '',
       category,
       tags: normalizeTags(createForm.tags ?? []),
       goals: createForm.goals?.length ? createForm.goals : undefined,
@@ -337,6 +342,7 @@ function DonationsStudioPageContent() {
     return {
       title: editForm.title,
       description: editForm.description || '',
+      mainContent: editForm.mainContent || '',
       category,
       tags: normalizeTags(editForm.tags ?? []),
       goals: editForm.goals?.length ? editForm.goals : undefined,
@@ -401,6 +407,7 @@ function DonationsStudioPageContent() {
     return {
       title: createForm.title,
       description: createForm.description || '',
+      mainContent: createForm.mainContent || '',
       category,
       tags: tags.length ? tags : undefined,
       goals: createForm.goals?.length ? createForm.goals : undefined,
@@ -457,8 +464,9 @@ function DonationsStudioPageContent() {
 
   const handleDeleteCovenantCampaign = async (campaignId: string) => {
     if (!window.confirm('Delete this L1 covenant campaign permanently? This cannot be undone.')) return;
+    const creator = covenantCampaigns.find((c) => c.id === campaignId)?.creator;
     try {
-      await deleteCovenantCampaign(campaignId);
+      await deleteCovenantCampaign(campaignId, creator);
       if (editingCovenantId === campaignId) closeEditCampaignForm();
       void refreshCovenantCampaigns();
     } catch (e) {
@@ -588,6 +596,7 @@ function DonationsStudioPageContent() {
       const metadata: DonationCampaignMetadata = {
         title: createForm.title,
         description: createForm.description || '',
+        mainContent: createForm.mainContent || undefined,
         category,
         tags: tags.length ? tags : undefined,
         goals: createForm.goals?.length ? createForm.goals : undefined,
@@ -653,6 +662,7 @@ function DonationsStudioPageContent() {
       const metadata: DonationCampaignMetadata = {
         title: createForm.title,
         description: createForm.description || '',
+        mainContent: createForm.mainContent || undefined,
         category,
         tags: tags.length ? tags : undefined,
         goals: createForm.goals?.length ? createForm.goals : undefined,
@@ -710,15 +720,30 @@ function DonationsStudioPageContent() {
     });
   };
 
-  const confirmDeleteCampaign = () => {
-    if (!writeEscrowV2Address || deleteCampaignId == null) return;
-    writeContract({
-      address: writeEscrowV2Address as Address,
-      abi: DONATION_ESCROW_V2_ABI,
-      functionName: 'cancelCampaign',
-      args: [deleteCampaignId],
-    });
-    setDeleteCampaignId(null);
+  const confirmDeleteCampaign = async () => {
+    if (!igraEscrowV2Address || deleteCampaignId == null) return;
+    if (!address) {
+      setDeleteErrorMsg('Connect your Igra (EVM) wallet to cancel this campaign. No KAS platform fee applies.');
+      return;
+    }
+    setDeleteSubmitting(true);
+    setDeleteErrorMsg(null);
+    try {
+      const hash = await writeContractAsync({
+        chainId: VDONATIONS_CHAIN_ID,
+        address: igraEscrowV2Address as Address,
+        abi: DONATION_ESCROW_V2_ABI,
+        functionName: 'cancelCampaign',
+        args: [deleteCampaignId],
+      });
+      await waitForTransactionReceipt(wagmiChainConfig, { hash });
+      setDeleteCampaignId(null);
+      void refetchMyCampaignsV2();
+    } catch (e) {
+      setDeleteErrorMsg(getErrorMessage(e, 'Delete failed'));
+    } finally {
+      setDeleteSubmitting(false);
+    }
   };
 
   const loadEditFormV2 = async (campaignId: bigint, ipfsHash: string, l1Address: string, targetWei: bigint, deadline: bigint) => {
@@ -739,6 +764,7 @@ function DonationsStudioPageContent() {
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
+        mainContent: meta?.mainContent ?? '',
         category: meta?.category && isDonationCategory(meta.category) ? meta.category : undefined,
         tags: normalizeTags(meta?.tags ?? []),
         goals: meta?.goals ?? [],
@@ -781,6 +807,7 @@ function DonationsStudioPageContent() {
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
+        mainContent: meta?.mainContent ?? '',
         category: meta?.category && isDonationCategory(meta.category) ? meta.category : undefined,
         tags: normalizeTags(meta?.tags ?? []),
         goals: meta?.goals ?? [],
@@ -848,6 +875,7 @@ function DonationsStudioPageContent() {
       const metadata: DonationCampaignMetadata = {
         title: editForm.title,
         description: editForm.description || '',
+        mainContent: editForm.mainContent || undefined,
         category,
         tags: tags.length ? tags : undefined,
         goals: editForm.goals?.length ? editForm.goals : undefined,
@@ -891,6 +919,7 @@ function DonationsStudioPageContent() {
       const metadata: DonationCampaignMetadata = {
         title: editForm.title,
         description: editForm.description || '',
+        mainContent: editForm.mainContent || undefined,
         category,
         tags: tags.length ? tags : undefined,
         goals: editForm.goals?.length ? editForm.goals : undefined,
@@ -956,24 +985,31 @@ function DonationsStudioPageContent() {
             </h3>
             <p className="kx-body mt-3">
               This action is <strong className="text-red-700 dark:text-red-400">irreversible</strong>. On-chain campaign #
-              {deleteCampaignId.toString()} will be cancelled and will no longer appear in your studio list. You can only delete
-              campaigns that have received no donations and have no recorded L1 activity.
+              {deleteCampaignId.toString()} will be cancelled and removed from your studio list. No KAS platform fee applies.
+              Your Igra wallet only signs the free <code className="font-mono text-xs">cancelCampaign</code> transaction (network gas in iKAS).
             </p>
+            {deleteErrorMsg ? (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-3">{deleteErrorMsg}</p>
+            ) : null}
             <div className="flex flex-wrap justify-end gap-2 mt-6">
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-medium"
-                onClick={() => setDeleteCampaignId(null)}
+                onClick={() => {
+                  setDeleteCampaignId(null);
+                  setDeleteErrorMsg(null);
+                }}
+                disabled={deleteSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700"
-                onClick={confirmDeleteCampaign}
-                disabled={!writeEscrowV2Address}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                onClick={() => void confirmDeleteCampaign()}
+                disabled={deleteSubmitting || !address || !igraEscrowV2Address}
               >
-                Delete permanently
+                {deleteSubmitting ? 'Deleting…' : 'Delete permanently'}
               </button>
             </div>
           </div>
@@ -1126,25 +1162,35 @@ function DonationsStudioPageContent() {
                                 </div>
                                 <div>
                                   <div className="flex items-center justify-between gap-2 mb-2">
-                                    <KxFormFieldLabel>Description</KxFormFieldLabel>
+                                    <KxFormFieldLabel>Short Description</KxFormFieldLabel>
                                     <span
                                       className={`text-xs ${
-                                        getCrowdKasCharacterCount(createForm.description.replace(/<[^>]*>/g, '')) >
+                                        getCrowdKasCharacterCount(createForm.description) >
                                         CROWDKAS_CONTENT_LIMITS.description.max
                                           ? 'text-red-500'
                                           : 'text-zinc-500'
                                       }`}
                                     >
-                                      {getCrowdKasCharacterCount(createForm.description.replace(/<[^>]*>/g, ''))} /{' '}
+                                      {getCrowdKasCharacterCount(createForm.description)} /{' '}
                                       {CROWDKAS_CONTENT_LIMITS.description.max}
                                     </span>
                                   </div>
-                                  <KxRichTextEditor
+                                  <textarea
                                     value={createForm.description}
-                                    onChange={(value) => setCreateForm((f) => ({ ...f, description: value }))}
-                                    minRows={8}
-                                    placeholder="What is this campaign for?"
+                                    onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
+                                    placeholder="Brief summary for cards and listings"
                                     maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+                                    rows={3}
+                                    className="k-input text-base w-full resize-y min-h-[4.5rem]"
+                                  />
+                                </div>
+                                <div>
+                                  <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+                                  <KxRichTextEditor
+                                    value={createForm.mainContent ?? ''}
+                                    onChange={(value) => setCreateForm((f) => ({ ...f, mainContent: value }))}
+                                    minRows={14}
+                                    placeholder="Primary campaign story and details"
                                   />
                                 </div>
                                 <CrowdKasCampaignMediaField
@@ -1608,25 +1654,23 @@ function DonationsStudioPageContent() {
                                 </div>
                                 <div>
                                   <div className="flex items-center justify-between gap-2 mb-2">
-                                    <KxFormFieldLabel>Description</KxFormFieldLabel>
+                                    <KxFormFieldLabel>Short Description</KxFormFieldLabel>
                                     <span className="text-xs text-zinc-500">
-                                      {getCrowdKasCharacterCount(covenantEditMemo.replace(/<[^>]*>/g, ''))} /{' '}
+                                      {getCrowdKasCharacterCount(covenantEditMemo)} /{' '}
                                       {CROWDKAS_CONTENT_LIMITS.description.max}
                                     </span>
                                   </div>
-                                  <KxRichTextEditor
+                                  <textarea
+                                    className="k-input text-base w-full resize-y min-h-[4.5rem]"
                                     value={covenantEditMemo}
-                                    onChange={setCovenantEditMemo}
-                                    minRows={6}
                                     maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+                                    onChange={(e) => setCovenantEditMemo(e.target.value)}
+                                    placeholder="Brief summary for cards and listings"
                                   />
                                 </div>
                                 {covenantEditError ? (
                                   <p className="text-sm text-red-600 dark:text-red-400">{covenantEditError}</p>
                                 ) : null}
-                                <button type="button" onClick={closeEditCampaignForm} className="k-control-btn">
-                                  Cancel
-                                </button>
                               </div>
                             ) : showEditForm ? (
                               <div id="crowdkas-edit-campaign" className="scroll-mt-24">
@@ -1714,6 +1758,7 @@ function DonationsStudioPageContent() {
                           submittingLabel="Updating…"
                           isSubmitting={covenantEditSubmitting}
                           submitDisabled={covenantEditSubmitting}
+                          onCancel={closeEditCampaignForm}
                           error={covenantEditError}
                         />
                       ) : showEditForm && (studioTab === 'my-campaigns' || studioTab === 'l2-escrow') ? (
@@ -1726,6 +1771,7 @@ function DonationsStudioPageContent() {
                           submittingLabel="Updating…"
                           isSubmitting={editSubmitting || isUpdatePending}
                           submitDisabled={editSubmitting || isUpdatePending}
+                          onCancel={closeEditCampaignForm}
                           error={editErrorMsg ?? (updateError ? getErrorMessage(updateError, 'Update failed') : null)}
                         />
                       ) : activeTab === 'l1-covenant' ? (

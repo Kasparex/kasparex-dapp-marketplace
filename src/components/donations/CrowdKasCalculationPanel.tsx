@@ -49,11 +49,13 @@ function buildL1BreakdownLines(
     lines.push({
       label: 'Modules subtotal',
       value: formatLineKas(quote.modulesFeeKas, paymentCurrency, pricingSnapshot),
+      dividerBefore: true,
     });
   }
   lines.push({
     label: 'Subtotal',
     value: formatLineKas(quote.subtotalKas, paymentCurrency, pricingSnapshot),
+    dividerBefore: true,
   });
   lines.push({ label: 'Payload bytes', value: String(quote.payloadBytes) });
   lines.push({ label: 'Chunk estimate', value: String(quote.chunkCount) });
@@ -71,6 +73,8 @@ export function CrowdKasL1CalculationPanel({
   submitDisabled = false,
   onPreview,
   previewLabel = 'Preview campaign',
+  onCancel,
+  cancelLabel = 'Cancel',
   error,
 }: {
   quote: CrowdKasL1PriceQuote;
@@ -83,6 +87,8 @@ export function CrowdKasL1CalculationPanel({
   submitDisabled?: boolean;
   onPreview?: () => void;
   previewLabel?: string;
+  onCancel?: () => void;
+  cancelLabel?: string;
   error?: string | null;
 }) {
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
@@ -146,6 +152,16 @@ export function CrowdKasL1CalculationPanel({
                 {isSubmitting ? submittingLabel : submitLabel}
               </button>
             ) : null}
+            {onCancel ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="w-full k-control-btn disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cancelLabel}
+              </button>
+            ) : null}
             {onPreview ? (
               <button
                 type="button"
@@ -184,9 +200,9 @@ function buildL2BreakdownLines(quote: CrowdKasL2PriceQuote) {
     });
   }
   if (quote.l1ModulesFeeKas > 0) {
-    lines.push({ label: 'Modules subtotal', value: `${quote.l1ModulesFeeKas} KAS` });
+    lines.push({ label: 'Modules subtotal', value: `${quote.l1ModulesFeeKas} KAS`, dividerBefore: true });
   }
-  lines.push({ label: 'Subtotal', value: formatIkasAmount(quote.subtotalIkas) });
+  lines.push({ label: 'Subtotal', value: formatIkasAmount(quote.subtotalIkas), dividerBefore: true });
   lines.push({ label: 'Payload bytes', value: String(quote.payloadBytes) });
   lines.push({ label: 'Chunk estimate', value: String(quote.chunkCount) });
   return lines;
@@ -202,6 +218,8 @@ export function CrowdKasL2CalculationPanel({
   submitDisabled = false,
   onPreview,
   previewLabel = 'Preview campaign',
+  onCancel,
+  cancelLabel = 'Cancel',
   error,
 }: {
   quote: CrowdKasL2PriceQuote;
@@ -213,6 +231,8 @@ export function CrowdKasL2CalculationPanel({
   submitDisabled?: boolean;
   onPreview?: () => void;
   previewLabel?: string;
+  onCancel?: () => void;
+  cancelLabel?: string;
   error?: string | null;
 }) {
   const isEdit = quote.action === 'edit';
@@ -250,6 +270,16 @@ export function CrowdKasL2CalculationPanel({
               className="w-full k-control-btn !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? submittingLabel : submitLabel}
+            </button>
+          ) : null}
+          {onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="w-full k-control-btn disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cancelLabel}
             </button>
           ) : null}
           {onPreview ? (

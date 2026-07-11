@@ -191,18 +191,29 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
 
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
-            <KxFormFieldLabel>Description</KxFormFieldLabel>
+            <KxFormFieldLabel>Short Description</KxFormFieldLabel>
             <span className="text-xs text-zinc-500">
               {getCrowdKasCharacterCount(form.description.replace(/<[^>]*>/g, ''))} /{' '}
               {CROWDKAS_CONTENT_LIMITS.description.max}
             </span>
           </div>
-          <KxRichTextEditor
+          <textarea
             value={form.description}
-            onChange={(value) => onFormChange((f) => ({ ...f, description: value }))}
-            minRows={6}
-            placeholder="What is this campaign for?"
+            onChange={(e) => onFormChange((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Brief summary for cards and listings"
             maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+            rows={3}
+            className="k-input text-base w-full resize-y min-h-[4.5rem]"
+          />
+        </div>
+
+        <div>
+          <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+          <KxRichTextEditor
+            value={form.mainContent ?? ''}
+            onChange={(value) => onFormChange((f) => ({ ...f, mainContent: value }))}
+            minRows={14}
+            placeholder="Primary campaign story and details"
           />
         </div>
 

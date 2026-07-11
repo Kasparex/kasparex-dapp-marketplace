@@ -154,4 +154,6 @@ export function formatHubPaymentAmount(
 export type HubPaymentQuoteLine = {
   label: string;
   value: string;
+  /** Renders a divider above this row (vBlog calculation breakdown style). */
+  dividerBefore?: boolean;
 };

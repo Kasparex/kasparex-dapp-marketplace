@@ -1097,6 +1097,28 @@
   background: rgb(255 255 255);
 }
 
+/* vDonate (crowdkas): emerald accent on form controls inside HubAccentScope */
+[data-hub-accent='crowdkas'] .k-input:focus,
+[data-hub-accent='crowdkas'] .k-textarea:focus,
+[data-hub-accent='crowdkas'] .k-select:focus {
+  --tw-ring-color: var(--hub-accent-muted);
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--hub-accent);
+}
+
+[data-hub-accent='crowdkas'] .kx-quill-editor:focus-within .ql-container.ql-snow {
+  box-shadow: 0 0 0 2px var(--hub-accent);
+}
+
+[data-hub-accent='crowdkas'] .kx-quill-editor .ql-editor {
+  caret-color: var(--hub-accent);
+}
+
+[data-hub-accent='crowdkas'] button:focus-visible {
+  outline: 2px solid var(--hub-accent);
+  outline-offset: 2px;
+}
+
 .dark .kx-quill-editor:focus-within .ql-container.ql-snow {
   background: rgb(24 24 27 / 0.6);
 }
