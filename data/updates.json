@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1783795640-3d69736",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Restore vDonate Studio header, full-width tabs, and edit right panel. (by Kasparex)",
+      "date": "2026-07-11T20:46:35+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1783793947-7df6e3e",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix vDonate edit form category type for Vercel build. (by Kasparex)",
