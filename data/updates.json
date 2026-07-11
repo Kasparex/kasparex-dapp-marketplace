@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1783793947-7df6e3e",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix vDonate edit form category type for Vercel build. (by Kasparex)",
+      "date": "2026-07-11T20:18:43+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1783793260-a885691",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Harden vDonate edit security and align studio UI with Hub standards. (by Kasparex)",
