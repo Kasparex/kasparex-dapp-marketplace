@@ -10,6 +10,7 @@ import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import type { CrowdKasL1PriceQuote } from '@/lib/donations/pricing';
+import { CROWDKAS_CALCULATION_ASIDE } from '@/components/donations/crowdkasFormTheme';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 
 function formatLineAmount(kas: number, currencyId: StorePaymentCurrency, snapshot: ReturnType<typeof usePricingSnapshot>['snapshot']) {
@@ -95,6 +96,7 @@ export function CrowdKasL1CalculationPanel({
     <>
       <HubPaymentPanel
         title="L1 calculation breakdown"
+        asideClassName={CROWDKAS_CALCULATION_ASIDE}
         lines={lines}
         totalLabel="Total to pay"
         totalDisplay={totalDisplay}
@@ -180,23 +182,53 @@ export function CrowdKasL2CalculationPanel({
   error?: string | null;
 }) {
   const formatIkasFee = (ikas: number) => (ikas <= 0 ? 'Free (+ gas)' : `${ikas} iKAS`);
-  const feeLineLabel = quote.action === 'edit' ? 'Edit fee' : 'Platform fee';
+  const isEdit = quote.action === 'edit';
+  const l1ModuleLines = quote.l1ModuleLines ?? [];
+  const l1ModulesFeeKas = quote.l1ModulesFeeKas ?? 0;
+
+  const lines = useMemo(() => {
+    const out: { label: string; value: string }[] = [
+      {
+        label: isEdit ? 'L2 metadata update' : 'L2 escrow deploy',
+        value: 'Network gas in iKAS',
+      },
+    ];
+    if (!isEdit && quote.baseFeeIkas > 0) {
+      out.unshift({ label: 'Platform fee', value: formatIkasFee(quote.baseFeeIkas) });
+    }
+    for (const line of l1ModuleLines) {
+      out.push({
+        label: `${line.label} (L1 unlock)`,
+        value: line.kas <= 0 ? 'Free' : `${line.kas} KAS`,
+      });
+    }
+    if (l1ModulesFeeKas > 0) {
+      out.push({ label: 'L1 modules subtotal', value: `${l1ModulesFeeKas} KAS` });
+    }
+    return out;
+  }, [isEdit, l1ModuleLines, l1ModulesFeeKas, quote.baseFeeIkas]);
+
+  const totalDisplay = isEdit
+    ? l1ModulesFeeKas > 0
+      ? `Gas in iKAS + ${l1ModulesFeeKas} KAS modules`
+      : 'Gas in iKAS (see wallet)'
+    : formatIkasFee(quote.totalIkas);
 
   return (
     <HubPaymentPanel
-      title={quote.action === 'edit' ? 'L2 edit breakdown' : 'L2 calculation breakdown'}
-      lines={[
-        { label: feeLineLabel, value: formatIkasFee(quote.baseFeeIkas) },
-        { label: 'Network gas', value: 'Paid in iKAS' },
-      ]}
-      totalLabel="Total to pay (iKAS)"
-      totalDisplay={formatIkasFee(quote.totalIkas)}
+      title={isEdit ? 'L2 edit breakdown' : 'L2 calculation breakdown'}
+      asideClassName={CROWDKAS_CALCULATION_ASIDE}
+      lines={lines}
+      totalLabel={isEdit ? 'What you pay' : 'Total to pay (iKAS)'}
+      totalDisplay={totalDisplay}
       infoText={infoText}
       infoAccent="emerald"
       footer={
         <>
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3 text-xs text-zinc-600 dark:text-zinc-400">
-            Paid modules (Featured, L1 Tip Jar) unlock separately on Kaspa L1 in KAS after your L2 campaign is live.
+            {isEdit
+              ? 'The L2 update is nonpayable on-chain. Your wallet shows network gas in iKAS. New paid modules unlock on Kaspa L1 in KAS after you save.'
+              : 'Paid modules (Featured, L1 Tip Jar) unlock separately on Kaspa L1 in KAS after your L2 campaign is live.'}
           </div>
           {onSubmit ? (
             <button

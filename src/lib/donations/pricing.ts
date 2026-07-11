@@ -35,8 +35,12 @@ export interface CrowdKasL1PriceQuote {
 
 export interface CrowdKasL2PriceQuote {
   action: CrowdKasAction;
+  /** L2 on-chain platform fee in iKAS (0 when the contract call is nonpayable). */
   baseFeeIkas: number;
   totalIkas: number;
+  /** Pending L1 paid module unlocks billed in KAS after save. */
+  l1ModuleLines?: CrowdKasModuleAddonLine[];
+  l1ModulesFeeKas?: number;
 }
 
 /** @deprecated Use computeCrowdKasL1PriceQuote or computeCrowdKasL2PriceQuote. */
@@ -112,15 +116,51 @@ export function computeCrowdKasL1PriceQuote(opts: {
   };
 }
 
-export function computeCrowdKasL2PriceQuote(opts: { action: CrowdKasAction }): CrowdKasL2PriceQuote {
-  const { action } = opts;
+export function computeCrowdKasL2PriceQuote(opts: {
+  action: CrowdKasAction;
+  pendingPaidModules?: DonationPaidModuleId[];
+  alreadyUnlocked?: Partial<Record<DonationPaidModuleId, boolean>>;
+  krexBalance?: number;
+  krexTier?: KREXTier;
+  nft?: { hasAny: boolean; hasDiamond: boolean; hasRarest: boolean };
+}): CrowdKasL2PriceQuote {
+  const {
+    action,
+    pendingPaidModules = [],
+    alreadyUnlocked = {},
+    krexBalance = 0,
+    krexTier = 'Tier0',
+    nft,
+  } = opts;
+
+  // L2 escrow create/update contract calls are nonpayable; only network gas is charged in iKAS.
   const baseFeeIkas =
-    action === 'create' ? VDONATE_L2_CREATE_FEE_IKAS : action === 'edit' ? VDONATE_L2_EDIT_FEE_IKAS : 0;
+    action === 'create' ? 0 : action === 'edit' ? 0 : 0;
+
+  const l1ModuleLines: CrowdKasModuleAddonLine[] =
+    action === 'edit'
+      ? pendingPaidModules
+          .filter((id) => !alreadyUnlocked[id])
+          .map((id) => {
+            const offer = DONATION_MODULE_OFFERS[id];
+            const kas = getDonationModulePriceKas(
+              offer.basePriceKas,
+              krexBalance,
+              krexTier,
+              nft ?? { hasAny: false, hasDiamond: false, hasRarest: false },
+            );
+            return { id, label: offer.title, kas };
+          })
+      : [];
+
+  const l1ModulesFeeKas = l1ModuleLines.reduce((sum, line) => sum + line.kas, 0);
 
   return {
     action,
     baseFeeIkas,
     totalIkas: baseFeeIkas,
+    l1ModuleLines: l1ModuleLines.length ? l1ModuleLines : undefined,
+    l1ModulesFeeKas: l1ModulesFeeKas > 0 ? l1ModulesFeeKas : undefined,
   };
 }
 

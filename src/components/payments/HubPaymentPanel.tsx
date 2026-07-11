@@ -22,6 +22,7 @@ export function HubPaymentPanel({
   krexBalance = 0,
   footer,
   className = '',
+  asideClassName,
   currencyAccent = 'default',
   infoAccent = 'default',
 }: {
@@ -38,6 +39,7 @@ export function HubPaymentPanel({
   krexBalance?: number;
   footer?: ReactNode;
   className?: string;
+  asideClassName?: string;
   currencyAccent?: 'default' | 'store';
   infoAccent?: 'default' | 'emerald';
 }) {
@@ -45,7 +47,7 @@ export function HubPaymentPanel({
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
 
   return (
-    <aside className={`${KX_CALCULATION_ASIDE} ${className}`.trim()}>
+    <aside className={`${asideClassName ?? KX_CALCULATION_ASIDE} ${className}`.trim()}>
       <div className="mb-1 flex items-center justify-between gap-2">
         <DAppSectionHeader title={title} className="!mb-0" />
         {tier != null ? <TierBadge tier={tier} isUnlocked={krexBalance > 0} /> : null}

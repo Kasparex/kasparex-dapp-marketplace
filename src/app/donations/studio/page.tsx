@@ -286,6 +286,7 @@ function DonationsStudioPageContent() {
   const [modulesConfig, setModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [previewOpen, setPreviewOpen] = useState(false);
   const covenantPanelRef = useRef<CrowdKasCovenantPanelHandle>(null);
+  const editTxPendingRef = useRef(false);
   const [l1Submitting, setL1Submitting] = useState(false);
   const [l1PricingInputs, setL1PricingInputs] = useState({
     payoutSplitRecipientCount: 0,
@@ -316,7 +317,15 @@ function DonationsStudioPageContent() {
     [l1PricingInputs, pricing],
   );
   const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create'), [pricing]);
-  const l2EditQuote = useMemo(() => pricing.estimateL2Quote('edit'), [pricing]);
+  const l2EditQuote = useMemo(() => {
+    const pending = editModulesConfig.pendingPaidModules ?? [];
+    const unlocked =
+      editingV2CampaignId != null ? unlockByCampaignId.get(editingV2CampaignId.toString()) : undefined;
+    return pricing.estimateL2Quote('edit', {
+      pendingPaidModules: pending,
+      alreadyUnlocked: unlocked ?? {},
+    });
+  }, [editModulesConfig.pendingPaidModules, editingV2CampaignId, pricing, unlockByCampaignId]);
 
   const studioTabRaw = searchParams.get('tab');
   const studioTab =
@@ -380,6 +389,11 @@ function DonationsStudioPageContent() {
       void refetchVerifiedV2();
       void refetchMyCampaignsV2();
       void refetchModuleUnlocks();
+      if (editTxPendingRef.current) {
+        editTxPendingRef.current = false;
+        closeEditCampaignForm();
+        setEditSubmitting(false);
+      }
     }
   }, [
     isTxSuccess,
@@ -392,6 +406,13 @@ function DonationsStudioPageContent() {
     refetchMyCampaignsV2,
     refetchModuleUnlocks,
   ]);
+
+  useEffect(() => {
+    if (updateError && editTxPendingRef.current) {
+      editTxPendingRef.current = false;
+      setEditSubmitting(false);
+    }
+  }, [updateError]);
 
   const handleVerify = () => {
     if (!writeEscrowAddress) return;
@@ -742,18 +763,16 @@ function DonationsStudioPageContent() {
       const deadline = editOnChainLock.deadline;
       const l1Address = editOnChainLock.l1Address;
 
+      editTxPendingRef.current = true;
       writeContract({
         address: writeEscrowV2Address as Address,
         abi: DONATION_ESCROW_V2_ABI,
         functionName: 'updateCampaign',
         args: [editingV2CampaignId, ipfsHash, targetWei, deadline, l1Address],
       });
-      setShowEditForm(false);
-      setEditingV2CampaignId(null);
-      setEditOnChainLock(null);
     } catch (e) {
+      editTxPendingRef.current = false;
       setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
-    } finally {
       setEditSubmitting(false);
     }
   };
@@ -785,17 +804,16 @@ function DonationsStudioPageContent() {
       const targetWei = editOnChainLock.targetWei;
       const deadline = editOnChainLock.deadline;
       const l1Address = editOnChainLock.l1Address;
+      editTxPendingRef.current = true;
       writeContract({
         address: writeEscrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
         functionName: 'updateCampaign',
         args: [ipfsHash, targetWei, deadline, l1Address],
       });
-      setShowEditForm(false);
-      setEditOnChainLock(null);
     } catch (e) {
+      editTxPendingRef.current = false;
       setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
-    } finally {
       setEditSubmitting(false);
     }
   };
@@ -1514,7 +1532,7 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2EditQuote}
-                          infoText="Update your L2 escrow campaign metadata on Igra. Edits require the platform fee in iKAS plus network gas."
+                          infoText="Update L2 campaign metadata on Igra. The on-chain update is nonpayable; your wallet charges network gas in iKAS. New paid modules bill in KAS on L1 after save."
                           onSubmit={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
                           submitLabel="Save changes"
                           submittingLabel="Updating…"

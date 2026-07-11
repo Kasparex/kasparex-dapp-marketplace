@@ -47,9 +47,22 @@ export function useCrowdKasPricing() {
 
   const estimateL2Quote = useMemo(
     () =>
-      (action: CrowdKasAction): CrowdKasL2PriceQuote =>
-        computeCrowdKasL2PriceQuote({ action }),
-    [],
+      (
+        action: CrowdKasAction,
+        opts?: {
+          pendingPaidModules?: import('@/lib/donations/modules').DonationPaidModuleId[];
+          alreadyUnlocked?: Partial<Record<import('@/lib/donations/modules').DonationPaidModuleId, boolean>>;
+        },
+      ): CrowdKasL2PriceQuote =>
+        computeCrowdKasL2PriceQuote({
+          action,
+          pendingPaidModules: opts?.pendingPaidModules ?? [],
+          alreadyUnlocked: opts?.alreadyUnlocked ?? {},
+          krexBalance,
+          krexTier: tier,
+          nft: moduleNftFlags,
+        }),
+    [krexBalance, moduleNftFlags, tier],
   );
 
   return {

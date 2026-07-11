@@ -10,3 +10,7 @@ export const CROWDKAS_FREE_MODULE_CARD_CLASS =
 
 export const CROWDKAS_ACCENT = '#10b981';
 export const CROWDKAS_ACCENT_TEXT = 'text-emerald-600 dark:text-emerald-400';
+
+/** Calculation aside panel scoped to HubAccentScope (emerald on vDonate). */
+export const CROWDKAS_CALCULATION_ASIDE =
+  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_var(--hub-accent-shadow)] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
