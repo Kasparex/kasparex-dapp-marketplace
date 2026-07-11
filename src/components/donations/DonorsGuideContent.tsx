@@ -4,7 +4,7 @@ export function DonorsGuideContent() {
   return (
     <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 space-y-6">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS · Donors</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">vDonate · Donors</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Claims, refunds &amp; what you should know</h1>
         <p className="kx-body">
           Short guide for people who donate - especially on <strong>L2 escrow</strong> campaigns.

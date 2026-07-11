@@ -38,9 +38,9 @@ const REDEEMABLE_ROWS = [
   },
   {
     scope: 'Redeem balance',
-    topic: 'CrowdKAS campaign',
+    topic: 'vDonate campaign',
     typical: String(HUB_EARN_POINTS.crowdkasCampaignCreate),
-    notes: 'Create a campaign from CrowdKAS studio with your Kaspa L1 tied to it; fires when the studio create tx settles.',
+    notes: 'Create a campaign from vDonate Studio with your Kaspa L1 tied to it; fires when the studio create tx settles.',
   },
   {
     scope: 'Redeem balance',

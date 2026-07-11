@@ -63,7 +63,7 @@ export default function DonationsHelpPage() {
 
               <section id="how-it-works" className="scroll-mt-24">
                 <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 mb-12">
-                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">vDonate</p>
                   <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">What happens after a campaign ends?</h1>
                   <p className="kx-body">
                     A super simple guide to funds, safety, and refunds - plus how this fits into Revenue Tree.

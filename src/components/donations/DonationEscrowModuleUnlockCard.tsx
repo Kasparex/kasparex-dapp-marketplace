@@ -236,7 +236,7 @@ export function DonationEscrowModuleUnlockCard({
         className={`relative aspect-[16/9] bg-gradient-to-br ${heroGradient} border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center px-4 text-center`}
       >
         <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-2">
-          {isUnlocked ? 'Unlocked' : 'CrowdKAS module'}
+          {isUnlocked ? 'Unlocked' : 'vDonate module'}
         </p>
         <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{offer.title}</h3>
       </div>

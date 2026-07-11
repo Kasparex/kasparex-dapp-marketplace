@@ -47,7 +47,7 @@ export function computeCrowdKasPriceQuote(opts: {
   });
 
   const modulesFeeKas = moduleLines.reduce((sum, line) => sum + line.kas, 0);
-  const networkFeeBufferKas = action === 'verify' ? 0 : 0.001;
+  const networkFeeBufferKas = action === 'verify' || action === 'delete' ? 0 : 0.001;
   const totalKas = baseFeeKas + modulesFeeKas + networkFeeBufferKas;
 
   return {

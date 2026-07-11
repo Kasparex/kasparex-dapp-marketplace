@@ -1,4 +1,5 @@
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
+import { VDONATE_SHORT_NAME, VDONATE_STUDIO_NAME } from '@/lib/donations/brand';
 import type { HubWalletGateConfig } from '@/components/hub/HubWalletGateShell';
 import type { Game } from '@/lib/games/games';
 import type { HubNetworkLayer } from '@/lib/hub/access';
@@ -17,7 +18,7 @@ export function gameL1PlayGateConfig(game: Pick<Game, 'name'>): HubWalletGateCon
 
 export const CROWDKAS_L2_STUDIO_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
-  name: 'CrowdKAS Studio',
+  name: VDONATE_STUDIO_NAME,
   message: 'Connect your EVM wallet on Igra Mainnet to create and manage campaigns.',
   requirement: { layer: 'L2', chainIds: [CROWDKAS_CHAIN_ID] },
   networkBadge: { layer: 'L2', label: 'Igra Mainnet' },
@@ -26,7 +27,7 @@ export const CROWDKAS_L2_STUDIO_GATE: HubWalletGateConfig = {
 
 export const CROWDKAS_L2_DASHBOARD_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
-  name: 'CrowdKAS dashboard',
+  name: `${VDONATE_SHORT_NAME} dashboard`,
   message: 'Connect your EVM wallet on Igra Mainnet to see your creator campaigns.',
   requirement: { layer: 'L2', chainIds: [CROWDKAS_CHAIN_ID] },
   networkBadge: { layer: 'L2', label: 'Igra Mainnet' },
@@ -35,7 +36,7 @@ export const CROWDKAS_L2_DASHBOARD_GATE: HubWalletGateConfig = {
 
 export const CROWDKAS_L2_MODULES_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
-  name: 'CrowdKAS modules',
+  name: `${VDONATE_SHORT_NAME} modules`,
   message: 'Connect your EVM wallet on Igra Mainnet to unlock modules for your campaigns.',
   requirement: { layer: 'L2', chainIds: [CROWDKAS_CHAIN_ID] },
   networkBadge: { layer: 'L2', label: 'Igra Mainnet' },
@@ -44,7 +45,7 @@ export const CROWDKAS_L2_MODULES_GATE: HubWalletGateConfig = {
 
 export const CROWDKAS_L1_COVENANT_GATE: HubWalletGateConfig = {
   title: 'Wallet required',
-  name: 'CrowdKAS L1 covenant',
+  name: `${VDONATE_SHORT_NAME} L1 covenant`,
   message: 'Connect your Kaspa wallet to launch or manage L1 covenant campaigns.',
   requirement: { layer: 'L1' },
   networkBadge: { layer: 'L1', label: 'Kaspa' },

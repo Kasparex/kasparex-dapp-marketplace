@@ -117,7 +117,7 @@ function CrowdKasModulesPageContent() {
         <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
           <div className="max-w-6xl mx-auto space-y-8">
             <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-white via-emerald-500/5 to-transparent dark:from-zinc-900 dark:via-emerald-500/10 dark:to-zinc-950 p-8 sm:p-10">
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400 mb-4">CrowdKAS modules</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400 mb-4">vDonate modules</p>
               <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight mb-4">Unlock campaign upgrades</h1>
               <p className="kx-body max-w-3xl">
                 Paid modules are recorded on <strong>DonationEscrowV2</strong>: pay with Kaspa (L1), then confirm one transaction on {crowdkasName}. Discounts may apply from KREX
@@ -135,7 +135,7 @@ function CrowdKasModulesPageContent() {
 
             {!v2Ready && (
               <p className="text-sm text-amber-700 dark:text-amber-300 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-                CrowdKAS V2 escrow is not configured for this deployment. Set <code className="font-mono text-xs">NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET</code> (or
+                vDonate V2 escrow is not configured for this deployment. Set <code className="font-mono text-xs">NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET</code> (or
                 38833) to enable module unlocks.
               </p>
             )}

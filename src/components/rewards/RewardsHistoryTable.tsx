@@ -59,7 +59,7 @@ function friendlyEarnSource(source: string): string {
     legacy_import: 'Imported balance',
     vblog_article_create: 'vBlog publish',
     vblog_article_update: 'vBlog update',
-    crowdkas_campaign_create: 'CrowdKAS campaign',
+    crowdkas_campaign_create: 'vDonate campaign',
     store_product_list: 'Store listing',
     dapp_directory_list: 'dApp directory listing',
     magazine_issue_publish: 'Magazine publish',

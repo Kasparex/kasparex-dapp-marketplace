@@ -152,7 +152,7 @@ export const hubProjects: HubProject[] = [
   },
   {
     id: 'kasparex-donations',
-    name: 'Kasparex CrowdKAS',
+    name: 'Kasparex vDonate',
     category: 'Creator Tools',
     description: 'One hub for crowdfunding: L2 escrow on Igra, Kaspa L1 tips, and L1 covenant goal raises with the same campaign layout.',
     route: '/donations',

@@ -1,6 +1,7 @@
 'use client';
 
 import { AdSlider } from '@/components/ads/AdSlider';
+import { VDONATE_PRODUCT_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { DonationNetworkSwitcher } from '@/components/donations/DonationNetworkSwitcher';
 import type { DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
@@ -30,12 +31,11 @@ export function DonationsHeader({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              CrowdKAS
+              {VDONATE_SHORT_NAME}
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 leading-tight tracking-tight">
-              Kasparex{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400">
-                CrowdKAS
+                {VDONATE_PRODUCT_NAME}
               </span>
             </h1>
             <p className="kx-body max-w-2xl leading-relaxed mb-8">

@@ -63,7 +63,7 @@ export function CrowdKasPricingCards({
         note="Gas on Igra; metadata stored on IPFS."
       />
       <CrowdKasFeeCard title="Edit / update" feeKas={editFee} tier={tier} />
-      <CrowdKasFeeCard title="Delete" feeKas={deleteFee} tier={tier} note="Only empty campaigns." />
+      <CrowdKasFeeCard title="Delete" feeKas={deleteFee} tier={tier} note="Free. Only empty campaigns with no donations." />
     </div>
   );
 }

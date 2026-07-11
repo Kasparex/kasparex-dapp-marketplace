@@ -129,7 +129,7 @@ export function HowItWorksWizard() {
 
       <div className="mt-6 text-center">
         <Link href="/donations/studio" className="inline-block px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
-          Open CrowdKAS Studio
+          Open vDonate Studio
         </Link>
       </div>
     </>

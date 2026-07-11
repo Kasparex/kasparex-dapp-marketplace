@@ -28,7 +28,7 @@ function getCrowdKASDApp(chainId: number | undefined): DApp {
   const status: DAppStatus = isTestnet ? 'Testnet' : 'Mainnet';
   return {
     id: 'donations',
-    name: 'Kasparex CrowdKAS',
+    name: 'Kasparex vDonate',
     slug: 'donations',
     category: 'payment' as const,
     network: chain?.name ?? 'L2',
@@ -283,7 +283,7 @@ export function DonationBlock({
           {isL2Connected && !onCrowdkasChain && (
             <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-200 space-y-2">
               <p>
-                CrowdKAS donations use <strong>{crowdkasChainName}</strong>. Switch your wallet to this network before donating.
+                vDonate donations use <strong>{crowdkasChainName}</strong>. Switch your wallet to this network before donating.
               </p>
               <button
                 type="button"
@@ -330,7 +330,7 @@ export function DonationBlock({
             This campaign has ended. L2 escrow actions below use <strong>{crowdkasChainName}</strong>.
           </p>
           {!isL2Connected && (
-            <p className="text-amber-600 dark:text-amber-400 text-sm">Connect the wallet you use for CrowdKAS (creator or donor).</p>
+            <p className="text-amber-600 dark:text-amber-400 text-sm">Connect the wallet you use for vDonate (creator or donor).</p>
           )}
           {isL2Connected && !onCrowdkasChain && (
             <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-200 space-y-2">

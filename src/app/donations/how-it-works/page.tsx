@@ -26,7 +26,7 @@ export default function DonationsHowItWorksPage() {
               </Link>
 
               <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8">
-                <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">CrowdKAS</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">vDonate</p>
                 <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">What happens after a campaign ends?</h1>
                 <p className="kx-body">
                   A super simple guide to funds, safety, and refunds - plus how this fits into Revenue Tree.
@@ -34,7 +34,7 @@ export default function DonationsHowItWorksPage() {
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
                   Prefer one page with donor tips?{' '}
                   <Link href="/donations/help" className="text-emerald-600 dark:text-emerald-400 hover:underline">
-                    Open CrowdKAS Help
+                    Open vDonate Help
                   </Link>
                   .
                 </p>

@@ -193,7 +193,7 @@ export function DonationL1TipJar({
           <span className="text-xs text-zinc-600 dark:text-zinc-400">Kaspa</span>
           <KaspaL1WalletButton />
         </div>
-        {!evmConnected && <p className="text-xs text-amber-800 dark:text-amber-200">Connect your EVM wallet (same network as CrowdKAS / Igra).</p>}
+        {!evmConnected && <p className="text-xs text-amber-800 dark:text-amber-200">Connect your EVM wallet (same network as vDonate / Igra).</p>}
         <button
           type="button"
           disabled={payDisabled}

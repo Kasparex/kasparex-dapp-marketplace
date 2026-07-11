@@ -756,7 +756,7 @@ function RewardItem({ label, value, icon }: { label: string; value: string; icon
 
 const MOCK_PROFILE_DAPPS = [
   { id: 'ph-d1', title: 'Kasparex Feed', slug: 'kasparex-feed', status: 'Live' },
-  { id: 'ph-d2', title: 'CrowdKAS bridge', slug: 'crowdkas-bridge', status: 'Draft' },
+  { id: 'ph-d2', title: 'vDonate bridge', slug: 'crowdkas-bridge', status: 'Draft' },
   { id: 'ph-d3', title: 'NFT tools hub', slug: 'nft-tools-hub', status: 'Review' },
 ] as const;
 
@@ -926,7 +926,7 @@ function CreatorContentTab({
       {
         id: 'crowdkas-campaigns',
         type: 'crowdkas',
-        title: 'CrowdKAS campaigns',
+        title: 'vDonate campaigns',
         subtitle: linkedEvmAddress ? 'Public campaign page' : 'Link an EVM wallet to enable public campaigns page',
         status: linkedEvmAddress ? 'published' : 'draft',
         availability: linkedEvmAddress ? 'live' : 'coming-soon',
@@ -1093,7 +1093,7 @@ function CreatorCreateTab({
     { key: 'product', title: 'Create Product', description: 'Open the store dashboard.', href: `/store/dashboard?tab=products` },
     { key: 'dapp', title: 'New dApp', description: 'Build or list a dApp.', href: `/dapps/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
     { key: 'ads', title: 'Create Ad', description: 'Open Kasparex Ads editor.', href: `/ads/editor/new?returnTo=${encodeURIComponent(returnTo)}` },
-    { key: 'crowdkas', title: 'New CrowdKAS Campaign', description: 'Open CrowdKAS Studio.', href: `/donations/studio` },
+    { key: 'crowdkas', title: 'New vDonate Campaign', description: 'Open vDonate Studio.', href: `/donations/studio` },
     { key: 'games', title: 'New Game', description: 'Coming soon.', disabled: true },
   ];
 

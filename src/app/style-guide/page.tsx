@@ -1097,7 +1097,7 @@ export default function StyleGuidePage() {
     },
     {
       projectId: 'kasparex-donations',
-      projectName: 'Kasparex CrowdKAS',
+      projectName: 'Kasparex vDonate',
       accentId: 'crowdkas',
       token: 'emerald-500',
       description: 'Crowdfunding / campaigns',

@@ -68,7 +68,7 @@ export default function CovenantCrowdfundPage({
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Campaign not found</h2>
             <p className="text-zinc-500 dark:text-zinc-400 mt-2 max-w-md mx-auto">
               This L1 covenant campaign is not on this device. Open the link in the browser where it was created, or
-              launch a new campaign from CrowdKAS Studio.
+              launch a new campaign from vDonate Studio.
             </p>
             <Link href="/donations" className="inline-block mt-4 text-emerald-600 dark:text-emerald-400 hover:underline">
               ← All campaigns
@@ -247,7 +247,7 @@ export default function CovenantCrowdfundPage({
                     <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Links</h3>
                     <div className="flex flex-wrap gap-3 text-sm">
                       <Link href="/donations/help" className="text-emerald-600 dark:text-emerald-400 hover:underline">
-                        CrowdKAS Help
+                        vDonate Help
                       </Link>
                       <Link href="/dapps/covenant-crowdfund" className="text-emerald-600 dark:text-emerald-400 hover:underline">
                         Covenant Crowdfund dApp

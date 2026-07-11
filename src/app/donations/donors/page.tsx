@@ -25,7 +25,7 @@ export default function DonationsDonorsPage() {
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
                 All donor guides also live on{' '}
                 <Link href="/donations/help#donors" className="text-emerald-600 dark:text-emerald-400 hover:underline">
-                  CrowdKAS Help
+                  vDonate Help
                 </Link>
                 .
               </p>

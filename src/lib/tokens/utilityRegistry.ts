@@ -48,7 +48,7 @@ export const HUB_UTILITY_PRODUCTS: HubUtilityProduct[] = [
   },
   {
     id: 'crowdkas',
-    label: 'CrowdKAS',
+    label: 'vDonate',
     description: 'Run crowdfunding campaigns that accept your token.',
     href: '/dapps/crowdkas',
     badge: 'Crowdfunding',

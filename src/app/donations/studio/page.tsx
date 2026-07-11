@@ -47,6 +47,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
+import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -830,7 +831,7 @@ function DonationsStudioPageContent() {
                 <div className="flex items-center gap-3 mb-2">
                   <span className="h-7 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.35)]" aria-hidden="true" />
                   <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
-                    CrowdKAS <span className="text-emerald-600 dark:text-emerald-400">Studio</span>
+                    {VDONATE_SHORT_NAME} <span className="text-emerald-600 dark:text-emerald-400">Studio</span>
                   </h1>
                 </div>
                 <p className="kx-body max-w-3xl">
@@ -838,7 +839,7 @@ function DonationsStudioPageContent() {
                 </p>
               </div>
 
-              <MobileDesktopOnlyGate title="CrowdKAS Studio" backHref="/donations" backLabel="Back to CrowdKAS">
+              <MobileDesktopOnlyGate title={VDONATE_STUDIO_NAME} backHref="/donations" backLabel={`Back to ${VDONATE_SHORT_NAME}`}>
               <CrowdKasAuthorDashboard myCampaignsCount={myCampaignsCount}>
                 {(activeTab) => (
                   <div className="space-y-8">
@@ -853,7 +854,7 @@ function DonationsStudioPageContent() {
                         {activeTab === 'l1-covenant' && (
                           <section id="covenant-create" className="scroll-mt-24">
                             <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay" className="min-h-[18rem]">
-                              <CrowdKasCovenantPanel ref={covenantPanelRef} variant="embed" defaultTab="create" studioMode />
+                              <CrowdKasCovenantPanel ref={covenantPanelRef} variant="embed" studioMode />
                             </HubWalletGateShell>
                           </section>
                         )}
@@ -863,7 +864,7 @@ function DonationsStudioPageContent() {
                     <div className="flex flex-col gap-6 min-w-0">
                     {showMissingConfigNudge && (
                     <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
-                      <p className="font-semibold">CrowdKAS contracts are not configured for Igra Mainnet yet.</p>
+                      <p className="font-semibold">{VDONATE_SHORT_NAME} contracts are not configured for Igra Mainnet yet.</p>
                       <p className="text-sm">
                         You are on <strong>Igra Mainnet</strong>, but `DonationEscrow` address is missing for chain {VDONATIONS_CHAIN_ID}.
                         Set `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_IGRA_MAINNET` (or `NEXT_PUBLIC_DONATION_ESCROW_ADDRESS_38833`) in Vercel and redeploy.
@@ -873,7 +874,7 @@ function DonationsStudioPageContent() {
 
                   {showMissingV2ConfigNudge && (
                     <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
-                      <p className="font-semibold">CrowdKAS V2 contracts are not configured for Igra Mainnet yet.</p>
+                      <p className="font-semibold">{VDONATE_SHORT_NAME} V2 contracts are not configured for Igra Mainnet yet.</p>
                       <p className="text-sm">
                         You are on <strong>Igra Mainnet</strong>, but `DonationEscrowV2` address is missing for chain {VDONATIONS_CHAIN_ID}.
                         Set `NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET` (or `NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_38833`) in Vercel and redeploy.
@@ -1101,7 +1102,7 @@ function DonationsStudioPageContent() {
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Create campaign</h2>
                 {hasCampaign && (
                   <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm text-amber-900 dark:text-amber-100 mb-4">
-                    You already have a V1 campaign. V1 only supports <strong>one campaign per creator</strong>. To create multiple campaigns you need CrowdKAS V2
+                    You already have a V1 campaign. V1 only supports <strong>one campaign per creator</strong>. To create multiple campaigns you need {VDONATE_SHORT_NAME} V2
                     (set <code className="font-mono">NEXT_PUBLIC_DONATION_ESCROW_V2_ADDRESS_IGRA_MAINNET</code> in Vercel).
                   </div>
                 )}
@@ -1671,6 +1672,7 @@ function DonationsStudioPageContent() {
                       )}
                     </div>
                   )}
+                    </div>
                   </HubWalletGateShell>
                         )}
 
