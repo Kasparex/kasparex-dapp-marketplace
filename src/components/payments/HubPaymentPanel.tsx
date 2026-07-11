@@ -23,6 +23,7 @@ export function HubPaymentPanel({
   footer,
   className = '',
   currencyAccent = 'default',
+  infoAccent = 'default',
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -38,6 +39,7 @@ export function HubPaymentPanel({
   footer?: ReactNode;
   className?: string;
   currencyAccent?: 'default' | 'store';
+  infoAccent?: 'default' | 'emerald';
 }) {
   const showCurrency =
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
@@ -85,7 +87,13 @@ export function HubPaymentPanel({
       ) : null}
 
       {infoText ? (
-        <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+        <div
+          className={`rounded-xl border p-3 text-sm text-zinc-700 dark:text-zinc-300 ${
+            infoAccent === 'emerald'
+              ? 'border-emerald-500/25 bg-emerald-500/10'
+              : 'border-[#02abb8]/25 bg-[#02abb8]/10'
+          }`}
+        >
           {infoText}
         </div>
       ) : null}

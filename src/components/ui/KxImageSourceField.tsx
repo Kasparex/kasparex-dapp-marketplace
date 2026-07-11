@@ -18,6 +18,7 @@ export function KxImageSourceField({
   uploadHint,
   isUploading,
   inputClassName = 'k-modal-field-input',
+  accent = 'default',
 }: {
   source: ImageSource;
   onSourceChange: (next: ImageSource) => void;
@@ -31,6 +32,7 @@ export function KxImageSourceField({
   uploadHint?: string;
   isUploading?: boolean;
   inputClassName?: string;
+  accent?: 'default' | 'emerald';
 }) {
   return (
     <div className="space-y-3">
@@ -63,6 +65,7 @@ export function KxImageSourceField({
           onClear={onClearFile}
           onChange={onFileChange}
           disabled={isUploading}
+          accent={accent}
         />
       )}
     </div>

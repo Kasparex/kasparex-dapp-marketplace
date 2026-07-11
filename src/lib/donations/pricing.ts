@@ -1,4 +1,4 @@
-import { resolveKpxCovenantDeployPrice } from '@/lib/covenant/kpxCovenantPricing';
+import { resolveKpxCovenantDeployPrice, computeCovenantPremiumSlotAddon } from '@/lib/covenant/kpxCovenantPricing';
 import { getDonationModulePriceKas, DONATION_MODULE_OFFERS, type DonationPaidModuleId } from '@/lib/donations/modules';
 import type { KREXTier } from '@/lib/rewards/types';
 
@@ -26,6 +26,7 @@ export interface CrowdKasL1PriceQuote {
   action: CrowdKasAction;
   baseFeeKas: number;
   krexDiscountPercent: number;
+  payoutSplitAddonKas: number;
   modulesFeeKas: number;
   moduleLines: CrowdKasModuleAddonLine[];
   networkFeeBufferKas: number;
@@ -51,19 +52,32 @@ export interface CrowdKasPriceQuote {
 export function computeCrowdKasL1PriceQuote(opts: {
   action: CrowdKasAction;
   enabledPaidModules?: DonationPaidModuleId[];
+  payoutSplitRecipientCount?: number;
   krexBalance?: number;
   krexTier?: KREXTier;
   nft?: { hasAny: boolean; hasDiamond: boolean; hasRarest: boolean };
 }): CrowdKasL1PriceQuote {
-  const { action, enabledPaidModules = [], krexBalance = 0, krexTier = 'Tier0', nft } = opts;
+  const {
+    action,
+    enabledPaidModules = [],
+    payoutSplitRecipientCount = 0,
+    krexBalance = 0,
+    krexTier = 'Tier0',
+    nft,
+  } = opts;
 
   let baseFeeKas = 0;
   let krexDiscountPercent = 0;
+  let payoutSplitAddonKas = 0;
 
   if (action === 'create') {
     const deploy = resolveKpxCovenantDeployPrice('crowdfund', krexTier);
     baseFeeKas = deploy.feeKas;
     krexDiscountPercent = deploy.discountPercent;
+    if (payoutSplitRecipientCount > 0) {
+      const slotAddon = computeCovenantPremiumSlotAddon('split', payoutSplitRecipientCount);
+      payoutSplitAddonKas = slotAddon.addonKas;
+    }
   } else if (action === 'edit') {
     baseFeeKas = VDONATE_L1_EDIT_FEE_KAS;
   }
@@ -84,12 +98,13 @@ export function computeCrowdKasL1PriceQuote(opts: {
 
   const modulesFeeKas = moduleLines.reduce((sum, line) => sum + line.kas, 0);
   const networkFeeBufferKas = action === 'create' || action === 'edit' ? 0.001 : 0;
-  const totalKas = baseFeeKas + modulesFeeKas + networkFeeBufferKas;
+  const totalKas = baseFeeKas + payoutSplitAddonKas + modulesFeeKas + networkFeeBufferKas;
 
   return {
     action,
     baseFeeKas,
     krexDiscountPercent,
+    payoutSplitAddonKas,
     modulesFeeKas,
     moduleLines,
     networkFeeBufferKas,

@@ -22,6 +22,9 @@ import type { Address } from 'viem';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
+import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
+import { HowItWorksWizard } from '@/components/donations/HowItWorksWizard';
 import { DONATION_CATEGORIES, isDonationCategory, normalizeTags } from '@/lib/donations/categories';
 import { useMyDonationCampaignsV2 } from '@/hooks/useMyDonationCampaigns';
 import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
@@ -275,6 +278,14 @@ function DonationsStudioPageContent() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const covenantPanelRef = useRef<CrowdKasCovenantPanelHandle>(null);
   const [l1Submitting, setL1Submitting] = useState(false);
+  const [l1PricingInputs, setL1PricingInputs] = useState({
+    payoutSplitRecipientCount: 0,
+    pendingPaidModules: [] as import('@/lib/donations/modules').DonationPaidModuleId[],
+  });
+  const [l2ImageSource, setL2ImageSource] = useState<'url' | 'file'>('file');
+  const [l2ImageUrl, setL2ImageUrl] = useState('');
+  const [l2ImageCid, setL2ImageCid] = useState<string | null>(null);
+  const [l2ImageFileName, setL2ImageFileName] = useState<string | null>(null);
 
   const myCovenantCampaigns = useMemo(() => {
     if (!kaspaState.address) return [];
@@ -283,14 +294,19 @@ function DonationsStudioPageContent() {
   }, [covenantCampaigns, kaspaState.address]);
 
   const myCampaignsCount = myCampaignsV2.length + myCovenantCampaigns.length + (hasCampaign ? 1 : 0);
-  const l1CreateQuote = useMemo(() => pricing.estimateL1Quote('create'), [pricing]);
+  const l1CreateQuote = useMemo(
+    () =>
+      pricing.estimateL1Quote('create', {
+        payoutSplitRecipientCount: l1PricingInputs.payoutSplitRecipientCount,
+        enabledPaidModules: l1PricingInputs.pendingPaidModules,
+      }),
+    [l1PricingInputs, pricing],
+  );
   const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create'), [pricing]);
 
   const previewMetadata = useMemo((): DonationCampaignMetadata => {
     const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
     const tags = normalizeTags(createForm.tags ?? []);
-    const featuredImageMode = createForm.featuredImageMode;
-    const featuredImageValue = createForm.featuredImageValue.trim();
     return {
       title: createForm.title,
       description: createForm.description || '',
@@ -298,11 +314,11 @@ function DonationsStudioPageContent() {
       tags: tags.length ? tags : undefined,
       goals: createForm.goals?.length ? createForm.goals : undefined,
       socialLinks: Object.keys(createForm.socialLinks || {}).length ? createForm.socialLinks : undefined,
-      imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
-      imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
+      imageUrl: l2ImageSource === 'url' && l2ImageUrl.trim() ? l2ImageUrl.trim() : undefined,
+      imageHash: l2ImageSource === 'file' && l2ImageCid ? l2ImageCid : undefined,
       modules: cleanCrowdKasModulesConfig(modulesConfig),
     };
-  }, [createForm, modulesConfig]);
+  }, [createForm, l2ImageCid, l2ImageSource, l2ImageUrl, modulesConfig]);
 
   const l1TipsUnlockedV2 =
     editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.l1Tips ?? false) : false;
@@ -397,8 +413,6 @@ function DonationsStudioPageContent() {
     setCreateSubmitting(true);
     setCreateErrorMsg(null);
     try {
-      const featuredImageMode = createForm.featuredImageMode;
-      const featuredImageValue = createForm.featuredImageValue.trim();
       const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
       const tags = normalizeTags(createForm.tags ?? []);
 
@@ -409,8 +423,8 @@ function DonationsStudioPageContent() {
         tags: tags.length ? tags : undefined,
         goals: createForm.goals?.length ? createForm.goals : undefined,
         socialLinks: Object.keys(createForm.socialLinks || {}).length ? createForm.socialLinks : undefined,
-        imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
-        imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
+        imageUrl: l2ImageSource === 'url' && l2ImageUrl.trim() ? l2ImageUrl.trim() : undefined,
+        imageHash: l2ImageSource === 'file' && l2ImageCid ? l2ImageCid : undefined,
         modules: cleanCrowdKasModulesConfig(modulesConfig),
       };
       const client = getIPFSClient();
@@ -844,16 +858,25 @@ function DonationsStudioPageContent() {
                   <div className="space-y-8">
                     {(activeTab === 'l1-covenant' || activeTab === 'l2-escrow') && (
                       <div id="crowdkas-dashboard-pricing" className="scroll-mt-24">
-                        <CrowdKasAuthorPricing />
+                        <CrowdKasAuthorPricing network={activeTab === 'l1-covenant' ? 'l1' : 'l2'} />
                       </div>
                     )}
 
-                    <div className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start ${activeTab === 'my-campaigns' ? 'xl:grid-cols-1' : ''}`}>
+                    <div
+                      className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start ${
+                        activeTab === 'my-campaigns' || activeTab === 'how-it-works' ? 'xl:grid-cols-1' : ''
+                      }`}
+                    >
                       <div className="flex flex-col gap-6 min-w-0">
                         {activeTab === 'l1-covenant' && (
                           <section id="covenant-create" className="scroll-mt-24">
                             <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay" className="min-h-[18rem]">
-                              <CrowdKasCovenantPanel ref={covenantPanelRef} variant="embed" studioMode />
+                              <CrowdKasCovenantPanel
+                                ref={covenantPanelRef}
+                                variant="embed"
+                                studioMode
+                                onPricingInputsChange={setL1PricingInputs}
+                              />
                             </HubWalletGateShell>
                           </section>
                         )}
@@ -942,79 +965,42 @@ function DonationsStudioPageContent() {
                                     placeholder="What is this campaign for?"
                                   />
                                 </div>
-                                <div>
-                                  <div className="flex items-center justify-between gap-3 mb-2">
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Cover image</label>
-                                    <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-                                      <button
-                                        type="button"
-                                        onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'url' }))}
-                                        className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'url' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
-                                      >
-                                        URL
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => setCreateForm((f) => ({ ...f, featuredImageMode: 'ipfs' }))}
-                                        className={`px-3 py-1.5 text-xs font-bold ${createForm.featuredImageMode === 'ipfs' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
-                                      >
-                                        IPFS
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <ImageUpload
-                                    label=""
-                                    value={createForm.featuredImageValue}
-                                    onChange={(v) => setCreateForm((f) => ({ ...f, featuredImageValue: v }))}
-                                    onFileSelect={async (file) => {
-                                      const client = getIPFSClient();
-                                      return await client.uploadFile(file, { filename: (file as File).name });
-                                    }}
-                                    placeholder={createForm.featuredImageMode === 'url' ? 'https://…' : 'CID (or upload a file)'}
-                                    aspectRatio="video"
-                                    showUrlInput={true}
-                                    showFileUpload={createForm.featuredImageMode === 'ipfs'}
-                                  />
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                    URL is fastest. IPFS keeps your campaign image permanent (recommended).
-                                  </p>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <CrowdKasCampaignMediaField
+                                  source={l2ImageSource}
+                                  onSourceChange={setL2ImageSource}
+                                  url={l2ImageUrl}
+                                  onUrlChange={setL2ImageUrl}
+                                  cid={l2ImageCid}
+                                  onCidChange={setL2ImageCid}
+                                  fileName={l2ImageFileName}
+                                  onFileNameChange={setL2ImageFileName}
+                                />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Category</label>
-                                    <select
+                                    <KxFormFieldLabel>Category</KxFormFieldLabel>
+                                    <DonationCategoryField
                                       value={createForm.category ?? ''}
-                                      onChange={(e) => setCreateForm((f) => ({ ...f, category: e.target.value ? e.target.value : undefined }))}
-                                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                                    >
-                                      <option value="">Select category…</option>
-                                      {DONATION_CATEGORIES.map((c) => (
-                                        <option key={c} value={c}>
-                                          {c}
-                                        </option>
-                                      ))}
-                                    </select>
+                                      onChange={(category) =>
+                                        setCreateForm((f) => ({ ...f, category: category || undefined }))
+                                      }
+                                    />
                                   </div>
                                   <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Tags (optional)</label>
+                                    <KxFormFieldLabel>Tags (optional)</KxFormFieldLabel>
                                     <div className="flex gap-2">
                                       <input
                                         type="text"
                                         value={tagInput}
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                                        className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                        className="k-input flex-1"
                                         placeholder="e.g. wallet, nft, open-source"
                                       />
-                                      <button
-                                        type="button"
-                                        onClick={addTag}
-                                        className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
-                                      >
+                                      <button type="button" onClick={addTag} className="k-control-btn shrink-0">
                                         Add
                                       </button>
                                     </div>
-                                    {(createForm.tags ?? []).length > 0 && (
+                                    {(createForm.tags ?? []).length > 0 ? (
                                       <div className="flex flex-wrap gap-2 mt-2">
                                         {(createForm.tags ?? []).map((t) => (
                                           <button
@@ -1028,28 +1014,28 @@ function DonationsStudioPageContent() {
                                           </button>
                                         ))}
                                       </div>
-                                    )}
+                                    ) : null}
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Target (iKAS)</label>
+                                    <KxFormFieldLabel>Target (iKAS)</KxFormFieldLabel>
                                     <input
                                       type="number"
                                       value={createForm.targetKAS}
                                       onChange={(e) => setCreateForm((f) => ({ ...f, targetKAS: e.target.value }))}
                                       min="100"
                                       step="1"
-                                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                      className="k-input text-base"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">End date</label>
+                                    <KxFormFieldLabel>End date</KxFormFieldLabel>
                                     <input
                                       type="datetime-local"
                                       value={createForm.endDate}
                                       onChange={(e) => setCreateForm((f) => ({ ...f, endDate: e.target.value }))}
-                                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                      className="k-input text-base"
                                     />
                                   </div>
                                 </div>
@@ -1689,6 +1675,21 @@ function DonationsStudioPageContent() {
                             onClaim={handleClaimV2}
                             onDelete={setDeleteCampaignId}
                           />
+                        )}
+
+                        {activeTab === 'how-it-works' && (
+                          <section id="how-it-works" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 space-y-6`}>
+                            <div>
+                              <DAppSectionHeader title="Walkthrough" className="mb-3" />
+                              <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
+                                How {VDONATE_SHORT_NAME} works
+                              </h3>
+                              <p className="kx-body">
+                                Step through donor and creator flows for L2 escrow and L1 covenant campaigns.
+                              </p>
+                            </div>
+                            <HowItWorksWizard />
+                          </section>
                         )}
                       </div>
 

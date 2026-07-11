@@ -27,10 +27,17 @@ export function useCrowdKasPricing() {
 
   const estimateL1Quote = useMemo(
     () =>
-      (action: CrowdKasAction, enabledPaidModules: DonationPaidModuleId[] = []): CrowdKasL1PriceQuote =>
+      (
+        action: CrowdKasAction,
+        opts?: {
+          enabledPaidModules?: DonationPaidModuleId[];
+          payoutSplitRecipientCount?: number;
+        },
+      ): CrowdKasL1PriceQuote =>
         computeCrowdKasL1PriceQuote({
           action,
-          enabledPaidModules,
+          enabledPaidModules: opts?.enabledPaidModules ?? [],
+          payoutSplitRecipientCount: opts?.payoutSplitRecipientCount ?? 0,
           krexBalance,
           krexTier: tier,
           nft: moduleNftFlags,

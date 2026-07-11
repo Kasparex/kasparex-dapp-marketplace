@@ -3,11 +3,12 @@
 import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-export type CrowdKasDashboardTab = 'l1-covenant' | 'l2-escrow' | 'my-campaigns';
+export type CrowdKasDashboardTab = 'l1-covenant' | 'l2-escrow' | 'my-campaigns' | 'how-it-works';
 
 function tabFromParams(tab: string | null): CrowdKasDashboardTab {
   if (tab === 'l2-escrow' || tab === 'l2') return 'l2-escrow';
   if (tab === 'my-campaigns' || tab === 'archive') return 'my-campaigns';
+  if (tab === 'how-it-works' || tab === 'help') return 'how-it-works';
   return 'l1-covenant';
 }
 
@@ -53,6 +54,9 @@ export function CrowdKasAuthorDashboard({
         </button>
         <button type="button" onClick={() => setActiveTab('my-campaigns')} className={tabClass('my-campaigns')}>
           My campaigns ({myCampaignsCount})
+        </button>
+        <button type="button" onClick={() => setActiveTab('how-it-works')} className={tabClass('how-it-works')}>
+          How it works
         </button>
       </div>
       {children(activeTab)}

@@ -2,6 +2,30 @@
 
 import { useRef } from 'react';
 
+type KxFileUploadAccent = 'default' | 'emerald';
+
+const ACCENT_STYLES: Record<
+  KxFileUploadAccent,
+  { dropzone: string; iconWrap: string; iconText: string; fileChip: string; fileText: string }
+> = {
+  default: {
+    dropzone:
+      'border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20',
+    iconWrap: 'bg-[#02abb8]/15 text-[#02abb8] ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20',
+    iconText: 'text-[#02abb8]',
+    fileChip: 'border-[#02abb8]/25 bg-[#02abb8]/5 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10',
+    fileText: 'text-[#02abb8]',
+  },
+  emerald: {
+    dropzone:
+      'border-emerald-500/35 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-400/5 hover:border-emerald-500/55 hover:from-emerald-500/15 dark:from-emerald-500/14 dark:to-emerald-950/25 dark:hover:from-emerald-500/20',
+    iconWrap: 'bg-emerald-500/15 text-emerald-600 ring-emerald-500/10 dark:bg-emerald-500/25 dark:ring-emerald-500/20',
+    iconText: 'text-emerald-600 dark:text-emerald-400',
+    fileChip: 'border-emerald-500/25 bg-emerald-500/5 dark:border-emerald-500/30 dark:bg-emerald-500/10',
+    fileText: 'text-emerald-700 dark:text-emerald-300',
+  },
+};
+
 type KxFileUploadProps = {
   label?: string;
   hint?: string;
@@ -12,6 +36,7 @@ type KxFileUploadProps = {
   onClear?: () => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  accent?: KxFileUploadAccent;
 };
 
 export function KxFileUpload({
@@ -24,13 +49,17 @@ export function KxFileUpload({
   onClear,
   onChange,
   disabled,
+  accent = 'default',
 }: KxFileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const styles = ACCENT_STYLES[accent];
 
   return (
     <div className="space-y-2">
       {label ? <label className="k-label">{label}</label> : null}
-      <div className="relative flex min-h-[10rem] flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-dashed border-[#02abb8]/35 bg-gradient-to-br from-[#02abb8]/10 via-transparent to-cyan-500/5 px-4 py-7 transition-all hover:border-[#02abb8]/55 hover:from-[#02abb8]/15 dark:from-[#02abb8]/14 dark:to-cyan-950/25 dark:hover:from-[#02abb8]/20">
+      <div
+        className={`relative flex min-h-[10rem] flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-dashed px-4 py-7 transition-all ${styles.dropzone}`}
+      >
         <input
           ref={inputRef}
           type="file"
@@ -41,7 +70,7 @@ export function KxFileUpload({
           onChange={onChange}
         />
         <div className="pointer-events-none flex flex-col items-center gap-2.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#02abb8]/15 text-[#02abb8] ring-2 ring-[#02abb8]/10 dark:bg-[#02abb8]/25 dark:ring-[#02abb8]/20">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-full ring-2 ${styles.iconWrap}`}>
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path
                 strokeLinecap="round"
@@ -61,8 +90,8 @@ export function KxFileUpload({
         </div>
       </div>
       {fileName ? (
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-[#02abb8]/25 bg-[#02abb8]/5 px-3 py-2 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10">
-          <p className="min-w-0 flex-1 truncate text-xs font-medium text-[#02abb8]" title={fileName}>
+        <div className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 ${styles.fileChip}`}>
+          <p className={`min-w-0 flex-1 truncate text-xs font-medium ${styles.fileText}`} title={fileName}>
             {fileName}
           </p>
           {onClear ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
@@ -11,6 +11,15 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { VDONATE_PRODUCT_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { CrowdKasShell, CrowdKasError, CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
+import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
+import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
+import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
+import { normalizeTags } from '@/lib/donations/categories';
+import {
+  defaultCrowdKasPayoutSplitRows,
+  type CrowdKasModulesConfig,
+} from '@/lib/donations/crowdkasModules';
+import type { DonationPaidModuleId } from '@/lib/donations/modules';
 
 const COVENANT_HOW_IT_WORKS = (
   <div className="max-w-xs space-y-2 text-sm leading-snug">
@@ -33,21 +42,63 @@ export type CrowdKasCovenantPanelProps = {
   variant?: 'widget' | 'embed';
   /** Studio dashboard: vBlog-style panels, no inner submit button. */
   studioMode?: boolean;
+  modules?: CrowdKasModulesConfig;
+  onModulesChange?: (next: CrowdKasModulesConfig) => void;
+  onPricingInputsChange?: (inputs: {
+    payoutSplitRecipientCount: number;
+    pendingPaidModules: DonationPaidModuleId[];
+  }) => void;
 };
 
 export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, CrowdKasCovenantPanelProps>(
-  function CrowdKasCovenantPanel({ variant = 'embed', studioMode = false }, ref) {
+  function CrowdKasCovenantPanel(
+    { variant = 'embed', studioMode = false, modules: modulesProp, onModulesChange, onPricingInputsChange },
+    ref,
+  ) {
     const { state } = useKaspaWallet();
     const { error, createCampaign, runtimeMode, effectiveMode } = useCovenantCrowdfund();
     const [title, setTitle] = useState('');
     const [memo, setMemo] = useState('');
     const [goalKas, setGoalKas] = useState('5');
     const [deadline, setDeadline] = useState('');
+    const [category, setCategory] = useState('');
+    const [tagInput, setTagInput] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [imageSource, setImageSource] = useState<'url' | 'file'>('file');
+    const [imageUrl, setImageUrl] = useState('');
+    const [imageCid, setImageCid] = useState<string | null>(null);
+    const [imageFileName, setImageFileName] = useState<string | null>(null);
+    const [internalModules, setInternalModules] = useState<CrowdKasModulesConfig>({});
     const [busy, setBusy] = useState(false);
     const [createdId, setCreatedId] = useState<string | null>(null);
     const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
+    const modules = modulesProp ?? internalModules;
+    const setModules = onModulesChange ?? setInternalModules;
+
+    const payoutSplitRecipientCount = useMemo(() => {
+      if (!modules.payoutSplitEnabled) return 0;
+      return (modules.payoutSplitRecipients ?? defaultCrowdKasPayoutSplitRows()).length;
+    }, [modules.payoutSplitEnabled, modules.payoutSplitRecipients]);
+
+    useEffect(() => {
+      onPricingInputsChange?.({
+        payoutSplitRecipientCount,
+        pendingPaidModules: modules.pendingPaidModules ?? [],
+      });
+    }, [modules.pendingPaidModules, onPricingInputsChange, payoutSplitRecipientCount]);
+
     const canSubmit = Boolean(state.isConnected && title.trim() && deadline && !busy);
+
+    const addTag = () => {
+      if (!tagInput.trim()) return;
+      setTags((prev) => normalizeTags([...prev, tagInput]));
+      setTagInput('');
+    };
+
+    const removeTag = (tag: string) => {
+      setTags((prev) => prev.filter((t) => t !== tag));
+    };
 
     const handleCreate = async () => {
       if (!deadline || !title.trim()) return;
@@ -62,6 +113,12 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         setCreatedId(campaign.id);
         setTitle('');
         setMemo('');
+        setTags([]);
+        setCategory('');
+        setImageUrl('');
+        setImageCid(null);
+        setImageFileName(null);
+        setModules({});
       } finally {
         setBusy(false);
       }
@@ -74,6 +131,16 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
 
     const createFields = (
       <div className="space-y-6">
+        <CrowdKasCampaignMediaField
+          source={imageSource}
+          onSourceChange={setImageSource}
+          url={imageUrl}
+          onUrlChange={setImageUrl}
+          cid={imageCid}
+          onCidChange={setImageCid}
+          fileName={imageFileName}
+          onFileNameChange={setImageFileName}
+        />
         <div>
           <KxFormFieldLabel htmlFor="ck-crowdfund-title">
             Campaign title <span className="text-red-500">*</span>
@@ -87,45 +154,77 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           />
         </div>
         <div>
-          <Tooltip content="The campaign succeeds only if this amount is pledged before the deadline.">
-            <KxFormFieldLabel htmlFor="ck-crowdfund-goal">
-              Funding goal (KAS, min {minKas}) <span className="text-red-500">*</span>
-            </KxFormFieldLabel>
-          </Tooltip>
-          <input
-            id="ck-crowdfund-goal"
-            type="number"
-            min={minKas}
-            step="0.01"
-            className="k-input text-base"
-            value={goalKas}
-            onChange={(e) => setGoalKas(e.target.value)}
-          />
+          <KxFormFieldLabel>Description</KxFormFieldLabel>
+          <KxRichTextEditor value={memo} onChange={setMemo} minRows={6} placeholder="What are you raising for?" />
         </div>
-        <div>
-          <Tooltip content="No pledges after this date. The goal must be met by then for the creator to claim.">
-            <KxFormFieldLabel htmlFor="ck-crowdfund-deadline">
-              Deadline <span className="text-red-500">*</span>
-            </KxFormFieldLabel>
-          </Tooltip>
-          <input
-            id="ck-crowdfund-deadline"
-            type="datetime-local"
-            className="k-input text-base"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <KxFormFieldLabel>Category</KxFormFieldLabel>
+            <DonationCategoryField value={category} onChange={setCategory} />
+          </div>
+          <div>
+            <KxFormFieldLabel>Tags (optional)</KxFormFieldLabel>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                className="k-input flex-1"
+                placeholder="e.g. wallet, nft"
+              />
+              <button type="button" onClick={addTag} className="k-control-btn shrink-0">
+                Add
+              </button>
+            </div>
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tags.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => removeTag(t)}
+                    className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:border-red-400"
+                    title="Remove tag"
+                  >
+                    #{t} ×
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <div>
-          <Tooltip content="Appears in the Story section on your campaign page.">
-            <KxFormFieldLabel htmlFor="ck-crowdfund-memo">Description (optional)</KxFormFieldLabel>
-          </Tooltip>
-          <KxRichTextEditor
-            value={memo}
-            onChange={setMemo}
-            minRows={5}
-            placeholder="What are you raising for?"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Tooltip content="The campaign succeeds only if this amount is pledged before the deadline.">
+              <KxFormFieldLabel htmlFor="ck-crowdfund-goal">
+                Funding goal (KAS, min {minKas}) <span className="text-red-500">*</span>
+              </KxFormFieldLabel>
+            </Tooltip>
+            <input
+              id="ck-crowdfund-goal"
+              type="number"
+              min={minKas}
+              step="0.01"
+              className="k-input text-base"
+              value={goalKas}
+              onChange={(e) => setGoalKas(e.target.value)}
+            />
+          </div>
+          <div>
+            <Tooltip content="No pledges after this date. The goal must be met by then for the creator to claim.">
+              <KxFormFieldLabel htmlFor="ck-crowdfund-deadline">
+                Deadline <span className="text-red-500">*</span>
+              </KxFormFieldLabel>
+            </Tooltip>
+            <input
+              id="ck-crowdfund-deadline"
+              type="datetime-local"
+              className="k-input text-base"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+            />
+          </div>
         </div>
       </div>
     );
@@ -161,22 +260,27 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         )}
 
         {!state.isConnected ? null : studioMode ? (
-          <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6`}>
-            <div>
-              <DAppSectionHeader title="Main content" className="mb-3" />
-              <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
-                Create L1 covenant campaign
-              </h3>
-              <p className="kx-body">
-                Set your goal and deadline on Kaspa L1. Supporters pledge through covenant rules with refund paths.{' '}
-                <Tooltip content={COVENANT_HOW_IT_WORKS}>
-                  <span className="text-emerald-700 dark:text-emerald-400 underline decoration-dotted cursor-help font-medium">
-                    How it works
-                  </span>
-                </Tooltip>
-              </p>
+          <div className="flex flex-col gap-6 min-w-0">
+            <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6`}>
+              <div>
+                <DAppSectionHeader title="Main content" className="mb-3" />
+                <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
+                  Create L1 covenant campaign
+                </h3>
+                <p className="kx-body">
+                  Set your goal and deadline on Kaspa L1. Supporters pledge through covenant rules with refund paths.{' '}
+                  <Tooltip content={COVENANT_HOW_IT_WORKS}>
+                    <span className="text-emerald-700 dark:text-emerald-400 underline decoration-dotted cursor-help font-medium">
+                      How it works
+                    </span>
+                  </Tooltip>
+                </p>
+              </div>
+              {createFields}
             </div>
-            {createFields}
+            <div id="crowdkas-dashboard-modules" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 py-10 sm:py-12`}>
+              <CrowdKasModulesPanel modules={modules} onChange={setModules} showL1PayoutSplit />
+            </div>
           </div>
         ) : (
           <div className={CROWDKAS_FORM_PANEL_CLASS}>
