@@ -1,5 +1,6 @@
 import type { VBlogArticle } from '@/lib/vblog/types';
 import { matchesVBlogSourceFilter, type VBlogSourceFilter } from '@/lib/vblog/source';
+import { vblogArticleMatchesCurrencies } from '@/lib/hub/listingCurrencies';
 
 export type VBlogSortOption =
   | 'newest'
@@ -19,7 +20,9 @@ export type VBlogPremiumFilter = 'all' | 'premium' | 'standard';
 export interface VBlogListingFilters {
   source: VBlogSourceFilter;
   category: string | null;
+  categories?: string[];
   tags: string[];
+  currencies?: string[];
   magazine: VBlogMagazineFilter;
   premium?: VBlogPremiumFilter;
   searchQuery: string;
@@ -53,8 +56,16 @@ export function filterVBlogArticles(articles: VBlogArticle[], filters: VBlogList
     filtered = filtered.filter((article) => article.category === filters.category);
   }
 
+  if (filters.categories && filters.categories.length > 0) {
+    filtered = filtered.filter((article) => filters.categories!.includes(article.category));
+  }
+
   if (filters.tags.length > 0) {
     filtered = filtered.filter((article) => filters.tags.some((tag) => article.tags.includes(tag)));
+  }
+
+  if (filters.currencies && filters.currencies.length > 0) {
+    filtered = filtered.filter((article) => vblogArticleMatchesCurrencies(article, filters.currencies!));
   }
 
   if (filters.magazine === 'linked') {

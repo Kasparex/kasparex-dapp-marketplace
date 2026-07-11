@@ -7,6 +7,7 @@ import { getListingVoteScore } from '@/lib/tokens/votes';
 import { getTokenCategory } from '@/lib/tokens/categories';
 import { resolveTokenCreatorWallet } from '@/lib/tokens/creatorWallet';
 import { matchesTokenNetworkFilter, type TokenNetworkFilter } from '@/lib/tokens/networks';
+import { tokenMatchesCurrencies } from '@/lib/hub/listingCurrencies';
 
 export type TokenSortOption =
   | 'name-az'
@@ -46,6 +47,7 @@ export interface TokenListingFilters {
   category: string | null;
   utilitySidebar: TokenUtilitySidebarFilter;
   selectedTags: string[];
+  selectedCurrencies: string[];
   sortBy: TokenSortOption;
 }
 
@@ -120,6 +122,10 @@ export function filterTokens(tokens: Token[], filters: TokenListingFilters): Tok
 
   if (filters.selectedTags.length > 0) {
     filtered = filtered.filter((token) => matchesTokenTags(token, filters.selectedTags));
+  }
+
+  if (filters.selectedCurrencies.length > 0) {
+    filtered = filtered.filter((token) => tokenMatchesCurrencies(token, filters.selectedCurrencies));
   }
 
   return sortTokens(filtered, filters.sortBy);

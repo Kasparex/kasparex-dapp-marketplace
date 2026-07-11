@@ -40,7 +40,6 @@ export function StoreListingFilters({
         placeholder="Category"
         filterPlaceholder="Filter categories…"
         showFilter
-        accent="store"
         triggerClassName="k-control-btn min-w-[140px] h-10"
         menuClassName="w-64"
       />
@@ -52,7 +51,6 @@ export function StoreListingFilters({
         placeholder="Cryptocurrency"
         filterPlaceholder="Filter currencies…"
         showFilter
-        accent="store"
         triggerClassName="k-control-btn min-w-[160px] h-10"
         menuClassName="w-64"
       />

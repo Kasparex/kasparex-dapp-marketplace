@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { CrowdfundCampaign } from '@/lib/covenant/crowdfund-types';
 import {
@@ -12,11 +11,10 @@ import {
   covenantCampaignGoalReached,
 } from '@/lib/donations/covenantCrowdfund';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
-import { shortKaspaAddr } from '@/components/dapps/covenant/CovenantWidgetUi';
-import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import { placeholderDApps } from '@/lib/dapps';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
@@ -52,14 +50,14 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
       </div>
       <div className="p-4">
         <div className="flex justify-between items-start mb-2 gap-2">
-          <div className="min-w-0 flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-            <Link href={profilePath} className="text-xs font-semibold text-[#02abb8] hover:underline">
-              Creator profile
-            </Link>
-            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
-              {shortKaspaAddr(campaign.creator)}
-            </span>
-            <KxCopyIconButton value={campaign.creator} label="Copy creator wallet address" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{campaign.title}</p>
+            <AuthorInline
+              address={campaign.creator}
+              href={profilePath}
+              prefix=""
+              className="mt-0"
+            />
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -94,7 +92,6 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
             </div>
           </div>
         </div>
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{campaign.title}</p>
         <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
           {raised.toFixed(4)} / {goal.toFixed(4)} KAS
         </div>

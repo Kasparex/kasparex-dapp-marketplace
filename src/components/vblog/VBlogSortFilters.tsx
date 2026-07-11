@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { VBlogMagazineFilter, VBlogPremiumFilter, VBlogSortOption } from '@/lib/vblog/listing';
+import type { VBlogSortOption } from '@/lib/vblog/listing';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export type { VBlogSortOption } from '@/lib/vblog/listing';
@@ -19,15 +19,6 @@ interface VBlogFilterDropdownProps<T extends string> {
   minWidth?: string;
 }
 
-interface VBlogListingFiltersBarProps {
-  sortBy: VBlogSortOption;
-  onSortChange: (sort: VBlogSortOption) => void;
-  magazineFilter: VBlogMagazineFilter;
-  onMagazineFilterChange: (value: VBlogMagazineFilter) => void;
-  premiumFilter: VBlogPremiumFilter;
-  onPremiumFilterChange: (value: VBlogPremiumFilter) => void;
-}
-
 const SORT_OPTIONS: { value: VBlogSortOption; label: string }[] = [
   { value: 'newest', label: 'Newest published' },
   { value: 'oldest', label: 'Oldest published' },
@@ -38,18 +29,6 @@ const SORT_OPTIONS: { value: VBlogSortOption; label: string }[] = [
   { value: 'category-az', label: 'Category (A-Z)' },
   { value: 'category-za', label: 'Category (Z-A)' },
   { value: 'magazine-first', label: 'Magazine issues first' },
-];
-
-const MAGAZINE_OPTIONS: { value: VBlogMagazineFilter; label: string }[] = [
-  { value: 'all', label: 'All articles' },
-  { value: 'linked', label: 'Magazine linked' },
-  { value: 'standalone', label: 'Standalone only' },
-];
-
-const PREMIUM_OPTIONS: { value: VBlogPremiumFilter; label: string }[] = [
-  { value: 'all', label: 'All content' },
-  { value: 'premium', label: 'Premium only' },
-  { value: 'standard', label: 'Standard only' },
 ];
 
 function useClickOutside(isOpen: boolean, onClose: () => void) {
@@ -200,34 +179,5 @@ export function VBlogSortFilters({ sortBy, onSortChange }: VBlogSortFiltersProps
         </FilterDropdownMenu>
       ) : null}
     </div>
-  );
-}
-
-export function VBlogListingFiltersBar({
-  sortBy,
-  onSortChange,
-  magazineFilter,
-  onMagazineFilterChange,
-  premiumFilter,
-  onPremiumFilterChange,
-}: VBlogListingFiltersBarProps) {
-  return (
-    <>
-      <VBlogFilterDropdown
-        label="Magazine"
-        value={magazineFilter}
-        options={MAGAZINE_OPTIONS}
-        onChange={onMagazineFilterChange}
-        minWidth="170px"
-      />
-      <VBlogFilterDropdown
-        label="Premium"
-        value={premiumFilter}
-        options={PREMIUM_OPTIONS}
-        onChange={onPremiumFilterChange}
-        minWidth="170px"
-      />
-      <VBlogSortFilters sortBy={sortBy} onSortChange={onSortChange} />
-    </>
   );
 }

@@ -1,9 +1,12 @@
 import { Game, GameType, GameDifficulty, GameStatus } from './games';
+import type { UnifiedGame } from './registry';
+import { gameMatchesCurrencies } from '@/lib/hub/listingCurrencies';
 
 export interface GameFilterState {
   gameType: GameType[];
   difficulty: GameDifficulty[];
   status: GameStatus[];
+  currencies?: string[];
   costRange?: {
     min: number;
     max: number;
@@ -29,6 +32,13 @@ export function filterGames(
     // Status filter - empty array means all selected
     if (filters.status.length > 0 && !filters.status.includes(game.status)) {
       return false;
+    }
+
+    // Payment currency filter (from game SKUs)
+    if (filters.currencies && filters.currencies.length > 0) {
+      if (!gameMatchesCurrencies(game as UnifiedGame, filters.currencies)) {
+        return false;
+      }
     }
 
     // Cost range filter

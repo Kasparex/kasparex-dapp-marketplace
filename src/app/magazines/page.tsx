@@ -6,8 +6,9 @@ import { Footer } from '@/components/Footer';
 import { MagazineHeader } from '@/components/magazines/MagazineHeader';
 import { MagazineCard } from '@/components/magazines/MagazineCard';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
-import { MagazineSortFilters } from '@/components/magazines/MagazineSortFilters';
+import { MagazineListingFiltersBar } from '@/components/magazines/MagazineListingFilters';
 import { FilterBar } from '@/components/FilterBar';
+import { getMagazineListingCurrencies } from '@/lib/hub/listingCurrencies';
 import { getAllMagazines } from '@/lib/magazines/data';
 import { Magazine, MagazineSortOption } from '@/lib/magazines/types';
 import { bootstrapHubContent, onHubContentVisibilityRefresh } from '@/lib/hub/contentSync';
@@ -20,8 +21,9 @@ export default function MagazinesPage() {
     const [magazines, setMagazines] = useState<Magazine[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<MagazineSortOption>('newest');
-    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -66,6 +68,8 @@ export default function MagazinesPage() {
         return ['history', 'ghostdag', 'mining', 'scalability', 'performance', 'mainnet', 'krc20', 'krex', 'guide'];
     }, []);
 
+    const currencyOptions = useMemo(() => getMagazineListingCurrencies(magazines), [magazines]);
+
     const handleTagToggle = (tag: string) => {
         setSelectedTags(prev =>
             prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
@@ -74,17 +78,21 @@ export default function MagazinesPage() {
 
     const handleResetFilters = () => {
         setSearchQuery('');
-        setSelectedCategory('All');
+        setSelectedCategories([]);
         setSelectedTags([]);
+        setSelectedCurrencies([]);
         setSortBy('newest');
     };
 
     const filteredMagazines = useMemo(() => {
         let filtered = [...magazines];
 
-        // Filter by category
-        if (selectedCategory !== 'All') {
-            filtered = filtered.filter(m => m.category === selectedCategory);
+        if (selectedCategories.length > 0) {
+            filtered = filtered.filter(m => selectedCategories.includes(m.category));
+        }
+
+        if (selectedTags.length > 0) {
+            filtered = filtered.filter(() => selectedTags.every((t) => allTags.includes(t)));
         }
 
         // Filter by search
@@ -107,7 +115,7 @@ export default function MagazinesPage() {
         });
 
         return filtered;
-    }, [magazines, selectedCategory, searchQuery, sortBy]);
+    }, [magazines, selectedCategories, selectedTags, searchQuery, sortBy, allTags]);
 
     return (
         <div className={`flex flex-col min-h-screen ${HUB_PAGE_BG}`}>
@@ -118,8 +126,8 @@ export default function MagazinesPage() {
                 <MagazinesSidebar
                     mode="listing"
                     categories={categories}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
+                    selectedCategory={selectedCategories.length === 1 ? selectedCategories[0] : 'All'}
+                    onCategoryChange={(cat) => setSelectedCategories(cat === 'All' ? [] : [cat])}
                     categoryCounts={categoryCounts}
                     tags={allTags}
                     selectedTags={selectedTags}
@@ -149,8 +157,21 @@ export default function MagazinesPage() {
                             <FilterBar
                                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search magazines...' }}
                                 onReset={handleResetFilters}
+                                flexWrap
                             >
-                                <MagazineSortFilters sortBy={sortBy} onSortChange={setSortBy} />
+                                <MagazineListingFiltersBar
+                                    categories={categories}
+                                    selectedCategories={selectedCategories}
+                                    onCategoriesChange={setSelectedCategories}
+                                    tagOptions={allTags}
+                                    selectedTags={selectedTags}
+                                    onTagsChange={setSelectedTags}
+                                    currencyOptions={currencyOptions}
+                                    selectedCurrencies={selectedCurrencies}
+                                    onCurrenciesChange={setSelectedCurrencies}
+                                    sortBy={sortBy}
+                                    onSortChange={setSortBy}
+                                />
                             </FilterBar>
                         </div>
 

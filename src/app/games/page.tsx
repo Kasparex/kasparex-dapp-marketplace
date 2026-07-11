@@ -15,6 +15,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
+import { getGameListingCurrencies } from '@/lib/hub/listingCurrencies';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
@@ -26,6 +27,7 @@ function GamesContent() {
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<GameDifficulty[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<GameStatus[]>([]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [costRange, setCostRange] = useState<{ min: number; max: number } | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<GameSortOption>('newest');
@@ -34,6 +36,7 @@ function GamesContent() {
   const { favoritesSet } = useFavorites();
   const { likes } = useLikes();
   const allGames = useMemo(() => listGames(), []);
+  const currencyOptions = useMemo(() => getGameListingCurrencies(allGames), [allGames]);
 
   const games = useMemo(
     () => allGames.filter((game) => matchesGameSourceFilter(game, sourceFilter)),
@@ -78,6 +81,7 @@ function GamesContent() {
       gameType: selectedGameTypes,
       difficulty: selectedDifficulties,
       status: selectedStatuses,
+      currencies: selectedCurrencies,
       costRange,
     };
     let filtered = filterGames(games, filters, searchQuery);
@@ -87,11 +91,11 @@ function GamesContent() {
     }
 
     return sortGames(filtered, sortBy, favoritesSet, likes);
-  }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, favoritesSet, likes]);
+  }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, selectedCurrencies, costRange, searchQuery, sortBy, favoritesSet, likes]);
 
   useEffect(() => {
     setDisplayedCount(50);
-  }, [selectedGameTypes, selectedDifficulties, selectedStatuses, costRange, searchQuery, sortBy, sourceFilter]);
+  }, [selectedGameTypes, selectedDifficulties, selectedStatuses, selectedCurrencies, costRange, searchQuery, sortBy, sourceFilter]);
 
   const displayedGames = useMemo(() => filteredGames.slice(0, displayedCount), [filteredGames, displayedCount]);
 
@@ -106,6 +110,7 @@ function GamesContent() {
     setSelectedGameTypes([]);
     setSelectedDifficulties([]);
     setSelectedStatuses([]);
+    setSelectedCurrencies([]);
     setCostRange(undefined);
     setSearchQuery('');
     setSourceFilter('all');
@@ -182,8 +187,9 @@ function GamesContent() {
                 <GameListingFiltersBar
                   selectedGameTypes={selectedGameTypes}
                   onGameTypeChange={setSelectedGameTypes}
-                  selectedDifficulties={selectedDifficulties}
-                  onDifficultyChange={setSelectedDifficulties}
+                  selectedCurrencies={selectedCurrencies}
+                  onCurrencyChange={setSelectedCurrencies}
+                  currencyOptions={currencyOptions}
                   selectedStatuses={selectedStatuses}
                   onStatusChange={setSelectedStatuses}
                 />

@@ -14,7 +14,7 @@ import { DonationsHeader } from '@/components/donations/DonationsHeader';
 import { DonationSortFilters, sortCampaigns, type DonationSortOption } from '@/components/donations/DonationSortFilters';
 import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
 import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCrowdfundCampaignCard';
-import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
+import { DonationCategoryFilter, DonationNetworkFilter, DonationTagMultiFilter, DonationCryptocurrencyFilter, type DonationNetworkFilterValue } from '@/components/donations/DonationTaxonomyFilters';
 import { FilterBar } from '@/components/FilterBar';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
@@ -74,8 +74,9 @@ export default function DonationsListingPage() {
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<DonationNetworkFilterValue>('all');
   const [metaByCreator, setMetaByCreator] = useState<Record<string, DonationCampaignMetadata | null>>({});
 
@@ -110,8 +111,9 @@ export default function DonationsListingPage() {
         status: selectedStatus,
         search: searchQuery,
         network: selectedNetwork,
+        currencies: selectedCurrencies,
       }),
-    [covenantCrowdfund.allCampaigns, selectedStatus, searchQuery, selectedNetwork]
+    [covenantCrowdfund.allCampaigns, selectedStatus, searchQuery, selectedNetwork, selectedCurrencies]
   );
 
   const filteredCampaigns = useMemo(() => {
@@ -136,13 +138,22 @@ export default function DonationsListingPage() {
         );
       });
     }
-    if (selectedCategory) {
-      list = list.filter((c) => (metaByCreator[donationListMetaKey(c)]?.category ?? null) === selectedCategory);
+    if (selectedCategories.length > 0) {
+      list = list.filter((c) => {
+        const cat = metaByCreator[donationListMetaKey(c)]?.category ?? null;
+        return cat != null && selectedCategories.includes(cat);
+      });
     }
     if (selectedTags.length > 0) {
       list = list.filter((c) => {
         const tags = metaByCreator[donationListMetaKey(c)]?.tags ?? [];
         return selectedTags.every((t) => tags.includes(t));
+      });
+    }
+    if (selectedCurrencies.length > 0) {
+      list = list.filter((c) => {
+        const currency = c.donationMethod === 'L1_DIRECT' ? 'KAS' : 'iKAS';
+        return selectedCurrencies.includes(currency);
       });
     }
     if (selectedNetwork === 'l2') {
@@ -151,18 +162,19 @@ export default function DonationsListingPage() {
       list = list.filter((c) => c.donationMethod === 'L1_DIRECT');
     }
     return sortCampaigns(list, sortBy);
-  }, [campaigns, selectedStatus, searchQuery, sortBy, selectedCategory, selectedTags, selectedNetwork, metaByCreator]);
+  }, [campaigns, selectedStatus, searchQuery, sortBy, selectedCategories, selectedTags, selectedCurrencies, selectedNetwork, metaByCreator]);
 
-  const showL2Grid = selectedNetwork !== 'l1';
-  const showCovenantGrid = selectedNetwork !== 'l2';
+  const showL2Grid = selectedNetwork !== 'l1' && (selectedCurrencies.length === 0 || selectedCurrencies.includes('iKAS'));
+  const showCovenantGrid = selectedNetwork !== 'l2' && (selectedCurrencies.length === 0 || selectedCurrencies.includes('KAS'));
   const totalVisible = (showL2Grid ? filteredCampaigns.length : 0) + (showCovenantGrid ? filteredCovenantCampaigns.length : 0);
 
   const handleResetFilters = () => {
     setSelectedStatus('all');
     setSearchQuery('');
     setSortBy('newest');
-    setSelectedCategory(null);
+    setSelectedCategories([]);
     setSelectedTags([]);
+    setSelectedCurrencies([]);
     setSelectedNetwork('all');
   };
 
@@ -232,14 +244,13 @@ export default function DonationsListingPage() {
                 flexWrap={true}
               >
                 <DonationNetworkFilter value={selectedNetwork} onChange={setSelectedNetwork} />
-                <DonationCategoryFilter value={selectedCategory} onChange={setSelectedCategory} />
+                <DonationCategoryFilter values={selectedCategories} onChange={setSelectedCategories} />
                 <DonationTagMultiFilter
                   allTags={allTags}
                   selectedTags={selectedTags}
-                  onToggleTag={(tag) =>
-                    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-                  }
+                  onChange={setSelectedTags}
                 />
+                <DonationCryptocurrencyFilter values={selectedCurrencies} onChange={setSelectedCurrencies} />
                 <DonationSortFilters sortBy={sortBy} onSortChange={setSortBy} />
               </FilterBar>
             </div>

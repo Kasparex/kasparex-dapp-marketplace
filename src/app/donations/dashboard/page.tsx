@@ -44,7 +44,7 @@ export default function DonationsDashboardPage() {
   const [selectedStatus, setSelectedStatus] = useState<DonationFilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<DonationSortOption>('newest');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [metadata, setMetadata] = useState<DonationCampaignMetadata | null>(null);
 
@@ -87,14 +87,17 @@ export default function DonationsDashboardPage() {
         return c.creatorAddress.toLowerCase().includes(q) || (c.l1Address && c.l1Address.toLowerCase().includes(q)) || title.includes(q);
       });
     }
-    if (selectedCategory) {
-      list = list.filter(() => (metadata?.category ?? null) === selectedCategory);
+    if (selectedCategories.length > 0) {
+      list = list.filter(() => {
+        const cat = metadata?.category ?? null;
+        return cat != null && selectedCategories.includes(cat);
+      });
     }
     if (selectedTags.length > 0) {
       list = list.filter(() => selectedTags.every((t) => (metadata?.tags ?? []).includes(t)));
     }
     return sortCampaigns(list, sortBy);
-  }, [myCampaigns, selectedStatus, searchQuery, sortBy, selectedCategory, selectedTags, metadata]);
+  }, [myCampaigns, selectedStatus, searchQuery, sortBy, selectedCategories, selectedTags, metadata]);
 
   const statusCounts = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
@@ -113,7 +116,7 @@ export default function DonationsDashboardPage() {
     setSelectedStatus('all');
     setSearchQuery('');
     setSortBy('newest');
-    setSelectedCategory(null);
+    setSelectedCategories([]);
     setSelectedTags([]);
   };
 
@@ -202,13 +205,11 @@ export default function DonationsDashboardPage() {
                     onReset={handleResetFilters}
                     flexWrap={true}
                   >
-                    <DonationCategoryFilter value={selectedCategory} onChange={setSelectedCategory} />
+                    <DonationCategoryFilter values={selectedCategories} onChange={setSelectedCategories} />
                     <DonationTagMultiFilter
                       allTags={allTags}
                       selectedTags={selectedTags}
-                      onToggleTag={(tag) =>
-                        setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-                      }
+                      onChange={setSelectedTags}
                     />
                     <DonationSortFilters sortBy={sortBy} onSortChange={setSortBy} />
                   </FilterBar>

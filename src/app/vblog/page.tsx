@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import { VBlogHeader } from '@/components/vblog/VBlogHeader';
 import { VBlogArticleGrid } from '@/components/vblog/VBlogArticleGrid';
 import { VBlogSidebar } from '@/components/vblog/VBlogSidebar';
-import { VBlogListingFiltersBar } from '@/components/vblog/VBlogSortFilters';
+import { VBlogListingFiltersBar } from '@/components/vblog/VBlogListingFilters';
 import { VBlogPricingStrip } from '@/components/vblog/VBlogPricingStrip';
 import { VBlogRewardsSection } from '@/components/vblog/VBlogRewardsSection';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
@@ -20,10 +20,12 @@ import { FilterBar } from '@/components/FilterBar';
 import type { VBlogSourceFilter } from '@/lib/vblog/source';
 import {
   filterVBlogArticles,
+  getVBlogTagsFromArticles,
   type VBlogMagazineFilter,
   type VBlogPremiumFilter,
   type VBlogSortOption,
 } from '@/lib/vblog/listing';
+import { getVBlogArticleCurrencies } from '@/lib/hub/listingCurrencies';
 import { VBLOG_ACCENT } from '@/lib/vblog/theme';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
@@ -43,11 +45,16 @@ function VBlogPageInner() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryParam ? [categoryParam] : [],
+  );
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
 
   useEffect(() => {
     if (categoryParam) {
-      setSelectedCategory(categoryParam);
+      setSelectedCategories([categoryParam]);
+    } else {
+      setSelectedCategories([]);
     }
   }, [categoryParam]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -62,23 +69,33 @@ function VBlogPageInner() {
     () =>
       filterVBlogArticles(articles, {
         source: sourceFilter,
-        category: selectedCategory,
+        category: selectedCategories.length === 1 ? selectedCategories[0] : null,
+        categories: selectedCategories.length > 1 ? selectedCategories : undefined,
         tags: selectedTags,
+        currencies: selectedCurrencies.length > 0 ? selectedCurrencies : undefined,
         magazine: magazineFilter,
         premium: premiumFilter,
         searchQuery,
         sortBy,
       }),
-    [articles, sourceFilter, selectedCategory, selectedTags, magazineFilter, premiumFilter, searchQuery, sortBy],
+    [articles, sourceFilter, selectedCategories, selectedTags, selectedCurrencies, magazineFilter, premiumFilter, searchQuery, sortBy],
   );
+
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(articles.map((a) => a.category))).sort((a, b) => a.localeCompare(b)),
+    [articles],
+  );
+  const currencyOptions = useMemo(() => getVBlogArticleCurrencies(articles), [articles]);
+  const allTagOptions = useMemo(() => getVBlogTagsFromArticles(articles), [articles]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   };
 
   const handleResetFilters = () => {
-    setSelectedCategory(null);
+    setSelectedCategories([]);
     setSelectedTags([]);
+    setSelectedCurrencies([]);
     setSearchQuery('');
     setSourceFilter('all');
     setMagazineFilter('all');
@@ -94,10 +111,10 @@ function VBlogPageInner() {
         <HubPageAccentLayout projectId="kasparex-vblog">
           <VBlogSidebar
             articles={articles}
-            selectedCategory={selectedCategory}
+            selectedCategory={selectedCategories.length === 1 ? selectedCategories[0] : null}
             selectedTags={selectedTags}
             searchQuery={searchQuery}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={(cat) => setSelectedCategories(cat ? [cat] : [])}
             onTagToggle={handleTagToggle}
             onSearchChange={setSearchQuery}
             activeView="explore"
@@ -137,6 +154,15 @@ function VBlogPageInner() {
                     onMagazineFilterChange={setMagazineFilter}
                     premiumFilter={premiumFilter}
                     onPremiumFilterChange={setPremiumFilter}
+                    selectedCurrencies={selectedCurrencies}
+                    onCurrenciesChange={setSelectedCurrencies}
+                    currencyOptions={currencyOptions}
+                    categoryOptions={categoryOptions}
+                    selectedCategories={selectedCategories}
+                    onCategoriesChange={setSelectedCategories}
+                    tagOptions={allTagOptions}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
                   />
                 </FilterBar>
 

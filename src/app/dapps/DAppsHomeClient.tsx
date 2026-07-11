@@ -21,6 +21,8 @@ import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { DAppSourceSwitcher, type DAppSourceFilter } from '@/components/dapps/DAppSourceSwitcher';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { FilterBar } from '@/components/FilterBar';
+import { DAppListingFiltersBar } from '@/components/dapps/DAppListingFilters';
+import { getDAppListingCurrencies, dAppMatchesCurrencies } from '@/lib/hub/listingCurrencies';
 import { AdSlider } from '@/components/ads/AdSlider';
 import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
@@ -59,6 +61,8 @@ export function DAppsHomeContent() {
   const [networkFilter, setNetworkFilter] = useState<DAppNetworkFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<DAppSourceFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const { activeDirectoryDApps } = useDirectoryListings();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
@@ -75,6 +79,14 @@ export function DAppsHomeContent() {
   const catalogDApps = useMemo((): DApp[] => {
     return [...placeholderDApps, ...activeDirectoryDApps];
   }, [activeDirectoryDApps]);
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    catalogDApps.forEach((d) => (d.tags ?? []).forEach((t) => set.add(t)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [catalogDApps]);
+
+  const currencyOptions = useMemo(() => getDAppListingCurrencies(catalogDApps), [catalogDApps]);
 
   const categoryCounts = useMemo(() => {
     return getCategoryCounts(catalogDApps, filters, searchQuery);
@@ -98,11 +110,17 @@ export function DAppsHomeContent() {
     if (networkFilter !== 'all') {
       filtered = filtered.filter((dapp) => matchesDAppNetworkFilter(dapp, networkFilter));
     }
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((dapp) => selectedTags.some((t) => (dapp.tags ?? []).includes(t)));
+    }
+    if (selectedCurrencies.length > 0) {
+      filtered = filtered.filter((dapp) => dAppMatchesCurrencies(dapp, selectedCurrencies));
+    }
     if (sortBy === 'favorites') {
       filtered = filtered.filter((dapp) => favoritesSet.has(dapp.id));
     }
     return sortDApps(filtered, sortBy, favoritesSet, likes);
-  }, [catalogDApps, selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter, sourceFilter]);
+  }, [catalogDApps, selectedCategories, filters, searchQuery, sortBy, favoritesSet, likes, networkFilter, sourceFilter, selectedTags, selectedCurrencies]);
 
   useEffect(() => {
     setDisplayedCount(50);
@@ -133,6 +151,8 @@ export function DAppsHomeContent() {
     setNetworkFilter('all');
     setSourceFilter('all');
     setSearchQuery('');
+    setSelectedTags([]);
+    setSelectedCurrencies([]);
   };
 
   return (
@@ -230,7 +250,18 @@ export function DAppsHomeContent() {
               <FilterBar
                 search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search dApps...' }}
                 onReset={handleResetFilters}
+                flexWrap
               >
+                <DAppListingFiltersBar
+                  selectedCategories={selectedCategories}
+                  onCategoriesChange={handleCategoryChange}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  tagOptions={allTags}
+                  selectedCurrencies={selectedCurrencies}
+                  onCurrenciesChange={setSelectedCurrencies}
+                  currencyOptions={currencyOptions}
+                />
                 <NetworkSwitcher value={networkFilter} onChange={setNetworkFilter} />
                 <SortFilters
                   sortBy={sortBy}

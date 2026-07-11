@@ -7,6 +7,8 @@ import { Footer } from '@/components/Footer';
 import { TokensHero } from '@/components/tokens/TokensHero';
 import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenListingFiltersBar } from '@/components/tokens/TokenSortFilters';
+import { TokenCryptocurrencyFilter } from '@/components/tokens/TokenListingFilters';
+import { getTokenListingCurrencies } from '@/lib/hub/listingCurrencies';
 import { NetworkSwitcher } from '@/components/NetworkSwitcher';
 import { FilterBar } from '@/components/FilterBar';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
@@ -60,6 +62,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
   const [sortControl, setSortControl] = useState<TokenSortControlValue>('community-high');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [voteTick, setVoteTick] = useState(0);
 
   useEffect(() => {
@@ -84,6 +87,8 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     [utilitySectionFilter, moduleSectionFilter],
   );
 
+  const currencyOptions = useMemo(() => getTokenListingCurrencies(allTokens), [allTokens]);
+
   const { sortBy } = useMemo(() => resolveTokenSortControl(sortControl), [sortControl]);
 
   const filteredAndSortedTokens = useMemo(
@@ -96,6 +101,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
         category: selectedCategory,
         utilitySidebar: utilitySidebarFilter,
         selectedTags,
+        selectedCurrencies,
         sortBy,
       }),
     [
@@ -107,6 +113,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
       selectedCategory,
       utilitySidebarFilter,
       selectedTags,
+      selectedCurrencies,
       sortBy,
       voteTick,
     ],
@@ -136,6 +143,7 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
     setModuleSectionFilter('all');
     setSortControl('community-high');
     setSelectedTags([]);
+    setSelectedCurrencies([]);
   };
 
   const handleNetworkFilterChange = (value: DAppNetworkFilter) => {
@@ -193,6 +201,11 @@ export function TokensPageContent({ tokens }: TokensPageContentProps) {
                   iconOnly
                 />
                 <NetworkSwitcher value={networkFilter} onChange={handleNetworkFilterChange} />
+                <TokenCryptocurrencyFilter
+                  selectedCurrencies={selectedCurrencies}
+                  onCurrenciesChange={setSelectedCurrencies}
+                  currencyOptions={currencyOptions}
+                />
                 <TokenListingFiltersBar
                   sortControl={sortControl}
                   onSortControlChange={setSortControl}

@@ -34,9 +34,11 @@ export function filterCovenantCampaigns(
     status: 'all' | 'active' | 'ended' | 'goal_reached';
     search?: string;
     network: 'all' | 'l1' | 'l2';
+    currencies?: string[];
   }
 ): CrowdfundCampaign[] {
   if (args.network === 'l2') return [];
+  if (args.currencies && args.currencies.length > 0 && !args.currencies.includes('KAS')) return [];
 
   let list = campaigns;
   if (args.status === 'active') {

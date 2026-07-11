@@ -8,6 +8,7 @@ import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 
 export function DonationCampaignCard({
   campaign,
@@ -52,9 +53,15 @@ export function DonationCampaignCard({
       </div>
       <div className="p-4">
         <div className="flex justify-between items-start mb-2 gap-2">
-          <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
-            {campaign.creatorAddress.slice(0, 6)}...{campaign.creatorAddress.slice(-4)}
-          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{title}</p>
+            <AuthorInline
+              address={campaign.creatorAddress}
+              href={`/u/${encodeURIComponent(campaign.creatorAddress)}`}
+              prefix=""
+              className="mt-0"
+            />
+          </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
             {(badges ?? []).map((b) => (
               <span
@@ -86,7 +93,6 @@ export function DonationCampaignCard({
             )}
           </div>
         </div>
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 line-clamp-2">{title}</p>
         {(category || tags.length > 0) && (
           <div className="flex flex-wrap gap-1.5 mb-3">
             {category && (
