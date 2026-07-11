@@ -51,7 +51,7 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
-import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME, VDONATE_GRADIENT_TEXT } from '@/lib/donations/brand';
+import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -316,6 +316,21 @@ function DonationsStudioPageContent() {
     [l1PricingInputs, pricing],
   );
   const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create'), [pricing]);
+  const l2EditQuote = useMemo(() => pricing.estimateL2Quote('edit'), [pricing]);
+
+  const studioTabRaw = searchParams.get('tab');
+  const studioTab =
+    studioTabRaw === 'l2-escrow' || studioTabRaw === 'l2'
+      ? 'l2-escrow'
+      : studioTabRaw === 'my-campaigns' || studioTabRaw === 'archive'
+        ? 'my-campaigns'
+        : studioTabRaw === 'how-it-works' || studioTabRaw === 'help'
+          ? 'how-it-works'
+          : 'l1-covenant';
+  const isFullWidthStudioTab =
+    (studioTab === 'my-campaigns' && !showEditForm) || studioTab === 'how-it-works';
+  const useStudioRightPanel =
+    studioTab === 'l1-covenant' || studioTab === 'l2-escrow' || (studioTab === 'my-campaigns' && showEditForm);
 
   const previewMetadata = useMemo((): DonationCampaignMetadata => {
     const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
@@ -856,14 +871,20 @@ function DonationsStudioPageContent() {
           </div>
 
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
-            <div className="max-w-6xl mx-auto">
+            <div className={isFullWidthStudioTab ? 'w-full' : 'max-w-6xl mx-auto'}>
               <div className="mb-8">
-                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-200">
+                <p className="mb-4 text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
                   Creator dashboard
                 </p>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight tracking-tight">
-                  Kasparex <span className={VDONATE_GRADIENT_TEXT}>{VDONATE_SHORT_NAME} Studio</span>
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className="h-7 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.35)]"
+                    aria-hidden="true"
+                  />
+                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
+                    {VDONATE_SHORT_NAME} <span className="text-emerald-600 dark:text-emerald-400">Studio</span>
+                  </h1>
+                </div>
                 <p className="kx-body max-w-3xl">
                   Create L1 covenant or L2 escrow campaigns, manage listings, and unlock modules for your supporters.
                 </p>
@@ -880,8 +901,8 @@ function DonationsStudioPageContent() {
                     )}
 
                     <div
-                      className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start ${
-                        activeTab === 'my-campaigns' || activeTab === 'how-it-works' ? 'xl:grid-cols-1' : ''
+                      className={`grid grid-cols-1 gap-6 items-start ${
+                        useStudioRightPanel ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''
                       }`}
                     >
                       <div className="flex flex-col gap-6 min-w-0">
@@ -1381,10 +1402,11 @@ function DonationsStudioPageContent() {
                           : undefined
                       }
                       editErrorMsg={editErrorMsg}
-                      updateErrorMsg={updateError ? getErrorMessage(updateError, 'Update failed') : null}
+                      updateErrorMsg={null}
                       isSubmitting={editSubmitting || isUpdatePending}
                       onSave={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
                       onCancel={closeEditCampaignForm}
+                      hideActions
                     />
                   </div>
                 )}
@@ -1415,7 +1437,7 @@ function DonationsStudioPageContent() {
 
                         {activeTab === 'my-campaigns' && (
                           <div className="space-y-6 w-full">
-                            {showEditForm && (
+                            {showEditForm ? (
                               <div id="crowdkas-edit-campaign" className="scroll-mt-24">
                                 <CrowdKasEditCampaignForm
                                   form={editForm}
@@ -1447,31 +1469,33 @@ function DonationsStudioPageContent() {
                                       : undefined
                                   }
                                   editErrorMsg={editErrorMsg}
-                                  updateErrorMsg={updateError ? getErrorMessage(updateError, 'Update failed') : null}
+                                  updateErrorMsg={null}
                                   isSubmitting={editSubmitting || isUpdatePending}
                                   onSave={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
                                   onCancel={closeEditCampaignForm}
+                                  hideActions
                                 />
                               </div>
+                            ) : (
+                              <CrowdKasMyCampaignsPanel
+                                l2Campaigns={myCampaignsV2}
+                                covenantCampaigns={myCovenantCampaigns}
+                                creatorAddress={address as Address | undefined}
+                                isLoading={myCampaignsV2Loading}
+                                error={myCampaignsV2Error}
+                                onRefresh={refetchMyCampaignsV2}
+                                onEdit={(campaignId, ipfsHash, l1Address, targetWei, deadline) => {
+                                  void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
+                                }}
+                                onClaim={handleClaimV2}
+                                onDelete={setDeleteCampaignId}
+                              />
                             )}
-                            <CrowdKasMyCampaignsPanel
-                              l2Campaigns={myCampaignsV2}
-                              covenantCampaigns={myCovenantCampaigns}
-                              creatorAddress={address as Address | undefined}
-                              isLoading={myCampaignsV2Loading}
-                              error={myCampaignsV2Error}
-                              onRefresh={refetchMyCampaignsV2}
-                              onEdit={(campaignId, ipfsHash, l1Address, targetWei, deadline) => {
-                                void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
-                              }}
-                              onClaim={handleClaimV2}
-                              onDelete={setDeleteCampaignId}
-                            />
                           </div>
                         )}
 
                         {activeTab === 'how-it-works' && (
-                          <section id="how-it-works" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 space-y-6`}>
+                          <section id="how-it-works" className={`${CROWDKAS_FORM_PANEL_CLASS} w-full scroll-mt-24 space-y-6`}>
                             <div>
                               <DAppSectionHeader title="Walkthrough" className="mb-3" />
                               <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
@@ -1486,7 +1510,19 @@ function DonationsStudioPageContent() {
                         )}
                       </div>
 
-                      {activeTab === 'l1-covenant' ? (
+                      {showEditForm && (studioTab === 'my-campaigns' || studioTab === 'l2-escrow') ? (
+                        <CrowdKasStudioRightPanel
+                          network="l2"
+                          quote={l2EditQuote}
+                          infoText="Update your L2 escrow campaign metadata on Igra. Edits require the platform fee in iKAS plus network gas."
+                          onSubmit={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
+                          submitLabel="Save changes"
+                          submittingLabel="Updating…"
+                          isSubmitting={editSubmitting || isUpdatePending}
+                          submitDisabled={editSubmitting || isUpdatePending}
+                          error={editErrorMsg ?? (updateError ? getErrorMessage(updateError, 'Update failed') : null)}
+                        />
+                      ) : activeTab === 'l1-covenant' ? (
                         <CrowdKasStudioRightPanel
                           network="l1"
                           quote={l1CreateQuote}
@@ -1498,8 +1534,7 @@ function DonationsStudioPageContent() {
                           submitDisabled={l1Submitting}
                           error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
                         />
-                      ) : null}
-                      {activeTab === 'l2-escrow' ? (
+                      ) : activeTab === 'l2-escrow' ? (
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2CreateQuote}

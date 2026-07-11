@@ -25,6 +25,7 @@ export function CrowdKasL1CalculationPanel({
   isSubmitting = false,
   onSubmit,
   submitLabel = 'Create campaign',
+  submittingLabel = 'Creating…',
   submitDisabled = false,
   onPreview,
   previewLabel = 'Preview campaign',
@@ -36,6 +37,7 @@ export function CrowdKasL1CalculationPanel({
   isSubmitting?: boolean;
   onSubmit?: () => void;
   submitLabel?: string;
+  submittingLabel?: string;
   submitDisabled?: boolean;
   onPreview?: () => void;
   previewLabel?: string;
@@ -126,7 +128,7 @@ export function CrowdKasL1CalculationPanel({
                 disabled={submitDisabled || isSubmitting}
                 className="w-full k-control-btn !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Creating…' : submitLabel}
+                {isSubmitting ? submittingLabel : submitLabel}
               </button>
             ) : null}
             {onPreview ? (
@@ -160,6 +162,7 @@ export function CrowdKasL2CalculationPanel({
   isSubmitting = false,
   onSubmit,
   submitLabel = 'Create campaign',
+  submittingLabel = 'Creating…',
   submitDisabled = false,
   onPreview,
   previewLabel = 'Preview campaign',
@@ -170,18 +173,20 @@ export function CrowdKasL2CalculationPanel({
   isSubmitting?: boolean;
   onSubmit?: () => void;
   submitLabel?: string;
+  submittingLabel?: string;
   submitDisabled?: boolean;
   onPreview?: () => void;
   previewLabel?: string;
   error?: string | null;
 }) {
   const formatIkasFee = (ikas: number) => (ikas <= 0 ? 'Free (+ gas)' : `${ikas} iKAS`);
+  const feeLineLabel = quote.action === 'edit' ? 'Edit fee' : 'Platform fee';
 
   return (
     <HubPaymentPanel
-      title="L2 calculation breakdown"
+      title={quote.action === 'edit' ? 'L2 edit breakdown' : 'L2 calculation breakdown'}
       lines={[
-        { label: 'Platform fee', value: formatIkasFee(quote.baseFeeIkas) },
+        { label: feeLineLabel, value: formatIkasFee(quote.baseFeeIkas) },
         { label: 'Network gas', value: 'Paid in iKAS' },
       ]}
       totalLabel="Total to pay (iKAS)"
@@ -200,7 +205,7 @@ export function CrowdKasL2CalculationPanel({
               disabled={submitDisabled || isSubmitting}
               className="w-full k-control-btn !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Creating…' : submitLabel}
+              {isSubmitting ? submittingLabel : submitLabel}
             </button>
           ) : null}
           {onPreview ? (

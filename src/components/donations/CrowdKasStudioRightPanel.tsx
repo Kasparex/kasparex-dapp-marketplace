@@ -11,6 +11,7 @@ type L1PanelProps = {
   tier: KREXTier;
   infoText: string;
   submitLabel: string;
+  submittingLabel?: string;
   onSubmit?: () => void;
   submitDisabled?: boolean;
   isSubmitting?: boolean;
@@ -23,6 +24,7 @@ type L2PanelProps = {
   quote: CrowdKasL2PriceQuote;
   infoText: string;
   submitLabel: string;
+  submittingLabel?: string;
   onSubmit?: () => void;
   submitDisabled?: boolean;
   isSubmitting?: boolean;
@@ -31,7 +33,7 @@ type L2PanelProps = {
 };
 
 export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
-  const { infoText, submitLabel, onSubmit, submitDisabled, isSubmitting, onPreview, error } = props;
+  const { infoText, submitLabel, submittingLabel, onSubmit, submitDisabled, isSubmitting, onPreview, error } = props;
 
   return (
     <div className="flex flex-col gap-4 xl:sticky xl:top-6">
@@ -42,6 +44,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           tier={props.tier}
           infoText={infoText}
           submitLabel={submitLabel}
+          submittingLabel={submittingLabel}
           onSubmit={onSubmit}
           submitDisabled={submitDisabled}
           isSubmitting={isSubmitting}
@@ -53,6 +56,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           quote={props.quote}
           infoText={infoText}
           submitLabel={submitLabel}
+          submittingLabel={submittingLabel}
           onSubmit={onSubmit}
           submitDisabled={submitDisabled}
           isSubmitting={isSubmitting}

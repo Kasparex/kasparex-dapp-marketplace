@@ -65,6 +65,7 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
   isSubmitting,
   onSave,
   onCancel,
+  hideActions = false,
 }: {
   form: T;
   onFormChange: Dispatch<SetStateAction<T>>;
@@ -95,6 +96,7 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
   isSubmitting: boolean;
   onSave: () => void;
   onCancel: () => void;
+  hideActions?: boolean;
 }) {
   return (
     <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6`}>
@@ -343,22 +345,34 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
           </div>
         ) : null}
 
-        {editErrorMsg ? <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p> : null}
-        {updateErrorMsg ? <p className="text-sm text-red-600 dark:text-red-400">{updateErrorMsg}</p> : null}
+        {editErrorMsg && hideActions ? null : editErrorMsg ? (
+          <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>
+        ) : null}
+        {updateErrorMsg && hideActions ? null : updateErrorMsg ? (
+          <p className="text-sm text-red-600 dark:text-red-400">{updateErrorMsg}</p>
+        ) : null}
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={isSubmitting}
-            className="k-control-btn !bg-emerald-600 !text-white hover:!bg-emerald-700 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Updating…' : 'Save changes'}
-          </button>
-          <button type="button" onClick={onCancel} className="k-control-btn">
-            Cancel
-          </button>
-        </div>
+        {hideActions ? (
+          <div className="flex gap-2">
+            <button type="button" onClick={onCancel} className="k-control-btn">
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={isSubmitting}
+              className="k-control-btn !bg-emerald-600 !text-white hover:!bg-emerald-700 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Updating…' : 'Save changes'}
+            </button>
+            <button type="button" onClick={onCancel} className="k-control-btn">
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
