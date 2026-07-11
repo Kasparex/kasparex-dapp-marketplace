@@ -20,6 +20,8 @@ import {
   type CrowdKasModulesConfig,
 } from '@/lib/donations/crowdkasModules';
 import type { DonationPaidModuleId } from '@/lib/donations/modules';
+import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
+import type { CrowdKasPricingDraft } from '@/lib/donations/pricing';
 
 const COVENANT_HOW_IT_WORKS = (
   <div className="max-w-xs space-y-2 text-sm leading-snug">
@@ -48,11 +50,12 @@ export type CrowdKasCovenantPanelProps = {
     payoutSplitRecipientCount: number;
     pendingPaidModules: DonationPaidModuleId[];
   }) => void;
+  onPricingDraftChange?: (draft: CrowdKasPricingDraft) => void;
 };
 
 export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, CrowdKasCovenantPanelProps>(
   function CrowdKasCovenantPanel(
-    { variant = 'embed', studioMode = false, modules: modulesProp, onModulesChange, onPricingInputsChange },
+    { variant = 'embed', studioMode = false, modules: modulesProp, onModulesChange, onPricingInputsChange, onPricingDraftChange },
     ref,
   ) {
     const { state } = useKaspaWallet();
@@ -86,7 +89,32 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
         payoutSplitRecipientCount,
         pendingPaidModules: modules.pendingPaidModules ?? [],
       });
-    }, [modules.pendingPaidModules, onPricingInputsChange, payoutSplitRecipientCount]);
+      onPricingDraftChange?.({
+        title,
+        description: memo,
+        category: category || undefined,
+        tags,
+        imageUrl: imageSource === 'url' ? imageUrl.trim() : undefined,
+        imageHash: imageSource === 'file' && imageCid ? imageCid : undefined,
+        targetKas: goalKas,
+        endDate: deadline,
+        modules,
+      });
+    }, [
+      category,
+      deadline,
+      goalKas,
+      imageCid,
+      imageSource,
+      imageUrl,
+      memo,
+      modules,
+      onPricingDraftChange,
+      onPricingInputsChange,
+      payoutSplitRecipientCount,
+      tags,
+      title,
+    ]);
 
     const canSubmit = Boolean(state.isConnected && title.trim() && deadline && !busy);
 
@@ -142,20 +170,49 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           onFileNameChange={setImageFileName}
         />
         <div>
-          <KxFormFieldLabel htmlFor="ck-crowdfund-title">
-            Campaign title <span className="text-red-500">*</span>
-          </KxFormFieldLabel>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <KxFormFieldLabel htmlFor="ck-crowdfund-title">
+              Campaign title <span className="text-red-500">*</span>
+            </KxFormFieldLabel>
+            <span
+              className={`text-xs ${
+                getCrowdKasCharacterCount(title) > CROWDKAS_CONTENT_LIMITS.title.max
+                  ? 'text-red-500'
+                  : 'text-zinc-500'
+              }`}
+            >
+              {getCrowdKasCharacterCount(title)} / {CROWDKAS_CONTENT_LIMITS.title.max}
+            </span>
+          </div>
           <input
             id="ck-crowdfund-title"
             className="k-input text-base"
             placeholder="e.g. Community art drop"
             value={title}
+            maxLength={CROWDKAS_CONTENT_LIMITS.title.max}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
         <div>
-          <KxFormFieldLabel>Description</KxFormFieldLabel>
-          <KxRichTextEditor value={memo} onChange={setMemo} minRows={6} placeholder="What are you raising for?" />
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <KxFormFieldLabel>Description</KxFormFieldLabel>
+            <span
+              className={`text-xs ${
+                getCrowdKasCharacterCount(memo.replace(/<[^>]*>/g, '')) > CROWDKAS_CONTENT_LIMITS.description.max
+                  ? 'text-red-500'
+                  : 'text-zinc-500'
+              }`}
+            >
+              {getCrowdKasCharacterCount(memo.replace(/<[^>]*>/g, ''))} / {CROWDKAS_CONTENT_LIMITS.description.max}
+            </span>
+          </div>
+          <KxRichTextEditor
+            value={memo}
+            onChange={setMemo}
+            minRows={6}
+            placeholder="What are you raising for?"
+            maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -275,6 +332,10 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
                     </span>
                   </Tooltip>
                 </p>
+                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+                  L1 covenant full logic will be available once covenants are live, integrated, and ready on Kaspa. Until
+                  then, simulator mode lets you draft campaigns and preview pricing.
+                </div>
               </div>
               {createFields}
             </div>

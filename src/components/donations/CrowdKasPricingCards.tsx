@@ -63,13 +63,13 @@ export function CrowdKasPricingCards({
           feeLabel={formatKas(l1CreateFeeKas)}
           basePoints={HUB_EARN_POINTS.crowdkasCampaignCreate}
           tier={tier}
-          note="Covenant deploy on Kaspa L1. Pay in KAS, KREX, or supported tokens."
+          note="Base 25 KAS plus payload size and modules. Pay in KAS, KREX, or supported tokens."
         />
         <CrowdKasFeeCard
           title="L1 edit"
           feeLabel={formatKas(l1EditFeeKas)}
           tier={tier}
-          note="Update covenant campaign metadata on Kaspa L1."
+          note="Base 5 KAS plus any payload growth and new modules."
         />
         <CrowdKasFeeCard
           title="Delete"
@@ -88,13 +88,13 @@ export function CrowdKasPricingCards({
         feeLabel={formatIkas(l2CreateFeeIkas)}
         basePoints={HUB_EARN_POINTS.crowdkasCampaignCreate}
         tier={tier}
-        note="Platform fee on Igra in iKAS, plus network gas."
+        note="Base 25 iKAS plus payload size. Network gas is charged separately in iKAS."
       />
       <CrowdKasFeeCard
         title="L2 edit"
         feeLabel={formatIkas(l2EditFeeIkas)}
         tier={tier}
-        note="Update escrow campaign metadata on Igra."
+        note="Base 5 iKAS plus any payload growth. Paid modules bill in KAS on L1."
       />
       <CrowdKasFeeCard
         title="Delete"

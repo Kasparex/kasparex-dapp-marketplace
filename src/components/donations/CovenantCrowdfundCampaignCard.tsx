@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import type { ReactNode } from 'react';
 import type { CrowdfundCampaign } from '@/lib/covenant/crowdfund-types';
 import {
   covenantCampaignBackerCount,
@@ -19,7 +20,13 @@ import { AuthorInline } from '@/components/ui/AuthorInline';
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
 const PLEDGE_HUB_POINTS_BASE = getHubPointsBaseForAction(CROWDFUND_DAPP, 'pledge');
 
-export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: CrowdfundCampaign }) {
+export function CovenantCrowdfundCampaignCard({
+  campaign,
+  footer,
+}: {
+  campaign: CrowdfundCampaign;
+  footer?: React.ReactNode;
+}) {
   const router = useRouter();
   const raised = covenantCampaignRaisedKas(campaign);
   const goal = covenantCampaignGoalKas(campaign);
@@ -104,6 +111,7 @@ export function CovenantCrowdfundCampaignCard({ campaign }: { campaign: Crowdfun
         <p className="kx-body">
           {backers} backer{backers === 1 ? '' : 's'} · Ends {deadline.toLocaleDateString()}
         </p>
+        {footer ? <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">{footer}</div> : null}
       </div>
     </div>
   );

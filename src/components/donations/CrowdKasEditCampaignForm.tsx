@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { Dispatch, SetStateAction } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
@@ -10,6 +9,7 @@ import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTh
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
+import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
 import { formatEther } from 'viem';
 
 export type CrowdKasEditFormState = {
@@ -131,12 +131,18 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
 
       <div className="space-y-6">
         <div>
-          <KxFormFieldLabel>
-            Title <span className="text-red-500">*</span>
-          </KxFormFieldLabel>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <KxFormFieldLabel>
+              Title <span className="text-red-500">*</span>
+            </KxFormFieldLabel>
+            <span className="text-xs text-zinc-500">
+              {getCrowdKasCharacterCount(form.title)} / {CROWDKAS_CONTENT_LIMITS.title.max}
+            </span>
+          </div>
           <input
             type="text"
             value={form.title}
+            maxLength={CROWDKAS_CONTENT_LIMITS.title.max}
             onChange={(e) => onFormChange((f) => ({ ...f, title: e.target.value }))}
             className="k-input text-base"
           />
@@ -184,12 +190,19 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
         </div>
 
         <div>
-          <KxFormFieldLabel>Description</KxFormFieldLabel>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <KxFormFieldLabel>Description</KxFormFieldLabel>
+            <span className="text-xs text-zinc-500">
+              {getCrowdKasCharacterCount(form.description.replace(/<[^>]*>/g, ''))} /{' '}
+              {CROWDKAS_CONTENT_LIMITS.description.max}
+            </span>
+          </div>
           <KxRichTextEditor
             value={form.description}
             onChange={(value) => onFormChange((f) => ({ ...f, description: value }))}
             minRows={6}
             placeholder="What is this campaign for?"
+            maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
           />
         </div>
 
@@ -275,7 +288,7 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
 
         {editingV2CampaignId != null && !l1TipsUnlockedV2 ? (
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            <strong>L1 tip jar:</strong> unlock the premium module on the Modules page to enable optional L1 tips.
+            <strong>L1 tip jar:</strong> enable the paid module below to allow optional L1 tips on your campaign page.
           </p>
         ) : null}
 
@@ -324,26 +337,13 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
           </div>
         ) : null}
 
-        <CrowdKasModulesPanel
-          modules={modulesConfig}
-          onChange={onModulesConfigChange}
-          paidModulesUnlocked={paidModulesUnlocked}
-        />
-
-        {editingV2CampaignId != null ? (
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-              Need <strong>featured</strong> placement or the <strong>L1 tip jar</strong>? Unlock paid modules on the{' '}
-              <Link
-                href={`/donations/modules?campaignId=${editingV2CampaignId.toString()}`}
-                className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline"
-              >
-                Modules
-              </Link>{' '}
-              page after you save your edits here.
-            </p>
-          </div>
-        ) : null}
+        <div id="crowdkas-dashboard-modules" className="scroll-mt-24">
+          <CrowdKasModulesPanel
+            modules={modulesConfig}
+            onChange={onModulesConfigChange}
+            paidModulesUnlocked={paidModulesUnlocked}
+          />
+        </div>
 
         {editErrorMsg && hideActions ? null : editErrorMsg ? (
           <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>

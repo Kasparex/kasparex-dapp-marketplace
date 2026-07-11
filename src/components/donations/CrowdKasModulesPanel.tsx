@@ -87,7 +87,8 @@ export function CrowdKasModulesPanel({
           Optional campaign modules
         </h4>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Toggle modules for your campaign page. Free modules apply at create; paid modules unlock with a Kaspa L1 payment after your campaign is live.
+          Toggle modules for your campaign page. Free modules apply at create. Paid module fees are included in the
+          calculation breakdown and unlock on Kaspa L1 after your campaign is live.
         </p>
       </div>
 
@@ -104,6 +105,7 @@ export function CrowdKasModulesPanel({
                 priceLabel="Free"
                 checked={enabled}
                 onToggle={() => setFree(id, !enabled)}
+                accent="hub"
               />
               {enabled && id === 'donorWall' ? (
                 <div className="pt-5 border-t border-zinc-200 dark:border-zinc-700 mt-4 space-y-2">
@@ -139,6 +141,7 @@ export function CrowdKasModulesPanel({
                   payoutSplitRecipients: modules.payoutSplitRecipients ?? defaultCrowdKasPayoutSplitRows(),
                 })
               }
+              accent="hub"
             />
             {modules.payoutSplitEnabled ? (
               <div className="pt-5 border-t border-zinc-200 dark:border-zinc-700 mt-4 space-y-3">
@@ -200,6 +203,7 @@ export function CrowdKasModulesPanel({
                 checked={unlocked || Boolean(pending)}
                 onToggle={unlocked ? undefined : () => togglePendingPaid(id)}
                 disabled={unlocked}
+                accent="hub"
               />
             </div>
           );

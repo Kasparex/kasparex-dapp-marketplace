@@ -139,6 +139,25 @@ export function useCovenantCrowdfund() {
     [refresh, runtime, walletCtx]
   );
 
+  const updateCampaign = useCallback(
+    async (campaignId: string, patch: { title?: string; memo?: string }) => {
+      if (!state.address) throw new Error('Connect wallet first');
+      const c = await runtime.updateCampaign(campaignId, state.address, patch);
+      await refresh();
+      return c;
+    },
+    [refresh, runtime, state.address],
+  );
+
+  const deleteCampaign = useCallback(
+    async (campaignId: string) => {
+      if (!state.address) throw new Error('Connect wallet first');
+      await runtime.deleteCampaign(campaignId, state.address);
+      await refresh();
+    },
+    [refresh, runtime, state.address],
+  );
+
   return {
     campaigns,
     allCampaigns,
@@ -151,5 +170,7 @@ export function useCovenantCrowdfund() {
     pledge,
     claimFunds,
     refund,
+    updateCampaign,
+    deleteCampaign,
   };
 }

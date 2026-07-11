@@ -105,6 +105,10 @@ class HybridCrowdfundRuntime implements CrowdfundRuntime {
     this.primary.listForAddress(address).then((list) =>
       list.length ? list : this.fallback.listForAddress(address)
     );
+  updateCampaign = (...args: Parameters<CrowdfundRuntime['updateCampaign']>) =>
+    this.fallback.updateCampaign(...args);
+  deleteCampaign = (...args: Parameters<CrowdfundRuntime['deleteCampaign']>) =>
+    this.fallback.deleteCampaign(...args);
 }
 
 class HybridVoucherRuntime implements VoucherRuntime {

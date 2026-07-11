@@ -195,6 +195,34 @@ class CrowdfundSimulator implements CrowdfundRuntime {
     if (!c) return null;
     return { ...c, status: resolveStatus(c) };
   }
+
+  async updateCampaign(
+    campaignId: string,
+    creator: string,
+    patch: { title?: string; memo?: string },
+  ): Promise<CrowdfundCampaign> {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) throw new Error('Only the creator can edit');
+    const updated: CrowdfundCampaign = {
+      ...campaign,
+      title: patch.title?.trim() ? patch.title.trim() : campaign.title,
+      memo: patch.memo !== undefined ? patch.memo.trim() : campaign.memo,
+    };
+    this.campaigns.set(campaignId, updated);
+    this.persist();
+    return { ...updated, status: resolveStatus(updated) };
+  }
+
+  async deleteCampaign(campaignId: string, creator: string): Promise<void> {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) throw new Error('Only the creator can delete');
+    const activePledges = campaign.pledges.filter((p) => !p.refunded).length;
+    if (activePledges > 0) throw new Error('Cannot delete a campaign that has received pledges');
+    this.campaigns.delete(campaignId);
+    this.persist();
+  }
 }
 
 let instance: CrowdfundSimulator | null = null;

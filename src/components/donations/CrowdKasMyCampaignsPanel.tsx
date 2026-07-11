@@ -44,6 +44,8 @@ export function CrowdKasMyCampaignsPanel({
   onEdit,
   onClaim,
   onDelete,
+  onEditCovenant,
+  onDeleteCovenant,
 }: {
   l2Campaigns: DonationCampaignV2ListItem[];
   covenantCampaigns: CrowdfundCampaign[];
@@ -54,6 +56,8 @@ export function CrowdKasMyCampaignsPanel({
   onEdit: (campaignId: bigint, ipfsHash: string, l1Address: string, targetWei: bigint, deadline: bigint) => void;
   onClaim: (campaignId: bigint) => void;
   onDelete: (campaignId: bigint) => void;
+  onEditCovenant?: (campaign: CrowdfundCampaign) => void;
+  onDeleteCovenant?: (campaignId: string) => void;
 }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -173,9 +177,47 @@ export function CrowdKasMyCampaignsPanel({
 
       {!isLoading && totalVisible > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch w-full">
-          {filteredCovenant.map((c) => (
-            <CovenantCrowdfundCampaignCard key={`covenant-${c.id}`} campaign={c} />
-          ))}
+          {filteredCovenant.map((c) => {
+            const backers = c.pledges.filter((p) => !p.refunded).length;
+            const canDeleteCovenant = backers === 0;
+            return (
+              <CovenantCrowdfundCampaignCard
+                key={`covenant-${c.id}`}
+                campaign={c}
+                footer={
+                  onEditCovenant || onDeleteCovenant ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {onEditCovenant ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditCovenant(c);
+                          }}
+                          className="flex-1 k-control-btn justify-center !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
+                      {onDeleteCovenant ? (
+                        <button
+                          type="button"
+                          disabled={!canDeleteCovenant}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteCovenant(c.id);
+                          }}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/40"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : undefined
+                }
+              />
+            );
+          })}
           {filteredL2.map((c) => {
             const listItem = toListItem(c);
             const key = c.campaignId.toString();
@@ -242,15 +284,6 @@ export function CrowdKasMyCampaignsPanel({
           })}
         </div>
       ) : null}
-
-      <div className="pt-2">
-        <Link
-          href="/donations/modules"
-          className="k-control-btn inline-flex !border-emerald-500/35 !bg-emerald-500/15 !text-emerald-900 dark:!text-emerald-200"
-        >
-          Open modules
-        </Link>
-      </div>
     </div>
   );
 }

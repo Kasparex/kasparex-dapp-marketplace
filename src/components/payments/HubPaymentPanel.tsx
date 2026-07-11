@@ -13,6 +13,7 @@ export function HubPaymentPanel({
   lines,
   totalLabel,
   totalDisplay,
+  totalSubtitle,
   currencies,
   selectedCurrencyId,
   onCurrencyChange,
@@ -30,6 +31,7 @@ export function HubPaymentPanel({
   lines: HubPaymentQuoteLine[];
   totalLabel?: string;
   totalDisplay: string;
+  totalSubtitle?: string;
   currencies?: HubPaymentCurrencyOption[];
   selectedCurrencyId?: string;
   onCurrencyChange?: (id: string) => void;
@@ -80,6 +82,9 @@ export function HubPaymentPanel({
       <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
         <p className="text-xs uppercase tracking-widest text-zinc-500">{totalLabel ?? 'Total to pay'}</p>
         <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{totalDisplay}</p>
+        {totalSubtitle ? (
+          <p className="mt-1 text-xs leading-snug text-zinc-500 dark:text-zinc-400">{totalSubtitle}</p>
+        ) : null}
       </div>
 
       {discountNote ? (

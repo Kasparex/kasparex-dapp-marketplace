@@ -24,4 +24,10 @@ export interface CrowdfundRuntime {
   ): Promise<CrowdfundCampaign>;
   listAll(): Promise<CrowdfundCampaign[]>;
   listForAddress(address: string): Promise<CrowdfundCampaign[]>;
+  updateCampaign(
+    campaignId: string,
+    creator: string,
+    patch: { title?: string; memo?: string },
+  ): Promise<CrowdfundCampaign>;
+  deleteCampaign(campaignId: string, creator: string): Promise<void>;
 }

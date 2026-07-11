@@ -58,7 +58,7 @@ const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[
 const STUDIO_SECTIONS = [
   { id: 'crowdkas-dashboard-main', label: 'Dashboard tabs' },
   { id: 'crowdkas-dashboard-pricing', label: 'Fees & rewards' },
-  { id: 'crowdkas-dashboard-modules', label: 'Modules' },
+  { id: 'crowdkas-dashboard-modules', label: 'Modules (in form)' },
 ];
 
 type DonationsSidebarListingProps = {

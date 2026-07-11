@@ -12,6 +12,7 @@ export function KxInFormPremiumRow({
   trailing,
   className,
   flat = false,
+  accent = 'default',
 }: {
   title: string;
   description: string;
@@ -22,7 +23,13 @@ export function KxInFormPremiumRow({
   trailing?: ReactNode;
   className?: string;
   flat?: boolean;
+  accent?: 'default' | 'hub';
 }) {
+  const accentTextClass =
+    accent === 'hub' ? 'text-[color:var(--hub-accent)]' : 'text-[#02abb8]';
+  const accentToggleOnClass =
+    accent === 'hub' ? 'bg-[color:var(--hub-accent)]' : 'bg-[#02abb8]';
+
   const shellClass = flat
     ? 'flex flex-wrap items-center gap-3'
     : 'flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/50';
@@ -34,7 +41,7 @@ export function KxInFormPremiumRow({
         <p className="text-sm leading-snug text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</p>
       </div>
       {priceLabel ? (
-        <span className="text-sm font-black tabular-nums text-[#02abb8] shrink-0">{priceLabel}</span>
+        <span className={`text-sm font-black tabular-nums shrink-0 ${accentTextClass}`}>{priceLabel}</span>
       ) : null}
       {trailing ?? (
         <button
@@ -44,7 +51,7 @@ export function KxInFormPremiumRow({
           disabled={disabled}
           onClick={onToggle}
           className={`relative h-8 w-14 shrink-0 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-            checked ? 'bg-[#02abb8]' : 'bg-zinc-300 dark:bg-zinc-600'
+            checked ? accentToggleOnClass : 'bg-zinc-300 dark:bg-zinc-600'
           }`}
         >
           <span

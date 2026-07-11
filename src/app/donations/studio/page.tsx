@@ -45,6 +45,8 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
+import type { CrowdKasPricingDraft } from '@/lib/donations/pricing';
+import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
 import { CrowdKasMyCampaignsPanel } from '@/components/donations/CrowdKasMyCampaignsPanel';
 import { CrowdKasEditCampaignForm } from '@/components/donations/CrowdKasEditCampaignForm';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
@@ -282,16 +284,18 @@ function DonationsStudioPageContent() {
 
   const searchParams = useSearchParams();
   const pricing = useCrowdKasPricing();
-  const { campaigns: covenantCampaigns } = useCovenantCrowdfund();
+  const { campaigns: covenantCampaigns, updateCampaign: updateCovenantCampaign, deleteCampaign: deleteCovenantCampaign, refresh: refreshCovenantCampaigns } = useCovenantCrowdfund();
   const [modulesConfig, setModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [previewOpen, setPreviewOpen] = useState(false);
   const covenantPanelRef = useRef<CrowdKasCovenantPanelHandle>(null);
   const editTxPendingRef = useRef(false);
   const [l1Submitting, setL1Submitting] = useState(false);
-  const [l1PricingInputs, setL1PricingInputs] = useState({
-    payoutSplitRecipientCount: 0,
-    pendingPaidModules: [] as import('@/lib/donations/modules').DonationPaidModuleId[],
-  });
+  const [l1PricingDraft, setL1PricingDraft] = useState<CrowdKasPricingDraft>({ title: '', description: '' });
+  const [editingCovenantId, setEditingCovenantId] = useState<string | null>(null);
+  const [covenantEditTitle, setCovenantEditTitle] = useState('');
+  const [covenantEditMemo, setCovenantEditMemo] = useState('');
+  const [covenantEditSubmitting, setCovenantEditSubmitting] = useState(false);
+  const [covenantEditError, setCovenantEditError] = useState<string | null>(null);
   const [l2ImageSource, setL2ImageSource] = useState<'url' | 'file'>('file');
   const [l2ImageUrl, setL2ImageUrl] = useState('');
   const [l2ImageCid, setL2ImageCid] = useState<string | null>(null);
@@ -308,24 +312,72 @@ function DonationsStudioPageContent() {
   }, [covenantCampaigns, kaspaState.address]);
 
   const myCampaignsCount = myCampaignsV2.length + myCovenantCampaigns.length + (hasCampaign ? 1 : 0);
-  const l1CreateQuote = useMemo(
-    () =>
-      pricing.estimateL1Quote('create', {
-        payoutSplitRecipientCount: l1PricingInputs.payoutSplitRecipientCount,
-        enabledPaidModules: l1PricingInputs.pendingPaidModules,
-      }),
-    [l1PricingInputs, pricing],
-  );
-  const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create'), [pricing]);
-  const l2EditQuote = useMemo(() => {
-    const pending = editModulesConfig.pendingPaidModules ?? [];
+  const l2CreateDraft = useMemo((): CrowdKasPricingDraft => {
+    const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
+    return {
+      title: createForm.title,
+      description: createForm.description || '',
+      category,
+      tags: normalizeTags(createForm.tags ?? []),
+      goals: createForm.goals?.length ? createForm.goals : undefined,
+      socialLinks: createForm.socialLinks,
+      imageUrl: l2ImageSource === 'url' && l2ImageUrl.trim() ? l2ImageUrl.trim() : undefined,
+      imageHash: l2ImageSource === 'file' && l2ImageCid ? l2ImageCid : undefined,
+      targetKas: createForm.targetKAS,
+      endDate: createForm.endDate,
+      modules: cleanCrowdKasModulesConfig(modulesConfig),
+    };
+  }, [createForm, l2ImageCid, l2ImageSource, l2ImageUrl, modulesConfig]);
+
+  const l2EditDraft = useMemo((): CrowdKasPricingDraft => {
+    const category = editForm.category && isDonationCategory(editForm.category) ? editForm.category : undefined;
     const unlocked =
       editingV2CampaignId != null ? unlockByCampaignId.get(editingV2CampaignId.toString()) : undefined;
-    return pricing.estimateL2Quote('edit', {
-      pendingPaidModules: pending,
-      alreadyUnlocked: unlocked ?? {},
-    });
-  }, [editModulesConfig.pendingPaidModules, editingV2CampaignId, pricing, unlockByCampaignId]);
+    const excludePaidModuleIds = (['featured', 'l1Tips'] as const).filter((id) => unlocked?.[id]);
+    return {
+      title: editForm.title,
+      description: editForm.description || '',
+      category,
+      tags: normalizeTags(editForm.tags ?? []),
+      goals: editForm.goals?.length ? editForm.goals : undefined,
+      socialLinks: editForm.socialLinks,
+      imageUrl: editImageSource === 'url' && editImageUrl.trim() ? editImageUrl.trim() : undefined,
+      imageHash: editImageSource === 'file' && editImageCid ? editImageCid : undefined,
+      targetKas: editOnChainLock ? formatEther(editOnChainLock.targetWei) : undefined,
+      endDate: editOnChainLock ? new Date(Number(editOnChainLock.deadline) * 1000).toISOString().slice(0, 16) : undefined,
+      l1Address: editOnChainLock?.l1Address,
+      modules: cleanCrowdKasModulesConfig(editModulesConfig),
+      excludePaidModuleIds: excludePaidModuleIds.length ? [...excludePaidModuleIds] : undefined,
+    };
+  }, [
+    editForm,
+    editImageCid,
+    editImageSource,
+    editImageUrl,
+    editModulesConfig,
+    editOnChainLock,
+    editingV2CampaignId,
+    unlockByCampaignId,
+  ]);
+
+  const covenantEditDraft = useMemo(
+    (): CrowdKasPricingDraft => ({
+      title: covenantEditTitle,
+      description: covenantEditMemo,
+    }),
+    [covenantEditMemo, covenantEditTitle],
+  );
+
+  const l1CreateQuote = useMemo(
+    () => pricing.estimateL1Quote('create', { draft: l1PricingDraft }),
+    [l1PricingDraft, pricing],
+  );
+  const l1EditQuote = useMemo(
+    () => pricing.estimateL1Quote('edit', { draft: covenantEditDraft }),
+    [covenantEditDraft, pricing],
+  );
+  const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create', { draft: l2CreateDraft }), [l2CreateDraft, pricing]);
+  const l2EditQuote = useMemo(() => pricing.estimateL2Quote('edit', { draft: l2EditDraft }), [l2EditDraft, pricing]);
 
   const studioTabRaw = searchParams.get('tab');
   const studioTab =
@@ -337,9 +389,11 @@ function DonationsStudioPageContent() {
           ? 'how-it-works'
           : 'l1-covenant';
   const isFullWidthStudioTab =
-    (studioTab === 'my-campaigns' && !showEditForm) || studioTab === 'how-it-works';
+    (studioTab === 'my-campaigns' && !showEditForm && editingCovenantId == null) || studioTab === 'how-it-works';
   const useStudioRightPanel =
-    studioTab === 'l1-covenant' || studioTab === 'l2-escrow' || (studioTab === 'my-campaigns' && showEditForm);
+    studioTab === 'l1-covenant' ||
+    studioTab === 'l2-escrow' ||
+    (studioTab === 'my-campaigns' && (showEditForm || editingCovenantId != null));
 
   const previewMetadata = useMemo((): DonationCampaignMetadata => {
     const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
@@ -364,6 +418,52 @@ function DonationsStudioPageContent() {
     setShowEditForm(false);
     setEditingV2CampaignId(null);
     setEditOnChainLock(null);
+    setEditingCovenantId(null);
+    setCovenantEditError(null);
+  };
+
+  const loadCovenantEditForm = (campaign: import('@/lib/covenant/crowdfund-types').CrowdfundCampaign) => {
+    setEditingCovenantId(campaign.id);
+    setCovenantEditTitle(campaign.title);
+    setCovenantEditMemo(campaign.memo);
+    setCovenantEditError(null);
+    setShowEditForm(false);
+    setEditingV2CampaignId(null);
+    requestAnimationFrame(() => {
+      document.getElementById('crowdkas-edit-campaign')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const handleSaveCovenantEdit = async () => {
+    if (!editingCovenantId || !covenantEditTitle.trim()) {
+      setCovenantEditError('Please fill title.');
+      return;
+    }
+    setCovenantEditSubmitting(true);
+    setCovenantEditError(null);
+    try {
+      await updateCovenantCampaign(editingCovenantId, {
+        title: covenantEditTitle,
+        memo: covenantEditMemo,
+      });
+      closeEditCampaignForm();
+      void refreshCovenantCampaigns();
+    } catch (e) {
+      setCovenantEditError(getErrorMessage(e, 'Failed to update campaign'));
+    } finally {
+      setCovenantEditSubmitting(false);
+    }
+  };
+
+  const handleDeleteCovenantCampaign = async (campaignId: string) => {
+    if (!window.confirm('Delete this L1 covenant campaign permanently? This cannot be undone.')) return;
+    try {
+      await deleteCovenantCampaign(campaignId);
+      if (editingCovenantId === campaignId) closeEditCampaignForm();
+      void refreshCovenantCampaigns();
+    } catch (e) {
+      setEditErrorMsg(getErrorMessage(e, 'Failed to delete campaign'));
+    }
   };
 
   const syncEditImageFromMetadata = (meta: DonationCampaignMetadata | null) => {
@@ -931,7 +1031,7 @@ function DonationsStudioPageContent() {
                                 ref={covenantPanelRef}
                                 variant="embed"
                                 studioMode
-                                onPricingInputsChange={setL1PricingInputs}
+                                onPricingDraftChange={setL1PricingDraft}
                               />
                             </HubWalletGateShell>
                           </section>
@@ -1001,24 +1101,50 @@ function DonationsStudioPageContent() {
                               </div>
                               <div className="space-y-6">
                                 <div>
-                                  <KxFormFieldLabel>
-                                    Title <span className="text-red-500">*</span>
-                                  </KxFormFieldLabel>
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <KxFormFieldLabel>
+                                      Title <span className="text-red-500">*</span>
+                                    </KxFormFieldLabel>
+                                    <span
+                                      className={`text-xs ${
+                                        getCrowdKasCharacterCount(createForm.title) > CROWDKAS_CONTENT_LIMITS.title.max
+                                          ? 'text-red-500'
+                                          : 'text-zinc-500'
+                                      }`}
+                                    >
+                                      {getCrowdKasCharacterCount(createForm.title)} / {CROWDKAS_CONTENT_LIMITS.title.max}
+                                    </span>
+                                  </div>
                                   <input
                                     type="text"
                                     value={createForm.title}
                                     onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
+                                    maxLength={CROWDKAS_CONTENT_LIMITS.title.max}
                                     className="k-input text-base"
                                     placeholder="Campaign title"
                                   />
                                 </div>
                                 <div>
-                                  <KxFormFieldLabel>Description</KxFormFieldLabel>
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <KxFormFieldLabel>Description</KxFormFieldLabel>
+                                    <span
+                                      className={`text-xs ${
+                                        getCrowdKasCharacterCount(createForm.description.replace(/<[^>]*>/g, '')) >
+                                        CROWDKAS_CONTENT_LIMITS.description.max
+                                          ? 'text-red-500'
+                                          : 'text-zinc-500'
+                                      }`}
+                                    >
+                                      {getCrowdKasCharacterCount(createForm.description.replace(/<[^>]*>/g, ''))} /{' '}
+                                      {CROWDKAS_CONTENT_LIMITS.description.max}
+                                    </span>
+                                  </div>
                                   <KxRichTextEditor
                                     value={createForm.description}
                                     onChange={(value) => setCreateForm((f) => ({ ...f, description: value }))}
                                     minRows={8}
                                     placeholder="What is this campaign for?"
+                                    maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
                                   />
                                 </div>
                                 <CrowdKasCampaignMediaField
@@ -1455,7 +1581,54 @@ function DonationsStudioPageContent() {
 
                         {activeTab === 'my-campaigns' && (
                           <div className="space-y-6 w-full">
-                            {showEditForm ? (
+                            {editingCovenantId != null ? (
+                              <div id="crowdkas-edit-campaign" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 space-y-6`}>
+                                <div>
+                                  <DAppSectionHeader title="Edit L1 campaign" className="mb-3" />
+                                  <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+                                    Update covenant presentation
+                                  </h3>
+                                  <p className="kx-body mt-2">
+                                    Title and description can be updated. Goal, deadline, and pledges stay locked on-chain.
+                                  </p>
+                                </div>
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <KxFormFieldLabel>Title <span className="text-red-500">*</span></KxFormFieldLabel>
+                                    <span className="text-xs text-zinc-500">
+                                      {getCrowdKasCharacterCount(covenantEditTitle)} / {CROWDKAS_CONTENT_LIMITS.title.max}
+                                    </span>
+                                  </div>
+                                  <input
+                                    className="k-input text-base"
+                                    value={covenantEditTitle}
+                                    maxLength={CROWDKAS_CONTENT_LIMITS.title.max}
+                                    onChange={(e) => setCovenantEditTitle(e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <KxFormFieldLabel>Description</KxFormFieldLabel>
+                                    <span className="text-xs text-zinc-500">
+                                      {getCrowdKasCharacterCount(covenantEditMemo.replace(/<[^>]*>/g, ''))} /{' '}
+                                      {CROWDKAS_CONTENT_LIMITS.description.max}
+                                    </span>
+                                  </div>
+                                  <KxRichTextEditor
+                                    value={covenantEditMemo}
+                                    onChange={setCovenantEditMemo}
+                                    minRows={6}
+                                    maxLength={CROWDKAS_CONTENT_LIMITS.description.max}
+                                  />
+                                </div>
+                                {covenantEditError ? (
+                                  <p className="text-sm text-red-600 dark:text-red-400">{covenantEditError}</p>
+                                ) : null}
+                                <button type="button" onClick={closeEditCampaignForm} className="k-control-btn">
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : showEditForm ? (
                               <div id="crowdkas-edit-campaign" className="scroll-mt-24">
                                 <CrowdKasEditCampaignForm
                                   form={editForm}
@@ -1507,6 +1680,8 @@ function DonationsStudioPageContent() {
                                 }}
                                 onClaim={handleClaimV2}
                                 onDelete={setDeleteCampaignId}
+                                onEditCovenant={loadCovenantEditForm}
+                                onDeleteCovenant={(id) => void handleDeleteCovenantCampaign(id)}
                               />
                             )}
                           </div>
@@ -1528,7 +1703,20 @@ function DonationsStudioPageContent() {
                         )}
                       </div>
 
-                      {showEditForm && (studioTab === 'my-campaigns' || studioTab === 'l2-escrow') ? (
+                      {editingCovenantId != null && studioTab === 'my-campaigns' ? (
+                        <CrowdKasStudioRightPanel
+                          network="l1"
+                          quote={l1EditQuote}
+                          tier={pricing.tier}
+                          infoText="Update L1 covenant campaign metadata on Kaspa. Full covenant logic will apply once covenants are live and integrated."
+                          onSubmit={handleSaveCovenantEdit}
+                          submitLabel="Save L1 changes"
+                          submittingLabel="Updating…"
+                          isSubmitting={covenantEditSubmitting}
+                          submitDisabled={covenantEditSubmitting}
+                          error={covenantEditError}
+                        />
+                      ) : showEditForm && (studioTab === 'my-campaigns' || studioTab === 'l2-escrow') ? (
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2EditQuote}
@@ -1545,7 +1733,7 @@ function DonationsStudioPageContent() {
                           network="l1"
                           quote={l1CreateQuote}
                           tier={pricing.tier}
-                          infoText="Launch your L1 covenant campaign on Kaspa. Creation requires KAS (or supported tokens). Paid modules bill in KAS on L1."
+                          infoText="Launch your L1 covenant campaign on Kaspa. One payment covers creation, payload size, and any enabled modules."
                           onSubmit={handleCreateL1Covenant}
                           submitLabel="Create L1 campaign"
                           isSubmitting={l1Submitting}
@@ -1556,7 +1744,7 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2CreateQuote}
-                          infoText="Create your L2 escrow campaign on Igra. Creation requires iKAS for the platform fee and network gas."
+                          infoText="Create your L2 escrow campaign on Igra. Platform fees are in iKAS; paid modules bill in KAS on L1 after your campaign is live."
                           onSubmit={isVerifiedV2 ? handleCreateCampaignV2 : undefined}
                           submitLabel="Create L2 campaign"
                           isSubmitting={createSubmitting || isCreatePending}
