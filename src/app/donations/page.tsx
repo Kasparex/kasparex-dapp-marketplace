@@ -59,7 +59,7 @@ export default function DonationsListingPage() {
   const v1 = useDonationCampaigns();
   const v2 = useDonationCampaignsV2();
   const covenantCrowdfund = useCovenantCrowdfund();
-  const v2Rows = useMemo(() => v2.campaigns.map(mapV2Row), [v2.campaigns]);
+  const v2Rows = useMemo(() => v2.campaigns.filter((c) => c.active).map(mapV2Row), [v2.campaigns]);
   /** When V2 is deployed, show legacy V1 escrow rows and all V2 campaigns unless NEXT_PUBLIC_CROWDKAS_HIDE_V1=1. */
   const campaigns = useMemo(() => {
     if (!v2Configured) return v1.campaigns;

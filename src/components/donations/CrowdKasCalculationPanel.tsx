@@ -261,7 +261,7 @@ export function CrowdKasL2CalculationPanel({
       totalSubtitle={totalSubtitle}
       discountNote={
         quote.discountIkas > 0
-          ? `KREX discount: -${quote.discountIkas.toFixed(2)} iKAS (${quote.krexDiscountPercent}% off platform fees).`
+          ? `KREX discount: -${quote.discountIkas.toFixed(2)} iKAS (${quote.krexDiscountPercent}% off total).`
           : undefined
       }
       infoText={infoText}

@@ -359,10 +359,9 @@ export function computeCrowdKasL2PriceQuote(opts: {
         : 0;
 
   const platformSubtotalIkas = baseFeeIkas + sizeFeeIkas + networkFeeBufferIkas;
-  const platformTotalIkas = round2(platformSubtotalIkas * (1 - discount));
-  const discountIkas = round2(platformSubtotalIkas - platformTotalIkas);
-  const totalIkas = round2(platformTotalIkas + modulesFeeIkas);
   const subtotalIkas = round2(platformSubtotalIkas + modulesFeeIkas);
+  const totalIkas = round2(subtotalIkas * (1 - discount));
+  const discountIkas = round2(subtotalIkas - totalIkas);
 
   return {
     action,

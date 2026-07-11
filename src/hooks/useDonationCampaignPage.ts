@@ -132,7 +132,7 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
 
   const campaign = useMemo((): DonationCampaign | null => {
     if (useV2Path && idBig != null && v2Parsed) {
-      if (!v2Match || !creatorAddress) return null;
+      if (!v2Match || !creatorAddress || !v2Parsed.active) return null;
       const isVerified = extras?.[0]?.status === 'success' ? Boolean(extras[0].result) : false;
       const l1w = extras?.[1]?.status === 'success' && typeof extras[1].result === 'bigint' ? extras[1].result : 0n;
       const l1c = extras?.[2]?.status === 'success' && typeof extras[2].result === 'bigint' ? extras[2].result : 0n;
