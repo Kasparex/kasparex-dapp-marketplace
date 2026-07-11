@@ -935,7 +935,7 @@ function DonationsStudioPageContent() {
                                   />
                                 </div>
                                 <div>
-                                  <KxFormFieldLabel label="Description" />
+                                  <KxFormFieldLabel>Description</KxFormFieldLabel>
                                   <KxRichTextEditor
                                     value={createForm.description}
                                     onChange={(value) => setCreateForm((f) => ({ ...f, description: value }))}

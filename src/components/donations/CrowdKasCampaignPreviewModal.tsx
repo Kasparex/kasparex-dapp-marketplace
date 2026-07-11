@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import type { DonationCampaignMetadata } from '@/lib/donations/types';
 import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
-import { DEFAULT_DONATION_CAMPAIGN_IMAGE } from '@/lib/donations/constants';
+import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 
 export function CrowdKasCampaignPreviewModal({
   isOpen,
@@ -22,7 +22,7 @@ export function CrowdKasCampaignPreviewModal({
 
   if (!isOpen || !mounted) return null;
 
-  const image = coverUrl || DEFAULT_DONATION_CAMPAIGN_IMAGE;
+  const image = coverUrl || DEFAULT_DONATION_IMAGE;
 
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:p-8">

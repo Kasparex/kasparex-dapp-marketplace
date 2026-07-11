@@ -90,7 +90,7 @@ export function CrowdKasModulesPanel({
           })}
           {modules.donorWall ? (
             <div className={CROWDKAS_FREE_MODULE_CARD_CLASS}>
-              <KxFormFieldLabel label="Thank-you message (optional)" />
+              <KxFormFieldLabel>Thank-you message (optional)</KxFormFieldLabel>
               <textarea
                 className="k-input w-full min-h-[80px]"
                 value={modules.thankYouMessage ?? ''}
