@@ -1,9 +1,7 @@
 'use client';
 
 import {
-  HubCategoryMultiFilter,
   HubCryptoMultiFilter,
-  HubTagsMultiFilter,
 } from '@/components/hub/HubMultiSelectFilters';
 import { VBlogSortFilters, type VBlogSortOption } from '@/components/vblog/VBlogSortFilters';
 import type { VBlogMagazineFilter, VBlogPremiumFilter } from '@/lib/vblog/listing';
@@ -32,12 +30,6 @@ export function VBlogListingFiltersBar({
   selectedCurrencies,
   onCurrenciesChange,
   currencyOptions,
-  categoryOptions,
-  selectedCategories,
-  onCategoriesChange,
-  tagOptions,
-  selectedTags,
-  onTagsChange,
 }: {
   sortBy: VBlogSortOption;
   onSortChange: (sort: VBlogSortOption) => void;
@@ -48,12 +40,6 @@ export function VBlogListingFiltersBar({
   selectedCurrencies: string[];
   onCurrenciesChange: (next: string[]) => void;
   currencyOptions: string[];
-  categoryOptions: string[];
-  selectedCategories: string[];
-  onCategoriesChange: (next: string[]) => void;
-  tagOptions: string[];
-  selectedTags: string[];
-  onTagsChange: (next: string[]) => void;
 }) {
   const magazineValues = useMemo(
     () => (magazineFilter === 'all' ? [] : [magazineFilter]),
@@ -66,24 +52,6 @@ export function VBlogListingFiltersBar({
 
   return (
     <>
-      {categoryOptions.length > 0 ? (
-        <HubCategoryMultiFilter
-          values={selectedCategories}
-          onChange={onCategoriesChange}
-          options={categoryOptions}
-          placeholder="Category"
-          filterPlaceholder="Filter categories…"
-        />
-      ) : null}
-      {tagOptions.length > 0 ? (
-        <HubTagsMultiFilter
-          values={selectedTags}
-          onChange={onTagsChange}
-          options={tagOptions}
-          placeholder="Tags"
-          filterPlaceholder="Filter tags…"
-        />
-      ) : null}
       <HubCryptoMultiFilter
         values={selectedCurrencies}
         onChange={onCurrenciesChange}

@@ -19,6 +19,7 @@ import {
 } from '@/lib/donations/covenantCrowdfund';
 import { DEFAULT_DONATION_IMAGE } from '@/lib/donations/constants';
 import { CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
+import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
 import { getAddressExplorerUrl } from '@/lib/walletUi';
 
 export default function CovenantCrowdfundPage({
@@ -224,7 +225,7 @@ export default function CovenantCrowdfundPage({
                   >
                     {campaign.memo ? (
                       <div className="prose prose-zinc dark:prose-invert max-w-none mb-6">
-                        <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{campaign.memo}</p>
+                        <KxRichTextContent html={campaign.memo} className="kx-prose" />
                       </div>
                     ) : (
                       <p className="kx-body">No description provided for this campaign.</p>

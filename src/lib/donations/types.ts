@@ -2,6 +2,8 @@
  * Kasparex vDonations types: campaign metadata (IPFS), on-chain campaign shape.
  */
 
+import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
+
 /** Campaign metadata stored on IPFS (JSON) */
 export interface DonationCampaignMetadata {
   title: string;
@@ -34,6 +36,8 @@ export interface DonationCampaignMetadata {
     /** Plain text, https URL, or IPFS CID */
     value?: string;
   };
+  /** Free and paid module toggles stored in campaign metadata. */
+  modules?: CrowdKasModulesConfig;
 }
 
 /** On-chain campaign (from contract campaigns(creator)) */

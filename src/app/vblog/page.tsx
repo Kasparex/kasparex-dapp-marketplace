@@ -157,12 +157,6 @@ function VBlogPageInner() {
                     selectedCurrencies={selectedCurrencies}
                     onCurrenciesChange={setSelectedCurrencies}
                     currencyOptions={currencyOptions}
-                    categoryOptions={categoryOptions}
-                    selectedCategories={selectedCategories}
-                    onCategoriesChange={setSelectedCategories}
-                    tagOptions={allTagOptions}
-                    selectedTags={selectedTags}
-                    onTagsChange={setSelectedTags}
                   />
                 </FilterBar>
 

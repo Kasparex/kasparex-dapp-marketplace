@@ -14,8 +14,7 @@ export type DonationFilterStatus = 'all' | 'active' | 'ended' | 'goal_reached';
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
 
-const ACTIVE_BTN =
-  '!border-emerald-500/40 !bg-emerald-500/15 !text-emerald-800 dark:!text-emerald-300';
+const ACTIVE_BTN = '!bg-emerald-600 !text-white';
 
 const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[] = [
   {
@@ -56,19 +55,26 @@ const statusItems: { id: DonationFilterStatus; label: string; icon: ReactNode }[
   },
 ];
 
+const STUDIO_SECTIONS = [
+  { id: 'crowdkas-dashboard-main', label: 'Dashboard tabs' },
+  { id: 'crowdkas-dashboard-pricing', label: 'Fees & rewards' },
+  { id: 'crowdkas-dashboard-modules', label: 'Modules' },
+];
+
 type DonationsSidebarListingProps = {
   variant?: 'listing';
   selectedStatus: DonationFilterStatus;
   onStatusChange: (status: DonationFilterStatus) => void;
   statusCounts: { all: number; active: number; ended: number; goal_reached: number };
   backLink?: { href: string; label: string };
+  hideStatusFilter?: boolean;
 };
 
 type DonationsSidebarMinimalProps = {
   variant: 'minimal';
   backLink?: { href: string; label: string };
-  /** In-page anchors (same pattern as vBlog article sidebar). */
   sectionNavItems?: Array<{ id: string; label: string; icon?: ReactNode }>;
+  showStudioSections?: boolean;
 };
 
 export type DonationsSidebarProps = DonationsSidebarListingProps | DonationsSidebarMinimalProps;
@@ -78,9 +84,11 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
   const isListing = props.variant !== 'minimal';
   const backLink = props.backLink ?? { href: '/hub', label: 'Back to Hub' };
   const sectionNavItems = props.variant === 'minimal' ? props.sectionNavItems ?? [] : [];
+  const showStudioSections = props.variant === 'minimal' && props.showStudioSections;
+  const hideStatusFilter = isListing && props.hideStatusFilter;
 
   const createActive = pathname.startsWith('/donations/studio');
-  const myCampaignsActive = pathname.startsWith('/donations/dashboard');
+  const myCampaignsActive = pathname.startsWith('/donations/dashboard') || (createActive && false);
 
   const header = (onHide: () => void) => (
     <SidebarHeader backHref={backLink.href} backLabel={backLink.label} onHide={onHide} />
@@ -97,7 +105,7 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
     <UnifiedSidebar storageKeyPrefix="donations" header={header}>
       <div className="mb-6 space-y-2">
         <Link
-          href="/donations/studio#create"
+          href="/donations/studio"
           className={`k-control-btn w-full justify-center gap-2 ${createActive ? ACTIVE_BTN : ''}`}
         >
           <svg className={createActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,15 +115,34 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
         </Link>
 
         <Link
-          href="/donations/dashboard"
-          className={`k-control-btn w-full justify-center gap-2 ${myCampaignsActive ? ACTIVE_BTN : ''}`}
+          href="/donations/studio?tab=my-campaigns"
+          className={`k-control-btn w-full justify-center gap-2 ${pathname.includes('tab=my-campaigns') ? ACTIVE_BTN : ''}`}
         >
-          <svg className={myCampaignsActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={pathname.includes('tab=my-campaigns') ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5V15h4v6h5a1 1 0 001-1V10" />
           </svg>
           My campaigns
         </Link>
       </div>
+
+      {showStudioSections ? (
+        <SidebarSection title="Page sections">
+          <nav className="space-y-0.5">
+            {STUDIO_SECTIONS.map((item) => (
+              <SidebarNavItem
+                key={item.id}
+                href={`#${item.id}`}
+                label={item.label}
+                icon={
+                  <svg className="w-4 h-4 k-sidebar-icon text-emerald-700 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
+                  </svg>
+                }
+              />
+            ))}
+          </nav>
+        </SidebarSection>
+      ) : null}
 
       {sectionNavItems.length > 0 && (
         <SidebarSection title="On this page">
@@ -127,7 +154,7 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
                 label={item.label}
                 icon={
                   item.icon ?? (
-                    <svg className="w-4 h-4 k-sidebar-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 k-sidebar-icon text-emerald-700 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h10" />
                     </svg>
                   )
@@ -138,7 +165,7 @@ export function DonationsSidebar(props: DonationsSidebarProps) {
         </SidebarSection>
       )}
 
-      {isListing && (
+      {isListing && !hideStatusFilter && (
         <SidebarSection title="Filter by status">
           <SidebarCategories
             bare

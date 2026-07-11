@@ -18,6 +18,8 @@ import { getGatewayUrl } from '@/lib/ipfs/gateway';
 import { getExplorerUrl } from '@/lib/dapps/deployer';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { progressPercent, totalDonorCount, totalRaisedWei } from '@/lib/donations/totals';
+import { KxRichTextContent } from '@/components/ui/KxRichTextContent';
+import { CrowdKasPublicModules } from '@/components/donations/CrowdKasPublicModules';
 import { useQuery } from '@tanstack/react-query';
 
 function DonationCampaignPageContent() {
@@ -216,10 +218,15 @@ function DonationCampaignPageContent() {
                   </div>
 
                   <div id="crowdkas-story" className="scroll-mt-28 px-6 md:px-8 pb-6 border-t border-zinc-100 dark:border-zinc-800 pt-6">
+                    <CrowdKasPublicModules
+                      metadata={metadata}
+                      deadlineUnix={Number(campaign.deadline)}
+                      campaignUrl={typeof window !== 'undefined' ? window.location.href : undefined}
+                    />
                     {metadataLoading && <p className="text-zinc-500 dark:text-zinc-400 text-sm">Loading description...</p>}
                     {!metadataLoading && metadata?.description && (
                       <div className="prose prose-zinc dark:prose-invert max-w-none mb-6">
-                        <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{metadata.description}</p>
+                        <KxRichTextContent html={metadata.description} className="kx-prose" />
                       </div>
                     )}
 

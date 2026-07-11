@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
 import {
   CrowdKasShell,
   CrowdKasFieldLabel,
@@ -11,7 +13,6 @@ import {
   CrowdKasTabs,
   CrowdKasPrototypeNotice,
   crowdkasInputClass,
-  crowdkasPanelClass,
   crowdkasPrimaryBtnClass,
 } from '@/components/donations/CrowdKasUi';
 
@@ -92,7 +93,7 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
       )}
 
       {!state.isConnected ? null : tab === 'create' && (
-        <div className={crowdkasPanelClass}>
+        <div className={CROWDKAS_FORM_PANEL_CLASS}>
           <div>
             <CrowdKasFieldLabel
               label="Campaign title"
@@ -143,13 +144,11 @@ export function CrowdKasCovenantPanel({ variant = 'embed', defaultTab = 'create'
               htmlFor="ck-crowdfund-memo"
               tooltip="Appears in the Story section on your campaign page."
             />
-            <textarea
-              id="ck-crowdfund-memo"
-              rows={3}
-              className={crowdkasInputClass}
-              placeholder="What are you raising for?"
+            <KxRichTextEditor
               value={memo}
-              onChange={(e) => setMemo(e.target.value)}
+              onChange={setMemo}
+              minRows={5}
+              placeholder="What are you raising for?"
             />
           </div>
           <button
