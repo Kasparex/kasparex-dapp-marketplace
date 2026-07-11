@@ -1,8 +1,8 @@
 'use client';
 
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
-import { VBlogPayoutSplitsEditor } from '@/components/vblog/VBlogModuleConfigFields';
-import { payoutSplitRowsFromModules, type PayoutSplitRow } from '@/lib/vblog/paymentSplit';
+import { VBlogPayoutSplitsEditor, type PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
+import { payoutSplitRowsFromModules } from '@/lib/vblog/paymentSplit';
 import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 
 export function crowdKasPremiumPayoutRows(modules: CrowdKasModulesConfig): PayoutSplitRow[] {
