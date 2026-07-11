@@ -121,7 +121,7 @@ export function CrowdKasPremiumSectionGate({
               onChange={onCurrencyChange}
               options={paymentCurrencies.map((c) => ({ value: c, label: c }))}
               ariaLabel="Premium unlock currency"
-              accent="emerald"
+              accent="default"
             />
           </div>
         ) : null}
