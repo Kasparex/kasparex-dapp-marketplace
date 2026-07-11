@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import {
@@ -32,6 +32,17 @@ export function CrowdKasModulesPanel({
   const [tab, setTab] = useState<ModuleTab>('free');
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
+
+  const moduleNftFlags = useMemo(
+    () => ({
+      hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
+        Object.values(nftStatus?.partnerCollections ?? {}).some(Boolean)),
+      hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
+        Object.values(nftStatus?.partnerDiamonds ?? {}).some(Boolean)),
+      hasRarest: !!nftStatus?.hasRarestNFT,
+    }),
+    [nftStatus]
+  );
 
   const setFree = (id: CrowdKasFreeModuleId, enabled: boolean) => {
     onChange({ ...modules, [id]: enabled });
@@ -105,7 +116,7 @@ export function CrowdKasModulesPanel({
           {(Object.keys(DONATION_MODULE_OFFERS) as DonationPaidModuleId[]).map((id) => {
             const offer = DONATION_MODULE_OFFERS[id];
             const unlocked = paidModulesUnlocked?.[id];
-            const kas = getDonationModulePriceKas(offer.basePriceKas, krexBalance, tier, nftStatus);
+            const kas = getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags);
             const pending = modules.pendingPaidModules?.includes(id);
             return (
               <div key={id} className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
