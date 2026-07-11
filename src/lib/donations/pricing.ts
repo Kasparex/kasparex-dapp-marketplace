@@ -1,11 +1,11 @@
+import { computeArticleChunkPlan, deterministicStringify, VBLOG_PER_CHUNK_KAS, VBLOG_PER_KB_KAS } from '@/lib/vblog/pricing';
 import {
-  computeArticleChunkPlan,
-  deterministicStringify,
-  VBLOG_PER_CHUNK_KAS,
-  VBLOG_PER_KB_KAS,
-} from '@/lib/vblog/pricing';
-import { computeCovenantPremiumSlotAddon } from '@/lib/covenant/kpxCovenantPricing';
-import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
+  computeCrowdKasPayoutSplitAddonKas,
+  cleanCrowdKasModulesConfig,
+  defaultCrowdKasPayoutSplitRows,
+  type CrowdKasModulesConfig,
+} from '@/lib/donations/crowdkasModules';
+import { CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS, CROWDKAS_PREMIUM_SECTION_OFFER } from '@/lib/donations/premiumSection';
 import { getDonationModulePriceKas, DONATION_MODULE_OFFERS, type DonationPaidModuleId } from '@/lib/donations/modules';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 
@@ -162,9 +162,8 @@ function resolveModuleLines(opts: {
 
 function resolvePayoutSplitAddonKas(modules?: CrowdKasModulesConfig): number {
   if (!modules?.payoutSplitEnabled) return 0;
-  const count = modules.payoutSplitRecipients?.filter((r) => r.address?.trim()).length ?? 0;
-  if (count <= 0) return 0;
-  return computeCovenantPremiumSlotAddon('split', count).addonKas;
+  const count = modules.payoutSplitRecipients?.length ?? defaultCrowdKasPayoutSplitRows().length;
+  return computeCrowdKasPayoutSplitAddonKas(count, true);
 }
 
 export function computeCrowdKasL1PriceQuote(opts: {
@@ -213,7 +212,7 @@ export function computeCrowdKasL1PriceQuote(opts: {
     if (draft?.modules?.payoutSplitEnabled) {
       payoutSplitAddonKas = resolvePayoutSplitAddonKas(draft.modules);
     } else if (payoutSplitRecipientCount > 0) {
-      payoutSplitAddonKas = computeCovenantPremiumSlotAddon('split', payoutSplitRecipientCount).addonKas;
+      payoutSplitAddonKas = computeCrowdKasPayoutSplitAddonKas(payoutSplitRecipientCount, true);
     }
   }
 
@@ -236,6 +235,14 @@ export function computeCrowdKasL1PriceQuote(opts: {
         );
         return { id, label: offer.title, kas };
       });
+
+  if (action === 'create' && draft?.modules?.premiumSectionEnabled) {
+    moduleLines.push({
+      id: 'premiumSection',
+      label: CROWDKAS_PREMIUM_SECTION_OFFER.title,
+      kas: CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS,
+    });
+  }
 
   const modulesFeeKas = moduleLines.reduce((sum, line) => sum + line.kas, 0);
   const networkFeeBufferKas =

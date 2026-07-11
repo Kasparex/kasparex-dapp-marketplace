@@ -34,7 +34,7 @@ export function CrowdKasPremiumSectionFields({
 
   return (
     <div className="space-y-3 pt-5 border-t border-zinc-200 dark:border-zinc-700">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Premium section setup
       </p>
       <KxRichTextEditor

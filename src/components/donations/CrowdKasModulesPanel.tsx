@@ -8,8 +8,8 @@ import {
   CROWDKAS_FREE_MODULE_IDS,
   CROWDKAS_FREE_MODULE_OFFERS,
   CROWDKAS_L1_PAYOUT_SPLIT_OFFER,
+  CROWDKAS_PAYOUT_SPLIT_BASE_FEE_KAS,
   CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS,
-  CROWDKAS_PAYOUT_SPLIT_INCLUDED_RECIPIENTS,
   computeCrowdKasPayoutSplitAddonKas,
   defaultCrowdKasPayoutSplitRows,
   type CrowdKasFreeModuleId,
@@ -25,21 +25,22 @@ import {
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { CROWDKAS_FREE_MODULE_CARD_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
-import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
 import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
-import { CROWDKAS_PREMIUM_SECTION_OFFER } from '@/lib/donations/premiumSection';
+import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS } from '@/lib/donations/premiumSection';
 
 export function CrowdKasModulesPanel({
   modules,
   onChange,
   paidModulesUnlocked,
   showL1PayoutSplit = false,
+  hidePremiumSection = false,
   className = '',
 }: {
   modules: CrowdKasModulesConfig;
   onChange: (next: CrowdKasModulesConfig) => void;
   paidModulesUnlocked?: Partial<Record<DonationPaidModuleId, boolean>>;
   showL1PayoutSplit?: boolean;
+  hidePremiumSection?: boolean;
   className?: string;
 }) {
   const { balance: krexBalance, tier } = useKREXBalance();
@@ -49,6 +50,7 @@ export function CrowdKasModulesPanel({
   const payoutRows = modules.payoutSplitRecipients ?? defaultCrowdKasPayoutSplitRows();
   const payoutAddonKas = computeCrowdKasPayoutSplitAddonKas(
     modules.payoutSplitEnabled ? payoutRows.length : 0,
+    Boolean(modules.payoutSplitEnabled),
   );
 
   const setFree = (id: CrowdKasFreeModuleId, enabled: boolean) => {
@@ -133,7 +135,7 @@ export function CrowdKasModulesPanel({
               priceLabel={
                 modules.payoutSplitEnabled && payoutAddonKas > 0
                   ? `+${payoutAddonKas} KAS`
-                  : `${CROWDKAS_PAYOUT_SPLIT_INCLUDED_RECIPIENTS} included`
+                  : `+${CROWDKAS_PAYOUT_SPLIT_BASE_FEE_KAS} KAS`
               }
               checked={Boolean(modules.payoutSplitEnabled)}
               onToggle={() =>
@@ -180,22 +182,23 @@ export function CrowdKasModulesPanel({
                   </div>
                 ))}
                 <button type="button" className="k-control-btn" onClick={addPayoutRecipient} disabled={payoutRows.length >= 8}>
-                  {covenantPremiumAddButtonLabel('split', payoutRows.length)}
+                  + Add recipient (+{CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS} KAS)
                 </button>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  First {CROWDKAS_PAYOUT_SPLIT_INCLUDED_RECIPIENTS} recipients included. Each extra recipient adds +{CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS} KAS to the deploy fee.
+                  {CROWDKAS_PAYOUT_SPLIT_BASE_FEE_KAS} KAS base fee when enabled. Each additional recipient adds +{CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS} KAS.
                 </p>
               </div>
             ) : null}
           </div>
         ) : null}
 
+        {hidePremiumSection ? null : (
         <div className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
           <KxInFormPremiumRow
             flat
             title={CROWDKAS_PREMIUM_SECTION_OFFER.title}
             description={CROWDKAS_PREMIUM_SECTION_OFFER.description}
-            priceLabel="Free to enable"
+            priceLabel={`+${CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS} KAS`}
             checked={Boolean(modules.premiumSectionEnabled)}
             onToggle={() =>
               onChange({
@@ -209,6 +212,7 @@ export function CrowdKasModulesPanel({
             <CrowdKasPremiumSectionFields modules={modules} onChange={onChange} />
           ) : null}
         </div>
+        )}
 
         {(Object.keys(DONATION_MODULE_OFFERS) as DonationPaidModuleId[]).map((id) => {
           const offer = DONATION_MODULE_OFFERS[id];

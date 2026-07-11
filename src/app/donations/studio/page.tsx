@@ -1136,6 +1136,7 @@ function DonationsStudioPageContent() {
                                 ref={covenantPanelRef}
                                 variant="embed"
                                 studioMode
+                                studioTotalKas={l1CreateQuote.totalKas}
                                 onPricingDraftChange={setL1PricingDraft}
                               />
                             </HubWalletGateShell>

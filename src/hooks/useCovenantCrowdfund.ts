@@ -14,6 +14,9 @@ import {
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { payCrowdKasL1StudioFee } from '@/lib/donations/l1Payment';
 import { placeholderDApps } from '@/lib/dapps';
 
 const CROWDFUND_DAPP = placeholderDApps.find((d) => d.slug === 'covenant-crowdfund')!;
@@ -58,9 +61,41 @@ export function useCovenantCrowdfund() {
   }, [refresh]);
 
   const createCampaign = useCallback(
-    async (args: { title: string; memo: string; goalKas: number; deadline: Date }) => {
+    async (args: {
+      title: string;
+      memo: string;
+      goalKas: number;
+      deadline: Date;
+      studioTotalKas?: number;
+    }) => {
       if (!state.address || !state.provider) throw new Error('Connect wallet first');
       const ctx = walletCtx();
+
+      if (args.studioTotalKas != null && args.studioTotalKas > 0) {
+        const feeTxHash = await payCrowdKasL1StudioFee({
+          provider: ctx.provider,
+          totalKas: args.studioTotalKas,
+          action: 'create',
+        });
+        const campaign = await runtime.create({
+          creator: state.address!,
+          title: args.title,
+          memo: args.memo,
+          goalSompi: kasToSompiString(args.goalKas),
+          deadline: args.deadline.getTime(),
+        });
+        appendHubActivityEarn({
+          walletRaw: ctx.userAddress,
+          source: 'crowdkas_campaign_create',
+          redeemableDelta: HUB_EARN_POINTS.crowdkasCampaignCreate,
+          krexBalance: krexBalance ?? 0,
+          idempotencyKey: `crowdkas:l1:create:${feeTxHash}`,
+          meta: { escrow: 'l1-covenant', spendKas: args.studioTotalKas },
+        });
+        await refresh();
+        return campaign;
+      }
+
       const pricing = resolveKpxCovenantDeployPrice('crowdfund', krexTier);
       const campaign = await runKpxCovenantDeployWithFee({
         template: 'crowdfund',
@@ -78,7 +113,7 @@ export function useCovenantCrowdfund() {
       await refresh();
       return campaign;
     },
-    [refresh, runtime, state.address, state.provider, walletCtx, krexTier]
+    [refresh, runtime, state.address, state.provider, walletCtx, krexTier, krexBalance]
   );
 
   const pledge = useCallback(

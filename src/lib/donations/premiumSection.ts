@@ -1,6 +1,8 @@
 import { resolvePremiumPayoutSplits, type ResolvedPayoutSplit } from '@/lib/vblog/paymentSplit';
 import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 
+export const CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS = 5;
+
 export const CROWDKAS_PREMIUM_SECTION_OFFER = {
   title: 'Premium Section Unlocks',
   description:

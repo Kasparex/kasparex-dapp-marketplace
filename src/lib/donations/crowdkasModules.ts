@@ -30,14 +30,14 @@ export const CROWDKAS_FREE_MODULE_OFFERS: Record<
 
 export const CROWDKAS_FREE_MODULE_IDS = Object.keys(CROWDKAS_FREE_MODULE_OFFERS) as CrowdKasFreeModuleId[];
 
-export const CROWDKAS_PAYOUT_SPLIT_INCLUDED_RECIPIENTS = 2;
+export const CROWDKAS_PAYOUT_SPLIT_BASE_FEE_KAS = 10;
 export const CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS = 5;
 
 export const CROWDKAS_L1_PAYOUT_SPLIT_OFFER = {
   id: 'payoutSplit' as const,
   title: 'Payout split recipients',
   description:
-    'Split raised funds across multiple Kaspa addresses when the campaign succeeds. Two recipients included; each additional recipient costs +5 KAS.',
+    'Split raised funds across multiple Kaspa addresses when the campaign succeeds. Costs 10 KAS to enable; each additional recipient adds +5 KAS.',
 };
 
 export interface CrowdKasModulesConfig {
@@ -94,9 +94,10 @@ export function cleanCrowdKasModulesConfig(config: CrowdKasModulesConfig): Crowd
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-export function computeCrowdKasPayoutSplitAddonKas(recipientCount: number): number {
-  const extra = Math.max(0, recipientCount - CROWDKAS_PAYOUT_SPLIT_INCLUDED_RECIPIENTS);
-  return extra * CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS;
+export function computeCrowdKasPayoutSplitAddonKas(recipientCount: number, enabled = false): number {
+  if (!enabled && recipientCount <= 0) return 0;
+  const count = Math.max(1, recipientCount);
+  return CROWDKAS_PAYOUT_SPLIT_BASE_FEE_KAS + Math.max(0, count - 1) * CROWDKAS_PAYOUT_SPLIT_EXTRA_FEE_KAS;
 }
 
 export function defaultCrowdKasPayoutSplitRows(): CrowdKasPayoutSplitRow[] {

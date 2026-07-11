@@ -8,12 +8,15 @@ import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
+import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { VDONATE_PRODUCT_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { CrowdKasShell, CrowdKasError, CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
+import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS } from '@/lib/donations/premiumSection';
 import { normalizeTags } from '@/lib/donations/categories';
 import {
   defaultCrowdKasPayoutSplitRows,
@@ -56,11 +59,13 @@ export type CrowdKasCovenantPanelProps = {
     pendingPaidModules: DonationPaidModuleId[];
   }) => void;
   onPricingDraftChange?: (draft: CrowdKasPricingDraft) => void;
+  /** Studio dashboard: charge full vDonate L1 quote instead of legacy covenant deploy fee. */
+  studioTotalKas?: number;
 };
 
 export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, CrowdKasCovenantPanelProps>(
   function CrowdKasCovenantPanel(
-    { variant = 'embed', studioMode = false, modules: modulesProp, onModulesChange, onPricingInputsChange, onPricingDraftChange },
+    { variant = 'embed', studioMode = false, modules: modulesProp, onModulesChange, onPricingInputsChange, onPricingDraftChange, studioTotalKas },
     ref,
   ) {
     const { state } = useKaspaWallet();
@@ -161,6 +166,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           memo: shortDescription,
           goalKas: parseFloat(goalKas),
           deadline: new Date(deadline),
+          studioTotalKas: studioMode && studioTotalKas != null && studioTotalKas > 0 ? studioTotalKas : undefined,
         });
         setCreatedId(campaign.id);
         setTitle('');
@@ -185,16 +191,6 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
 
     const createFields = (
       <div className="space-y-6">
-        <CrowdKasCampaignMediaField
-          source={imageSource}
-          onSourceChange={setImageSource}
-          url={imageUrl}
-          onUrlChange={setImageUrl}
-          cid={imageCid}
-          onCidChange={setImageCid}
-          fileName={imageFileName}
-          onFileNameChange={setImageFileName}
-        />
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
             <KxFormFieldLabel htmlFor="ck-crowdfund-title">
@@ -242,13 +238,32 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
           />
         </div>
         <div>
-          <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+          <KxFormFieldLabel>Main content</KxFormFieldLabel>
           <KxRichTextEditor
             value={mainContent}
             onChange={setMainContent}
             minRows={14}
             placeholder="Primary campaign story and details"
           />
+        </div>
+        <div className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
+          <KxInFormPremiumRow
+            flat
+            title={CROWDKAS_PREMIUM_SECTION_OFFER.title}
+            description={CROWDKAS_PREMIUM_SECTION_OFFER.description}
+            priceLabel={`+${CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS} KAS`}
+            checked={Boolean(modules.premiumSectionEnabled)}
+            onToggle={() =>
+              setModules({
+                ...modules,
+                premiumSectionEnabled: !modules.premiumSectionEnabled,
+              })
+            }
+            accent="hub"
+          />
+          {modules.premiumSectionEnabled ? (
+            <CrowdKasPremiumSectionFields modules={modules} onChange={setModules} />
+          ) : null}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -319,6 +334,17 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
             />
           </div>
         </div>
+        <CrowdKasCampaignMediaField
+          source={imageSource}
+          onSourceChange={setImageSource}
+          url={imageUrl}
+          onUrlChange={setImageUrl}
+          cid={imageCid}
+          onCidChange={setImageCid}
+          fileName={imageFileName}
+          onFileNameChange={setImageFileName}
+          label="Cover image"
+        />
       </div>
     );
 
@@ -376,7 +402,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
               {createFields}
             </div>
             <div id="crowdkas-dashboard-modules" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 py-10 sm:py-12`}>
-              <CrowdKasModulesPanel modules={modules} onChange={setModules} showL1PayoutSplit />
+              <CrowdKasModulesPanel modules={modules} onChange={setModules} showL1PayoutSplit hidePremiumSection />
             </div>
           </div>
         ) : (

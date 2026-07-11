@@ -36,7 +36,7 @@ function buildL1BreakdownLines(
   ];
   if (quote.payoutSplitAddonKas > 0) {
     lines.push({
-      label: 'Extra payout recipients',
+      label: 'Payout split recipients',
       value: formatLineKas(quote.payoutSplitAddonKas, paymentCurrency, pricingSnapshot),
     });
   }
