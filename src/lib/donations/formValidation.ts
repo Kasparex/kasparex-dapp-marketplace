@@ -54,7 +54,7 @@ export function validateL1CovenantCreateForm(args: {
   minGoalKas: number;
   kaspaConnected: boolean;
   modules?: CrowdKasModulesConfig;
-  creatorKaspaAddress?: string;
+  creatorKaspaAddress?: string | null;
 }): CrowdKasFormValidation {
   const requirements: string[] = [];
 
@@ -122,7 +122,7 @@ export function validateL2CampaignCreateForm(args: {
   escrowConfigured: boolean;
   verified: boolean;
   modules?: CrowdKasModulesConfig;
-  creatorKaspaAddress?: string;
+  creatorKaspaAddress?: string | null;
 }): CrowdKasFormValidation {
   const requirements: string[] = [];
 
@@ -199,7 +199,7 @@ export function validateL2CampaignEditForm(args: {
   evmOnIgra: boolean;
   escrowConfigured: boolean;
   modules?: CrowdKasModulesConfig;
-  creatorKaspaAddress?: string;
+  creatorKaspaAddress?: string | null;
 }): CrowdKasFormValidation {
   const requirements: string[] = [];
 
