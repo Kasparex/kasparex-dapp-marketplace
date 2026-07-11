@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { Dispatch, SetStateAction } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
@@ -9,13 +10,12 @@ import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTh
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
-import type { DonationCategory } from '@/lib/donations/categories';
 import { formatEther } from 'viem';
 
 export type CrowdKasEditFormState = {
   title: string;
   description: string;
-  category?: DonationCategory;
+  category?: string;
   tags?: string[];
   goals?: string[];
   socialLinks?: {
@@ -35,7 +35,7 @@ export type CrowdKasEditOnChainLock = {
   l1Address: string;
 };
 
-export function CrowdKasEditCampaignForm({
+export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
   form,
   onFormChange,
   onChainLock,
@@ -66,8 +66,8 @@ export function CrowdKasEditCampaignForm({
   onSave,
   onCancel,
 }: {
-  form: CrowdKasEditFormState;
-  onFormChange: (updater: (prev: CrowdKasEditFormState) => CrowdKasEditFormState) => void;
+  form: T;
+  onFormChange: Dispatch<SetStateAction<T>>;
   onChainLock: CrowdKasEditOnChainLock | null;
   tagInput: string;
   onTagInputChange: (value: string) => void;
