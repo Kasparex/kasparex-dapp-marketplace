@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Address } from 'viem';
 import { FilterBar } from '@/components/FilterBar';
+import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { DonationCampaignCard } from '@/components/donations/DonationCampaignCard';
 import { CovenantCrowdfundCampaignCard } from '@/components/donations/CovenantCrowdfundCampaignCard';
 import { fetchCampaignMetadata } from '@/hooks/useDonationCampaign';
@@ -128,26 +129,28 @@ export function CrowdKasMyCampaignsPanel({
         }}
         hasActiveFilters={hasActiveFilters}
       >
-        <select
+        <KxFilterDropdown
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          className="k-input h-10 min-w-[7rem] text-sm"
-          aria-label="Status filter"
-        >
-          <option value="all">All status</option>
-          <option value="active">Active</option>
-          <option value="ended">Ended</option>
-        </select>
-        <select
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: 'All status' },
+            { value: 'active', label: 'Active' },
+            { value: 'ended', label: 'Ended' },
+          ]}
+          ariaLabel="Status filter"
+          triggerClassName="k-control-btn min-w-[160px] h-10"
+        />
+        <KxFilterDropdown
           value={methodFilter}
-          onChange={(e) => setMethodFilter(e.target.value as MethodFilter)}
-          className="k-input h-10 min-w-[7rem] text-sm"
-          aria-label="Method filter"
-        >
-          <option value="all">All types</option>
-          <option value="l2">L2 escrow</option>
-          <option value="l1">L1 covenant</option>
-        </select>
+          onChange={setMethodFilter}
+          options={[
+            { value: 'all', label: 'All types' },
+            { value: 'l2', label: 'L2 escrow' },
+            { value: 'l1', label: 'L1 covenant' },
+          ]}
+          ariaLabel="Method filter"
+          triggerClassName="k-control-btn min-w-[160px] h-10"
+        />
         <button type="button" className="k-control-btn h-10 shrink-0" onClick={onRefresh}>
           Refresh
         </button>
@@ -169,7 +172,7 @@ export function CrowdKasMyCampaignsPanel({
       ) : null}
 
       {!isLoading && totalVisible > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+        <div className="grid grid-cols-1 gap-4 items-stretch w-full">
           {filteredCovenant.map((c) => (
             <CovenantCrowdfundCampaignCard key={`covenant-${c.id}`} campaign={c} />
           ))}

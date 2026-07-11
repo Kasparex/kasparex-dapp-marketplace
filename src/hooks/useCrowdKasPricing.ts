@@ -3,14 +3,18 @@
 import { useMemo } from 'react';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
+import { resolveKpxCovenantDeployPrice } from '@/lib/covenant/kpxCovenantPricing';
 import {
-  computeCrowdKasPriceQuote,
-  CROWDKAS_CREATE_FEE_KAS,
-  CROWDKAS_DELETE_FEE_KAS,
-  CROWDKAS_EDIT_FEE_KAS,
-  CROWDKAS_VERIFY_FEE_KAS,
+  computeCrowdKasL1PriceQuote,
+  computeCrowdKasL2PriceQuote,
+  VDONATE_DELETE_FEE,
+  VDONATE_L1_EDIT_FEE_KAS,
+  VDONATE_L2_CREATE_FEE_IKAS,
+  VDONATE_L2_EDIT_FEE_IKAS,
+  VDONATE_VERIFY_FEE_KAS,
   type CrowdKasAction,
-  type CrowdKasPriceQuote,
+  type CrowdKasL1PriceQuote,
+  type CrowdKasL2PriceQuote,
 } from '@/lib/donations/pricing';
 import { getDonationModuleNftFlags, type DonationPaidModuleId } from '@/lib/donations/modules';
 
@@ -19,10 +23,12 @@ export function useCrowdKasPricing() {
   const { nftStatus } = useNFTStatus();
   const moduleNftFlags = useMemo(() => getDonationModuleNftFlags(nftStatus), [nftStatus]);
 
-  const estimateQuote = useMemo(
+  const l1CreateBaseFeeKas = useMemo(() => resolveKpxCovenantDeployPrice('crowdfund', tier).feeKas, [tier]);
+
+  const estimateL1Quote = useMemo(
     () =>
-      (action: CrowdKasAction, enabledPaidModules: DonationPaidModuleId[] = []): CrowdKasPriceQuote =>
-        computeCrowdKasPriceQuote({
+      (action: CrowdKasAction, enabledPaidModules: DonationPaidModuleId[] = []): CrowdKasL1PriceQuote =>
+        computeCrowdKasL1PriceQuote({
           action,
           enabledPaidModules,
           krexBalance,
@@ -32,13 +38,23 @@ export function useCrowdKasPricing() {
     [krexBalance, moduleNftFlags, tier],
   );
 
+  const estimateL2Quote = useMemo(
+    () =>
+      (action: CrowdKasAction): CrowdKasL2PriceQuote =>
+        computeCrowdKasL2PriceQuote({ action }),
+    [],
+  );
+
   return {
-    verifyFee: CROWDKAS_VERIFY_FEE_KAS,
-    createFee: CROWDKAS_CREATE_FEE_KAS,
-    editFee: CROWDKAS_EDIT_FEE_KAS,
-    deleteFee: CROWDKAS_DELETE_FEE_KAS,
+    verifyFee: VDONATE_VERIFY_FEE_KAS,
+    l1CreateFeeKas: l1CreateBaseFeeKas,
+    l1EditFeeKas: VDONATE_L1_EDIT_FEE_KAS,
+    l2CreateFeeIkas: VDONATE_L2_CREATE_FEE_IKAS,
+    l2EditFeeIkas: VDONATE_L2_EDIT_FEE_IKAS,
+    deleteFee: VDONATE_DELETE_FEE,
     tier,
     krexBalance,
-    estimateQuote,
+    estimateL1Quote,
+    estimateL2Quote,
   };
 }

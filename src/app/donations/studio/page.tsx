@@ -48,6 +48,7 @@ import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
+import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -282,10 +283,8 @@ function DonationsStudioPageContent() {
   }, [covenantCampaigns, kaspaState.address]);
 
   const myCampaignsCount = myCampaignsV2.length + myCovenantCampaigns.length + (hasCampaign ? 1 : 0);
-  const createQuote = useMemo(
-    () => pricing.estimateQuote('create', modulesConfig.pendingPaidModules ?? []),
-    [pricing, modulesConfig.pendingPaidModules],
-  );
+  const l1CreateQuote = useMemo(() => pricing.estimateL1Quote('create'), [pricing]);
+  const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create'), [pricing]);
 
   const previewMetadata = useMemo((): DonationCampaignMetadata => {
     const category = createForm.category && isDonationCategory(createForm.category) ? createForm.category : undefined;
@@ -814,7 +813,7 @@ function DonationsStudioPageContent() {
         </div>
       )}
       <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+        <HubPageAccentLayout projectId="kasparex-donations">
           <div className="hidden lg:block flex-shrink-0">
             <DonationsSidebar variant="minimal" showStudioSections backLink={{ href: '/donations', label: 'All campaigns' }} />
           </div>
@@ -1693,33 +1692,32 @@ function DonationsStudioPageContent() {
                         )}
                       </div>
 
-                      {(activeTab === 'l1-covenant' || activeTab === 'l2-escrow') && (
+                      {activeTab === 'l1-covenant' ? (
                         <CrowdKasStudioRightPanel
-                          quote={createQuote}
+                          network="l1"
+                          quote={l1CreateQuote}
                           tier={pricing.tier}
-                          infoText={
-                            activeTab === 'l2-escrow'
-                              ? 'Create your L2 escrow campaign on Igra. Paid modules are unlocked separately on Kaspa L1 after creation.'
-                              : 'Launch your L1 covenant campaign on Kaspa. Ensure your wallet has enough KAS for pledges and fees.'
-                          }
-                          onSubmit={
-                            activeTab === 'l2-escrow' && isVerifiedV2
-                              ? handleCreateCampaignV2
-                              : activeTab === 'l1-covenant'
-                                ? handleCreateL1Covenant
-                                : undefined
-                          }
-                          submitLabel={
-                            activeTab === 'l2-escrow'
-                              ? 'Create L2 campaign'
-                              : 'Create L1 campaign'
-                          }
-                          isSubmitting={activeTab === 'l2-escrow' ? createSubmitting || isCreatePending : l1Submitting}
-                          submitDisabled={activeTab === 'l2-escrow' ? createSubmitting || isCreatePending : l1Submitting}
-                          onPreview={activeTab === 'l2-escrow' && isVerifiedV2 ? () => setPreviewOpen(true) : undefined}
+                          infoText="Launch your L1 covenant campaign on Kaspa. Creation requires KAS (or supported tokens). Paid modules bill in KAS on L1."
+                          onSubmit={handleCreateL1Covenant}
+                          submitLabel="Create L1 campaign"
+                          isSubmitting={l1Submitting}
+                          submitDisabled={l1Submitting}
                           error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
                         />
-                      )}
+                      ) : null}
+                      {activeTab === 'l2-escrow' ? (
+                        <CrowdKasStudioRightPanel
+                          network="l2"
+                          quote={l2CreateQuote}
+                          infoText="Create your L2 escrow campaign on Igra. Creation requires iKAS for the platform fee and network gas."
+                          onSubmit={isVerifiedV2 ? handleCreateCampaignV2 : undefined}
+                          submitLabel="Create L2 campaign"
+                          isSubmitting={createSubmitting || isCreatePending}
+                          submitDisabled={createSubmitting || isCreatePending}
+                          onPreview={isVerifiedV2 ? () => setPreviewOpen(true) : undefined}
+                          error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
+                        />
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -1732,7 +1730,7 @@ function DonationsStudioPageContent() {
               />
             </div>
           </div>
-        </div>
+        </HubPageAccentLayout>
       </main>
       <Footer />
     </div>

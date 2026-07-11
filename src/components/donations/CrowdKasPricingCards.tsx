@@ -7,13 +7,13 @@ import type { KREXTier } from '@/lib/rewards/types';
 
 export function CrowdKasFeeCard({
   title,
-  feeKas,
+  feeLabel,
   basePoints,
   tier,
   note,
 }: {
   title: string;
-  feeKas: number;
+  feeLabel: string;
   basePoints?: number;
   tier?: KREXTier;
   note?: string;
@@ -23,11 +23,7 @@ export function CrowdKasFeeCard({
       <DAppSectionHeader
         title={title}
         className="mb-0"
-        right={
-          <span className="text-base font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-            {feeKas <= 0 ? 'Free' : `${feeKas} KAS`}
-          </span>
-        }
+        right={<span className="text-base font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{feeLabel}</span>}
       />
       {note ? <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{note}</p> : null}
       {basePoints && basePoints > 0 && tier != null ? (
@@ -38,32 +34,59 @@ export function CrowdKasFeeCard({
 }
 
 export function CrowdKasPricingCards({
-  verifyFee,
-  createFee,
-  editFee,
+  l1CreateFeeKas,
+  l2CreateFeeIkas,
+  l1EditFeeKas,
+  l2EditFeeIkas,
   deleteFee,
   tier,
   className = '',
 }: {
-  verifyFee: number;
-  createFee: number;
-  editFee: number;
+  l1CreateFeeKas: number;
+  l2CreateFeeIkas: number;
+  l1EditFeeKas: number;
+  l2EditFeeIkas: number;
   deleteFee: number;
   tier?: KREXTier;
   className?: string;
 }) {
+  const formatKas = (kas: number) => (kas <= 0 ? 'Free' : `${kas} KAS`);
+  const formatIkas = (ikas: number) => (ikas <= 0 ? 'Free' : `${ikas} iKAS`);
+
   return (
-    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 ${className}`.trim()}>
-      <CrowdKasFeeCard title="Wallet verify" feeKas={verifyFee} tier={tier} note="One-time 1 wei check on Igra." />
+    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 ${className}`.trim()}>
       <CrowdKasFeeCard
-        title="Create campaign"
-        feeKas={createFee}
+        title="L1 create"
+        feeLabel={formatKas(l1CreateFeeKas)}
         basePoints={HUB_EARN_POINTS.crowdkasCampaignCreate}
         tier={tier}
-        note="Gas on Igra; metadata stored on IPFS."
+        note="Covenant deploy on Kaspa L1. KREX tier discounts apply."
       />
-      <CrowdKasFeeCard title="Edit / update" feeKas={editFee} tier={tier} />
-      <CrowdKasFeeCard title="Delete" feeKas={deleteFee} tier={tier} note="Free. Only empty campaigns with no donations." />
+      <CrowdKasFeeCard
+        title="L2 create"
+        feeLabel={formatIkas(l2CreateFeeIkas)}
+        basePoints={HUB_EARN_POINTS.crowdkasCampaignCreate}
+        tier={tier}
+        note="Platform fee on Igra in iKAS, plus network gas."
+      />
+      <CrowdKasFeeCard
+        title="L1 edit"
+        feeLabel={formatKas(l1EditFeeKas)}
+        tier={tier}
+        note="Update covenant campaign metadata on Kaspa L1."
+      />
+      <CrowdKasFeeCard
+        title="L2 edit"
+        feeLabel={formatIkas(l2EditFeeIkas)}
+        tier={tier}
+        note="Update escrow campaign metadata on Igra."
+      />
+      <CrowdKasFeeCard
+        title="Delete"
+        feeLabel={deleteFee <= 0 ? 'Free' : formatKas(deleteFee)}
+        tier={tier}
+        note="Free only when the campaign has received no donations."
+      />
     </div>
   );
 }

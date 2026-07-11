@@ -8,9 +8,17 @@ import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Alert } from '@/components/Alert';
 import { buildKasKrexMenuOptions, type KasKrexPaymentCurrency } from '@/lib/payments/hubPaymentTypes';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
-import type { CrowdKasPriceQuote } from '@/lib/donations/pricing';
+import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations/pricing';
 
-export function CrowdKasCalculationPanel({
+function formatKasFee(kas: number): string {
+  return kas <= 0 ? 'Free' : `${kas} KAS`;
+}
+
+function formatIkasFee(ikas: number): string {
+  return ikas <= 0 ? 'Free (+ gas)' : `${ikas} iKAS`;
+}
+
+export function CrowdKasL1CalculationPanel({
   quote,
   tier,
   infoText,
@@ -22,7 +30,7 @@ export function CrowdKasCalculationPanel({
   previewLabel = 'Preview campaign',
   error,
 }: {
-  quote: CrowdKasPriceQuote;
+  quote: CrowdKasL1PriceQuote;
   tier: KREXTier;
   infoText: string;
   isSubmitting?: boolean;
@@ -41,14 +49,18 @@ export function CrowdKasCalculationPanel({
   return (
     <>
       <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(16,185,129,0.4)]">
-        <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+        <DAppSectionHeader title="L1 calculation breakdown" className="mb-1" />
         <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
           <div className="flex justify-between">
-            <span>Base fee</span>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-              {quote.baseFeeKas <= 0 ? 'Free' : `${quote.baseFeeKas} KAS`}
-            </span>
+            <span>Covenant deploy fee</span>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatKasFee(quote.baseFeeKas)}</span>
           </div>
+          {quote.krexDiscountPercent > 0 ? (
+            <div className="flex justify-between text-emerald-700 dark:text-emerald-400">
+              <span>KREX tier discount</span>
+              <span className="font-semibold">-{quote.krexDiscountPercent}%</span>
+            </div>
+          ) : null}
           {quote.moduleLines.map((line) => (
             <div key={line.id} className="flex justify-between gap-2">
               <span className="truncate">{line.label}</span>
@@ -69,7 +81,7 @@ export function CrowdKasCalculationPanel({
           ) : null}
         </div>
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
-          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+          <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay (KAS)</p>
           <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
             {quote.totalKas <= 0 ? 'Free (+ gas)' : `${quote.totalKas} KAS`}
           </p>
@@ -80,7 +92,7 @@ export function CrowdKasCalculationPanel({
             value={paymentCurrency}
             onChange={setPaymentCurrency}
             options={buildKasKrexMenuOptions()}
-            ariaLabel="Campaign fee currency"
+            ariaLabel="L1 campaign fee currency"
           />
         </div>
         <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
@@ -129,5 +141,85 @@ export function CrowdKasCalculationPanel({
       </aside>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </>
+  );
+}
+
+export function CrowdKasL2CalculationPanel({
+  quote,
+  infoText,
+  isSubmitting = false,
+  onSubmit,
+  submitLabel = 'Create campaign',
+  submitDisabled = false,
+  onPreview,
+  previewLabel = 'Preview campaign',
+  error,
+}: {
+  quote: CrowdKasL2PriceQuote;
+  infoText: string;
+  isSubmitting?: boolean;
+  onSubmit?: () => void;
+  submitLabel?: string;
+  submitDisabled?: boolean;
+  onPreview?: () => void;
+  previewLabel?: string;
+  error?: string | null;
+}) {
+  return (
+    <aside className="flex flex-col bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-900 dark:to-zinc-900/80 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(16,185,129,0.4)]">
+      <DAppSectionHeader title="L2 calculation breakdown" className="mb-1" />
+      <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+        <div className="flex justify-between">
+          <span>Platform fee</span>
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatIkasFee(quote.baseFeeIkas)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Network gas</span>
+          <span className="font-semibold text-zinc-900 dark:text-zinc-100">Paid in iKAS</span>
+        </div>
+      </div>
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
+        <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay (iKAS)</p>
+        <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{formatIkasFee(quote.totalIkas)}</p>
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Plus Igra network gas for the escrow transaction.</p>
+      </div>
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3">
+        <p className="mb-1 text-xs uppercase tracking-widest text-zinc-500">Pay with</p>
+        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">iKAS on Igra Mainnet</p>
+      </div>
+      <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+        {infoText}
+      </div>
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 p-3 text-xs text-zinc-600 dark:text-zinc-400">
+        Paid modules (Featured, L1 Tip Jar) unlock separately on Kaspa L1 in KAS after your L2 campaign is live.
+      </div>
+      {onSubmit ? (
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={submitDisabled || isSubmitting}
+          className="w-full k-control-btn !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700 dark:!bg-emerald-600 dark:hover:!bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Creating…' : submitLabel}
+        </button>
+      ) : null}
+      {onPreview ? (
+        <button
+          type="button"
+          onClick={onPreview}
+          disabled={isSubmitting}
+          className="w-full k-control-btn disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {previewLabel}
+        </button>
+      ) : null}
+      <KxAlertRegion>
+        {error ? (
+          <Alert type="error" compact region>
+            <p>{error}</p>
+          </Alert>
+        ) : null}
+      </KxAlertRegion>
+    </aside>
   );
 }
