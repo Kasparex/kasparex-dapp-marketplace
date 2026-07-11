@@ -50,15 +50,23 @@ export function CrowdKasModulesPanel({
   };
 
   return (
-    <div id="crowdkas-dashboard-modules" className={`scroll-mt-24 ${className}`.trim()}>
-      <DAppSectionHeader title="Modules" className="mb-4" />
-      <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl w-fit border border-zinc-200 dark:border-zinc-800 mb-5">
+    <div className={className}>
+      <div className="space-y-2 mb-6">
+        <DAppSectionHeader title="Premium modules" className="mb-0" />
+        <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+          Optional campaign modules
+        </h4>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Toggle free modules on your campaign page, or queue paid modules to unlock after creation.
+        </p>
+      </div>
+      <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800 mb-5">
         <button
           type="button"
           onClick={() => setTab('free')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
             tab === 'free'
-              ? 'bg-white dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 shadow border border-zinc-200 dark:border-zinc-700'
+              ? 'bg-white dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
               : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
           }`}
         >
@@ -67,9 +75,9 @@ export function CrowdKasModulesPanel({
         <button
           type="button"
           onClick={() => setTab('paid')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
             tab === 'paid'
-              ? 'bg-white dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 shadow border border-zinc-200 dark:border-zinc-700'
+              ? 'bg-white dark:bg-zinc-800 text-emerald-700 dark:text-emerald-300 shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700'
               : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
           }`}
         >

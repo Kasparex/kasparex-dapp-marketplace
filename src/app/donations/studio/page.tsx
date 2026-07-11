@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAccount, useChainId, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
@@ -29,7 +29,7 @@ import { waitForTransactionReceipt } from 'wagmi/actions';
 import { config as wagmiChainConfig } from '@/lib/wagmi';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
-import { CrowdKasCovenantPanel } from '@/components/donations/CrowdKasCovenantPanel';
+import { CrowdKasCovenantPanel, type CrowdKasCovenantPanelHandle } from '@/components/donations/CrowdKasCovenantPanel';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { CROWDKAS_L1_COVENANT_GATE, CROWDKAS_L2_STUDIO_GATE } from '@/lib/hub/gateConfigs';
 import { CrowdKasAuthorDashboard } from '@/components/donations/CrowdKasAuthorDashboard';
@@ -42,6 +42,8 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
+import { CrowdKasMyCampaignsPanel } from '@/components/donations/CrowdKasMyCampaignsPanel';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
@@ -269,6 +271,8 @@ function DonationsStudioPageContent() {
   const { campaigns: covenantCampaigns } = useCovenantCrowdfund();
   const [modulesConfig, setModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [previewOpen, setPreviewOpen] = useState(false);
+  const covenantPanelRef = useRef<CrowdKasCovenantPanelHandle>(null);
+  const [l1Submitting, setL1Submitting] = useState(false);
 
   const myCovenantCampaigns = useMemo(() => {
     if (!kaspaState.address) return [];
@@ -364,6 +368,15 @@ function DonationsStudioPageContent() {
 
   const removeGoal = (i: number) => {
     setCreateForm((f) => ({ ...f, goals: (f.goals || []).filter((_, j) => j !== i) }));
+  };
+
+  const handleCreateL1Covenant = async () => {
+    setL1Submitting(true);
+    try {
+      await covenantPanelRef.current?.submit();
+    } finally {
+      setL1Submitting(false);
+    }
   };
 
   const handleCreateCampaignV2 = async () => {
@@ -835,39 +848,19 @@ function DonationsStudioPageContent() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-8 items-start">
-                      <div className="space-y-6 min-w-0">
+                    <div className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start ${activeTab === 'my-campaigns' ? 'xl:grid-cols-1' : ''}`}>
+                      <div className="flex flex-col gap-6 min-w-0">
                         {activeTab === 'l1-covenant' && (
-                <section
-                  id="covenant-create"
-                  className={`scroll-mt-24 ${CROWDKAS_FORM_PANEL_CLASS} overflow-hidden`}
-                >
-                  <HubWalletGateShell
-                    config={CROWDKAS_L1_COVENANT_GATE}
-                    mode="overlay"
-                    className="min-h-[18rem] p-6 md:p-8"
-                  >
-                    <CrowdKasCovenantPanel variant="embed" defaultTab="create" />
-                  </HubWalletGateShell>
-                </section>
+                          <section id="covenant-create" className="scroll-mt-24">
+                            <HubWalletGateShell config={CROWDKAS_L1_COVENANT_GATE} mode="overlay" className="min-h-[18rem]">
+                              <CrowdKasCovenantPanel ref={covenantPanelRef} variant="embed" defaultTab="create" studioMode />
+                            </HubWalletGateShell>
+                          </section>
                         )}
 
                         {activeTab === 'l2-escrow' && (
-                <div className={`${CROWDKAS_FORM_PANEL_CLASS} overflow-hidden`}>
                   <HubWalletGateShell config={CROWDKAS_L2_STUDIO_GATE} mode="overlay" className="min-h-[22rem]">
-                    <div className="p-6 md:p-8">
-                  <div className="mb-6">
-                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">
-                      CrowdKAS Studio
-                    </p>
-                    <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                      Create and manage your campaign
-                    </h1>
-                    <p className="kx-body mt-1">
-                      Your EVM wallet is used for on-chain actions. Your Kaspa L1 wallet (optional) helps fill your L1 donation address.
-                    </p>
-                  </div>
-
+                    <div className="flex flex-col gap-6 min-w-0">
                     {showMissingConfigNudge && (
                     <div className="rounded-xl border border-red-200 dark:border-red-800 p-4 bg-red-50 dark:bg-red-950/20 text-red-900 dark:text-red-100 space-y-2">
                       <p className="font-semibold">CrowdKAS contracts are not configured for Igra Mainnet yet.</p>
@@ -889,48 +882,54 @@ function DonationsStudioPageContent() {
                   )}
 
                   {(writeEscrowV2Address || writeEscrowAddress) && (
-                    <div className="space-y-8">
-                      {/* CrowdKAS V2 */}
+                    <div className="flex flex-col gap-6">
                       {writeEscrowV2Address && hasEscrowV2Configured && (
                         <>
-                          <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
-                            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Verify your wallet (V2)</h2>
+                          <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-4`}>
+                            <DAppSectionHeader title="Wallet verification" />
                             {isVerifiedV2 ? (
-                              <p className="text-emerald-600 dark:text-emerald-400">Verified</p>
+                              <p className="text-emerald-600 dark:text-emerald-400 font-medium">Verified</p>
                             ) : (
                               <>
-                                <p className="kx-body mb-4">
+                                <p className="kx-body">
                                   Pay 1 wei to verify. Only verified wallets can create campaigns.
                                 </p>
                                 <button
                                   type="button"
                                   onClick={handleVerifyV2}
                                   disabled={isVerifyPending}
-                                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
+                                  className="k-control-btn !bg-emerald-600 !text-white hover:!bg-emerald-700 disabled:opacity-50"
                                 >
                                   {isVerifyPending ? 'Confirming…' : 'Verify (1 wei)'}
                                 </button>
                                 {verifyError && (
-                                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">{getErrorMessage(verifyError, 'Verify failed')}</p>
+                                  <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(verifyError, 'Verify failed')}</p>
                                 )}
                               </>
                             )}
-                          </section>
+                          </div>
 
                           {isVerifiedV2 && (
-                            <section id="create" className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900 scroll-mt-24">
-                              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Create campaign (V2)</h2>
-                              <p className="kx-body mb-4">
-                                New campaigns use <strong>L2 escrow</strong> on Igra for the funding goal. Optional Kaspa L1 tips (separate from the goal) can be added later in edit after you unlock the L1 tip jar module.
-                              </p>
-                              <div className="space-y-4">
+                            <div id="create" className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6 scroll-mt-24`}>
+                              <div>
+                                <DAppSectionHeader title="Main content" className="mb-3" />
+                                <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
+                                  Create L2 escrow campaign
+                                </h3>
+                                <p className="kx-body">
+                                  New campaigns use <strong>L2 escrow</strong> on Igra for the funding goal. Optional Kaspa L1 tips can be added later after you unlock the L1 tip jar module.
+                                </p>
+                              </div>
+                              <div className="space-y-6">
                                 <div>
-                                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
+                                  <KxFormFieldLabel>
+                                    Title <span className="text-red-500">*</span>
+                                  </KxFormFieldLabel>
                                   <input
                                     type="text"
                                     value={createForm.title}
                                     onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
-                                    className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                                    className="k-input text-base"
                                     placeholder="Campaign title"
                                   />
                                 </div>
@@ -1056,19 +1055,11 @@ function DonationsStudioPageContent() {
                                 </div>
                                 {createErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{createErrorMsg}</p>}
                                 {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
-                                <button
-                                  type="button"
-                                  onClick={handleCreateCampaignV2}
-                                  disabled={createSubmitting || isCreatePending}
-                                  className="w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
-                                >
-                                  {createSubmitting || isCreatePending ? 'Creating…' : 'Create campaign'}
-                                </button>
                               </div>
-                            </section>
+                            </div>
                           )}
 
-                          <div className={CROWDKAS_FORM_PANEL_CLASS}>
+                          <div id="crowdkas-dashboard-modules" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}>
                             <CrowdKasModulesPanel
                               modules={modulesConfig}
                               onChange={setModulesConfig}
@@ -1680,105 +1671,23 @@ function DonationsStudioPageContent() {
                       )}
                     </div>
                   )}
-                    </div>
                   </HubWalletGateShell>
-                </div>
                         )}
 
                         {activeTab === 'my-campaigns' && (
-                          <section className={CROWDKAS_FORM_PANEL_CLASS}>
-                            <div className="flex items-center justify-between gap-4 mb-4">
-                              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">My L2 campaigns</h2>
-                              <button type="button" className="k-control-btn" onClick={refetchMyCampaignsV2}>
-                                Refresh
-                              </button>
-                            </div>
-                            {myCampaignsV2Error && (
-                              <div className="rounded-lg bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-4 mb-4">
-                                {myCampaignsV2Error.message}
-                              </div>
-                            )}
-                            {myCampaignsV2Loading && <div className="kx-body">Loading campaigns…</div>}
-                            {!myCampaignsV2Loading && myCampaignsV2.length === 0 && (
-                              <div className="kx-body">No L2 campaigns yet. Create one in the L2 escrow tab.</div>
-                            )}
-                            {!myCampaignsV2Loading && myCampaignsV2.length > 0 && (
-                              <div className="space-y-3">
-                                {myCampaignsV2.map((c) => {
-                                  const deadlinePassed = BigInt(Math.floor(Date.now() / 1000)) >= c.deadline;
-                                  const targetReachedEscrowOnly = c.method === 'L2_ESCROW' && c.raisedWei >= c.targetWei;
-                                  const isRowCreator =
-                                    Boolean(address) &&
-                                    c.creatorAddress.toLowerCase() === (address as string).toLowerCase();
-                                  const canClaimV2 =
-                                    isRowCreator && c.method === 'L2_ESCROW' && targetReachedEscrowOnly && deadlinePassed;
-                                  const canDeleteCampaign =
-                                    c.active &&
-                                    c.raisedWei === 0n &&
-                                    c.donorCount === 0n &&
-                                    (c.l1RecordedTotalWei ?? 0n) === 0n &&
-                                    (c.l1RecordedDonationCount ?? 0n) === 0n;
-                                  return (
-                                    <div key={c.campaignId.toString()} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
-                                      <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div className="min-w-0">
-                                          <div className="text-sm font-mono text-zinc-500 dark:text-zinc-400">
-                                            Campaign #{c.campaignId.toString()} · {c.method === 'L1_DIRECT' ? 'L1 Direct' : 'L2 Escrow'}
-                                          </div>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                          <Link href={`/donations/${address}?campaignId=${c.campaignId.toString()}`} className="k-control-btn">
-                                            View
-                                          </Link>
-                                          <button
-                                            type="button"
-                                            className="k-control-btn"
-                                            onClick={() => {
-                                              void loadEditFormV2(c.campaignId, c.ipfsHash, c.l1Address, c.targetWei, c.deadline);
-                                            }}
-                                          >
-                                            Edit
-                                          </button>
-                                          {canClaimV2 && (
-                                            <button type="button" className="k-control-btn !bg-emerald-600 !text-white" onClick={() => handleClaimV2(c.campaignId)}>
-                                              Claim
-                                            </button>
-                                          )}
-                                          <button
-                                            type="button"
-                                            className="k-control-btn !border-red-300 dark:!border-red-800 !text-red-700 dark:!text-red-300"
-                                            disabled={!canDeleteCampaign}
-                                            onClick={() => setDeleteCampaignId(c.campaignId)}
-                                          >
-                                            Delete
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            {myCovenantCampaigns.length > 0 && (
-                              <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-                                <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-3">L1 covenant campaigns</h3>
-                                <ul className="space-y-2">
-                                  {myCovenantCampaigns.map((c) => (
-                                    <li key={c.id}>
-                                      <Link href={`/donations/covenant/${c.id}`} className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium">
-                                        {c.title || c.id}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            <div className="mt-6">
-                              <Link href="/donations/modules" className="k-control-btn inline-flex !border-emerald-500/35 !bg-emerald-500/15 !text-emerald-900 dark:!text-emerald-200">
-                                Open modules
-                              </Link>
-                            </div>
-                          </section>
+                          <CrowdKasMyCampaignsPanel
+                            l2Campaigns={myCampaignsV2}
+                            covenantCampaigns={myCovenantCampaigns}
+                            creatorAddress={address as Address | undefined}
+                            isLoading={myCampaignsV2Loading}
+                            error={myCampaignsV2Error}
+                            onRefresh={refetchMyCampaignsV2}
+                            onEdit={(campaignId, ipfsHash, l1Address, targetWei, deadline) => {
+                              void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
+                            }}
+                            onClaim={handleClaimV2}
+                            onDelete={setDeleteCampaignId}
+                          />
                         )}
                       </div>
 
@@ -1786,11 +1695,26 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           quote={createQuote}
                           tier={pricing.tier}
-                          actionLabel={activeTab === 'l2-escrow' ? 'L2 escrow campaign' : 'L1 covenant campaign'}
-                          onSubmit={activeTab === 'l2-escrow' && isVerifiedV2 ? handleCreateCampaignV2 : undefined}
-                          submitLabel={createSubmitting || isCreatePending ? 'Creating…' : 'Create campaign'}
-                          submitDisabled={createSubmitting || isCreatePending}
-                          onPreview={() => setPreviewOpen(true)}
+                          infoText={
+                            activeTab === 'l2-escrow'
+                              ? 'Create your L2 escrow campaign on Igra. Paid modules are unlocked separately on Kaspa L1 after creation.'
+                              : 'Launch your L1 covenant campaign on Kaspa. Ensure your wallet has enough KAS for pledges and fees.'
+                          }
+                          onSubmit={
+                            activeTab === 'l2-escrow' && isVerifiedV2
+                              ? handleCreateCampaignV2
+                              : activeTab === 'l1-covenant'
+                                ? handleCreateL1Covenant
+                                : undefined
+                          }
+                          submitLabel={
+                            activeTab === 'l2-escrow'
+                              ? 'Create L2 campaign'
+                              : 'Create L1 campaign'
+                          }
+                          isSubmitting={activeTab === 'l2-escrow' ? createSubmitting || isCreatePending : l1Submitting}
+                          submitDisabled={activeTab === 'l2-escrow' ? createSubmitting || isCreatePending : l1Submitting}
+                          onPreview={activeTab === 'l2-escrow' && isVerifiedV2 ? () => setPreviewOpen(true) : undefined}
                           error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
                         />
                       )}

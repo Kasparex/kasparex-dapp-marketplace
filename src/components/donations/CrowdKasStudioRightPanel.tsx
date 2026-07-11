@@ -1,7 +1,6 @@
 'use client';
 
 import { CrowdKasDashboardBenefitsPanel } from '@/components/donations/CrowdKasDashboardBenefitsPanel';
-import { CrowdKasDashboardHubPointsPanel } from '@/components/donations/CrowdKasDashboardHubPointsPanel';
 import { CrowdKasCalculationPanel } from '@/components/donations/CrowdKasCalculationPanel';
 import type { CrowdKasPriceQuote } from '@/lib/donations/pricing';
 import type { KREXTier } from '@/lib/rewards/types';
@@ -9,33 +8,35 @@ import type { KREXTier } from '@/lib/rewards/types';
 export function CrowdKasStudioRightPanel({
   quote,
   tier,
-  actionLabel,
-  onSubmit,
+  infoText,
   submitLabel,
+  onSubmit,
   submitDisabled,
+  isSubmitting,
   onPreview,
   error,
 }: {
   quote: CrowdKasPriceQuote;
   tier: KREXTier;
-  actionLabel: string;
+  infoText: string;
+  submitLabel: string;
   onSubmit?: () => void;
-  submitLabel?: string;
   submitDisabled?: boolean;
+  isSubmitting?: boolean;
   onPreview?: () => void;
   error?: string | null;
 }) {
   return (
-    <div className="space-y-4 xl:sticky xl:top-6">
+    <div className="flex flex-col gap-4 xl:sticky xl:top-6">
       <CrowdKasDashboardBenefitsPanel />
-      <CrowdKasDashboardHubPointsPanel />
       <CrowdKasCalculationPanel
         quote={quote}
         tier={tier}
-        actionLabel={actionLabel}
-        onSubmit={onSubmit}
+        infoText={infoText}
         submitLabel={submitLabel}
+        onSubmit={onSubmit}
         submitDisabled={submitDisabled}
+        isSubmitting={isSubmitting}
         onPreview={onPreview}
         error={error}
       />

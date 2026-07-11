@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { formatEther } from 'viem';
 import type { DonationCampaignListItem } from '@/hooks/useDonationCampaigns';
@@ -15,11 +15,13 @@ export function DonationCampaignCard({
   metadata,
   href,
   badges,
+  footer,
 }: {
   campaign: DonationCampaignListItem;
   metadata: DonationCampaignMetadata | null;
   href?: string;
   badges?: { label: string; variant?: 'neutral' | 'emerald' | 'amber' }[];
+  footer?: ReactNode;
 }) {
   const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
 
@@ -43,11 +45,10 @@ export function DonationCampaignCard({
   const category = metadata?.category?.trim() || null;
   const tags = (metadata?.tags ?? []).slice(0, 3);
 
-  return (
-    <Link
-      href={href ?? `/donations/${campaign.creatorAddress}`}
-      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-    >
+  const cardHref = href ?? `/donations/${campaign.creatorAddress}`;
+
+  const cardBody = (
+    <>
       <div className="aspect-[16/9] bg-zinc-100 dark:bg-zinc-800 relative overflow-hidden">
         <img src={imageSrc} alt="" className="w-full h-full object-cover" />
       </div>
@@ -120,6 +121,29 @@ export function DonationCampaignCard({
           {donorsDisplay.toString()} donors · Ends {deadline.toLocaleDateString()}
         </p>
       </div>
+    </>
+  );
+
+  if (footer) {
+    return (
+      <div className="flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900">
+        <Link
+          href={cardHref}
+          className="block hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+        >
+          {cardBody}
+        </Link>
+        <div className="p-4 pt-0">{footer}</div>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={cardHref}
+      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+    >
+      {cardBody}
     </Link>
   );
 }
