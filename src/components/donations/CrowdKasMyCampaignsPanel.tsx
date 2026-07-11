@@ -172,7 +172,7 @@ export function CrowdKasMyCampaignsPanel({
       ) : null}
 
       {!isLoading && totalVisible > 0 ? (
-        <div className="grid grid-cols-1 gap-4 items-stretch w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch w-full">
           {filteredCovenant.map((c) => (
             <CovenantCrowdfundCampaignCard key={`covenant-${c.id}`} campaign={c} />
           ))}

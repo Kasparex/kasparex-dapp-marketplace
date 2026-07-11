@@ -46,11 +46,12 @@ import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTh
 import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
 import { CrowdKasMyCampaignsPanel } from '@/components/donations/CrowdKasMyCampaignsPanel';
+import { CrowdKasEditCampaignForm } from '@/components/donations/CrowdKasEditCampaignForm';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
-import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
+import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME, VDONATE_GRADIENT_TEXT } from '@/lib/donations/brand';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
@@ -268,7 +269,15 @@ function DonationsStudioPageContent() {
   const [editLoadingMeta, setEditLoadingMeta] = useState(false);
   const [editErrorMsg, setEditErrorMsg] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  type EditOnChainLock = {
+    targetWei: bigint;
+    deadline: bigint;
+    l1Address: string;
+  };
+
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editOnChainLock, setEditOnChainLock] = useState<EditOnChainLock | null>(null);
+  const [editModulesConfig, setEditModulesConfig] = useState<CrowdKasModulesConfig>({});
   const [deleteCampaignId, setDeleteCampaignId] = useState<bigint | null>(null);
 
   const searchParams = useSearchParams();
@@ -286,6 +295,10 @@ function DonationsStudioPageContent() {
   const [l2ImageUrl, setL2ImageUrl] = useState('');
   const [l2ImageCid, setL2ImageCid] = useState<string | null>(null);
   const [l2ImageFileName, setL2ImageFileName] = useState<string | null>(null);
+  const [editImageSource, setEditImageSource] = useState<'url' | 'file'>('file');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageCid, setEditImageCid] = useState<string | null>(null);
+  const [editImageFileName, setEditImageFileName] = useState<string | null>(null);
 
   const myCovenantCampaigns = useMemo(() => {
     if (!kaspaState.address) return [];
@@ -322,6 +335,26 @@ function DonationsStudioPageContent() {
 
   const l1TipsUnlockedV2 =
     editingV2CampaignId != null ? (unlockByCampaignId.get(editingV2CampaignId.toString())?.l1Tips ?? false) : false;
+
+  const closeEditCampaignForm = () => {
+    setShowEditForm(false);
+    setEditingV2CampaignId(null);
+    setEditOnChainLock(null);
+  };
+
+  const syncEditImageFromMetadata = (meta: DonationCampaignMetadata | null) => {
+    if (meta?.imageUrl?.trim()) {
+      setEditImageSource('url');
+      setEditImageUrl(meta.imageUrl.trim());
+      setEditImageCid(null);
+      setEditImageFileName(null);
+      return;
+    }
+    setEditImageSource('file');
+    setEditImageUrl('');
+    setEditImageCid(meta?.imageHash?.trim() ? meta.imageHash.trim() : null);
+    setEditImageFileName(null);
+  };
 
   useEffect(() => {
     if (isTxSuccess && txHash) {
@@ -559,10 +592,14 @@ function DonationsStudioPageContent() {
     setEditErrorMsg(null);
     try {
       const meta = await fetchCampaignMetadata(ipfsHash);
-      const endDate = deadline ? new Date(Number(deadline) * 1000).toISOString().slice(0, 16) : '';
-      const featuredImageMode: FeaturedImageMode = meta?.imageUrl ? 'url' : 'ipfs';
-      const featuredImageValue = (meta?.imageUrl || meta?.imageHash || '').trim();
       const g = meta?.l1TipGift;
+      setEditOnChainLock({
+        targetWei,
+        deadline,
+        l1Address: l1Address?.trim() ?? '',
+      });
+      setEditModulesConfig(meta?.modules ?? {});
+      syncEditImageFromMetadata(meta);
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
@@ -572,15 +609,18 @@ function DonationsStudioPageContent() {
         socialLinks: meta?.socialLinks ?? {},
         l1KaspaAddress: l1Address?.trim() ?? meta?.l1KaspaAddress ?? '',
         targetKAS: targetWei ? formatEther(targetWei) : '1000',
-        endDate,
-        featuredImageMode,
-        featuredImageValue,
+        endDate: deadline ? new Date(Number(deadline) * 1000).toISOString().slice(0, 16) : '',
+        featuredImageMode: meta?.imageUrl ? 'url' : 'ipfs',
+        featuredImageValue: (meta?.imageUrl || meta?.imageHash || '').trim(),
         l1TipGiftEnabled: Boolean(g?.enabled && g?.value?.trim()),
         l1TipGiftType: g?.type ?? 'text',
         l1TipGiftLabel: g?.label ?? '',
         l1TipGiftValue: g?.value ?? '',
       });
       setShowEditForm(true);
+      requestAnimationFrame(() => {
+        document.getElementById('crowdkas-edit-campaign')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } catch (e) {
       setEditErrorMsg(getErrorMessage(e, 'Failed to load campaign data'));
     } finally {
@@ -594,10 +634,14 @@ function DonationsStudioPageContent() {
     setEditErrorMsg(null);
     try {
       const meta = await fetchCampaignMetadata(campaign.ipfsHash);
-      const endDate = campaign.deadline ? new Date(Number(campaign.deadline) * 1000).toISOString().slice(0, 16) : '';
-      const featuredImageMode: FeaturedImageMode = meta?.imageUrl ? 'url' : 'ipfs';
-      const featuredImageValue = (meta?.imageUrl || meta?.imageHash || '').trim();
       const g1 = meta?.l1TipGift;
+      setEditOnChainLock({
+        targetWei: campaign.targetWei,
+        deadline: campaign.deadline,
+        l1Address: campaign.l1Address?.trim() ?? '',
+      });
+      setEditModulesConfig(meta?.modules ?? {});
+      syncEditImageFromMetadata(meta);
       setEditForm({
         title: meta?.title ?? '',
         description: meta?.description ?? '',
@@ -607,9 +651,9 @@ function DonationsStudioPageContent() {
         socialLinks: meta?.socialLinks ?? {},
         l1KaspaAddress: campaign.l1Address?.trim() ?? meta?.l1KaspaAddress ?? '',
         targetKAS: campaign.targetWei ? formatEther(campaign.targetWei) : '1000',
-        endDate,
-        featuredImageMode,
-        featuredImageValue,
+        endDate: campaign.deadline ? new Date(Number(campaign.deadline) * 1000).toISOString().slice(0, 16) : '',
+        featuredImageMode: meta?.imageUrl ? 'url' : 'ipfs',
+        featuredImageValue: (meta?.imageUrl || meta?.imageHash || '').trim(),
         l1TipGiftEnabled: Boolean(g1?.enabled && g1?.value?.trim()),
         l1TipGiftType: g1?.type ?? 'text',
         l1TipGiftLabel: g1?.label ?? '',
@@ -645,30 +689,17 @@ function DonationsStudioPageContent() {
   };
 
   const handleUpdateCampaignV2 = async () => {
-    if (!address || !writeEscrowV2Address || editingV2CampaignId == null) return;
+    if (!address || !writeEscrowV2Address || editingV2CampaignId == null || !editOnChainLock) return;
     if (!editForm.title.trim()) {
       setEditErrorMsg('Please fill title.');
-      return;
-    }
-    const targetNum = parseFloat(editForm.targetKAS);
-    if (isNaN(targetNum) || targetNum < 100) {
-      setEditErrorMsg('Target must be at least 100 iKAS.');
-      return;
-    }
-    const endDate = new Date(editForm.endDate);
-    if (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) {
-      setEditErrorMsg('Please set a valid future end date.');
       return;
     }
     setEditSubmitting(true);
     setEditErrorMsg(null);
     try {
-      const featuredImageMode = editForm.featuredImageMode;
-      const featuredImageValue = editForm.featuredImageValue.trim();
       const category = editForm.category && isDonationCategory(editForm.category) ? editForm.category : undefined;
       const tags = normalizeTags(editForm.tags ?? []);
       const l1TipsOn = Boolean(l1TipsUnlockedV2);
-      const l1OnChain = l1TipsOn && editForm.l1KaspaAddress?.trim() ? editForm.l1KaspaAddress.trim() : '';
       const l1Gift =
         l1TipsOn && editForm.l1TipGiftEnabled && editForm.l1TipGiftValue.trim()
           ? {
@@ -685,16 +716,16 @@ function DonationsStudioPageContent() {
         tags: tags.length ? tags : undefined,
         goals: editForm.goals?.length ? editForm.goals : undefined,
         socialLinks: Object.keys(editForm.socialLinks || {}).length ? editForm.socialLinks : undefined,
-        l1KaspaAddress: l1OnChain || undefined,
-        imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
-        imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
+        imageUrl: editImageSource === 'url' && editImageUrl.trim() ? editImageUrl.trim() : undefined,
+        imageHash: editImageSource === 'file' && editImageCid ? editImageCid : undefined,
+        modules: cleanCrowdKasModulesConfig(editModulesConfig),
         l1TipGift: l1Gift,
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
-      const targetWei = parseEther(editForm.targetKAS);
-      const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
-      const l1Address = l1OnChain;
+      const targetWei = editOnChainLock.targetWei;
+      const deadline = editOnChainLock.deadline;
+      const l1Address = editOnChainLock.l1Address;
 
       writeContract({
         address: writeEscrowV2Address as Address,
@@ -704,6 +735,7 @@ function DonationsStudioPageContent() {
       });
       setShowEditForm(false);
       setEditingV2CampaignId(null);
+      setEditOnChainLock(null);
     } catch (e) {
       setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
     } finally {
@@ -712,26 +744,14 @@ function DonationsStudioPageContent() {
   };
 
   const handleUpdateCampaign = async () => {
-    if (!address || !writeEscrowAddress || !campaign) return;
-    if (!editForm.title.trim() || !editForm.l1KaspaAddress?.trim()) {
-      setEditErrorMsg('Please fill title and L1 Kaspa address.');
-      return;
-    }
-    const targetNum = parseFloat(editForm.targetKAS);
-    if (isNaN(targetNum) || targetNum < 100) {
-      setEditErrorMsg('Target must be at least 100 iKAS.');
-      return;
-    }
-    const endDate = new Date(editForm.endDate);
-    if (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) {
-      setEditErrorMsg('Please set a valid future end date.');
+    if (!address || !writeEscrowAddress || !campaign || !editOnChainLock) return;
+    if (!editForm.title.trim()) {
+      setEditErrorMsg('Please fill title.');
       return;
     }
     setEditSubmitting(true);
     setEditErrorMsg(null);
     try {
-      const featuredImageMode = editForm.featuredImageMode;
-      const featuredImageValue = editForm.featuredImageValue.trim();
       const category = editForm.category && isDonationCategory(editForm.category) ? editForm.category : undefined;
       const tags = normalizeTags(editForm.tags ?? []);
       const metadata: DonationCampaignMetadata = {
@@ -741,16 +761,15 @@ function DonationsStudioPageContent() {
         tags: tags.length ? tags : undefined,
         goals: editForm.goals?.length ? editForm.goals : undefined,
         socialLinks: Object.keys(editForm.socialLinks || {}).length ? editForm.socialLinks : undefined,
-        l1KaspaAddress: editForm.l1KaspaAddress.trim(),
-        imageUrl: featuredImageMode === 'url' && featuredImageValue ? featuredImageValue : undefined,
-        imageHash: featuredImageMode === 'ipfs' && featuredImageValue ? featuredImageValue : undefined,
-        modules: cleanCrowdKasModulesConfig(modulesConfig),
+        imageUrl: editImageSource === 'url' && editImageUrl.trim() ? editImageUrl.trim() : undefined,
+        imageHash: editImageSource === 'file' && editImageCid ? editImageCid : undefined,
+        modules: cleanCrowdKasModulesConfig(editModulesConfig),
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
-      const targetWei = parseEther(editForm.targetKAS);
-      const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
-      const l1Address = editForm.l1KaspaAddress.trim();
+      const targetWei = editOnChainLock.targetWei;
+      const deadline = editOnChainLock.deadline;
+      const l1Address = editOnChainLock.l1Address;
       writeContract({
         address: writeEscrowAddress as Address,
         abi: DONATION_ESCROW_ABI,
@@ -758,6 +777,7 @@ function DonationsStudioPageContent() {
         args: [ipfsHash, targetWei, deadline, l1Address],
       });
       setShowEditForm(false);
+      setEditOnChainLock(null);
     } catch (e) {
       setEditErrorMsg(getErrorMessage(e, 'Failed to update campaign'));
     } finally {
@@ -838,15 +858,12 @@ function DonationsStudioPageContent() {
           <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800">
             <div className="max-w-6xl mx-auto">
               <div className="mb-8">
-                <p className="mb-4 text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-200">
                   Creator dashboard
                 </p>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="h-7 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.35)]" aria-hidden="true" />
-                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
-                    {VDONATE_SHORT_NAME} <span className="text-emerald-600 dark:text-emerald-400">Studio</span>
-                  </h1>
-                </div>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-zinc-900 dark:text-white mb-4 leading-tight tracking-tight">
+                  Kasparex <span className={VDONATE_GRADIENT_TEXT}>{VDONATE_SHORT_NAME} Studio</span>
+                </h1>
                 <p className="kx-body max-w-3xl">
                   Create L1 covenant or L2 escrow campaigns, manage listings, and unlock modules for your supporters.
                 </p>
@@ -1333,307 +1350,42 @@ function DonationsStudioPageContent() {
                   </button>
                 </div>
                 {showEditForm && (
-                  <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">Edit campaign</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Title</label>
-                        <input
-                          type="text"
-                          value={editForm.title}
-                          onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Category</label>
-                          <select
-                            value={editForm.category ?? ''}
-                            onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value ? e.target.value : undefined }))}
-                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                          >
-                            <option value="">Select category…</option>
-                            {DONATION_CATEGORIES.map((c) => (
-                              <option key={c} value={c}>
-                                {c}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Tags</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={editTagInput}
-                              onChange={(e) => setEditTagInput(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addEditTag())}
-                              className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                              placeholder="Add tag…"
-                            />
-                            <button type="button" onClick={addEditTag} className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-sm">
-                              Add
-                            </button>
-                          </div>
-                          {(editForm.tags ?? []).length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {(editForm.tags ?? []).map((t) => (
-                                <button
-                                  key={t}
-                                  type="button"
-                                  onClick={() => removeEditTag(t)}
-                                  className="text-xs px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:border-red-400"
-                                  title="Remove tag"
-                                >
-                                  #{t} ×
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Description</label>
-                        <textarea
-                          value={editForm.description}
-                          onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                          rows={3}
-                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Featured image</label>
-                          <div className="inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-                            <button
-                              type="button"
-                              onClick={() => setEditForm((f) => ({ ...f, featuredImageMode: 'url' }))}
-                              className={`px-3 py-1.5 text-[11px] font-bold ${editForm.featuredImageMode === 'url' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
-                            >
-                              URL
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditForm((f) => ({ ...f, featuredImageMode: 'ipfs' }))}
-                              className={`px-3 py-1.5 text-[11px] font-bold ${editForm.featuredImageMode === 'ipfs' ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300'}`}
-                            >
-                              IPFS
-                            </button>
-                          </div>
-                        </div>
-                        <ImageUpload
-                          label=""
-                          value={editForm.featuredImageValue}
-                          onChange={(v) => setEditForm((f) => ({ ...f, featuredImageValue: v }))}
-                          onFileSelect={async (file) => {
-                            const client = getIPFSClient();
-                            return await client.uploadFile(file, { filename: (file as File).name });
-                          }}
-                          placeholder={editForm.featuredImageMode === 'url' ? 'https://…' : 'CID (or upload a file)'}
-                          aspectRatio="video"
-                          showUrlInput={true}
-                          showFileUpload={editForm.featuredImageMode === 'ipfs'}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Goals</label>
-                        <div className="flex gap-2 mb-1">
-                          <input
-                            type="text"
-                            value={editGoalInput}
-                            onChange={(e) => setEditGoalInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addEditGoal())}
-                            className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                            placeholder="Add goal"
-                          />
-                          <button type="button" onClick={addEditGoal} className="px-3 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-sm">Add</button>
-                        </div>
-                        <ul className="space-y-1">
-                          {(editForm.goals || []).map((g, i) => (
-                            <li key={i} className="flex items-center gap-2 text-sm">
-                              <span className="text-zinc-700 dark:text-zinc-300">{g}</span>
-                              <button type="button" onClick={() => removeEditGoal(i)} className="text-red-600 dark:text-red-400 text-xs">Remove</button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Social links (optional)</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <input
-                            type="text"
-                            value={editForm.socialLinks?.website ?? ''}
-                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, website: e.target.value || undefined } }))}
-                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                            placeholder="Website"
-                          />
-                          <input
-                            type="text"
-                            value={editForm.socialLinks?.twitter ?? ''}
-                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, twitter: e.target.value || undefined } }))}
-                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                            placeholder="Twitter"
-                          />
-                          <input
-                            type="text"
-                            value={editForm.socialLinks?.discord ?? ''}
-                            onChange={(e) => setEditForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, discord: e.target.value || undefined } }))}
-                            className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                            placeholder="Discord"
-                          />
-                        </div>
-                      </div>
-                      {editingV2CampaignId != null && !l1TipsUnlockedV2 ? (
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          <strong>L1 tip jar:</strong> unlock the premium module below to set a Kaspa address for optional L1 tips (they do not count toward the L2 goal).
-                        </p>
-                      ) : null}
-                      {editingV2CampaignId != null && l1TipsUnlockedV2 ? (
-                        <>
-                          <div>
-                            <div className="flex items-center justify-between gap-3 mb-1">
-                              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa tip address</label>
-                              {kaspaState.isConnected && kaspaState.address && (
-                                <button
-                                  type="button"
-                                  onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
-                                  className="text-[11px] font-semibold text-[#02abb8] hover:underline"
-                                >
-                                  Use connected wallet
-                                </button>
-                              )}
-                            </div>
-                            <input
-                              type="text"
-                              value={editForm.l1KaspaAddress}
-                              onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
-                              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
-                              placeholder="kaspa:..."
-                            />
-                          </div>
-                          <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 space-y-2">
-                            <label className="flex items-center gap-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                              <input
-                                type="checkbox"
-                                checked={editForm.l1TipGiftEnabled}
-                                onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftEnabled: e.target.checked }))}
-                                className="rounded border-zinc-300"
-                              />
-                              Offer a thank-you gift for L1 tippers (text, URL, or IPFS)
-                            </label>
-                            {editForm.l1TipGiftEnabled && (
-                              <div className="space-y-2 pt-1">
-                                <select
-                                  value={editForm.l1TipGiftType}
-                                  onChange={(e) =>
-                                    setEditForm((f) => ({ ...f, l1TipGiftType: e.target.value as 'text' | 'url' | 'ipfs' }))
-                                  }
-                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
-                                >
-                                  <option value="text">Text</option>
-                                  <option value="url">URL</option>
-                                  <option value="ipfs">IPFS CID</option>
-                                </select>
-                                <input
-                                  type="text"
-                                  value={editForm.l1TipGiftLabel}
-                                  onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftLabel: e.target.value }))}
-                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
-                                  placeholder="Short label (e.g. Wallpaper pack)"
-                                />
-                                <textarea
-                                  value={editForm.l1TipGiftValue}
-                                  onChange={(e) => setEditForm((f) => ({ ...f, l1TipGiftValue: e.target.value }))}
-                                  rows={2}
-                                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm"
-                                  placeholder={editForm.l1TipGiftType === 'text' ? 'Message…' : editForm.l1TipGiftType === 'url' ? 'https://…' : 'bafy…'}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      ) : null}
-                      {editingV2CampaignId == null ? (
-                        <div>
-                          <div className="flex items-center justify-between gap-3 mb-1">
-                            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">L1 Kaspa address</label>
-                            {kaspaState.isConnected && kaspaState.address && (
-                              <button
-                                type="button"
-                                onClick={() => setEditForm((f) => ({ ...f, l1KaspaAddress: kaspaState.address || '' }))}
-                                className="text-[11px] font-semibold text-[#02abb8] hover:underline"
-                              >
-                                Use connected wallet
-                              </button>
-                            )}
-                          </div>
-                          <input
-                            type="text"
-                            value={editForm.l1KaspaAddress}
-                            onChange={(e) => setEditForm((f) => ({ ...f, l1KaspaAddress: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm font-mono"
-                          />
-                        </div>
-                      ) : null}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Target (iKAS)</label>
-                          <input
-                            type="number"
-                            value={editForm.targetKAS}
-                            onChange={(e) => setEditForm((f) => ({ ...f, targetKAS: e.target.value }))}
-                            min="100"
-                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">End date</label>
-                          <input
-                            type="datetime-local"
-                            value={editForm.endDate}
-                            onChange={(e) => setEditForm((f) => ({ ...f, endDate: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm"
-                          />
-                        </div>
-                      </div>
-                      {editingV2CampaignId != null ? (
-                        <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-                            Need <strong>featured</strong> placement or the <strong>L1 tip jar</strong>? Unlock paid modules on the{' '}
-                            <Link
-                              href={`/donations/modules?campaignId=${editingV2CampaignId!.toString()}`}
-                              className="text-emerald-700 dark:text-emerald-400 font-semibold hover:underline"
-                            >
-                              Modules
-                            </Link>{' '}
-                            page after you save your edits here.
-                          </p>
-                        </div>
-                      ) : null}
-                      {editErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{editErrorMsg}</p>}
-                      {updateError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(updateError, 'Update failed')}</p>}
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
-                          disabled={editSubmitting || isUpdatePending}
-                          className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-                        >
-                          {editSubmitting || isUpdatePending ? 'Updating…' : 'Save changes'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowEditForm(false);
-                            setEditingV2CampaignId(null);
-                          }}
-                          className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm font-medium"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
+                  <div id="crowdkas-edit-campaign" className="scroll-mt-24 mb-4">
+                    <CrowdKasEditCampaignForm
+                      form={editForm}
+                      onFormChange={setEditForm}
+                      onChainLock={editOnChainLock}
+                      tagInput={editTagInput}
+                      onTagInputChange={setEditTagInput}
+                      onAddTag={addEditTag}
+                      onRemoveTag={removeEditTag}
+                      goalInput={editGoalInput}
+                      onGoalInputChange={setEditGoalInput}
+                      onAddGoal={addEditGoal}
+                      onRemoveGoal={removeEditGoal}
+                      imageSource={editImageSource}
+                      onImageSourceChange={setEditImageSource}
+                      imageUrl={editImageUrl}
+                      onImageUrlChange={setEditImageUrl}
+                      imageCid={editImageCid}
+                      onImageCidChange={setEditImageCid}
+                      imageFileName={editImageFileName}
+                      onImageFileNameChange={setEditImageFileName}
+                      modulesConfig={editModulesConfig}
+                      onModulesConfigChange={setEditModulesConfig}
+                      editingV2CampaignId={editingV2CampaignId}
+                      l1TipsUnlockedV2={l1TipsUnlockedV2}
+                      paidModulesUnlocked={
+                        editingV2CampaignId != null
+                          ? unlockByCampaignId.get(editingV2CampaignId.toString())
+                          : undefined
+                      }
+                      editErrorMsg={editErrorMsg}
+                      updateErrorMsg={updateError ? getErrorMessage(updateError, 'Update failed') : null}
+                      isSubmitting={editSubmitting || isUpdatePending}
+                      onSave={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
+                      onCancel={closeEditCampaignForm}
+                    />
                   </div>
                 )}
                 {canClaim && (
@@ -1662,19 +1414,60 @@ function DonationsStudioPageContent() {
                         )}
 
                         {activeTab === 'my-campaigns' && (
-                          <CrowdKasMyCampaignsPanel
-                            l2Campaigns={myCampaignsV2}
-                            covenantCampaigns={myCovenantCampaigns}
-                            creatorAddress={address as Address | undefined}
-                            isLoading={myCampaignsV2Loading}
-                            error={myCampaignsV2Error}
-                            onRefresh={refetchMyCampaignsV2}
-                            onEdit={(campaignId, ipfsHash, l1Address, targetWei, deadline) => {
-                              void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
-                            }}
-                            onClaim={handleClaimV2}
-                            onDelete={setDeleteCampaignId}
-                          />
+                          <div className="space-y-6 w-full">
+                            {showEditForm && (
+                              <div id="crowdkas-edit-campaign" className="scroll-mt-24">
+                                <CrowdKasEditCampaignForm
+                                  form={editForm}
+                                  onFormChange={setEditForm}
+                                  onChainLock={editOnChainLock}
+                                  tagInput={editTagInput}
+                                  onTagInputChange={setEditTagInput}
+                                  onAddTag={addEditTag}
+                                  onRemoveTag={removeEditTag}
+                                  goalInput={editGoalInput}
+                                  onGoalInputChange={setEditGoalInput}
+                                  onAddGoal={addEditGoal}
+                                  onRemoveGoal={removeEditGoal}
+                                  imageSource={editImageSource}
+                                  onImageSourceChange={setEditImageSource}
+                                  imageUrl={editImageUrl}
+                                  onImageUrlChange={setEditImageUrl}
+                                  imageCid={editImageCid}
+                                  onImageCidChange={setEditImageCid}
+                                  imageFileName={editImageFileName}
+                                  onImageFileNameChange={setEditImageFileName}
+                                  modulesConfig={editModulesConfig}
+                                  onModulesConfigChange={setEditModulesConfig}
+                                  editingV2CampaignId={editingV2CampaignId}
+                                  l1TipsUnlockedV2={l1TipsUnlockedV2}
+                                  paidModulesUnlocked={
+                                    editingV2CampaignId != null
+                                      ? unlockByCampaignId.get(editingV2CampaignId.toString())
+                                      : undefined
+                                  }
+                                  editErrorMsg={editErrorMsg}
+                                  updateErrorMsg={updateError ? getErrorMessage(updateError, 'Update failed') : null}
+                                  isSubmitting={editSubmitting || isUpdatePending}
+                                  onSave={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
+                                  onCancel={closeEditCampaignForm}
+                                />
+                              </div>
+                            )}
+                            <CrowdKasMyCampaignsPanel
+                              l2Campaigns={myCampaignsV2}
+                              covenantCampaigns={myCovenantCampaigns}
+                              creatorAddress={address as Address | undefined}
+                              isLoading={myCampaignsV2Loading}
+                              error={myCampaignsV2Error}
+                              onRefresh={refetchMyCampaignsV2}
+                              onEdit={(campaignId, ipfsHash, l1Address, targetWei, deadline) => {
+                                void loadEditFormV2(campaignId, ipfsHash, l1Address, targetWei, deadline);
+                              }}
+                              onClaim={handleClaimV2}
+                              onDelete={setDeleteCampaignId}
+                            />
+                          </div>
                         )}
 
                         {activeTab === 'how-it-works' && (

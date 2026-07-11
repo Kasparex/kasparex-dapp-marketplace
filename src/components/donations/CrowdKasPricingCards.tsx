@@ -75,14 +75,14 @@ export function CrowdKasPricingCards({
           title="Delete"
           feeLabel={deleteFee <= 0 ? 'Free' : formatKas(deleteFee)}
           tier={tier}
-          note="Free only when the campaign has received no donations."
+          note="Only when the campaign has received no donations."
         />
       </div>
     );
   }
 
   return (
-    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${className}`.trim()}>
+    <div className={`grid grid-cols-1 gap-4 md:grid-cols-3 ${className}`.trim()}>
       <CrowdKasFeeCard
         title="L2 create"
         feeLabel={formatIkas(l2CreateFeeIkas)}
@@ -95,6 +95,12 @@ export function CrowdKasPricingCards({
         feeLabel={formatIkas(l2EditFeeIkas)}
         tier={tier}
         note="Update escrow campaign metadata on Igra."
+      />
+      <CrowdKasFeeCard
+        title="Delete"
+        feeLabel={deleteFee <= 0 ? 'Free' : formatIkas(deleteFee)}
+        tier={tier}
+        note="Only when the campaign has received no donations."
       />
     </div>
   );
