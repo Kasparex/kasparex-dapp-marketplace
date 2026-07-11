@@ -22,6 +22,10 @@ import {
 import type { DonationPaidModuleId } from '@/lib/donations/modules';
 import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
 import type { CrowdKasPricingDraft } from '@/lib/donations/pricing';
+import {
+  validateL1CovenantCreateForm,
+  type CrowdKasFormValidation,
+} from '@/lib/donations/formValidation';
 
 const COVENANT_HOW_IT_WORKS = (
   <div className="max-w-xs space-y-2 text-sm leading-snug">
@@ -37,6 +41,7 @@ const COVENANT_HOW_IT_WORKS = (
 
 export type CrowdKasCovenantPanelHandle = {
   submit: () => Promise<void>;
+  validate: () => CrowdKasFormValidation;
   canSubmit: boolean;
 };
 
@@ -131,8 +136,24 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
       setTags((prev) => prev.filter((t) => t !== tag));
     };
 
+    const validateForm = (): CrowdKasFormValidation =>
+      validateL1CovenantCreateForm({
+        title,
+        shortDescription,
+        mainContent,
+        goalKas,
+        deadline,
+        minGoalKas: minKas,
+        kaspaConnected: state.isConnected,
+        modules,
+        creatorKaspaAddress: state.address,
+      });
+
     const handleCreate = async () => {
-      if (!deadline || !title.trim()) return;
+      const validation = validateForm();
+      if (!validation.ok) {
+        throw new Error(validation.error ?? 'Complete required fields before paying.');
+      }
       setBusy(true);
       try {
         const campaign = await createCampaign({
@@ -158,6 +179,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
 
     useImperativeHandle(ref, () => ({
       submit: handleCreate,
+      validate: validateForm,
       canSubmit,
     }));
 
@@ -211,6 +233,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
             </span>
           </div>
           <textarea
+            id="ck-crowdfund-short-description"
             className="k-input text-base w-full resize-y min-h-[4.5rem]"
             placeholder="Brief summary for cards and listings"
             value={shortDescription}

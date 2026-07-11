@@ -26,6 +26,7 @@ export function HubPaymentPanel({
   asideClassName,
   currencyAccent = 'default',
   infoAccent = 'default',
+  requirementsNote,
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -44,6 +45,7 @@ export function HubPaymentPanel({
   asideClassName?: string;
   currencyAccent?: 'default' | 'store';
   infoAccent?: 'default' | 'emerald';
+  requirementsNote?: string[];
 }) {
   const showCurrency =
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
@@ -105,6 +107,17 @@ export function HubPaymentPanel({
           }`}
         >
           {infoText}
+        </div>
+      ) : null}
+
+      {requirementsNote && requirementsNote.length > 0 ? (
+        <div className="rounded-xl border border-amber-300/60 dark:border-amber-500/40 bg-amber-50/90 dark:bg-amber-950/30 p-3 text-sm text-amber-950 dark:text-amber-100 space-y-2">
+          <p className="font-semibold">Required before you can pay:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            {requirementsNote.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
 

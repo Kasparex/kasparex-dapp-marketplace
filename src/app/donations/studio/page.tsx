@@ -55,6 +55,11 @@ import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import { VDONATE_PRODUCT_NAME, VDONATE_STUDIO_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
+import {
+  scrollToCrowdKasField,
+  validateL2CampaignCreateForm,
+  validateL2CampaignEditForm,
+} from '@/lib/donations/formValidation';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -248,6 +253,9 @@ function DonationsStudioPageContent() {
   const [tagInput, setTagInput] = useState('');
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createErrorMsg, setCreateErrorMsg] = useState<string | null>(null);
+  const [createFormRequirements, setCreateFormRequirements] = useState<string[]>([]);
+  const [editFormRequirements, setEditFormRequirements] = useState<string[]>([]);
+  const [covenantEditRequirements, setCovenantEditRequirements] = useState<string[]>([]);
 
   const [editForm, setEditForm] = useState<StudioCampaignForm>({
     title: '',
@@ -330,7 +338,7 @@ function DonationsStudioPageContent() {
       imageHash: l2ImageSource === 'file' && l2ImageCid ? l2ImageCid : undefined,
       targetKas: createForm.targetKAS,
       endDate: createForm.endDate,
-      modules: cleanCrowdKasModulesConfig(modulesConfig),
+      modules: modulesConfig,
     };
   }, [createForm, l2ImageCid, l2ImageSource, l2ImageUrl, modulesConfig]);
 
@@ -352,7 +360,7 @@ function DonationsStudioPageContent() {
       targetKas: editOnChainLock ? formatEther(editOnChainLock.targetWei) : undefined,
       endDate: editOnChainLock ? new Date(Number(editOnChainLock.deadline) * 1000).toISOString().slice(0, 16) : undefined,
       l1Address: editOnChainLock?.l1Address,
-      modules: cleanCrowdKasModulesConfig(editModulesConfig),
+      modules: editModulesConfig,
       excludePaidModuleIds: excludePaidModuleIds.length ? [...excludePaidModuleIds] : undefined,
     };
   }, [
@@ -384,6 +392,18 @@ function DonationsStudioPageContent() {
   );
   const l2CreateQuote = useMemo(() => pricing.estimateL2Quote('create', { draft: l2CreateDraft }), [l2CreateDraft, pricing]);
   const l2EditQuote = useMemo(() => pricing.estimateL2Quote('edit', { draft: l2EditDraft }), [l2EditDraft, pricing]);
+
+  useEffect(() => {
+    setCreateFormRequirements([]);
+  }, [l1PricingDraft, l2CreateDraft, createForm, modulesConfig]);
+
+  useEffect(() => {
+    setEditFormRequirements([]);
+  }, [l2EditDraft, editForm, editModulesConfig]);
+
+  useEffect(() => {
+    setCovenantEditRequirements([]);
+  }, [covenantEditTitle, covenantEditMemo]);
 
   const studioTabRaw = searchParams.get('tab');
   const studioTab =
@@ -443,9 +463,12 @@ function DonationsStudioPageContent() {
 
   const handleSaveCovenantEdit = async () => {
     if (!editingCovenantId || !covenantEditTitle.trim()) {
-      setCovenantEditError('Please fill title.');
+      setCovenantEditRequirements(['Campaign title']);
+      setCovenantEditError('Complete required fields before saving.');
+      scrollToCrowdKasField('crowdkas-edit-campaign');
       return;
     }
+    setCovenantEditRequirements([]);
     setCovenantEditSubmitting(true);
     setCovenantEditError(null);
     try {
@@ -533,9 +556,10 @@ function DonationsStudioPageContent() {
   };
 
   const handleVerifyV2 = () => {
-    if (!writeEscrowV2Address) return;
+    if (!igraEscrowV2Address) return;
     writeContract({
-      address: writeEscrowV2Address as Address,
+      chainId: VDONATIONS_CHAIN_ID,
+      address: igraEscrowV2Address as Address,
       abi: DONATION_ESCROW_V2_ABI,
       functionName: 'verify',
       value: VDONATIONS_MIN_VERIFY_WEI,
@@ -564,29 +588,52 @@ function DonationsStudioPageContent() {
   };
 
   const handleCreateL1Covenant = async () => {
+    const validation = covenantPanelRef.current?.validate();
+    if (!validation?.ok) {
+      setCreateFormRequirements(validation?.requirements ?? []);
+      setCreateErrorMsg(validation?.error ?? 'Complete required fields before paying.');
+      scrollToCrowdKasField(validation?.focusId);
+      return;
+    }
+    setCreateFormRequirements([]);
+    setCreateErrorMsg(null);
     setL1Submitting(true);
     try {
       await covenantPanelRef.current?.submit();
+    } catch (e) {
+      setCreateErrorMsg(getErrorMessage(e, 'Failed to create campaign'));
     } finally {
       setL1Submitting(false);
     }
   };
 
   const handleCreateCampaignV2 = async () => {
-    if (!address || !writeEscrowV2Address || !createForm.title.trim()) {
-      setCreateErrorMsg('Please fill title.');
+    const validation = validateL2CampaignCreateForm({
+      title: createForm.title,
+      shortDescription: createForm.description,
+      mainContent: createForm.mainContent ?? '',
+      targetKas: createForm.targetKAS,
+      endDate: createForm.endDate,
+      imageUrl: l2ImageSource === 'url' ? l2ImageUrl : undefined,
+      imageCid: l2ImageCid,
+      evmConnected: Boolean(address),
+      evmOnIgra: onRequiredChain,
+      escrowConfigured: hasEscrowV2Configured,
+      verified: Boolean(isVerifiedV2),
+      modules: modulesConfig,
+      creatorKaspaAddress: kaspaState.address,
+    });
+    if (!validation.ok) {
+      setCreateFormRequirements(validation.requirements);
+      setCreateErrorMsg(validation.error ?? 'Complete required fields before paying.');
+      scrollToCrowdKasField(validation.focusId);
       return;
     }
-    const targetNum = parseFloat(createForm.targetKAS);
-    if (isNaN(targetNum) || targetNum < 100) {
-      setCreateErrorMsg('Target must be at least 100 iKAS.');
+    if (!address || !igraEscrowV2Address) {
+      setCreateErrorMsg('Connect your Igra wallet and ensure DonationEscrowV2 is configured.');
       return;
     }
-    const endDate = new Date(createForm.endDate);
-    if (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) {
-      setCreateErrorMsg('Please set a valid future end date.');
-      return;
-    }
+    setCreateFormRequirements([]);
     setCreateSubmitting(true);
     setCreateErrorMsg(null);
     try {
@@ -607,13 +654,15 @@ function DonationsStudioPageContent() {
       };
       const client = getIPFSClient();
       const ipfsHash = await client.uploadJSON(metadata as unknown as Record<string, unknown>);
+      const endDate = new Date(createForm.endDate);
       const targetWei = parseEther(createForm.targetKAS);
       const deadline = BigInt(Math.floor(endDate.getTime() / 1000));
       const method = 0 as const;
       const l1Address = '';
 
       const hash = await writeContractAsync({
-        address: writeEscrowV2Address as Address,
+        chainId: VDONATIONS_CHAIN_ID,
+        address: igraEscrowV2Address as Address,
         abi: DONATION_ESCROW_V2_ABI,
         functionName: 'createCampaign',
         args: [method, ipfsHash, targetWei, deadline, l1Address],
@@ -711,9 +760,10 @@ function DonationsStudioPageContent() {
   };
 
   const handleClaimV2 = (campaignId: bigint) => {
-    if (!writeEscrowV2Address) return;
+    if (!igraEscrowV2Address) return;
     writeContract({
-      address: writeEscrowV2Address as Address,
+      chainId: VDONATIONS_CHAIN_ID,
+      address: igraEscrowV2Address as Address,
       abi: DONATION_ESCROW_V2_ABI,
       functionName: 'claim',
       args: [campaignId],
@@ -852,11 +902,29 @@ function DonationsStudioPageContent() {
   };
 
   const handleUpdateCampaignV2 = async () => {
-    if (!address || !writeEscrowV2Address || editingV2CampaignId == null || !editOnChainLock) return;
-    if (!editForm.title.trim()) {
-      setEditErrorMsg('Please fill title.');
+    const validation = validateL2CampaignEditForm({
+      title: editForm.title,
+      shortDescription: editForm.description,
+      mainContent: editForm.mainContent ?? '',
+      imageUrl: editImageSource === 'url' ? editImageUrl : undefined,
+      imageCid: editImageCid,
+      evmConnected: Boolean(address),
+      evmOnIgra: onRequiredChain,
+      escrowConfigured: hasEscrowV2Configured,
+      modules: editModulesConfig,
+      creatorKaspaAddress: kaspaState.address,
+    });
+    if (!validation.ok) {
+      setEditFormRequirements(validation.requirements);
+      setEditErrorMsg(validation.error ?? 'Complete required fields before saving.');
+      scrollToCrowdKasField(validation.focusId);
       return;
     }
+    if (!address || !igraEscrowV2Address || editingV2CampaignId == null || !editOnChainLock) {
+      setEditErrorMsg('Connect your Igra wallet to save changes.');
+      return;
+    }
+    setEditFormRequirements([]);
     setEditSubmitting(true);
     setEditErrorMsg(null);
     try {
@@ -893,7 +961,8 @@ function DonationsStudioPageContent() {
 
       editTxPendingRef.current = true;
       writeContract({
-        address: writeEscrowV2Address as Address,
+        chainId: VDONATIONS_CHAIN_ID,
+        address: igraEscrowV2Address as Address,
         abi: DONATION_ESCROW_V2_ABI,
         functionName: 'updateCampaign',
         args: [editingV2CampaignId, ipfsHash, targetWei, deadline, l1Address],
@@ -1096,9 +1165,9 @@ function DonationsStudioPageContent() {
                     </div>
                   )}
 
-                  {(writeEscrowV2Address || writeEscrowAddress) && (
+                  {(hasEscrowV2Configured || writeEscrowAddress) && (
                     <div className="flex flex-col gap-6">
-                      {writeEscrowV2Address && hasEscrowV2Configured && (
+                      {hasEscrowV2Configured && (
                         <>
                           <div className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-4`}>
                             <DAppSectionHeader title="Wallet verification" />
@@ -1124,8 +1193,7 @@ function DonationsStudioPageContent() {
                             )}
                           </div>
 
-                          {isVerifiedV2 && (
-                            <div id="create" className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6 scroll-mt-24`}>
+                          <div id="create" className={`${CROWDKAS_FORM_PANEL_CLASS} space-y-6 scroll-mt-24`}>
                               <div>
                                 <DAppSectionHeader title="Main content" className="mb-3" />
                                 <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
@@ -1152,6 +1220,7 @@ function DonationsStudioPageContent() {
                                     </span>
                                   </div>
                                   <input
+                                    id="crowdkas-l2-title"
                                     type="text"
                                     value={createForm.title}
                                     onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
@@ -1176,6 +1245,7 @@ function DonationsStudioPageContent() {
                                     </span>
                                   </div>
                                   <textarea
+                                    id="crowdkas-l2-short-description"
                                     value={createForm.description}
                                     onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
                                     placeholder="Brief summary for cards and listings"
@@ -1271,7 +1341,6 @@ function DonationsStudioPageContent() {
                                 {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
                               </div>
                             </div>
-                          )}
 
                           <div id="crowdkas-dashboard-modules" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 my-2 py-10 sm:py-12 space-y-6`}>
                             <CrowdKasModulesPanel
@@ -1283,7 +1352,7 @@ function DonationsStudioPageContent() {
                       )}
 
                       {/* Legacy V1 (fallback when V2 not configured) */}
-                      {(!writeEscrowV2Address || !hasEscrowV2Configured) && (
+                      {(!hasEscrowV2Configured) && (
                         <>
             <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white dark:bg-zinc-900">
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Verify your wallet</h2>
@@ -1760,6 +1829,7 @@ function DonationsStudioPageContent() {
                           submitDisabled={covenantEditSubmitting}
                           onCancel={closeEditCampaignForm}
                           error={covenantEditError}
+                          requirementsNote={covenantEditRequirements}
                         />
                       ) : showEditForm && (studioTab === 'my-campaigns' || studioTab === 'l2-escrow') ? (
                         <CrowdKasStudioRightPanel
@@ -1773,6 +1843,7 @@ function DonationsStudioPageContent() {
                           submitDisabled={editSubmitting || isUpdatePending}
                           onCancel={closeEditCampaignForm}
                           error={editErrorMsg ?? (updateError ? getErrorMessage(updateError, 'Update failed') : null)}
+                          requirementsNote={editFormRequirements}
                         />
                       ) : activeTab === 'l1-covenant' ? (
                         <CrowdKasStudioRightPanel
@@ -1785,18 +1856,20 @@ function DonationsStudioPageContent() {
                           isSubmitting={l1Submitting}
                           submitDisabled={l1Submitting}
                           error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
+                          requirementsNote={createFormRequirements}
                         />
                       ) : activeTab === 'l2-escrow' ? (
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2CreateQuote}
                           infoText="Create your L2 escrow campaign on Igra. Platform fees are in iKAS; paid modules bill in KAS on L1 after your campaign is live."
-                          onSubmit={isVerifiedV2 ? handleCreateCampaignV2 : undefined}
+                          onSubmit={handleCreateCampaignV2}
                           submitLabel="Create L2 campaign"
                           isSubmitting={createSubmitting || isCreatePending}
                           submitDisabled={createSubmitting || isCreatePending}
-                          onPreview={isVerifiedV2 ? () => setPreviewOpen(true) : undefined}
+                          onPreview={() => setPreviewOpen(true)}
                           error={createErrorMsg ?? (createError ? getErrorMessage(createError, 'Create failed') : null)}
+                          requirementsNote={createFormRequirements}
                         />
                       ) : null}
                     </div>

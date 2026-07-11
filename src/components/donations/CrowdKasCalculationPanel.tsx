@@ -12,6 +12,7 @@ import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations/pricing';
 import { CROWDKAS_CALCULATION_ASIDE } from '@/components/donations/crowdkasFormTheme';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import type { HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
 
 function formatLineKas(kas: number, currencyId: StorePaymentCurrency, snapshot: ReturnType<typeof usePricingSnapshot>['snapshot']) {
   const currency = buildKasKrexCurrencyOptions().find((c) => c.id === currencyId) ?? buildKasKrexCurrencyOptions()[0];
@@ -28,7 +29,7 @@ function buildL1BreakdownLines(
   paymentCurrency: StorePaymentCurrency,
   pricingSnapshot: ReturnType<typeof usePricingSnapshot>['snapshot'],
 ) {
-  const lines: { label: string; value: string }[] = [
+  const lines: HubPaymentQuoteLine[] = [
     { label: 'Base fee', value: formatLineKas(quote.baseFeeKas, paymentCurrency, pricingSnapshot) },
     { label: 'Size fee', value: formatLineKas(quote.sizeFeeKas, paymentCurrency, pricingSnapshot) },
     { label: 'Network buffer', value: formatLineKas(quote.networkFeeBufferKas, paymentCurrency, pricingSnapshot) },
@@ -76,6 +77,7 @@ export function CrowdKasL1CalculationPanel({
   onCancel,
   cancelLabel = 'Cancel',
   error,
+  requirementsNote,
 }: {
   quote: CrowdKasL1PriceQuote;
   tier: KREXTier;
@@ -90,6 +92,7 @@ export function CrowdKasL1CalculationPanel({
   onCancel?: () => void;
   cancelLabel?: string;
   error?: string | null;
+  requirementsNote?: string[];
 }) {
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
@@ -131,6 +134,7 @@ export function CrowdKasL1CalculationPanel({
         }
         infoText={infoText}
         infoAccent="emerald"
+        requirementsNote={requirementsNote}
         footer={
           <>
             {!hasKrexDiscount ? (
@@ -188,7 +192,7 @@ export function CrowdKasL1CalculationPanel({
 }
 
 function buildL2BreakdownLines(quote: CrowdKasL2PriceQuote) {
-  const lines: { label: string; value: string }[] = [
+  const lines: HubPaymentQuoteLine[] = [
     { label: 'Base fee', value: formatIkasAmount(quote.baseFeeIkas) },
     { label: 'Size fee', value: formatIkasAmount(quote.sizeFeeIkas) },
     { label: 'Network buffer', value: formatIkasAmount(quote.networkFeeBufferIkas) },
@@ -221,6 +225,7 @@ export function CrowdKasL2CalculationPanel({
   onCancel,
   cancelLabel = 'Cancel',
   error,
+  requirementsNote,
 }: {
   quote: CrowdKasL2PriceQuote;
   infoText: string;
@@ -234,6 +239,7 @@ export function CrowdKasL2CalculationPanel({
   onCancel?: () => void;
   cancelLabel?: string;
   error?: string | null;
+  requirementsNote?: string[];
 }) {
   const isEdit = quote.action === 'edit';
   const lines = useMemo(() => buildL2BreakdownLines(quote), [quote]);
@@ -260,6 +266,7 @@ export function CrowdKasL2CalculationPanel({
       }
       infoText={infoText}
       infoAccent="emerald"
+      requirementsNote={requirementsNote}
       footer={
         <>
           {onSubmit ? (
