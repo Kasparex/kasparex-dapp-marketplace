@@ -12,11 +12,12 @@ import {
   type CrowdKasAction,
   type CrowdKasPriceQuote,
 } from '@/lib/donations/pricing';
-import type { DonationPaidModuleId } from '@/lib/donations/modules';
+import { getDonationModuleNftFlags, type DonationPaidModuleId } from '@/lib/donations/modules';
 
 export function useCrowdKasPricing() {
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
+  const moduleNftFlags = useMemo(() => getDonationModuleNftFlags(nftStatus), [nftStatus]);
 
   const estimateQuote = useMemo(
     () =>
@@ -26,9 +27,9 @@ export function useCrowdKasPricing() {
           enabledPaidModules,
           krexBalance,
           krexTier: tier,
-          nft: nftStatus,
+          nft: moduleNftFlags,
         }),
-    [krexBalance, nftStatus, tier],
+    [krexBalance, moduleNftFlags, tier],
   );
 
   return {

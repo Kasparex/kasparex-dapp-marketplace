@@ -1,5 +1,34 @@
 import { keccak256, toHex } from 'viem';
-import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS, type KREXTier, type NFTStatus } from '@/lib/rewards/types';
+
+export type DonationModuleNftFlags = {
+  hasAny: boolean;
+  hasDiamond: boolean;
+  hasRarest: boolean;
+};
+
+export const EMPTY_DONATION_MODULE_NFT_FLAGS: DonationModuleNftFlags = {
+  hasAny: false,
+  hasDiamond: false,
+  hasRarest: false,
+};
+
+export function getDonationModuleNftFlags(nftStatus: NFTStatus | null | undefined): DonationModuleNftFlags {
+  if (!nftStatus) return EMPTY_DONATION_MODULE_NFT_FLAGS;
+  return {
+    hasAny: !!(
+      nftStatus.hasKREXPRIME ||
+      nftStatus.hasPIXELKREX ||
+      Object.values(nftStatus.partnerCollections ?? {}).some(Boolean)
+    ),
+    hasDiamond: !!(
+      nftStatus.hasDiamondKREXPRIME ||
+      nftStatus.hasDiamondPIXELKREX ||
+      Object.values(nftStatus.partnerDiamonds ?? {}).some(Boolean)
+    ),
+    hasRarest: !!nftStatus.hasRarestNFT,
+  };
+}
 
 export type DonationPaidModuleId = 'featured' | 'l1Tips';
 

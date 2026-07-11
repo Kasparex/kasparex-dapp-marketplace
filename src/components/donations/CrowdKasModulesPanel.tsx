@@ -9,8 +9,12 @@ import {
   type CrowdKasFreeModuleId,
   type CrowdKasModulesConfig,
 } from '@/lib/donations/crowdkasModules';
-import { DONATION_MODULE_OFFERS, type DonationPaidModuleId } from '@/lib/donations/modules';
-import { getDonationModulePriceKas } from '@/lib/donations/modules';
+import {
+  DONATION_MODULE_OFFERS,
+  getDonationModuleNftFlags,
+  getDonationModulePriceKas,
+  type DonationPaidModuleId,
+} from '@/lib/donations/modules';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { CROWDKAS_FREE_MODULE_CARD_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
@@ -33,16 +37,7 @@ export function CrowdKasModulesPanel({
   const { balance: krexBalance, tier } = useKREXBalance();
   const { nftStatus } = useNFTStatus();
 
-  const moduleNftFlags = useMemo(
-    () => ({
-      hasAny: !!(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX ||
-        Object.values(nftStatus?.partnerCollections ?? {}).some(Boolean)),
-      hasDiamond: !!(nftStatus?.hasDiamondKREXPRIME || nftStatus?.hasDiamondPIXELKREX ||
-        Object.values(nftStatus?.partnerDiamonds ?? {}).some(Boolean)),
-      hasRarest: !!nftStatus?.hasRarestNFT,
-    }),
-    [nftStatus]
-  );
+  const moduleNftFlags = useMemo(() => getDonationModuleNftFlags(nftStatus), [nftStatus]);
 
   const setFree = (id: CrowdKasFreeModuleId, enabled: boolean) => {
     onChange({ ...modules, [id]: enabled });
