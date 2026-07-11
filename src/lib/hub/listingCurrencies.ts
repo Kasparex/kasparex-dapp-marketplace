@@ -6,7 +6,7 @@ import type { UnifiedGame } from '@/lib/games/registry';
 import { normalizeStorePaymentCurrency } from '@/lib/store/currencies';
 
 export function sortCurrencyLabels(values: Iterable<string>): string[] {
-  return Array.from(new Set(values.map((v) => v.trim()).filter(Boolean))).sort((a, b) =>
+  return Array.from(new Set([...values].map((v) => v.trim()).filter((v) => v.length > 0))).sort((a, b) =>
     a.localeCompare(b),
   );
 }
