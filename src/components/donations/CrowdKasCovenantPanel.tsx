@@ -402,7 +402,7 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
               {createFields}
             </div>
             <div id="crowdkas-dashboard-modules" className={`${CROWDKAS_FORM_PANEL_CLASS} scroll-mt-24 py-10 sm:py-12`}>
-              <CrowdKasModulesPanel modules={modules} onChange={setModules} showL1PayoutSplit hidePremiumSection />
+              <CrowdKasModulesPanel modules={modules} onChange={setModules} showL1PayoutSplit network="l1" hidePremiumSection />
             </div>
           </div>
         ) : (

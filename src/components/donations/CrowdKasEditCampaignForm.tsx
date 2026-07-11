@@ -5,9 +5,12 @@ import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
-import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
+import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
+import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS } from '@/lib/donations/premiumSection';
 import type { CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { CROWDKAS_CONTENT_LIMITS, getCrowdKasCharacterCount } from '@/lib/donations/limits';
 import { formatEther } from 'viem';
@@ -209,13 +212,33 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
         </div>
 
         <div>
-          <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+          <KxFormFieldLabel>Main content</KxFormFieldLabel>
           <KxRichTextEditor
             value={form.mainContent ?? ''}
             onChange={(value) => onFormChange((f) => ({ ...f, mainContent: value }))}
             minRows={14}
             placeholder="Primary campaign story and details"
           />
+        </div>
+
+        <div className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
+          <KxInFormPremiumRow
+            flat
+            title={CROWDKAS_PREMIUM_SECTION_OFFER.title}
+            description={CROWDKAS_PREMIUM_SECTION_OFFER.description}
+            priceLabel={`+${CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS} iKAS`}
+            checked={Boolean(modulesConfig.premiumSectionEnabled)}
+            onToggle={() =>
+              onModulesConfigChange({
+                ...modulesConfig,
+                premiumSectionEnabled: !modulesConfig.premiumSectionEnabled,
+              })
+            }
+            accent="hub"
+          />
+          {modulesConfig.premiumSectionEnabled ? (
+            <CrowdKasPremiumSectionFields modules={modulesConfig} onChange={onModulesConfigChange} />
+          ) : null}
         </div>
 
         <CrowdKasCampaignMediaField
@@ -227,6 +250,7 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
           onCidChange={onImageCidChange}
           fileName={imageFileName}
           onFileNameChange={onImageFileNameChange}
+          label="Cover image"
         />
 
         <div>
@@ -354,6 +378,8 @@ export function CrowdKasEditCampaignForm<T extends CrowdKasEditFormState>({
             modules={modulesConfig}
             onChange={onModulesConfigChange}
             paidModulesUnlocked={paidModulesUnlocked}
+            network="l2"
+            hidePremiumSection
           />
         </div>
 

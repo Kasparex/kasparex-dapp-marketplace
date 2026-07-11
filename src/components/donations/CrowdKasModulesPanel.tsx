@@ -32,6 +32,7 @@ export function CrowdKasModulesPanel({
   modules,
   onChange,
   paidModulesUnlocked,
+  network = 'l2',
   showL1PayoutSplit = false,
   hidePremiumSection = false,
   className = '',
@@ -39,6 +40,8 @@ export function CrowdKasModulesPanel({
   modules: CrowdKasModulesConfig;
   onChange: (next: CrowdKasModulesConfig) => void;
   paidModulesUnlocked?: Partial<Record<DonationPaidModuleId, boolean>>;
+  /** L1 covenant vs L2 escrow: controls which paid modules and currency labels appear. */
+  network?: 'l1' | 'l2';
   showL1PayoutSplit?: boolean;
   hidePremiumSection?: boolean;
   className?: string;
@@ -52,6 +55,8 @@ export function CrowdKasModulesPanel({
     modules.payoutSplitEnabled ? payoutRows.length : 0,
     Boolean(modules.payoutSplitEnabled),
   );
+  const modulePriceUnit = network === 'l2' ? 'iKAS' : 'KAS';
+  const showEscrowPaidModules = network === 'l2';
 
   const setFree = (id: CrowdKasFreeModuleId, enabled: boolean) => {
     onChange({ ...modules, [id]: enabled });
@@ -91,8 +96,10 @@ export function CrowdKasModulesPanel({
           Optional campaign modules
         </h4>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Toggle modules for your campaign page. Free modules apply at create. Paid module fees are included in the
-          calculation breakdown and unlock on Kaspa L1 after your campaign is live.
+          Toggle modules for your campaign page. Free modules apply at create.
+          {network === 'l2'
+            ? ' Paid module fees are in iKAS and included in your L2 payment total.'
+            : ' Paid L1 module fees are included in your Kaspa L1 payment total.'}
         </p>
       </div>
 
@@ -214,26 +221,28 @@ export function CrowdKasModulesPanel({
         </div>
         )}
 
-        {(Object.keys(DONATION_MODULE_OFFERS) as DonationPaidModuleId[]).map((id) => {
-          const offer = DONATION_MODULE_OFFERS[id];
-          const unlocked = paidModulesUnlocked?.[id];
-          const kas = getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags);
-          const pending = modules.pendingPaidModules?.includes(id);
-          return (
-            <div key={id} className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
-              <KxInFormPremiumRow
-                flat
-                title={offer.title}
-                description={offer.description}
-                priceLabel={unlocked ? 'Paid' : `+${kas} KAS`}
-                checked={unlocked || Boolean(pending)}
-                onToggle={unlocked ? undefined : () => togglePendingPaid(id)}
-                disabled={unlocked}
-                accent="hub"
-              />
-            </div>
-          );
-        })}
+        {showEscrowPaidModules
+          ? (Object.keys(DONATION_MODULE_OFFERS) as DonationPaidModuleId[]).map((id) => {
+              const offer = DONATION_MODULE_OFFERS[id];
+              const unlocked = paidModulesUnlocked?.[id];
+              const price = getDonationModulePriceKas(offer.basePriceKas, krexBalance ?? 0, tier, moduleNftFlags);
+              const pending = modules.pendingPaidModules?.includes(id);
+              return (
+                <div key={id} className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
+                  <KxInFormPremiumRow
+                    flat
+                    title={offer.title}
+                    description={offer.description}
+                    priceLabel={unlocked ? 'Paid' : `+${price} ${modulePriceUnit}`}
+                    checked={unlocked || Boolean(pending)}
+                    onToggle={unlocked ? undefined : () => togglePendingPaid(id)}
+                    disabled={unlocked}
+                    accent="hub"
+                  />
+                </div>
+              );
+            })
+          : null}
       </div>
     </div>
   );

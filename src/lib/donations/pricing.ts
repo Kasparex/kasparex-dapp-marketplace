@@ -71,14 +71,12 @@ export interface CrowdKasL2PriceQuote {
   baseFeeIkas: number;
   sizeFeeIkas: number;
   networkFeeBufferIkas: number;
-  modulesFeeKas: number;
+  modulesFeeIkas: number;
   moduleLines: CrowdKasModuleAddonLine[];
   subtotalIkas: number;
   discountIkas: number;
   krexDiscountPercent: number;
   totalIkas: number;
-  l1ModulesFeeKas: number;
-  l1ModuleLines?: CrowdKasModuleAddonLine[];
 }
 
 function round2(value: number): number {
@@ -136,7 +134,25 @@ function getBaseFeeIkas(action: CrowdKasAction): number {
   return 0;
 }
 
-function resolveModuleLines(opts: {
+function resolveL1ModuleLines(opts: {
+  action: CrowdKasAction;
+  modules?: CrowdKasModulesConfig;
+}): CrowdKasModuleAddonLine[] {
+  const { action, modules } = opts;
+  if (action !== 'create' && action !== 'edit') return [];
+  if (action === 'create' && modules?.premiumSectionEnabled) {
+    return [
+      {
+        id: 'premiumSection',
+        label: CROWDKAS_PREMIUM_SECTION_OFFER.title,
+        kas: CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS,
+      },
+    ];
+  }
+  return [];
+}
+
+function resolveL2EscrowModuleLines(opts: {
   action: CrowdKasAction;
   modules?: CrowdKasModulesConfig;
   excludePaidModuleIds?: DonationPaidModuleId[];
@@ -153,11 +169,21 @@ function resolveModuleLines(opts: {
       ? pending.filter((id) => !excludePaidModuleIds.includes(id))
       : pending;
 
-  return ids.map((id) => {
+  const lines = ids.map((id) => {
     const offer = DONATION_MODULE_OFFERS[id];
-    const kas = getDonationModulePriceKas(offer.basePriceKas, krexBalance, krexTier, nft);
-    return { id, label: offer.title, kas };
+    const ikas = getDonationModulePriceKas(offer.basePriceKas, krexBalance, krexTier, nft);
+    return { id, label: offer.title, kas: ikas };
   });
+
+  if (modules?.premiumSectionEnabled) {
+    lines.push({
+      id: 'premiumSection',
+      label: CROWDKAS_PREMIUM_SECTION_OFFER.title,
+      kas: CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS,
+    });
+  }
+
+  return lines;
 }
 
 function resolvePayoutSplitAddonKas(modules?: CrowdKasModulesConfig): number {
@@ -217,32 +243,8 @@ export function computeCrowdKasL1PriceQuote(opts: {
   }
 
   const moduleLines = draft
-    ? resolveModuleLines({
-        action,
-        modules: draft.modules,
-        excludePaidModuleIds: draft.excludePaidModuleIds,
-        krexBalance,
-        krexTier,
-        nft: nft ?? { hasAny: false, hasDiamond: false, hasRarest: false },
-      })
-    : enabledPaidModules.map((id) => {
-        const offer = DONATION_MODULE_OFFERS[id];
-        const kas = getDonationModulePriceKas(
-          offer.basePriceKas,
-          krexBalance,
-          krexTier,
-          nft ?? { hasAny: false, hasDiamond: false, hasRarest: false },
-        );
-        return { id, label: offer.title, kas };
-      });
-
-  if (action === 'create' && draft?.modules?.premiumSectionEnabled) {
-    moduleLines.push({
-      id: 'premiumSection',
-      label: CROWDKAS_PREMIUM_SECTION_OFFER.title,
-      kas: CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS,
-    });
-  }
+    ? resolveL1ModuleLines({ action, modules: draft.modules })
+    : [];
 
   const modulesFeeKas = moduleLines.reduce((sum, line) => sum + line.kas, 0);
   const networkFeeBufferKas =
@@ -335,8 +337,8 @@ export function computeCrowdKasL2PriceQuote(opts: {
         };
   const sizeFeeIkas = sizeBreakdown.sizeFee;
 
-  const l1ModuleLines = mergedDraft
-    ? resolveModuleLines({
+  const l2ModuleLines = mergedDraft
+    ? resolveL2EscrowModuleLines({
         action,
         modules: mergedDraft.modules,
         excludePaidModuleIds: mergedDraft.excludePaidModuleIds,
@@ -346,7 +348,7 @@ export function computeCrowdKasL2PriceQuote(opts: {
       })
     : [];
 
-  const l1ModulesFeeKas = l1ModuleLines.reduce((sum, line) => sum + line.kas, 0);
+  const modulesFeeIkas = l2ModuleLines.reduce((sum, line) => sum + line.kas, 0);
   const networkFeeBufferIkas =
     action === 'edit'
       ? sizeFeeIkas > 0
@@ -356,9 +358,11 @@ export function computeCrowdKasL2PriceQuote(opts: {
         ? Math.max(0.05, chunkCount * 0.01)
         : 0;
 
-  const subtotalIkas = baseFeeIkas + sizeFeeIkas + networkFeeBufferIkas;
-  const totalIkas = round2(subtotalIkas * (1 - discount));
-  const discountIkas = round2(subtotalIkas - totalIkas);
+  const platformSubtotalIkas = baseFeeIkas + sizeFeeIkas + networkFeeBufferIkas;
+  const platformTotalIkas = round2(platformSubtotalIkas * (1 - discount));
+  const discountIkas = round2(platformSubtotalIkas - platformTotalIkas);
+  const totalIkas = round2(platformTotalIkas + modulesFeeIkas);
+  const subtotalIkas = round2(platformSubtotalIkas + modulesFeeIkas);
 
   return {
     action,
@@ -367,14 +371,12 @@ export function computeCrowdKasL2PriceQuote(opts: {
     baseFeeIkas: round2(baseFeeIkas),
     sizeFeeIkas: round2(sizeFeeIkas),
     networkFeeBufferIkas: round2(networkFeeBufferIkas),
-    modulesFeeKas: round2(l1ModulesFeeKas),
-    moduleLines: l1ModuleLines,
-    subtotalIkas: round2(subtotalIkas),
+    modulesFeeIkas: round2(modulesFeeIkas),
+    moduleLines: l2ModuleLines,
+    subtotalIkas,
     discountIkas,
     krexDiscountPercent: discountPercent,
     totalIkas,
-    l1ModulesFeeKas: round2(l1ModulesFeeKas),
-    l1ModuleLines: l1ModuleLines.length ? l1ModuleLines : undefined,
   };
 }
 

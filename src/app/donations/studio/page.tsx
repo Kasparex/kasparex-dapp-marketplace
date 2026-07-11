@@ -39,10 +39,13 @@ import { CrowdKasAuthorDashboard } from '@/components/donations/CrowdKasAuthorDa
 import { CrowdKasAuthorPricing } from '@/components/donations/CrowdKasAuthorPricing';
 import { CrowdKasStudioRightPanel } from '@/components/donations/CrowdKasStudioRightPanel';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
+import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS } from '@/lib/donations/premiumSection';
 import { CrowdKasCampaignPreviewModal } from '@/components/donations/CrowdKasCampaignPreviewModal';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { CROWDKAS_FORM_PANEL_CLASS } from '@/components/donations/crowdkasFormTheme';
+import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
 import type { CrowdKasPricingDraft } from '@/lib/donations/pricing';
@@ -1256,7 +1259,7 @@ function DonationsStudioPageContent() {
                                   />
                                 </div>
                                 <div>
-                                  <KxFormFieldLabel>Main Content</KxFormFieldLabel>
+                                  <KxFormFieldLabel>Main content</KxFormFieldLabel>
                                   <KxRichTextEditor
                                     value={createForm.mainContent ?? ''}
                                     onChange={(value) => setCreateForm((f) => ({ ...f, mainContent: value }))}
@@ -1264,16 +1267,25 @@ function DonationsStudioPageContent() {
                                     placeholder="Primary campaign story and details"
                                   />
                                 </div>
-                                <CrowdKasCampaignMediaField
-                                  source={l2ImageSource}
-                                  onSourceChange={setL2ImageSource}
-                                  url={l2ImageUrl}
-                                  onUrlChange={setL2ImageUrl}
-                                  cid={l2ImageCid}
-                                  onCidChange={setL2ImageCid}
-                                  fileName={l2ImageFileName}
-                                  onFileNameChange={setL2ImageFileName}
-                                />
+                                <div className={CROWDKAS_PREMIUM_MODULE_CARD_CLASS}>
+                                  <KxInFormPremiumRow
+                                    flat
+                                    title={CROWDKAS_PREMIUM_SECTION_OFFER.title}
+                                    description={CROWDKAS_PREMIUM_SECTION_OFFER.description}
+                                    priceLabel={`+${CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS} iKAS`}
+                                    checked={Boolean(modulesConfig.premiumSectionEnabled)}
+                                    onToggle={() =>
+                                      setModulesConfig((m) => ({
+                                        ...m,
+                                        premiumSectionEnabled: !m.premiumSectionEnabled,
+                                      }))
+                                    }
+                                    accent="hub"
+                                  />
+                                  {modulesConfig.premiumSectionEnabled ? (
+                                    <CrowdKasPremiumSectionFields modules={modulesConfig} onChange={setModulesConfig} />
+                                  ) : null}
+                                </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div>
                                     <KxFormFieldLabel>Category</KxFormFieldLabel>
@@ -1338,6 +1350,17 @@ function DonationsStudioPageContent() {
                                     />
                                   </div>
                                 </div>
+                                <CrowdKasCampaignMediaField
+                                  source={l2ImageSource}
+                                  onSourceChange={setL2ImageSource}
+                                  url={l2ImageUrl}
+                                  onUrlChange={setL2ImageUrl}
+                                  cid={l2ImageCid}
+                                  onCidChange={setL2ImageCid}
+                                  fileName={l2ImageFileName}
+                                  onFileNameChange={setL2ImageFileName}
+                                  label="Cover image"
+                                />
                                 {createErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{createErrorMsg}</p>}
                                 {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
                               </div>
@@ -1347,6 +1370,8 @@ function DonationsStudioPageContent() {
                             <CrowdKasModulesPanel
                               modules={modulesConfig}
                               onChange={setModulesConfig}
+                              network="l2"
+                              hidePremiumSection
                             />
                           </div>
                         </>
@@ -1836,7 +1861,7 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2EditQuote}
-                          infoText="Update L2 campaign metadata on Igra. The on-chain update is nonpayable; your wallet charges network gas in iKAS. New paid modules bill in KAS on L1 after save."
+                          infoText="Update L2 campaign metadata on Igra. New paid modules selected here are billed in iKAS on L2."
                           onSubmit={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
                           submitLabel="Save changes"
                           submittingLabel="Updating…"
@@ -1863,7 +1888,7 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2CreateQuote}
-                          infoText="Create your L2 escrow campaign on Igra. Platform fees are in iKAS; paid modules bill in KAS on L1 after your campaign is live."
+                          infoText="Create your L2 escrow campaign on Igra. One iKAS payment covers platform fees and any enabled modules."
                           onSubmit={handleCreateCampaignV2}
                           submitLabel="Create L2 campaign"
                           isSubmitting={createSubmitting || isCreatePending}

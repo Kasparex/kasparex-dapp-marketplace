@@ -199,12 +199,16 @@ function buildL2BreakdownLines(quote: CrowdKasL2PriceQuote) {
   ];
   for (const line of quote.moduleLines) {
     lines.push({
-      label: `${line.label} (L1 unlock)`,
-      value: line.kas <= 0 ? 'Free' : `${line.kas} KAS`,
+      label: line.label,
+      value: line.kas <= 0 ? 'Free' : formatIkasAmount(line.kas),
     });
   }
-  if (quote.l1ModulesFeeKas > 0) {
-    lines.push({ label: 'Modules subtotal', value: `${quote.l1ModulesFeeKas} KAS`, dividerBefore: true });
+  if (quote.modulesFeeIkas > 0) {
+    lines.push({
+      label: 'Modules subtotal',
+      value: formatIkasAmount(quote.modulesFeeIkas),
+      dividerBefore: true,
+    });
   }
   lines.push({ label: 'Subtotal', value: formatIkasAmount(quote.subtotalIkas), dividerBefore: true });
   lines.push({ label: 'Payload bytes', value: String(quote.payloadBytes) });
@@ -245,11 +249,7 @@ export function CrowdKasL2CalculationPanel({
   const lines = useMemo(() => buildL2BreakdownLines(quote), [quote]);
 
   const totalDisplay = formatIkasAmount(quote.totalIkas);
-  const subtitleParts: string[] = ['+ network gas in iKAS'];
-  if (quote.l1ModulesFeeKas > 0) {
-    subtitleParts.push(`+ ${quote.l1ModulesFeeKas} KAS for paid modules on L1`);
-  }
-  const totalSubtitle = subtitleParts.join(' ');
+  const totalSubtitle = '+ network gas in iKAS';
 
   return (
     <HubPaymentPanel
