@@ -235,9 +235,10 @@ export function KrexNodeEnrollmentModal(props: {
       if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
       setEnrollmentToken(v.enrollmentToken);
       setVerifyPayload(v.verifyPayload || 'krex:verify');
-      // Manage existing node: wallet signature is enough; skip on-chain 1 KAS in the UI.
-      setStep(props.existingNode ? 'enroll' : 'verify');
-      void loadRuntimeConfig();
+      const rc = await loadRuntimeConfig();
+      const onchainRequired = Boolean(rc?.onchainVerify?.enabled && rc?.onchainVerify?.toAddress);
+      // Manage existing node: wallet signature is enough. New enroll: verify only when Worker enables it.
+      setStep(props.existingNode ? 'enroll' : onchainRequired ? 'verify' : 'enroll');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
     } finally {

@@ -29,11 +29,9 @@ binding = "REWARDS_DB"
 database_name = "kasparex-rewards"
 database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 
-# Environment variables (set via wrangler secret put or dashboard)
-# [vars]
-# REGISTRY_CID = "your-registry-cid"
-# PINATA_API_KEY = "your-pinata-key"
-# STORACHA_API_KEY = "your-storacha-key"
+[vars]
+NODE_VERIFY_TO_ADDRESS = "kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw"
+NODE_VERIFY_MIN_KAS = "1"
 
 # Production environment
 [env.production]

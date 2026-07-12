@@ -150,17 +150,23 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
     }
     const wallet = pl.wallet as string;
 
-    // Require wallet-level on-chain verification before showing secrets or allowing enrollment.
-    const walletVerification = await env.NODES_DB.prepare(
+    const verifyTo = (env.NODE_VERIFY_TO_ADDRESS || '').trim();
+    let walletVerification = await env.NODES_DB.prepare(
       `SELECT verified_txid, verified_at FROM wallet_verifications WHERE LOWER(wallet) = LOWER(?)`
     )
       .bind(wallet)
       .first<{ verified_txid: string; verified_at: number }>();
+
     if (!walletVerification) {
-      return new Response(JSON.stringify({ error: 'Complete 1 KAS on-chain verification first.' }), {
-        status: 403,
-        headers: { ...cors, 'Content-Type': 'application/json' },
-      });
+      if (verifyTo) {
+        return new Response(JSON.stringify({ error: 'Complete 1 KAS on-chain verification first.' }), {
+          status: 403,
+          headers: { ...cors, 'Content-Type': 'application/json' },
+        });
+      }
+      // On-chain gate disabled on this Worker: wallet signature from enrollment token is enough.
+      const now = Date.now();
+      walletVerification = { verified_txid: 'wallet-bound', verified_at: now };
     }
 
     if (!body.node_name || !body.role || !body.url) {
