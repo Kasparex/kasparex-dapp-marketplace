@@ -469,7 +469,16 @@ export function KrexNodeEnrollmentModal(props: {
       });
       setStep('done');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      const msg = e instanceof Error ? e.message : 'Failed';
+      if (/on-chain verification/i.test(msg)) {
+        const rc = await loadRuntimeConfig();
+        if (rc?.onchainVerify?.enabled) {
+          setStep('verify');
+          setError('Complete the 1 KAS verification step below, then enroll again.');
+          return;
+        }
+      }
+      setError(msg);
     } finally {
       setBusy(false);
     }
@@ -572,6 +581,14 @@ export function KrexNodeEnrollmentModal(props: {
                   {busy ? 'Working…' : 'Bind wallet & continue'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {step === 'enroll' && sessionMode !== 'edit' && runtimeConfig?.onchainVerify?.enabled && (
+            <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 p-3 text-sm text-amber-900 dark:text-amber-200">
+              On-chain verification is required before enrollment. Click{' '}
+              <span className="font-semibold">Bind wallet & continue</span> to open the verify step, or use the
+              button below if you already see it.
             </div>
           )}
 
