@@ -57,6 +57,13 @@ function mapWorkerNodeRow(raw: Record<string, unknown>): KrexNode {
   };
 }
 
+const NODE_LIST_CACHE_MS = 5 * 60 * 1000;
+const nodeListCache = new Map<string, { expiresAt: number; nodes: KrexNode[] }>();
+
+function cacheKeyForNodes(options?: { region?: string; role?: KrexNode['role'] }): string {
+  return `${options?.role ?? 'all'}|${options?.region ?? 'all'}`;
+}
+
 /**
  * Get all currently active nodes (pinged recently) from the registry.
  * This is the base primitive for node-first routing.
@@ -65,6 +72,13 @@ export async function getKrexNodes(options?: {
   region?: string;
   role?: KrexNode['role'];
 }): Promise<KrexNode[]> {
+  const key = cacheKeyForNodes(options);
+  const now = Date.now();
+  const hit = nodeListCache.get(key);
+  if (hit && hit.expiresAt > now) {
+    return hit.nodes;
+  }
+
   try {
     const query = new URLSearchParams();
     if (options?.region) query.set('region', options.region);
@@ -72,10 +86,12 @@ export async function getKrexNodes(options?: {
     const endpoint = `/kasparex/nodes${query.size ? `?${query.toString()}` : ''}`;
     const response = await api.get<{ nodes?: Record<string, unknown>[] }>(endpoint);
     const rows = Array.isArray(response.nodes) ? response.nodes : [];
-    return rows.map((r) => mapWorkerNodeRow(r));
+    const nodes = rows.map((r) => mapWorkerNodeRow(r));
+    nodeListCache.set(key, { nodes, expiresAt: now + NODE_LIST_CACHE_MS });
+    return nodes;
   } catch (error) {
     console.warn('Failed to fetch Krex nodes:', error);
-    return [];
+    return hit?.nodes ?? [];
   }
 }
 

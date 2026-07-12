@@ -14,7 +14,9 @@
     "build": "tsc",
     "heartbeat": "node dist/cli.js heartbeat",
     "status": "node dist/cli.js status",
-    "once": "node dist/cli.js once"
+    "once": "node dist/cli.js once",
+    "serve": "node dist/cli.js serve",
+    "mirror": "node dist/cli.js mirror"
   },
   "files": [
     "dist",

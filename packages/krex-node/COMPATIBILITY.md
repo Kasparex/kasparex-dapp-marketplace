@@ -6,8 +6,8 @@ This package targets the **Kasparex Worker** routes under `/kasparex/node/*` as 
 
 | Environment | Example |
 |-------------|---------|
+| Production | `https://kasparex-api.kasparexcom.workers.dev` |
 | Local Wrangler | `http://127.0.0.1:8787` |
-| Production | `https://api.kasparex.com` (or value shown in Kasparex docs) |
 
 Set `apiBaseUrl` in `config.json` without a trailing slash.
 
@@ -30,6 +30,20 @@ Clock skew allowed by the Worker: **120 seconds** (see `verifyNodeRequestHmac`).
 
 - `GET /kasparex/node/runtime-config`  -  heartbeat bounds, `enrollmentEnabled`  
 - `GET /kasparex/node/{id}/status`  -  online, uptime, epoch GRID snapshot fields  
+
+## Mirror HTTP (krex-node `serve` / `mirror`)
+
+When `role` is `mirror`, run `npm run mirror` and expose `servePort` (default 8788) via HTTPS at the `url` registered in the Worker.
+
+The mirror serves the same read paths the Hub uses for node-first routing:
+
+- `GET /health`
+- `GET /kasparex/wallet/deck?address=...`
+- `GET /kasparex/wallet/history?address=...`
+- `GET /kasparex/stats`
+- `GET /proxy/kasplex?endpoint=...` and `GET /proxy/krc721?endpoint=...`
+
+Responses include `Access-Control-Allow-Origin: *` for browser clients.
 
 ## Versioning
 

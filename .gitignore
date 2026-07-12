@@ -26,6 +26,10 @@ out/
 # Local tooling (silverc build tree)
 .tools/
 
+# Cloudflare agent skills (installed via npx skills add)
+.agents/
+skills-lock.json
+
 # Environment variables (contains sensitive data like private keys)
 .env
 .env.local

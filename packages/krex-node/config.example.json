@@ -1,13 +1,15 @@
 {
-  "apiBaseUrl": "https://api.kasparex.com",
+  "apiBaseUrl": "https://kasparex-api.kasparexcom.workers.dev",
   "nodeId": "replace-with-node-id",
   "hmacSecret": "replace-with-secret-from-enroll",
   "nodeName": "My Krex Node",
-  "role": "light",
+  "role": "mirror",
   "region": "eu-central",
-  "url": "https://example.invalid/krex-node",
+  "url": "https://your-public-host.example.com",
   "heartbeatIntervalSec": 60,
   "version": "1.0.0",
   "requestsServedTotal": 0,
-  "pinnedCids": []
+  "pinnedCids": [],
+  "serveHost": "0.0.0.0",
+  "servePort": 8788
 }

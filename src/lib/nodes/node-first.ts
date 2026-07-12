@@ -38,14 +38,14 @@ async function getCandidateNodes(opts: NodeFirstGetOptions): Promise<KrexNode[]>
   const roles = opts.roles?.length ? opts.roles : (['mirror', 'light'] as KrexNode['role'][]);
   const region = opts.region;
 
-  // Fetch roles separately so we can apply a priority order.
-  const perRole = await Promise.all(roles.map((role) => getKrexNodes({ role, region })));
-  const all = perRole.flat();
+  // Single registry fetch when no role filter; filter/sort client-side.
+  const allNodes = await getKrexNodes({ region });
+  const roleSet = new Set(roles);
 
-  // De-duplicate by url (some registries might return duplicates).
   const dedup = new Map<string, KrexNode>();
-  for (const n of all) {
-    if (n?.url) dedup.set(n.url, n);
+  for (const n of allNodes) {
+    if (!n?.url || !roleSet.has(n.role)) continue;
+    dedup.set(n.url, n);
   }
 
   return Array.from(dedup.values()).sort(

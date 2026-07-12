@@ -13,6 +13,10 @@ export type KrexNodeConfig = {
   version: string;
   requestsServedTotal?: number;
   pinnedCids?: string[];
+  /** Mirror HTTP listen host (default 0.0.0.0). */
+  serveHost?: string;
+  /** Mirror HTTP listen port (default 8788). */
+  servePort?: number;
 };
 
 export function loadConfig(path = 'config.json'): KrexNodeConfig {
