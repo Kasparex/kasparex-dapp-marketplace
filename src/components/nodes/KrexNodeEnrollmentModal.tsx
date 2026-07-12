@@ -368,11 +368,25 @@ export function KrexNodeEnrollmentModal(props: {
 
         try {
           const vr = await withTimeout(
-            apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
-              enrollmentToken: activeEnrollmentToken,
-              tx_hash: txid,
+            fetch('/api/kasparex/node/verify-onchain', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                enrollmentToken: activeEnrollmentToken,
+                tx_hash: txid,
+                to_address: toAddress,
+              }),
+            }).then(async (res) => {
+              const data = (await res.json().catch(() => ({}))) as VerifyOnchainResponse & { error?: string };
+              if (res.status === 429) {
+                throw new ApiClientError('Too many requests', 429);
+              }
+              if (!res.ok && res.status !== 202) {
+                throw new ApiClientError(data.error || `HTTP ${res.status}`, res.status);
+              }
+              return data;
             }),
-            25_000
+            55_000
           );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
@@ -404,7 +418,7 @@ export function KrexNodeEnrollmentModal(props: {
         sleepMs = Math.min(12_000, Math.floor(sleepMs * 1.25));
       }
       throw new Error(
-        'Your transaction is broadcast, but Kaspa REST is still slow. Close this modal and click Verify tx again in a minute. It will not send another payment.'
+        'Verification timed out. Your tx is on chain: click Verify tx again, or paste the txid from Kaspa Explorer. It will not send another payment.'
       );
 
     } catch (e) {

@@ -102,6 +102,7 @@ function tryDecodeHexPayloadToText(raw: string): string | null {
 type VerifyOnchainBody = {
   enrollmentToken?: string;
   tx_hash?: string;
+  tx_snapshot?: KaspaRestTransaction;
 };
 
 type PendingResponse = { ok: false; pending: true; error: string };
@@ -174,7 +175,15 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       );
     }
 
-    const tx = await fetchKaspaRestTransaction(env, txHash, { recipientAddress: toAddr });
+    const hubKey = request.headers.get('X-Kasparex-Hub-Verify')?.trim() || '';
+    const hubSecret = env.KASPAREX_HUB_VERIFY_SECRET?.trim() || '';
+    const snapshot = body.tx_snapshot;
+    let tx: KaspaRestTransaction | null = null;
+    if (snapshot && hubSecret && hubKey === hubSecret) {
+      tx = snapshot;
+    } else {
+      tx = await fetchKaspaRestTransaction(env, txHash, { recipientAddress: toAddr });
+    }
     if (!tx) {
       const body: PendingResponse = {
         ok: false,

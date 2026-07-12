@@ -29,6 +29,7 @@ database_id = "35760760-ee43-4ab4-b8c2-f9e134335acd"
 NODE_VERIFY_TO_ADDRESS = "kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw"
 NODE_VERIFY_MIN_KAS = "1"
 KASPAREX_APP_URL = "https://kasparex.com"
+KASPAREX_HUB_VERIFY_SECRET = "krex-hub-verify-v1-kasparex"
 
 [env.production]
 name = "kasparex-api-production"
@@ -37,6 +38,7 @@ name = "kasparex-api-production"
 NODE_VERIFY_TO_ADDRESS = "kaspa:qr54v0692g4csc45z6phshyh2twy5dv73mylx5uqjtpphynvg70vksky9xffw"
 NODE_VERIFY_MIN_KAS = "1"
 KASPAREX_APP_URL = "https://kasparex.com"
+KASPAREX_HUB_VERIFY_SECRET = "krex-hub-verify-v1-kasparex"
 
 [[env.production.kv_namespaces]]
 binding = "KASPAREX_CACHE"

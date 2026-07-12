@@ -115,7 +115,7 @@ export async function fetchKaspaRestTransaction(
 
   for (const base of restBaseUrls(env)) {
     for (const url of txUrls(base, hash)) {
-      const data = await fetchJsonWithTimeout(url, 12_000);
+      const data = await fetchJsonWithTimeout(url, 28_000);
       const tx = coerceRestTransaction(data);
       if (tx?.outputs?.length || tx?.transaction_id || tx?.transactionId) {
         return tx;
