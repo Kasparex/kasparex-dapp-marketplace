@@ -1,6 +1,6 @@
 /**
  * Kaspa SDK Wrapper
- * 
+ *
  * Unified interface for @kluster/kaspa-js SDK packages
  * Provides error handling and backward compatibility
  */
@@ -8,37 +8,79 @@
 // Address utilities from @kluster/kaspa-address
 import { KaspaAddress } from '@kluster/kaspa-address';
 
+export type KaspaAddressHrp = 'kaspa' | 'kaspatest';
+
+const TESTNET_HRP_PREFIX = 'kaspatest:';
+const MAINNET_HRP_PREFIX = 'kaspa:';
+
+/** Split a prefixed Kaspa or kaspatest address. Returns null when no known HRP is present. */
+export function parseKaspaAddressParts(address: string): { hrp: KaspaAddressHrp; body: string } | null {
+  const trimmed = address.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith(TESTNET_HRP_PREFIX)) {
+    return { hrp: 'kaspatest', body: trimmed.slice(TESTNET_HRP_PREFIX.length) };
+  }
+  if (lower.startsWith(MAINNET_HRP_PREFIX)) {
+    return { hrp: 'kaspa', body: trimmed.slice(MAINNET_HRP_PREFIX.length) };
+  }
+  return null;
+}
+
+/** Payload without kaspa: or kaspatest: prefix (testnet checked first). */
+export function stripKaspaAddressHrp(address: string): string {
+  const parts = parseKaspaAddressParts(address);
+  if (parts) return parts.body;
+  return address.trim();
+}
+
+export function isKaspaTestnetAddress(address: string): boolean {
+  const parts = parseKaspaAddressParts(address);
+  return parts?.hrp === 'kaspatest' && isValidTestnetAddressBody(parts.body);
+}
+
+function isValidTestnetAddressBody(body: string): boolean {
+  return /^[a-z0-9]{50,120}$/i.test(body);
+}
+
+function toPrefixedAddress(hrp: KaspaAddressHrp, body: string): string {
+  return `${hrp}:${body}`;
+}
+
 /**
- * Validate a Kaspa address using SDK
- * 
- * @param address - Address to validate (with or without kaspa: prefix)
- * @returns True if address is valid
+ * Validate a Kaspa address using SDK (mainnet) or prefix/body rules (testnet-10).
  */
 export function isValidKaspaAddress(address: string): boolean {
+  if (!address || typeof address !== 'string') {
+    return false;
+  }
+
+  const parts = parseKaspaAddressParts(address);
+  if (!parts?.body) {
+    return false;
+  }
+
+  if (parts.hrp === 'kaspatest') {
+    return isValidTestnetAddressBody(parts.body);
+  }
+
   try {
-    if (!address || typeof address !== 'string') {
-      return false;
-    }
-    
-    // Use SDK validation - KaspaAddress.fromString throws if invalid
-    KaspaAddress.fromString(address);
+    KaspaAddress.fromString(toPrefixedAddress('kaspa', parts.body));
     return true;
-  } catch (error) {
-    // Address is invalid if fromString throws
+  } catch {
     return false;
   }
 }
 
 /**
  * Encode a public key or address to Kaspa format
- * Note: This function is a placeholder - KaspaAddress.fromString handles parsing
- * 
- * @param input - Address string to normalize
- * @returns Normalized Kaspa address string
  */
 export function encodeKaspaAddress(input: string): string {
   try {
-    // Validate and return normalized address
+    if (isKaspaTestnetAddress(input)) {
+      const parts = parseKaspaAddressParts(input);
+      if (!parts) throw new Error('Invalid testnet address');
+      return toPrefixedAddress('kaspatest', parts.body);
+    }
     const addr = KaspaAddress.fromString(input);
     return addr.toString();
   } catch (error) {
@@ -48,13 +90,13 @@ export function encodeKaspaAddress(input: string): string {
 }
 
 /**
- * Decode a Kaspa address
- * 
- * @param address - Address to decode (with or without kaspa: prefix)
- * @returns KaspaAddress object with parsed address data
+ * Decode a Kaspa address (mainnet SDK path; testnet returns normalized string shape only).
  */
 export function decodeKaspaAddress(address: string): KaspaAddress {
   try {
+    if (isKaspaTestnetAddress(address)) {
+      throw new Error('Testnet addresses are not decodable via mainnet KaspaAddress SDK');
+    }
     return KaspaAddress.fromString(address);
   } catch (error) {
     console.error('Error decoding Kaspa address:', error);
@@ -63,50 +105,42 @@ export function decodeKaspaAddress(address: string): KaspaAddress {
 }
 
 /**
- * Normalize a Kaspa address (ensure kaspa: prefix)
- * 
- * @param address - Address to normalize
- * @returns Normalized address with kaspa: prefix
+ * Normalize a Kaspa address (kaspa: or kaspatest: prefix).
  */
 export function normalizeKaspaAddress(address: string): string {
   if (!address) {
     return '';
   }
-  
-  const trimmed = address.trim();
-  const withPrefix = trimmed.toLowerCase().startsWith('kaspa:') ? trimmed : `kaspa:${trimmed.replace(/^kaspa:/i, '')}`;
 
-  // Validate after ensuring prefix (some SDK versions require the prefix to parse).
-  if (!isValidKaspaAddress(withPrefix)) {
+  const trimmed = address.trim();
+  const parts = parseKaspaAddressParts(trimmed);
+  const candidate = parts
+    ? toPrefixedAddress(parts.hrp, parts.body)
+    : toPrefixedAddress('kaspa', trimmed.replace(/^kaspa:/i, '').replace(/^kaspatest:/i, ''));
+
+  if (!isValidKaspaAddress(candidate)) {
     throw new Error('Invalid Kaspa address');
   }
 
-  return withPrefix;
+  return candidate;
 }
 
 /**
  * Format Kaspa address for display
- * 
- * @param address - Address to format
- * @param options - Formatting options
- * @returns Formatted address object
  */
 export function formatKaspaAddress(
   address: string,
-  options: { startChars?: number; endChars?: number } = {}
+  options: { startChars?: number; endChars?: number } = {},
 ): { full: string; short: string; display: string } {
   const { startChars = 6, endChars = 4 } = options;
-  
-  // Normalize address
+
   const normalized = normalizeKaspaAddress(address);
-  
-  // Remove kaspa: prefix for short format
-  const short = normalized.replace(/^kaspa:/i, '');
-  
-  // Create display format
-  const display = short.length > startChars + endChars
-    ? `${short.substring(0, startChars)}...${short.substring(short.length - endChars)}`
-    : short;
+  const short = stripKaspaAddressHrp(normalized);
+
+  const display =
+    short.length > startChars + endChars
+      ? `${short.substring(0, startChars)}...${short.substring(short.length - endChars)}`
+      : short;
 
   return {
     full: normalized,
@@ -114,4 +148,3 @@ export function formatKaspaAddress(
     display,
   };
 }
-

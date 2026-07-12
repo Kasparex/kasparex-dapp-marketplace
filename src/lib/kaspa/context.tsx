@@ -38,8 +38,16 @@ const DEFAULT_WALLET_STATE: KaspaWalletState & { siwkAuth?: SIWKAuthResult } = {
   error: null,
 };
 
+import { normalizeKaspaAddress } from './sdk';
+
 function normalizeStoredAddress(address: string): string {
-  return address.startsWith('kaspa:') ? address : `kaspa:${address}`;
+  try {
+    return normalizeKaspaAddress(address);
+  } catch {
+    const trimmed = address.trim();
+    if (/^kaspatest:/i.test(trimmed) || /^kaspa:/i.test(trimmed)) return trimmed;
+    return `kaspa:${trimmed}`;
+  }
 }
 
 function readPersistedWalletState(): KaspaWalletState & { siwkAuth?: SIWKAuthResult } {

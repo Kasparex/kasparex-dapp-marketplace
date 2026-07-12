@@ -19,20 +19,20 @@ Kasparex Tokens is a **Utility-as-a-Service** layer for programmable L1 assets. 
 - Covenant indexer or chain follower (no SQLite, no background sync)
 - In-Hub mint, transfer, or DEX
 
-See also: [COVENANT_EXTERNAL_INTEGRATION.md](./COVENANT_EXTERNAL_INTEGRATION.md)
+See also: [COVENANT_EXTERNAL_INTEGRATION.md](./COVENANT_EXTERNAL_INTEGRATION.md) · [KASCOV_TEMPLATE_MAP.md](./KASCOV_TEMPLATE_MAP.md) ([kascov.io](https://kascov.io)).
 
 ## Connect flow
 
 1. Deploy a programmable token elsewhere and copy the **covenant id** or **genesis tx id**.
 2. Tokens Dashboard → Create listing → **Real token** → **L1 Programmable (KCC-20)**.
-3. Paste id → **Look up covenant** (client fetch to [kascov](https://kascov-explorer.web.app) JSON API).
+3. Paste id → **Look up covenant** (client fetch to [kascov](https://kascov.io) JSON API).
 4. Build the page, unlock programmable modules, pay listing fee (unchanged).
 5. **Verify controller** wallet to unlock utility modules and directory badges.
 
 ## Environment
 
 ```bash
-NEXT_PUBLIC_KASCOV_BASE=https://kascov-explorer.web.app
+NEXT_PUBLIC_KASCOV_BASE=https://kascov.io
 NEXT_PUBLIC_KCC20_NETWORK=testnet-10   # or mainnet when ready
 ```
 

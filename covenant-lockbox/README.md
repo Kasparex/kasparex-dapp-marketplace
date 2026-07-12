@@ -35,6 +35,8 @@ See [KCC20 book](https://kaspanet.github.io/silverscript/kcc20-book/) for fungib
 
 See `split-payment.sil` and dApp **Covenant Split** (`/dapps/covenant-split`) for the 1:N fan-out prototype.
 
+kascov visibility: [docs/KASCOV_TEMPLATE_MAP.md](../docs/KASCOV_TEMPLATE_MAP.md) (canonical explorer: [kascov.io](https://kascov.io)).
+
 ## Additional prototypes
 
 | dApp | Reference | Pattern |

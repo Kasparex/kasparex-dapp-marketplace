@@ -5,9 +5,10 @@
 
 export type ProgrammableNetworkId = 'testnet-10' | 'mainnet';
 
+/** Canonical kascov site and JSON API base. Override with NEXT_PUBLIC_KASCOV_BASE. */
 export const KASCOV_BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_KASCOV_BASE?.trim()) ||
-  'https://kascov-explorer.web.app';
+  'https://kascov.io';
 
 export const DEFAULT_PROGRAMMABLE_NETWORK: ProgrammableNetworkId =
   (process.env.NEXT_PUBLIC_KCC20_NETWORK as ProgrammableNetworkId | undefined) ?? 'testnet-10';
@@ -70,4 +71,17 @@ export function kascovDecodeUrl(scriptHex?: string): string {
   const base = KASCOV_BASE_URL.replace(/\/$/, '');
   if (!scriptHex?.trim()) return `${base}/#/decode`;
   return `${base}/#/decode?script=${encodeURIComponent(scriptHex.trim())}`;
+}
+
+export function kascovExploreUrl(network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK): string {
+  const base = KASCOV_BASE_URL.replace(/\/$/, '');
+  return `${base}/#/explore?network=${network}`;
+}
+
+export function kascovTemplatesFeedUrl(network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK): string {
+  return kascovDataUrl(network, '/templates.json');
+}
+
+export function kascovTokensFeedUrl(network: ProgrammableNetworkId = DEFAULT_PROGRAMMABLE_NETWORK): string {
+  return kascovDataUrl(network, '/tokens.json');
 }

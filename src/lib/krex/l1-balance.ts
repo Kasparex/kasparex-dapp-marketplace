@@ -7,13 +7,14 @@
 const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
 const KREX_TICKER = 'KREX';
 
+import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
+
 /**
- * Normalize Kaspa address (remove kaspa: prefix if present)
+ * Normalize Kaspa address (remove kaspa: or kaspatest: prefix if present)
  */
 function normalizeKaspaAddress(address: string): string {
   if (!address) return '';
-  // Remove kaspa: prefix (case insensitive)
-  return address.replace(/^kaspa:/i, '').trim();
+  return stripKaspaAddressHrp(address);
 }
 
 /**
