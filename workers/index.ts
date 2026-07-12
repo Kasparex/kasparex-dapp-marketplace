@@ -40,6 +40,8 @@ export interface Env {
   KASPAREX_API_URL?: string;
   /** Canonical Kasparex app base URL (Next). Used for read-only upstreams. */
   KASPAREX_APP_URL?: string;
+  /** Optional override for Kaspa REST tx lookups (defaults to api.kaspa.org). */
+  KASPA_REST_API_URL?: string;
   /** Diamonds cashback: diamonds per 1 KAS paid (float allowed, applied then floored). */
   DIAMONDS_PAYMENT_BONUS_PER_KAS?: string;
   /** Max Diamonds from payment bonus per tx. */

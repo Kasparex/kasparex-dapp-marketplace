@@ -161,6 +161,7 @@ export function KrexNodeEnrollmentModal(props: {
   const [verifyPending, setVerifyPending] = useState(false);
   const [verifyAttempts, setVerifyAttempts] = useState(0);
   const [verifyLastCheckAt, setVerifyLastCheckAt] = useState<number | null>(null);
+  const [verifyStatusMessage, setVerifyStatusMessage] = useState<string | null>(null);
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
   const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
@@ -204,6 +205,7 @@ export function KrexNodeEnrollmentModal(props: {
     setVerifyPending(false);
     setVerifyAttempts(0);
     setVerifyLastCheckAt(null);
+    setVerifyStatusMessage(null);
     setSessionMode(null);
     setStep('connect');
     props.onClose();
@@ -212,6 +214,23 @@ export function KrexNodeEnrollmentModal(props: {
   const ensureWalletConnected = async () => {
     if (kaspa.isConnected && kaspa.address && kaspa.provider) return;
     await connect('kasware', { enableSIWK: false });
+  };
+
+  const refreshEnrollmentToken = async (): Promise<string> => {
+    await ensureWalletConnected();
+    if (!kaspa.provider || !kaspa.address) throw new Error('Kaspa wallet not connected');
+    const c = await apiClient.post<ChallengeResponse>('/kasparex/node/challenge', {});
+    if (!c?.message || !c?.challengeToken) throw new Error('Challenge failed');
+    const signature = await signKaspaMessage(kaspa.provider, c.message);
+    const v = await apiClient.post<VerifyResponse>('/kasparex/node/verify-wallet', {
+      challengeToken: c.challengeToken,
+      address: kaspa.address,
+      signature,
+    });
+    if (!v?.ok || !v.enrollmentToken) throw new Error(v?.error || 'Verification failed');
+    setEnrollmentToken(v.enrollmentToken);
+    setVerifyPayload(v.verifyPayload || 'krex:verify');
+    return v.enrollmentToken;
   };
 
   const startChallenge = async () => {
@@ -251,8 +270,10 @@ export function KrexNodeEnrollmentModal(props: {
     setBusy(true);
     setVerifyPending(true);
     setVerifyAttempts(0);
+    setVerifyStatusMessage(null);
     try {
-      if (!enrollmentToken) throw new Error('Missing enrollment token');
+      let activeEnrollmentToken = enrollmentToken;
+      if (!activeEnrollmentToken) throw new Error('Missing enrollment token');
       if (!kaspa.provider) throw new Error('Kaspa wallet provider missing');
 
       const toAddress = runtimeConfig?.onchainVerify?.toAddress;
@@ -268,7 +289,6 @@ export function KrexNodeEnrollmentModal(props: {
       // If we already have a txid, do NOT re-send funds. Just re-verify.
       let txid = verifyTxid;
       if (!txid) {
-        // Wallet prompt: send 1 KAS with a payload binding to node_id.
         const sent = await adapter.sendTransaction({
           to: toAddress,
           amount: sompi,
@@ -284,7 +304,6 @@ export function KrexNodeEnrollmentModal(props: {
         const c = new AbortController();
         const t = setTimeout(() => c.abort(), ms);
         try {
-          // apiClient doesn't accept a signal today; timeout guard still helps catch stuck loops.
           return await Promise.race([
             p,
             new Promise<T>((_, rej) => {
@@ -296,53 +315,66 @@ export function KrexNodeEnrollmentModal(props: {
         }
       };
 
-      // Worker verify + persist (retry until indexer sees the tx).
       const started = Date.now();
-      const maxMs = 10 * 60_000; // 10 minutes
+      const maxMs = 10 * 60_000;
       let sleepMs = 2500;
       while (Date.now() - started < maxMs) {
         setVerifyAttempts((x) => x + 1);
         setVerifyLastCheckAt(Date.now());
+
+        // Hub-side indexer check (same-origin) for clearer UX while Worker polls REST.
+        if (txid) {
+          try {
+            const hubRes = await fetch(`/api/kaspa/transaction/${txid.replace(/^0x/i, '')}`, { cache: 'no-store' });
+            if (hubRes.ok) {
+              setVerifyStatusMessage('Transaction visible to Hub. Confirming with Worker…');
+            } else if (hubRes.status === 404) {
+              setVerifyStatusMessage('Waiting for Kaspa indexer to see your transaction…');
+            }
+          } catch {
+            // non-fatal
+          }
+        }
+
         try {
           const vr = await withTimeout(
             apiClient.post<VerifyOnchainResponse>('/kasparex/node/verify-onchain', {
-              enrollmentToken,
+              enrollmentToken: activeEnrollmentToken,
               tx_hash: txid,
             }),
             25_000
           );
           if (vr && (vr as any).ok === true) {
             setVerifyTxid(normalizeTxId((vr as any).tx_hash || txid));
+            setVerifyStatusMessage(null);
             setStep('enroll');
             return;
           }
-          // Pending is normal indexer lag; do not surface as scary error.
           if ((vr as any)?.pending) {
-            // keep waiting
+            setVerifyStatusMessage((vr as any)?.error || 'Waiting for Kaspa indexer…');
           } else {
-            // Non-pending failures should stop.
             throw new Error((vr as any)?.error || 'On-chain verification failed');
           }
         } catch (e) {
-          // apiClient throws for non-2xx; Worker uses 202 for "pending".
           if (e instanceof ApiClientError && e.status === 202) {
-            // pending: keep polling
+            setVerifyStatusMessage('Waiting for Kaspa indexer…');
+          } else if (e instanceof ApiClientError && e.status === 401) {
+            setVerifyStatusMessage('Session expired. Refreshing wallet binding…');
+            activeEnrollmentToken = await refreshEnrollmentToken();
           } else {
-          const msg = e instanceof Error ? e.message : 'Verification failed';
-          // apiClient throws on non-2xx; treat "not found yet" as retryable.
-          if (/not found yet/i.test(msg) || /transaction not found/i.test(msg) || /HTTP 404/i.test(msg)) {
-            // keep waiting
-          } else {
-            throw e;
-          }
+            const msg = e instanceof Error ? e.message : 'Verification failed';
+            if (/not found yet/i.test(msg) || /transaction not found/i.test(msg) || /HTTP 404/i.test(msg)) {
+              setVerifyStatusMessage('Waiting for Kaspa indexer…');
+            } else {
+              throw e;
+            }
           }
         }
         await wait(sleepMs);
-        // gentle backoff to reduce pressure on public API
         sleepMs = Math.min(12_000, Math.floor(sleepMs * 1.25));
       }
       throw new Error(
-        'Your transaction is broadcast, but it is still not visible to the indexer. It will verify automatically as soon as it appears; you can close this modal and come back later - it will not send another payment.'
+        'Your transaction is broadcast, but Kaspa REST is still slow. Close this modal and click Verify tx again in a minute. It will not send another payment.'
       );
 
     } catch (e) {
@@ -629,8 +661,11 @@ export function KrexNodeEnrollmentModal(props: {
                   <span className="font-mono text-xs text-zinc-900 dark:text-zinc-100">{verifyPayload || ' - '}</span>
                 </div>
                 {verifyPending ? (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
-                    Checking confirmation… attempt {Math.max(1, verifyAttempts)}
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1 space-y-1">
+                    <div>
+                      Checking confirmation… attempt {Math.max(1, verifyAttempts)}
+                    </div>
+                    {verifyStatusMessage ? <div>{verifyStatusMessage}</div> : null}
                   </div>
                 ) : null}
                 {!verifyPending ? (

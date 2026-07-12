@@ -1,5 +1,6 @@
 import type { Env } from '../index';
 import { getCorsHeaders } from '../middleware';
+import { fetchKaspaRestTransaction, type KaspaRestTransaction, type KaspaRestTxInput, type KaspaRestTxOutput } from './kaspa-rest';
 import { verifyJwtHs256 } from './node-crypto';
 
 function enrollmentSecret(env: Env): string | null {
@@ -26,32 +27,6 @@ function requiredToAddress(env: Env): string | null {
   if (!a) return null;
   return a.toLowerCase().startsWith('kaspa:') ? a.toLowerCase() : `kaspa:${a.toLowerCase()}`;
 }
-
-type KaspaRestTxOutput = {
-  amount?: number | string;
-  script_public_key_address?: string;
-  scriptPublicKeyAddress?: string;
-  address?: string;
-  script_public_key?: { address?: string };
-  scriptPublicKey?: { address?: string };
-};
-
-type KaspaRestTxInput = {
-  previous_outpoint_address?: string | null;
-  previousOutpointAddress?: string | null;
-  verboseData?: { address?: string } | null;
-  verbose_data?: { address?: string } | null;
-};
-
-type KaspaRestTransaction = {
-  transaction_id?: string;
-  transactionId?: string;
-  payload?: string | null;
-  verboseData?: { payload?: string } | null;
-  verbose_data?: { payload?: string } | null;
-  outputs?: KaspaRestTxOutput[];
-  inputs?: KaspaRestTxInput[];
-};
 
 function outputAddress(o: KaspaRestTxOutput): string | undefined {
   const any = o as Record<string, unknown>;
@@ -122,39 +97,6 @@ function tryDecodeHexPayloadToText(raw: string): string | null {
   } catch {
     return null;
   }
-}
-
-/**
- * Fetch transaction from public Kaspa REST.
- *
- * IMPORTANT: This must return quickly. The UI does its own polling to handle indexer lag.
- */
-async function getRestTransactionById(txId: string, maxAttempts = 2): Promise<KaspaRestTransaction | null> {
-  const hash = normalizeKaspaTxid(txId);
-  if (!/^[0-9a-f]{64}$/.test(hash)) return null;
-  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=light';
-  const urls = [
-    `https://api.kaspa.org/transactions/${hash}?${query}`,
-    `https://api.kaspa.org/v1/transactions/${hash}?${query}`,
-  ];
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    for (const url of urls) {
-      try {
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) continue;
-        const data = (await res.json()) as unknown;
-        if (data && typeof data === 'object') return data as KaspaRestTransaction;
-      } catch {
-        // ignore
-      }
-    }
-    // backoff (only if we will retry)
-    if (attempt < maxAttempts - 1) {
-      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
-    }
-  }
-  return null;
 }
 
 type VerifyOnchainBody = {
@@ -232,13 +174,12 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       );
     }
 
-    // Keep the endpoint fast; UI polls until the indexer sees it.
-    const tx = await getRestTransactionById(txHash, 2);
+    const tx = await fetchKaspaRestTransaction(env, txHash);
     if (!tx) {
       const body: PendingResponse = {
         ok: false,
         pending: true,
-        error: 'Transaction not indexed yet. Please wait and retry.',
+        error: 'Transaction not indexed yet. Kaspa REST may be slow; retry in a few seconds.',
       };
       // 202 indicates "accepted, still processing" (indexer lag).
       return new Response(JSON.stringify(body), {

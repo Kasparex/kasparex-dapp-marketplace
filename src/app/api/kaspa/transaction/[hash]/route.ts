@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getTransactionByHash } from '@/lib/kaspa/api';
+import { getRestTransactionById } from '@/lib/kaspa/api';
 
 export async function GET(
   _request: NextRequest,
@@ -12,13 +12,14 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const { hash } = await params;
-    if (!hash || !/^[0-9a-fA-F]{64}$/.test(hash.replace(/^0x/, ''))) {
+    const normalized = hash?.replace(/^0x/i, '').trim().toLowerCase();
+    if (!normalized || !/^[0-9a-f]{64}$/.test(normalized)) {
       return NextResponse.json(
         { success: false, error: 'Invalid transaction hash' },
         { status: 400 }
       );
     }
-    const tx = await getTransactionByHash(hash);
+    const tx = await getRestTransactionById(normalized, { maxAttempts: 8, delayMs: 1200 });
     if (!tx) {
       return NextResponse.json(
         { success: false, error: 'Transaction not found or not yet confirmed' },

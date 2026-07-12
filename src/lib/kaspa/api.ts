@@ -337,8 +337,8 @@ export async function getRestTransactionById(
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
   const query = 'inputs=true&outputs=true&resolve_previous_outpoints=full';
   const urls = [
-    `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
     `${KASPA_REST_BASE}/v1/transactions/${hash}?${query}`,
+    `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
   ];
   const maxAttempts = Math.max(1, options?.maxAttempts ?? 5);
   const delayMs = options?.delayMs ?? 1200;
