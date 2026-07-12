@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKrc721IndexerBases } from '@/lib/nft/indexer-urls';
+import { corsProxyHeaders } from '@/lib/api/proxyCacheHeaders';
 
 /**
  * Proxy route for KRC721 Stream API to bypass CORS.
- * Tries each configured indexer base until one responds successfully.
+ * Prefer NEXT_PUBLIC_KASPAREX_API_URL /kasparex/proxy/krc721 in the browser when set.
  *
  * Usage:
  * - GET /api/krc721-stream?endpoint=/api/v1/krc721/mainnet/address/kaspa:...
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
           Accept: 'application/json',
           'User-Agent': 'Kasparex-NFT-Tools/1.0',
         },
-        cache: 'no-store',
+        next: { revalidate: 120 },
         signal: AbortSignal.timeout(20000),
       });
 
@@ -42,13 +43,7 @@ export async function GET(request: NextRequest) {
 
       const data = text ? JSON.parse(text) : null;
       return NextResponse.json(data, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Cache-Control': 'no-store',
-          'X-KRC721-Indexer': base,
-        },
+        headers: corsProxyHeaders('nftStream', { 'X-KRC721-Indexer': base }),
       });
     } catch (error) {
       lastError = error instanceof Error ? error.message : 'Unknown indexer error';
@@ -69,10 +64,6 @@ export async function GET(request: NextRequest) {
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: corsProxyHeaders('nftStream'),
   });
 }

@@ -11,6 +11,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
+import { corsProxyHeaders } from '@/lib/api/proxyCacheHeaders';
+
+function balanceResponse(body: object, status = 200) {
+  return NextResponse.json(body, { status, headers: corsProxyHeaders('balance') });
+}
 
 // Note: This route is skipped during static export (CF_PAGES mode)
 // Remove dynamic/runtime exports to allow static export to proceed
@@ -69,7 +74,8 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           addresses: [addressWithoutPrefix], // API expects address without kaspa: prefix
         }),
-        cache: 'no-store',
+        cache: 'default',
+        next: { revalidate: 30 },
         signal: AbortSignal.timeout(10000),
       });
 
@@ -91,7 +97,7 @@ export async function GET(request: NextRequest) {
           }
 
           if (totalBalance >= 0) {
-            return NextResponse.json({
+            return balanceResponse({
               success: true,
               balance: totalBalance.toString(),
               source: 'api.kaspa.org (UTXOs)',
@@ -110,7 +116,7 @@ export async function GET(request: NextRequest) {
           }
 
           if (totalBalance >= 0) {
-            return NextResponse.json({
+            return balanceResponse({
               success: true,
               balance: totalBalance.toString(),
               source: 'api.kaspa.org (UTXOs)',
@@ -138,7 +144,8 @@ export async function GET(request: NextRequest) {
           headers: {
             'Accept': 'application/json',
           },
-          cache: 'no-store',
+          cache: 'default',
+        next: { revalidate: 30 },
           signal: AbortSignal.timeout(10000),
         });
 
@@ -173,7 +180,7 @@ export async function GET(request: NextRequest) {
           if (balance !== null) {
             const balanceNum = typeof balance === 'string' ? parseFloat(balance) : balance;
             if (!isNaN(balanceNum) && balanceNum >= 0) {
-              return NextResponse.json({
+              return balanceResponse({
                 success: true,
                 balance: balanceNum.toString(),
                 source: 'api.kaspa.org',
@@ -202,7 +209,8 @@ export async function GET(request: NextRequest) {
           headers: {
             'Accept': 'application/json',
           },
-          cache: 'no-store',
+          cache: 'default',
+        next: { revalidate: 30 },
           signal: AbortSignal.timeout(10000),
         });
 
@@ -212,7 +220,7 @@ export async function GET(request: NextRequest) {
           if (data.balance !== undefined) {
             const balanceNum = typeof data.balance === 'string' ? parseFloat(data.balance) : data.balance;
             if (!isNaN(balanceNum) && balanceNum >= 0) {
-              return NextResponse.json({
+              return balanceResponse({
                 success: true,
                 balance: balanceNum.toString(),
                 source: new URL(endpoint).hostname,

@@ -18,8 +18,8 @@ interface PageProps {
   }>;
 }
 
-// Force dynamic rendering to support useSearchParams in child components
-export const dynamic = 'force-dynamic';
+// ISR: public dApp shell; wallet-specific UI loads client-side.
+export const revalidate = 3600;
 
 // Generate static params for all dApp slugs
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {

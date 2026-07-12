@@ -7,8 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-
-const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
+import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
 
 /**
  * Normalize Kaspa address (remove kaspa: prefix if present)
@@ -23,9 +22,9 @@ function normalizeKaspaAddress(address: string): string {
  */
 function getApiUrl(endpoint: string): string {
   if (typeof window !== 'undefined') {
-    return `/api/kasplex-indexer?endpoint=${encodeURIComponent(endpoint)}`;
+    return kasplexProxyUrl(endpoint);
   }
-  return `${KASPLEX_INDEXER_API_BASE}${endpoint}`;
+  return `https://api.kasplex.org${endpoint}`;
 }
 
 export interface UseKaspaTokenBalanceResult {

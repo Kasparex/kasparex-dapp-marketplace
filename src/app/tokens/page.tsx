@@ -8,7 +8,7 @@ import { TokensPageContent } from './TokensPageContent';
 import { getAllTokens } from '@/lib/tokens/registry';
 import { loadTokenWithMetadata } from '@/lib/tokens/metadata';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function TokensPage() {
   const tokens = getAllTokens();

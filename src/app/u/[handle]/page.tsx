@@ -4,7 +4,7 @@ import { isValidKaspaAddress, normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { isAddress } from 'viem';
 import { ProfileHubContent } from './profile-hub-content';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 1800;
 
 interface PageProps {
   params: Promise<{

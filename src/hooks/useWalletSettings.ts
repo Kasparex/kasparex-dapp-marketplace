@@ -1,6 +1,9 @@
+'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { nodeFirstGet } from '@/lib/nodes/node-first';
+import { useDocumentVisible, visibilityGatedInterval } from '@/hooks/useDocumentVisible';
 
 export type WalletSettings = {
   ok: boolean;
@@ -12,6 +15,7 @@ export type WalletSettings = {
 export function useWalletSettings() {
   const { state } = useKaspaWallet();
   const address = state.address;
+  const visible = useDocumentVisible();
 
   return useQuery({
     queryKey: ['wallet-settings', address ?? 'disconnected'],
@@ -24,8 +28,8 @@ export function useWalletSettings() {
       });
       return r.data;
     },
-    staleTime: 10_000,
-    refetchInterval: 20_000,
+    staleTime: 30_000,
+    refetchInterval: visibilityGatedInterval(60_000, visible),
   });
 }
 

@@ -1,7 +1,7 @@
 /**
- * KRC-20 token lookup via Kasplex indexer (proxied through /api/kasplex-indexer).
+ * KRC-20 token lookup via Kasplex indexer (Worker or /api/kasplex-indexer proxy).
  */
-
+import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
 import type { TokenOnChainSnapshot } from './listingRecord';
 
 export type Krc20TokenInfo = TokenOnChainSnapshot & {
@@ -33,7 +33,7 @@ export async function fetchKrc20TokenInfo(tick: string): Promise<Krc20TokenInfo 
   if (!normalized || normalized.length < 4) return null;
 
   const endpoint = `/v1/krc20/token/${encodeURIComponent(normalized)}`;
-  const res = await fetch(`/api/kasplex-indexer?endpoint=${encodeURIComponent(endpoint)}`);
+  const res = await fetch(kasplexProxyUrl(endpoint));
   if (!res.ok) return null;
 
   const json = (await res.json()) as KasplexTokenResponse;

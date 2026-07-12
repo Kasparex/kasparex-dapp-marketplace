@@ -8,6 +8,7 @@ const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
 const KREX_TICKER = 'KREX';
 
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
+import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
 
 /**
  * Normalize Kaspa address (remove kaspa: or kaspatest: prefix if present)
@@ -21,11 +22,9 @@ function normalizeKaspaAddress(address: string): string {
  * Get API URL - use proxy in browser, direct API on server
  */
 function getApiUrl(endpoint: string): string {
-  // In browser, use Next.js API proxy to avoid CORS
   if (typeof window !== 'undefined') {
-    return `/api/kasplex-indexer?endpoint=${encodeURIComponent(endpoint)}`;
+    return kasplexProxyUrl(endpoint);
   }
-  // Server-side, use direct API
   return `${KASPLEX_INDEXER_API_BASE}${endpoint}`;
 }
 

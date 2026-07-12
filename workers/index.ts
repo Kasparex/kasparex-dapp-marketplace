@@ -20,6 +20,7 @@ import { handleUsageRequest } from './kasparex-api/usage';
 import { processNodeRewardSettlement } from './kasparex-api/node-rewards-settle';
 import { handlePtsRequest } from './kasparex-api/pts-handler';
 import { runPtsMaintenance } from './kasparex-api/pts-maintenance';
+import { handleProxyRequest } from './kasparex-api/proxy';
 
 export interface Env {
   // KV Namespace for caching
@@ -111,6 +112,11 @@ export default {
       const middlewareResponse = await applyMiddleware(request, env);
       if (middlewareResponse) {
         return middlewareResponse;
+      }
+
+      // Read-only upstream proxies (KV-cached; offloads Vercel /api traffic)
+      if (pathname.startsWith('/kasparex/proxy/')) {
+        return handleProxyRequest(request, env);
       }
 
       // Route Kasparex API endpoints

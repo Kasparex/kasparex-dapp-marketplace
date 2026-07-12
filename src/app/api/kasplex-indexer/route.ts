@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { corsProxyHeaders, kasplexCacheProfile } from '@/lib/api/proxyCacheHeaders';
 
 const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
 
 /**
- * Proxy route for Kasplex Indexer API to bypass CORS
+ * Proxy route for Kasplex Indexer API to bypass CORS.
+ * Prefer NEXT_PUBLIC_KASPAREX_API_URL /kasparex/proxy/kasplex in the browser when set.
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -16,18 +18,18 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const profile = kasplexCacheProfile(endpoint);
+
   try {
-    // Build the URL
     const url = `${KASPLEX_INDEXER_API_BASE}${endpoint}`;
 
-    // Make the request to Kasplex Indexer API
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Kasparex-KREX-Balance/1.0',
       },
-      cache: 'default',
+      next: { revalidate: profile === 'indexerBalance' ? 60 : 300 },
     });
 
     if (!response.ok) {
@@ -36,7 +38,7 @@ export async function GET(request: NextRequest) {
         url,
         status: response.status,
         statusText: response.statusText,
-        errorText: errorText.substring(0, 500), // Limit log size
+        errorText: errorText.substring(0, 500),
       });
       return NextResponse.json(
         { error: `Kasplex Indexer API error: ${response.status} ${response.statusText}`, details: errorText },
@@ -46,14 +48,8 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // Return with CORS headers
     return NextResponse.json(data, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-      },
+      headers: corsProxyHeaders(profile),
     });
   } catch (error) {
     console.error('Kasplex Indexer API proxy error:', error);
@@ -64,16 +60,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * Handle OPTIONS for CORS preflight
- */
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: corsProxyHeaders('indexerBalance'),
   });
 }

@@ -1,5 +1,8 @@
+'use client';
+
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { nodeFirstGet } from '@/lib/nodes/node-first';
+import { useDocumentVisible, visibilityGatedInterval } from '@/hooks/useDocumentVisible';
 
 export type WalletHistoryItem = {
   id: string;
@@ -23,6 +26,7 @@ export type WalletHistoryPage = {
 
 export function useWalletHistory(address: string | null, options?: { limit?: number }) {
   const limit = Math.max(5, Math.min(50, options?.limit ?? 20));
+  const visible = useDocumentVisible();
 
   return useInfiniteQuery({
     queryKey: ['wallet-history', address ?? 'none', limit],
@@ -40,8 +44,8 @@ export function useWalletHistory(address: string | null, options?: { limit?: num
       return r.data;
     },
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
-    staleTime: 10_000,
-    refetchInterval: 20_000,
+    staleTime: 30_000,
+    refetchInterval: visibilityGatedInterval(60_000, visible),
     initialPageParam: '',
   });
 }
