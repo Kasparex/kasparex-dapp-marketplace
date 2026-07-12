@@ -10,6 +10,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { DonationCampaignV2ListItem, DonationMethodV2 } from '@/hooks/useDonationCampaignsV2';
+import { filterTombstonedV2Campaigns } from '@/lib/donations/tombstoneCampaigns';
 
 type CampaignV2Tuple = readonly [
   bigint,
@@ -152,14 +153,17 @@ export function useMyDonationCampaignsV2(creatorAddress: Address | undefined): {
 
   const campaigns: DonationCampaignV2ListItem[] = useMemo(() => {
     if (baseCampaigns.length === 0) return [];
+    let rows: DonationCampaignV2ListItem[];
     if (!l1Results || l1Results.length !== baseCampaigns.length * 2) {
-      return baseCampaigns.map((c) => ({ ...c, l1RecordedTotalWei: 0n, l1RecordedDonationCount: 0n }));
+      rows = baseCampaigns.map((c) => ({ ...c, l1RecordedTotalWei: 0n, l1RecordedDonationCount: 0n }));
+    } else {
+      rows = baseCampaigns.map((c, i) => ({
+        ...c,
+        l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
+        l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
+      }));
     }
-    return baseCampaigns.map((c, i) => ({
-      ...c,
-      l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
-      l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
-    }));
+    return filterTombstonedV2Campaigns(rows);
   }, [baseCampaigns, l1Results]);
 
   const refetch = () => {

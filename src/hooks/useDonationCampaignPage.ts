@@ -11,6 +11,7 @@ import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import type { DonationCampaign } from '@/lib/donations/types';
 import { useDonationCampaign } from '@/hooks/useDonationCampaign';
 import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
+import { isV2CampaignTombstoned } from '@/lib/donations/tombstoneCampaigns';
 
 const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -131,6 +132,9 @@ export function useDonationCampaignPage(creatorAddress: string | null, campaignI
   });
 
   const campaign = useMemo((): DonationCampaign | null => {
+    if (useV2Path && idBig != null && creatorAddress && isV2CampaignTombstoned(creatorAddress, idBig)) {
+      return null;
+    }
     if (useV2Path && idBig != null && v2Parsed) {
       if (!v2Match || !creatorAddress || !v2Parsed.active) return null;
       const isVerified = extras?.[0]?.status === 'success' ? Boolean(extras[0].result) : false;

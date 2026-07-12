@@ -10,6 +10,7 @@ import { getContractAddress } from '@/lib/contracts/addresses';
 import { DONATION_ESCROW_V2_ABI } from '@/lib/contracts/abis';
 import { CROWDKAS_CHAIN_ID } from '@/lib/donations/chain';
 import { DONATION_MODULE_IDS } from '@/lib/donations/modules';
+import { filterTombstonedV2Campaigns } from '@/lib/donations/tombstoneCampaigns';
 
 const MAX_CAMPAIGNS_V2 = 200;
 
@@ -198,25 +199,28 @@ export function useDonationCampaignsV2(): {
 
   const campaigns: DonationCampaignV2ListItem[] = useMemo(() => {
     if (baseCampaigns.length === 0) return [];
+    let rows: DonationCampaignV2ListItem[];
     if (!l1Results || l1Results.length !== baseCampaigns.length * 2) {
-      return baseCampaigns.map((c, i) => {
+      rows = baseCampaigns.map((c, i) => {
         const modR = moduleFeaturedResults?.[i];
         const featuredOn =
           modR?.status === 'success' && modR.result != null ? Boolean(modR.result) : false;
         return { ...c, l1RecordedTotalWei: 0n, l1RecordedDonationCount: 0n, featuredModuleUnlocked: featuredOn };
       });
+    } else {
+      rows = baseCampaigns.map((c, i) => {
+        const modR = moduleFeaturedResults?.[i];
+        const featuredOn =
+          modR?.status === 'success' && modR.result != null ? Boolean(modR.result) : false;
+        return {
+          ...c,
+          l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
+          l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
+          featuredModuleUnlocked: featuredOn,
+        };
+      });
     }
-    return baseCampaigns.map((c, i) => {
-      const modR = moduleFeaturedResults?.[i];
-      const featuredOn =
-        modR?.status === 'success' && modR.result != null ? Boolean(modR.result) : false;
-      return {
-        ...c,
-        l1RecordedTotalWei: parseBigintResult(l1Results[i * 2]),
-        l1RecordedDonationCount: parseBigintResult(l1Results[i * 2 + 1]),
-        featuredModuleUnlocked: featuredOn,
-      };
-    });
+    return filterTombstonedV2Campaigns(rows);
   }, [baseCampaigns, l1Results, moduleFeaturedResults]);
 
   const refetch = () => {
