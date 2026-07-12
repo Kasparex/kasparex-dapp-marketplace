@@ -2,11 +2,12 @@
 
 import type { ReactNode } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
-import type { KREXTier } from '@/lib/rewards/types';
+import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 
 export function HubPaymentPanel({
   title = 'Calculation breakdown',
@@ -27,6 +28,10 @@ export function HubPaymentPanel({
   currencyAccent = 'default',
   infoAccent = 'default',
   requirementsNote,
+  hubPoints,
+  hubPointsDetail,
+  hubPointsBaseSpendKas,
+  showCurrentTierFootnote = false,
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -46,6 +51,10 @@ export function HubPaymentPanel({
   currencyAccent?: 'default' | 'store';
   infoAccent?: 'default' | 'emerald';
   requirementsNote?: string[];
+  hubPoints?: number;
+  hubPointsDetail?: string;
+  hubPointsBaseSpendKas?: number;
+  showCurrentTierFootnote?: boolean;
 }) {
   const showCurrency =
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
@@ -119,6 +128,26 @@ export function HubPaymentPanel({
             ))}
           </ul>
         </div>
+      ) : null}
+
+      {hubPoints != null && hubPoints > 0 ? (
+        <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <span>Hub points on action</span>
+          <span className="inline-flex items-center gap-1.5">
+            <HubPointsEarnBadge points={hubPoints} baseSpendKas={hubPointsBaseSpendKas} />
+            {hubPointsDetail ? (
+              <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                ({hubPointsDetail})
+              </span>
+            ) : null}
+          </span>
+        </div>
+      ) : null}
+
+      {showCurrentTierFootnote && tier != null ? (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          Current tier: {KREX_TIERS[tier].label} ({KREX_TIERS[tier].description})
+        </p>
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}

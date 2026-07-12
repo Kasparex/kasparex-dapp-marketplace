@@ -8,6 +8,8 @@ import { Alert } from '@/components/Alert';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations/pricing';
 import { CROWDKAS_CALCULATION_ASIDE } from '@/components/donations/crowdkasFormTheme';
@@ -110,6 +112,9 @@ export function CrowdKasL1CalculationPanel({
 
   const totalDisplay = formatHubPaymentAmount(selectedCurrency, quote.totalKas, { snapshot: pricingSnapshot });
   const totalSubtitle = '+ network gas on Kaspa L1';
+  const hubPoints =
+    quote.action === 'create' ? computeEarnedHubPoints(HUB_EARN_POINTS.crowdkasCampaignCreate, tier) : 0;
+  const hubPointsDetail = quote.action === 'create' ? formatHubPointsTierLabel(tier) : undefined;
 
   return (
     <>
@@ -135,6 +140,10 @@ export function CrowdKasL1CalculationPanel({
         infoText={infoText}
         infoAccent="emerald"
         requirementsNote={requirementsNote}
+        hubPoints={hubPoints}
+        hubPointsDetail={hubPointsDetail}
+        hubPointsBaseSpendKas={quote.subtotalKas}
+        showCurrentTierFootnote
         footer={
           <>
             {!hasKrexDiscount ? (
@@ -218,6 +227,8 @@ function buildL2BreakdownLines(quote: CrowdKasL2PriceQuote) {
 
 export function CrowdKasL2CalculationPanel({
   quote,
+  tier,
+  krexBalance = 0,
   infoText,
   isSubmitting = false,
   onSubmit,
@@ -232,6 +243,8 @@ export function CrowdKasL2CalculationPanel({
   requirementsNote,
 }: {
   quote: CrowdKasL2PriceQuote;
+  tier: KREXTier;
+  krexBalance?: number;
   infoText: string;
   isSubmitting?: boolean;
   onSubmit?: () => void;
@@ -250,6 +263,9 @@ export function CrowdKasL2CalculationPanel({
 
   const totalDisplay = formatIkasAmount(quote.totalIkas);
   const totalSubtitle = '+ network gas in iKAS';
+  const hubPoints =
+    quote.action === 'create' ? computeEarnedHubPoints(HUB_EARN_POINTS.crowdkasCampaignCreate, tier) : 0;
+  const hubPointsDetail = quote.action === 'create' ? formatHubPointsTierLabel(tier) : undefined;
 
   return (
     <HubPaymentPanel
@@ -259,6 +275,8 @@ export function CrowdKasL2CalculationPanel({
       totalLabel="Total to pay"
       totalDisplay={totalDisplay}
       totalSubtitle={totalSubtitle}
+      tier={tier}
+      krexBalance={krexBalance}
       discountNote={
         quote.discountIkas > 0
           ? `KREX discount: -${quote.discountIkas.toFixed(2)} iKAS (${quote.krexDiscountPercent}% off total).`
@@ -267,6 +285,10 @@ export function CrowdKasL2CalculationPanel({
       infoText={infoText}
       infoAccent="emerald"
       requirementsNote={requirementsNote}
+      hubPoints={hubPoints}
+      hubPointsDetail={hubPointsDetail}
+      hubPointsBaseSpendKas={quote.subtotalIkas}
+      showCurrentTierFootnote
       footer={
         <>
           {onSubmit ? (

@@ -1910,6 +1910,8 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2EditQuote}
+                          tier={pricing.tier}
+                          krexBalance={krexBalance}
                           infoText="Update L2 campaign metadata on Igra. New paid modules selected here are billed in iKAS on L2."
                           onSubmit={editingV2CampaignId != null ? handleUpdateCampaignV2 : handleUpdateCampaign}
                           submitLabel="Save changes"
@@ -1937,6 +1939,8 @@ function DonationsStudioPageContent() {
                         <CrowdKasStudioRightPanel
                           network="l2"
                           quote={l2CreateQuote}
+                          tier={pricing.tier}
+                          krexBalance={krexBalance}
                           infoText="Create your L2 escrow campaign on Igra. One iKAS payment covers platform fees and any enabled modules."
                           onSubmit={handleCreateCampaignV2}
                           submitLabel="Create L2 campaign"

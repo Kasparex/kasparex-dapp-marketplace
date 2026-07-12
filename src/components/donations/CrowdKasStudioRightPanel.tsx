@@ -1,5 +1,6 @@
 'use client';
 
+import { AdSlider } from '@/components/ads/AdSlider';
 import { CrowdKasDashboardBenefitsPanel } from '@/components/donations/CrowdKasDashboardBenefitsPanel';
 import { CrowdKasL1CalculationPanel, CrowdKasL2CalculationPanel } from '@/components/donations/CrowdKasCalculationPanel';
 import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations/pricing';
@@ -24,6 +25,8 @@ type L1PanelProps = {
 type L2PanelProps = {
   network: 'l2';
   quote: CrowdKasL2PriceQuote;
+  tier: KREXTier;
+  krexBalance?: number;
   infoText: string;
   submitLabel: string;
   submittingLabel?: string;
@@ -71,6 +74,8 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
       ) : (
         <CrowdKasL2CalculationPanel
           quote={props.quote}
+          tier={props.tier}
+          krexBalance={props.krexBalance}
           infoText={infoText}
           submitLabel={submitLabel}
           submittingLabel={submittingLabel}
@@ -83,6 +88,9 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           requirementsNote={requirementsNote}
         />
       )}
+      <div id="ad-slot-crowdkas-studio-rail" className="scroll-mt-24 w-full min-w-0">
+        <AdSlider slotId="HALO_DONATIONS_RIGHT" />
+      </div>
     </div>
   );
 }
