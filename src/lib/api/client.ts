@@ -1,10 +1,11 @@
 /**
  * Cloudflare Workers API Client
- * 
- * Centralized client for making requests to Cloudflare Workers API
+ *
+ * Browser calls same-origin /api/kasparex-worker (see workerBaseUrl.ts).
+ * Server components call the Worker directly.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_KASPAREX_API_URL || 'https://api.kasparex.com';
+import { kasparexApiBaseUrl } from './workerBaseUrl';
 
 export interface ApiError {
   error: string;
@@ -28,7 +29,7 @@ export class ApiClientError extends Error {
 class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl: string = kasparexApiBaseUrl()) {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
   }
 
@@ -78,7 +79,11 @@ class ApiClient {
       
       // Network or other errors
       throw new ApiClientError(
-        error instanceof Error ? error.message : 'Network error',
+        error instanceof Error
+          ? error.message === 'Failed to fetch'
+            ? 'Could not reach Kasparex API. Check your connection or try again.'
+            : error.message
+          : 'Network error',
         0
       );
     }
