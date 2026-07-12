@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRestTransactionById } from '@/lib/kaspa/api';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ hash: string }> }
 ): Promise<NextResponse> {
   try {
@@ -19,7 +19,11 @@ export async function GET(
         { status: 400 }
       );
     }
-    const tx = await getRestTransactionById(normalized, { maxAttempts: 8, delayMs: 1200 });
+    const tx = await getRestTransactionById(normalized, {
+      maxAttempts: 6,
+      delayMs: 900,
+      recipientAddress: request.nextUrl.searchParams.get('recipient'),
+    });
     if (!tx) {
       return NextResponse.json(
         { success: false, error: 'Transaction not found or not yet confirmed' },

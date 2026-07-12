@@ -174,7 +174,7 @@ export async function handleNodeVerifyOnchain(request: Request, env: Env): Promi
       );
     }
 
-    const tx = await fetchKaspaRestTransaction(env, txHash);
+    const tx = await fetchKaspaRestTransaction(env, txHash, { recipientAddress: toAddr });
     if (!tx) {
       const body: PendingResponse = {
         ok: false,

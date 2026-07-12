@@ -331,14 +331,16 @@ export async function getFullTransactionsForAddress(
  */
 export async function getRestTransactionById(
   txId: string,
-  options?: { maxAttempts?: number; delayMs?: number }
+  options?: { maxAttempts?: number; delayMs?: number; recipientAddress?: string | null }
 ): Promise<KaspaRestTransaction | null> {
   const hash = txId.replace(/^0x/, '').toLowerCase();
   if (!/^[0-9a-f]{64}$/.test(hash)) return null;
-  const query = 'inputs=true&outputs=true&resolve_previous_outpoints=full';
+
   const urls = [
-    `${KASPA_REST_BASE}/v1/transactions/${hash}?${query}`,
-    `${KASPA_REST_BASE}/transactions/${hash}?${query}`,
+    `${KASPA_REST_BASE}/transactions/${hash}`,
+    `${KASPA_REST_BASE}/transactions/${hash}?inputs=true&outputs=true`,
+    `${KASPA_REST_BASE}/transactions/${hash}?inputs=true&outputs=true&resolve_previous_outpoints=light`,
+    `${KASPA_REST_BASE}/v1/transactions/${hash}?inputs=true&outputs=true&resolve_previous_outpoints=light`,
   ];
   const maxAttempts = Math.max(1, options?.maxAttempts ?? 5);
   const delayMs = options?.delayMs ?? 1200;
@@ -361,6 +363,34 @@ export async function getRestTransactionById(
       await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
     }
   }
+
+  const recipient = options?.recipientAddress?.trim();
+  if (recipient) {
+    const withPrefix = recipient.toLowerCase().startsWith('kaspa:') ? recipient : `kaspa:${recipient}`;
+    try {
+      const res = await fetch(
+        `${KASPA_REST_BASE}/addresses/${encodeURIComponent(withPrefix)}/full-transactions?limit=40`,
+        { cache: 'no-store', signal: AbortSignal.timeout(18000) }
+      );
+      if (res.ok) {
+        const data = (await res.json()) as unknown;
+        const list = Array.isArray(data) ? data : (data as { value?: unknown[] } | null)?.value;
+        if (Array.isArray(list)) {
+          for (const item of list) {
+            if (!item || typeof item !== 'object') continue;
+            const row = item as KaspaRestTransaction;
+            const id = String(row.transaction_id ?? row.transactionId ?? '')
+              .replace(/^0x/, '')
+              .toLowerCase();
+            if (id === hash) return row;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return null;
 }
 

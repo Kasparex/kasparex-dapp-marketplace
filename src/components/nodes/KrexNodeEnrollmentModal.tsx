@@ -10,6 +10,7 @@ import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { NODES_DASH_CARD } from './nodesTabLayout';
 
 type ChallengeResponse = { message: string; challengeToken: string; error?: string };
 type VerifyResponse = { ok: boolean; enrollmentToken?: string; wallet?: string; verifyPayload?: string; error?: string };
@@ -39,8 +40,19 @@ const MODAL_CLASS =
   'relative bg-white dark:bg-zinc-900 rounded-xl shadow-xl max-w-2xl w-full border border-zinc-200 dark:border-zinc-800 overflow-hidden max-h-[90vh] flex flex-col';
 
 /** Inline panel on `/nodes?tab=enroll` (no portal / dimmer). */
-const EMBEDDED_MODAL_CLASS =
-  'relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden w-full min-w-0 max-h-[78vh] flex flex-col shadow-sm';
+const EMBEDDED_PANEL_CLASS = `${NODES_DASH_CARD} space-y-4 w-full min-w-0`;
+
+function sanitizeKaspaTxId(raw: unknown): string {
+  const base = normalizeTxId(raw);
+  const hex = base.replace(/^0x/i, '').trim().toLowerCase();
+  const match = hex.match(/[0-9a-f]{64}/);
+  return match ? match[0] : hex;
+}
+
+function explorerTxUrl(txid: string): string {
+  const id = sanitizeKaspaTxId(txid);
+  return id ? `https://explorer.kaspa.org/transactions/${id}` : 'https://explorer.kaspa.org';
+}
 
 function normalizeTxId(raw: unknown): string {
   if (!raw) return '';
@@ -147,7 +159,11 @@ export function KrexNodeEnrollmentModal(props: {
     if (!verifyTxStorageKey) return;
     try {
       const raw = window.localStorage.getItem(verifyTxStorageKey);
-      if (raw && !verifyTxid) setVerifyTxid(raw);
+      if (raw && !verifyTxid) {
+        const saved = sanitizeKaspaTxId(raw);
+        setVerifyTxid(saved);
+        setVerifyTxidDraft(saved);
+      }
     } catch {
       // ignore
     }
@@ -162,6 +178,7 @@ export function KrexNodeEnrollmentModal(props: {
   const [verifyAttempts, setVerifyAttempts] = useState(0);
   const [verifyLastCheckAt, setVerifyLastCheckAt] = useState<number | null>(null);
   const [verifyStatusMessage, setVerifyStatusMessage] = useState<string | null>(null);
+  const [verifyTxidDraft, setVerifyTxidDraft] = useState('');
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
   const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
@@ -287,16 +304,17 @@ export function KrexNodeEnrollmentModal(props: {
       const sompi = String(Math.floor(minKas * 100_000_000));
 
       // If we already have a txid, do NOT re-send funds. Just re-verify.
-      let txid = verifyTxid;
+      let txid = sanitizeKaspaTxId(verifyTxid || verifyTxidDraft);
       if (!txid) {
         const sent = await adapter.sendTransaction({
           to: toAddress,
           amount: sompi,
           payload,
         });
-        txid = normalizeTxId(sent);
-        if (!txid) throw new Error('No transaction id returned');
+        txid = sanitizeKaspaTxId(sent);
+        if (!txid || !/^[0-9a-f]{64}$/.test(txid)) throw new Error('No valid transaction id returned');
         setVerifyTxid(txid);
+        setVerifyTxidDraft(txid);
       }
 
       const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -315,19 +333,31 @@ export function KrexNodeEnrollmentModal(props: {
         }
       };
 
+      if (txid && !/^[0-9a-f]{64}$/.test(txid)) {
+        throw new Error('Saved transaction id is invalid. Paste the 64-character txid from Kaspa Explorer.');
+      }
+
+      const recipientQuery = toAddress ? `?recipient=${encodeURIComponent(toAddress)}` : '';
+
       const started = Date.now();
       const maxMs = 10 * 60_000;
       let sleepMs = 2500;
+      let attemptNo = 0;
       while (Date.now() - started < maxMs) {
-        setVerifyAttempts((x) => x + 1);
+        attemptNo += 1;
+        setVerifyAttempts(attemptNo);
         setVerifyLastCheckAt(Date.now());
 
         // Hub-side indexer check (same-origin) for clearer UX while Worker polls REST.
         if (txid) {
           try {
-            const hubRes = await fetch(`/api/kaspa/transaction/${txid.replace(/^0x/i, '')}`, { cache: 'no-store' });
+            const hubRes = await fetch(`/api/kaspa/transaction/${txid}${recipientQuery}`, { cache: 'no-store' });
             if (hubRes.ok) {
               setVerifyStatusMessage('Transaction visible to Hub. Confirming with Worker…');
+            } else if (hubRes.status === 404 && attemptNo >= 3) {
+              setVerifyStatusMessage(
+                'This txid is not visible to the indexer yet. Confirm it on Kaspa Explorer, or paste the correct txid below.'
+              );
             } else if (hubRes.status === 404) {
               setVerifyStatusMessage('Waiting for Kaspa indexer to see your transaction…');
             }
@@ -386,8 +416,14 @@ export function KrexNodeEnrollmentModal(props: {
   };
 
   const retryVerifyOnly = async () => {
-    // If txid exists, runOnchainVerification will only verify (no payment).
-    if (!verifyTxid) return;
+    const next = sanitizeKaspaTxId(verifyTxidDraft || verifyTxid);
+    if (!next) return;
+    if (!/^[0-9a-f]{64}$/.test(next)) {
+      setError('Enter a valid 64-character transaction id.');
+      return;
+    }
+    setVerifyTxid(next);
+    setVerifyTxidDraft(next);
     await runOnchainVerification();
   };
 
@@ -562,29 +598,45 @@ export function KrexNodeEnrollmentModal(props: {
 
   const enrollmentPanel = (
       <div
-        className={props.embedded ? EMBEDDED_MODAL_CLASS : MODAL_CLASS}
-        onClick={(e) => e.stopPropagation()}
+        className={props.embedded ? EMBEDDED_PANEL_CLASS : MODAL_CLASS}
+        onClick={props.embedded ? undefined : (e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+        <div
+          className={
+            props.embedded
+              ? 'space-y-1'
+              : 'px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between'
+          }
+        >
           <div>
-            <div className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</div>
+            <div
+              className={
+                props.embedded
+                  ? 'text-lg font-bold text-zinc-900 dark:text-zinc-100'
+                  : 'text-base font-semibold text-zinc-900 dark:text-zinc-100'
+              }
+            >
+              {title}
+            </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               This runs the Worker flow: challenge → wallet signature → verify → enroll (HMAC secret).
             </div>
           </div>
-          <button
-            type="button"
-            onClick={close}
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {!props.embedded ? (
+            <button
+              type="button"
+              onClick={close}
+              className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          ) : null}
         </div>
 
-        <div className="p-5 space-y-4 overflow-y-auto">
+        <div className={props.embedded ? 'space-y-4' : 'p-5 space-y-4 overflow-y-auto'}>
           {error && (
             <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-300">
               {error}
@@ -632,16 +684,74 @@ export function KrexNodeEnrollmentModal(props: {
               </div>
 
               {verifyTxid ? (
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-3 space-y-2">
                   <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                     verification_txid (broadcast)
                   </div>
                   <div className="mt-1 font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all">{verifyTxid}</div>
-                  <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  <a
+                    href={explorerTxUrl(verifyTxid)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-xs font-semibold text-cyan-700 dark:text-cyan-300 hover:underline"
+                  >
+                    View on Kaspa Explorer
+                  </a>
+                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
                     This txid is already created. Clicking verify will <span className="font-semibold">not</span> send another payment.
                   </div>
                 </div>
               ) : null}
+
+              <label className="block space-y-1">
+                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                  Transaction id (paste from explorer if needed)
+                </span>
+                <input
+                  type="text"
+                  value={verifyTxidDraft || verifyTxid || ''}
+                  onChange={(e) => setVerifyTxidDraft(e.target.value.trim())}
+                  placeholder="64-character txid"
+                  className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 font-mono text-xs"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    const next = sanitizeKaspaTxId(verifyTxidDraft || verifyTxid);
+                    if (!/^[0-9a-f]{64}$/.test(next)) {
+                      setError('Enter a valid 64-character transaction id.');
+                      return;
+                    }
+                    setError(null);
+                    setVerifyTxid(next);
+                    setVerifyTxidDraft(next);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
+                >
+                  Use this txid
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setVerifyTxid(null);
+                    setVerifyTxidDraft('');
+                    if (verifyTxStorageKey) {
+                      try {
+                        window.localStorage.removeItem(verifyTxStorageKey);
+                      } catch {
+                        // ignore
+                      }
+                    }
+                  }}
+                  className="px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-60"
+                >
+                  Clear saved txid
+                </button>
+              </div>
 
               <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1">
                 <div>
