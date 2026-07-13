@@ -18,7 +18,7 @@ export function nodeFirstReadsEnabled(): boolean {
 }
 
 /** Skip localhost mirror URLs when the Hub is not on the same machine. */
-function isNodeReachableFromBrowser(nodeUrl: string): boolean {
+export function isNodeReachableFromBrowser(nodeUrl: string): boolean {
   try {
     const u = new URL(nodeUrl);
     const local = u.hostname === 'localhost' || u.hostname === '127.0.0.1';

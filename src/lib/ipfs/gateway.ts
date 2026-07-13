@@ -4,6 +4,7 @@
  */
 
 import { DOMAINS } from '@/lib/config/domains';
+import { fetchFromPinnedNodes } from '@/lib/nodes/node-first-ipfs';
 
 export interface GatewayConfig {
   primary?: string;
@@ -39,11 +40,13 @@ export async function fetchFromGateway(
   config: GatewayConfig = {}
 ): Promise<Response | null> {
   const timeout = config.timeout || 2500;
-  // In browser, use proxy API route to avoid CORS
+  // In browser, try operator pin nodes first, then hub proxy, then direct gateways.
   if (typeof window !== 'undefined') {
     try {
-      // Clean hash - remove ipfs:// prefix and /ipfs/ prefix if present
       const cleanHash = hash.replace(/^\/?ipfs\//, '').replace(/^ipfs:\/\//, '');
+      const nodeRes = await fetchFromPinnedNodes(cleanHash, { timeoutMs: timeout });
+      if (nodeRes?.ok) return nodeRes;
+
       const proxyUrl = getIpfsProxyPath(cleanHash);
 
       const controller = new AbortController();

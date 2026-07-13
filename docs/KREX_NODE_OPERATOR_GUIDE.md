@@ -215,6 +215,8 @@ We will cover this when you go public. Summary:
 3. Update `url` in `config.json` and in Hub **Edit node details**.
 4. PM2 or systemd for 24/7 uptime.
 
+**Public HTTPS mirror:** see [KREX_NODE_PUBLIC_MIRROR.md](./KREX_NODE_PUBLIC_MIRROR.md) (Cloudflare Tunnel or VPS + Caddy).
+
 ---
 
 ## Health: Unstable vs Stable
@@ -240,6 +242,7 @@ npm run status      # Worker runtime-config + your node status
 - `packages/krex-node/COMPATIBILITY.md` - HMAC headers and API URLs
 - `packages/krex-node/config.example.json` - safe template for git
 - Hub: `/nodes` - enroll, edit URL, rotate secret, earnings
+- [KREX_NODE_PUBLIC_MIRROR.md](./KREX_NODE_PUBLIC_MIRROR.md) - public HTTPS mirror (Track B6)
 
 ---
 

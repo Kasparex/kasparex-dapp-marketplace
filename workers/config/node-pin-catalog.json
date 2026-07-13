@@ -4,5 +4,8 @@
     "https://ipfs.io/ipfs/{cid}",
     "https://{cid}.ipfs.dweb.link"
   ],
-  "recommendedCids": []
+  "recommendedCids": [
+    "bafybeihqbdpzjockcerlqopfc3j5xxeqiok4pqfmky5jkq374ak2zxjj6q",
+    "bafybeiayxmg22jnhh3ekdscsrcglczhe6xra632xhvophe3opn77smvily"
+  ]
 }
