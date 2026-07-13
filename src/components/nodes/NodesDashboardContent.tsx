@@ -14,6 +14,7 @@ import { NodesMap } from './NodesMap';
 import { KrexNodeEnrollmentModal } from './KrexNodeEnrollmentModal';
 import { KrexNodeSetupGuide } from './KrexNodeSetupGuide';
 import { KrexNodeDocsGuide } from './KrexNodeDocsGuide';
+import { KrexNodeFaqGuide } from './KrexNodeFaqGuide';
 import { NodesPremiumPanel } from './NodesPremiumPanel';
 import { NODES_DASH_CARD, NODES_TAB_STACK } from './nodesTabLayout';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
@@ -88,6 +89,7 @@ const technicalRequirements = [
 const NODES_TABS = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'setup', label: 'Setup' },
+  { id: 'faq', label: 'FAQ' },
   { id: 'docs', label: 'Docs' },
   { id: 'enroll', label: 'Enroll' },
   { id: 'premium', label: 'Premium' },
@@ -293,6 +295,10 @@ export function NodesDashboardContent() {
       ) : activeTab === 'setup' ? (
         <div className={NODES_TAB_STACK}>
           <KrexNodeSetupGuide />
+        </div>
+      ) : activeTab === 'faq' ? (
+        <div className={NODES_TAB_STACK}>
+          <KrexNodeFaqGuide />
         </div>
       ) : activeTab === 'docs' ? (
         <div className={NODES_TAB_STACK}>

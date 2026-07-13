@@ -109,6 +109,70 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       },
     ],
   },
+  'krex-node-faq': {
+    sections: [
+      {
+        id: 'what-is-krex-node',
+        title: 'What is a KREX Node?',
+        content:
+          'A small program on your PC or VPS. Not a Kaspa BlockDAG node. It pings Kasparex when online, can cache Hub IPFS files, and (mirror role) serves read-only HTTP. Software: packages/krex-node in kasparex-dapp-marketplace (no separate kasparex-krex-node repo).',
+      },
+      {
+        id: 'domain-required',
+        title: 'Do I need a domain?',
+        content:
+          'No to enroll, earn points, and run locally (localhost:8788). Yes only to be a public helper: other users browsers need your HTTPS URL to reach your mirror. Domain is optional, not required from everyone.',
+      },
+      {
+        id: 'public-helper',
+        title: 'What is a public helper?',
+        content:
+          'A node with a public HTTPS URL that answers some read-only Hub requests (wallet reads, proxies, pinned IPFS) so the central Kasparex server does less work. You help people browsing the website. You do not run their node software or hold their keys.',
+      },
+      {
+        id: 'one-url-many',
+        title: 'Can operators share one URL?',
+        content:
+          'No. Each operator has their own enrollment, secret, and URL. Person A public mirror is only Person A machine.',
+      },
+      {
+        id: 'node-offline',
+        title: 'If a public node goes offline?',
+        content:
+          'The Hub tries other mirrors, then the central API. One node stopping does not break Kasparex for everyone.',
+      },
+      {
+        id: 'more-public',
+        title: 'More public nodes = better?',
+        content:
+          'Yes. More healthy public mirrors spread traffic and reduce central costs. Local-only nodes help the operator network grow but do not offload traffic for other users.',
+      },
+      {
+        id: 'local-vs-public',
+        title: 'Does localhost help Kasparex? Should it earn points?',
+        content:
+          'Local helps a little (heartbeats, pin cache, onboarding) but not much for site costs because browsers cannot use localhost on your PC. Today: local operators still earn Hub Points to encourage setup. Future policy may pay public mirrors more than localhost-only, since public mirrors are the real infrastructure helpers. Public URL would stay optional.',
+      },
+      {
+        id: 'run-vs-visit',
+        title: 'Running a node vs using the website',
+        content:
+          'Using Kasparex = visitor. Running a node = separate operator job on your machine. Someone enrolling their node does not use your URL; they clone packages/krex-node and run their own process.',
+      },
+      {
+        id: 'rewards-summary',
+        title: 'Operator rewards today',
+        content:
+          'Hub Points on enrolled wallet: +1000 enroll, +250 base per qualified online day (x KREX tier). Redeem on Rewards catalog.',
+      },
+      {
+        id: 'operator-nft-future',
+        title: 'Operator NFTs / gamification (future)',
+        content:
+          'Not live today. Possible later: KRC721 operator badge slot on Nodes page, cosmetic plus small capped bonus (multiplier or daily cap). Needs L1 ownership verify and strict limits. Nice for engagement if kept simple; not required to run a node.',
+      },
+    ],
+  },
   'krex-node-rewards': {
     sections: [
       {

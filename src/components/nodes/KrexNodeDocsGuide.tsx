@@ -23,6 +23,16 @@ export function KrexNodeDocsGuide() {
               </Link>
             </li>
             <li>
+              <Link href="/nodes?tab=faq" scroll={false} className={LINK_CLASS}>
+                Nodes FAQ (on dashboard)
+              </Link>
+            </li>
+            <li>
+              <Link href="/knowledge-base/krex-node-faq" scroll={false} className={LINK_CLASS}>
+                KREX Node FAQ (full)
+              </Link>
+            </li>
+            <li>
               <Link href="/knowledge-base/krex-node-setup" scroll={false} className={LINK_CLASS}>
                 Setup &amp; installation
               </Link>

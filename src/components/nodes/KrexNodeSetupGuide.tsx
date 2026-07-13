@@ -166,7 +166,15 @@ npm run mirror`}</pre>
             </li>
           </ol>
           <p className="text-xs text-zinc-500 dark:text-zinc-500">
-            Full guide:{' '}
+            More questions?{' '}
+            <Link href="/nodes?tab=faq" className="text-cyan-700 dark:text-cyan-300 font-semibold hover:underline">
+              FAQ tab
+            </Link>
+            {' · '}
+            <Link href="/knowledge-base/krex-node-faq" className="text-cyan-700 dark:text-cyan-300 font-semibold hover:underline">
+              Knowledge base FAQ
+            </Link>
+            {' · '}
             <Link href="/knowledge-base/krex-node-setup" className="text-cyan-700 dark:text-cyan-300 font-semibold hover:underline">
               Knowledge base → Setup
             </Link>

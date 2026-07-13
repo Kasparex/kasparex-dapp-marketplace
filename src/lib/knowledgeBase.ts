@@ -81,6 +81,13 @@ export const knowledgeBaseArticles: KnowledgeBaseArticle[] = [
     slug: 'krex-node-setup',
   },
   {
+    id: 'krex-node-faq',
+    title: 'KREX Node FAQ',
+    description: 'Domains, public helpers, local vs public, rewards, and common operator questions.',
+    category: 'krex-nodes',
+    slug: 'krex-node-faq',
+  },
+  {
     id: 'krex-node-rewards',
     title: 'KREX Node Rewards',
     description: 'Understanding how rewards work for KREX Node operators.',
