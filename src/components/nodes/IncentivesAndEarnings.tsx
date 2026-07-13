@@ -3,6 +3,7 @@
 import type { Incentives } from '@/lib/nodes/types';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { dailyPtsLabel, enrollPtsLabel } from '@/lib/nodes/node-role';
+import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
