@@ -17,9 +17,16 @@ export function pinCacheDir(cfg: KrexNodeConfig): string {
   return resolve(process.cwd(), cfg.pinCacheDir?.trim() || '.krex-pin-cache');
 }
 
-export function getActivePinnedCids(cfg: KrexNodeConfig): string[] {
+export async function getActivePinnedCids(cfg: KrexNodeConfig): Promise<string[]> {
   const manual = (cfg.pinnedCids ?? []).map(normalizeCid).filter(Boolean) as string[];
   const merged = new Set<string>([...manual, ...activePinnedCids]);
+  try {
+    const store = getPinStore(pinCacheDir(cfg));
+    await store.init();
+    for (const cid of store.listCids()) merged.add(cid);
+  } catch {
+    // ignore
+  }
   return Array.from(merged);
 }
 

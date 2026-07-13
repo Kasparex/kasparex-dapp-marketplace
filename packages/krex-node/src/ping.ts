@@ -17,7 +17,7 @@ export async function sendPing(cfg: KrexNodeConfig): Promise<unknown> {
   if (cfg.region) bodyObj.region = cfg.region;
   if (cfg.url) bodyObj.url = cfg.url;
   if (cfg.version) bodyObj.version = cfg.version;
-  const pinned = getActivePinnedCids(cfg);
+  const pinned = await getActivePinnedCids(cfg);
   if (pinned.length) bodyObj.pinned_cids = pinned;
   const dynamic = getRequestsServedTotal();
   const fallback = Math.max(0, Math.floor(Number(cfg.requestsServedTotal) || 0));

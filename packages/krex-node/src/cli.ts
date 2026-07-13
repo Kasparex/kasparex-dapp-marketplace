@@ -66,7 +66,7 @@ Commands:
 
   if (cmd === 'pin-sync') {
     const out = await syncPinCatalog(cfg);
-    console.log(JSON.stringify({ ...out, pinnedCids: getActivePinnedCids(cfg) }, null, 2));
+    console.log(JSON.stringify({ ...out, pinnedCids: await getActivePinnedCids(cfg) }, null, 2));
     return;
   }
 
@@ -75,7 +75,7 @@ Commands:
     await store.init();
     console.log(
       JSON.stringify(
-        { stats: store.stats(), pinnedCids: store.listCids(), activeForPing: getActivePinnedCids(cfg) },
+        { stats: store.stats(), pinnedCids: store.listCids(), activeForPing: await getActivePinnedCids(cfg) },
         null,
         2,
       ),
