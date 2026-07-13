@@ -5,6 +5,7 @@
 import type { Env } from '../index';
 import { getCorsHeaders } from '../middleware';
 import tiers from '../config/node-reward-tiers.json';
+import { resolveKrexHubPointsMultiplier } from './krex-tier';
 
 export interface NodeRewardRow {
   id: number;
@@ -72,10 +73,7 @@ async function previewNodeRewardGrid(
   let baseGrid = s.gridPerEpochBase * (s.alpha * uptimeScore + s.beta * activityScore);
   if ((nodeResult.uptime_hours || 0) < s.minUptimeHoursForEpoch) baseGrid = 0;
 
-  const krexKey = `krex_mult:${(nodeResult.owner_wallet || '').toLowerCase()}`;
-  const krexRaw = await env.KASPAREX_CACHE.get(krexKey);
-  const krexM = krexRaw ? Number(krexRaw) : 1;
-  const krexMultiplier = Number.isFinite(krexM) && krexM > 0 ? krexM : 1;
+  const krexMultiplier = await resolveKrexHubPointsMultiplier(env, nodeResult.owner_wallet || '');
 
   const roleM = roleMultiplier(nodeResult.role);
   const regionM = regionMultiplier(nodeResult.region);

@@ -47,7 +47,7 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
               {formatPts(incentives.hubPoints)}
             </p>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2">
-              +1,000 on enroll · +50 per qualified online day (server cron)
+              +1,000 on enroll · +250 base per qualified online day (× KREX tier, server cron)
             </p>
           </div>
           {incentives.krexTier ? (

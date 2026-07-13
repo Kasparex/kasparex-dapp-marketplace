@@ -18,7 +18,7 @@ export const HUB_EARN_POINTS = {
   crowdkasCampaignCreate: 150,
   magazineIssuePublish: 130,
   dappL1Interaction: 25,
-  krexNodeOperatorDaily: 15,
+  krexNodeOperatorDaily: 250,
   krexNodeEnrollmentOnce: 1000,
   chroniclesArticleCreate: 50,
   chroniclesQuizComplete: 25,

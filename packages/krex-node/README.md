@@ -26,8 +26,21 @@ Or under **pm2**:
 
 ```bash
 pm2 start ecosystem.config.cjs
+pm2 save
 pm2 logs krex-node-mirror
 ```
+
+**Auto-start after reboot** (run once per machine):
+
+```bash
+# Windows
+scripts\pm2-boot-setup.bat
+
+# Linux / macOS
+sh scripts/pm2-boot-setup.sh
+```
+
+Follow the one-time `pm2 startup` command PM2 prints (elevated shell on Windows). After that, the node restarts automatically when the PC boots. No need to manually restart unless you update `config.json` or upgrade the package.
 
 ## Commands
 
@@ -57,3 +70,5 @@ The Kasparex Hub uses node-first routing: it tries your public `url` + `/kaspare
 - `install.sh` / `install.bat`  -  checks Node ≥ 20, runs `npm ci` + `npm run build`
 
 See **COMPATIBILITY.md** for API base URLs and HMAC headers.
+
+Operator FAQ (uptime, security, git/Vercel vs local config, incentives): **[docs/KREX_NODE_OPERATOR_GUIDE.md](../../docs/KREX_NODE_OPERATOR_GUIDE.md)**.

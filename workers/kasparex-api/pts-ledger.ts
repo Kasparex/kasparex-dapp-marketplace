@@ -101,9 +101,11 @@ function serializeMeta(meta?: Record<string, unknown>): string | null {
 
 const NODE_EPOCH_PTS_BASE_SOURCE = 'node_epoch';
 
-/** Policy: fixed pts per qualified node epoch (tunable in node-reward-tiers.json). */
-export function nodeEpochPtsDelta(cfg: { ptsPerQualifiedEpoch: number }): number {
-  return Math.max(0, Math.floor(cfg.ptsPerQualifiedEpoch));
+/** Policy: base pts per qualified node epoch (tunable in node-reward-tiers.json). */
+export function nodeEpochPtsDelta(cfg: { ptsPerQualifiedEpoch: number; krexPointsMultiplier?: number }): number {
+  const base = Math.max(0, Math.floor(cfg.ptsPerQualifiedEpoch));
+  const mult = Math.max(1, Math.floor(Number(cfg.krexPointsMultiplier ?? 1) || 1));
+  return Math.floor(base * mult);
 }
 
 export async function recordNodeEpochPtsCredit(
@@ -114,9 +116,11 @@ export async function recordNodeEpochPtsCredit(
     epoch_date: string;
     final_grid: number;
     ptsPerQualifiedEpoch: number;
+    krexPointsMultiplier?: number;
   }
 ): Promise<ApplyPtsResult> {
-  const pts = nodeEpochPtsDelta({ ptsPerQualifiedEpoch: args.ptsPerQualifiedEpoch });
+  const krexMult = Math.max(1, Math.floor(Number(args.krexPointsMultiplier ?? 1) || 1));
+  const pts = nodeEpochPtsDelta({ ptsPerQualifiedEpoch: args.ptsPerQualifiedEpoch, krexPointsMultiplier: krexMult });
   if (pts <= 0) {
     return { ok: true, duplicate: false, balance_pts: await getPtsBalance(env.REWARDS_DB, normalizePtsWallet(args.owner_wallet)) };
   }
@@ -128,6 +132,12 @@ export async function recordNodeEpochPtsCredit(
     kind: 'credit',
     source: NODE_EPOCH_PTS_BASE_SOURCE,
     idempotency_key,
-    meta: { node_id: args.node_id, epoch_date: args.epoch_date, final_grid: args.final_grid },
+    meta: {
+      node_id: args.node_id,
+      epoch_date: args.epoch_date,
+      final_grid: args.final_grid,
+      krex_points_multiplier: krexMult,
+      pts_base: args.ptsPerQualifiedEpoch,
+    },
   });
 }

@@ -4,6 +4,7 @@
 
 import type { Env } from '../index';
 import tiers from '../config/node-reward-tiers.json';
+import { resolveKrexHubPointsMultiplier } from './krex-tier';
 import { recordNodeEpochPtsCredit } from './pts-ledger';
 
 type TierConfig = typeof tiers;
@@ -26,13 +27,6 @@ function regionMultiplier(region: string, cfg: TierConfig): number {
   const r = (region || '').toLowerCase();
   if (cfg.underservedRegions.includes(r)) return cfg.regionMultiplierUnderserved;
   return cfg.regionMultiplierDefault;
-}
-
-async function krexMultiplierForWallet(env: Env, wallet: string): Promise<number> {
-  const key = `krex_mult:${wallet.toLowerCase()}`;
-  const raw = await env.KASPAREX_CACHE.get(key);
-  const n = raw ? Number(raw) : NaN;
-  return Number.isFinite(n) && n > 0 ? n : 1;
 }
 
 async function effectiveUptimeHours(env: Env, nodeId: string, fallbackUptime: number): Promise<number> {
@@ -86,7 +80,7 @@ export async function processNodeRewardSettlement(env: Env, epochDate: string, l
     const activityScore = clamp(Math.log(1 + req) / s.activityLogNorm, 0, 1);
     const baseGrid = s.gridPerEpochBase * (s.alpha * uptimeScore + s.beta * activityScore);
 
-    const krexM = await krexMultiplierForWallet(env, n.owner_wallet);
+    const krexM = await resolveKrexHubPointsMultiplier(env, n.owner_wallet);
     const roleM = roleMultiplier(n.role, cfg);
     const regionM = regionMultiplier(n.region || 'unknown', cfg);
 
@@ -129,6 +123,7 @@ export async function processNodeRewardSettlement(env: Env, epochDate: string, l
         epoch_date: epochDate,
         final_grid: finalGrid,
         ptsPerQualifiedEpoch: ptsPolicy,
+        krexPointsMultiplier: krexM,
       });
       if (!ptsRes.ok) {
         console.warn('[node-rewards-settle] pts credit failed', { node_id: n.node_id, err: ptsRes });

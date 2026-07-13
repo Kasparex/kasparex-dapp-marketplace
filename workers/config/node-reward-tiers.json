@@ -21,7 +21,7 @@
     "minUptimeHoursForEpoch": 12,
     "capPerNodePerEpoch": 50000,
     "globalEpochBudget": 10000000,
-    "ptsPerQualifiedEpoch": 50,
+    "ptsPerQualifiedEpoch": 250,
     "ptsOnEnrollment": 1000
   }
 }

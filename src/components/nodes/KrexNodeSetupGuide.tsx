@@ -54,7 +54,7 @@ export function KrexNodeSetupGuide() {
                 <li>Syncs periodically with the Kasparex API</li>
               </ul>
               <p className="mt-3 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                +1,000 Hub Points on enroll · +50 per qualified online day
+                +1,000 Hub Points on enroll · +250 base per qualified online day (× KREX tier)
               </p>
             </div>
             <div className="p-5 rounded-xl border border-cyan-500/30 dark:border-cyan-500/25 bg-zinc-50 dark:bg-zinc-950/40">
@@ -70,7 +70,7 @@ export function KrexNodeSetupGuide() {
                 <li>Best for stable hosts and partners</li>
               </ul>
               <p className="mt-3 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                +1,000 Hub Points on enroll · +50 per qualified online day
+                +1,000 Hub Points on enroll · +250 base per qualified online day (× KREX tier)
               </p>
             </div>
           </div>
