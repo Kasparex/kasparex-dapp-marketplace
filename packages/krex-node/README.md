@@ -1,6 +1,6 @@
 # Krex Node (operator runtime)
 
-Small **Node.js 20+** process for Kasparex Krex Nodes: signed **heartbeats**, optional **IPFS pin cache**, and optional **read-only mirror HTTP**.
+Small **Node.js 20+** process for Kasparex Krex Nodes: signed **heartbeats**, optional **IPFS pin cache**, and optional **read-only edge HTTP**.
 
 **Install location:** `packages/krex-node` in [kasparex-dapp-marketplace](https://github.com/Kasparex/kasparex-dapp-marketplace) (not a separate repo).
 
@@ -12,16 +12,18 @@ cp config.example.json config.json
 npm install
 npm run build
 npm run once
-npm run heartbeat
+npm run light
 ```
 
-## Mirror node (HTTP + heartbeat)
+## Edge node (HTTP + heartbeat)
 
-Set `"role": "mirror"` and a public HTTPS `"url"` in `config.json` (reverse proxy to `servePort`, default 8788).
+Test locally on `http://localhost:8788`, then expose **public HTTPS** and enroll on the Hub with role **edge**.
+
+Set `"role": "edge"` and your public HTTPS `"url"` in `config.json` (reverse proxy to `servePort`, default 8788).
 
 ```bash
 npm run build
-npm run mirror
+npm run edge
 ```
 
 Or under **pm2**:
@@ -29,7 +31,7 @@ Or under **pm2**:
 ```bash
 pm2 start ecosystem.config.cjs
 pm2 save
-pm2 logs krex-node-mirror
+pm2 logs krex-node-edge
 ```
 
 **Auto-start after reboot** (run once per machine):
@@ -42,8 +44,6 @@ scripts\pm2-boot-setup.bat
 sh scripts/pm2-boot-setup.sh
 ```
 
-On Windows the script installs `pm2-windows-startup` and runs `pm2-startup install`. On Linux/macOS, run the `pm2 startup` command PM2 prints (often with `sudo`). After setup, the node restarts automatically when the PC boots (Windows: after user login). No need to manually restart unless you update `config.json` or upgrade the package.
-
 ## Commands
 
 | Command | Description |
@@ -51,29 +51,25 @@ On Windows the script installs `pm2-windows-startup` and runs `pm2-startup insta
 | `once` | Single ping |
 | `heartbeat` | Loop on `heartbeatIntervalSec` |
 | `status` | Print `runtime-config` + node status |
-| `serve` | Read-only mirror HTTP only |
-| `mirror` | Mirror HTTP + heartbeat + pin sync (recommended for mirror role) |
-| `light` | Heartbeat + IPFS pin sync only (no HTTP mirror) |
+| `serve` | Read-only edge HTTP only (no heartbeat) |
+| `edge` | Edge HTTP + heartbeat + pin sync (recommended) |
+| `light` | Heartbeat + IPFS pin sync only (no HTTP) |
 | `pin-sync` | One-shot download of catalog CIDs to local cache |
 | `pin-status` | Show locally warmed CIDs |
 
+Legacy: `npm run mirror` runs the same as `edge` (deprecated name).
+
 Override config path: `KREX_NODE_CONFIG=/path/to/config.json`.
 
-## IPFS pin cache (light / mirror)
+## IPFS pin cache (light / edge)
 
-Light and mirror nodes can **warm** Hub catalog CIDs into a local folder (default `.krex-pin-cache/`):
+Light and edge nodes can **warm** Hub catalog CIDs into a local folder (default `.krex-pin-cache/`):
 
-1. Worker `GET /kasparex/node/runtime-config` returns `pinCatalog.recommendedCids` (+ optional `REGISTRY_CID` secret on Worker).
+1. Worker `GET /kasparex/node/runtime-config` returns `pinCatalog.recommendedCids`.
 2. Add manual CIDs in `config.json` under `pinnedCids`.
 3. `pin-sync` or the automatic loop (every `pinSyncIntervalSec`, default 6h) fetches from public gateways.
 4. Heartbeats report the merged list as `pinned_cids`.
-5. Mirror nodes serve warmed objects at `GET /ipfs/{cid}`.
-
-```bash
-npm run build
-node dist/cli.js pin-sync
-node dist/cli.js pin-status
-```
+5. Edge nodes serve warmed objects at `GET /ipfs/{cid}`.
 
 | Path | Behavior |
 |------|----------|
@@ -83,12 +79,8 @@ node dist/cli.js pin-status
 | `GET /proxy/kasplex?endpoint=/v1/...` | Worker kasplex proxy |
 | `GET /proxy/krc721?endpoint=/api/v1/...` | Worker KRC721 proxy |
 
-The Kasparex Hub uses node-first routing: it tries your public `url` + `/kasparex/wallet/deck`, `/health`, etc., before falling back to the central Worker.
-
-## Install scripts
-
-- `install.sh` / `install.bat`  -  checks Node ≥ 20, runs `npm ci` + `npm run build`
+The Kasparex Hub uses node-first routing: it tries enrolled edge nodes before falling back to the central Worker.
 
 See **COMPATIBILITY.md** for API base URLs and HMAC headers.
 
-Operator FAQ (uptime, security, domains, PM2, incentives): **[docs/KREX_NODE_OPERATOR_GUIDE.md](../../docs/KREX_NODE_OPERATOR_GUIDE.md)** and **[docs/KREX_NODE_QUICKSTART.md](../../docs/KREX_NODE_QUICKSTART.md)**.
+Operator docs: **[docs/KREX_NODE_OPERATOR_GUIDE.md](../../docs/KREX_NODE_OPERATOR_GUIDE.md)**, **[docs/KREX_NODE_QUICKSTART.md](../../docs/KREX_NODE_QUICKSTART.md)**, **[docs/KREX_NODE_PUBLIC_EDGE.md](../../docs/KREX_NODE_PUBLIC_EDGE.md)**.

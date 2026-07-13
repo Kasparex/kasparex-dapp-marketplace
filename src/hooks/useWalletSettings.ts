@@ -22,7 +22,7 @@ export function useWalletSettings() {
     enabled: Boolean(address),
     queryFn: async () => {
       const r = await nodeFirstGet<WalletSettings>(`/kasparex/wallet/settings?address=${encodeURIComponent(address!)}`, {
-        roles: ['mirror', 'light'],
+        roles: ['edge', 'light'],
         maxNodeAttempts: 3,
         timeoutMs: 3500,
       });

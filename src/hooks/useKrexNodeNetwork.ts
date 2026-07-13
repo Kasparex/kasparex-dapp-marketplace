@@ -7,7 +7,7 @@ export function useKrexNodeNetwork(options?: { role?: KrexNode['role']; region?:
     queryFn: async () => {
       const all = await getKrexNodes({ region: options?.region, role: options?.role });
       if (options?.role) return all;
-      const roles = new Set<KrexNode['role']>(['mirror', 'light', 'super']);
+      const roles = new Set<KrexNode['role']>(['edge', 'light', 'super']);
       const dedup = new Map<string, KrexNode>();
       for (const n of all) {
         if (n?.url && roles.has(n.role)) dedup.set(n.url, n);

@@ -15,7 +15,7 @@ export function nodeFirstIpfsReadsEnabled(): boolean {
 }
 
 /**
- * GET from `/ipfs/{cid}` on mirror/light nodes that report the CID pinned.
+ * GET from `/ipfs/{cid}` on edge/light nodes that report the CID pinned.
  */
 export async function fetchFromPinnedNodes(
   hash: string,

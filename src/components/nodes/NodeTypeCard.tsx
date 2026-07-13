@@ -38,7 +38,7 @@ export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                 {config.name}
               </h3>
-              {nodeType === 'mirror' && (
+              {nodeType === 'edge' && (
                 <span className="text-[10px] px-2 py-0.5 bg-[#02abb8]/20 text-[#02abb8] rounded-full font-bold uppercase tracking-wider">
                   Recommended
                 </span>
@@ -53,7 +53,7 @@ export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
           </>
         ) : (
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
-            No node connected. Register a node to see your type (Light or Serve).
+            No node connected. Register a node to see your type (Light, Edge, or Super).
           </p>
         )}
       </div>

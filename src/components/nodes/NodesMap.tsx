@@ -16,7 +16,7 @@ const NodesOsmMap = dynamic(() => import('./NodesOsmMap').then((m) => m.NodesOsm
   ),
 });
 
-type GeoAgg = { geoKey: string; label: string; lat: number; lng: number; total: number; mirror: number; light: number; super: number };
+type GeoAgg = { geoKey: string; label: string; lat: number; lng: number; total: number; edge: number; light: number; super: number };
 
 function aggregateByGeo(nodes: KrexNode[]): GeoAgg[] {
   const m = new Map<string, GeoAgg>();
@@ -30,13 +30,13 @@ function aggregateByGeo(nodes: KrexNode[]): GeoAgg[] {
         lat: g.lat,
         lng: g.lng,
         total: 1,
-        mirror: n.role === 'mirror' ? 1 : 0,
+        edge: n.role === 'edge' ? 1 : 0,
         light: n.role === 'light' ? 1 : 0,
         super: n.role === 'super' ? 1 : 0,
       });
     } else {
       row.total += 1;
-      if (n.role === 'mirror') row.mirror += 1;
+      if (n.role === 'edge') row.edge += 1;
       else if (n.role === 'light') row.light += 1;
       else if (n.role === 'super') row.super += 1;
     }
@@ -55,7 +55,7 @@ export function NodesMap(props: { nodes: KrexNode[] }) {
     label: r.label,
     position: { lat: r.lat, lng: r.lng },
     total: r.total,
-    mirror: r.mirror,
+    edge: r.edge,
     light: r.light,
     super: r.super,
   }));

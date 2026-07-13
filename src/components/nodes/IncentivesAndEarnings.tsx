@@ -2,7 +2,7 @@
 
 import type { Incentives } from '@/lib/nodes/types';
 import { FieldHint } from '@/components/ui/FieldHint';
-import { SectionHeader } from './SectionHeader';
+import { dailyPtsLabel, enrollPtsLabel } from '@/lib/nodes/node-role';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
@@ -47,7 +47,7 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
               {formatPts(incentives.hubPoints)}
             </p>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2">
-              +1,000 on enroll · +250 base per qualified online day (× KREX tier, server cron)
+              {enrollPtsLabel()} on enroll · {dailyPtsLabel()} base per qualified online day (× KREX tier, server cron)
             </p>
           </div>
           {incentives.krexTier ? (

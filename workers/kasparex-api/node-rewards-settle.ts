@@ -6,12 +6,12 @@ import type { Env } from '../index';
 import tiers from '../config/node-reward-tiers.json';
 import { resolveKrexHubPointsMultiplier } from './krex-tier';
 import { recordNodeEpochPtsCredit } from './pts-ledger';
+import { dailyPtsForRole, migrateLegacyMirrorRoles, normalizeNodeRole } from './node-role';
 
 type TierConfig = typeof tiers;
 
-function settlementPtsPolicy(cfg: TierConfig): number {
-  const s = cfg.settlement as typeof cfg.settlement & { ptsPerQualifiedEpoch?: number };
-  return Math.max(0, Math.floor(Number(s.ptsPerQualifiedEpoch ?? 0)));
+function settlementPtsPolicy(cfg: TierConfig, role: string): number {
+  return dailyPtsForRole(normalizeNodeRole(role), cfg);
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -20,7 +20,7 @@ function clamp(n: number, lo: number, hi: number): number {
 
 function roleMultiplier(role: string, cfg: TierConfig): number {
   const m = cfg.roleMultipliers as Record<string, number>;
-  return m[role] ?? 1;
+  return m[normalizeNodeRole(role)] ?? 1;
 }
 
 function regionMultiplier(region: string, cfg: TierConfig): number {
@@ -46,6 +46,8 @@ async function effectiveUptimeHours(env: Env, nodeId: string, fallbackUptime: nu
 export async function processNodeRewardSettlement(env: Env, epochDate: string, limit = 500): Promise<number> {
   const cfg = tiers;
   const s = cfg.settlement;
+
+  await migrateLegacyMirrorRoles(env);
 
   const nodes = await env.NODES_DB.prepare(
     `SELECT node_id, owner_wallet, role, region, uptime_hours, requests_served_total
@@ -115,7 +117,7 @@ export async function processNodeRewardSettlement(env: Env, epochDate: string, l
       )
       .run();
 
-    const ptsPolicy = settlementPtsPolicy(cfg);
+    const ptsPolicy = settlementPtsPolicy(cfg, n.role);
     try {
       const ptsRes = await recordNodeEpochPtsCredit(env, {
         owner_wallet: n.owner_wallet,

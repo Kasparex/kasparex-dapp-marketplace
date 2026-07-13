@@ -1,6 +1,6 @@
 # Krex Node operator guide (practical)
 
-This guide is for people running a **Krex Node** (light, mirror, or super) on their own hardware or VPS. It complements the Hub UI at `/nodes` and the package README in `packages/krex-node/`.
+This guide is for people running a **Krex Node** (light, edge, or super) on their own hardware or VPS. It complements the Hub UI at `/nodes` and the package README in `packages/krex-node/`.
 
 ---
 
@@ -9,9 +9,9 @@ This guide is for people running a **Krex Node** (light, mirror, or super) on th
 | System | Where it runs | What it is |
 |--------|---------------|------------|
 | **Kasparex Hub** | Vercel (website + Next.js API) | Enrollment UI, docs, wallet dApp |
-| **Krex Node** | **Your PC or VPS** | `packages/krex-node` process (heartbeat + optional mirror) |
+| **Krex Node** | **Your PC or VPS** | `packages/krex-node` process (heartbeat + optional edge) |
 
-**Vercel never runs your node.** Pushing Hub commits does not start, stop, or configure your node. Your `config.json` and `hmacSecret` stay on the machine where you run `npm run mirror`.
+**Vercel never runs your node.** Pushing Hub commits does not start, stop, or configure your node. Your `config.json` and `hmacSecret` stay on the machine where you run `npm run edge`.
 
 ---
 
@@ -25,7 +25,7 @@ There is no fixed time limit. The process is a small Node.js app (heartbeat + op
 
 | How you start it | Terminal required? | Survives reboot? |
 |------------------|-------------------|------------------|
-| `npm run mirror` in a shell | **Yes**, while that window is open | No |
+| `npm run edge` in a shell | **Yes**, while that window is open | No |
 | **PM2** (`ecosystem.config.cjs`) | **No**, runs in the background | Yes, after `pm2 save` + Windows boot helper (see below) |
 | **systemd** (Linux VPS) | **No**, runs as a service | Yes |
 
@@ -36,7 +36,7 @@ For local learning, an open terminal is fine. For anything you rely on, use PM2 
 **No**, for normal operation. The process is lightweight and meant to run continuously. PM2 already restarts it if it crashes (`autorestart: true`). You only need to restart when:
 
 - You change `config.json` (node URL, secret, role)
-- You pull a new `krex-node` version (`npm run build`, then `pm2 restart krex-node-mirror`)
+- You pull a new `krex-node` version (`npm run build`, then `pm2 restart krex-node-edge`)
 
 There is no requirement to stop the node on a schedule.
 
@@ -45,16 +45,16 @@ There is no requirement to stop the node on a schedule.
 **Yes**, for the node to stay **online** in the registry:
 
 - **Heartbeats** stop when the process stops.
-- **Mirror traffic** is only served while the HTTP server is up.
+- **Edge traffic** is only served while the HTTP server is up.
 
 If your PC sleeps or you close the process, the Hub will show the node offline until it pings again. That is normal.
 
 ### Local vs public URL
 
-| `url` in config | Who can use the mirror |
+| `url` in config | Who can use the edge |
 |-----------------|------------------------|
 | `http://localhost:8788` | Only your machine (good for testing) |
-| `https://mirror.example.com` | Anyone on the internet (production mirror) |
+| `https://edge.example.com` | Anyone on the internet (production edge) |
 
 The Worker and Hub registry store whatever URL you enroll. Browsers cannot reach `localhost` on your laptop from other users' devices.
 
@@ -86,21 +86,21 @@ If `hmacSecret` leaks, use **Rotate secret** in the Hub node dashboard and updat
 - `node_id`, uptime, optional request counters, version, role, region.
 - HMAC-signed requests (proves you hold the enrolled secret).
 
-**Mirror (if enabled):**
+**Edge (if enabled):**
 
 - Serves **read-only** cached copies of public API responses (wallet deck/history, stats, proxy paths).
-- Does not receive user private keys; browsers call your mirror URL with public query params (e.g. address).
+- Does not receive user private keys; browsers call your edge URL with public query params (e.g. address).
 
 **Stored locally:**
 
 - `config.json` on disk.
-- Optional small in-memory/disk cache of proxied GET responses on the mirror.
+- Optional small in-memory/disk cache of proxied GET responses on the edge.
 
 ### Network requirements
 
 - **Node.js 20+**
-- Outbound HTTPS to `apiBaseUrl` (Worker) and upstream APIs the mirror proxies.
-- **Mirror production:** inbound HTTPS (443) via reverse proxy to `servePort` (default **8788**).
+- Outbound HTTPS to `apiBaseUrl` (Worker) and upstream APIs the edge proxies.
+- **Edge production:** inbound HTTPS (443) via reverse proxy to `servePort` (default **8788**).
 - Rough footprint: low CPU; PM2 profile uses up to **512 MB** RAM restart threshold.
 
 ---
@@ -115,31 +115,31 @@ If `hmacSecret` leaks, use **Rotate secret** in the Hub node dashboard and updat
 | **Hub Points per qualified day** | +250 base pts when online ~12h+ in a UTC day (server cron) |
 | **KREX tier multiplier** | Same 1x–4x Hub Points multipliers as the rest of the Hub (10M+ KREX = 2x daily, etc.) |
 | **Rewards catalog** | Redeem pts for catalog items anytime |
-| **Running public infrastructure** | Mirror nodes can serve read traffic for the Hub (when on public HTTPS) |
+| **Running public infrastructure** | Edge nodes can serve read traffic for the Hub (when on public HTTPS) |
 
 Qualified epochs depend on staying **online**, meeting uptime rules in Worker policy, and heartbeats from your enrolled node.
 
-### IPFS pin cache (light / mirror, Track B3)
+### IPFS pin cache (light / edge, Track B3)
 
 Operators can warm Hub catalog content locally (no full IPFS daemon required):
 
 1. Worker publishes `pinCatalog` on `GET /kasparex/node/runtime-config`.
 2. Optional manual CIDs in `config.json` → `pinnedCids`.
-3. Run `node dist/cli.js pin-sync` or let `mirror` / `light` sync every 6h (default).
-4. Heartbeats report warmed CIDs; mirror serves `GET /ipfs/{cid}` from disk.
+3. Run `node dist/cli.js pin-sync` or let `edge` / `light` sync every 6h (default).
+4. Heartbeats report warmed CIDs; edge serves `GET /ipfs/{cid}` from disk.
 
-After pulling updates: `npm run build` then `pm2 restart krex-node-mirror`.
+After pulling updates: `npm run build` then `pm2 restart krex-node-edge`.
 
 ### For Kasparex Hub
 
 | Benefit | How |
 |---------|-----|
-| **Lower Vercel / Worker load** | Hub tries **node-first** routing: your mirror serves `/kasparex/wallet/deck`, `/health`, proxies before central API |
-| **Geographic distribution** | Mirrors closer to users (when public) |
+| **Lower Vercel / Worker load** | Hub tries **node-first** routing: your edge serves `/kasparex/wallet/deck`, `/health`, proxies before central API |
+| **Geographic distribution** | Edges closer to users (when public) |
 | **Resilience** | Fallback to central Worker if nodes are down |
-| **Decentralized read path** | Read-only mirrors cache hot public reads |
+| **Decentralized read path** | Read-only edges cache hot public reads |
 
-Your local node already proves enrollment + heartbeat; public HTTPS mirrors are what unlock node-first traffic for other users.
+Your local node already proves enrollment + heartbeat; public HTTPS edges are what unlock node-first traffic for other users.
 
 ---
 
@@ -160,7 +160,7 @@ Your local node already proves enrollment + heartbeat; public HTTPS mirrors are 
 
 1. Copy `config.example.json` → `config.json` again.
 2. Paste `nodeId` + `hmacSecret` (from secure backup, or re-issue secret in Hub).
-3. Run `npm install`, `npm run build`, `npm run mirror`.
+3. Run `npm install`, `npm run build`, `npm run edge`.
 
 Optional: set `KREX_NODE_CONFIG=/secure/path/config.json` so config lives outside the repo tree.
 
@@ -175,7 +175,7 @@ cd packages/krex-node
 cp config.example.json config.json   # once
 # edit nodeId, hmacSecret, url: http://localhost:8788
 npm install && npm run build
-npm run mirror
+npm run edge
 ```
 
 Check:
@@ -191,7 +191,7 @@ Install PM2 globally, then:
 cd packages/krex-node
 pm2 start ecosystem.config.cjs
 pm2 save
-pm2 logs krex-node-mirror
+pm2 logs krex-node-edge
 ```
 
 **One-time boot setup:**
@@ -206,7 +206,7 @@ sh scripts/pm2-boot-setup.sh
 
 On **Windows**, `pm2 startup` fails with `Init system not found` (that is normal). The batch script uses `pm2-windows-startup` instead. On Linux, follow the `pm2 startup` command PM2 prints (often with `sudo`).
 
-### Production mirror (later, step-by-step)
+### Production edge (later, step-by-step)
 
 We will cover this when you go public. Summary:
 
@@ -215,7 +215,7 @@ We will cover this when you go public. Summary:
 3. Update `url` in `config.json` and in Hub **Edit node details**.
 4. PM2 or systemd for 24/7 uptime.
 
-**Public HTTPS mirror:** see [KREX_NODE_PUBLIC_MIRROR.md](./KREX_NODE_PUBLIC_MIRROR.md) (Cloudflare Tunnel or VPS + Caddy).
+**Public HTTPS edge:** see [KREX_NODE_PUBLIC_EDGE.md](./KREX_NODE_PUBLIC_EDGE.md) (Cloudflare Tunnel or VPS + Caddy).
 
 ---
 
@@ -229,8 +229,8 @@ New nodes often show **Unstable (uptime 0.0h)** with a red health dot until enou
 
 ```bash
 npm run once        # single ping test
-npm run heartbeat   # heartbeat loop only (no mirror HTTP)
-npm run mirror      # mirror HTTP + heartbeat (recommended for mirror role)
+npm run heartbeat   # heartbeat loop only (no edge HTTP)
+npm run edge      # edge HTTP + heartbeat (recommended for edge role)
 npm run status      # Worker runtime-config + your node status
 ```
 
@@ -238,11 +238,11 @@ npm run status      # Worker runtime-config + your node status
 
 ## Related files
 
-- `packages/krex-node/README.md` - commands and mirror routes
+- `packages/krex-node/README.md` - commands and edge routes
 - `packages/krex-node/COMPATIBILITY.md` - HMAC headers and API URLs
 - `packages/krex-node/config.example.json` - safe template for git
 - Hub: `/nodes` - enroll, edit URL, rotate secret, earnings
-- [KREX_NODE_PUBLIC_MIRROR.md](./KREX_NODE_PUBLIC_MIRROR.md) - public HTTPS mirror (Track B6)
+- [KREX_NODE_PUBLIC_EDGE.md](./KREX_NODE_PUBLIC_EDGE.md) - public HTTPS edge (Track B6)
 
 ---
 
@@ -254,4 +254,4 @@ npm run status      # Worker runtime-config + your node status
 - [ ] Hub node URL updated to match
 - [ ] Secret rotation plan if VPS is compromised
 
-When you are ready for the public mirror walkthrough, use the Hub **Nodes** tab and this doc as reference.
+When you are ready for the public edge walkthrough, use the Hub **Nodes** tab and this doc as reference.

@@ -7,6 +7,13 @@ import { getCorsHeaders } from '../middleware';
 import { buildNodePinCatalog } from './node-pin-catalog';
 import { verifyNodeRequestHmac } from './node-crypto';
 import {
+  migrateLegacyMirrorRoles,
+  normalizeNodeRole,
+  parseNodeRole,
+  validateNodeUrlForRole,
+  type KrexNodeRole,
+} from './node-role';
+import {
   handleNodeChallenge,
   handleNodeVerifyWallet,
   handleNodeEnroll,
@@ -22,7 +29,7 @@ import { handleGetNodeRewards } from './rewards';
 export interface Node {
   node_id: string;
   node_name: string;
-  role: 'light' | 'mirror' | 'super';
+  role: KrexNodeRole;
   owner_wallet: string;
   region: string;
   version: string;
@@ -42,7 +49,7 @@ export interface Node {
 export interface NodeRegistration {
   node_id: string;
   node_name: string;
-  role: 'light' | 'mirror' | 'super';
+  role: KrexNodeRole | 'mirror';
   owner_wallet: string;
   region: string;
   version: string;
@@ -54,11 +61,11 @@ export interface NodePing {
   node_id: string;
   status?: 'online' | 'offline';
   pinned_cids?: string[];
-  /** Optional cumulative requests served (mirror); used for activity score. */
+  /** Optional cumulative requests served (edge); used for activity score. */
   requests_served_total?: number;
   /** Optional details refresh (requires enrolled HMAC secret). */
   node_name?: string;
-  role?: 'light' | 'mirror' | 'super';
+  role?: KrexNodeRole | 'mirror';
   region?: string;
   url?: string;
   version?: string;
@@ -137,7 +144,7 @@ export async function handleNodeRegister(request: Request, env: Env): Promise<Re
     const bodyText = await request.text();
     const body: NodeRegistration = JSON.parse(bodyText);
 
-    if (!body.node_id || !body.node_name || !body.role || !body.owner_wallet || !body.url) {
+    if (!body.node_id || !body.node_name || !body.role || !body.owner_wallet) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { ...cors, 'Content-Type': 'application/json' },
@@ -147,8 +154,16 @@ export async function handleNodeRegister(request: Request, env: Env): Promise<Re
     const hmacErr = await requireValidNodeHmac(env, body.node_id, request, bodyText);
     if (hmacErr) return hmacErr;
 
-    if (!['light', 'mirror', 'super'].includes(body.role)) {
-      return new Response(JSON.stringify({ error: 'Invalid role. Must be light, mirror, or super' }), {
+    const role = parseNodeRole(body.role);
+    if (!role) {
+      return new Response(JSON.stringify({ error: 'Invalid role. Must be light, edge, or super' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const urlErr = validateNodeUrlForRole(role, body.url ?? '');
+    if (urlErr) {
+      return new Response(JSON.stringify({ error: urlErr }), {
         status: 400,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
@@ -175,11 +190,11 @@ export async function handleNodeRegister(request: Request, env: Env): Promise<Re
       .bind(
         body.node_id,
         body.node_name,
-        body.role,
+        role,
         body.owner_wallet,
         body.region || 'unknown',
         body.version || '1.0.0',
-        body.url,
+        body.url ?? '',
         now,
         pinnedCids,
         now
@@ -280,13 +295,29 @@ export async function handleNodePing(request: Request, env: Env): Promise<Respon
       const sets: string[] = [];
       const binds: unknown[] = [];
 
+      const row = await env.NODES_DB.prepare(`SELECT role, url FROM nodes WHERE node_id = ?`)
+        .bind(body.node_id)
+        .first<{ role: string; url: string }>();
+      const currentRole = normalizeNodeRole(row?.role);
+      const nextRole = typeof body.role === 'string' ? parseNodeRole(body.role) : null;
+      const effectiveRole = nextRole ?? currentRole;
+      const nextUrl =
+        typeof body.url === 'string' && body.url.trim() ? body.url.trim() : row?.url ?? '';
+      const urlErr = validateNodeUrlForRole(effectiveRole, nextUrl);
+      if (urlErr) {
+        return new Response(JSON.stringify({ error: urlErr }), {
+          status: 400,
+          headers: { ...cors, 'Content-Type': 'application/json' },
+        });
+      }
+
       if (typeof body.node_name === 'string' && body.node_name.trim()) {
         sets.push('node_name = ?');
         binds.push(body.node_name.trim());
       }
-      if (typeof body.role === 'string' && ['light', 'mirror', 'super'].includes(body.role)) {
+      if (nextRole) {
         sets.push('role = ?');
-        binds.push(body.role);
+        binds.push(nextRole);
       }
       if (typeof body.region === 'string' && body.region.trim()) {
         sets.push('region = ?');
@@ -343,9 +374,11 @@ export async function handleNodePing(request: Request, env: Env): Promise<Respon
 export async function handleGetNodes(request: Request, env: Env): Promise<Response> {
   const cors = getCorsHeaders();
   try {
+    await migrateLegacyMirrorRoles(env);
+
     const url = new URL(request.url);
     const region = url.searchParams.get('region');
-    const role = url.searchParams.get('role');
+    const roleParam = url.searchParams.get('role');
 
     let query = `SELECT node_id, node_name, role, owner_wallet, region, version, url, last_ping, uptime_hours, pinned_cids, created_at, status FROM nodes WHERE last_ping > ?`;
     const params: unknown[] = [Date.now() - 5 * 60 * 1000];
@@ -355,9 +388,14 @@ export async function handleGetNodes(request: Request, env: Env): Promise<Respon
       params.push(region);
     }
 
-    if (role) {
-      query += ` AND role = ?`;
-      params.push(role);
+    if (roleParam) {
+      const role = parseNodeRole(roleParam);
+      if (role === 'edge') {
+        query += ` AND role IN ('edge', 'mirror')`;
+      } else if (role) {
+        query += ` AND role = ?`;
+        params.push(role);
+      }
     }
 
     query += ` ORDER BY uptime_hours DESC`;
@@ -366,6 +404,7 @@ export async function handleGetNodes(request: Request, env: Env): Promise<Respon
 
     const nodes = (result.results || []).map((node) => ({
       ...node,
+      role: normalizeNodeRole(node.role),
       pinned_cids:
         typeof node.pinned_cids === 'string' ? JSON.parse(node.pinned_cids as unknown as string) : node.pinned_cids,
     }));
@@ -397,6 +436,7 @@ export async function handleGetNode(nodeId: string, env: Env): Promise<Response>
 
     const node = {
       ...result,
+      role: normalizeNodeRole(result.role),
       pinned_cids:
         typeof result.pinned_cids === 'string'
           ? JSON.parse(result.pinned_cids as unknown as string)
@@ -441,7 +481,7 @@ export async function handleGetNodeStatus(nodeId: string, env: Env): Promise<Res
         online,
         last_ping: n.last_ping,
         uptime_hours: n.uptime_hours,
-        role: n.role,
+        role: normalizeNodeRole(n.role),
         region: n.region,
         version: n.version,
         status: n.status ?? 'active',

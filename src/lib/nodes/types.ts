@@ -3,7 +3,7 @@
  * Designed so the UI can be wired to a real node system later.
  */
 
-export type NodeType = 'light' | 'mirror' | 'super';
+export type NodeType = 'light' | 'edge' | 'super';
 
 export type NodeStatus =
   | 'connected'
@@ -22,7 +22,7 @@ export interface NodeMetrics {
   /** Uptime in hours (as reported by node registry). */
   uptimeHours: number;
   pinnedCids: number;
-  /** Mirror nodes only */
+  /** Edge nodes only */
   requestsServed?: number;
   lastPingAt?: string;
 }

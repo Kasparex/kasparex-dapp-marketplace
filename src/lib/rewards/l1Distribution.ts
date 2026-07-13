@@ -92,7 +92,7 @@ export async function getL1RewardStatus(
     if (enableNodeFirst) {
       const { nodeFirstGet } = await import('@/lib/nodes/node-first');
       const result = await nodeFirstGet<any>(`/kasparex/rewards/l1/status/${rewardId}`, {
-        roles: ['mirror', 'light'],
+        roles: ['edge', 'light'],
         maxNodeAttempts: 3,
         timeoutMs: 3200,
       });

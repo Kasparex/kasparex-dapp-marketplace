@@ -88,7 +88,7 @@ export function KrexNodeDocsGuide() {
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Environment &amp; safety</h2>
           <p className="kx-body">
             Keep <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">node_secret</code> off public repos. Rotate if
-            exposed. Use HTTPS for mirror URLs when exposing a public API.
+            exposed. Use HTTPS for edge node URLs when exposing a public API.
           </p>
         </div>
       </section>

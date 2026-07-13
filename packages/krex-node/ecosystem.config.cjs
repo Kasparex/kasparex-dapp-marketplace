@@ -2,9 +2,9 @@
 module.exports = {
   apps: [
     {
-      name: 'krex-node-mirror',
+      name: 'krex-node-edge',
       script: 'dist/cli.js',
-      args: 'mirror',
+      args: 'edge',
       cwd: __dirname,
       instances: 1,
       autorestart: true,

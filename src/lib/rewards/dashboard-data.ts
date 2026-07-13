@@ -38,12 +38,12 @@ export interface UserRewardStatus {
   krexBalance: number;
   nftStatus: NFTStatus;
   hasNode: boolean;
-  nodeType?: 'light' | 'mirror';
+  nodeType?: 'light' | 'edge';
 }
 
 const NODE_TYPES = {
   light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1 },
-  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2 },
+  edge: { name: 'Edge Node', multiplier: 5, feeReduction: 0.2 },
 };
 
 /**
@@ -153,17 +153,17 @@ export function getAllNodeRewards(): RewardItem[] {
       userStatus: undefined,
     },
     {
-      id: 'node-mirror',
+      id: 'node-edge',
       type: 'node' as const,
-      name: NODE_TYPES.mirror.name,
-      description: 'Run a Mirror Node to support the Kasparex Mesh network',
-      requirement: 'Active Mirror Node',
-      multiplier: NODE_TYPES.mirror.multiplier,
-      feeReduction: NODE_TYPES.mirror.feeReduction,
+      name: NODE_TYPES.edge.name,
+      description: 'Run an Edge Node to support the Kasparex mesh network',
+      requirement: 'Active Edge Node',
+      multiplier: NODE_TYPES.edge.multiplier,
+      feeReduction: NODE_TYPES.edge.feeReduction,
       points: undefined,
       benefits: [
-        `${NODE_TYPES.mirror.multiplier}x reward multiplier`,
-        `-${NODE_TYPES.mirror.feeReduction}% fee reduction`,
+        `${NODE_TYPES.edge.multiplier}x reward multiplier`,
+        `-${NODE_TYPES.edge.feeReduction}% fee reduction`,
         'Enhanced network support',
       ],
       isUnlocked: false,
@@ -292,8 +292,8 @@ export function getUserRewardStatus(
         if (reward.id === 'node-light') {
           isUnlocked = hasNode && nodeType === 'light';
           if (isUnlocked) userStatusText = 'Active';
-        } else if (reward.id === 'node-mirror') {
-          isUnlocked = hasNode && nodeType === 'mirror';
+        } else if (reward.id === 'node-edge') {
+          isUnlocked = hasNode && nodeType === 'edge';
           if (isUnlocked) userStatusText = 'Active';
         }
         break;

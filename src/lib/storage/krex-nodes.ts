@@ -1,9 +1,10 @@
 /**
  * Krex Node Discovery
- * 
+ *
  * Fetches Krex Node URLs from Cloudflare Workers API
  */
 
+import { normalizeNodeRole } from '@/lib/nodes/node-role';
 import { api } from '../api/client';
 
 export interface KrexNode {
@@ -11,7 +12,7 @@ export interface KrexNode {
   node_name: string;
   url: string;
   region: string;
-  role: 'light' | 'mirror' | 'super';
+  role: 'light' | 'edge' | 'super';
   uptime: number;
   pinnedCids: string[];
   verifiedTxid?: string;
@@ -39,7 +40,7 @@ function mapWorkerNodeRow(raw: Record<string, unknown>): KrexNode {
     node_name: String(raw.node_name ?? ''),
     url: String(raw.url ?? ''),
     region: String(raw.region ?? ''),
-    role: (raw.role as KrexNode['role']) || 'light',
+    role: normalizeNodeRole(String(raw.role ?? 'light')),
     uptime,
     pinnedCids: Array.isArray(pinnedCids) ? pinnedCids : [],
     verifiedTxid:

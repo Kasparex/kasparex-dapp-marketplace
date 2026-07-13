@@ -43,7 +43,7 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
           <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
             <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
               Type
-              <FieldHint text="Serve (recommended) runs HTTP on your machine. Public HTTPS URL is a separate choice in node details." />
+              <FieldHint text="Edge (recommended) serves public HTTPS reads for other Hub users. Enroll requires a valid HTTPS URL." />
             </span>
             <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{typeLabel}</span>
           </li>

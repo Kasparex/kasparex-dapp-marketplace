@@ -1,7 +1,7 @@
 /**
  * Node-first API routing
  *
- * For read-heavy endpoints, prefer community nodes (mirror/light) first,
+ * For read-heavy endpoints, prefer community edge/light nodes first,
  * then fall back to the central Kasparex API.
  *
  * This keeps user UX fast while pushing bandwidth/compute to the node network.
@@ -17,7 +17,7 @@ export function nodeFirstReadsEnabled(): boolean {
   return process.env.NEXT_PUBLIC_NODE_FIRST_READS !== 'false';
 }
 
-/** Skip localhost mirror URLs when the Hub is not on the same machine. */
+/** Skip non-public edge URLs when the Hub is not on the same machine. */
 export function isNodeReachableFromBrowser(nodeUrl: string): boolean {
   try {
     const u = new URL(nodeUrl);
@@ -35,7 +35,7 @@ export type NodeFirstMode = 'node_first' | 'central_only';
 
 export interface NodeFirstGetOptions {
   mode?: NodeFirstMode;
-  /** Prefer these roles in order. Defaults to mirror->light. */
+  /** Prefer these roles in order. Defaults to edge->light. */
   roles?: KrexNode['role'][];
   /** Optional region hint (e.g. 'eu', 'na'). */
   region?: string;
@@ -55,7 +55,7 @@ function scoreNode(node: KrexNode, opts: { region?: string; rolePriority: KrexNo
 }
 
 async function getCandidateNodes(opts: NodeFirstGetOptions): Promise<KrexNode[]> {
-  const roles = opts.roles?.length ? opts.roles : (['mirror', 'light'] as KrexNode['role'][]);
+  const roles = opts.roles?.length ? opts.roles : (['edge', 'light'] as KrexNode['role'][]);
   const region = opts.region;
 
   // Single registry fetch when no role filter; filter/sort client-side.
@@ -109,7 +109,7 @@ export async function nodeFirstGet<T>(
 export type NodeFirstProxyKind = 'kasplex' | 'krc721';
 
 /**
- * GET a read proxy path (`/proxy/kasplex?endpoint=...`) from mirror nodes first,
+ * GET a read proxy path (`/proxy/kasplex?endpoint=...`) from edge nodes first,
  * then fall back to the central Worker or Next `/api` proxy.
  */
 export async function nodeFirstProxyFetch(

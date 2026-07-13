@@ -124,7 +124,7 @@ async function handleRequest(cfg: KrexNodeConfig, req: IncomingMessage, res: Ser
   }
 
   if (method !== 'GET') {
-    writeJson(res, 405, { error: 'Method not allowed. Mirror nodes are read-only.' });
+    writeJson(res, 405, { error: 'Method not allowed. Edge nodes are read-only.' });
     return;
   }
 
@@ -137,9 +137,9 @@ async function handleRequest(cfg: KrexNodeConfig, req: IncomingMessage, res: Ser
     const pinStats = await pinStoreStats(pinCacheDir(cfg));
     writeJson(res, 200, {
       status: 'ok',
-      service: 'Krex Node Mirror',
+      service: 'Krex Node Edge',
       nodeId: cfg.nodeId,
-      role: cfg.role ?? 'mirror',
+      role: cfg.role ?? 'edge',
       version: cfg.version,
       requestsServedTotal: getRequestsServedTotal(),
       cacheEntries: cache.size,
@@ -207,7 +207,7 @@ async function handleRequest(cfg: KrexNodeConfig, req: IncomingMessage, res: Ser
   }
 }
 
-export function startMirrorServer(cfg: KrexNodeConfig): Promise<{ close: () => Promise<void> }> {
+export function startEdgeServer(cfg: KrexNodeConfig): Promise<{ close: () => Promise<void> }> {
   initMetrics(cfg.requestsServedTotal ?? 0);
 
   const host = cfg.serveHost?.trim() || '0.0.0.0';
@@ -216,7 +216,7 @@ export function startMirrorServer(cfg: KrexNodeConfig): Promise<{ close: () => P
   const server = createServer((req, res) => {
     handleRequest(cfg, req, res).catch((error) => {
       writeJson(res, 500, {
-        error: 'Internal mirror error',
+        error: 'Internal edge error',
         details: error instanceof Error ? error.message : 'Unknown error',
       });
     });
@@ -225,7 +225,7 @@ export function startMirrorServer(cfg: KrexNodeConfig): Promise<{ close: () => P
   return new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(port, host, () => {
-      console.log(`[krex-node] mirror listening on http://${host}:${port}`);
+      console.log(`[krex-node] edge listening on http://${host}:${port}`);
       console.log(`[krex-node] pass-through upstream: ${cfg.apiBaseUrl.replace(/\/+$/, '')}`);
       resolve({
         close: () =>

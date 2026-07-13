@@ -16,7 +16,8 @@
     "status": "node dist/cli.js status",
     "once": "node dist/cli.js once",
     "serve": "node dist/cli.js serve",
-    "mirror": "node dist/cli.js mirror"
+    "edge": "node dist/cli.js edge",
+    "mirror": "node dist/cli.js edge"
   },
   "files": [
     "dist",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { loadConfig } from './config.js';
 import { fetchNodeStatus, fetchRuntimeConfig, sendPing } from './ping.js';
-import { startMirrorServer } from './serve.js';
+import { startEdgeServer } from './serve.js';
 import { getActivePinnedCids, pinCacheDir, startPinSyncLoop, syncPinCatalog } from './pin-sync.js';
 import { getPinStore } from './ipfs-pin.js';
 
@@ -29,12 +29,12 @@ async function main() {
 Commands:
   once        Send a single signed ping
   heartbeat   Loop: ping every heartbeatIntervalSec (from config)
-  light       Heartbeat + IPFS pin sync (no mirror HTTP)
+  light       Heartbeat + IPFS pin sync (no edge HTTP)
   pin-sync    One-shot warm of pin catalog to local cache
   pin-status  List locally warmed CIDs
   status      GET runtime-config + node status JSON
-  serve       Read-only mirror HTTP (no heartbeat)
-  mirror      Mirror HTTP + heartbeat + pin sync (recommended for mirror role)
+  serve       Read-only edge HTTP only (no heartbeat)
+  edge        Edge HTTP + heartbeat + pin sync (recommended for edge role)
 `);
     process.exit(0);
   }
@@ -84,12 +84,15 @@ Commands:
   }
 
   if (cmd === 'serve') {
-    await startMirrorServer(cfg);
+    await startEdgeServer(cfg);
     return;
   }
 
-  if (cmd === 'mirror') {
-    await startMirrorServer(cfg);
+  if (cmd === 'edge' || cmd === 'mirror') {
+    if (cmd === 'mirror') {
+      console.warn('[krex-node] command "mirror" is deprecated; use "edge"');
+    }
+    await startEdgeServer(cfg);
     await runHeartbeatLoop(cfg);
     return;
   }

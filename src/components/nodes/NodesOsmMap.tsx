@@ -18,7 +18,7 @@ export type OsmRegionMarker = {
   /** Explicit WGS84 - avoids tuple [lat,lng] ambiguity with some Leaflet typings. */
   position: { lat: number; lng: number };
   total: number;
-  mirror: number;
+  edge: number;
   light: number;
   super: number;
 };
@@ -76,7 +76,7 @@ export function NodesOsmMap(props: { markers: OsmRegionMarker[]; mapTheme: 'ligh
                 <Popup className="k-nodes-map-popup" closeButton>
                   <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{m.label}</div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                    {m.total} total (mirror {m.mirror}, light {m.light}, super {m.super})
+                    {m.total} total (edge {m.edge}, light {m.light}, super {m.super})
                   </div>
                 </Popup>
               </CircleMarker>

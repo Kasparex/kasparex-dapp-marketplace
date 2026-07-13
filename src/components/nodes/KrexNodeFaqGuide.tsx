@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { NODES_DASH_CARD } from './nodesTabLayout';
 import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
+import { dailyPtsLabel, enrollPtsLabel } from '@/lib/nodes/node-role';
 
 const FAQ = [
   {
@@ -11,8 +12,8 @@ const FAQ = [
     a: (
       <>
         A small program on <strong>your</strong> computer or VPS. It is <strong>not</strong> a Kaspa BlockDAG full node. It
-        sends &quot;I am online&quot; pings to Kasparex, can store Hub files locally, and (mirror role) can serve public
-        read-only web pages.
+        sends &quot;I am online&quot; pings to Kasparex, can store Hub files locally, and (Edge role) serves a public HTTPS read API
+        for other Hub users.
       </>
     ),
   },
@@ -36,24 +37,21 @@ const FAQ = [
     q: 'Do I need a domain name?',
     a: (
       <>
-        <strong>No</strong> to enroll, earn points, and run on your PC (<code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">localhost:8788</code> is fine).
+        <strong>Light:</strong> no public URL required.
         <br />
-        <strong>Yes</strong> only if you want to be a <strong>public helper</strong> so other Hub users&apos; browsers can use your mirror (HTTPS URL).
+        <strong>Edge / Super:</strong> yes. Enrollment requires a <strong>public HTTPS URL</strong> (domain + tunnel or VPS).
+        Test on <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">localhost:8788</code> first, then enroll with your HTTPS address.
       </>
     ),
   },
   {
-    id: 'serve-vs-public',
-    q: 'Is a Serve node the same as a public URL?',
+    id: 'local-vs-enroll',
+    q: 'Can I test locally before enrolling?',
     a: (
       <>
-        <strong>No. Two separate choices.</strong>
-        <br />
-        <strong>Serve node</strong> (role <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">mirror</code> in config) = your software runs a small web server (often on{' '}
-        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">localhost:8788</code>).
-        <br />
-        <strong>Public URL</strong> = the HTTPS address you register so <em>other people&apos;s browsers</em> can reach that server.
-        You can be a Serve node locally without a public URL. You become a public helper only when you add HTTPS.
+        <strong>Yes.</strong> Run <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">npm run edge</code> and hit{' '}
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">http://localhost:8788/health</code> on your machine only.
+        Do <strong>not</strong> register localhost in the Hub. Enroll only after your Cloudflare Tunnel or VPS exposes HTTPS.
       </>
     ),
   },
@@ -62,9 +60,8 @@ const FAQ = [
     q: 'What is a &quot;public helper&quot;?',
     a: (
       <>
-        When your node has a <strong>public HTTPS address</strong>, the Kasparex website can send some <strong>read-only</strong>{' '}
-        requests to you (wallet deck, token lookups, cached images, etc.) instead of always hitting the central server.
-        You help <strong>visitors browsing Kasparex</strong>. You do <strong>not</strong> run other people&apos;s nodes for them.
+        An enrolled <strong>Edge</strong> or <strong>Super</strong> node with a public HTTPS URL. The Kasparex website can send some{' '}
+        <strong>read-only</strong> requests to you (wallet deck, token lookups, cached images, etc.) instead of always hitting the central server.
       </>
     ),
   },
@@ -73,8 +70,7 @@ const FAQ = [
     q: 'Can many operators share one public URL?',
     a: (
       <>
-        <strong>No.</strong> Each operator enrolls their own wallet, runs their own software, and registers their own URL (or localhost).
-        One person&apos;s public URL is only their machine.
+        <strong>No.</strong> Each operator enrolls their own wallet, runs their own software, and registers their own HTTPS URL.
       </>
     ),
   },
@@ -83,33 +79,16 @@ const FAQ = [
     q: 'If my public node goes offline, does it break Kasparex?',
     a: (
       <>
-        <strong>No.</strong> The Hub tries other operator mirrors, then falls back to the central API. Your node going offline only
-        means you stop helping until you are back. Other operators and the main site keep working.
+        <strong>No.</strong> The Hub tries other operator edge nodes, then falls back to the central API.
       </>
     ),
   },
   {
     id: 'more-nodes',
-    q: 'Are more public nodes better?',
+    q: 'Are more public edge nodes better?',
     a: (
       <>
-        <strong>Yes.</strong> More healthy public mirrors spread read traffic, reduce load on central servers, and add backup paths.
-        One local-only node helps you learn and earn operator points; many public nodes help <strong>everyone&apos;s</strong> experience and costs.
-      </>
-    ),
-  },
-  {
-    id: 'local-benefit',
-    q: 'Does running locally (no public URL) help Kasparex?',
-    a: (
-      <>
-        <strong>A little, not much.</strong> Local nodes still ping the registry, can warm pin files, and prove the operator network is
-        growing. They do <strong>not</strong> offload website traffic for other users (browsers cannot reach your localhost).
-        <br />
-        <br />
-        <strong>Today:</strong> local operators still earn Hub Points (enroll bonus + qualified online days) to encourage people to start.
-        <br />
-        <strong>Future policy may change:</strong> we may reward <strong>public mirrors</strong> more than localhost-only, because they are the real infrastructure helpers. Public URL would not be required to participate, but would earn the full &quot;helper&quot; tier.
+        <strong>Yes.</strong> More healthy edge nodes spread read traffic, reduce load on central servers, and add backup paths.
       </>
     ),
   },
@@ -120,8 +99,7 @@ const FAQ = [
       <>
         <strong>Using the website</strong> = normal visitor (wallet, dApps, Rewards).
         <br />
-        <strong>Running a node</strong> = operator job on your PC (separate program, Enroll tab, config.json). Another person setting up
-        their node does <strong>not</strong> use your URL; they run their own copy of the software.
+        <strong>Running a node</strong> = operator job on your PC or VPS (separate program, Enroll tab, config.json).
       </>
     ),
   },
@@ -130,8 +108,13 @@ const FAQ = [
     q: 'What do operators earn?',
     a: (
       <>
-        <strong>Hub Points</strong> on your enrolled Kaspa wallet: +1,000 on enroll, +250 base per qualified online day (× KREX tier).
-        Redeem on the Rewards catalog. No GRID or fee discounts on the Nodes dashboard today.
+        <strong>Hub Points</strong> on your enrolled Kaspa wallet (× KREX tier on daily credits).
+        <br />
+        Enroll: {enrollPtsLabel()}.
+        <br />
+        Daily qualified online day: {dailyPtsLabel()} base each.
+        <br />
+        Redeem on the Rewards catalog.
       </>
     ),
   },
@@ -140,9 +123,7 @@ const FAQ = [
     q: 'Will operator NFTs / gamification exist?',
     a: (
       <>
-        <strong>Not live today.</strong> A future idea: connect a KRC721 &quot;operator badge&quot; NFT on the Nodes page for cosmetic flair
-        and a <strong>small, capped</strong> bonus (e.g. extra multiplier or daily cap). Would require on-chain ownership checks and
-        careful limits so it stays fair and cheap to run. Sensible as a later phase, not required to operate a node.
+        <strong>Not live today.</strong> Possible later as cosmetic flair with strict caps. Not required to operate a node.
       </>
     ),
   },
@@ -157,8 +138,7 @@ const FAQ = [
     a: (
       <>
         Keep <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">hmacSecret</code> in{' '}
-        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">config.json</code> only (never git). It proves heartbeats
-        from your machine. Rotate in the Hub if leaked. The node never holds your wallet private keys.
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">config.json</code> only (never git). Rotate in the Hub if leaked.
       </>
     ),
   },
@@ -170,7 +150,7 @@ export function KrexNodeFaqGuide() {
       <div className={NODES_DASH_CARD}>
         <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Frequently asked questions</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-          Plain answers about running a node, domains, helping others, and rewards. Also on the{' '}
+          Plain answers about Light, Edge, and Super nodes, HTTPS enrollment, and rewards. Also on the{' '}
           <Link href="/knowledge-base/krex-node-faq" className="text-cyan-700 dark:text-cyan-300 font-semibold hover:underline">
             Knowledge Base
           </Link>

@@ -3,7 +3,7 @@
   "nodeId": "replace-with-node-id",
   "hmacSecret": "replace-with-secret-from-enroll",
   "nodeName": "My Krex Node",
-  "role": "mirror",
+  "role": "edge",
   "region": "eu-central",
   "url": "https://your-public-host.example.com",
   "heartbeatIntervalSec": 60,

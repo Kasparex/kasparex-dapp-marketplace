@@ -1,7 +1,7 @@
 {
   "roleMultipliers": {
     "light": 4,
-    "mirror": 5,
+    "edge": 5,
     "super": 6
   },
   "underservedRegions": ["africa", "south-america", "southeast-asia"],
@@ -9,7 +9,7 @@
   "regionMultiplierDefault": 1.0,
   "feeReductionPercent": {
     "light": 0.1,
-    "mirror": 0.2,
+    "edge": 0.2,
     "super": 0.2
   },
   "settlement": {
@@ -21,7 +21,15 @@
     "minUptimeHoursForEpoch": 12,
     "capPerNodePerEpoch": 50000,
     "globalEpochBudget": 10000000,
-    "ptsPerQualifiedEpoch": 250,
-    "ptsOnEnrollment": 1000
+    "ptsOnEnrollmentByRole": {
+      "light": 500,
+      "edge": 700,
+      "super": 1000
+    },
+    "ptsPerQualifiedEpochByRole": {
+      "light": 100,
+      "edge": 250,
+      "super": 500
+    }
   }
 }

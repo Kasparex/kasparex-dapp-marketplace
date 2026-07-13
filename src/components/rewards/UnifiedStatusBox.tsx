@@ -30,7 +30,7 @@ const mockNodeStatus = {
 
 const NODE_TYPES = {
   light: { name: 'Light Node', multiplier: 4, feeReduction: 0.1, costReduction: LIGHT_NODE_COST_REDUCTION },
-  mirror: { name: 'Mirror Node', multiplier: 5, feeReduction: 0.2, costReduction: MIRROR_NODE_COST_REDUCTION },
+  edge: { name: 'Edge Node', multiplier: 5, feeReduction: 0.2, costReduction: MIRROR_NODE_COST_REDUCTION },
 };
 
 export function UnifiedStatusBox() {

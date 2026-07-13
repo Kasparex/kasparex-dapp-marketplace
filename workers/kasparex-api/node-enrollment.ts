@@ -7,6 +7,14 @@ import { getCorsHeaders } from '../middleware';
 import tiers from '../config/node-reward-tiers.json';
 import { randomHex, signJwtHs256, verifyJwtHs256 } from './node-crypto';
 import { applyPtsDelta, normalizePtsWallet } from './pts-ledger';
+import {
+  enrollmentPtsForRole,
+  migrateLegacyMirrorRoles,
+  normalizeNodeRole,
+  parseNodeRole,
+  validateNodeUrlForRole,
+  type KrexNodeRole,
+} from './node-role';
 import { verifySignature } from '@kluster/kaspa-signature';
 import { KaspaAddress } from '@kluster/kaspa-address';
 
@@ -109,7 +117,7 @@ export async function handleNodeVerifyWallet(request: Request, env: Env): Promis
 type EnrollBody = {
   enrollmentToken?: string;
   node_name?: string;
-  role?: 'light' | 'mirror' | 'super';
+  role?: KrexNodeRole | 'mirror';
   url?: string;
   region?: string;
   version?: string;
@@ -119,7 +127,7 @@ type UpdateBody = {
   enrollmentToken?: string;
   node_id?: string;
   node_name?: string;
-  role?: 'light' | 'mirror' | 'super';
+  role?: KrexNodeRole | 'mirror';
   url?: string;
   region?: string;
   version?: string;
@@ -171,14 +179,25 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       walletVerification = { verified_txid: 'wallet-bound', verified_at: now };
     }
 
-    if (!body.node_name || !body.role || !body.url) {
-      return new Response(JSON.stringify({ error: 'Missing node_name, role, or url' }), {
+    await migrateLegacyMirrorRoles(env);
+
+    if (!body.node_name || !body.role) {
+      return new Response(JSON.stringify({ error: 'Missing node_name or role' }), {
         status: 400,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
-    if (!['light', 'mirror', 'super'].includes(body.role)) {
-      return new Response(JSON.stringify({ error: 'Invalid role' }), {
+    const role = parseNodeRole(body.role);
+    if (!role) {
+      return new Response(JSON.stringify({ error: 'Invalid role. Must be light, edge, or super' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const url = body.url?.trim() ?? '';
+    const urlErr = validateNodeUrlForRole(role, url);
+    if (urlErr) {
+      return new Response(JSON.stringify({ error: urlErr }), {
         status: 400,
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
@@ -201,11 +220,11 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       .bind(
         nodeId,
         body.node_name,
-        body.role,
+        role,
         wallet,
         region,
         version,
-        body.url.trim(),
+        url,
         0,
         pinned,
         now,
@@ -216,10 +235,7 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
 
     await env.KASPAREX_CACHE.put(`node:hmac:${nodeId}`, nodeSecret, { expirationTtl: 60 * 60 * 24 * 365 * 5 });
 
-    const enrollPts = Math.max(
-      0,
-      Math.floor(Number((tiers.settlement as { ptsOnEnrollment?: number }).ptsOnEnrollment ?? 1000))
-    );
+    const enrollPts = enrollmentPtsForRole(role, tiers);
     if (enrollPts > 0) {
       try {
         await applyPtsDelta(env.REWARDS_DB, {
@@ -228,7 +244,7 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
           kind: 'credit',
           source: 'node_enroll',
           idempotency_key: `node_enroll:${nodeId}`,
-          meta: { node_id: nodeId },
+          meta: { node_id: nodeId, role },
         });
       } catch (pe) {
         console.warn('[node-enroll] pts credit failed', nodeId, pe);
@@ -284,9 +300,9 @@ export async function handleNodeUpdateDetails(request: Request, env: Env): Promi
     }
     const wallet = pl.wallet as string;
 
-    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet, verified_txid FROM nodes WHERE node_id = ?`)
+    const existing = await env.NODES_DB.prepare(`SELECT owner_wallet, verified_txid, role, url FROM nodes WHERE node_id = ?`)
       .bind(nodeId)
-      .first<{ owner_wallet: string; verified_txid: string | null }>();
+      .first<{ owner_wallet: string; verified_txid: string | null; role: string; url: string }>();
     if (!existing) {
       return new Response(JSON.stringify({ error: 'Node not found' }), {
         status: 404,
@@ -306,6 +322,22 @@ export async function handleNodeUpdateDetails(request: Request, env: Env): Promi
       });
     }
 
+    const nextRole = body.role ? parseNodeRole(body.role) : normalizeNodeRole(existing.role);
+    if (body.role && !nextRole) {
+      return new Response(JSON.stringify({ error: 'Invalid role. Must be light, edge, or super' }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const nextUrl = typeof body.url === 'string' && body.url.trim() ? body.url.trim() : existing.url;
+    const urlErr = validateNodeUrlForRole(nextRole ?? 'light', nextUrl);
+    if (urlErr) {
+      return new Response(JSON.stringify({ error: urlErr }), {
+        status: 400,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
     const sets: string[] = [];
     const binds: unknown[] = [];
 
@@ -313,9 +345,9 @@ export async function handleNodeUpdateDetails(request: Request, env: Env): Promi
       sets.push('node_name = ?');
       binds.push(body.node_name.trim());
     }
-    if (typeof body.role === 'string' && ['light', 'mirror', 'super'].includes(body.role)) {
+    if (typeof body.role === 'string' && nextRole) {
       sets.push('role = ?');
-      binds.push(body.role);
+      binds.push(nextRole);
     }
     if (typeof body.region === 'string' && body.region.trim()) {
       sets.push('region = ?');

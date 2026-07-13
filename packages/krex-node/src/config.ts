@@ -7,7 +7,7 @@ export type KrexNodeConfig = {
   hmacSecret: string;
   heartbeatIntervalSec: number;
   nodeName?: string;
-  role?: 'light' | 'mirror' | 'super';
+  role?: 'light' | 'edge' | 'super' | 'mirror';
   region?: string;
   url?: string;
   version: string;
@@ -21,9 +21,9 @@ export type KrexNodeConfig = {
   autoPinFromRuntime?: boolean;
   /** Max CIDs to keep warmed locally (default 32). */
   maxPins?: number;
-  /** Mirror HTTP listen host (default 0.0.0.0). */
+  /** Edge HTTP listen host (default 0.0.0.0). */
   serveHost?: string;
-  /** Mirror HTTP listen port (default 8788). */
+  /** Edge HTTP listen port (default 8788). */
   servePort?: number;
 };
 
@@ -35,7 +35,8 @@ export function loadConfig(path = 'config.json'): KrexNodeConfig {
   if (!c.nodeId?.trim()) throw new Error('nodeId required');
   if (!c.hmacSecret?.trim()) throw new Error('hmacSecret required');
   c.heartbeatIntervalSec = Math.max(45, Math.min(180, Number(c.heartbeatIntervalSec) || 60));
-  if (c.role && !['light', 'mirror', 'super'].includes(c.role)) throw new Error('role must be light|mirror|super');
+  if (c.role === 'mirror') c.role = 'edge';
+  if (c.role && !['light', 'edge', 'super'].includes(c.role)) throw new Error('role must be light|edge|super');
   c.version = c.version || '1.0.0';
   return c;
 }

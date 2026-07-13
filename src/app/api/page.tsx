@@ -309,7 +309,7 @@ export default function KasparexAPIPage() {
                     <pre className="text-xs text-zinc-900 dark:text-zinc-100 overflow-x-auto">
 {`{
   "nodesOnline": 17,
-  "mirrorNodes": 4,
+  "edgeNodes": 4,
   "lightNodes": 13,
   "totalPinnedCids": 22000,
   "networkHealth": "good"

@@ -35,11 +35,11 @@ type HealthResponse = {
 };
 
 type StatsResponse = {
-  totalNodes?: number;
-  lightNodes?: number;
-  mirrorNodes?: number;
-  superNodes?: number;
-  totalUptimeHours?: number;
+  total_nodes?: number;
+  light_nodes?: number;
+  edge_nodes?: number;
+  super_nodes?: number;
+  total_uptime_hours?: number;
 };
 
 function ms(n: number | null | undefined) {
@@ -57,7 +57,7 @@ export function NodeFirstDiagnosticsPanel() {
       const { nodeFirstGet } = await import('@/lib/nodes/node-first');
       const nodeRes = enabled
         ? await nodeFirstGet<HealthResponse>('/health', {
-            roles: ['mirror', 'light'] as KrexNode['role'][],
+            roles: ['edge', 'light'] as KrexNode['role'][],
             maxNodeAttempts: 2,
             timeoutMs: 2000,
           })
@@ -67,7 +67,7 @@ export function NodeFirstDiagnosticsPanel() {
       const startedStats = performance.now();
       const nodeStats = enabled
         ? await nodeFirstGet<StatsResponse>('/kasparex/stats', {
-            roles: ['mirror', 'light'] as KrexNode['role'][],
+            roles: ['edge', 'light'] as KrexNode['role'][],
             maxNodeAttempts: 2,
             timeoutMs: 2200,
           })
@@ -212,8 +212,8 @@ export function NodeFirstDiagnosticsPanel() {
                   <KVRow label="Node">{data.nodeStats.nodeUrl ?? '-'}</KVRow>
                   <KVRow label="Latency">{ms(data.nodeStats.elapsedMs)}</KVRow>
                   <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                    Nodes: {data.nodeStats.payload?.totalNodes ?? '-'} (mirror {data.nodeStats.payload?.mirrorNodes ?? '-'}, light{' '}
-                    {data.nodeStats.payload?.lightNodes ?? '-'})
+                    Nodes: {data.nodeStats.payload?.total_nodes ?? '-'} (edge {data.nodeStats.payload?.edge_nodes ?? '-'}, light{' '}
+                    {data.nodeStats.payload?.light_nodes ?? '-'})
                   </div>
                 </div>
               ) : (
@@ -230,8 +230,8 @@ export function NodeFirstDiagnosticsPanel() {
               <div className="space-y-2">
                 <KVRow label="Latency">{ms(data.centralStats.elapsedMs)}</KVRow>
                 <div className="pt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                  Nodes: {data.centralStats.payload?.totalNodes ?? '-'} (mirror {data.centralStats.payload?.mirrorNodes ?? '-'}, light{' '}
-                  {data.centralStats.payload?.lightNodes ?? '-'})
+                  Nodes: {data.centralStats.payload?.total_nodes ?? '-'} (edge {data.centralStats.payload?.edge_nodes ?? '-'}, light{' '}
+                  {data.centralStats.payload?.light_nodes ?? '-'})
                 </div>
               </div>
             </div>

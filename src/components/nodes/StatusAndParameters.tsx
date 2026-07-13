@@ -66,7 +66,7 @@ export function StatusAndParameters({ nodeInfo, metrics }: StatusAndParametersPr
             <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
               <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
                 Requests served
-                <FieldHint text="Total requests served (reported by node; typically available for mirror nodes)." />
+                <FieldHint text="Total requests served (reported by node; typically available for edge nodes)." />
               </span>
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{metrics.requestsServed}</span>
             </li>

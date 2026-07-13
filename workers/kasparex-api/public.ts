@@ -21,12 +21,14 @@ export async function handleGetStats(env: Env): Promise<Response> {
     const totalNodes = totalNodesResult?.count || 0;
 
     // Get nodes by role
+    await migrateLegacyMirrorRoles(env);
+
     const lightNodesResult = await env.NODES_DB.prepare(
       `SELECT COUNT(*) as count FROM nodes WHERE role = 'light' AND last_ping > ?`
     ).bind(Date.now() - (5 * 60 * 1000)).first<{ count: number }>();
 
-    const mirrorNodesResult = await env.NODES_DB.prepare(
-      `SELECT COUNT(*) as count FROM nodes WHERE role = 'mirror' AND last_ping > ?`
+    const edgeNodesResult = await env.NODES_DB.prepare(
+      `SELECT COUNT(*) as count FROM nodes WHERE role IN ('edge', 'mirror') AND last_ping > ?`
     ).bind(Date.now() - (5 * 60 * 1000)).first<{ count: number }>();
 
     const superNodesResult = await env.NODES_DB.prepare(
@@ -48,7 +50,7 @@ export async function handleGetStats(env: Env): Promise<Response> {
       JSON.stringify({
         total_nodes: totalNodes,
         light_nodes: lightNodesResult?.count || 0,
-        mirror_nodes: mirrorNodesResult?.count || 0,
+        edge_nodes: edgeNodesResult?.count || 0,
         super_nodes: superNodesResult?.count || 0,
         total_uptime_hours: uptimeResult?.total || 0,
         total_grid_rewards_today: rewardsResult?.total || 0,

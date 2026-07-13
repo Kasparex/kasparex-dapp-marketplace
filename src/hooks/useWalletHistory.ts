@@ -37,7 +37,7 @@ export function useWalletHistory(address: string | null, options?: { limit?: num
         cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''
       }`;
       const r = await nodeFirstGet<WalletHistoryPage>(url, {
-        roles: ['mirror', 'light'],
+        roles: ['edge', 'light'],
         maxNodeAttempts: 3,
         timeoutMs: 3500,
       });

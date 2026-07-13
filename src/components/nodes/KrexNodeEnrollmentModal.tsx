@@ -8,6 +8,12 @@ import { signKaspaMessage } from '@/lib/kaspa/wallet';
 import { getWalletProvider } from '@/lib/kaspa/wallet';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { refreshServerHubBalance } from '@/lib/rewards/serverHubBalanceCoordinator';
+import {
+  isPublicHttpsUrl,
+  normalizeNodeRole,
+  roleRequiresPublicHttps,
+} from '@/lib/nodes/node-role';
+import type { NodeType } from '@/lib/nodes/types';
 import { NODES_DASH_CARD } from './nodesTabLayout';
 
 type ChallengeResponse = { message: string; challengeToken: string; error?: string };
@@ -106,7 +112,7 @@ function CopyRow(props: { label: string; value: string }) {
 type ExistingNode = {
   node_id: string;
   node_name: string;
-  role: 'light' | 'mirror' | 'super';
+  role: NodeType;
   url: string;
   region: string;
   version: string;
@@ -178,14 +184,18 @@ export function KrexNodeEnrollmentModal(props: {
   const [verifyTxidDraft, setVerifyTxidDraft] = useState('');
 
   const [nodeName, setNodeName] = useState(props.existingNode?.node_name || 'My Krex Node');
-  const [role, setRole] = useState<'light' | 'mirror' | 'super'>(props.existingNode?.role || 'light');
-  const [url, setUrl] = useState(props.existingNode?.url || 'https://example.invalid/krex-node');
+  const [role, setRole] = useState<NodeType>(() =>
+    normalizeNodeRole(props.existingNode?.role || 'edge'),
+  );
+  const [url, setUrl] = useState(props.existingNode?.url || 'https://edge.yourdomain.com');
   const [region, setRegion] = useState(props.existingNode?.region || 'eu-central');
   const [version, setVersion] = useState(props.existingNode?.version || '1.0.0');
   const [transferToWallet, setTransferToWallet] = useState('');
 
   const canEnroll = useMemo(() => {
-    return Boolean(nodeName.trim() && role && url.trim());
+    if (!nodeName.trim() || !role) return false;
+    if (roleRequiresPublicHttps(role)) return isPublicHttpsUrl(url);
+    return true;
   }, [nodeName, role, url]);
 
   const loadRuntimeConfig = async () => {
@@ -532,7 +542,7 @@ export function KrexNodeEnrollmentModal(props: {
         enrollmentToken,
         node_name: nodeName.trim(),
         role,
-        url: url.trim(),
+        url: roleRequiresPublicHttps(role) ? url.trim() : url.trim(),
         region: region.trim() || 'unknown',
         version: version.trim() || '1.0.0',
       });
@@ -567,7 +577,7 @@ export function KrexNodeEnrollmentModal(props: {
         node_id: props.existingNode.node_id,
         node_name: nodeName.trim(),
         role,
-        url: url.trim(),
+        url: roleRequiresPublicHttps(role) ? url.trim() : url.trim(),
         region: region.trim() || 'unknown',
         version: version.trim() || '1.0.0',
       });
@@ -841,19 +851,27 @@ export function KrexNodeEnrollmentModal(props: {
                     className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm"
                   >
                     <option value="light">Light (heartbeats + pins)</option>
-                    <option value="mirror">Serve (HTTP + pins, recommended)</option>
-                    <option value="super">Super</option>
+                    <option value="edge">Edge (public HTTPS + pins, recommended)</option>
+                    <option value="super">Super (public HTTPS, high capacity)</option>
                   </select>
                 </label>
                 <label className="space-y-1 md:col-span-2">
                   <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1.5">
-                    Node URL
-                    <FieldHint text="Where your HTTP server lives. localhost:8788 is fine for learning. Use public HTTPS only when you want other Hub users to reach your Serve node." />
+                    {roleRequiresPublicHttps(role) ? 'Public HTTPS URL' : 'Node URL (optional)'}
+                    <FieldHint
+                      text={
+                        roleRequiresPublicHttps(role)
+                          ? 'Required for Edge and Super. Test locally on localhost:8788 first, then point a Cloudflare Tunnel or VPS reverse proxy here before enrolling.'
+                          : 'Light nodes do not serve public HTTP. Leave blank or omit.'
+                      }
+                    />
                   </div>
                   <input
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm"
+                    disabled={role === 'light'}
+                    placeholder={role === 'light' ? 'Not required for Light' : 'https://edge.yourdomain.com'}
+                    className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm disabled:opacity-60"
                   />
                 </label>
                 <label className="space-y-1">

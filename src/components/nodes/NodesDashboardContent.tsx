@@ -30,7 +30,7 @@ import type { KrexNode } from '@/lib/storage/krex-nodes';
 function pickPrimaryNode(nodes: KrexNode[]): KrexNode | null {
   if (!nodes || nodes.length === 0) return null;
   const score = (n: KrexNode) => {
-    const roleScore = n.role === 'mirror' ? 30 : n.role === 'super' ? 35 : n.role === 'light' ? 20 : 10;
+    const roleScore = n.role === 'edge' ? 30 : n.role === 'super' ? 35 : n.role === 'light' ? 20 : 10;
     const uptimeScore = typeof n.uptime === 'number' ? Math.min(20, Math.max(0, n.uptime)) : 0;
     const pinnedScore = Array.isArray(n.pinnedCids) ? Math.min(10, n.pinnedCids.length / 10) : 0;
     return roleScore + uptimeScore + pinnedScore;
@@ -41,7 +41,7 @@ function pickPrimaryNode(nodes: KrexNode[]): KrexNode | null {
 function deriveNodeInfo(primary: KrexNode | null): NodeInfo {
   if (!primary) return { type: 'light', status: 'not_registered' };
   return {
-    type: primary.role === 'mirror' ? 'mirror' : primary.role === 'super' ? 'super' : 'light',
+    type: primary.role === 'edge' ? 'edge' : primary.role === 'super' ? 'super' : 'light',
     status: 'connected',
     nodeId: primary.node_id || primary.node_name || primary.url,
   };
@@ -188,7 +188,7 @@ export function NodesDashboardContent() {
       ? {
           node_id: myNode.node_id,
           node_name: myNode.node_name,
-          role: (myNode.role as 'light' | 'mirror' | 'super') || 'light',
+          role: (myNode.role as 'light' | 'edge' | 'super') || 'light',
           url: myNode.url,
           region: myNode.region,
           version: (myNode as { version?: string }).version || '1.0.0',

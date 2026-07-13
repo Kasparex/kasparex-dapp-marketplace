@@ -45,7 +45,7 @@ export function useWalletDeck() {
     enabled: Boolean(address),
     queryFn: async () => {
       const r = await nodeFirstGet<WalletDeck>(`/kasparex/wallet/deck?address=${encodeURIComponent(address!)}`, {
-        roles: ['mirror', 'light'],
+        roles: ['edge', 'light'],
         maxNodeAttempts: 3,
         timeoutMs: 3500,
       });

@@ -65,25 +65,25 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'what-are-krex-nodes',
         title: 'What are KREX Nodes?',
         content:
-          'KREX Nodes are small helper programs you run on your PC or VPS. They are NOT Kaspa BlockDAG nodes. They send signed heartbeats to Kasparex, can warm Hub IPFS files locally, and (mirror role) expose a tiny read-only HTTP server. The software is packages/krex-node in the kasparex-dapp-marketplace GitHub repo.',
+          'KREX Nodes are small helper programs you run on your PC or VPS. They are NOT Kaspa BlockDAG nodes. They send signed heartbeats to Kasparex, can warm Hub IPFS files locally, and (Edge role) expose a public HTTPS read API. Software: packages/krex-node in kasparex-dapp-marketplace.',
       },
       {
         id: 'benefits',
         title: 'Why run one?',
         content:
-          'You help Kasparex stay decentralized and resilient, earn Hub Points on your Kaspa wallet (+1,000 on enroll, +250 base per qualified online day with KREX tier multiplier), and redeem on the Rewards catalog. A public HTTPS mirror can also serve reads for other users (optional, needs a domain or tunnel).',
+          'Earn Hub Points on your Kaspa wallet: 500 Light / 700 Edge / 1,000 Super on enroll; 100 / 250 / 500 base per qualified online day (× KREX tier). Edge nodes with public HTTPS help other Hub users via node-first routing.',
       },
       {
         id: 'node-types',
         title: 'Node types',
         content:
-          'Light: heartbeats + local IPFS pin cache, no HTTP server. Serve (role mirror in config, recommended): Light + HTTP server on your machine. Public HTTPS URL is optional and separate. Super: higher capacity when enabled.',
+          'Light: heartbeats + pin cache, no public HTTP. Edge (recommended): Light + public HTTPS read API (required at enroll). Super: higher capacity when enabled.',
       },
       {
         id: 'domain',
         title: 'Do I need a domain?',
         content:
-          'No, to enroll and earn points on your own machine. Yes, only if you want other Hub users to use your mirror (public HTTPS URL). Local testing uses http://localhost:8788 in config.',
+          'Light: no domain. Edge/Super: yes, public HTTPS URL required at enrollment. Test on localhost:8788 before exposing HTTPS.',
       },
     ],
   },
@@ -99,13 +99,13 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'installation',
         title: 'Install (correct repo)',
         content:
-          'There is no separate kasparex-krex-node repo. Use packages/krex-node inside kasparex-dapp-marketplace:\n\n1. git clone https://github.com/Kasparex/kasparex-dapp-marketplace.git\n2. cd kasparex-dapp-marketplace/packages/krex-node\n3. cp config.example.json config.json\n4. Enroll on Hub /nodes and paste nodeId + hmacSecret into config.json\n5. npm install && npm run build\n6. npm run mirror (or pm2 start ecosystem.config.cjs)\n\nWindows auto-start: scripts\\pm2-boot-setup.bat (not plain pm2 startup).',
+          '1. git clone marketplace repo\n2. cd packages/krex-node\n3. npm install && npm run build\n4. npm run edge — test localhost:8788/health\n5. Expose HTTPS (tunnel or VPS)\n6. Enroll on Hub with role Edge + HTTPS URL\n7. cp config.example.json config.json — set nodeId, hmacSecret, role edge, url\n8. pm2 start ecosystem.config.cjs',
       },
       {
         id: 'configuration',
         title: 'Key config fields',
         content:
-          'apiBaseUrl: https://kasparex-api.kasparexcom.workers.dev\nnodeId + hmacSecret: from Hub enroll (never commit config.json)\nrole: mirror or light\nurl: http://localhost:8788 for local; public HTTPS when you go live\nregion: e.g. eu-central',
+          'role: light | edge | super\nurl: public HTTPS for edge/super; optional for light\nnodeId + hmacSecret: from Hub enroll',
       },
     ],
   },
@@ -115,19 +115,19 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'what-is-krex-node',
         title: 'What is a KREX Node?',
         content:
-          'A small program on your PC or VPS. Not a Kaspa BlockDAG node. It pings Kasparex when online, can cache Hub IPFS files, and (mirror role) serves read-only HTTP. Software: packages/krex-node in kasparex-dapp-marketplace (no separate kasparex-krex-node repo).',
+          'Small program on your PC or VPS. Not a Kaspa BlockDAG node. Light = heartbeats + pins. Edge = public HTTPS helper (recommended). Software: packages/krex-node in kasparex-dapp-marketplace.',
       },
       {
         id: 'domain-required',
         title: 'Do I need a domain?',
         content:
-          'No to enroll, earn points, and run locally (localhost:8788). Yes only to be a public helper: other users browsers need your HTTPS URL to reach your mirror. Domain is optional, not required from everyone.',
+          'Light: no. Edge/Super: yes (public HTTPS at enroll). Local testing on localhost does not get registered in the Hub.',
       },
       {
-        id: 'serve-vs-public-url',
-        title: 'Serve node vs public URL',
+        id: 'edge-https',
+        title: 'Edge nodes and HTTPS',
         content:
-          'Not the same. Serve node (config role mirror) means your software runs an HTTP server, often on localhost first. Public URL means an HTTPS address other users can reach. You can run Serve locally without helping strangers; you add public HTTPS when you want to be a public helper.',
+          'Edge enrollment requires a public HTTPS URL. Run npm run edge locally to learn, then add Cloudflare Tunnel or VPS HTTPS before enrolling. Light nodes do not need a public URL.',
       },
       {
         id: 'public-helper',
@@ -169,7 +169,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'rewards-summary',
         title: 'Operator rewards today',
         content:
-          'Hub Points on enrolled wallet: +1000 enroll, +250 base per qualified online day (x KREX tier). Redeem on Rewards catalog.',
+          'Hub Points: 500/700/1,000 enroll by tier; 100/250/500 base per qualified day (× KREX tier). Redeem on Rewards catalog.',
       },
       {
         id: 'operator-nft-future',
@@ -185,7 +185,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'reward-types',
         title: 'Hub Points (operators)',
         content:
-          'Operators earn server-side Hub Points bound to their enrolled Kaspa wallet. +1,000 pts once on enroll. +250 base pts per qualified UTC day (~12h+ online), multiplied by your KREX tier (1x to 4x). Redeem items on the Hub Rewards catalog.',
+          'Operators earn server-side Hub Points on enrolled wallet. Enroll: 500 Light, 700 Edge, 1,000 Super. Daily: 100/250/500 base per qualified UTC day (× KREX tier). Redeem on Rewards catalog.',
       },
       {
         id: 'reward-calculation',

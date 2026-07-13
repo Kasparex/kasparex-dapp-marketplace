@@ -31,11 +31,11 @@ Clock skew allowed by the Worker: **120 seconds** (see `verifyNodeRequestHmac`).
 - `GET /kasparex/node/runtime-config`  -  heartbeat bounds, `enrollmentEnabled`, `pinCatalog`  
 - `GET /kasparex/node/{id}/status`  -  online, uptime, epoch GRID snapshot fields  
 
-## Mirror HTTP (krex-node `serve` / `mirror`)
+## Edge HTTP (krex-node `serve` / `edge`)
 
-When `role` is `mirror`, run `npm run mirror` and expose `servePort` (default 8788) via HTTPS at the `url` registered in the Worker.
+When `role` is `edge`, run `npm run edge` and expose `servePort` (default 8788) via HTTPS at the `url` registered in the Worker. Hub enrollment for Edge/Super requires public HTTPS (not localhost).
 
-The mirror serves the same read paths the Hub uses for node-first routing:
+The edge node serves the same read paths the Hub uses for node-first routing:
 
 - `GET /health`
 - `GET /kasparex/wallet/deck?address=...`
