@@ -12,12 +12,23 @@ interface IncentivesAndEarningsProps {
   embedded?: boolean;
 }
 
+function formatPts(n: number | null | undefined): string {
+  if (n == null) return '—';
+  return Math.max(0, Math.floor(n)).toLocaleString();
+}
+
 export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEarningsProps) {
-  const gridHint =
-    incentives.gridEarned > 0
-      ? 'Sum of final GRID accrual for today (UTC date) across nodes bound to your connected wallet, from the Kasparex Worker API.'
-      : 'Connect the wallet that owns your enrolled nodes. When the Worker has epoch data, today’s GRID accrual appears here.';
-  const Outer: any = embedded ? 'div' : 'section';
+  const hubHint =
+    incentives.hubPoints != null
+      ? 'Wallet-bound Hub Points on the Kasparex server. Redeem GRID/KREX on the Rewards page. Not stored in browser cookies.'
+      : 'Connect your enrolled Kaspa wallet to load server Hub Points.';
+
+  const epochHint =
+    incentives.epochScore > 0
+      ? 'Internal uptime/activity score for today (UTC). Informational only; not a token balance. Qualified days also credit Hub Points via server cron.'
+      : 'Stays at 0 until your node qualifies for the UTC epoch (about 12h uptime in one day).';
+
+  const Outer: React.ElementType = embedded ? 'div' : 'section';
   const outerProps = embedded
     ? { id: 'incentives-earnings', className: 'w-full' }
     : { id: 'incentives-earnings', className: 'mb-6' };
@@ -26,29 +37,33 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
     <Outer {...outerProps}>
       <div className={CARD_CLASS}>
         <SectionHeader title="Earnings & incentives" />
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+          Operator rewards use <span className="font-semibold">server Hub Points</span> (wallet-bound).
+          Redeem on <span className="font-semibold">Rewards</span> when you want GRID or KREX from the pool.
+        </p>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
-              GRID earned
-              <FieldHint text={gridHint} />
+              Hub Points
+              <FieldHint text={hubHint} />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
-              {incentives.gridEarned}
+              {formatPts(incentives.hubPoints)}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
-              pts earned
-              <FieldHint text="Operator pts incentives are not enabled yet. This will become real when node rewards are turned on." />
+              Epoch score (today)
+              <FieldHint text={epochHint} />
             </p>
-            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
-              {incentives.xpEarned}
+            <p className="text-2xl font-black text-zinc-700 dark:text-zinc-300 tracking-tight">
+              {incentives.epochScore > 0 ? incentives.epochScore.toLocaleString() : '0'}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
-              Current multiplier
-              <FieldHint text="Multiplier follows the enrolled node role (Light / Mirror / Super) from the same tier config as the Worker reward engine." />
+              Role multiplier
+              <FieldHint text="Policy multiplier for your enrolled node role (light / mirror / super)." />
             </p>
             <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
               {incentives.currentMultiplier}x
@@ -56,24 +71,25 @@ export function IncentivesAndEarnings({ incentives, embedded }: IncentivesAndEar
           </div>
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
-              Fee reduction
-              <FieldHint text="Fee reduction percentages are defined per role in the Worker tier config; on-chain fee routing is optional follow-up work." />
+              Fee reduction (policy)
+              <FieldHint text="Planned operator benefit from tier config. Full on-chain fee routing is not live yet." />
             </p>
-            <p className="text-2xl font-black text-[#02abb8] dark:text-cyan-300 tracking-tight">
-              {incentives.feeReductionPercent}%
+            <p className="text-2xl font-black text-zinc-500 dark:text-zinc-400 tracking-tight">
+              {incentives.feeReductionPercent <= 1
+                ? `${(incentives.feeReductionPercent * 100).toFixed(0)}%`
+                : `${incentives.feeReductionPercent}%`}
             </p>
           </div>
         </div>
-        {incentives.krexTier && (
+        {incentives.krexTier ? (
           <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1">
+            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tracking-wide mb-1 inline-flex items-center gap-1.5">
               KREX tier
+              <FieldHint text="Your KREX holding tier across the Hub (fee discounts and Hub Points multipliers on other actions)." />
             </p>
-            <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              {incentives.krexTier}
-            </p>
+            <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">{incentives.krexTier}</p>
           </div>
-        )}
+        ) : null}
       </div>
     </Outer>
   );

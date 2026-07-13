@@ -18,11 +18,10 @@ import { NodesPremiumPanel } from './NodesPremiumPanel';
 import { NODES_DASH_CARD, NODES_TAB_STACK } from './nodesTabLayout';
 import { useKrexNodeNetwork } from '@/hooks/useKrexNodeNetwork';
 import { useKrexOperatorDashboard } from '@/hooks/useKrexOperatorDashboard';
+import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { fetchNodeEpochReward } from '@/lib/nodes/operatorApi';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
-import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { KREX_TIERS } from '@/lib/rewards/types';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
@@ -85,7 +84,7 @@ function deriveIncentives(info: NodeInfo): Incentives {
   const currentMultiplier =
     info.status === 'connected' ? multTable[role] ?? multTable.light ?? 1 : 1;
   const feeReductionPercent = info.status === 'connected' ? feeTable[role] ?? 0 : 0;
-  return { gridEarned: 0, xpEarned: 0, currentMultiplier, feeReductionPercent };
+  return { epochScore: 0, hubPoints: null, currentMultiplier, feeReductionPercent };
 }
 
 const technicalRequirements = [
@@ -137,9 +136,10 @@ export function NodesDashboardContent() {
   const searchParams = useSearchParams();
 
   const { state: kaspa } = useKaspaWallet();
-  const { balance: krexBalance } = useKREXBalance();
+  const { tier: krexTier } = useKREXBalance();
   const { data: activeNodes = [] } = useKrexNodeNetwork();
   const { data: operator } = useKrexOperatorDashboard(kaspa.isConnected ? kaspa.address : null);
+  const { serverHubBalance } = useRedeemablePointsBreakdown();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
 
   const myNode = operator?.myNodes?.[0] ?? null;
@@ -155,40 +155,12 @@ export function NodesDashboardContent() {
   const incentives: Incentives = useMemo(
     () => ({
       ...deriveIncentives(nodeInfo),
-      gridEarned: operator?.gridEarnedToday ?? 0,
+      epochScore: operator?.gridEarnedToday ?? 0,
+      hubPoints: serverHubBalance,
+      krexTier: KREX_TIERS[krexTier].label,
     }),
-    [nodeInfo, operator?.gridEarnedToday]
+    [nodeInfo, operator?.gridEarnedToday, serverHubBalance, krexTier]
   );
-
-  useEffect(() => {
-    const addr = kaspa.address?.trim();
-    if (!addr || !operator?.myNodes?.length) return;
-    const epoch = new Date().toISOString().slice(0, 10);
-    let cancelled = false;
-    void (async () => {
-      for (const n of operator.myNodes) {
-        if (cancelled) break;
-        try {
-          const r = await fetchNodeEpochReward(n.node_id, epoch);
-          const fg = Number(r.final_grid ?? 0) || 0;
-          if (fg <= 0) continue;
-          appendHubActivityEarn({
-            walletRaw: addr,
-            source: 'krex_node_operator',
-            redeemableDelta: HUB_EARN_POINTS.krexNodeOperatorDaily,
-            krexBalance,
-            idempotencyKey: `krex_node:epoch:${n.node_id}:${epoch}`,
-            meta: { final_grid: fg, node_id: n.node_id },
-          });
-        } catch {
-          /* ignore single node */
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [kaspa.address, operator?.myNodes, operator?.gridEarnedToday]);
 
   useEffect(() => {
     const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';

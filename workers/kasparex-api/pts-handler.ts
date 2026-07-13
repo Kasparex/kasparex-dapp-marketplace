@@ -30,7 +30,11 @@ export async function handlePtsRequest(request: Request, env: Env): Promise<Resp
     const w = normalizePtsWallet(wallet);
     if (!w) return json({ error: 'missing wallet' }, 400);
     const balance_pts = await getPtsBalance(env.REWARDS_DB, w);
-    return json({ wallet_norm: w, balance_pts });
+    return json(
+      { wallet_norm: w, balance_pts },
+      200,
+      { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=120' }
+    );
   }
 
   if (path === '/kasparex/pts/history' && request.method === 'GET') {

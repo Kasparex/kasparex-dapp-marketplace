@@ -12,7 +12,8 @@ export function useKrexOperatorDashboard(kaspaAddress: string | null | undefined
   return useQuery({
     queryKey: ['krex-operator-dashboard', kaspaAddress ?? ''],
     enabled: Boolean(kaspaAddress?.trim()),
-    staleTime: 20_000,
+    staleTime: 120_000,
+    refetchInterval: 120_000,
     queryFn: async () => {
       const addr = kaspaAddress!.trim();
       const deck = await fetchWalletNodes(addr);

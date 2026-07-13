@@ -4,7 +4,9 @@
 
 import type { Env } from '../index';
 import { getCorsHeaders } from '../middleware';
+import tiers from '../config/node-reward-tiers.json';
 import { randomHex, signJwtHs256, verifyJwtHs256 } from './node-crypto';
+import { applyPtsDelta, normalizePtsWallet } from './pts-ledger';
 import { verifySignature } from '@kluster/kaspa-signature';
 import { KaspaAddress } from '@kluster/kaspa-address';
 
@@ -213,6 +215,25 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
       .run();
 
     await env.KASPAREX_CACHE.put(`node:hmac:${nodeId}`, nodeSecret, { expirationTtl: 60 * 60 * 24 * 365 * 5 });
+
+    const enrollPts = Math.max(
+      0,
+      Math.floor(Number((tiers.settlement as { ptsOnEnrollment?: number }).ptsOnEnrollment ?? 200))
+    );
+    if (enrollPts > 0) {
+      try {
+        await applyPtsDelta(env.REWARDS_DB, {
+          wallet_norm: normalizePtsWallet(wallet),
+          delta_pts: enrollPts,
+          kind: 'credit',
+          source: 'node_enroll',
+          idempotency_key: `node_enroll:${nodeId}`,
+          meta: { node_id: nodeId },
+        });
+      } catch (pe) {
+        console.warn('[node-enroll] pts credit failed', nodeId, pe);
+      }
+    }
 
     return new Response(
       JSON.stringify({

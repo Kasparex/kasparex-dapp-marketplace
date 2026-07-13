@@ -20,6 +20,8 @@
     "activityLogNorm": 9.21034,
     "minUptimeHoursForEpoch": 12,
     "capPerNodePerEpoch": 50000,
-    "globalEpochBudget": 10000000
+    "globalEpochBudget": 10000000,
+    "ptsPerQualifiedEpoch": 50,
+    "ptsOnEnrollment": 200
   }
 }

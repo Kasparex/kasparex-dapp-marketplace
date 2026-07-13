@@ -26,11 +26,11 @@ export const mockNodeMetrics: NodeMetrics = {
 };
 
 export const mockIncentives: Incentives = {
-  gridEarned: 0,
-  xpEarned: 0,
+  epochScore: 0,
+  hubPoints: 0,
   currentMultiplier: 5,
   feeReductionPercent: 0.2,
-  krexTier: '1.0x',
+  krexTier: 'Tier 1',
 };
 
 /** Realistic technical requirements for running a KREX node (Light or Mirror). */
