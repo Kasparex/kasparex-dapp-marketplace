@@ -218,7 +218,7 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
 
     const enrollPts = Math.max(
       0,
-      Math.floor(Number((tiers.settlement as { ptsOnEnrollment?: number }).ptsOnEnrollment ?? 200))
+      Math.floor(Number((tiers.settlement as { ptsOnEnrollment?: number }).ptsOnEnrollment ?? 1000))
     );
     if (enrollPts > 0) {
       try {

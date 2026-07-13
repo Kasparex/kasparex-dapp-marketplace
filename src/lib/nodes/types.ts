@@ -28,12 +28,8 @@ export interface NodeMetrics {
 }
 
 export interface Incentives {
-  /** Internal epoch score (not a token payout). */
-  epochScore: number;
-  /** Wallet-bound server pts (redeem on Rewards). */
+  /** Wallet-bound server pts (redeem on Rewards catalog). */
   hubPoints: number | null;
-  currentMultiplier: number;
-  feeReductionPercent: number;
   krexTier?: string;
 }
 

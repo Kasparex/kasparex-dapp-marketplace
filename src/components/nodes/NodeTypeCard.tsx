@@ -2,36 +2,23 @@
 
 import type { NodeType } from '@/lib/nodes/types';
 import { SectionHeader } from './SectionHeader';
-import nodeRewardTiers from '@/config/node-reward-tiers.json';
-
-const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
-const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 const CARD_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
 
-const NODE_TYPE_CONFIG: Record<
-  NodeType,
-  { name: string; multiplier: number; feeReduction: number; description: string }
-> = {
+const NODE_TYPE_CONFIG: Record<NodeType, { name: string; description: string }> = {
   light: {
     name: 'Light Node',
-    multiplier: rm.light,
-    feeReduction: fr.light,
     description:
       'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
   },
   mirror: {
     name: 'Mirror Node',
-    multiplier: rm.mirror,
-    feeReduction: fr.mirror,
     description:
       'Everything Light does, plus a read-only HTTP API as fallback data source.',
   },
   super: {
     name: 'Super Node',
-    multiplier: rm.super,
-    feeReduction: fr.super,
     description: 'Highest tier helper capacity when enabled for your operator account.',
   },
 };
@@ -73,24 +60,9 @@ export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
               {config.description}
             </p>
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div>
-                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">
-                  Multiplier
-                </span>
-                <span className="ml-2 font-bold text-[#02abb8]">
-                  {config.multiplier}x
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-wider">
-                  Fee reduction
-                </span>
-                <span className="ml-2 font-bold text-zinc-900 dark:text-zinc-100">
-                  {config.feeReduction}%
-                </span>
-              </div>
-            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Earn Hub Points while online. Redeem on the Rewards catalog.
+            </p>
           </>
         ) : (
           <p className="text-sm text-zinc-500 dark:text-zinc-500">

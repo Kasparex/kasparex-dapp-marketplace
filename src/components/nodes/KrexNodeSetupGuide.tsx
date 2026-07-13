@@ -1,9 +1,5 @@
 import Link from 'next/link';
-import nodeRewardTiers from '@/config/node-reward-tiers.json';
 import { NODES_DASH_CARD } from './nodesTabLayout';
-
-const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
-const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 const SUBCARD =
   'p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50';
@@ -40,7 +36,7 @@ export function KrexNodeSetupGuide() {
             </div>
             <div className={SUBCARD}>
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Rewards</h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">Eligible operators can earn GRID and fee reductions via configured tiers.</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">Earn Hub Points on your wallet. Redeem items on the Rewards catalog.</p>
             </div>
           </div>
         </div>
@@ -58,7 +54,7 @@ export function KrexNodeSetupGuide() {
                 <li>Syncs periodically with the Kasparex API</li>
               </ul>
               <p className="mt-3 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                {rm.light}x multiplier · {fr.light}% fee reduction
+                +1,000 Hub Points on enroll · +50 per qualified online day
               </p>
             </div>
             <div className="p-5 rounded-xl border border-cyan-500/30 dark:border-cyan-500/25 bg-zinc-50 dark:bg-zinc-950/40">
@@ -74,7 +70,7 @@ export function KrexNodeSetupGuide() {
                 <li>Best for stable hosts and partners</li>
               </ul>
               <p className="mt-3 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                {rm.mirror}x multiplier · {fr.mirror}% fee reduction
+                +1,000 Hub Points on enroll · +50 per qualified online day
               </p>
             </div>
           </div>

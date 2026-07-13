@@ -26,10 +26,7 @@ export const mockNodeMetrics: NodeMetrics = {
 };
 
 export const mockIncentives: Incentives = {
-  epochScore: 0,
   hubPoints: 0,
-  currentMultiplier: 5,
-  feeReductionPercent: 0.2,
   krexTier: 'Tier 1',
 };
 

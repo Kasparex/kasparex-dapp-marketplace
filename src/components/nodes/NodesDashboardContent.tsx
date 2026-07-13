@@ -25,7 +25,6 @@ import { KREX_TIERS } from '@/lib/rewards/types';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 import type { NodeInfo, NodeMetrics, Incentives } from '@/lib/nodes/types';
 import type { KrexNode } from '@/lib/storage/krex-nodes';
-import nodeRewardTiers from '@/config/node-reward-tiers.json';
 
 function pickPrimaryNode(nodes: KrexNode[]): KrexNode | null {
   if (!nodes || nodes.length === 0) return null;
@@ -75,16 +74,6 @@ function operatorRowToKrexNode(row: {
     verifiedTxid: row.verified_txid ?? undefined,
     verifiedAt: row.verified_at ?? undefined,
   };
-}
-
-function deriveIncentives(info: NodeInfo): Incentives {
-  const role = info.type;
-  const multTable = nodeRewardTiers.roleMultipliers as Record<string, number>;
-  const feeTable = nodeRewardTiers.feeReductionPercent as Record<string, number>;
-  const currentMultiplier =
-    info.status === 'connected' ? multTable[role] ?? multTable.light ?? 1 : 1;
-  const feeReductionPercent = info.status === 'connected' ? feeTable[role] ?? 0 : 0;
-  return { epochScore: 0, hubPoints: null, currentMultiplier, feeReductionPercent };
 }
 
 const technicalRequirements = [
@@ -154,12 +143,10 @@ export function NodesDashboardContent() {
   const metrics = deriveNodeMetrics(primaryNode);
   const incentives: Incentives = useMemo(
     () => ({
-      ...deriveIncentives(nodeInfo),
-      epochScore: operator?.gridEarnedToday ?? 0,
       hubPoints: serverHubBalance,
       krexTier: KREX_TIERS[krexTier].label,
     }),
-    [nodeInfo, operator?.gridEarnedToday, serverHubBalance, krexTier]
+    [serverHubBalance, krexTier]
   );
 
   useEffect(() => {

@@ -22,6 +22,6 @@
     "capPerNodePerEpoch": 50000,
     "globalEpochBudget": 10000000,
     "ptsPerQualifiedEpoch": 50,
-    "ptsOnEnrollment": 200
+    "ptsOnEnrollment": 1000
   }
 }

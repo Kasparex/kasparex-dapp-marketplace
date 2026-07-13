@@ -1,27 +1,19 @@
 'use client';
 
 import { SectionHeader } from './SectionHeader';
-import nodeRewardTiers from '@/config/node-reward-tiers.json';
 
 const CARD_CLASS = 'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
-
-const rm = nodeRewardTiers.roleMultipliers as Record<string, number>;
-const fr = nodeRewardTiers.feeReductionPercent as Record<string, number>;
 
 const LIGHT_NODE = {
   name: 'Light Node',
   description:
     'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
-  multiplier: `${rm.light}x`,
-  feeReduction: `${fr.light}%`,
   features: ['Pins CIDs', 'Caches metadata', 'Syncs with API', 'Low resource use'],
 };
 
 const MIRROR_NODE = {
   name: 'Mirror Node',
   description: 'Everything Light Node does, plus exposes a read-only HTTP API that can serve as a fallback data source. Ideal for power users and partners.',
-  multiplier: `${rm.mirror}x`,
-  feeReduction: `${fr.mirror}%`,
   features: ['All Light features', 'Read-only HTTP API', 'Fallback data source', 'Request serving'],
   recommended: true,
 };
@@ -59,10 +51,9 @@ export function NodeTypesInfoCards() {
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 text-sm">
-            <span><span className="text-zinc-500 dark:text-zinc-500">Multiplier</span> <strong className="text-cyan-600 dark:text-cyan-400">{LIGHT_NODE.multiplier}</strong></span>
-            <span><span className="text-zinc-500 dark:text-zinc-500">Fee reduction</span> <strong className="text-zinc-900 dark:text-zinc-100">{LIGHT_NODE.feeReduction}</strong></span>
-          </div>
+          <p className="pt-3 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+            Earn Hub Points while online · redeem on Rewards
+          </p>
         </div>
         <div className={`${CARD_CLASS} border-cyan-500/50`}>
           <PlaceholderMedia />
@@ -83,10 +74,9 @@ export function NodeTypesInfoCards() {
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 text-sm">
-            <span><span className="text-zinc-500 dark:text-zinc-500">Multiplier</span> <strong className="text-cyan-600 dark:text-cyan-400">{MIRROR_NODE.multiplier}</strong></span>
-            <span><span className="text-zinc-500 dark:text-zinc-500">Fee reduction</span> <strong className="text-zinc-900 dark:text-zinc-100">{MIRROR_NODE.feeReduction}</strong></span>
-          </div>
+          <p className="pt-3 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+            Earn Hub Points while online · redeem on Rewards
+          </p>
         </div>
       </div>
     </section>

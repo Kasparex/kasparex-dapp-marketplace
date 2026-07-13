@@ -3,7 +3,7 @@
  * useRedeemablePointsBreakdown() consumer does not spawn its own interval.
  */
 
-const POLL_MS = 60_000;
+const POLL_MS = 300_000;
 
 type Listener = () => void;
 

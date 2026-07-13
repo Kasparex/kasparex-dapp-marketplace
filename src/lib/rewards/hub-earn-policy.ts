@@ -19,7 +19,7 @@ export const HUB_EARN_POINTS = {
   magazineIssuePublish: 130,
   dappL1Interaction: 25,
   krexNodeOperatorDaily: 15,
-  krexNodeEnrollmentOnce: 200,
+  krexNodeEnrollmentOnce: 1000,
   chroniclesArticleCreate: 50,
   chroniclesQuizComplete: 25,
   tokenListingCreate: 100,
