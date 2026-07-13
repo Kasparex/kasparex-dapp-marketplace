@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { NODES_DASH_CARD } from './nodesTabLayout';
+import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
 
 const LINK_CLASS = 'text-cyan-700 dark:text-cyan-300 font-semibold hover:underline';
 
@@ -39,13 +40,14 @@ export function KrexNodeDocsGuide() {
             </li>
             <li>
               <a
-                href="https://github.com/Kasparex/kasparex-krex-node"
+                href={KREX_NODE_PACKAGE_GITHUB}
                 className={LINK_CLASS}
                 target="_blank"
                 rel="noreferrer"
               >
-                GitHub - kasparex-krex-node
+                GitHub - packages/krex-node
               </a>
+              <span className="text-zinc-500 dark:text-zinc-500"> (inside kasparex-dapp-marketplace)</span>
             </li>
           </ul>
         </div>

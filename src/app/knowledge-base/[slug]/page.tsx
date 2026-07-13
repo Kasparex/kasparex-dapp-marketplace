@@ -64,17 +64,26 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
       {
         id: 'what-are-krex-nodes',
         title: 'What are KREX Nodes?',
-        content: 'KREX Nodes are lightweight helper nodes that support the Kasparex network by pinning dApp files to IPFS/Storacha, caching metadata, and optionally serving as mirror nodes. They are NOT Kaspa BlockDAG nodes and require minimal resources.',
+        content:
+          'KREX Nodes are small helper programs you run on your PC or VPS. They are NOT Kaspa BlockDAG nodes. They send signed heartbeats to Kasparex, can warm Hub IPFS files locally, and (mirror role) expose a tiny read-only HTTP server. The software is packages/krex-node in the kasparex-dapp-marketplace GitHub repo.',
       },
       {
         id: 'benefits',
-        title: 'Benefits of Running a KREX Node',
-        content: 'Running a KREX Node helps reduce hosting costs for the Kasparex platform, increases decentralization and censorship resistance, and earns rewards for operators. Nodes can earn GRID tokens and benefit from KREX multipliers.',
+        title: 'Why run one?',
+        content:
+          'You help Kasparex stay decentralized and resilient, earn Hub Points on your Kaspa wallet (+1,000 on enroll, +250 base per qualified online day with KREX tier multiplier), and redeem on the Rewards catalog. A public HTTPS mirror can also serve reads for other users (optional, needs a domain or tunnel).',
       },
       {
         id: 'node-types',
-        title: 'Node Types',
-        content: 'There are two types of KREX Nodes: Light Nodes (4x multiplier, 0.1% fee reduction) and Mirror Nodes (5x multiplier, 0.2% fee reduction). Mirror Nodes also expose a read-only HTTP API for serving cached data.',
+        title: 'Node types',
+        content:
+          'Light: heartbeats + local IPFS pin cache, no public HTTP. Mirror (recommended): everything Light does plus read-only HTTP on port 8788. Super: higher capacity when enabled for your account. Start with mirror on localhost; add a public URL later.',
+      },
+      {
+        id: 'domain',
+        title: 'Do I need a domain?',
+        content:
+          'No, to enroll and earn points on your own machine. Yes, only if you want other Hub users to use your mirror (public HTTPS URL). Local testing uses http://localhost:8788 in config.',
       },
     ],
   },
@@ -82,18 +91,21 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
     sections: [
       {
         id: 'prerequisites',
-        title: 'Prerequisites',
-        content: 'To run a KREX Node, you need Node.js (LTS version) installed on your machine. The node can run on Windows, macOS, Linux, or even a Raspberry Pi. No special hardware is required.',
+        title: 'What you need',
+        content:
+          'Node.js 20+, a Kaspa wallet (for Hub enroll), and a machine that can stay online. Optional: PM2 for background running. You do NOT need a Kaspa full node, special hardware, or a domain to get started.',
       },
       {
         id: 'installation',
-        title: 'Installation Steps',
-        content: '1. Install Node.js from nodejs.org\n2. Clone the repository: git clone https://github.com/Kasparex/kasparex-krex-node.git\n3. Install dependencies: npm install\n4. Start the node: npm start\n5. (Optional) Use pm2 for persistent running: pm2 start src/index.js --name krex-node',
+        title: 'Install (correct repo)',
+        content:
+          'There is no separate kasparex-krex-node repo. Use packages/krex-node inside kasparex-dapp-marketplace:\n\n1. git clone https://github.com/Kasparex/kasparex-dapp-marketplace.git\n2. cd kasparex-dapp-marketplace/packages/krex-node\n3. cp config.example.json config.json\n4. Enroll on Hub /nodes and paste nodeId + hmacSecret into config.json\n5. npm install && npm run build\n6. npm run mirror (or pm2 start ecosystem.config.cjs)\n\nWindows auto-start: scripts\\pm2-boot-setup.bat (not plain pm2 startup).',
       },
       {
         id: 'configuration',
-        title: 'Configuration',
-        content: 'The node can be configured via a config.json file. You can set options like pinning preferences, mirror mode, sync intervals, and API endpoints.',
+        title: 'Key config fields',
+        content:
+          'apiBaseUrl: https://kasparex-api.kasparexcom.workers.dev\nnodeId + hmacSecret: from Hub enroll (never commit config.json)\nrole: mirror or light\nurl: http://localhost:8788 for local; public HTTPS when you go live\nregion: e.g. eu-central',
       },
     ],
   },
@@ -101,18 +113,21 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
     sections: [
       {
         id: 'reward-types',
-        title: 'Types of Rewards',
-        content: 'KREX Node operators earn GRID for network participation. Rewards are multiplied by your KREX holdings tier and node role. Hub redeemable pts may also credit from verified enrollment and epoch checks (Rewards ledger on your device).',
+        title: 'Hub Points (operators)',
+        content:
+          'Operators earn server-side Hub Points bound to their enrolled Kaspa wallet. +1,000 pts once on enroll. +250 base pts per qualified UTC day (~12h+ online), multiplied by your KREX tier (1x to 4x). Redeem items on the Hub Rewards catalog.',
       },
       {
         id: 'reward-calculation',
-        title: 'How Rewards are Calculated',
-        content: 'Rewards are calculated per epoch (typically daily) based on uptime, pinned files count, requests served (for Mirror Nodes), and your KREX tier multiplier. The system tracks your node\'s performance and distributes rewards accordingly.',
+        title: 'Qualified day',
+        content:
+          'The Worker cron credits points when your node stays online enough in a UTC day (heartbeats + uptime rules). Keep PM2 or your process running; sleep or shutdown pauses rewards until you are back.',
       },
       {
         id: 'multipliers',
-        title: 'Multipliers',
-        content: 'Role multipliers (see worker config `node-reward-tiers.json`): Light ≈4×, Mirror ≈5×, Super ≈6× on top of the base GRID formula. KREX tier multipliers apply to the operator wallet (cached server-side).',
+        title: 'KREX tier multiplier',
+        content:
+          'Same Hub Points multipliers as the rest of Kasparex: higher KREX holdings increase daily operator pts (e.g. 10M+ KREX = 2x on the +250 base). Tier is read from your L1 KREX balance at settlement time.',
       },
     ],
   },

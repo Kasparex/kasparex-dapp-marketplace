@@ -464,12 +464,12 @@ export default function KasparexAPIPage() {
                 Run a KREX Node
               </Link>
               <a
-                href="https://github.com/Kasparex/kasparex-krex-node"
+                href="https://github.com/Kasparex/kasparex-dapp-marketplace/tree/main/packages/krex-node"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
-                View on GitHub
+                Operator package (GitHub)
               </a>
               <Link
                 href="/nodes"

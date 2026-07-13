@@ -1,6 +1,8 @@
 # Krex Node (operator runtime)
 
-Small **Node.js 20+** process for Kasparex Krex Nodes: signed **heartbeats** plus an optional **read-only mirror HTTP** server for node-first routing.
+Small **Node.js 20+** process for Kasparex Krex Nodes: signed **heartbeats**, optional **IPFS pin cache**, and optional **read-only mirror HTTP**.
+
+**Install location:** `packages/krex-node` in [kasparex-dapp-marketplace](https://github.com/Kasparex/kasparex-dapp-marketplace) (not a separate repo).
 
 ## Quick start (light node: heartbeat only)
 
@@ -89,4 +91,4 @@ The Kasparex Hub uses node-first routing: it tries your public `url` + `/kaspare
 
 See **COMPATIBILITY.md** for API base URLs and HMAC headers.
 
-Operator FAQ (uptime, security, git/Vercel vs local config, incentives): **[docs/KREX_NODE_OPERATOR_GUIDE.md](../../docs/KREX_NODE_OPERATOR_GUIDE.md)**.
+Operator FAQ (uptime, security, domains, PM2, incentives): **[docs/KREX_NODE_OPERATOR_GUIDE.md](../../docs/KREX_NODE_OPERATOR_GUIDE.md)** and **[docs/KREX_NODE_QUICKSTART.md](../../docs/KREX_NODE_QUICKSTART.md)**.

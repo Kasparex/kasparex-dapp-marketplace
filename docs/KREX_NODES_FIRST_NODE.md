@@ -52,7 +52,7 @@ Optional: `nonce` in JSON body plus `RATE_LIMIT` KV for replay rejection; monoto
 
 ## 5. Operator runtime
 
-Use **`packages/krex-node`** in this repo (or the standalone `kasparex-krex-node` GitHub project once published):
+Use **`packages/krex-node`** in the [kasparex-dapp-marketplace](https://github.com/Kasparex/kasparex-dapp-marketplace) repo (`packages/krex-node`). A separate `kasparex-krex-node` repo is not published yet.
 
 ```bash
 cd packages/krex-node

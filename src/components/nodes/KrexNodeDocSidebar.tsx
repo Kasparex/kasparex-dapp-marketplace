@@ -5,6 +5,7 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
+import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
 
 const TOC_ITEMS = [
   { id: 'what-is-krex-node', label: 'What is a KREX Node?', icon: 'node' },
@@ -115,8 +116,8 @@ export function KrexNodeDocSidebar() {
           <SidebarNavItem href="/api" label="API overview" icon={terminalIcon} />
           <SidebarNavItem href="/knowledge-base" label="Knowledge base" icon={bookIcon} />
           <SidebarNavItem
-            href="https://github.com/Kasparex/kasparex-krex-node"
-            label="GitHub repo"
+            href={KREX_NODE_PACKAGE_GITHUB}
+            label="Operator package"
             icon={externalIcon}
             external
           />

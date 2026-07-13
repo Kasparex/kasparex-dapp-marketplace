@@ -5,6 +5,7 @@ import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { HubSidebarActionButton } from '@/components/hub/HubSidebarActionButton';
+import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
 
 const NODES_SECTIONS = [
   { id: 'connect-register', label: 'Connect & Register', icon: 'link' },
@@ -94,8 +95,8 @@ export function NodesDashboardSidebar() {
             <HubSidebarActionButton href="/api" label="API overview" icon={ICONS.api} />
             <HubSidebarActionButton href="/knowledge-base" label="Knowledge base" icon={ICONS.book} />
             <HubSidebarActionButton
-              href="https://github.com/Kasparex/kasparex-krex-node"
-              label="GitHub repo"
+              href={KREX_NODE_PACKAGE_GITHUB}
+              label="Operator package"
               icon={ICONS.external}
               external
             />

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { NodeInfo } from '@/lib/nodes/types';
+import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
 import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
@@ -18,8 +19,9 @@ export function ConnectAndRegister({ nodeInfo, onEnrollClick }: ConnectAndRegist
       <div className={CARD_CLASS}>
         <SectionHeader title="Connection guide" />
         <p className="text-zinc-600 dark:text-zinc-400 mb-4 text-sm leading-relaxed">
-          Run a KREX Node on your machine to support the Kasparex ecosystem and earn rewards.
-          Install Node.js, clone the repo, then start and register your node.
+          Run a KREX Node on your machine to support Kasparex and earn Hub Points. Enroll here first, then install{' '}
+          <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">packages/krex-node</code> from the
+          marketplace repo. No domain required to start.
         </p>
         <div className="flex flex-wrap gap-3">
           <button
@@ -39,7 +41,7 @@ export function ConnectAndRegister({ nodeInfo, onEnrollClick }: ConnectAndRegist
             Run a KREX Node
           </Link>
           <a
-            href="https://github.com/Kasparex/kasparex-krex-node"
+            href={KREX_NODE_PACKAGE_GITHUB}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
@@ -47,7 +49,7 @@ export function ConnectAndRegister({ nodeInfo, onEnrollClick }: ConnectAndRegist
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            View on GitHub
+            View operator package
           </a>
         </div>
         {nodeInfo.status !== 'not_registered' && (
