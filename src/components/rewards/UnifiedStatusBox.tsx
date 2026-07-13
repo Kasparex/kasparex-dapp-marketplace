@@ -23,9 +23,9 @@ import { TokenLogoImage } from '@/components/ui/TokenLogoImage';
 // Mock node status (replace with real hook when available)
 const mockNodeStatus = {
   hasLightNode: false,
-  hasMirrorNode: false,
+  hasEdgeNode: false,
   lightNodeConnected: false,
-  mirrorNodeConnected: false,
+  edgeNodeConnected: false,
 };
 
 const NODE_TYPES = {
@@ -72,7 +72,7 @@ export function UnifiedStatusBox() {
   }
 
   // Node multiplier (additive, not multiplicative)
-  const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+  const activeNodeType = mockNodeStatus.hasEdgeNode ? 'edge' : mockNodeStatus.hasLightNode ? 'light' : null;
   const nodeConfig = activeNodeType ? NODE_TYPES[activeNodeType] : null;
   const nodeMultiplierAdd = nodeConfig ? (nodeConfig.multiplier - 1) : 0; // e.g., 4x becomes +3x
 
@@ -113,7 +113,7 @@ export function UnifiedStatusBox() {
   }
   // Stack node cost reductions
   if (nodeConfig) {
-    costReductionPercent += (activeNodeType === 'mirror' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
+    costReductionPercent += (activeNodeType === 'edge' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
   }
   // Cap at 50%
   costReductionPercent = Math.min(50, costReductionPercent);
@@ -390,12 +390,12 @@ export function UnifiedStatusBox() {
             <div className="pb-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">NODE Status</h4>
-                {activeNodeType && (activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) && (
+                {activeNodeType && (activeNodeType === 'edge' ? mockNodeStatus.edgeNodeConnected : mockNodeStatus.lightNodeConnected) && (
                   <span className="text-xs px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full">
                     Active
                   </span>
                 )}
-                {activeNodeType && !(activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) && (
+                {activeNodeType && !(activeNodeType === 'edge' ? mockNodeStatus.edgeNodeConnected : mockNodeStatus.lightNodeConnected) && (
                   <span className="text-xs px-2 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full">
                     Disconnected
                   </span>
@@ -419,11 +419,11 @@ export function UnifiedStatusBox() {
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-600 dark:text-zinc-400">Status</span>
                       <span className={`font-medium ${
-                        (activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected)
+                        (activeNodeType === 'edge' ? mockNodeStatus.edgeNodeConnected : mockNodeStatus.lightNodeConnected)
                           ? 'text-green-600 dark:text-green-400' 
                           : 'text-yellow-600 dark:text-yellow-400'
                       }`}>
-                        {(activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected) ? 'Connected' : 'Disconnected'}
+                        {(activeNodeType === 'edge' ? mockNodeStatus.edgeNodeConnected : mockNodeStatus.lightNodeConnected) ? 'Connected' : 'Disconnected'}
                       </span>
                     </div>
                   </>

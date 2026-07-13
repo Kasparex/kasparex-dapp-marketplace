@@ -9,11 +9,11 @@ import { formatLargeNumber } from '@/lib/rewards/calculator';
 // Mock node status for simulation
 const mockNodeStatus = {
   hasLightNode: false,
-  hasMirrorNode: false,
+  hasEdgeNode: false,
   lightNodeConnected: false,
-  mirrorNodeConnected: false,
+  edgeNodeConnected: false,
   lightNodeUptime: 0,
-  mirrorNodeUptime: 0,
+  edgeNodeUptime: 0,
 };
 
 // Node types configuration
@@ -25,25 +25,25 @@ const NODE_TYPES = {
     requirements: 'Run a Light Node',
     rewards: '4x reward multiplier, 0.1% fee reduction',
   },
-  mirror: {
-    name: 'Mirror Node',
+  edge: {
+    name: 'Edge Node',
     multiplier: 5.0,
     feeReduction: 0.2,
-    requirements: 'Run a Mirror Node',
+    requirements: 'Run an Edge Node',
     rewards: '5x reward multiplier, 0.2% fee reduction',
   },
 };
 
 export function NODEStatusBox() {
   const { isConnected: walletConnected } = useAccount();
-  const hasAnyNode = mockNodeStatus.hasLightNode || mockNodeStatus.hasMirrorNode;
+  const hasAnyNode = mockNodeStatus.hasLightNode || mockNodeStatus.hasEdgeNode;
   const [showModal, setShowModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
 
-  const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+  const activeNodeType = mockNodeStatus.hasEdgeNode ? 'edge' : mockNodeStatus.hasLightNode ? 'light' : null;
   const nodeConfig = activeNodeType ? NODE_TYPES[activeNodeType] : null;
   const nodeConnected = activeNodeType 
-    ? (activeNodeType === 'mirror' ? mockNodeStatus.mirrorNodeConnected : mockNodeStatus.lightNodeConnected)
+    ? (activeNodeType === 'edge' ? mockNodeStatus.edgeNodeConnected : mockNodeStatus.lightNodeConnected)
     : false;
 
   return (

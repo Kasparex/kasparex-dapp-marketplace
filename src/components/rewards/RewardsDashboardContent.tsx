@@ -143,12 +143,12 @@ export function RewardsDashboardContent({
                 }
                 
                 // Mock node status (same as UnifiedStatusBox)
-                const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
+                const mockNodeStatus = { hasLightNode: false, hasEdgeNode: false };
                 const NODE_TYPES = {
                   light: { multiplier: 4 },
-                  mirror: { multiplier: 5 },
+                  edge: { multiplier: 5 },
                 };
-                const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+                const activeNodeType = mockNodeStatus.hasEdgeNode ? 'edge' : mockNodeStatus.hasLightNode ? 'light' : null;
                 const nodeConfig = activeNodeType ? NODE_TYPES[activeNodeType] : null;
                 const nodeMultiplierAdd = nodeConfig ? (nodeConfig.multiplier - 1) : 0;
                 
@@ -231,10 +231,10 @@ export function RewardsDashboardContent({
                   costReductionPercent += NFT_COST_REDUCTION;
                 }
                 // Mock node status (same as multiplier calculation)
-                const mockNodeStatus = { hasLightNode: false, hasMirrorNode: false };
-                const activeNodeType = mockNodeStatus.hasMirrorNode ? 'mirror' : mockNodeStatus.hasLightNode ? 'light' : null;
+                const mockNodeStatus = { hasLightNode: false, hasEdgeNode: false };
+                const activeNodeType = mockNodeStatus.hasEdgeNode ? 'edge' : mockNodeStatus.hasLightNode ? 'light' : null;
                 if (activeNodeType) {
-                  costReductionPercent += (activeNodeType === 'mirror' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
+                  costReductionPercent += (activeNodeType === 'edge' ? MIRROR_NODE_COST_REDUCTION : LIGHT_NODE_COST_REDUCTION);
                 }
                 costReductionPercent = Math.min(50, costReductionPercent);
                 
