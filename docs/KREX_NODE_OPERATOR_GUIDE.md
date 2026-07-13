@@ -26,7 +26,7 @@ There is no fixed time limit. The process is a small Node.js app (heartbeat + op
 | How you start it | Terminal required? | Survives reboot? |
 |------------------|-------------------|------------------|
 | `npm run mirror` in a shell | **Yes**, while that window is open | No |
-| **PM2** (`ecosystem.config.cjs`) | **No**, runs in the background | Yes, after `pm2 save` + `pm2 startup` |
+| **PM2** (`ecosystem.config.cjs`) | **No**, runs in the background | Yes, after `pm2 save` + Windows boot helper (see below) |
 | **systemd** (Linux VPS) | **No**, runs as a service | Yes |
 
 For local learning, an open terminal is fine. For anything you rely on, use PM2 or systemd with boot auto-start.
@@ -183,17 +183,17 @@ pm2 save
 pm2 logs krex-node-mirror
 ```
 
-**One-time boot setup** (so the node starts when Windows/Linux restarts):
+**One-time boot setup:**
 
 ```bash
-# Windows (from packages/krex-node)
+# Windows (from packages/krex-node) — do NOT use plain pm2 startup on Windows
 scripts\pm2-boot-setup.bat
 
 # Linux / macOS
 sh scripts/pm2-boot-setup.sh
 ```
 
-Run the elevated `pm2 startup` command PM2 prints once. After that you do not need to start the node again after reboots.
+On **Windows**, `pm2 startup` fails with `Init system not found` (that is normal). The batch script uses `pm2-windows-startup` instead. On Linux, follow the `pm2 startup` command PM2 prints (often with `sudo`).
 
 ### Production mirror (later, step-by-step)
 

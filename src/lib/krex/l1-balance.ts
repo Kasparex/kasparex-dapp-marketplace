@@ -8,7 +8,7 @@ const KASPLEX_INDEXER_API_BASE = 'https://api.kasplex.org';
 const KREX_TICKER = 'KREX';
 
 import { stripKaspaAddressHrp } from '@/lib/kaspa/sdk';
-import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
+import { nodeFirstProxyFetch } from '@/lib/nodes/node-first';
 
 /**
  * Normalize Kaspa address (remove kaspa: or kaspatest: prefix if present)
@@ -19,12 +19,9 @@ function normalizeKaspaAddress(address: string): string {
 }
 
 /**
- * Get API URL - use proxy in browser, direct API on server
+ * Get API URL - direct Kasplex on server only (browser uses node-first proxy).
  */
-function getApiUrl(endpoint: string): string {
-  if (typeof window !== 'undefined') {
-    return kasplexProxyUrl(endpoint);
-  }
+function getServerApiUrl(endpoint: string): string {
   return `${KASPLEX_INDEXER_API_BASE}${endpoint}`;
 }
 
@@ -189,17 +186,26 @@ export async function queryL1KREXBalance(
 
     // Build API endpoint
     const endpoint = `/v1/krc20/address/${encodeURIComponent(normalizedAddress)}/token/${KREX_TICKER}`;
-    const apiUrl = getApiUrl(endpoint);
-    
-    console.log('[KREX L1] Fetching balance from:', apiUrl);
 
-    // Fetch balance from Kasplex Indexer API (via proxy in browser)
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response =
+      typeof window !== 'undefined'
+        ? (
+            await nodeFirstProxyFetch(
+              'kasplex',
+              endpoint,
+              {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+              },
+              { timeoutMs: 4000, maxNodeAttempts: 2 },
+            )
+          ).response
+        : await fetch(getServerApiUrl(endpoint), {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+    console.log('[KREX L1] Fetching balance from Kasplex indexer');
 
     if (!response.ok) {
       // If 404, address likely has no KREX balance (not an error)
@@ -211,7 +217,7 @@ export async function queryL1KREXBalance(
       // Log error details for debugging
       const errorText = await response.text().catch(() => 'Could not read error response');
       console.error(`[KREX L1] API error: ${response.status} ${response.statusText}`, {
-        url: apiUrl,
+        endpoint,
         status: response.status,
         errorPreview: errorText.substring(0, 200),
       });

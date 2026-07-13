@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
+import { nodeFirstProxyFetch } from '@/lib/nodes/node-first';
 
 /**
  * Normalize Kaspa address (remove kaspa: prefix if present)
@@ -15,16 +15,6 @@ import { kasplexProxyUrl } from '@/lib/api/readProxyUrl';
 function normalizeKaspaAddress(address: string): string {
   if (!address) return '';
   return address.replace(/^kaspa:/i, '').trim();
-}
-
-/**
- * Get API URL - use proxy in browser, direct API on server
- */
-function getApiUrl(endpoint: string): string {
-  if (typeof window !== 'undefined') {
-    return kasplexProxyUrl(endpoint);
-  }
-  return `https://api.kasplex.org${endpoint}`;
 }
 
 export interface UseKaspaTokenBalanceResult {
@@ -96,14 +86,24 @@ export function useKaspaTokenBalance(
       // Fallback to API
       const normalizedAddress = normalizeKaspaAddress(address);
       const endpoint = `/v1/krc20/address/${encodeURIComponent(normalizedAddress)}/token/${ticker.toUpperCase()}`;
-      const apiUrl = getApiUrl(endpoint);
 
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response =
+        typeof window !== 'undefined'
+          ? (
+              await nodeFirstProxyFetch(
+                'kasplex',
+                endpoint,
+                {
+                  method: 'GET',
+                  headers: { 'Content-Type': 'application/json' },
+                },
+                { timeoutMs: 4000, maxNodeAttempts: 2 },
+              )
+            ).response
+          : await fetch(`https://api.kasplex.org${endpoint}`, {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+            });
 
       if (!response.ok) {
         if (response.status === 404) {

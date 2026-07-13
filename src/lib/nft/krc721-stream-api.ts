@@ -8,7 +8,7 @@
 
 import { resolveCollectionIdFromTick } from './collections';
 import { getKrc721IndexerBases } from './indexer-urls';
-import { krc721ProxyUrl } from '@/lib/api/readProxyUrl';
+import { nodeFirstProxyFetch } from '@/lib/nodes/node-first';
 
 export interface KRC721StreamToken {
   tick: string;
@@ -39,12 +39,16 @@ function parseStreamTokens(data: KRC721StreamResponse): KRC721StreamToken[] {
 
 async function fetchStreamPage(endpoint: string): Promise<KRC721StreamResponse> {
   if (typeof window !== 'undefined') {
-    const url = krc721ProxyUrl(endpoint);
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(20000),
-    });
+    const { response } = await nodeFirstProxyFetch(
+      'krc721',
+      endpoint,
+      {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(20000),
+      },
+      { timeoutMs: 5000, maxNodeAttempts: 2 },
+    );
 
     if (!response.ok) {
       if (response.status === 404 || response.status === 400) {

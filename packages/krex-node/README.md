@@ -33,14 +33,14 @@ pm2 logs krex-node-mirror
 **Auto-start after reboot** (run once per machine):
 
 ```bash
-# Windows
+# Windows — plain pm2 startup does NOT work; use the script
 scripts\pm2-boot-setup.bat
 
 # Linux / macOS
 sh scripts/pm2-boot-setup.sh
 ```
 
-Follow the one-time `pm2 startup` command PM2 prints (elevated shell on Windows). After that, the node restarts automatically when the PC boots. No need to manually restart unless you update `config.json` or upgrade the package.
+On Windows the script installs `pm2-windows-startup` and runs `pm2-startup install`. On Linux/macOS, run the `pm2 startup` command PM2 prints (often with `sudo`). After setup, the node restarts automatically when the PC boots (Windows: after user login). No need to manually restart unless you update `config.json` or upgrade the package.
 
 ## Commands
 
