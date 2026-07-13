@@ -43,6 +43,21 @@ const FAQ = [
     ),
   },
   {
+    id: 'serve-vs-public',
+    q: 'Is a Serve node the same as a public URL?',
+    a: (
+      <>
+        <strong>No. Two separate choices.</strong>
+        <br />
+        <strong>Serve node</strong> (role <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">mirror</code> in config) = your software runs a small web server (often on{' '}
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">localhost:8788</code>).
+        <br />
+        <strong>Public URL</strong> = the HTTPS address you register so <em>other people&apos;s browsers</em> can reach that server.
+        You can be a Serve node locally without a public URL. You become a public helper only when you add HTTPS.
+      </>
+    ),
+  },
+  {
     id: 'public-helper',
     q: 'What is a &quot;public helper&quot;?',
     a: (

@@ -840,15 +840,15 @@ export function KrexNodeEnrollmentModal(props: {
                     onChange={(e) => setRole(e.target.value as any)}
                     className="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm"
                   >
-                    <option value="light">light</option>
-                    <option value="mirror">mirror</option>
-                    <option value="super">super</option>
+                    <option value="light">Light (heartbeats + pins)</option>
+                    <option value="mirror">Serve (HTTP + pins, recommended)</option>
+                    <option value="super">Super</option>
                   </select>
                 </label>
                 <label className="space-y-1 md:col-span-2">
                   <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1.5">
                     Node URL
-                    <FieldHint text="For now this can be a placeholder. When you run a mirror node with a public endpoint, put its public base URL here." />
+                    <FieldHint text="Where your HTTP server lives. localhost:8788 is fine for learning. Use public HTTPS only when you want other Hub users to reach your Serve node." />
                   </div>
                   <input
                     value={url}

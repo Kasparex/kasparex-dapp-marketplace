@@ -24,19 +24,19 @@ export function KrexNodeSetupGuide() {
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">What is a KREX Node?</h2>
           <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
             A small helper you run on your own PC or VPS. It is <strong>not</strong> a Kaspa BlockDAG node. It sends
-            heartbeats to Kasparex, can cache Hub IPFS files, and (as a mirror) serve read-only HTTP for the network.
+            heartbeats to Kasparex, can cache Hub IPFS files, and (Serve role) run a small HTTP server on your machine.
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             <div className={SUBCARD}>
-              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Pin &amp; mirror</h3>
+              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Pin &amp; serve</h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Warms Hub catalog IPFS CIDs locally and reports them in heartbeats.
+                Serve nodes cache catalog files locally. Public HTTPS URL is optional (see domain table below).
               </p>
             </div>
             <div className={SUBCARD}>
               <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm mb-1">Resilient reads</h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Public mirror nodes can help serve reads for other Hub users (optional, needs HTTPS URL).
+                Serve nodes with a <strong>public HTTPS URL</strong> can help other Hub users (optional).
               </p>
             </div>
             <div className={SUBCARD}>
@@ -74,7 +74,7 @@ export function KrexNodeSetupGuide() {
                   <td className="py-2 font-semibold text-emerald-700 dark:text-emerald-400">No</td>
                 </tr>
                 <tr>
-                  <td className="py-2 pr-4">Help other Hub users (public mirror)</td>
+                  <td className="py-2 pr-4">Help other Hub users (public HTTPS on a Serve node)</td>
                   <td className="py-2 font-semibold text-amber-700 dark:text-amber-400">Yes (HTTPS URL)</td>
                 </tr>
               </tbody>

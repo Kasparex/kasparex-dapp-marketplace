@@ -8,11 +8,7 @@ import { SectionHeader } from './SectionHeader';
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
 
-const NODE_TYPE_LABELS: Record<string, string> = {
-  light: 'Light Node',
-  mirror: 'Mirror Node',
-  super: 'Super Node',
-};
+import { KREX_NODE_ROLE_UI } from '@/lib/nodes/role-labels';
 
 function statusDisplay(status: NodeInfo['status']): { label: string; className: string } {
   switch (status) {
@@ -35,7 +31,8 @@ interface NodeOverviewProps {
 
 export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
   const status = statusDisplay(nodeInfo.status);
-  const typeLabel = nodeInfo.status !== 'not_registered' ? NODE_TYPE_LABELS[nodeInfo.type] ?? nodeInfo.type : '-';
+  const typeLabel =
+    nodeInfo.status !== 'not_registered' ? KREX_NODE_ROLE_UI[nodeInfo.type]?.title ?? nodeInfo.type : '-';
   const health = healthFromUptimeHours(nodeInfo.status === 'connected' ? metrics.uptimeHours : null);
 
   return (
@@ -46,7 +43,7 @@ export function NodeOverview({ nodeInfo, metrics }: NodeOverviewProps) {
           <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
             <span className="text-sm text-zinc-600 dark:text-zinc-400 inline-flex items-center gap-1.5">
               Type
-              <FieldHint text="Derived from the primary active node (Mirror preferred, otherwise Light)." />
+              <FieldHint text="Serve (recommended) runs HTTP on your machine. Public HTTPS URL is a separate choice in node details." />
             </span>
             <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{typeLabel}</span>
           </li>

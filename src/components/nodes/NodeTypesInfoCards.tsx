@@ -11,10 +11,11 @@ const LIGHT_NODE = {
   features: ['Pins CIDs', 'Caches metadata', 'Syncs with API', 'Low resource use'],
 };
 
-const MIRROR_NODE = {
-  name: 'Mirror Node',
-  description: 'Everything Light Node does, plus exposes a read-only HTTP API that can serve as a fallback data source. Ideal for power users and partners.',
-  features: ['All Light features', 'Read-only HTTP API', 'Fallback data source', 'Request serving'],
+const SERVE_NODE = {
+  name: 'Serve node',
+  description:
+    'Everything Light does, plus a small HTTP server on your machine (port 8788). You can use localhost first; add a public HTTPS URL later to help other users.',
+  features: ['All Light features', 'Local HTTP server', 'Optional public URL', 'Recommended for most operators'],
   recommended: true,
 };
 
@@ -37,7 +38,7 @@ function PlaceholderMedia() {
 export function NodeTypesInfoCards() {
   return (
     <section id="node-types-info" className="mb-6">
-      <SectionHeader title="Light Node & Mirror Node" />
+      <SectionHeader title="Light node & Serve node" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className={CARD_CLASS}>
           <PlaceholderMedia />
@@ -58,16 +59,16 @@ export function NodeTypesInfoCards() {
         <div className={`${CARD_CLASS} border-cyan-500/50`}>
           <PlaceholderMedia />
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{MIRROR_NODE.name}</h3>
-            {MIRROR_NODE.recommended && (
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{SERVE_NODE.name}</h3>
+            {SERVE_NODE.recommended && (
               <span className="text-[10px] px-2 py-0.5 bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-full font-bold uppercase tracking-wider">
                 Recommended
               </span>
             )}
           </div>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">{MIRROR_NODE.description}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">{SERVE_NODE.description}</p>
           <ul className="space-y-1.5 mb-4">
-            {MIRROR_NODE.features.map((f) => (
+            {SERVE_NODE.features.map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <span className="text-cyan-500">•</span>
                 {f}

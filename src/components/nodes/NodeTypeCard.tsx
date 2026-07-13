@@ -6,29 +6,16 @@ import { SectionHeader } from './SectionHeader';
 const CARD_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-[32px] overflow-hidden shadow-sm p-6';
 
-const NODE_TYPE_CONFIG: Record<NodeType, { name: string; description: string }> = {
-  light: {
-    name: 'Light Node',
-    description:
-      'Pins IPFS/Storacha CIDs, caches dApp/tools metadata locally, and periodically syncs with the Kasparex API. Ideal for regular community members.',
-  },
-  mirror: {
-    name: 'Mirror Node',
-    description:
-      'Everything Light does, plus a read-only HTTP API as fallback data source.',
-  },
-  super: {
-    name: 'Super Node',
-    description: 'Highest tier helper capacity when enabled for your operator account.',
-  },
-};
+import { KREX_NODE_ROLE_UI } from '@/lib/nodes/role-labels';
 
 interface NodeTypeCardProps {
   nodeType: NodeType | null;
 }
 
 export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
-  const config = nodeType ? NODE_TYPE_CONFIG[nodeType] : null;
+  const config = nodeType
+    ? { name: KREX_NODE_ROLE_UI[nodeType].title, description: KREX_NODE_ROLE_UI[nodeType].tagline }
+    : null;
 
   return (
     <section id="node-type-detail" className="mb-6">
@@ -66,7 +53,7 @@ export function NodeTypeCard({ nodeType }: NodeTypeCardProps) {
           </>
         ) : (
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
-            No node connected. Register a node to see your type (Light or Mirror).
+            No node connected. Register a node to see your type (Light or Serve).
           </p>
         )}
       </div>

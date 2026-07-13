@@ -77,7 +77,7 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         id: 'node-types',
         title: 'Node types',
         content:
-          'Light: heartbeats + local IPFS pin cache, no public HTTP. Mirror (recommended): everything Light does plus read-only HTTP on port 8788. Super: higher capacity when enabled for your account. Start with mirror on localhost; add a public URL later.',
+          'Light: heartbeats + local IPFS pin cache, no HTTP server. Serve (role mirror in config, recommended): Light + HTTP server on your machine. Public HTTPS URL is optional and separate. Super: higher capacity when enabled.',
       },
       {
         id: 'domain',
@@ -122,6 +122,12 @@ const articleContent: Record<string, { sections: Array<{ id: string; title: stri
         title: 'Do I need a domain?',
         content:
           'No to enroll, earn points, and run locally (localhost:8788). Yes only to be a public helper: other users browsers need your HTTPS URL to reach your mirror. Domain is optional, not required from everyone.',
+      },
+      {
+        id: 'serve-vs-public-url',
+        title: 'Serve node vs public URL',
+        content:
+          'Not the same. Serve node (config role mirror) means your software runs an HTTP server, often on localhost first. Public URL means an HTTPS address other users can reach. You can run Serve locally without helping strangers; you add public HTTPS when you want to be a public helper.',
       },
       {
         id: 'public-helper',
