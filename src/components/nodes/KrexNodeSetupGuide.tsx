@@ -104,14 +104,18 @@ export function KrexNodeSetupGuide() {
             </div>
             <div className="p-5 rounded-xl border border-cyan-500/30 dark:border-cyan-500/25 bg-zinc-50 dark:bg-zinc-950/40">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Mirror</h3>
+                <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Serve</h3>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 font-bold uppercase">
                   Recommended
                 </span>
               </div>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
+                Config role: <code className={CODE}>mirror</code> (technical name).
+              </p>
               <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-1.5 list-disc pl-4">
                 <li>Everything Light does</li>
-                <li>Read-only HTTP on port 8788</li>
+                <li>HTTP on your machine (localhost OK)</li>
+                <li>Public HTTPS later if you want to help others</li>
                 <li>Command: <code className={CODE}>npm run mirror</code> or PM2</li>
               </ul>
               <p className="mt-3 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
