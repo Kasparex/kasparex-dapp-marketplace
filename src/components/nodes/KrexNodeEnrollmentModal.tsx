@@ -12,6 +12,7 @@ import {
   isPublicHttpsUrl,
   normalizeNodeRole,
   roleRequiresPublicHttps,
+  validateNodeUrlForRole,
 } from '@/lib/nodes/node-role';
 import type { NodeType } from '@/lib/nodes/types';
 import { NODES_DASH_CARD } from './nodesTabLayout';
@@ -538,6 +539,8 @@ export function KrexNodeEnrollmentModal(props: {
     setBusy(true);
     try {
       if (!enrollmentToken) throw new Error('Missing enrollment token');
+      const urlErr = validateNodeUrlForRole(role, url);
+      if (urlErr) throw new Error(urlErr);
       const r = await apiClient.post<EnrollResponse>('/kasparex/node/enroll', {
         enrollmentToken,
         node_name: nodeName.trim(),

@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS nodes (
   node_id TEXT PRIMARY KEY,
   node_name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('light', 'mirror', 'super')),
+  role TEXT NOT NULL CHECK(role IN ('light', 'edge', 'super', 'mirror')),
   owner_wallet TEXT NOT NULL,
   region TEXT,
   version TEXT,

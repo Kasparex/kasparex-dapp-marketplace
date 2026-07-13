@@ -264,7 +264,11 @@ export async function handleNodeEnroll(request: Request, env: Env): Promise<Resp
     );
   } catch (e) {
     console.error('enroll', e);
-    return new Response(JSON.stringify({ error: 'Enrollment failed' }), {
+    const msg = e instanceof Error ? e.message : String(e);
+    const hint = /CHECK constraint|constraint failed/i.test(msg)
+      ? 'Database role constraint (edge). Run migration 003_node_role_edge.sql on NODES_DB.'
+      : 'Enrollment failed';
+    return new Response(JSON.stringify({ error: hint }), {
       status: 500,
       headers: { ...cors, 'Content-Type': 'application/json' },
     });
