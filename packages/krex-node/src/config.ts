@@ -13,6 +13,14 @@ export type KrexNodeConfig = {
   version: string;
   requestsServedTotal?: number;
   pinnedCids?: string[];
+  /** Local directory for warmed IPFS objects (default .krex-pin-cache). */
+  pinCacheDir?: string;
+  /** Seconds between automatic pin catalog syncs (default 21600 = 6h). */
+  pinSyncIntervalSec?: number;
+  /** Pull recommended CIDs from Worker runtime-config (default true). */
+  autoPinFromRuntime?: boolean;
+  /** Max CIDs to keep warmed locally (default 32). */
+  maxPins?: number;
   /** Mirror HTTP listen host (default 0.0.0.0). */
   serveHost?: string;
   /** Mirror HTTP listen port (default 8788). */

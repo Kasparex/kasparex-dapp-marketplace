@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { KrexNodeConfig } from './config.js';
 import { getRequestsServedTotal, initMetrics, recordRequest } from './metrics.js';
+import { getPinStoreForConfig, pinCacheDir } from './pin-sync.js';
+import { normalizeCid, pinStoreStats } from './ipfs-pin.js';
 
 type CacheEntry = {
   status: number;
@@ -132,6 +134,7 @@ async function handleRequest(cfg: KrexNodeConfig, req: IncomingMessage, res: Ser
 
   if (pathname === '/health') {
     recordRequest();
+    const pinStats = await pinStoreStats(pinCacheDir(cfg));
     writeJson(res, 200, {
       status: 'ok',
       service: 'Krex Node Mirror',
@@ -140,8 +143,36 @@ async function handleRequest(cfg: KrexNodeConfig, req: IncomingMessage, res: Ser
       version: cfg.version,
       requestsServedTotal: getRequestsServedTotal(),
       cacheEntries: cache.size,
+      pinnedCids: pinStats.count,
+      pinCacheBytes: pinStats.bytes,
       timestamp: Date.now(),
     });
+    return;
+  }
+
+  const ipfsMatch = pathname.match(/^\/ipfs\/([^/]+)(?:\/(.*))?$/);
+  if (ipfsMatch) {
+    recordRequest();
+    const cid = normalizeCid(ipfsMatch[1] ?? '');
+    if (!cid) {
+      writeJson(res, 400, { error: 'Invalid CID' });
+      return;
+    }
+    const store = getPinStoreForConfig(cfg);
+    await store.init();
+    const local = await store.read(cid);
+    if (local) {
+      res.writeHead(200, {
+        ...corsHeaders(),
+        'Content-Type': local.contentType,
+        'Cache-Control': 'public, max-age=3600',
+        'X-Krex-Node': cfg.nodeId,
+        'X-Krex-Pin': 'local',
+      });
+      res.end(local.body);
+      return;
+    }
+    writeJson(res, 404, { error: 'CID not pinned locally', cid });
     return;
   }
 

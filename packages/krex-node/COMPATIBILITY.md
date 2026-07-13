@@ -28,7 +28,7 @@ Clock skew allowed by the Worker: **120 seconds** (see `verifyNodeRequestHmac`).
 
 ## Read-only
 
-- `GET /kasparex/node/runtime-config`  -  heartbeat bounds, `enrollmentEnabled`  
+- `GET /kasparex/node/runtime-config`  -  heartbeat bounds, `enrollmentEnabled`, `pinCatalog`  
 - `GET /kasparex/node/{id}/status`  -  online, uptime, epoch GRID snapshot fields  
 
 ## Mirror HTTP (krex-node `serve` / `mirror`)
@@ -42,6 +42,7 @@ The mirror serves the same read paths the Hub uses for node-first routing:
 - `GET /kasparex/wallet/history?address=...`
 - `GET /kasparex/stats`
 - `GET /proxy/kasplex?endpoint=...` and `GET /proxy/krc721?endpoint=...`
+- `GET /ipfs/{cid}`  -  locally warmed pin cache (when pin sync has run)
 
 Responses include `Access-Control-Allow-Origin: *` for browser clients.
 

@@ -2,11 +2,14 @@
 import { loadConfig } from './config.js';
 import { fetchNodeStatus, fetchRuntimeConfig, sendPing } from './ping.js';
 import { startMirrorServer } from './serve.js';
+import { getActivePinnedCids, pinCacheDir, startPinSyncLoop, syncPinCatalog } from './pin-sync.js';
+import { getPinStore } from './ipfs-pin.js';
 
 const cmd = process.argv[2] || 'help';
 const configPath = process.env.KREX_NODE_CONFIG || 'config.json';
 
-async function runHeartbeatLoop(cfg: ReturnType<typeof loadConfig>): Promise<void> {
+async function runHeartbeatLoop(cfg: ReturnType<typeof loadConfig>, withPinSync = true): Promise<void> {
+  if (withPinSync) startPinSyncLoop(cfg);
   const tick = async () => {
     try {
       const out = await sendPing(cfg);
@@ -26,9 +29,12 @@ async function main() {
 Commands:
   once        Send a single signed ping
   heartbeat   Loop: ping every heartbeatIntervalSec (from config)
+  light       Heartbeat + IPFS pin sync (no mirror HTTP)
+  pin-sync    One-shot warm of pin catalog to local cache
+  pin-status  List locally warmed CIDs
   status      GET runtime-config + node status JSON
   serve       Read-only mirror HTTP (no heartbeat)
-  mirror      Mirror HTTP + heartbeat loop (recommended for mirror role)
+  mirror      Mirror HTTP + heartbeat + pin sync (recommended for mirror role)
 `);
     process.exit(0);
   }
@@ -50,6 +56,30 @@ Commands:
 
   if (cmd === 'heartbeat') {
     await runHeartbeatLoop(cfg);
+    return;
+  }
+
+  if (cmd === 'light') {
+    await runHeartbeatLoop(cfg);
+    return;
+  }
+
+  if (cmd === 'pin-sync') {
+    const out = await syncPinCatalog(cfg);
+    console.log(JSON.stringify({ ...out, pinnedCids: getActivePinnedCids(cfg) }, null, 2));
+    return;
+  }
+
+  if (cmd === 'pin-status') {
+    const store = getPinStore(pinCacheDir(cfg));
+    await store.init();
+    console.log(
+      JSON.stringify(
+        { stats: store.stats(), pinnedCids: store.listCids(), activeForPing: getActivePinnedCids(cfg) },
+        null,
+        2,
+      ),
+    );
     return;
   }
 

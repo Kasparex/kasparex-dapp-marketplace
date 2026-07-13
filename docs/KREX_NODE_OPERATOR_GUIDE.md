@@ -119,6 +119,17 @@ If `hmacSecret` leaks, use **Rotate secret** in the Hub node dashboard and updat
 
 Qualified epochs depend on staying **online**, meeting uptime rules in Worker policy, and heartbeats from your enrolled node.
 
+### IPFS pin cache (light / mirror, Track B3)
+
+Operators can warm Hub catalog content locally (no full IPFS daemon required):
+
+1. Worker publishes `pinCatalog` on `GET /kasparex/node/runtime-config`.
+2. Optional manual CIDs in `config.json` → `pinnedCids`.
+3. Run `node dist/cli.js pin-sync` or let `mirror` / `light` sync every 6h (default).
+4. Heartbeats report warmed CIDs; mirror serves `GET /ipfs/{cid}` from disk.
+
+After pulling updates: `npm run build` then `pm2 restart krex-node-mirror`.
+
 ### For Kasparex Hub
 
 | Benefit | How |

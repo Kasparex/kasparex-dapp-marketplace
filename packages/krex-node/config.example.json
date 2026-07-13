@@ -10,6 +10,10 @@
   "version": "1.0.0",
   "requestsServedTotal": 0,
   "pinnedCids": [],
+  "pinCacheDir": ".krex-pin-cache",
+  "pinSyncIntervalSec": 21600,
+  "autoPinFromRuntime": true,
+  "maxPins": 32,
   "serveHost": "0.0.0.0",
   "servePort": 8788
 }

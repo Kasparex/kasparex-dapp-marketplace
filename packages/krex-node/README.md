@@ -50,15 +50,33 @@ On Windows the script installs `pm2-windows-startup` and runs `pm2-startup insta
 | `heartbeat` | Loop on `heartbeatIntervalSec` |
 | `status` | Print `runtime-config` + node status |
 | `serve` | Read-only mirror HTTP only |
-| `mirror` | Mirror HTTP + heartbeat (recommended for mirror role) |
+| `mirror` | Mirror HTTP + heartbeat + pin sync (recommended for mirror role) |
+| `light` | Heartbeat + IPFS pin sync only (no HTTP mirror) |
+| `pin-sync` | One-shot download of catalog CIDs to local cache |
+| `pin-status` | Show locally warmed CIDs |
 
 Override config path: `KREX_NODE_CONFIG=/path/to/config.json`.
 
-## Mirror routes (read-only, CORS enabled)
+## IPFS pin cache (light / mirror)
+
+Light and mirror nodes can **warm** Hub catalog CIDs into a local folder (default `.krex-pin-cache/`):
+
+1. Worker `GET /kasparex/node/runtime-config` returns `pinCatalog.recommendedCids` (+ optional `REGISTRY_CID` secret on Worker).
+2. Add manual CIDs in `config.json` under `pinnedCids`.
+3. `pin-sync` or the automatic loop (every `pinSyncIntervalSec`, default 6h) fetches from public gateways.
+4. Heartbeats report the merged list as `pinned_cids`.
+5. Mirror nodes serve warmed objects at `GET /ipfs/{cid}`.
+
+```bash
+npm run build
+node dist/cli.js pin-sync
+node dist/cli.js pin-status
+```
 
 | Path | Behavior |
 |------|----------|
 | `GET /health` | Node health + cache stats |
+| `GET /ipfs/{cid}` | Locally warmed IPFS object (if pin sync ran) |
 | `GET /kasparex/*` | Pass-through to `apiBaseUrl` with local cache |
 | `GET /proxy/kasplex?endpoint=/v1/...` | Worker kasplex proxy |
 | `GET /proxy/krc721?endpoint=/api/v1/...` | Worker KRC721 proxy |

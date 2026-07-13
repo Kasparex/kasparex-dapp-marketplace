@@ -1,4 +1,5 @@
 dist/
 config.json
 .krex-node-seq-*.txt
+.krex-pin-cache/
 node_modules/

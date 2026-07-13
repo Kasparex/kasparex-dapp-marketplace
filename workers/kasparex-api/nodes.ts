@@ -4,6 +4,7 @@
 
 import type { Env } from '../index';
 import { getCorsHeaders } from '../middleware';
+import { buildNodePinCatalog } from './node-pin-catalog';
 import { verifyNodeRequestHmac } from './node-crypto';
 import {
   handleNodeChallenge,
@@ -464,6 +465,7 @@ export async function handleRuntimeConfig(env: Env): Promise<Response> {
   const cors = getCorsHeaders();
   const verifyTo = (env.NODE_VERIFY_TO_ADDRESS || '').trim();
   const verifyMinKas = (env.NODE_VERIFY_MIN_KAS || '1').trim() || '1';
+  const pinCatalog = buildNodePinCatalog(env);
   return new Response(
     JSON.stringify({
       minNodeVersion: '1.0.0',
@@ -476,8 +478,9 @@ export async function handleRuntimeConfig(env: Env): Promise<Response> {
         toAddress: verifyTo || null,
         minKas: verifyMinKas,
       },
+      pinCatalog,
     }),
-    { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } }
+    { status: 200, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' } }
   );
 }
 

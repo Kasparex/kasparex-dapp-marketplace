@@ -1,0 +1,8 @@
+{
+  "gateways": [
+    "https://storacha.network/ipfs/{cid}",
+    "https://ipfs.io/ipfs/{cid}",
+    "https://{cid}.ipfs.dweb.link"
+  ],
+  "recommendedCids": []
+}
