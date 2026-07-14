@@ -2,10 +2,68 @@
 
 import Link from 'next/link';
 import { NODES_DASH_CARD } from './nodesTabLayout';
+import { CopyableCommandBlock } from './CopyableCommandBlock';
 import { KREX_NODE_PACKAGE_GITHUB } from '@/lib/nodes/operator-links';
 import { dailyPtsLabel, enrollPtsLabel } from '@/lib/nodes/node-role';
 
+const QUICK_TUNNEL_WIN = '"C:\\Program Files (x86)\\cloudflared\\cloudflared.exe" tunnel --url http://127.0.0.1:8788';
+const QUICK_TUNNEL_UNIX = 'cloudflared tunnel --url http://127.0.0.1:8788';
+
 const FAQ = [
+  {
+    id: 'get-url',
+    q: 'How do I get a public HTTPS URL for Edge?',
+    a: (
+      <>
+        <p className="mb-3">
+          Run the node software on <strong>your PC</strong>, then expose port <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">8788</code>{' '}
+          with Cloudflare Tunnel. The Hub does not generate a URL for you.
+        </p>
+        <p className="font-semibold text-zinc-800 dark:text-zinc-200 text-xs mb-1">Path A (free test URL, recommended first)</p>
+        <ol className="list-decimal pl-4 space-y-1 mb-3 text-xs">
+          <li>
+            Terminal 1: <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">npm run edge</code> in{' '}
+            <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">packages/krex-node</code>
+          </li>
+          <li>Terminal 2: run one of the commands below</li>
+          <li>Copy the printed <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">https://….trycloudflare.com</code></li>
+          <li>Paste it in Enroll and in <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">config.json</code></li>
+        </ol>
+        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Windows</p>
+        <CopyableCommandBlock command={QUICK_TUNNEL_WIN} />
+        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1 mt-3">macOS / Linux</p>
+        <CopyableCommandBlock command={QUICK_TUNNEL_UNIX} />
+        <p className="mt-3 text-xs">
+          <strong>Path B (stable production):</strong> your own subdomain, e.g.{' '}
+          <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">https://edge.yourdomain.com</code> with Cloudflare DNS. See Setup tab.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'trycloudflare',
+    q: 'What is trycloudflare.com? Can every operator use it for free?',
+    a: (
+      <>
+        <strong>Yes, free for testing.</strong> Each operator runs{' '}
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">cloudflared tunnel --url http://127.0.0.1:8788</code>{' '}
+        on their own machine and gets a <strong>unique random</strong> URL. It is not created inside the Kasparex website.
+        <br />
+        <br />
+        <strong>Limits:</strong> URL changes when you restart cloudflared. Not ideal for long-term production. For a stable URL, use your own subdomain (Path B).
+      </>
+    ),
+  },
+  {
+    id: 'url-mismatch',
+    q: 'Hub shows a different URL than my tunnel. Is that wrong?',
+    a: (
+      <>
+        The Hub shows the URL stored at <strong>enrollment</strong>. If you changed your tunnel URL later, edit the node in the Hub (or re-enroll) and update{' '}
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">config.json</code> so both match. Heartbeats can work even when the public URL is outdated.
+      </>
+    ),
+  },
   {
     id: 'what-is-it',
     q: 'What is a KREX Node?',
@@ -39,7 +97,8 @@ const FAQ = [
       <>
         <strong>Light:</strong> no public URL required.
         <br />
-        <strong>Edge / Super:</strong> yes. Enrollment requires a <strong>public HTTPS URL</strong> (domain + tunnel or VPS).
+        <strong>Edge / Super:</strong> yes, a public HTTPS URL. For testing use free{' '}
+        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">trycloudflare.com</code> (Path A). For production use your own subdomain (Path B).
         Test on <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">localhost:8788</code> first, then enroll with your HTTPS address.
       </>
     ),
@@ -49,9 +108,9 @@ const FAQ = [
     q: 'Can I test locally before enrolling?',
     a: (
       <>
-        <strong>Yes.</strong> Run <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">npm run edge</code> and hit{' '}
+        <strong>Yes.</strong> Run <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">npm run edge</code> and open{' '}
         <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">http://localhost:8788/health</code> on your machine only.
-        Do <strong>not</strong> register localhost in the Hub. Enroll only after your Cloudflare Tunnel or VPS exposes HTTPS.
+        Do <strong>not</strong> enroll with localhost. Use a quick tunnel URL or your own HTTPS subdomain first.
       </>
     ),
   },

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { NODES_DASH_CARD } from './nodesTabLayout';
+import { CopyableCommandBlock } from './CopyableCommandBlock';
 import {
   KREX_NODE_CLONE_HINT,
   KREX_NODE_MARKETPLACE_REPO,
@@ -55,6 +56,72 @@ export function KrexNodeSetupGuide() {
       </section>
 
       <section>
+        <div className={`${NODES_DASH_CARD} space-y-4`} id="get-public-url">
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Get your public HTTPS URL (Edge / Super)</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+            Edge enrollment needs a URL that works in any browser, for example{' '}
+            <code className={CODE}>https://something.trycloudflare.com</code> or{' '}
+            <code className={CODE}>https://edge.yourdomain.com</code>. You create this on <strong>your PC</strong>, not
+            inside the Hub. Pick one path below.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-5 rounded-xl border border-cyan-500/30 bg-cyan-500/5 dark:bg-cyan-950/20 space-y-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Path A: Quick tunnel (free, testing)</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Best for first enroll. No domain purchase. URL changes when you restart the tunnel.
+              </p>
+              <ol className="list-decimal pl-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                <li>Install cloudflared (once)</li>
+                <li>Start your edge locally (<code className={CODE}>npm run edge</code>)</li>
+                <li>Run the tunnel command in a second terminal</li>
+                <li>Copy the printed <code className={CODE}>https://….trycloudflare.com</code> URL</li>
+                <li>Paste that URL in Enroll and in <code className={CODE}>config.json</code></li>
+              </ol>
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Windows: install cloudflared</p>
+              <CopyableCommandBlock command="winget install --id Cloudflare.cloudflared -e" />
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Windows: start quick tunnel</p>
+              <CopyableCommandBlock command={'"C:\\Program Files (x86)\\cloudflared\\cloudflared.exe" tunnel --url http://127.0.0.1:8788'} />
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">macOS / Linux</p>
+              <CopyableCommandBlock command="cloudflared tunnel --url http://127.0.0.1:8788" />
+              <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                Verify: open <code className={CODE}>https://YOUR-URL/health</code> on your phone. Keep the tunnel terminal open.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/40 space-y-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Path B: Your own subdomain (production)</h3>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Stable URL like <code className={CODE}>https://edge.yourdomain.com</code>. Needs a domain you control with DNS
+                at Cloudflare (Wix-only DNS is not enough for named tunnels).
+              </p>
+              <ol className="list-decimal pl-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                <li>Add domain to Cloudflare and use Cloudflare nameservers</li>
+                <li>Create a named tunnel and route <code className={CODE}>edge.yourdomain.com</code></li>
+                <li>Enroll with that HTTPS URL</li>
+              </ol>
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Named tunnel (after cloudflared login)</p>
+              <CopyableCommandBlock command={`cloudflared tunnel login\ncloudflared tunnel create krex-edge\ncloudflared tunnel route dns krex-edge edge.yourdomain.com`} />
+              <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                Details: <code className={CODE}>docs/KREX_NODE_CLOUDFLARE_DNS.md</code> and{' '}
+                <code className={CODE}>docs/KREX_NODE_PUBLIC_EDGE.md</code> in the marketplace repo.
+              </p>
+            </div>
+          </div>
+
+          <div className={`${SUBCARD} text-xs text-zinc-600 dark:text-zinc-400 space-y-1`}>
+            <p>
+              <strong className="text-zinc-800 dark:text-zinc-200">Light node?</strong> Skip this section. Light does not need a public URL.
+            </p>
+            <p>
+              <strong className="text-zinc-800 dark:text-zinc-200">Hub URL must match config.</strong> After enroll, set the same URL in{' '}
+              <code className={CODE}>packages/krex-node/config.json</code> and restart PM2.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
         <div className={`${NODES_DASH_CARD} space-y-4`} id="domain-faq">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Do I need a domain?</h2>
           <div className="overflow-x-auto">
@@ -76,13 +143,15 @@ export function KrexNodeSetupGuide() {
                 </tr>
                 <tr>
                   <td className="py-2 pr-4">Enroll Edge or Super (public helper)</td>
-                  <td className="py-2 font-semibold text-amber-700 dark:text-amber-400">Yes (HTTPS URL)</td>
+                  <td className="py-2 font-semibold text-amber-700 dark:text-amber-400">
+                    Yes (HTTPS URL). Use Path A quick tunnel or Path B own subdomain above.
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-500">
-            Test locally first, then add Cloudflare Tunnel or VPS HTTPS before enrolling Edge/Super. See Docs tab and{' '}
+            See <strong>Get your public HTTPS URL</strong> above for copy-paste commands. Docs:{' '}
             <code className={CODE}>docs/KREX_NODE_PUBLIC_EDGE.md</code>.
           </p>
         </div>
@@ -129,44 +198,49 @@ export function KrexNodeSetupGuide() {
 
       <section>
         <div className={`${NODES_DASH_CARD} space-y-4`} id="how-to-run">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">How to run (6 steps)</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">How to run (step by step)</h2>
           <ol className="list-decimal pl-5 space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
             <li>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">Get the software</span>
-              <pre className="mt-2 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-xs overflow-x-auto">{`${KREX_NODE_CLONE_HINT}
-cd kasparex-dapp-marketplace/packages/krex-node
-npm install && npm run build`}</pre>
+              <CopyableCommandBlock command={`${KREX_NODE_CLONE_HINT}\ncd kasparex-dapp-marketplace/packages/krex-node\nnpm install && npm run build`} />
             </li>
             <li>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">Test locally</span>
-              <p className="mt-1">
-                <code className={CODE}>npm run edge</code> then open{' '}
-                <code className={CODE}>http://localhost:8788/health</code> on your machine.
+              <CopyableCommandBlock command="npm run edge" />
+              <p className="mt-2">
+                Open <code className={CODE}>http://localhost:8788/health</code> on your machine. You should see JSON with{' '}
+                <code className={CODE}>&quot;status&quot;:&quot;ok&quot;</code>.
               </p>
             </li>
             <li>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Expose HTTPS</span>
-              <p className="mt-1">Cloudflare Tunnel or VPS reverse proxy to port 8788. Verify HTTPS /health from another device.</p>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">Get a public HTTPS URL (Edge only)</span>
+              <p className="mt-1">
+                Use <strong>Path A</strong> (quick tunnel) or <strong>Path B</strong> (own subdomain) in the section above. Copy the full{' '}
+                <code className={CODE}>https://…</code> URL.
+              </p>
             </li>
             <li>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">Enroll on this page</span>
               <p className="mt-1">
-                Connect wallet → <strong>Enroll</strong> tab → role <strong>Edge</strong> → your public HTTPS URL → save{' '}
+                Connect wallet → <strong>Enroll</strong> tab → role <strong>Edge</strong> → paste your HTTPS URL → save{' '}
                 <code className={CODE}>nodeId</code> and <code className={CODE}>hmacSecret</code>.
               </p>
             </li>
             <li>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">Configure</span>
-              <p className="mt-1">
-                <code className={CODE}>cp config.example.json config.json</code> then set credentials,{' '}
-                <code className={CODE}>role: &quot;edge&quot;</code>, and the same HTTPS <code className={CODE}>url</code>.
+              <CopyableCommandBlock command="cp config.example.json config.json" />
+              <p className="mt-2">
+                Set <code className={CODE}>nodeId</code>, <code className={CODE}>hmacSecret</code>,{' '}
+                <code className={CODE}>role: &quot;edge&quot;</code>, and the <strong>same</strong> HTTPS{' '}
+                <code className={CODE}>url</code> you used in Enroll.
               </p>
             </li>
             <li>
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">Keep it online</span>
-              <pre className="mt-2 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-xs overflow-x-auto">{`pm2 start ecosystem.config.cjs
-pm2 save`}</pre>
-              <p className="mt-1">Windows boot: <code className={CODE}>scripts\\pm2-boot-setup.bat</code></p>
+              <CopyableCommandBlock command={`pm2 start ecosystem.config.cjs\npm2 save`} />
+              <p className="mt-2">
+                Windows boot: <code className={CODE}>scripts\\pm2-boot-setup.bat</code>. Keep cloudflared running too if you use a tunnel.
+              </p>
             </li>
           </ol>
           <p className="text-xs text-zinc-500 dark:text-zinc-500">

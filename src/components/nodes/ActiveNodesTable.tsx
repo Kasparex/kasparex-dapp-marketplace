@@ -1,21 +1,13 @@
 'use client';
 
 import type { KrexNode } from '@/lib/storage/krex-nodes';
+import { formatNodeUrlDisplay, normalizeNodeUrlHref } from '@/lib/nodes/format-node-url';
 import { HealthDot, healthFromUptimeHours } from './HealthDot';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { SectionHeader } from './SectionHeader';
 
 const CARD_CLASS =
   'rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-900 p-6';
-
-function shortUrl(url: string) {
-  try {
-    const u = new URL(url);
-    return u.host;
-  } catch {
-    return url.replace(/^https?:\/\//, '').slice(0, 48);
-  }
-}
 
 export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
   const nodes = props.nodes ?? [];
@@ -31,19 +23,28 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
         </p>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="w-full table-fixed text-sm">
+            <colgroup>
+              <col className="w-[11%]" />
+              <col className="w-[10%]" />
+              <col className="w-[12%]" />
+              <col className="w-[10%]" />
+              <col className="w-[9%]" />
+              <col className="w-[12%]" />
+              <col className="w-[36%]" />
+            </colgroup>
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
                   Health{' '}
                   <FieldHint text="Simple health signal derived from node uptime hours. Green ≥ 1h, yellow 0.1–1h, red < 0.1h." />
                 </th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Role</th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Region</th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Uptime</th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Pinned</th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Verified</th>
-                <th className="text-left py-2.5 pr-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL</th>
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Role</th>
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Region</th>
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Uptime</th>
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Pinned</th>
+                <th className="text-left py-2.5 pr-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400">Verified</th>
+                <th className="text-left py-2.5 pr-0 text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL</th>
               </tr>
             </thead>
             <tbody>
@@ -75,15 +76,15 @@ export function ActiveNodesTable(props: { nodes: KrexNode[] }) {
                       <span className="text-zinc-400"> - </span>
                     )}
                   </td>
-                  <td className="py-2.5 pr-4 text-sm">
+                  <td className="py-2.5 pr-0 text-sm max-w-0">
                     <a
-                      href={n.url}
+                      href={normalizeNodeUrlHref(n.url)}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-cyan-700 dark:text-cyan-400 hover:underline font-medium"
+                      className="block truncate text-cyan-700 dark:text-cyan-400 hover:underline font-medium font-mono text-xs"
                       title={n.url}
                     >
-                      {shortUrl(n.url)}
+                      {formatNodeUrlDisplay(n.url)}
                     </a>
                   </td>
                 </tr>
