@@ -34,14 +34,36 @@ function normTxid(id: string): string {
   return id.trim().toLowerCase().replace(/^0x/i, '');
 }
 
+type SerializedInputOutpoint = {
+  transactionId?: string;
+  index?: number | string;
+  previousOutpoint?: { transactionId?: string; index?: number | string };
+};
+
+/** SafeJSON flattens outpoints to `{ transactionId, index }`; runtime objects nest `previousOutpoint`. */
+function readInputOutpoint(input: SerializedInputOutpoint | undefined): {
+  transactionId: string;
+  index: number;
+} | null {
+  if (!input) return null;
+  const nested = input.previousOutpoint;
+  const transactionId = String(
+    nested?.transactionId ?? input.transactionId ?? '',
+  );
+  if (!transactionId) return null;
+  const index = Number(nested?.index ?? input.index ?? 0);
+  return { transactionId, index };
+}
+
 function outpointMatches(
-  previous: { transactionId?: string; index?: number | string } | undefined,
+  input: SerializedInputOutpoint | undefined,
   spendOutpoint: { txid: string; vout: number },
 ): boolean {
-  if (!previous?.transactionId) return false;
+  const op = readInputOutpoint(input);
+  if (!op) return false;
   return (
-    normTxid(String(previous.transactionId)) === normTxid(spendOutpoint.txid) &&
-    Number(previous.index) === Number(spendOutpoint.vout)
+    normTxid(op.transactionId) === normTxid(spendOutpoint.txid) &&
+    Number(op.index) === Number(spendOutpoint.vout)
   );
 }
 
@@ -101,13 +123,11 @@ function selectFeeEntries(
 }
 
 function findCovenantInputIndex(
-  serialized: {
-    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
-  },
+  serialized: { inputs?: SerializedInputOutpoint[] },
   spendOutpoint: { txid: string; vout: number },
 ): number {
   const inputs = serialized.inputs ?? [];
-  return inputs.findIndex((input) => outpointMatches(input.previousOutpoint, spendOutpoint));
+  return inputs.findIndex((input) => outpointMatches(input, spendOutpoint));
 }
 
 /** Move the covenant outpoint to input 0 when the generator left it elsewhere. */
@@ -117,13 +137,20 @@ function ensureCovenantAtInputZero(
   kaspa: Awaited<ReturnType<typeof loadKaspaWasm>>,
 ): KaspaWasmTransaction {
   const serialized = JSON.parse(tx.serializeToSafeJSON()) as {
-    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
+    inputs?: SerializedInputOutpoint[];
   };
   const idx = findCovenantInputIndex(serialized, spendOutpoint);
   if (idx === 0) return tx;
   if (idx < 0 || !serialized.inputs) {
+    const sample = (serialized.inputs ?? [])
+      .slice(0, 3)
+      .map((input, i) => {
+        const op = readInputOutpoint(input);
+        return op ? `#${i}=${normTxid(op.transactionId).slice(0, 8)}…:${op.index}` : `#${i}=?`;
+      })
+      .join(', ');
     throw new Error(
-      'Spend builder could not include the covenant UTXO. Refresh the vault and claim again.',
+      `Spend builder could not include the covenant UTXO (${normTxid(spendOutpoint.txid).slice(0, 8)}…:${spendOutpoint.vout}${sample ? `; saw ${sample}` : ''}). Refresh the vault and claim again.`,
     );
   }
   const [covenantInput] = serialized.inputs.splice(idx, 1);
@@ -394,7 +421,7 @@ export async function buildGenericUnsignedSpend(
   tx = ensureCovenantAtInputZero(tx, spendOutpoint, kaspa);
 
   const serialized = JSON.parse(tx.serializeToSafeJSON()) as {
-    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
+    inputs?: SerializedInputOutpoint[];
   };
   if (findCovenantInputIndex(serialized, spendOutpoint) !== 0) {
     throw new Error(
