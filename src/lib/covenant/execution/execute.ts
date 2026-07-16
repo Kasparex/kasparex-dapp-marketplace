@@ -2,12 +2,12 @@
  * High-level covenant deploy/spend for silverscript runtimes.
  */
 
-import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
+import type { ProgrammableNetworkId } from '@/lib/programmable/config';
 import { CovenantNotReadyError } from '@/lib/programmability/errors';
 import { readCovenantIdField } from '@/lib/kaspa/api';
 import { verifyCovenantTransaction } from '@/lib/programmability/verify';
 import type { CovenantTemplate, CovenantTxResult } from '@/lib/programmability/types';
-import type { CovenantWalletContext } from '../context';
+import { covenantNetworkIdFromContext, type CovenantWalletContext } from '../context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { awaitCovenantSettlement } from './await-settlement';
 import { loadKaspaComCompiledContract } from './artifacts';
@@ -15,8 +15,8 @@ import { createWalletCovenantProvider } from './wallet-provider';
 import { KPX_COVENANT_PAYLOAD_TEMPLATES } from './payload-claim';
 import type { CovenantDeployRequest, CovenantSpendRequest } from './types';
 
-function networkIdFromContext(ctx: CovenantWalletContext): typeof DEFAULT_PROGRAMMABLE_NETWORK {
-  return (ctx as { networkId?: typeof DEFAULT_PROGRAMMABLE_NETWORK }).networkId ?? DEFAULT_PROGRAMMABLE_NETWORK;
+function networkIdFromContext(ctx: CovenantWalletContext): ProgrammableNetworkId {
+  return covenantNetworkIdFromContext(ctx);
 }
 
 async function enrichCovenantId(result: CovenantTxResult): Promise<CovenantTxResult> {
@@ -29,7 +29,7 @@ async function enrichCovenantId(result: CovenantTxResult): Promise<CovenantTxRes
 
 async function runWithSettlement(
   txHash: string,
-  networkId: typeof DEFAULT_PROGRAMMABLE_NETWORK,
+  networkId: ProgrammableNetworkId,
   base: CovenantTxResult,
 ): Promise<CovenantTxResult> {
   if (!txHash) return base;
@@ -50,8 +50,9 @@ export async function executeCovenantDeploy(
   }
 
   const compiled = await loadKaspaComCompiledContract(request.template);
-  const networkId = request.networkId ?? networkIdFromContext(ctx);
-  const executed = await provider.deploy(request, compiled);
+  // Always align with wallet address prefix (overrides stale testnet defaults).
+  const networkId = networkIdFromContext(ctx);
+  const executed = await provider.deploy({ ...request, networkId }, compiled);
 
   if (executed.status === 'failed' || !executed.txHash) {
     throw new Error(executed.error || 'Covenant deploy failed');
@@ -83,8 +84,8 @@ export async function executeCovenantSpend(
   }
 
   const compiled = await loadKaspaComCompiledContract(request.template);
-  const networkId = request.networkId ?? networkIdFromContext(ctx);
-  const executed = await provider.spend(request, compiled);
+  const networkId = networkIdFromContext(ctx);
+  const executed = await provider.spend({ ...request, networkId }, compiled);
 
   if (executed.status === 'failed' || !executed.txHash) {
     throw new Error(executed.error || 'Covenant spend failed');

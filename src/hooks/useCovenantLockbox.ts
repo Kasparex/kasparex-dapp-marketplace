@@ -15,7 +15,7 @@ import {
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
-import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
+import { resolveCovenantNetworkId } from '@/lib/programmable/config';
 import { loadMap, saveMap } from '@/lib/covenant/utils';
 
 interface UseCovenantLockboxReturn {
@@ -53,7 +53,11 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     if (!isConnected || !address || !provider) {
       throw new Error('Connect your Kaspa wallet first');
     }
-    return { provider: provider as KaspaWalletProvider, userAddress: address };
+    return {
+      provider: provider as KaspaWalletProvider,
+      userAddress: address,
+      networkId: resolveCovenantNetworkId({ address }),
+    };
   }, [address, isConnected, provider]);
 
   const refreshVaults = useCallback(async () => {
@@ -158,7 +162,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         const imported = await importVaultFromCovenantId(
           covenantId,
           address,
-          DEFAULT_PROGRAMMABLE_NETWORK,
+          resolveCovenantNetworkId({ address }),
         );
         if (!imported) {
           throw new Error('Covenant not found on KaspaCom indexer or kascov.');

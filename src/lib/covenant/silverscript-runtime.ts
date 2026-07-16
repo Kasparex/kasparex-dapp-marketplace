@@ -1,19 +1,6 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
-import { requireCovenantContext } from './context';
-import type { CovenantRuntime } from './runtime';
-import type {
-  CovenantVault,
-  CreateVaultParams,
-  VaultListFilter,
-} from './types';
-import {
-  executeCovenantDeploy,
-  executeCovenantSpend,
-  KPX_COVENANT_PAYLOAD_TEMPLATES,
-} from './execution';
-import { loadKaspaComCompiledContract, resolveSpendFunctionName } from './execution/artifacts';
-import { DEFAULT_PROGRAMMABLE_NETWORK } from '@/lib/programmable/config';
+import { requireCovenantContext, covenantNetworkIdFromContext } from './context';
 import { normalizeAddr, randomHex, randomId } from './utils';
 import { loadMap, saveMap } from './utils';
 
@@ -51,7 +38,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
         ? Math.floor(params.unlockAt / 1000)
         : 0;
 
-    const networkId = DEFAULT_PROGRAMMABLE_NETWORK;
+    const networkId = covenantNetworkIdFromContext(ctx);
     const tx = await executeCovenantDeploy(ctx, {
       template: 'lockbox',
       amountSompi: params.amountSompi,
@@ -123,7 +110,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
 
     const tx = await executeCovenantSpend(ctx, {
       template: 'lockbox',
-      networkId: DEFAULT_PROGRAMMABLE_NETWORK,
+      networkId: covenantNetworkIdFromContext(ctx),
       functionName,
       spendOutpoint: { txid: vault.utxo.txId, vout: vault.utxo.index },
       inputAmountSompi: vault.amountSompi,

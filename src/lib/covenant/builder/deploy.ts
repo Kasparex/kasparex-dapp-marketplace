@@ -3,6 +3,7 @@ import type { UnsignedCovenantTx, BuildDeployInput } from './types';
 import { getCovenantP2shAddress, payloadHexToBytes, scriptArrayToBytes, hexToBytes } from './address';
 import { loadKaspaWasm, type KaspaWasmTransaction } from './kaspa-wasm';
 import { loadWalletGeneratorEntries } from './utxo';
+import { resolveCovenantNetworkId } from '@/lib/programmable/config';
 
 const DEFAULT_COMPUTE_BUDGET = 10;
 const SIGHASH_ALL = 1;
@@ -76,7 +77,12 @@ export async function buildGenericUnsignedDeploy(
   }
 
   const kaspa = await loadKaspaWasm();
-  const contractAddress = await getCovenantP2shAddress(Array.from(scriptBytes), ctx.networkId);
+  // Never let a stale testnet default fight a mainnet kaspa: change address.
+  const networkId = resolveCovenantNetworkId({
+    address: ctx.senderAddress,
+    networkId: ctx.networkId,
+  });
+  const contractAddress = await getCovenantP2shAddress(Array.from(scriptBytes), networkId);
   const entries = await loadWalletGeneratorEntries(ctx.provider);
   const payload = payloadHexToBytes(transactionPayloadHex);
   const computeBudget = ctx.computeBudget ?? DEFAULT_COMPUTE_BUDGET;
@@ -88,7 +94,7 @@ export async function buildGenericUnsignedDeploy(
     outputs: [{ address: contractAddress, amount }],
     changeAddress: ctx.senderAddress,
     priorityFee,
-    networkId: ctx.networkId,
+    networkId,
     ...(payload ? { payload } : {}),
   });
 
@@ -133,7 +139,7 @@ export async function buildGenericUnsignedDeploy(
   const serialized = JSON.parse(tx.serializeToSafeJSON()) as {
     outputs?: Array<Record<string, unknown>>;
   };
-  const matchedIdx = findOutputIndexByAddress(serialized, contractAddress, ctx.networkId);
+  const matchedIdx = findOutputIndexByAddress(serialized, contractAddress, networkId);
   const outputIdx = matchedIdx >= 0 ? matchedIdx : covenantOutputIdx;
   const covenant = serialized.outputs?.[outputIdx]?.covenant as
     | { covenantId?: string }

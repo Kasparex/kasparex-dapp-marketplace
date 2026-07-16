@@ -10,8 +10,51 @@ export const KASCOV_BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_KASCOV_BASE?.trim()) ||
   'https://kascov.io';
 
+/**
+ * Default for indexer / explorer links when no wallet address is available.
+ * Hub LockBox UI targets mainnet; override with NEXT_PUBLIC_KCC20_NETWORK=testnet-10 for TN10.
+ */
 export const DEFAULT_PROGRAMMABLE_NETWORK: ProgrammableNetworkId =
-  (process.env.NEXT_PUBLIC_KCC20_NETWORK as ProgrammableNetworkId | undefined) ?? 'testnet-10';
+  (process.env.NEXT_PUBLIC_KCC20_NETWORK as ProgrammableNetworkId | undefined) ?? 'mainnet';
+
+/** Infer WASM / covenant network from a Kaspa address prefix. */
+export function programmableNetworkFromAddress(
+  address: string | null | undefined,
+): ProgrammableNetworkId | null {
+  const a = (address ?? '').trim().toLowerCase();
+  if (!a) return null;
+  if (a.startsWith('kaspa:')) return 'mainnet';
+  if (a.startsWith('kaspatest:')) return 'testnet-10';
+  return null;
+}
+
+/**
+ * Resolve the network for covenant deploy/spend builders.
+ * Prefer the connected wallet address prefix so createTransactions never gets
+ * a mainnet `kaspa:` change address with `testnet-10` (WASM: "Change address
+ * does not match supplied network type").
+ */
+export function resolveCovenantNetworkId(opts: {
+  address?: string | null;
+  networkId?: ProgrammableNetworkId | string | null;
+}): ProgrammableNetworkId {
+  const fromAddr = programmableNetworkFromAddress(opts.address);
+  if (fromAddr) return fromAddr;
+
+  const raw = String(opts.networkId ?? '')
+    .trim()
+    .toLowerCase();
+  if (raw === 'mainnet' || raw === 'livenet') return 'mainnet';
+  if (
+    raw === 'testnet-10' ||
+    raw === 'testnet10' ||
+    raw === 'tn10' ||
+    raw === 'testnet'
+  ) {
+    return 'testnet-10';
+  }
+  return DEFAULT_PROGRAMMABLE_NETWORK;
+}
 
 const DEFAULT_INDEXER_BY_NETWORK: Record<ProgrammableNetworkId, string> = {
   mainnet: 'https://indexer.kaspa.com',

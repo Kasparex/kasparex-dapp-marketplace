@@ -40,12 +40,14 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
   ctx: CovenantWalletContext;
   create: () => Promise<T>;
 }): Promise<T> {
+  // Create the lock first so a failed WASM build cannot charge the platform fee
+  // without producing a vault (seen with networkId vs kaspa: change-address mismatch).
+  const created = await args.create();
+
   let feeTxHash: string | undefined;
   if (!args.pricing.waived) {
     feeTxHash = await payKpxCovenantDeployFee({ ctx: args.ctx, pricing: args.pricing });
   }
-
-  const created = await args.create();
 
   const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
   const idempotencyKey = feeTxHash

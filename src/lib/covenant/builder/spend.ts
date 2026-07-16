@@ -21,6 +21,7 @@ import {
   type AbiCompiledLike,
   type AbiFunctionArg,
 } from './abi-sigscript';
+import { resolveCovenantNetworkId } from '@/lib/programmable/config';
 
 const DEFAULT_COMPUTE_BUDGET = 10;
 const SIGHASH_ALL = 1;
@@ -167,7 +168,11 @@ export async function buildGenericUnsignedSpend(
   }
 
   const kaspa = await loadKaspaWasm();
-  const contractAddress = await getCovenantP2shAddress(Array.from(redeem), ctx.networkId);
+  const networkId = resolveCovenantNetworkId({
+    address: ctx.senderAddress,
+    networkId: ctx.networkId,
+  });
+  const contractAddress = await getCovenantP2shAddress(Array.from(redeem), networkId);
   const p2shSpk = kaspa.payToScriptHashScript(redeem);
   const covenantAmount = BigInt(inputAmountSompi);
   if (covenantAmount <= 0n) throw new Error('Spend input amount must be positive');
@@ -215,7 +220,7 @@ export async function buildGenericUnsignedSpend(
     outputs: paymentOutputs,
     changeAddress: ctx.senderAddress,
     priorityFee,
-    networkId: ctx.networkId,
+    networkId,
   });
 
   if (!created.transactions?.length) {
@@ -267,7 +272,7 @@ export async function buildGenericUnsignedSpend(
     extraArgs,
   );
 
-  const networkFee = kaspa.calculateTransactionFee(ctx.networkId, tx) ?? 0n;
+  const networkFee = kaspa.calculateTransactionFee(networkId, tx) ?? 0n;
   const totalFees = networkFee + priorityFee;
   const inputSum = sumInputAmounts(tx);
   const outputSum = sumOutputValues(tx);
