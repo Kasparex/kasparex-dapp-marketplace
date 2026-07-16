@@ -70,6 +70,33 @@ export interface KaspaWalletProviderInterface {
   sendCovenantTransaction?(request: CovenantTxRequest): Promise<CovenantTxResult>;
   /** Report tx v1 / covenant support (optional). */
   getCovenantCapabilities?(): Promise<CovenantCapabilities>;
+  /** Active account public key hex (optional; used for KasCoven-style toSignInputs). */
+  getPublicKey?(): Promise<string | null>;
+  /**
+   * Sign selected inputs of a Safe-JSON transaction (covenant-safe).
+   * Must leave non-listed inputs untouched.
+   */
+  signPskt?(
+    txJsonString: string,
+    options?: {
+      signInputs?: Array<{
+        index: number;
+        sighashType?: number;
+        address?: string;
+        publicKey?: string;
+      }>;
+      toSignInputs?: Array<{
+        index: number;
+        address?: string;
+        publicKey?: string;
+      }>;
+      autoFinalize?: boolean;
+      autoFinalized?: boolean;
+      [key: string]: unknown;
+    }
+  ): Promise<string>;
+  /** Broadcast a signed Safe-JSON transaction without re-signing. */
+  pushTx?(signedTxJson: string): Promise<string>;
   /** Listen for account changes */
   on(event: 'accountsChanged', callback: (accounts: string[]) => void): void;
   /** Remove event listener */

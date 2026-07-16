@@ -92,18 +92,22 @@ console.log('Transaction hash:', txHash);
 ### Sign PSKT Transaction
 
 ```typescript
-import { signPskt } from '@/lib/kaspa/kasware';
+import { signPskt, pushTx } from '@/lib/kaspa/kasware';
 
 const txJsonString = JSON.stringify({
-  // Transaction data
+  // Safe-JSON transaction from a builder (see KasCoven Vaults pattern)
 });
 
 const signedTx = await signPskt(txJsonString, {
-  // Optional signing options
+  signInputs: [{ index: 0, sighashType: 1 }],
+  autoFinalize: false,
 });
 
-console.log('Signed transaction:', signedTx);
+const txId = await pushTx(signedTx);
+console.log('Broadcast tx:', txId);
 ```
+
+Covenant dApps should sign **only** user inputs and leave covenant-authorized inputs untouched (KIP-12 `signPskt`).
 
 ## KRC-20 Token Methods
 

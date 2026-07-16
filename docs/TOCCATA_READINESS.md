@@ -33,10 +33,20 @@ Outputs: `public/covenant/*.json`
 
 ## Wallet capability checklist
 
-- [ ] KasWare exposes `sendCovenantTransaction` or equivalent tx v1 covenant builder
-- [ ] Kastle exposes covenant transaction APIs
+- [x] Detect KasWare / Kastle `signPskt` + `pushTx` (KasCoven / KIP-12 signing path)
+- [ ] Hub unsigned Safe-JSON builder for lockbox deploy/spend (next; same pattern as [KasCoven Vaults](https://vaults.kaslab.space/))
+- [ ] KasWare exposes `sendCovenantTransaction` or equivalent high-level helper (optional fast path)
+- [ ] Kastle exposes covenant transaction APIs (optional fast path)
 - [ ] Wallets use post-Toccata minimum fee estimation
 - [ ] `silverc` mainnet output committed to `public/covenant/` (`scriptHex` populated)
+
+### Wallet submit preference (Hub)
+
+1. If request includes `unsignedTxJson` and wallet has `signPskt` + `pushTx`: sign selected inputs, then broadcast (proven by KasCoven Vaults).
+2. Else if wallet exposes `sendCovenantTransaction`: wallet builds, signs, and broadcasts.
+3. Else: `CovenantNotReadyError` (hybrid falls back to simulator).
+
+Reference: [KIP-12 revival](https://github.com/kaspanet/kips/pull/44), [KasWare signPskt](https://docs.kasware.xyz/wallet/developer-documentation/kaspa/kaspa-transaction).
 
 ## Hub smoke tests (after wallets ready)
 

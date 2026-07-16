@@ -2,59 +2,88 @@ import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { getWalletProviderInterface } from '@/lib/kaspa/wallet';
 import type { CovenantCapabilities } from './types';
 
+function emptyCaps(): CovenantCapabilities {
+  return {
+    txV1: false,
+    covenantBindings: false,
+    canSendCovenantTx: false,
+    canSignCovenantPskt: false,
+    canBroadcastSignedTx: false,
+    hasNativeCovenantSubmit: false,
+  };
+}
+
+function normalizeCaps(raw: Partial<CovenantCapabilities> | null | undefined): CovenantCapabilities {
+  const canSign = Boolean(raw?.canSignCovenantPskt);
+  const canBroadcast = Boolean(raw?.canBroadcastSignedTx);
+  const hasNative = Boolean(raw?.hasNativeCovenantSubmit);
+  const txV1 = Boolean(raw?.txV1 ?? (hasNative || canSign));
+  const covenantBindings = Boolean(raw?.covenantBindings ?? (hasNative || canSign));
+  // Native submit can finish alone. signPskt path needs an unsigned Safe-JSON from Hub/helper.
+  const canSend =
+    raw?.canSendCovenantTx !== undefined
+      ? Boolean(raw.canSendCovenantTx)
+      : hasNative || (canSign && canBroadcast);
+
+  return {
+    txV1,
+    covenantBindings,
+    canSendCovenantTx: canSend,
+    canSignCovenantPskt: canSign,
+    canBroadcastSignedTx: canBroadcast,
+    hasNativeCovenantSubmit: hasNative,
+  };
+}
+
 function readProviderCovenantFlags(provider: unknown): Partial<CovenantCapabilities> {
   if (!provider || typeof provider !== 'object') return {};
   const p = provider as Record<string, unknown>;
-  const caps = p.getCovenantCapabilities;
-  if (typeof caps === 'function') {
-    return {};
-  }
-  if (p.txV1 === true || p.supportsTxV1 === true) {
-    return { txV1: true };
-  }
-  if (p.covenantBindings === true || p.supportsCovenants === true) {
-    return { covenantBindings: true };
-  }
-  return {};
+  const flags: Partial<CovenantCapabilities> = {};
+  if (p.txV1 === true || p.supportsTxV1 === true) flags.txV1 = true;
+  if (p.covenantBindings === true || p.supportsCovenants === true) flags.covenantBindings = true;
+  return flags;
 }
 
 /**
  * Detect whether the connected wallet can build/sign covenant (tx v1) transactions.
+ *
+ * Primary path (KasCoven / KIP-12): `signPskt` + broadcast of a Hub-built Safe-JSON tx.
+ * Optional fast path: wallet-native `sendCovenantTransaction`.
  */
 export async function getCovenantCapabilities(
   providerId: KaspaWalletProvider
 ): Promise<CovenantCapabilities> {
   const wallet = getWalletProviderInterface(providerId);
-  if (!wallet) {
-    return { txV1: false, covenantBindings: false, canSendCovenantTx: false };
-  }
+  if (!wallet) return emptyCaps();
 
   if (typeof wallet.getCovenantCapabilities === 'function') {
     try {
       const caps = await wallet.getCovenantCapabilities();
-      return {
-        txV1: Boolean(caps.txV1),
-        covenantBindings: Boolean(caps.covenantBindings),
-        canSendCovenantTx: Boolean(caps.txV1 && caps.covenantBindings),
-      };
+      return normalizeCaps(caps);
     } catch {
-      // fall through
+      // fall through to method sniffing
     }
   }
 
-  const canSend = typeof wallet.sendCovenantTransaction === 'function';
+  const hasNative = typeof wallet.sendCovenantTransaction === 'function';
+  const canSign = typeof wallet.signPskt === 'function';
+  const canBroadcast = typeof wallet.pushTx === 'function';
   const flags = readProviderCovenantFlags(wallet);
-  const txV1 = flags.txV1 ?? canSend;
-  const covenantBindings = flags.covenantBindings ?? canSend;
 
-  return {
-    txV1,
-    covenantBindings,
-    canSendCovenantTx: canSend || (txV1 && covenantBindings),
-  };
+  return normalizeCaps({
+    ...flags,
+    hasNativeCovenantSubmit: hasNative,
+    canSignCovenantPskt: canSign,
+    canBroadcastSignedTx: canBroadcast,
+    // Until Hub ships an unsigned-tx builder, only native submit completes end-to-end alone.
+    // signPskt+pushTx still count when submit is given unsignedTxJson (see tx-builder).
+    canSendCovenantTx: hasNative,
+    txV1: flags.txV1 ?? (hasNative || canSign),
+    covenantBindings: flags.covenantBindings ?? (hasNative || canSign),
+  });
 }
 
 export async function isCovenantWalletReady(providerId: KaspaWalletProvider): Promise<boolean> {
   const caps = await getCovenantCapabilities(providerId);
-  return caps.canSendCovenantTx;
+  return caps.canSendCovenantTx || Boolean(caps.canSignCovenantPskt && caps.canBroadcastSignedTx);
 }

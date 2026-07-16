@@ -41,6 +41,16 @@ export interface CovenantCompiledContract {
   [key: string]: unknown;
 }
 
+/** One input the wallet should sign (KIP-12 / KasWare signPskt). */
+export interface CovenantSignInput {
+  index: number;
+  /** Sighash type; default 1 = SIGHASH_ALL */
+  sighashType?: number;
+  /** Optional address/pubkey hints used by some KasWare builds (KasCoven-style). */
+  address?: string;
+  publicKey?: string;
+}
+
 /** Wallet or Hub covenant transaction request (KaspaCom SDK aligned). */
 export interface CovenantTxRequest {
   template: CovenantTemplate;
@@ -54,6 +64,13 @@ export interface CovenantTxRequest {
   compiled?: CovenantCompiledContract | null;
   /** Hex-encoded tx.payload (deploy claims for indexer) */
   transactionPayloadHex?: string;
+  /**
+   * Pre-built unsigned Safe-JSON transaction (Hub or helper built).
+   * When set, Hub prefers signPskt + pushTx over wallet-native sendCovenantTransaction.
+   */
+  unsignedTxJson?: string;
+  /** Inputs for the wallet to sign; required with unsignedTxJson for covenant spends. */
+  signInputs?: CovenantSignInput[];
 }
 
 /** Result from a covenant L1 transaction submission. */
@@ -69,7 +86,18 @@ export interface CovenantTxResult {
 export interface CovenantCapabilities {
   txV1: boolean;
   covenantBindings: boolean;
+  /**
+   * True when Hub can complete a covenant submit with this wallet:
+   * either wallet-native `sendCovenantTransaction`, or `signPskt` + broadcast
+   * when an unsigned Safe-JSON tx is already available.
+   */
   canSendCovenantTx: boolean;
+  /** Wallet can sign selected inputs of a dApp-built Safe-JSON tx (KasCoven / KIP-12). */
+  canSignCovenantPskt?: boolean;
+  /** Wallet can broadcast a signed Safe-JSON tx (`pushTx` or equivalent). */
+  canBroadcastSignedTx?: boolean;
+  /** Wallet exposes high-level build+sign+broadcast for covenant requests. */
+  hasNativeCovenantSubmit?: boolean;
 }
 
 export interface CovenantArtifactMeta {

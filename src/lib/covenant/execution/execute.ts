@@ -45,7 +45,7 @@ export async function executeCovenantDeploy(
   const provider = createWalletCovenantProvider(ctx.provider as KaspaWalletProvider);
   if (!(await provider.canExecute())) {
     throw new CovenantNotReadyError(
-      'Your wallet does not support Kaspa covenant transactions yet. Hybrid mode will use the local simulator until KasWare, Kastle, or KaspaCom wallet expose covenant deploy.',
+      'Your wallet does not support Kaspa covenant transactions yet. Hybrid mode will use the local simulator until KasWare/Kastle expose signPskt+pushTx (or sendCovenantTransaction), and Hub can supply an unsigned Safe-JSON tx.',
     );
   }
 
@@ -78,7 +78,7 @@ export async function executeCovenantSpend(
   const provider = createWalletCovenantProvider(ctx.provider as KaspaWalletProvider);
   if (!(await provider.canExecute())) {
     throw new CovenantNotReadyError(
-      'Your wallet does not support Kaspa covenant spends yet. Use simulator mode or connect a Toccata-ready wallet later.',
+      'Your wallet does not support Kaspa covenant spends yet. Use simulator mode or connect a wallet with signPskt+pushTx (KasCoven / KIP-12 path).',
     );
   }
 

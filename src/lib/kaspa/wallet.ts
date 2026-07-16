@@ -383,9 +383,66 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
     adapter.sendCovenantTransaction = async (request) =>
       normalizeCovenantTxResult(await kasware.sendCovenantTransaction(request));
   }
-  if (typeof kasware.getCovenantCapabilities === 'function') {
-    adapter.getCovenantCapabilities = async () => kasware.getCovenantCapabilities();
+
+  if (typeof kasware.getPublicKey === 'function') {
+    adapter.getPublicKey = async () => {
+      try {
+        const pk = await kasware.getPublicKey();
+        return typeof pk === 'string' && pk.trim() ? pk.trim() : null;
+      } catch {
+        return null;
+      }
+    };
   }
+
+  if (typeof kasware.signPskt === 'function') {
+    adapter.signPskt = async (txJsonString, options) =>
+      kasware.signPskt({ txJsonString, options });
+  }
+
+  if (typeof kasware.pushTx === 'function') {
+    adapter.pushTx = async (signedTxJson) => {
+      const raw = await kasware.pushTx(signedTxJson);
+      return extractKaspaTransactionId(raw) ?? String(raw ?? '');
+    };
+  }
+
+  adapter.getCovenantCapabilities = async () => {
+    if (typeof kasware.getCovenantCapabilities === 'function') {
+      try {
+        const caps = await kasware.getCovenantCapabilities();
+        if (caps && typeof caps === 'object') {
+          return {
+            txV1: Boolean((caps as any).txV1 ?? adapter.sendCovenantTransaction || adapter.signPskt),
+            covenantBindings: Boolean(
+              (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
+            ),
+            canSendCovenantTx: Boolean(
+              (caps as any).canSendCovenantTx ?? adapter.sendCovenantTransaction
+            ),
+            canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
+            canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
+            hasNativeCovenantSubmit: Boolean(
+              (caps as any).hasNativeCovenantSubmit ?? adapter.sendCovenantTransaction
+            ),
+          };
+        }
+      } catch {
+        // synthesize below
+      }
+    }
+    const hasNative = typeof adapter.sendCovenantTransaction === 'function';
+    const canSign = typeof adapter.signPskt === 'function';
+    const canBroadcast = typeof adapter.pushTx === 'function';
+    return {
+      txV1: hasNative || canSign,
+      covenantBindings: hasNative || canSign,
+      canSendCovenantTx: hasNative,
+      canSignCovenantPskt: canSign,
+      canBroadcastSignedTx: canBroadcast,
+      hasNativeCovenantSubmit: hasNative,
+    };
+  };
 
   return adapter;
 }
@@ -480,9 +537,125 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
     adapter.sendCovenantTransaction = async (request) =>
       normalizeCovenantTxResult(await kastle.sendCovenantTransaction(request));
   }
-  if (typeof kastle.getCovenantCapabilities === 'function') {
-    adapter.getCovenantCapabilities = async () => kastle.getCovenantCapabilities();
+
+  if (typeof kastle.getPublicKey === 'function') {
+    adapter.getPublicKey = async () => {
+      try {
+        const pk = await kastle.getPublicKey();
+        return typeof pk === 'string' && pk.trim() ? pk.trim() : null;
+      } catch {
+        return null;
+      }
+    };
+  } else if (typeof kastle.request === 'function') {
+    adapter.getPublicKey = async () => {
+      try {
+        const pk = await kastle.request('kas:get_public_key');
+        return typeof pk === 'string' && pk.trim() ? pk.trim() : null;
+      } catch {
+        return null;
+      }
+    };
   }
+
+  if (typeof kastle.signPskt === 'function') {
+    adapter.signPskt = async (txJsonString, options) => kastle.signPskt(txJsonString, options);
+  } else if (typeof kastle.request === 'function') {
+    adapter.signPskt = async (txJsonString, options) => {
+      const networkId =
+        typeof kastle.getNetwork === 'function'
+          ? await kastle.getNetwork()
+          : await kastle.request('kas:get_network').catch(() => 'mainnet');
+      const scripts = Array.isArray(options?.signInputs)
+        ? options!.signInputs!.map((input) => ({
+            inputIndex: input.index,
+            scriptHex: '',
+            signType: input.sighashType ?? 1,
+          }))
+        : Array.isArray(options?.toSignInputs)
+          ? options!.toSignInputs!.map((input) => ({
+              inputIndex: input.index,
+              scriptHex: '',
+              signType: 1,
+            }))
+          : undefined;
+      const signed = await kastle.request('kas:sign_tx', {
+        networkId,
+        txJson: txJsonString,
+        scripts,
+      });
+      if (typeof signed !== 'string' || !signed.trim()) {
+        throw new Error('Kastle kas:sign_tx returned an empty result');
+      }
+      return signed;
+    };
+  }
+
+  if (typeof kastle.pushTx === 'function') {
+    adapter.pushTx = async (signedTxJson) => {
+      const raw = await kastle.pushTx(signedTxJson);
+      return extractKaspaTransactionId(raw) ?? String(raw ?? '');
+    };
+  } else if (typeof kastle.request === 'function') {
+    adapter.pushTx = async (signedTxJson) => {
+      const networkId =
+        typeof kastle.getNetwork === 'function'
+          ? await kastle.getNetwork()
+          : await kastle.request('kas:get_network').catch(() => 'mainnet');
+      // Prefer broadcast-only methods; fall back to sign-and-broadcast of an already-signed tx.
+      for (const method of ['kas:broadcast_tx', 'kas:submit_tx', 'kas:push_tx'] as const) {
+        try {
+          const raw = await kastle.request(method, { networkId, txJson: signedTxJson });
+          const id = extractKaspaTransactionId(raw) ?? (typeof raw === 'string' ? raw : '');
+          if (id) return id;
+        } catch {
+          // try next
+        }
+      }
+      const raw = await kastle.request('kas:sign_and_broadcast_tx', {
+        networkId,
+        txJson: signedTxJson,
+      });
+      return extractKaspaTransactionId(raw) ?? String(raw ?? '');
+    };
+  }
+
+  adapter.getCovenantCapabilities = async () => {
+    if (typeof kastle.getCovenantCapabilities === 'function') {
+      try {
+        const caps = await kastle.getCovenantCapabilities();
+        if (caps && typeof caps === 'object') {
+          return {
+            txV1: Boolean((caps as any).txV1 ?? adapter.sendCovenantTransaction || adapter.signPskt),
+            covenantBindings: Boolean(
+              (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
+            ),
+            canSendCovenantTx: Boolean(
+              (caps as any).canSendCovenantTx ?? adapter.sendCovenantTransaction
+            ),
+            canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
+            canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
+            hasNativeCovenantSubmit: Boolean(
+              (caps as any).hasNativeCovenantSubmit ?? adapter.sendCovenantTransaction
+            ),
+          };
+        }
+      } catch {
+        // synthesize below
+      }
+    }
+    const hasNative = typeof adapter.sendCovenantTransaction === 'function';
+    const canSign = typeof adapter.signPskt === 'function';
+    const canBroadcast = typeof adapter.pushTx === 'function';
+    return {
+      txV1: hasNative || canSign,
+      covenantBindings: hasNative || canSign,
+      canSendCovenantTx: hasNative,
+      canSignCovenantPskt: canSign,
+      canBroadcastSignedTx: canBroadcast,
+      hasNativeCovenantSubmit: hasNative,
+    };
+  };
 
   return adapter;
 }
@@ -857,19 +1030,34 @@ export async function getWalletCovenantCapabilities(
   provider: KaspaWalletProvider
 ): Promise<CovenantCapabilities> {
   const walletProvider = getWalletProvider(provider);
-  if (!walletProvider?.getCovenantCapabilities) {
-    const canSend = Boolean(walletProvider?.sendCovenantTransaction);
+  if (!walletProvider) {
     return {
-      txV1: canSend,
-      covenantBindings: canSend,
-      canSendCovenantTx: canSend,
+      txV1: false,
+      covenantBindings: false,
+      canSendCovenantTx: false,
+      canSignCovenantPskt: false,
+      canBroadcastSignedTx: false,
+      hasNativeCovenantSubmit: false,
     };
   }
-  try {
-    return await walletProvider.getCovenantCapabilities();
-  } catch {
-    return { txV1: false, covenantBindings: false, canSendCovenantTx: false };
+  if (typeof walletProvider.getCovenantCapabilities === 'function') {
+    try {
+      return await walletProvider.getCovenantCapabilities();
+    } catch {
+      // fall through
+    }
   }
+  const hasNative = Boolean(walletProvider.sendCovenantTransaction);
+  const canSign = Boolean(walletProvider.signPskt);
+  const canBroadcast = Boolean(walletProvider.pushTx);
+  return {
+    txV1: hasNative || canSign,
+    covenantBindings: hasNative || canSign,
+    canSendCovenantTx: hasNative,
+    canSignCovenantPskt: canSign,
+    canBroadcastSignedTx: canBroadcast,
+    hasNativeCovenantSubmit: hasNative,
+  };
 }
 
 /**

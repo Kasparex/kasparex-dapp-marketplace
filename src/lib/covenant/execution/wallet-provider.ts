@@ -1,6 +1,7 @@
 /**
  * Wallet covenant execution adapter (KaspaCom SDK shape, Hub-safe).
- * Delegates signing to KasWare / Kastle when sendCovenantTransaction is available.
+ * Prefers signPskt + pushTx when an unsigned Safe-JSON tx is provided;
+ * otherwise delegates to wallet-native sendCovenantTransaction when available.
  */
 
 import { submitCovenantTransaction } from '@/lib/programmability/tx-builder';
@@ -36,7 +37,12 @@ export function createWalletCovenantProvider(
     async canExecute() {
       const { getCovenantCapabilities } = await import('@/lib/programmability/capabilities');
       const caps = await getCovenantCapabilities(provider);
-      return caps.canSendCovenantTx;
+      // Native wallet builder, or signPskt+pushTx (unsigned Safe-JSON builder lands next).
+      return (
+        Boolean(caps.hasNativeCovenantSubmit) ||
+        caps.canSendCovenantTx ||
+        Boolean(caps.canSignCovenantPskt && caps.canBroadcastSignedTx)
+      );
     },
     async deploy(request, compiled) {
       const payloadHex = buildDeployPayloadHex({

@@ -22,6 +22,10 @@ export interface KasWareAPI {
   // Transaction methods
   sendKaspa(toAddress: string, sompi: number | string, options?: Record<string, any>): Promise<string>;
   signPskt(params: { txJsonString: string; options?: Record<string, any> }): Promise<string>;
+  /** Broadcast a signed Safe-JSON transaction (KasCoven / covenant flows). */
+  pushTx?(txJsonString: string): Promise<string>;
+  getPublicKey?(): Promise<string>;
+  getAccounts?(): Promise<string[]>;
   
   // KRC-20 token methods
   getKRC20Balance(): Promise<Array<{ tick: string; amount: string | number; [key: string]: any }>>;
@@ -187,8 +191,28 @@ export async function signPskt(
 }
 
 /**
+ * Broadcast a signed Safe-JSON transaction.
+ */
+export async function pushTx(signedTxJson: string): Promise<string> {
+  const kasware = getKasWare();
+  if (!kasware) {
+    throw new Error('KasWare wallet is not installed');
+  }
+
+  if (!isKasWareConnected()) {
+    throw new Error('KasWare wallet is not connected');
+  }
+
+  if (typeof kasware.pushTx !== 'function') {
+    throw new Error('pushTx() method is not available. Please update your KasWare extension.');
+  }
+
+  return await kasware.pushTx(signedTxJson);
+}
+
+/**
  * Get network information
- * 
+ *
  * @returns Network name (e.g., 'mainnet', 'testnet')
  */
 export async function getNetwork(): Promise<string> {

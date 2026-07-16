@@ -5,8 +5,18 @@ How third-party Kaspa dApps can interoperate with Kasparex Hub **without** Hub-o
 ## Principles
 
 - **Client-first state**: covenant UTXO refs and vault records live in the user browser (localStorage) or in the external dApp.
-- **Wallet-native txs**: Hub does not submit raw txs to nodes; wallets build and sign covenant transactions.
+- **Wallet signing**: Prefer the KasCoven / KIP-12 pattern: build unsigned Safe-JSON, `signPskt` user inputs only, then `pushTx`. Optional fast path: wallet `sendCovenantTransaction`.
 - **On-demand verify**: optional one-shot check via Hub proxy `GET /api/kaspa/transaction/[hash]` (same as donations/rewards).
+
+## Wallet submit flow
+
+Aligned with [KasCoven Vaults](https://vaults.kaslab.space/) and KIP-12:
+
+1. Build an unsigned Safe-JSON transaction (Hub helper or wallet-native builder).
+2. Ask the wallet to `signPskt` only the user-owned inputs (leave covenant scripts untouched).
+3. Broadcast via wallet `pushTx` (or equivalent).
+
+Your dApp can also call `window.kasware` / `window.kastle` APIs when available.
 
 ## Integration patterns
 

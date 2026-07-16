@@ -1,7 +1,11 @@
 /**
  * KaspaCom covenant-sdk aligned types (wallet deploy/spend contract).
- * Hub does not embed kaspa-wasm or hold private keys; wallets implement execution.
+ * Hub does not embed kaspa-wasm or hold private keys.
+ * Preferred execution: Hub/helper builds unsigned Safe-JSON, wallet `signPskt` + `pushTx`
+ * (KasCoven / KIP-12). Optional: wallet-native `sendCovenantTransaction`.
  *
+ * @see https://vaults.kaslab.space/
+ * @see https://github.com/kaspanet/kips/pull/44
  * @see https://github.com/KASPACOM/kaspacom-web-wallet/tree/feat/covenants-support/src/app/services/covenant/covenant-sdk
  */
 
