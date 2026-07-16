@@ -75,9 +75,8 @@ export async function getCovenantCapabilities(
     hasNativeCovenantSubmit: hasNative,
     canSignCovenantPskt: canSign,
     canBroadcastSignedTx: canBroadcast,
-    // Until Hub ships an unsigned-tx builder, only native submit completes end-to-end alone.
-    // signPskt+pushTx still count when submit is given unsignedTxJson (see tx-builder).
-    canSendCovenantTx: hasNative,
+    // Hub ships an unsigned Safe-JSON builder (WASM) for deploy; signPskt+pushTx completes it.
+    canSendCovenantTx: hasNative || (canSign && canBroadcast),
     txV1: flags.txV1 ?? (hasNative || canSign),
     covenantBindings: flags.covenantBindings ?? (hasNative || canSign),
   });

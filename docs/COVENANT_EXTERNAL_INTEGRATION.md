@@ -12,9 +12,11 @@ How third-party Kaspa dApps can interoperate with Kasparex Hub **without** Hub-o
 
 Aligned with [KasCoven Vaults](https://vaults.kaslab.space/) and KIP-12:
 
-1. Build an unsigned Safe-JSON transaction (Hub helper or wallet-native builder).
+1. Hub builds an unsigned Safe-JSON transaction (`src/lib/covenant/builder` + `public/kaspa-sdk` WASM).
 2. Ask the wallet to `signPskt` only the user-owned inputs (leave covenant scripts untouched).
 3. Broadcast via wallet `pushTx` (or equivalent).
+
+Deploy is implemented for all Hub templates that ship `scriptHex`. Spend/claim builders are scaffolded next (ABI sigscripts).
 
 Your dApp can also call `window.kasware` / `window.kastle` APIs when available.
 

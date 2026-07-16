@@ -418,7 +418,9 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
               (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
             ),
             canSendCovenantTx: Boolean(
-              (caps as any).canSendCovenantTx ?? adapter.sendCovenantTransaction
+              (caps as any).canSendCovenantTx ??
+                adapter.sendCovenantTransaction ||
+                (adapter.signPskt && adapter.pushTx)
             ),
             canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
             canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
@@ -437,7 +439,7 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
     return {
       txV1: hasNative || canSign,
       covenantBindings: hasNative || canSign,
-      canSendCovenantTx: hasNative,
+      canSendCovenantTx: hasNative || (canSign && canBroadcast),
       canSignCovenantPskt: canSign,
       canBroadcastSignedTx: canBroadcast,
       hasNativeCovenantSubmit: hasNative,
@@ -631,7 +633,9 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
               (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
             ),
             canSendCovenantTx: Boolean(
-              (caps as any).canSendCovenantTx ?? adapter.sendCovenantTransaction
+              (caps as any).canSendCovenantTx ??
+                adapter.sendCovenantTransaction ||
+                (adapter.signPskt && adapter.pushTx)
             ),
             canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
             canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
@@ -650,7 +654,7 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
     return {
       txV1: hasNative || canSign,
       covenantBindings: hasNative || canSign,
-      canSendCovenantTx: hasNative,
+      canSendCovenantTx: hasNative || (canSign && canBroadcast),
       canSignCovenantPskt: canSign,
       canBroadcastSignedTx: canBroadcast,
       hasNativeCovenantSubmit: hasNative,
@@ -1053,7 +1057,7 @@ export async function getWalletCovenantCapabilities(
   return {
     txV1: hasNative || canSign,
     covenantBindings: hasNative || canSign,
-    canSendCovenantTx: hasNative,
+    canSendCovenantTx: hasNative || (canSign && canBroadcast),
     canSignCovenantPskt: canSign,
     canBroadcastSignedTx: canBroadcast,
     hasNativeCovenantSubmit: hasNative,

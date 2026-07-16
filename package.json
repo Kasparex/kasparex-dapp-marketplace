@@ -41,6 +41,8 @@
     "rename:hats": "node scripts/rename-hat-files-auto.js",
     "docs:minecore-pdf": "node scripts/generate-minecore-spec-pdf.mjs",
     "covenant:compile": "node scripts/compile-covenant-artifacts.mjs",
+    "kaspa:wasm": "node scripts/ensure-kaspa-wasm.mjs",
+    "prebuild": "node scripts/ensure-kaspa-wasm.mjs",
     "worker:dev": "cd workers && npm run dev",
     "worker:deploy": "cd workers && npm run deploy",
     "worker:deploy:production": "cd workers && npm run deploy:production"
