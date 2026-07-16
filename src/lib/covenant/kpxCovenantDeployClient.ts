@@ -6,6 +6,8 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { CovenantWalletContext } from './context';
+import { covenantNetworkIdFromContext } from './context';
+import { awaitCovenantSettlement } from './execution/await-settlement';
 import { payKpxCovenantPlatformFee } from './platform-fee';
 import type { KpxCovenantDeployPrice } from './kpxCovenantPricing';
 import { resolveKpxCovenantClaimPoints } from './kpxCovenantPricing';
@@ -120,6 +122,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
   // Fee first, then unlock. Paying after claim often never prompted (wallet busy /
   // fee UTXOs already spent on network fees) and left successful unlocks without a Hub fee.
   let feeTxHash = args.existingFeeTxHash?.trim() || undefined;
+  const feeWasJustPaid = !args.pricing.waived && !feeTxHash;
   if (!args.pricing.waived && !feeTxHash) {
     if (!args.pricing.treasuryConfigured) {
       throw new Error('Hub treasury is not configured; claim fee cannot be collected.');
@@ -129,6 +132,20 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
       throw new Error('Hub claim fee payment did not return a transaction id.');
     }
     await args.onFeePaid?.(feeTxHash);
+  }
+
+  // Wait for the fee tx to settle before building the claim. Otherwise the claim
+  // may spend unconfirmed fee change and the node rejects it as an orphan.
+  if (feeTxHash && (feeWasJustPaid || args.existingFeeTxHash)) {
+    const networkId = covenantNetworkIdFromContext(args.ctx);
+    const settled = await awaitCovenantSettlement(feeTxHash, networkId, {
+      maxAttempts: feeWasJustPaid ? 10 : 6,
+      delayMs: 2000,
+    });
+    if (!settled.indexed && feeWasJustPaid) {
+      // Soft wait: still proceed after a short buffer so wallets can refresh UTXOs.
+      await new Promise((r) => setTimeout(r, 3000));
+    }
   }
 
   const claimed = await args.claim();

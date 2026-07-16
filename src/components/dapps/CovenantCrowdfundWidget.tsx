@@ -75,7 +75,7 @@ export function CovenantCrowdfundWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
       </button>
     ),
-    deps: [tab, busy, title, deadline, pricing, goalKas],
+    deps: [tab, busy, title, deadline, pricing, goalKas, memo],
   });
 
   if (!state.isConnected) {

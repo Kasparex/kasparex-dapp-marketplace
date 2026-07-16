@@ -120,6 +120,8 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       beneficiary: primary,
       beneficiaries: claimers,
       amountSompi: params.amountSompi,
+      shareBps: params.shareBps,
+      groupId: params.groupId,
       memo,
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),

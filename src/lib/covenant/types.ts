@@ -28,10 +28,15 @@ export interface CovenantVault {
   /**
    * All wallets allowed to claim this lock (Hub-enforced allowlist).
    * First entry is also written into the on-chain deploy payload as beneficiary.
+   * For share-split locks, this is a single address (one vault per claimer).
    */
   beneficiaries?: string[];
   /** Locked amount in sompi (string for bigint safety). */
   amountSompi: string;
+  /** Share of the original group total in basis points (10000 = 100%). */
+  shareBps?: number;
+  /** Links sibling share vaults created together from one LockBox create. */
+  groupId?: string;
   /** Human label / memo. */
   memo: string;
   /** Unix ms when claim is allowed (timelock only). */
@@ -58,6 +63,8 @@ export interface CreateVaultParams {
   /** Optional extra claimers; primary should be first. */
   beneficiaries?: string[];
   amountSompi: string;
+  shareBps?: number;
+  groupId?: string;
   memo: string;
   unlockAt: number | null;
   lockTxHash?: string;

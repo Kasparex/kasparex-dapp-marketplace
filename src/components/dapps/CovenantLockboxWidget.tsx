@@ -10,6 +10,7 @@ import {
   CovenantError,
   CovenantTabPanel,
   covenantInputClass,
+  covenantSmallInputClass,
   covenantCardClass,
   covenantSecondaryBtnClass,
   shortKaspaAddr,
@@ -43,10 +44,11 @@ type TabId = 'create' | 'vaults' | 'metadata';
 interface ClaimerRow {
   key: string;
   address: string;
+  percent: string;
 }
 
-function newClaimerRow(): ClaimerRow {
-  return { key: `c_${Math.random().toString(36).slice(2, 9)}`, address: '' };
+function newClaimerRow(percent = ''): ClaimerRow {
+  return { key: `c_${Math.random().toString(36).slice(2, 9)}`, address: '', percent };
 }
 
 const UNLOCK_PRESETS = [
@@ -119,7 +121,9 @@ export function CovenantLockboxWidget() {
     effectiveMode,
   } = useCovenantLockbox();
   const [kind, setKind] = useState<CovenantVaultKind>('escrow');
-  const [claimerRows, setClaimerRows] = useState<ClaimerRow[]>([{ key: 'primary', address: '' }]);
+  const [claimerRows, setClaimerRows] = useState<ClaimerRow[]>([
+    { key: 'primary', address: '', percent: '100' },
+  ]);
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox', claimerRows.length);
   const claimPricing = useMemo(
     () => resolveKpxCovenantClaimPrice('lockbox', krexTier),
@@ -159,6 +163,40 @@ export function CovenantLockboxWidget() {
   };
 
   const primaryClaimerFilled = Boolean(claimerRows[0]?.address.trim());
+  const percentSum = useMemo(
+    () => claimerRows.reduce((s, r) => s + (parseFloat(r.percent) || 0), 0),
+    [claimerRows],
+  );
+  const lockAmount = parseFloat(amountKas) || 0;
+  const claimerPreview = useMemo(
+    () =>
+      claimerRows.map((r) => ({
+        ...r,
+        kas: lockAmount > 0 ? ((parseFloat(r.percent) || 0) / 100) * lockAmount : 0,
+      })),
+    [claimerRows, lockAmount],
+  );
+  const sharesValid =
+    claimerRows.length === 1
+      ? true
+      : Math.abs(percentSum - 100) < 0.01 && claimerRows.every((r) => (parseFloat(r.percent) || 0) > 0);
+
+  const updateClaimerRow = (key: string, patch: Partial<ClaimerRow>) => {
+    setClaimerRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  };
+
+  const addClaimerRow = () => {
+    setClaimerRows((prev) => {
+      if (prev.length >= 8) return prev;
+      if (prev.length === 1) {
+        return [
+          { ...prev[0], percent: prev[0].percent || '50' },
+          newClaimerRow('50'),
+        ];
+      }
+      return [...prev, newClaimerRow('')];
+    });
+  };
 
   const handleCreate = async () => {
     setBusy(true);
@@ -166,16 +204,25 @@ export function CovenantLockboxWidget() {
       if (kind === 'timelock' && !unlockLocal) {
         throw new Error('Choose an unlock date for timelock');
       }
+      if (!sharesValid) {
+        throw new Error('Claimer shares must total 100%');
+      }
       const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
       await createVault({
         kind,
-        beneficiaries: claimerRows.map((r) => r.address),
+        recipients: claimerRows.map((r) => ({
+          address: r.address,
+          shareBps:
+            claimerRows.length === 1
+              ? 10000
+              : Math.round((parseFloat(r.percent) || 0) * 100),
+        })),
         amountKas: parseFloat(amountKas),
         memo: memo.trim(),
         unlockAt,
       });
       setMemo('');
-      setClaimerRows([{ key: 'primary', address: '' }]);
+      setClaimerRows([{ key: 'primary', address: '', percent: '100' }]);
       setUnlockLocal(toDatetimeLocalValue(Date.now() + 60_000));
       navigateTab('vaults');
     } catch (e) {
@@ -196,27 +243,45 @@ export function CovenantLockboxWidget() {
     }
   };
 
-  const lockAmount = parseFloat(amountKas) || 0;
-
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? lockAmount : undefined,
     primaryAction: (
       <button
         type="button"
         disabled={
-          busy || isLoading || !primaryClaimerFilled || (kind === 'timelock' && !unlockLocal)
+          busy ||
+          isLoading ||
+          !primaryClaimerFilled ||
+          !sharesValid ||
+          (kind === 'timelock' && !unlockLocal)
         }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {busy
-          ? 'Creating...'
+          ? claimerRows.length > 1
+            ? 'Creating locks...'
+            : 'Creating...'
           : pricing.waived
-            ? 'Create lock'
+            ? claimerRows.length > 1
+              ? `Create ${claimerRows.length} share locks`
+              : 'Create lock'
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
       </button>
     ),
-    deps: [busy, isLoading, primaryClaimerFilled, pricing, amountKas, kind, unlockLocal, claimerRows],
+    deps: [
+      busy,
+      isLoading,
+      primaryClaimerFilled,
+      sharesValid,
+      pricing,
+      amountKas,
+      kind,
+      unlockLocal,
+      claimerRows,
+      memo,
+      percentSum,
+    ],
     enabled: tab === 'create',
   });
 
@@ -271,30 +336,65 @@ export function CovenantLockboxWidget() {
           </div>
 
           <div className="k-form-group !mb-0 space-y-3">
-            <CovenantFieldLabel
-              label="Who can claim"
-              tooltip="First address is required. Add more claimers so any of them can unlock the full amount. Each extra claimer adds +5 KAS to the Hub deploy fee."
-            />
-            {claimerRows.map((row, index) => (
-              <div key={row.key} className="flex gap-2">
-                <input
-                  type="text"
-                  value={row.address}
-                  onChange={(e) =>
-                    setClaimerRows((prev) =>
-                      prev.map((r) => (r.key === row.key ? { ...r, address: e.target.value } : r)),
-                    )
-                  }
-                  placeholder={index === 0 ? 'Primary claimer (kaspa:...)' : 'Extra claimer (kaspa:...)'}
-                  className={covenantInputClass}
-                />
+            <div className="flex justify-between items-center gap-2">
+              <CovenantFieldLabel
+                label="Who can claim"
+                tooltip="Add Kaspa addresses and a share for each. Shares must total 100%. Each claimer gets their own lock for that slice (you will sign once per claimer). Extra claimers add +5 KAS to the Hub deploy fee."
+              />
+              {claimerRows.length > 1 ? (
+                <span
+                  className={`text-xs font-medium ${
+                    sharesValid
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  Total: {percentSum.toFixed(1)}%
+                </span>
+              ) : null}
+            </div>
+            {claimerPreview.map((row, index) => (
+              <div key={row.key} className="flex gap-2 items-start">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={row.address}
+                    onChange={(e) => updateClaimerRow(row.key, { address: e.target.value })}
+                    placeholder={index === 0 ? 'Claimer (kaspa:...)' : 'Extra claimer (kaspa:...)'}
+                    className={covenantInputClass}
+                  />
+                  {claimerRows.length > 1 ? (
+                    <p className="text-xs text-zinc-500 pl-1">~{row.kas.toFixed(4)} KAS</p>
+                  ) : null}
+                </div>
+                {claimerRows.length > 1 ? (
+                  <div className="w-24 shrink-0">
+                    <input
+                      type="number"
+                      min={0.01}
+                      max={100}
+                      step={0.1}
+                      value={row.percent}
+                      onChange={(e) => updateClaimerRow(row.key, { percent: e.target.value })}
+                      className={`${covenantSmallInputClass} text-center`}
+                      aria-label="Share percent"
+                    />
+                    <p className="text-[10px] text-center text-zinc-500 mt-1">%</p>
+                  </div>
+                ) : null}
                 {claimerRows.length > 1 ? (
                   <button
                     type="button"
                     onClick={() =>
-                      setClaimerRows((prev) => prev.filter((r) => r.key !== row.key))
+                      setClaimerRows((prev) => {
+                        const next = prev.filter((r) => r.key !== row.key);
+                        if (next.length === 1) {
+                          return [{ ...next[0], percent: '100' }];
+                        }
+                        return next;
+                      })
                     }
-                    className="shrink-0 rounded-lg border border-zinc-300 px-2 text-xs text-zinc-500 hover:border-rose-400 hover:text-rose-500 dark:border-zinc-700"
+                    className="mt-2.5 shrink-0 rounded-lg border border-zinc-300 px-2 text-xs text-zinc-500 hover:border-rose-400 hover:text-rose-500 dark:border-zinc-700"
                     aria-label="Remove claimer"
                   >
                     Remove
@@ -303,13 +403,15 @@ export function CovenantLockboxWidget() {
               </div>
             ))}
             {claimerRows.length < 8 ? (
-              <button
-                type="button"
-                onClick={() => setClaimerRows((prev) => [...prev, newClaimerRow()])}
-                className={KX_FORM_ADD_BTN_CLASS}
-              >
+              <button type="button" onClick={addClaimerRow} className={KX_FORM_ADD_BTN_CLASS}>
                 {covenantPremiumAddButtonLabel('lockbox', claimerRows.length)}
               </button>
+            ) : null}
+            {claimerRows.length > 1 ? (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Multi-claimer creates one lock per wallet for their %. You will approve one lock transaction per
+                claimer, then the Hub deploy fee once.
+              </p>
             ) : null}
           </div>
 
@@ -483,11 +585,14 @@ export function CovenantLockboxWidget() {
                     <div className="text-xs text-zinc-500 space-y-1">
                       <p>From: {shortKaspaAddr(v.depositor)}</p>
                       <p>
-                        Claimers:{' '}
-                        {resolveVaultClaimers(v)
-                          .map((a) => shortKaspaAddr(a))
-                          .join(', ')}
+                        Claimer: {shortKaspaAddr(v.beneficiary)}
+                        {typeof v.shareBps === 'number'
+                          ? ` · ${(v.shareBps / 100).toFixed(1)}%`
+                          : ''}
                       </p>
+                      {v.groupId ? (
+                        <p className="text-[11px] text-zinc-400">Share group · {v.groupId.slice(0, 12)}</p>
+                      ) : null}
                       <p>Unlock: {formatUnlock(v.unlockAt)}</p>
                     </div>
                     {progress ? (

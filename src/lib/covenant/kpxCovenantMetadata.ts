@@ -175,8 +175,13 @@ export function lockboxMetadataInstances(vaults: CovenantVault[]): KpxCovenantMe
       row('Lock type', v.kind),
       row('Memo', v.memo?.trim() || undefined, { hint: v.memo?.trim() ? undefined : 'No memo' }),
       row('Amount locked', sompiToKasLabel(v.amountSompi)),
+      row(
+        'Share',
+        typeof v.shareBps === 'number' ? `${(v.shareBps / 100).toFixed(2)}%` : undefined,
+      ),
+      row('Share group', v.groupId, { mono: true }),
       addressRow('Depositor', v.depositor),
-      addressRow('Primary claimer', v.beneficiary),
+      addressRow('Claimer', v.beneficiary),
       row(
         'All claimers',
         resolveVaultClaimers(v).length > 1

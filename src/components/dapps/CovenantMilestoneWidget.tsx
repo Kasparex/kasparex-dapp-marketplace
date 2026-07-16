@@ -124,7 +124,7 @@ export function CovenantMilestoneWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
       </button>
     ),
-    deps: [tab, busy, beneficiary, pricing, totalKas, milestoneRows.length],
+    deps: [tab, busy, beneficiary, pricing, totalKas, milestoneRows.length, memo],
   });
 
   if (!state.isConnected) {

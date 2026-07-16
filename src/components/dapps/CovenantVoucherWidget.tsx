@@ -90,7 +90,7 @@ export function CovenantVoucherWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
       </button>
     ),
-    deps: [tab, busy, expires, pricing, amountKas],
+    deps: [tab, busy, expires, pricing, amountKas, memo],
   });
 
   if (!state.isConnected) {

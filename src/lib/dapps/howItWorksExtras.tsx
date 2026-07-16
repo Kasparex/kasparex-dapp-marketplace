@@ -28,12 +28,14 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           move the funds.
         </li>
         <li>
-          <strong>Who can release it?</strong> You set one or more claimer wallets. Any listed claimer can unlock
-          the full amount. Escrow: claim anytime. Timelock: claim after the unlock date.
+          <strong>Who can release it?</strong> You set one or more claimer wallets and a percentage for each.
+          Shares must total 100%. Each claimer gets their own lock for that slice and can only claim their share.
+          Escrow: claim anytime. Timelock: claim after the unlock date.
         </li>
         <li>
           <strong>Extra claimers</strong> The first claimer is included. Each additional claimer adds +5 KAS to the
-          Hub deploy fee (same premium-slot pattern as Split).
+          Hub deploy fee (same premium-slot pattern as Split). Multi-claimer create signs one lock transaction per
+          claimer, then the Hub fee once.
         </li>
         <li>
           <strong>Platform fee vs lock amount</strong> Hub deploy and claim fees (shown in the fee panel /
@@ -53,14 +55,15 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
         </li>
         <li>
           <strong>Create vs claim</strong> Creating builds the covenant, then collects the Hub deploy fee. Claiming
-          collects the Hub claim fee first, then unlocks (so the fee always prompts). Claimers earn Hub Points.
-          Keep unlocked KAS for network fees plus Hub fees.
+          collects the Hub claim fee first, waits for that fee to settle, then unlocks (so the fee always prompts
+          and claim does not spend unconfirmed change). Claimers earn Hub Points. Keep unlocked KAS for network
+          fees plus Hub fees.
         </li>
         <li>
-          <strong>Escrow</strong> Any listed claimer can claim anytime after the lock is created.
+          <strong>Escrow</strong> The assigned claimer can claim their share anytime after the lock is created.
         </li>
         <li>
-          <strong>Timelock</strong> Same claimer rules, but claiming is blocked until the date you pick.
+          <strong>Timelock</strong> Same share rules, but claiming is blocked until the date you pick.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>

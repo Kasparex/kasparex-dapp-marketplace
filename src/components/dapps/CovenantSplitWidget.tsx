@@ -161,7 +161,7 @@ export function CovenantSplitWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
       </button>
     ),
-    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas, rows.length],
+    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas, rows.length, memo],
   });
 
   if (!kaspaState.isConnected) {
