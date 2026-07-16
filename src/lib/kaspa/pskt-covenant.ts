@@ -145,23 +145,19 @@ export function resolveSignInputs(request: {
   }
   const raw = request.params?.signInputs ?? request.params?.toSignInputs;
   if (!Array.isArray(raw) || raw.length === 0) return undefined;
-  return raw
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const o = item as Record<string, unknown>;
-      const index = Number(o.index ?? o.inputIndex);
-      if (!Number.isFinite(index) || index < 0) return null;
-      return {
-        index,
-        sighashType: typeof o.sighashType === 'number' ? o.sighashType : undefined,
-        address: typeof o.address === 'string' ? o.address : undefined,
-        publicKey:
-          typeof o.publicKey === 'string'
-            ? o.publicKey
-            : typeof o.pubkey === 'string'
-              ? o.pubkey
-              : undefined,
-      } satisfies CovenantSignInput;
-    })
-    .filter((x): x is CovenantSignInput => x !== null);
+
+  const out: CovenantSignInput[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const o = item as Record<string, unknown>;
+    const index = Number(o.index ?? o.inputIndex);
+    if (!Number.isFinite(index) || index < 0) continue;
+    const next: CovenantSignInput = { index };
+    if (typeof o.sighashType === 'number') next.sighashType = o.sighashType;
+    if (typeof o.address === 'string') next.address = o.address;
+    if (typeof o.publicKey === 'string') next.publicKey = o.publicKey;
+    else if (typeof o.pubkey === 'string') next.publicKey = o.pubkey;
+    out.push(next);
+  }
+  return out.length > 0 ? out : undefined;
 }
