@@ -28,7 +28,15 @@ const SIGHASH_ALL = 1;
 const DUMMY_SIGNATURE_BYTES = new Uint8Array(65);
 const MINIMAL_CHANGE_SOMPI = 1000n;
 /** Fee UTXO budget so claim fees do not consume the covenant amount. */
-const FEE_UTXO_TARGET_SOMPI = 1_000_000n;
+const FEE_UTXO_TARGET_SOMPI = 2_000_000n;
+/**
+ * P2SH ABI unlocks have high compute mass. A 250k sompi floor was rejected
+ * on mainnet (needed ~332k for mass 3320). Keep a safer reserve + margin.
+ */
+const MIN_SPEND_FEE_SOMPI = 400_000n;
+const FEE_SAFETY_MARGIN_SOMPI = 50_000n;
+/** Kaspa minimum relay feerate used when mass is known but fee calc is unavailable. */
+const SOMPI_PER_MASS_UNIT = 100n;
 
 function normTxid(id: string): string {
   return id.trim().toLowerCase().replace(/^0x/i, '');
@@ -273,6 +281,53 @@ function sumInputAmounts(tx: KaspaWasmTransaction): bigint {
   }, 0n);
 }
 
+function maxBigint(...values: bigint[]): bigint {
+  return values.reduce((a, b) => (a > b ? a : b), 0n);
+}
+
+/**
+ * Fee must cover the final ABI unlock mass. Estimate with dummy sigscripts,
+ * then take the max of WASM fee, mass×feerate, and a hard floor + margin.
+ */
+function resolveRequiredSpendFee(
+  kaspa: Awaited<ReturnType<typeof loadKaspaWasm>>,
+  networkId: string,
+  tx: KaspaWasmTransaction,
+  priorityFee: bigint,
+): bigint {
+  let networkFee = 0n;
+  try {
+    networkFee = kaspa.calculateTransactionFee(networkId, tx) ?? 0n;
+  } catch {
+    networkFee = 0n;
+  }
+
+  let massFee = 0n;
+  if (typeof kaspa.calculateTransactionMass === 'function') {
+    try {
+      const mass = kaspa.calculateTransactionMass(networkId, tx);
+      massFee = BigInt(mass) * SOMPI_PER_MASS_UNIT;
+    } catch {
+      massFee = 0n;
+    }
+  }
+
+  return maxBigint(networkFee, massFee, MIN_SPEND_FEE_SOMPI) + priorityFee + FEE_SAFETY_MARGIN_SOMPI;
+}
+
+function shrinkOutputsForFee(tx: KaspaWasmTransaction, shortfall: bigint): void {
+  for (let i = tx.outputs.length - 1; i >= 0; i--) {
+    const out = tx.outputs[i];
+    if (out.value > shortfall + MINIMAL_CHANGE_SOMPI) {
+      out.value = out.value - shortfall;
+      return;
+    }
+  }
+  throw new Error(
+    `Insufficient funds for covenant spend fee (${shortfall} sompi short). Add unlocked KAS for fees and try again.`,
+  );
+}
+
 /**
  * Generic P2SH covenant spend: covenant UTXO (+ wallet fee UTXOs) → outputs.
  * Wallet later signs redeem (input 0) then fee inputs; Hub wraps ABI unlock.
@@ -352,8 +407,8 @@ export async function buildGenericUnsignedSpend(
   // Generator mass-chaining that can sweep priorityEntries into a compound tx.
   const feeEntries = selectFeeEntries(walletEntries, spendOutpoint, FEE_UTXO_TARGET_SOMPI);
   const feeInputSum = feeEntries.reduce((s, e) => s + entryAmount(e), 0n);
-  // Leave headroom for network fee; remainder returns as change to the claimer.
-  const feeHeadroom = 250_000n + priorityFee;
+  // Reserve enough for ABI unlock compute mass; leftover returns as change.
+  const feeHeadroom = MIN_SPEND_FEE_SOMPI + FEE_SAFETY_MARGIN_SOMPI + priorityFee;
   let changeAmount = feeInputSum + (covenantAmount - paymentSum) - feeHeadroom;
   if (changeAmount < MINIMAL_CHANGE_SOMPI) changeAmount = 0n;
 
@@ -391,29 +446,30 @@ export async function buildGenericUnsignedSpend(
     extraArgs,
   );
 
-  const networkFee = kaspa.calculateTransactionFee(networkId, tx) ?? 0n;
-  const totalFees = networkFee + priorityFee;
-  const inputSum = sumInputAmounts(tx);
-  const outputSum = sumOutputValues(tx);
-  const currentFee = inputSum - outputSum;
+  // Size fee against estimated ABI unlock scripts (final claim scripts are similar mass).
+  let totalFees = resolveRequiredSpendFee(kaspa, networkId, tx, priorityFee);
+  let inputSum = sumInputAmounts(tx);
+  let outputSum = sumOutputValues(tx);
+  let currentFee = inputSum - outputSum;
 
   if (totalFees > currentFee) {
-    const shortfall = totalFees - currentFee;
-    // Prefer shrinking change (last output matching sender), else last payment output.
-    let adjusted = false;
-    for (let i = tx.outputs.length - 1; i >= 0; i--) {
-      const out = tx.outputs[i];
-      if (out.value > shortfall + MINIMAL_CHANGE_SOMPI) {
-        out.value = out.value - shortfall;
-        adjusted = true;
-        break;
-      }
-    }
-    if (!adjusted) {
-      throw new Error(
-        `Insufficient funds for covenant spend fee (${totalFees} sompi). Add KAS for fees in the connected wallet.`,
-      );
-    }
+    shrinkOutputsForFee(tx, totalFees - currentFee);
+  }
+
+  // Re-check after shrink: mass can shift slightly when change size changes.
+  await applyEstimatedSignatureScripts(
+    tx,
+    compiledLike,
+    functionName,
+    xOnlyPubkey,
+    extraArgs,
+  );
+  totalFees = resolveRequiredSpendFee(kaspa, networkId, tx, priorityFee);
+  inputSum = sumInputAmounts(tx);
+  outputSum = sumOutputValues(tx);
+  currentFee = inputSum - outputSum;
+  if (totalFees > currentFee) {
+    shrinkOutputsForFee(tx, totalFees - currentFee);
   }
 
   clearSignatureScripts(tx);
@@ -426,6 +482,14 @@ export async function buildGenericUnsignedSpend(
   if (findCovenantInputIndex(serialized, spendOutpoint) !== 0) {
     throw new Error(
       'Spend builder did not place the covenant UTXO at input 0. Try again with a small unlocked KAS balance for fees.',
+    );
+  }
+
+  // Final sanity: fee still present after clears (scripts do not change value delta).
+  const finalFee = sumInputAmounts(tx) - sumOutputValues(tx);
+  if (finalFee < MIN_SPEND_FEE_SOMPI) {
+    throw new Error(
+      `Claim fee too low (${finalFee} sompi). Keep a little unlocked KAS for network fees and try again.`,
     );
   }
 

@@ -64,6 +64,11 @@ export interface KaspaWasmApi {
     tx: KaspaWasmTransaction | Record<string, unknown>,
     minimumSignatures?: number | null,
   ) => bigint | undefined;
+  calculateTransactionMass?: (
+    networkId: string,
+    tx: KaspaWasmTransaction | Record<string, unknown>,
+    minimumSignatures?: number | null,
+  ) => bigint;
   ScriptBuilder: {
     new (): KaspaWasmScriptBuilder;
     fromScript: (

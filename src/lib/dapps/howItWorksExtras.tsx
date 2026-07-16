@@ -36,8 +36,20 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           transfer to Kasparex treasury. It is not part of the locked principal and does not go to the beneficiary.
         </li>
         <li>
-          <strong>Hybrid / simulator mode</strong> If your wallet cannot send covenant txs yet, Lockbox tracks the same
-          rules locally so you can test flows. Import by covenant ID when the on-chain lock appears in an explorer.
+          <strong>Hybrid / simulator mode</strong> Older demo vaults are hidden. LockBox on Hub uses real L1
+          covenants when your wallet supports signPskt + pushTx. Import by covenant ID if you need to restore a lock
+          from an explorer.
+        </li>
+        <li>
+          <strong>Reading the wallet popup</strong> Kaspa spends whole UTXOs. One input is coins leaving a prior
+          output. Two outputs is normal: the lock amount to the covenant address, plus change back to you. A
+          positive &quot;balance change&quot; is usually that change returning, not a profit. The network fee is the
+          leftover between inputs and outputs.
+        </li>
+        <li>
+          <strong>Create vs claim</strong> Creating a lock may show a Hub fee payment first, then the lock tx.
+          Claiming shows two wallet prompts: sign the covenant unlock, then sign fee inputs. Keep a little unlocked
+          KAS in the claimer wallet for network fees.
         </li>
         <li>
           <strong>Escrow</strong> Beneficiary can claim anytime after the lock is created.
