@@ -1,6 +1,18 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext, covenantNetworkIdFromContext } from './context';
+import type { CovenantRuntime } from './runtime';
+import type {
+  CovenantVault,
+  CreateVaultParams,
+  VaultListFilter,
+} from './types';
+import {
+  executeCovenantDeploy,
+  executeCovenantSpend,
+  KPX_COVENANT_PAYLOAD_TEMPLATES,
+} from './execution';
+import { loadKaspaComCompiledContract, resolveSpendFunctionName } from './execution/artifacts';
 import { normalizeAddr, randomHex, randomId } from './utils';
 import { loadMap, saveMap } from './utils';
 
