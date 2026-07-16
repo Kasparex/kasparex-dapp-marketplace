@@ -246,6 +246,39 @@ interface ExtendedWalletProviderInterface extends KaspaWalletProviderInterface {
   getBalance?: () => Promise<string | number | { balance: string | number } | null>;
 }
 
+function synthesizeCovenantCapabilities(
+  adapter: ExtendedWalletProviderInterface,
+): CovenantCapabilities {
+  const hasNative = typeof adapter.sendCovenantTransaction === 'function';
+  const canSign = typeof adapter.signPskt === 'function';
+  const canBroadcast = typeof adapter.pushTx === 'function';
+  return {
+    txV1: hasNative || canSign,
+    covenantBindings: hasNative || canSign,
+    canSendCovenantTx: hasNative || (canSign && canBroadcast),
+    canSignCovenantPskt: canSign,
+    canBroadcastSignedTx: canBroadcast,
+    hasNativeCovenantSubmit: hasNative,
+  };
+}
+
+function mergeReportedCovenantCapabilities(
+  caps: Record<string, unknown>,
+  adapter: ExtendedWalletProviderInterface,
+): CovenantCapabilities {
+  const synthesized = synthesizeCovenantCapabilities(adapter);
+  return {
+    txV1: Boolean(caps.txV1 ?? synthesized.txV1),
+    covenantBindings: Boolean(caps.covenantBindings ?? synthesized.covenantBindings),
+    canSendCovenantTx: Boolean(caps.canSendCovenantTx ?? synthesized.canSendCovenantTx),
+    canSignCovenantPskt: Boolean(caps.canSignCovenantPskt ?? synthesized.canSignCovenantPskt),
+    canBroadcastSignedTx: Boolean(caps.canBroadcastSignedTx ?? synthesized.canBroadcastSignedTx),
+    hasNativeCovenantSubmit: Boolean(
+      caps.hasNativeCovenantSubmit ?? synthesized.hasNativeCovenantSubmit,
+    ),
+  };
+}
+
 function normalizeCovenantTxResult(raw: unknown): CovenantTxResult {
   if (typeof raw === 'string') {
     const txHash = extractKaspaTransactionId(raw) ?? raw;
@@ -412,38 +445,13 @@ function createKasWareAdapter(kasware: any): ExtendedWalletProviderInterface {
       try {
         const caps = await kasware.getCovenantCapabilities();
         if (caps && typeof caps === 'object') {
-          return {
-            txV1: Boolean((caps as any).txV1 ?? adapter.sendCovenantTransaction || adapter.signPskt),
-            covenantBindings: Boolean(
-              (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
-            ),
-            canSendCovenantTx: Boolean(
-              (caps as any).canSendCovenantTx ??
-                adapter.sendCovenantTransaction ||
-                (adapter.signPskt && adapter.pushTx)
-            ),
-            canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
-            canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
-            hasNativeCovenantSubmit: Boolean(
-              (caps as any).hasNativeCovenantSubmit ?? adapter.sendCovenantTransaction
-            ),
-          };
+          return mergeReportedCovenantCapabilities(caps as Record<string, unknown>, adapter);
         }
       } catch {
         // synthesize below
       }
     }
-    const hasNative = typeof adapter.sendCovenantTransaction === 'function';
-    const canSign = typeof adapter.signPskt === 'function';
-    const canBroadcast = typeof adapter.pushTx === 'function';
-    return {
-      txV1: hasNative || canSign,
-      covenantBindings: hasNative || canSign,
-      canSendCovenantTx: hasNative || (canSign && canBroadcast),
-      canSignCovenantPskt: canSign,
-      canBroadcastSignedTx: canBroadcast,
-      hasNativeCovenantSubmit: hasNative,
-    };
+    return synthesizeCovenantCapabilities(adapter);
   };
 
   return adapter;
@@ -627,38 +635,13 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
       try {
         const caps = await kastle.getCovenantCapabilities();
         if (caps && typeof caps === 'object') {
-          return {
-            txV1: Boolean((caps as any).txV1 ?? adapter.sendCovenantTransaction || adapter.signPskt),
-            covenantBindings: Boolean(
-              (caps as any).covenantBindings ?? adapter.sendCovenantTransaction || adapter.signPskt
-            ),
-            canSendCovenantTx: Boolean(
-              (caps as any).canSendCovenantTx ??
-                adapter.sendCovenantTransaction ||
-                (adapter.signPskt && adapter.pushTx)
-            ),
-            canSignCovenantPskt: Boolean((caps as any).canSignCovenantPskt ?? adapter.signPskt),
-            canBroadcastSignedTx: Boolean((caps as any).canBroadcastSignedTx ?? adapter.pushTx),
-            hasNativeCovenantSubmit: Boolean(
-              (caps as any).hasNativeCovenantSubmit ?? adapter.sendCovenantTransaction
-            ),
-          };
+          return mergeReportedCovenantCapabilities(caps as Record<string, unknown>, adapter);
         }
       } catch {
         // synthesize below
       }
     }
-    const hasNative = typeof adapter.sendCovenantTransaction === 'function';
-    const canSign = typeof adapter.signPskt === 'function';
-    const canBroadcast = typeof adapter.pushTx === 'function';
-    return {
-      txV1: hasNative || canSign,
-      covenantBindings: hasNative || canSign,
-      canSendCovenantTx: hasNative || (canSign && canBroadcast),
-      canSignCovenantPskt: canSign,
-      canBroadcastSignedTx: canBroadcast,
-      hasNativeCovenantSubmit: hasNative,
-    };
+    return synthesizeCovenantCapabilities(adapter);
   };
 
   return adapter;
