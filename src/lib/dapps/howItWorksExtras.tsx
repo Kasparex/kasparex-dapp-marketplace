@@ -32,8 +32,9 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           soon as the lock exists. In timelock mode they must wait until the unlock date.
         </li>
         <li>
-          <strong>Platform fee vs lock amount</strong> The Hub deploy fee (shown in the fee panel) is a separate KAS
-          transfer to Kasparex treasury. It is not part of the locked principal and does not go to the beneficiary.
+          <strong>Platform fee vs lock amount</strong> Hub deploy and claim fees (shown in the fee panel /
+          claim button) are separate KAS transfers to Kasparex treasury. They are not part of the locked
+          principal. KREX tiers discount both fees and multiply Hub Points.
         </li>
         <li>
           <strong>Hybrid / simulator mode</strong> Older demo vaults are hidden. LockBox on Hub uses real L1
@@ -47,9 +48,10 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           leftover between inputs and outputs.
         </li>
         <li>
-          <strong>Create vs claim</strong> Creating a lock may show a Hub fee payment first, then the lock tx.
-          Claiming shows two wallet prompts: sign the covenant unlock, then sign fee inputs. Keep a little unlocked
-          KAS in the claimer wallet for network fees.
+          <strong>Create vs claim</strong> Creating a lock may show a Hub fee payment, then the lock tx.
+          Claiming shows wallet prompts to unlock the covenant, then a separate Hub claim fee (KREX tiers
+          discount both). Claimers also earn Hub Points. Keep a little unlocked KAS for network fees plus
+          the claim fee.
         </li>
         <li>
           <strong>Escrow</strong> Beneficiary can claim anytime after the lock is created.

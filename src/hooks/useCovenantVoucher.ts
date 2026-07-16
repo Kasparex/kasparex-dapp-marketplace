@@ -10,8 +10,9 @@ import {
   randomHex,
   sha256Hex,
   runKpxCovenantDeployWithFee,
-  awardKpxCovenantClaimPoints,
+  runKpxCovenantClaimWithFee,
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   type VoucherLock,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -84,12 +85,13 @@ export function useCovenantVoucher() {
 
   const claimVoucher = useCallback(
     async (voucherId: string, secret: string) => {
-      const v = await runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx());
-      awardKpxCovenantClaimPoints({
-        walletAddress: walletCtx().userAddress,
+      const pricing = resolveKpxCovenantClaimPrice('voucher', krexTier);
+      const v = await runKpxCovenantClaimWithFee({
         template: 'voucher',
+        pricing,
+        ctx: walletCtx(),
         instanceId: voucherId,
-        krexTier,
+        claim: () => runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx()),
       });
       await refresh();
       return v;

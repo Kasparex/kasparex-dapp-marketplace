@@ -6,16 +6,18 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import type { KREXTier } from '@/lib/rewards/types';
 import type { CovenantWalletContext } from './context';
-import { payKpxCovenantDeployFee } from './platform-fee';
+import { payKpxCovenantPlatformFee } from './platform-fee';
 import type { KpxCovenantDeployPrice } from './kpxCovenantPricing';
 import { resolveKpxCovenantClaimPoints } from './kpxCovenantPricing';
 
-export async function verifyKpxCovenantDeployOnServer(args: {
+export async function verifyKpxCovenantFeeOnServer(args: {
   template: CovenantTemplate;
+  action: 'deploy' | 'claim';
   payerAddress: string;
   feeTxHash: string;
   requiredFeeKas: number;
   covenantId?: string;
+  instanceId?: string;
 }): Promise<{ ok: boolean; ptsIngest?: string; error?: string }> {
   const res = await fetch('/api/covenant/verify', {
     method: 'POST',
@@ -34,6 +36,17 @@ export async function verifyKpxCovenantDeployOnServer(args: {
   return { ok: true, ptsIngest: data.ptsIngest };
 }
 
+/** @deprecated Prefer verifyKpxCovenantFeeOnServer */
+export async function verifyKpxCovenantDeployOnServer(args: {
+  template: CovenantTemplate;
+  payerAddress: string;
+  feeTxHash: string;
+  requiredFeeKas: number;
+  covenantId?: string;
+}): Promise<{ ok: boolean; ptsIngest?: string; error?: string }> {
+  return verifyKpxCovenantFeeOnServer({ ...args, action: 'deploy' });
+}
+
 export async function runKpxCovenantDeployWithFee<T extends { id: string; covenantId?: string }>(args: {
   template: CovenantTemplate;
   pricing: KpxCovenantDeployPrice;
@@ -46,7 +59,7 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
 
   let feeTxHash: string | undefined;
   if (!args.pricing.waived) {
-    feeTxHash = await payKpxCovenantDeployFee({ ctx: args.ctx, pricing: args.pricing });
+    feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
   }
 
   const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
@@ -73,19 +86,85 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
   }
 
   if (feeTxHash) {
-    const verified = await verifyKpxCovenantDeployOnServer({
+    const verified = await verifyKpxCovenantFeeOnServer({
       template: args.template,
+      action: 'deploy',
       payerAddress: args.ctx.userAddress,
       feeTxHash,
       requiredFeeKas: args.pricing.feeKas,
       covenantId: created.covenantId,
+      instanceId: created.id,
     });
     if (!verified.ok) {
-      console.warn('[kpx-covenant] fee verify:', verified.error);
+      console.warn('[kpx-covenant] deploy fee verify:', verified.error);
     }
   }
 
   return created;
+}
+
+export async function runKpxCovenantClaimWithFee<T extends { id: string; covenantId?: string }>(args: {
+  template: CovenantTemplate;
+  pricing: KpxCovenantDeployPrice;
+  ctx: CovenantWalletContext;
+  claim: () => Promise<T>;
+  /** Override for multi-claim templates (e.g. split share / milestone step). */
+  instanceId?: string;
+}): Promise<T> {
+  const claimed = await args.claim();
+  const instanceId = args.instanceId ?? claimed.id;
+
+  let feeTxHash: string | undefined;
+  if (!args.pricing.waived) {
+    feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
+  }
+
+  const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
+  const idempotencyKey = feeTxHash
+    ? `kpx:claim:${feeTxHash}`
+    : `kpx:claim:local:${args.template}:${instanceId}`;
+
+  // Claim points always apply on successful claim (base is lower than deploy).
+  // Also require a real fee base when treasury is configured so waived demos stay quiet.
+  if (args.pricing.waived || args.pricing.baseFeeKas > 0) {
+    appendHubActivityEarn({
+      walletRaw: args.ctx.userAddress,
+      source: 'kpx_covenant_claim',
+      redeemableDelta: HUB_EARN_POINTS.kpxCovenantClaim,
+      idempotencyKey,
+      krexTier: args.pricing.krexTier,
+      meta: {
+        template: args.template,
+        instanceId,
+        covenantId: claimed.covenantId,
+        feeTxHash,
+        feeWaived: args.pricing.waived,
+        spendKas,
+      },
+    });
+    try {
+      window.dispatchEvent(new Event('kasparex-hub-ledger'));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (feeTxHash) {
+    const verified = await verifyKpxCovenantFeeOnServer({
+      template: args.template,
+      action: 'claim',
+      payerAddress: args.ctx.userAddress,
+      feeTxHash,
+      requiredFeeKas: args.pricing.feeKas,
+      covenantId: claimed.covenantId,
+      instanceId,
+    });
+    if (!verified.ok) {
+      console.warn('[kpx-covenant] claim fee verify:', verified.error);
+    }
+  }
+
+  return claimed;
 }
 
 export function awardKpxCovenantClaimPoints(args: {

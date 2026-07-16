@@ -6,19 +6,19 @@ import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import type { CovenantTemplate } from '@/lib/programmability/types';
-import type { KpxCovenantDeployPrice } from './kpxCovenantPricing';
+import type { KpxCovenantDeployPrice, KpxCovenantFeeAction } from './kpxCovenantPricing';
 import { getKpxCovenantTreasuryAddress } from './kpxCovenantPricing';
 import type { CovenantWalletContext } from './context';
 
 export function buildKpxCovenantFeeNote(input: {
   template: CovenantTemplate;
   payloadTemplate: string;
-  action: 'deploy';
+  action: KpxCovenantFeeAction;
 }): string {
   return `kpx-covenant|tmpl=${input.payloadTemplate}|action=${input.action}|hub=Kasparex`;
 }
 
-export async function payKpxCovenantDeployFee(args: {
+export async function payKpxCovenantPlatformFee(args: {
   ctx: CovenantWalletContext;
   pricing: KpxCovenantDeployPrice;
 }): Promise<string | undefined> {
@@ -31,7 +31,7 @@ export async function payKpxCovenantDeployFee(args: {
   const note = buildKpxCovenantFeeNote({
     template: pricing.template,
     payloadTemplate: pricing.payloadTemplate,
-    action: 'deploy',
+    action: pricing.action,
   });
 
   const sent = await sendKaspaTransaction(ctx.provider as KaspaWalletProvider, {
@@ -45,4 +45,12 @@ export async function payKpxCovenantDeployFee(args: {
   }
 
   return extractKaspaTransactionId(sent.txHash) ?? sent.txHash;
+}
+
+/** @deprecated Prefer payKpxCovenantPlatformFee */
+export async function payKpxCovenantDeployFee(args: {
+  ctx: CovenantWalletContext;
+  pricing: KpxCovenantDeployPrice;
+}): Promise<string | undefined> {
+  return payKpxCovenantPlatformFee(args);
 }

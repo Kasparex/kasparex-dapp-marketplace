@@ -8,8 +8,9 @@ import {
   getActiveCovenantRuntimeMode,
   kasToSompiString,
   runKpxCovenantDeployWithFee,
-  awardKpxCovenantClaimPoints,
+  runKpxCovenantClaimWithFee,
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   type CrowdfundCampaign,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -143,16 +144,13 @@ export function useCovenantCrowdfund() {
 
   const claimFunds = useCallback(
     async (campaignId: string) => {
-      const c = await runtime.claimByCreator(
-        campaignId,
-        walletCtx().userAddress,
-        walletCtx()
-      );
-      awardKpxCovenantClaimPoints({
-        walletAddress: walletCtx().userAddress,
+      const pricing = resolveKpxCovenantClaimPrice('crowdfund', krexTier);
+      const c = await runKpxCovenantClaimWithFee({
         template: 'crowdfund',
+        pricing,
+        ctx: walletCtx(),
         instanceId: campaignId,
-        krexTier,
+        claim: () => runtime.claimByCreator(campaignId, walletCtx().userAddress, walletCtx()),
       });
       await refresh();
       return c;

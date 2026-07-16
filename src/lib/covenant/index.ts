@@ -45,15 +45,23 @@ export {
 } from './kpxBranding';
 export {
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   resolveKpxCovenantClaimPoints,
   getKpxCovenantTreasuryAddress,
   type KpxCovenantDeployPrice,
+  type KpxCovenantFeeAction,
 } from './kpxCovenantPricing';
-export { payKpxCovenantDeployFee, buildKpxCovenantFeeNote } from './platform-fee';
+export {
+  payKpxCovenantDeployFee,
+  payKpxCovenantPlatformFee,
+  buildKpxCovenantFeeNote,
+} from './platform-fee';
 export {
   runKpxCovenantDeployWithFee,
+  runKpxCovenantClaimWithFee,
   awardKpxCovenantClaimPoints,
   verifyKpxCovenantDeployOnServer,
+  verifyKpxCovenantFeeOnServer,
 } from './kpxCovenantDeployClient';
 export {
   lockboxMetadataInstances,

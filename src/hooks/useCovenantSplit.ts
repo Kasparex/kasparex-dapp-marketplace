@@ -7,8 +7,9 @@ import {
   getSplitPaymentRuntime,
   getActiveCovenantRuntimeMode,
   runKpxCovenantDeployWithFee,
-  awardKpxCovenantClaimPoints,
+  runKpxCovenantClaimWithFee,
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   type SplitPayment,
   type SplitRecipientInput,
 } from '@/lib/covenant';
@@ -115,17 +116,14 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const split = await runtime.claimShare(
-          splitId,
-          recipientId,
-          walletCtx().userAddress,
-          walletCtx()
-        );
-        awardKpxCovenantClaimPoints({
-          walletAddress: walletCtx().userAddress,
+        const pricing = resolveKpxCovenantClaimPrice('split', krexTier);
+        const split = await runKpxCovenantClaimWithFee({
           template: 'split',
+          pricing,
+          ctx: walletCtx(),
           instanceId: `${splitId}:${recipientId}`,
-          krexTier,
+          claim: () =>
+            runtime.claimShare(splitId, recipientId, walletCtx().userAddress, walletCtx()),
         });
         await refreshSplits();
         return split;

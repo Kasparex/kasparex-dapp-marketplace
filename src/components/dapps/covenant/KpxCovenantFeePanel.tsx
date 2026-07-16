@@ -72,8 +72,9 @@ export function KpxCovenantFeePanel({
         </p>
       ) : (
         <p className="text-xs text-zinc-500">
-          Fee is a separate KAS transfer to Kasparex treasury before your covenant {actionLabel}.
-          Locked funds are not taken from this fee.
+          Fee is a separate KAS transfer to Kasparex treasury{' '}
+          {actionLabel === 'claim' ? 'after' : 'before'} your covenant {actionLabel}. Locked funds are
+          not taken from this fee.
         </p>
       )}
     </div>

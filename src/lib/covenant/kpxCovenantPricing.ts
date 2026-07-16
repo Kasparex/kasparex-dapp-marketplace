@@ -1,5 +1,5 @@
 /**
- * KPX covenant platform fees (deploy actions). Lock principal is separate.
+ * KPX covenant platform fees (deploy + claim). Lock principal is separate.
  */
 
 import type { CovenantTemplate } from '@/lib/programmability/types';
@@ -28,7 +28,16 @@ const DEFAULT_DEPLOY_FEE_KAS: Record<CovenantTemplate, number> = {
   voucher: 10,
 };
 
-const ENV_FEE_KEY: Record<CovenantTemplate, string> = {
+/** Claim / release fee (lower than deploy; KREX tiers still apply). */
+const DEFAULT_CLAIM_FEE_KAS: Record<CovenantTemplate, number> = {
+  lockbox: 5,
+  split: 5,
+  milestone: 5,
+  crowdfund: 5,
+  voucher: 5,
+};
+
+const ENV_DEPLOY_FEE_KEY: Record<CovenantTemplate, string> = {
   lockbox: 'NEXT_PUBLIC_KPX_COVENANT_FEE_LOCKBOX_KAS',
   split: 'NEXT_PUBLIC_KPX_COVENANT_FEE_SPLIT_KAS',
   milestone: 'NEXT_PUBLIC_KPX_COVENANT_FEE_MILESTONE_KAS',
@@ -36,8 +45,17 @@ const ENV_FEE_KEY: Record<CovenantTemplate, string> = {
   voucher: 'NEXT_PUBLIC_KPX_COVENANT_FEE_VOUCHER_KAS',
 };
 
+const ENV_CLAIM_FEE_KEY: Record<CovenantTemplate, string> = {
+  lockbox: 'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_LOCKBOX_KAS',
+  split: 'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_SPLIT_KAS',
+  milestone: 'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_MILESTONE_KAS',
+  crowdfund: 'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_CROWDFUND_KAS',
+  voucher: 'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_VOUCHER_KAS',
+};
+
 export interface KpxCovenantDeployPrice {
   template: CovenantTemplate;
+  action: KpxCovenantFeeAction;
   payloadTemplate: string;
   baseFeeKas: number;
   premiumAddonKas: number;
@@ -83,16 +101,31 @@ export function covenantPremiumAddButtonLabel(
   return prefix;
 }
 
-function readBaseDeployFeeKas(template: CovenantTemplate): number {
-  const envKey = ENV_FEE_KEY[template];
+function readEnvFeeKas(envKey: string, fallbackGlobalKey: string | undefined, fallback: number): number {
   const raw =
     (typeof process !== 'undefined' && process.env[envKey]?.trim()) ||
-    (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_KPX_COVENANT_DEPLOY_FEE_KAS?.trim());
+    (fallbackGlobalKey && typeof process !== 'undefined' && process.env[fallbackGlobalKey]?.trim());
   if (raw) {
     const parsed = Number.parseFloat(raw);
     if (Number.isFinite(parsed) && parsed >= 0) return parsed;
   }
-  return DEFAULT_DEPLOY_FEE_KAS[template];
+  return fallback;
+}
+
+function readBaseDeployFeeKas(template: CovenantTemplate): number {
+  return readEnvFeeKas(
+    ENV_DEPLOY_FEE_KEY[template],
+    'NEXT_PUBLIC_KPX_COVENANT_DEPLOY_FEE_KAS',
+    DEFAULT_DEPLOY_FEE_KAS[template],
+  );
+}
+
+function readBaseClaimFeeKas(template: CovenantTemplate): number {
+  return readEnvFeeKas(
+    ENV_CLAIM_FEE_KEY[template],
+    'NEXT_PUBLIC_KPX_COVENANT_CLAIM_FEE_KAS',
+    DEFAULT_CLAIM_FEE_KAS[template],
+  );
 }
 
 export function getKpxCovenantTreasuryAddress(): string {
@@ -101,6 +134,44 @@ export function getKpxCovenantTreasuryAddress(): string {
 
 export function kasToSompiString(kas: number): string {
   return String(Math.max(0, Math.round(kas * 100_000_000)));
+}
+
+function buildFeePrice(args: {
+  template: CovenantTemplate;
+  action: KpxCovenantFeeAction;
+  baseFeeKas: number;
+  premiumAddonKas: number;
+  extraSlotCount: number;
+  premiumSlotCount?: number;
+  krexTier: KREXTier;
+  hubPointsBase: number;
+}): KpxCovenantDeployPrice {
+  const grossFeeKas = args.baseFeeKas + args.premiumAddonKas;
+  const discountPercent = krexTierDiscountPercent(args.krexTier);
+  const treasuryConfigured = Boolean(getKpxCovenantTreasuryAddress());
+  const discounted =
+    Math.round(grossFeeKas * (1 - discountPercent / 100) * 100_000_000) / 100_000_000;
+  const feeKas = treasuryConfigured ? Math.max(0.01, discounted) : 0;
+  const waived = !treasuryConfigured || feeKas <= 0;
+  const hubPointsEarned = computeEarnedHubPoints(args.hubPointsBase, args.krexTier);
+
+  return {
+    template: args.template,
+    action: args.action,
+    payloadTemplate: KPX_COVENANT_PAYLOAD_TEMPLATES[args.template],
+    baseFeeKas: args.baseFeeKas,
+    premiumAddonKas: args.premiumAddonKas,
+    extraSlotCount: args.extraSlotCount,
+    premiumSlotCount: args.premiumSlotCount,
+    discountPercent,
+    feeKas,
+    feeSompi: kasToSompiString(feeKas),
+    waived,
+    treasuryConfigured,
+    hubPointsBase: args.hubPointsBase,
+    hubPointsEarned,
+    krexTier: args.krexTier,
+  };
 }
 
 export function resolveKpxCovenantDeployPrice(
@@ -113,33 +184,32 @@ export function resolveKpxCovenantDeployPrice(
     options?.premiumSlotCount != null
       ? computeCovenantPremiumSlotAddon(template, options.premiumSlotCount)
       : { extraSlotCount: 0, addonKas: 0 };
-  const premiumAddonKas = slotAddon.addonKas;
-  const grossFeeKas = baseFeeKas + premiumAddonKas;
-  const discountPercent = krexTierDiscountPercent(krexTier);
-  const treasuryConfigured = Boolean(getKpxCovenantTreasuryAddress());
-  const discounted =
-    Math.round(grossFeeKas * (1 - discountPercent / 100) * 100_000_000) / 100_000_000;
-  const feeKas = treasuryConfigured ? Math.max(0.01, discounted) : 0;
-  const waived = !treasuryConfigured || feeKas <= 0;
-  const hubPointsBase = HUB_EARN_POINTS.kpxCovenantDeploy;
-  const hubPointsEarned = computeEarnedHubPoints(hubPointsBase, krexTier);
 
-  return {
+  return buildFeePrice({
     template,
-    payloadTemplate: KPX_COVENANT_PAYLOAD_TEMPLATES[template],
+    action: 'deploy',
     baseFeeKas,
-    premiumAddonKas,
+    premiumAddonKas: slotAddon.addonKas,
     extraSlotCount: slotAddon.extraSlotCount,
     premiumSlotCount: options?.premiumSlotCount,
-    discountPercent,
-    feeKas,
-    feeSompi: kasToSompiString(feeKas),
-    waived,
-    treasuryConfigured,
-    hubPointsBase,
-    hubPointsEarned,
     krexTier,
-  };
+    hubPointsBase: HUB_EARN_POINTS.kpxCovenantDeploy,
+  });
+}
+
+export function resolveKpxCovenantClaimPrice(
+  template: CovenantTemplate,
+  krexTier: KREXTier,
+): KpxCovenantDeployPrice {
+  return buildFeePrice({
+    template,
+    action: 'claim',
+    baseFeeKas: readBaseClaimFeeKas(template),
+    premiumAddonKas: 0,
+    extraSlotCount: 0,
+    krexTier,
+    hubPointsBase: HUB_EARN_POINTS.kpxCovenantClaim,
+  });
 }
 
 export function resolveKpxCovenantClaimPoints(krexTier: KREXTier): number {

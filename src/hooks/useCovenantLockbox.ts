@@ -8,8 +8,9 @@ import {
   getActiveCovenantRuntimeMode,
   importVaultFromCovenantId,
   runKpxCovenantDeployWithFee,
-  awardKpxCovenantClaimPoints,
+  runKpxCovenantClaimWithFee,
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   type CovenantVault,
   type CovenantVaultKind,
 } from '@/lib/covenant';
@@ -144,12 +145,12 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const vault = await runtime.claimVault(vaultId, walletCtx().userAddress, walletCtx());
-        awardKpxCovenantClaimPoints({
-          walletAddress: walletCtx().userAddress,
+        const pricing = resolveKpxCovenantClaimPrice('lockbox', krexTier);
+        const vault = await runKpxCovenantClaimWithFee({
           template: 'lockbox',
-          instanceId: vaultId,
-          krexTier,
+          pricing,
+          ctx: walletCtx(),
+          claim: () => runtime.claimVault(vaultId, walletCtx().userAddress, walletCtx()),
         });
         await refreshVaults();
         return vault;

@@ -26,6 +26,7 @@ import { LockboxVaultDetailModal } from '@/components/dapps/covenant/LockboxVaul
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import { resolveKpxCovenantClaimPrice } from '@/lib/covenant/kpxCovenantPricing';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -104,7 +105,11 @@ export function CovenantLockboxWidget() {
     runtimeMode,
     effectiveMode,
   } = useCovenantLockbox();
-  const { pricing, krexBalance } = useKpxCovenantDeployFee('lockbox');
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox');
+  const claimPricing = useMemo(
+    () => resolveKpxCovenantClaimPrice('lockbox', krexTier),
+    [krexTier],
+  );
 
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
@@ -462,7 +467,11 @@ export function CovenantLockboxWidget() {
                         }}
                         className={covenantSecondaryBtnClass}
                       >
-                        Claim funds
+                        {busy
+                          ? 'Claiming...'
+                          : claimPricing.waived
+                            ? 'Claim funds'
+                            : `Claim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
                       </button>
                     )}
                   </div>

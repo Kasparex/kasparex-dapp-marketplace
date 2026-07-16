@@ -8,8 +8,9 @@ import {
   getActiveCovenantRuntimeMode,
   kasToSompiString,
   runKpxCovenantDeployWithFee,
-  awardKpxCovenantClaimPoints,
+  runKpxCovenantClaimWithFee,
   resolveKpxCovenantDeployPrice,
+  resolveKpxCovenantClaimPrice,
   type MilestoneDeal,
   type MilestoneInput,
 } from '@/lib/covenant';
@@ -83,17 +84,14 @@ export function useCovenantMilestone() {
 
   const claimStep = useCallback(
     async (dealId: string, stepId: string) => {
-      const deal = await runtime.claimMilestone(
-        dealId,
-        stepId,
-        walletCtx().userAddress,
-        walletCtx()
-      );
-      awardKpxCovenantClaimPoints({
-        walletAddress: walletCtx().userAddress,
+      const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
+      const deal = await runKpxCovenantClaimWithFee({
         template: 'milestone',
+        pricing,
+        ctx: walletCtx(),
         instanceId: `${dealId}:${stepId}`,
-        krexTier,
+        claim: () =>
+          runtime.claimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
       });
       await refresh();
       return deal;

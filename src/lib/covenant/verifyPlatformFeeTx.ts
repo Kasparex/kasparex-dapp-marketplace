@@ -10,6 +10,7 @@ export type VerifyKpxCovenantFeeInput = {
   payerAddress: string;
   feeTxHash: string;
   requiredFeeKas: number;
+  action?: 'deploy' | 'claim';
 };
 
 export type VerifyKpxCovenantFeeResult = { ok: true } | { ok: false; error: string };
@@ -105,6 +106,9 @@ export async function verifyKpxCovenantPlatformFeeTx(
   const note = txPayload(tx);
   if (!note.includes('kpx-covenant') || !note.includes(payloadTemplate)) {
     return { ok: false, error: 'Transaction payload does not match KPX covenant fee' };
+  }
+  if (input.action && !note.includes(`action=${input.action}`)) {
+    return { ok: false, error: `Transaction payload does not match ${input.action} fee` };
   }
 
   return { ok: true };

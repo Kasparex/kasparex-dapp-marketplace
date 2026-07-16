@@ -12,10 +12,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
       template?: CovenantTemplate;
+      action?: 'deploy' | 'claim';
       payerAddress?: string;
       feeTxHash?: string;
       requiredFeeKas?: number;
       covenantId?: string;
+      instanceId?: string;
     };
 
     const template = body.template;
@@ -23,6 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Invalid template' }, { status: 400 });
     }
 
+    const action = body.action === 'claim' ? 'claim' : 'deploy';
     const payerAddress = (body.payerAddress ?? '').trim();
     const feeTxHash =
       extractKaspaTransactionId(body.feeTxHash ?? '') ??
@@ -38,6 +41,7 @@ export async function POST(request: NextRequest) {
       payerAddress,
       feeTxHash,
       requiredFeeKas,
+      action,
     });
 
     if (!result.ok) {
@@ -50,21 +54,23 @@ export async function POST(request: NextRequest) {
 
     if (ingestSecret) {
       try {
-        const { delta, tier } = await resolveHubEarnDeltaForKaspaWallet(
-          HUB_EARN_POINTS.kpxCovenantDeploy,
-          payerAddress,
-        );
+        const basePoints =
+          action === 'claim' ? HUB_EARN_POINTS.kpxCovenantClaim : HUB_EARN_POINTS.kpxCovenantDeploy;
+        const source = action === 'claim' ? 'kpx_covenant_claim' : 'kpx_covenant_deploy';
+        const { delta, tier } = await resolveHubEarnDeltaForKaspaWallet(basePoints, payerAddress);
         if (delta > 0) {
           const ptsRes = await postWorkerPtsIngest({
             wallet: payerAddress,
             delta_pts: delta,
-            source: 'kpx_covenant_deploy',
-            idempotency_key: `kpx:deploy:${feeTxHash}`,
+            source,
+            idempotency_key: `kpx:${action}:${feeTxHash}`,
             meta: {
               template,
+              action,
               feeTxHash,
               covenantId: body.covenantId,
-              basePoints: HUB_EARN_POINTS.kpxCovenantDeploy,
+              instanceId: body.instanceId,
+              basePoints,
               krexTier: tier,
             },
           });
@@ -84,6 +90,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[covenant/verify]', error);
-    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 500 });
   }
 }
