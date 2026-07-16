@@ -1,5 +1,5 @@
 /**
- * Covenant Lab simulator: local covenant state until Silverscript mainnet + wallet covenant txs.
+ * Covenant Lab simulator: local-only demo state (separate storage from L1 locks).
  */
 
 import { COVENANT_LAB_CONFIG } from './config';
@@ -11,7 +11,7 @@ import type {
   CreateVaultParams,
   VaultListFilter,
 } from './types';
-import { normalizeAddr, randomHex } from './utils';
+import { normalizeAddr, randomHex, loadMap, saveMap } from './utils';
 
 function makeCovenantId(vaultId: string): string {
   return `cov_${vaultId.slice(0, 8)}_${randomHex(8)}`;
@@ -29,22 +29,11 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
 
   private load(): void {
     if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(COVENANT_LAB_CONFIG.storageKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as [string, CovenantVault][];
-      this.vaults = new Map(parsed);
-    } catch {
-      this.vaults = new Map();
-    }
+    this.vaults = loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKeySim);
   }
 
   private save(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(
-      COVENANT_LAB_CONFIG.storageKey,
-      JSON.stringify(Array.from(this.vaults.entries()))
-    );
+    saveMap(COVENANT_LAB_CONFIG.storageKeySim, this.vaults);
   }
 
   async createVault(
@@ -86,7 +75,8 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),
       claimedAt: null,
-      lockTxHash: params.lockTxHash,
+      lockTxHash: params.lockTxHash ?? `sim_${randomHex(16)}`,
+      origin: 'simulator',
     };
 
     this.vaults.set(id, vault);
@@ -118,6 +108,7 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       status: 'claimed',
       claimedAt: Date.now(),
       claimTxHash: `sim_claim_${randomHex(16)}`,
+      origin: 'simulator',
     };
     this.vaults.set(vaultId, updated);
     this.save();

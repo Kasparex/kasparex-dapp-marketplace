@@ -39,6 +39,8 @@ export interface CovenantVault {
   claimTxHash?: string;
   /** Live covenant UTXO outpoint (silverscript mode). */
   utxo?: CovenantUtxoRef;
+  /** Where this record was created. Omitted on legacy rows. */
+  origin?: 'l1' | 'simulator';
 }
 
 export interface CreateVaultParams {
@@ -60,7 +62,12 @@ export interface VaultListFilter {
 export interface CovenantLabConfig {
   minLockSompi: string;
   maxMemoLength: number;
+  /** @deprecated Legacy mixed simulator+L1 key; migrated on load then cleared. */
   storageKey: string;
+  /** On-chain / silverscript LockBox vaults only. */
+  storageKeyL1: string;
+  /** Local simulator LockBox vaults (kept separate; purged from Hub UI). */
+  storageKeySim: string;
   splitStorageKey: string;
   milestoneStorageKey: string;
   crowdfundStorageKey: string;

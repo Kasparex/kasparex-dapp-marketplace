@@ -172,6 +172,7 @@ export function lockboxMetadataInstances(vaults: CovenantVault[]): KpxCovenantMe
       covenantIdRow(v.covenantId),
       row('Status', v.status),
       row('Lock type', v.kind),
+      row('Memo', v.memo?.trim() || undefined, { hint: v.memo?.trim() ? undefined : 'No memo' }),
       row('Amount locked', sompiToKasLabel(v.amountSompi)),
       addressRow('Depositor', v.depositor),
       addressRow('Beneficiary', v.beneficiary),

@@ -14,6 +14,8 @@ export const COVENANT_LAB_CONFIG: CovenantLabConfig = {
   minLockSompi: String(Math.round(MIN_LOCK_KAS * 100_000_000)),
   maxMemoLength: 120,
   storageKey: 'covenant_lockbox_v1',
+  storageKeyL1: 'covenant_lockbox_l1_v1',
+  storageKeySim: 'covenant_lockbox_sim_v1',
   splitStorageKey: 'covenant_split_v1',
   milestoneStorageKey: 'covenant_milestone_v1',
   crowdfundStorageKey: 'covenant_crowdfund_v1',

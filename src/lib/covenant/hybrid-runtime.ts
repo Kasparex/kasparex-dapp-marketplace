@@ -3,24 +3,19 @@ import type { CovenantRuntimeMode } from './types';
 import type { CovenantRuntime } from './runtime';
 import type { CovenantWalletContext } from './context';
 import type { CreateVaultParams, CovenantVault, VaultListFilter } from './types';
-import { getCovenantSimulatorRuntime } from './simulator';
 import { getSilverscriptCovenantRuntime } from './silverscript-runtime';
 
+/**
+ * Hybrid LockBox runtime: prefer real L1 (silverscript).
+ * Simulator fallback no longer writes into the Vaults list, so demo rows cannot
+ * mix with mainnet locks (that caused escrow/memo confusion).
+ */
 class HybridCovenantRuntime implements CovenantRuntime {
   readonly mode = 'hybrid' as const;
   readonly effectiveMode: CovenantRuntimeMode = 'hybrid';
-  private usedFallback = false;
 
   private get primary(): CovenantRuntime {
     return getSilverscriptCovenantRuntime();
-  }
-
-  private get fallback(): CovenantRuntime {
-    return getCovenantSimulatorRuntime();
-  }
-
-  private effective(): CovenantRuntime {
-    return this.usedFallback ? this.fallback : this.primary;
   }
 
   async createVault(
@@ -30,9 +25,12 @@ class HybridCovenantRuntime implements CovenantRuntime {
     try {
       return await this.primary.createVault(params, ctx);
     } catch (err) {
-      if (!(err instanceof CovenantNotReadyError)) throw err;
-      this.usedFallback = true;
-      return this.fallback.createVault(params, ctx);
+      if (err instanceof CovenantNotReadyError) {
+        throw new CovenantNotReadyError(
+          `${err.message} Simulator fallback is disabled for LockBox Vaults so local demos cannot mix with real locks. Use NEXT_PUBLIC_COVENANT_RUNTIME=simulator only for offline demos.`,
+        );
+      }
+      throw err;
     }
   }
 
@@ -44,18 +42,21 @@ class HybridCovenantRuntime implements CovenantRuntime {
     try {
       return await this.primary.claimVault(vaultId, claimer, ctx);
     } catch (err) {
-      if (!(err instanceof CovenantNotReadyError)) throw err;
-      this.usedFallback = true;
-      return this.fallback.claimVault(vaultId, claimer, ctx);
+      if (err instanceof CovenantNotReadyError) {
+        throw new CovenantNotReadyError(
+          `${err.message} Simulator fallback is disabled for LockBox Vaults.`,
+        );
+      }
+      throw err;
     }
   }
 
   async getVault(vaultId: string): Promise<CovenantVault | null> {
-    return this.effective().getVault(vaultId);
+    return this.primary.getVault(vaultId);
   }
 
   async listVaults(filter?: VaultListFilter): Promise<CovenantVault[]> {
-    return this.effective().listVaults(filter);
+    return this.primary.listVaults(filter);
   }
 }
 

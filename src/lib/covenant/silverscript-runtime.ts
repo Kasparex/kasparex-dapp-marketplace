@@ -14,16 +14,20 @@ import {
 } from './execution';
 import { loadKaspaComCompiledContract, resolveSpendFunctionName } from './execution/artifacts';
 import { normalizeAddr, randomHex, randomId } from './utils';
-import { loadMap, saveMap } from './utils';
+import { loadL1LockboxVaults, saveL1LockboxVaults } from './lockbox-storage';
 
 class SilverscriptCovenantRuntime implements CovenantRuntime {
   readonly mode = 'silverscript' as const;
   readonly effectiveMode = 'silverscript' as const;
 
-  private vaults = loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKey);
+  private vaults = loadL1LockboxVaults();
 
   private persist(): void {
-    saveMap(COVENANT_LAB_CONFIG.storageKey, this.vaults);
+    saveL1LockboxVaults(this.vaults);
+  }
+
+  private reload(): void {
+    this.vaults = loadL1LockboxVaults();
   }
 
   async createVault(
@@ -31,6 +35,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     ctx: CovenantWalletContext
   ): Promise<CovenantVault> {
     requireCovenantContext(ctx);
+    this.reload();
 
     const amount = BigInt(params.amountSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
@@ -87,6 +92,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       claimedAt: null,
       lockTxHash: tx.txHash,
       utxo: tx.outpoint ?? { txId: tx.txHash, index: 0 },
+      origin: 'l1',
     };
 
     this.vaults.set(id, vault);
@@ -100,6 +106,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     ctx: CovenantWalletContext
   ): Promise<CovenantVault> {
     requireCovenantContext(ctx);
+    this.reload();
 
     const vault = this.vaults.get(vaultId);
     if (!vault) throw new Error('Vault not found');
@@ -146,10 +153,12 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
   }
 
   async getVault(vaultId: string): Promise<CovenantVault | null> {
+    this.reload();
     return this.vaults.get(vaultId) ?? null;
   }
 
   async listVaults(filter?: VaultListFilter): Promise<CovenantVault[]> {
+    this.reload();
     let list = Array.from(this.vaults.values()).sort((a, b) => b.createdAt - a.createdAt);
     if (filter?.status) list = list.filter((v) => v.status === filter.status);
     if (filter?.address) {

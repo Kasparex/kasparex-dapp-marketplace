@@ -8,7 +8,7 @@ import type { CovenantVault, CovenantVaultKind } from '../types';
 
 export type ImportedCovenantVault = Pick<
   CovenantVault,
-  'covenantId' | 'beneficiary' | 'amountSompi' | 'status' | 'lockTxHash' | 'utxo'
+  'covenantId' | 'beneficiary' | 'amountSompi' | 'status' | 'lockTxHash' | 'utxo' | 'kind' | 'unlockAt' | 'memo'
 > & {
   source: 'kaspaCom' | 'kascov';
   genesisTxid?: string;
@@ -35,8 +35,18 @@ export async function importVaultFromCovenantId(
     depositor;
 
   const unlockRaw = detail.decodedArgs?.unlockTimeMs ?? detail.decodedArgs?.unlock_at;
+  const unlockMs = unlockRaw != null ? Number(unlockRaw) : 0;
   const kind: CovenantVaultKind =
-    unlockRaw != null && Number(unlockRaw) > 0 ? 'timelock' : 'escrow';
+    Number.isFinite(unlockMs) && unlockMs > 0 ? 'timelock' : 'escrow';
+  const kindArg = detail.decodedArgs?.kind;
+  const kindFromArg =
+    typeof kindArg === 'string' && (kindArg === 'timelock' || kindArg === 'escrow')
+      ? kindArg
+      : null;
+  const memoFromMeta =
+    (detail.decodedArgs?.label as string | undefined) ??
+    (detail.decodedArgs?.memo as string | undefined) ??
+    '';
 
   return {
     covenantId: detail.covenant_id,
@@ -45,6 +55,9 @@ export async function importVaultFromCovenantId(
     status: detail.status === 'burned' || Number(detail.live_utxos ?? 0) === 0 ? 'claimed' : 'locked',
     lockTxHash: detail.genesis_txid ?? undefined,
     utxo: detail.genesis_txid ? { txId: detail.genesis_txid, index: 0 } : undefined,
+    kind: kindFromArg ?? kind,
+    unlockAt: kind === 'timelock' || kindFromArg === 'timelock' ? unlockMs || null : null,
+    memo: memoFromMeta.trim(),
     templateLabel: detail.template,
     source: detail.source,
     genesisTxid: detail.genesis_txid ?? undefined,

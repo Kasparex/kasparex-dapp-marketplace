@@ -22,6 +22,7 @@ import {
   KpxCovenantShell,
 } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
+import { LockboxVaultDetailModal } from '@/components/dapps/covenant/LockboxVaultDetailModal';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
@@ -67,15 +68,23 @@ export function CovenantLockboxWidget() {
   const [unlockLocal, setUnlockLocal] = useState('');
   const [importId, setImportId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [detailVaultId, setDetailVaultId] = useState<string | null>(null);
 
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
 
   const myLocked = useMemo(() => vaults.filter((v) => v.status === 'locked'), [vaults]);
   const metadataInstances = useMemo(() => lockboxMetadataInstances(vaults), [vaults]);
+  const detailInstance = useMemo(
+    () => metadataInstances.find((i) => i.id === detailVaultId) ?? null,
+    [metadataInstances, detailVaultId],
+  );
 
   const handleCreate = async () => {
     setBusy(true);
     try {
+      if (kind === 'timelock' && !unlockLocal) {
+        throw new Error('Choose an unlock date for timelock');
+      }
       const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
       await createVault({
         kind,
@@ -111,7 +120,7 @@ export function CovenantLockboxWidget() {
     primaryAction: (
       <button
         type="button"
-        disabled={busy || isLoading || !beneficiary.trim()}
+        disabled={busy || isLoading || !beneficiary.trim() || (kind === 'timelock' && !unlockLocal)}
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -122,7 +131,7 @@ export function CovenantLockboxWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
       </button>
     ),
-    deps: [busy, isLoading, beneficiary, pricing, amountKas],
+    deps: [busy, isLoading, beneficiary, pricing, amountKas, kind, unlockLocal],
     enabled: tab === 'create',
   });
 
@@ -249,7 +258,7 @@ export function CovenantLockboxWidget() {
         <CovenantTabPanel
           title="Vaults"
           heading="Your locks"
-          description="Track active and claimed locks. Import covenant IDs from KaspaCom or kascov."
+          description="Only locks where you are depositor or beneficiary. Tap a card for full metadata. Simulated demos are hidden."
         >
           <div className="space-y-4">
           <KpxCovenantImportPanel
@@ -283,7 +292,19 @@ export function CovenantLockboxWidget() {
             <p className="text-center text-zinc-500 py-8">No locks yet. Create your first one.</p>
           ) : (
             vaults.map((v) => (
-              <div key={v.id} className={covenantCardClass}>
+              <div
+                key={v.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetailVaultId(v.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setDetailVaultId(v.id);
+                  }
+                }}
+                className={`${covenantCardClass} cursor-pointer transition-colors hover:border-[#02abb8]/60`}
+              >
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium uppercase tracking-wide text-[#02abb8]">
@@ -303,7 +324,7 @@ export function CovenantLockboxWidget() {
                     {sompiToKas(v.amountSompi)} KAS
                   </span>
                 </div>
-                <p className="text-zinc-600 dark:text-zinc-400">{v.memo || '(no memo)'}</p>
+                <p className="text-zinc-600 dark:text-zinc-400">{v.memo?.trim() || '(no memo)'}</p>
                 <div className="text-xs text-zinc-500 space-y-1">
                   <p>From: {shortKaspaAddr(v.depositor)}</p>
                   <p>To: {shortKaspaAddr(v.beneficiary)}</p>
@@ -313,7 +334,10 @@ export function CovenantLockboxWidget() {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => void handleClaim(v.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleClaim(v.id);
+                    }}
                     className={covenantSecondaryBtnClass}
                   >
                     Claim funds
@@ -330,16 +354,24 @@ export function CovenantLockboxWidget() {
         <CovenantTabPanel
           title="Metadata"
           heading="On-chain references"
-          description="Covenant IDs, payload templates, and explorer links for your locks."
+          description="Template, runtime, and explorer links. Open a vault card for per-lock details."
         >
           <KpxCovenantMetadataView
             template="lockbox"
             runtimeMode={runtimeMode}
             effectiveMode={effectiveMode}
             instances={metadataInstances}
+            showInstances={false}
           />
         </CovenantTabPanel>
       )}
+
+      {detailInstance ? (
+        <LockboxVaultDetailModal
+          instance={detailInstance}
+          onClose={() => setDetailVaultId(null)}
+        />
+      ) : null}
     </KpxCovenantShell>
   );
 }

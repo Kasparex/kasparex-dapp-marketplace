@@ -66,6 +66,11 @@ export {
   type KpxCovenantMetadataInstance,
   type KpxCovenantMetadataRow,
 } from './kpxCovenantMetadata';
+export {
+  purgeSimulatedLockboxVaults,
+  isSimulatedLockboxVault,
+  isL1LockboxVault,
+} from './lockbox-storage';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

@@ -11,7 +11,6 @@ import {
 } from '@/lib/covenant/kpxCovenantMetadata';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
-import { KX_INPUT } from '@/lib/hub/shellTokens';
 
 function toTableRows(rows: KpxCovenantMetadataRow[]): KxDataTableRow[] {
   return rows.map((row) => ({
@@ -46,12 +45,15 @@ export function KpxCovenantMetadataView({
   effectiveMode,
   instances,
   emptyMessage = 'No covenant instances yet. Create one or import by covenant ID to populate on-chain references.',
+  /** When false, hide the per-instance table (LockBox opens it from Vaults instead). */
+  showInstances = true,
 }: {
   template: CovenantTemplate;
   runtimeMode?: string;
   effectiveMode?: string;
   instances: KpxCovenantMetadataInstance[];
   emptyMessage?: string;
+  showInstances?: boolean;
 }) {
   const [selectedId, setSelectedId] = useState(instances[0]?.id ?? '');
 
@@ -88,7 +90,11 @@ export function KpxCovenantMetadataView({
 
       <MetadataBlock
         title="Explorers and indexers"
-        description="Open the selected instance on KaspaCom, kascov, or the public Kaspa explorer."
+        description={
+          showInstances
+            ? 'Open the selected instance on KaspaCom, kascov, or the public Kaspa explorer.'
+            : 'Open KaspaCom, kascov, or explorer.kaspa.org. Per-lock details are on the Vaults tab.'
+        }
       >
         <KxDataTable rows={toTableRows(explorerRows)} />
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -105,47 +111,55 @@ export function KpxCovenantMetadataView({
         </p>
       </MetadataBlock>
 
-      {instances.length === 0 ? (
-        <MetadataBlock title="Covenant instances">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{emptyMessage}</p>
-        </MetadataBlock>
-      ) : (
-        <MetadataBlock
-          title="Covenant instance"
-          description="Technical metadata for a lock, split, campaign, or voucher tracked in this browser."
-        >
-          {instances.length > 1 ? (
-            <div>
-              <label htmlFor="kpx-metadata-instance" className="k-label">
-                Select instance
-              </label>
-              <select
-                id="kpx-metadata-instance"
-                value={selected?.id ?? ''}
-                onChange={(e) => setSelectedId(e.target.value)}
-                className={`${KX_INPUT} mt-1.5`}
-              >
-                {instances.map((instance) => (
-                  <option key={instance.id} value={instance.id}>
-                    {instance.title}
-                    {instance.subtitle ? ` (${instance.subtitle})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-
-          {selected ? (
-            <div className="space-y-3">
+      {showInstances ? (
+        instances.length === 0 ? (
+          <MetadataBlock title="Covenant instances">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{emptyMessage}</p>
+          </MetadataBlock>
+        ) : (
+          <MetadataBlock
+            title="Covenant instance"
+            description="Technical metadata for a lock, split, campaign, or voucher tracked in this browser."
+          >
+            {instances.length > 1 ? (
               <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selected.title}</p>
-                {selected.subtitle ? (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{selected.subtitle}</p>
-                ) : null}
+                <label htmlFor="kpx-metadata-instance" className="k-label">
+                  Select instance
+                </label>
+                <select
+                  id="kpx-metadata-instance"
+                  value={selected?.id ?? ''}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                  className="k-input mt-1.5 w-full"
+                >
+                  {instances.map((instance) => (
+                    <option key={instance.id} value={instance.id}>
+                      {instance.title}
+                      {instance.subtitle ? ` (${instance.subtitle})` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <KxDataTable rows={toTableRows(selected.rows)} />
-            </div>
-          ) : null}
+            ) : null}
+
+            {selected ? (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{selected.title}</p>
+                  {selected.subtitle ? (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{selected.subtitle}</p>
+                  ) : null}
+                </div>
+                <KxDataTable rows={toTableRows(selected.rows)} />
+              </div>
+            ) : null}
+          </MetadataBlock>
+        )
+      ) : (
+        <MetadataBlock title="Per-lock details">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Open a lock on the Vaults tab to see its covenant ID, memo, unlock rule, and explorer links.
+          </p>
         </MetadataBlock>
       )}
     </div>

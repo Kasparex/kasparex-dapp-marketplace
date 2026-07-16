@@ -14,9 +14,12 @@ import {
   type CovenantVaultKind,
 } from '@/lib/covenant';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
 import { resolveCovenantNetworkId } from '@/lib/programmable/config';
-import { loadMap, saveMap } from '@/lib/covenant/utils';
+import {
+  loadL1LockboxVaults,
+  purgeSimulatedLockboxVaults,
+  saveL1LockboxVaults,
+} from '@/lib/covenant/lockbox-storage';
 
 interface UseCovenantLockboxReturn {
   vaults: CovenantVault[];
@@ -68,6 +71,8 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     setIsLoading(true);
     setError(null);
     try {
+      purgeSimulatedLockboxVaults();
+      // Participants only: depositor or beneficiary matches the connected wallet.
       const list = await runtime.listVaults({ address, role: 'any' });
       setVaults(list);
     } catch (err) {
@@ -78,6 +83,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
   }, [address, runtime]);
 
   useEffect(() => {
+    purgeSimulatedLockboxVaults();
     void refreshVaults();
   }, [refreshVaults]);
 
@@ -90,6 +96,9 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       unlockAt: Date | null;
     }) => {
       if (args.amountKas <= 0) throw new Error('Amount must be positive');
+      if (args.kind === 'timelock' && !args.unlockAt) {
+        throw new Error('Timelock requires an unlock date');
+      }
 
       const amountSompi = String(Math.round(args.amountKas * 100_000_000));
       const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
@@ -115,6 +124,8 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
               walletCtx(),
             ),
         });
+        // Optimistic local list so kind/memo show immediately after create.
+        setVaults((prev) => [vault, ...prev.filter((v) => v.id !== vault.id)]);
         await refreshVaults();
         return vault;
       } catch (err) {
@@ -168,30 +179,36 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
           throw new Error('Covenant not found on KaspaCom indexer or kascov.');
         }
 
-        const existing = Array.from(loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKey).values()).find(
+        const stored = loadL1LockboxVaults();
+        const existing = Array.from(stored.values()).find(
           (v) => v.covenantId === imported.covenantId,
         );
-        if (existing) return existing;
+        if (existing) {
+          await refreshVaults();
+          return existing;
+        }
 
         const vault: CovenantVault = {
           id: `import_${imported.covenantId.slice(0, 12)}`,
           covenantId: imported.covenantId,
-          kind: 'escrow',
+          kind: imported.kind,
           status: imported.status === 'claimed' ? 'claimed' : 'locked',
           depositor: address,
           beneficiary: imported.beneficiary,
           amountSompi: imported.amountSompi,
-          memo: imported.templateLabel ? `Imported ${imported.templateLabel}` : 'Imported covenant',
-          unlockAt: null,
+          memo:
+            imported.memo ||
+            (imported.templateLabel ? `Imported ${imported.templateLabel}` : 'Imported covenant'),
+          unlockAt: imported.unlockAt,
           createdAt: Date.now(),
           claimedAt: imported.status === 'claimed' ? Date.now() : null,
           lockTxHash: imported.lockTxHash,
           utxo: imported.utxo,
+          origin: 'l1',
         };
 
-        const stored = loadMap<CovenantVault>(COVENANT_LAB_CONFIG.storageKey);
         stored.set(vault.id, vault);
-        saveMap(COVENANT_LAB_CONFIG.storageKey, stored);
+        saveL1LockboxVaults(stored);
         await refreshVaults();
         return vault;
       } catch (err) {
