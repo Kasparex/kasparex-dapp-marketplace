@@ -2,6 +2,20 @@ import type { CovenantCompiledContract, CovenantSignInput, CovenantTemplate } fr
 import type { ProgrammableNetworkId } from '@/lib/programmable/config';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
+/**
+ * Spend/claim auth that the wallet cannot assemble alone.
+ * Hub asks the wallet to sign input 0 with the redeem script, then wraps
+ * the raw schnorr sig into a SilverScript ABI P2SH unlock.
+ */
+export interface SpendAuthMeta {
+  covenantInputIndex: number;
+  redeemScriptHex: string;
+  functionName: string;
+  withoutSelector: boolean;
+  abiInputs: Array<{ name: string; type_name: string }>;
+  extraArgs?: Record<string, string>;
+}
+
 /** Result of an unsigned covenant tx build (ready for signPskt). */
 export interface UnsignedCovenantTx {
   unsignedTxJson: string;
@@ -17,6 +31,8 @@ export interface UnsignedCovenantTx {
     unsignedTxJson: string;
     signInputs: CovenantSignInput[];
   }>;
+  /** Present for spend/claim: finalize ABI sigscript after wallet signs the redeem. */
+  spendAuth?: SpendAuthMeta;
 }
 
 export interface CovenantBuilderContext {

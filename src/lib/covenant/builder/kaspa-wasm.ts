@@ -3,6 +3,37 @@
  * Version: see public/kaspa-sdk/VERSION.txt / package.json (2.0.1+ Toccata).
  */
 
+export interface KaspaWasmScriptBuilder {
+  addData: (data: Uint8Array | string) => KaspaWasmScriptBuilder;
+  addI64: (value: bigint) => KaspaWasmScriptBuilder;
+  drain: () => string;
+  encodePayToScriptHashSignatureScript: (signature: Uint8Array | string) => string;
+}
+
+export interface KaspaWasmTransactionInput {
+  sigOpCount?: number;
+  computeBudget?: number;
+  signatureScript?: string;
+  utxo?: { amount?: bigint };
+  sequence?: bigint;
+}
+
+export interface KaspaWasmTransactionOutput {
+  value: bigint;
+  scriptPublicKey?: unknown;
+}
+
+export interface KaspaWasmTransaction {
+  version: number;
+  lockTime?: bigint;
+  inputs: KaspaWasmTransactionInput[];
+  outputs: KaspaWasmTransactionOutput[];
+  populateGenesisCovenants: (groups: Array<{ authorizingInput: number; outputs: number[] }>) => void;
+  finalize: () => void;
+  serializeToSafeJSON: () => string;
+  id?: string;
+}
+
 export interface KaspaWasmApi {
   createTransactions: (settings: Record<string, unknown>) => Promise<{
     transactions: Array<{
@@ -11,21 +42,30 @@ export interface KaspaWasmApi {
     summary?: { finalTransactionId?: string };
   }>;
   payToScriptHashScript: (redeem: Uint8Array | string) => unknown;
+  payToAddressScript: (address: string) => unknown;
+  payToScriptHashSignatureScript: (
+    redeem: Uint8Array | string,
+    signature: Uint8Array | string,
+  ) => string;
   addressFromScriptPublicKey: (spk: unknown, network: string) => { toString(): string };
+  calculateTransactionFee: (
+    networkId: string,
+    tx: KaspaWasmTransaction | Record<string, unknown>,
+    minimumSignatures?: number | null,
+  ) => bigint | undefined;
+  ScriptBuilder: {
+    new (): KaspaWasmScriptBuilder;
+    fromScript: (
+      script: Uint8Array | string,
+      options?: Record<string, unknown> | null,
+    ) => KaspaWasmScriptBuilder;
+  };
+  Transaction: {
+    new (value: Record<string, unknown>): KaspaWasmTransaction;
+    deserializeFromSafeJSON: (json: string) => KaspaWasmTransaction;
+  };
+  TransactionInput: new (value: Record<string, unknown>) => KaspaWasmTransactionInput;
   Address?: new (address: string) => unknown;
-}
-
-export interface KaspaWasmTransaction {
-  version: number;
-  inputs: Array<{
-    sigOpCount?: number;
-    computeBudget?: number;
-  }>;
-  outputs: unknown[];
-  populateGenesisCovenants: (groups: Array<{ authorizingInput: number; outputs: number[] }>) => void;
-  finalize: () => void;
-  serializeToSafeJSON: () => string;
-  id?: string;
 }
 
 type KaspaModule = KaspaWasmApi & {
@@ -55,6 +95,12 @@ export async function loadKaspaWasm(): Promise<KaspaWasmApi> {
     await mod.default({ module_or_path: `${SDK_BASE}/kaspa_bg.wasm` });
     if (typeof mod.createTransactions !== 'function' || typeof mod.payToScriptHashScript !== 'function') {
       throw new Error('Kaspa WASM SDK missing createTransactions / payToScriptHashScript');
+    }
+    if (typeof mod.ScriptBuilder !== 'function' || typeof mod.Transaction !== 'function') {
+      throw new Error('Kaspa WASM SDK missing ScriptBuilder / Transaction');
+    }
+    if (typeof mod.calculateTransactionFee !== 'function' || typeof mod.payToAddressScript !== 'function') {
+      throw new Error('Kaspa WASM SDK missing calculateTransactionFee / payToAddressScript');
     }
     cached = mod;
     return mod;

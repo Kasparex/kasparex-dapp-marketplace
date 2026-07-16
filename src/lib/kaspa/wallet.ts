@@ -576,19 +576,30 @@ function createKastleAdapter(kastle: any): ExtendedWalletProviderInterface {
         typeof kastle.getNetwork === 'function'
           ? await kastle.getNetwork()
           : await kastle.request('kas:get_network').catch(() => 'mainnet');
-      const scripts = Array.isArray(options?.signInputs)
-        ? options!.signInputs!.map((input) => ({
-            inputIndex: input.index,
-            scriptHex: '',
-            signType: input.sighashType ?? 1,
-          }))
-        : Array.isArray(options?.toSignInputs)
-          ? options!.toSignInputs!.map((input) => ({
+      const optionScripts = Array.isArray(options?.scripts)
+        ? (options!.scripts as Array<{ inputIndex?: number; index?: number; scriptHex?: string; signType?: number }>).map(
+            (s) => ({
+              inputIndex: Number(s.inputIndex ?? s.index ?? 0),
+              scriptHex: typeof s.scriptHex === 'string' ? s.scriptHex : '',
+              signType: s.signType ?? 1,
+            }),
+          )
+        : undefined;
+      const scripts =
+        optionScripts ??
+        (Array.isArray(options?.signInputs)
+          ? options!.signInputs!.map((input) => ({
               inputIndex: input.index,
               scriptHex: '',
-              signType: 1,
+              signType: input.sighashType ?? 1,
             }))
-          : undefined;
+          : Array.isArray(options?.toSignInputs)
+            ? options!.toSignInputs!.map((input) => ({
+                inputIndex: input.index,
+                scriptHex: '',
+                signType: 1,
+              }))
+            : undefined);
       const signed = await kastle.request('kas:sign_tx', {
         networkId,
         txJson: txJsonString,

@@ -20,11 +20,16 @@ export interface SignAndBroadcastCovenantPsktArgs {
   signInputs?: CovenantSignInput[];
   /** When true (default), ask KasWare-style wallets not to finalize/mutate covenant scripts. */
   autoFinalize?: boolean;
+  /** Optional redeem/scriptCode hints for P2SH covenant inputs (Kastle / KasWare). */
+  scripts?: Array<{ inputIndex: number; scriptHex: string; signType?: number }>;
+  /** Sign only; return signed Safe-JSON without pushTx. */
+  skipBroadcast?: boolean;
 }
 
 function buildSignOptions(
   signInputs: CovenantSignInput[] | undefined,
-  autoFinalize: boolean
+  autoFinalize: boolean,
+  scripts?: SignAndBroadcastCovenantPsktArgs['scripts'],
 ): Record<string, unknown> {
   const inputs = signInputs?.length
     ? signInputs
@@ -46,16 +51,17 @@ function buildSignOptions(
     toSignInputs,
     autoFinalize,
     autoFinalized: autoFinalize,
+    ...(scripts?.length ? { scripts } : {}),
   };
 }
 
 /**
- * Sign selected inputs of an unsigned Safe-JSON tx, then broadcast.
+ * Sign selected inputs of an unsigned Safe-JSON tx, then broadcast (unless skipBroadcast).
  */
 export async function signAndBroadcastCovenantPskt(
   provider: KaspaWalletProvider,
   args: SignAndBroadcastCovenantPsktArgs
-): Promise<CovenantTxResult> {
+): Promise<CovenantTxResult & { signedTxJson?: string }> {
   const wallet = getWalletProvider(provider);
   if (!wallet?.signPskt) {
     return {
@@ -65,7 +71,7 @@ export async function signAndBroadcastCovenantPskt(
         'Wallet does not expose signPskt. Update KasWare / Kastle, or use a Toccata-ready wallet.',
     };
   }
-  if (!wallet.pushTx) {
+  if (!args.skipBroadcast && !wallet.pushTx) {
     return {
       txHash: '',
       status: 'failed',
@@ -84,7 +90,11 @@ export async function signAndBroadcastCovenantPskt(
   }
 
   try {
-    const options = buildSignOptions(args.signInputs, args.autoFinalize ?? false);
+    const options = buildSignOptions(
+      args.signInputs,
+      args.autoFinalize ?? false,
+      args.scripts,
+    );
     const signedTxJson = await wallet.signPskt(unsigned, options);
     if (typeof signedTxJson !== 'string' || !signedTxJson.trim()) {
       return {
@@ -94,7 +104,11 @@ export async function signAndBroadcastCovenantPskt(
       };
     }
 
-    const broadcastRaw = await wallet.pushTx(signedTxJson);
+    if (args.skipBroadcast) {
+      return { txHash: '', status: 'pending', signedTxJson };
+    }
+
+    const broadcastRaw = await wallet.pushTx!(signedTxJson);
     const txHash =
       extractKaspaTransactionId(broadcastRaw) ??
       (typeof broadcastRaw === 'string' ? broadcastRaw : '');
@@ -107,7 +121,7 @@ export async function signAndBroadcastCovenantPskt(
       };
     }
 
-    return { txHash, status: 'pending' };
+    return { txHash, status: 'pending', signedTxJson };
   } catch (error) {
     return {
       txHash: '',

@@ -35,7 +35,7 @@ Outputs: `public/covenant/*.json`
 
 - [x] Detect KasWare / Kastle `signPskt` + `pushTx` (KasCoven / KIP-12 signing path)
 - [x] Hub unsigned Safe-JSON **deploy** builder (`src/lib/covenant/builder` + `public/kaspa-sdk` WASM v2.0.1)
-- [ ] Hub unsigned Safe-JSON **spend/claim** builder (ABI sigscript encoding; scaffold in place)
+- [x] Hub unsigned Safe-JSON **spend/claim** builder (ABI sigscript + redeem `signPskt` finalize)
 - [ ] KasWare exposes `sendCovenantTransaction` (optional fast path)
 - [ ] Kastle exposes high-level covenant APIs (optional fast path)
 - [ ] Wallets use post-Toccata minimum fee estimation
@@ -44,12 +44,15 @@ Outputs: `public/covenant/*.json`
 ### Wallet submit preference (Hub)
 
 1. **Deploy:** Hub WASM builder → `signPskt` → `pushTx` (same pattern as [KasCoven Vaults](https://vaults.kaslab.space/)).
-2. Else if wallet exposes `sendCovenantTransaction`: wallet builds, signs, and broadcasts.
-3. Else: `CovenantNotReadyError` (hybrid falls back to simulator).
+2. **Spend/claim:** Hub builds unsigned Safe-JSON (covenant input 0 + fee inputs) → wallet signs redeem with `scripts` → Hub wraps SilverScript ABI P2SH unlock → wallet signs fee inputs → `pushTx`.
+3. Else if wallet exposes `sendCovenantTransaction`: wallet builds, signs, and broadcasts.
+4. Else: `CovenantNotReadyError` (hybrid falls back to simulator).
 
 Refresh WASM: `npm run kaspa:wasm` (rusty-kaspa `kaspa-wasm32-sdk` web/kaspa-core).
 
 Reference: [KIP-12 revival](https://github.com/kaspanet/kips/pull/44), [KasWare signPskt](https://docs.kasware.xyz/wallet/developer-documentation/kaspa/kaspa-transaction).
+
+Claim requires `getPublicKey` and a wallet that can sign a P2SH input when given the redeem script (`scripts` / Kastle `kas:sign_tx`). Without that, hybrid falls back to the simulator.
 
 ## Hub smoke tests (after wallets ready)
 

@@ -5,7 +5,8 @@
  * Template-specific logic plugs into the registry; shared WASM + UTXO helpers stay here.
  */
 
-export type { UnsignedCovenantTx, BuildDeployInput, BuildSpendInput, CovenantBuilderContext } from './types';
+export type { UnsignedCovenantTx, BuildDeployInput, BuildSpendInput, CovenantBuilderContext, SpendAuthMeta } from './types';
 export { isKaspaWasmAvailable, loadKaspaWasm } from './kaspa-wasm';
 export { buildUnsignedCovenantDeploy, buildUnsignedCovenantSpend } from './registry';
 export { getCovenantP2shAddress } from './address';
+export { finalizeSpendAuthSignatureScript } from './spend';

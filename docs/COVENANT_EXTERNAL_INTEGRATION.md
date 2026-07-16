@@ -16,7 +16,7 @@ Aligned with [KasCoven Vaults](https://vaults.kaslab.space/) and KIP-12:
 2. Ask the wallet to `signPskt` only the user-owned inputs (leave covenant scripts untouched).
 3. Broadcast via wallet `pushTx` (or equivalent).
 
-Deploy is implemented for all Hub templates that ship `scriptHex`. Spend/claim builders are scaffolded next (ABI sigscripts).
+Deploy and spend/claim builders are implemented for Hub templates that ship `scriptHex`. Spend/claim needs a wallet that can sign the redeem script (`signPskt` + `scripts`) so Hub can wrap the SilverScript ABI P2SH unlock.
 
 Your dApp can also call `window.kasware` / `window.kastle` APIs when available.
 
