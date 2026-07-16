@@ -41,6 +41,17 @@ export interface KaspaWasmApi {
     }>;
     summary?: { finalTransactionId?: string };
   }>;
+  /**
+   * Ordered inputs, no mass-chaining. Prefer for covenant spends so the
+   * P2SH UTXO stays at a fixed input index.
+   */
+  createTransaction: (
+    utxoEntrySource: Record<string, unknown>[],
+    outputs: Array<{ address: string; amount: bigint }>,
+    priorityFee: bigint,
+    payload?: Uint8Array | string | null,
+    sigOpCount?: number | null,
+  ) => KaspaWasmTransaction;
   payToScriptHashScript: (redeem: Uint8Array | string) => unknown;
   payToAddressScript: (address: string) => unknown;
   payToScriptHashSignatureScript: (
@@ -95,6 +106,9 @@ export async function loadKaspaWasm(): Promise<KaspaWasmApi> {
     await mod.default({ module_or_path: `${SDK_BASE}/kaspa_bg.wasm` });
     if (typeof mod.createTransactions !== 'function' || typeof mod.payToScriptHashScript !== 'function') {
       throw new Error('Kaspa WASM SDK missing createTransactions / payToScriptHashScript');
+    }
+    if (typeof mod.createTransaction !== 'function') {
+      throw new Error('Kaspa WASM SDK missing createTransaction');
     }
     if (typeof mod.ScriptBuilder !== 'function' || typeof mod.Transaction !== 'function') {
       throw new Error('Kaspa WASM SDK missing ScriptBuilder / Transaction');

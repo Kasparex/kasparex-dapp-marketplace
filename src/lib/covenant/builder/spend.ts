@@ -27,6 +27,111 @@ const DEFAULT_COMPUTE_BUDGET = 10;
 const SIGHASH_ALL = 1;
 const DUMMY_SIGNATURE_BYTES = new Uint8Array(65);
 const MINIMAL_CHANGE_SOMPI = 1000n;
+/** Fee UTXO budget so claim fees do not consume the covenant amount. */
+const FEE_UTXO_TARGET_SOMPI = 1_000_000n;
+
+function normTxid(id: string): string {
+  return id.trim().toLowerCase().replace(/^0x/i, '');
+}
+
+function outpointMatches(
+  previous: { transactionId?: string; index?: number | string } | undefined,
+  spendOutpoint: { txid: string; vout: number },
+): boolean {
+  if (!previous?.transactionId) return false;
+  return (
+    normTxid(String(previous.transactionId)) === normTxid(spendOutpoint.txid) &&
+    Number(previous.index) === Number(spendOutpoint.vout)
+  );
+}
+
+function entryAmount(entry: Record<string, unknown>): bigint {
+  const raw = entry.amount;
+  if (typeof raw === 'bigint') return raw;
+  return BigInt(String(raw ?? '0'));
+}
+
+function entryOutpoint(entry: Record<string, unknown>): { txid: string; vout: number } | null {
+  const out =
+    (entry.outpoint as Record<string, unknown> | undefined) ??
+    (entry.previousOutpoint as Record<string, unknown> | undefined);
+  if (!out) return null;
+  const txid = String(out.transactionId ?? out.transaction_id ?? out.txId ?? out.txid ?? '');
+  if (!txid) return null;
+  return { txid: normTxid(txid), vout: Number(out.index ?? out.vout ?? 0) };
+}
+
+/** Prefer one solid fee UTXO, else accumulate a few until the fee budget is met. */
+function selectFeeEntries(
+  walletEntries: Record<string, unknown>[],
+  spendOutpoint: { txid: string; vout: number },
+  targetSompi: bigint,
+): Record<string, unknown>[] {
+  const usable = walletEntries.filter((entry) => {
+    const op = entryOutpoint(entry);
+    if (!op) return false;
+    if (op.txid === normTxid(spendOutpoint.txid) && op.vout === spendOutpoint.vout) return false;
+    return entryAmount(entry) > 0n;
+  });
+  if (usable.length === 0) {
+    throw new Error(
+      'No spendable KAS UTXOs for claim fees. Keep a small amount of unlocked KAS in this wallet.',
+    );
+  }
+
+  const single = usable
+    .filter((e) => entryAmount(e) >= targetSompi)
+    .sort((a, b) => Number(entryAmount(a) - entryAmount(b)))[0];
+  if (single) return [single];
+
+  const sorted = [...usable].sort((a, b) => Number(entryAmount(b) - entryAmount(a)));
+  const picked: Record<string, unknown>[] = [];
+  let sum = 0n;
+  for (const entry of sorted) {
+    picked.push(entry);
+    sum += entryAmount(entry);
+    if (sum >= targetSompi || picked.length >= 4) break;
+  }
+  if (sum < MINIMAL_CHANGE_SOMPI) {
+    throw new Error(
+      'Not enough unlocked KAS for claim network fees. Add a small amount of KAS and try again.',
+    );
+  }
+  return picked;
+}
+
+function findCovenantInputIndex(
+  serialized: {
+    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
+  },
+  spendOutpoint: { txid: string; vout: number },
+): number {
+  const inputs = serialized.inputs ?? [];
+  return inputs.findIndex((input) => outpointMatches(input.previousOutpoint, spendOutpoint));
+}
+
+/** Move the covenant outpoint to input 0 when the generator left it elsewhere. */
+function ensureCovenantAtInputZero(
+  tx: KaspaWasmTransaction,
+  spendOutpoint: { txid: string; vout: number },
+  kaspa: Awaited<ReturnType<typeof loadKaspaWasm>>,
+): KaspaWasmTransaction {
+  const serialized = JSON.parse(tx.serializeToSafeJSON()) as {
+    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
+  };
+  const idx = findCovenantInputIndex(serialized, spendOutpoint);
+  if (idx === 0) return tx;
+  if (idx < 0 || !serialized.inputs) {
+    throw new Error(
+      'Spend builder could not include the covenant UTXO. Refresh the vault and claim again.',
+    );
+  }
+  const [covenantInput] = serialized.inputs.splice(idx, 1);
+  serialized.inputs.unshift(covenantInput);
+  const rebuilt = kaspa.Transaction.deserializeFromSafeJSON(JSON.stringify(serialized));
+  rebuilt.finalize();
+  return rebuilt;
+}
 
 function toCompiledLike(compiled: BuildSpendInput['compiled']): AbiCompiledLike {
   return {
@@ -193,7 +298,7 @@ export async function buildGenericUnsignedSpend(
     address: contractAddress,
     amount: covenantAmount,
     outpoint: {
-      transactionId: spendOutpoint.txid,
+      transactionId: normTxid(spendOutpoint.txid),
       index: spendOutpoint.vout,
     },
     scriptPublicKey: p2shSpk,
@@ -211,45 +316,31 @@ export async function buildGenericUnsignedSpend(
   if (paymentOutputs.length === 0) {
     throw new Error('Spend requires at least one output');
   }
+  const paymentSum = paymentOutputs.reduce((s, o) => s + o.amount, 0n);
+  if (paymentSum > covenantAmount) {
+    throw new Error('Spend outputs exceed the locked covenant amount');
+  }
 
-  // Prefer generator + priorityEntries so fee UTXO selection matches deploy.
-  const created = await kaspa.createTransactions({
-    version: 1,
-    entries: walletEntries,
-    priorityEntries: [covenantEntry],
-    outputs: paymentOutputs,
-    changeAddress: ctx.senderAddress,
+  // Ordered createTransaction keeps the covenant at input 0 and avoids
+  // Generator mass-chaining that can sweep priorityEntries into a compound tx.
+  const feeEntries = selectFeeEntries(walletEntries, spendOutpoint, FEE_UTXO_TARGET_SOMPI);
+  const feeInputSum = feeEntries.reduce((s, e) => s + entryAmount(e), 0n);
+  // Leave headroom for network fee; remainder returns as change to the claimer.
+  const feeHeadroom = 250_000n + priorityFee;
+  let changeAmount = feeInputSum + (covenantAmount - paymentSum) - feeHeadroom;
+  if (changeAmount < MINIMAL_CHANGE_SOMPI) changeAmount = 0n;
+
+  const spendOutputs = [
+    ...paymentOutputs,
+    ...(changeAmount > 0n ? [{ address: ctx.senderAddress, amount: changeAmount }] : []),
+  ];
+
+  let tx = kaspa.createTransaction(
+    [covenantEntry, ...feeEntries],
+    spendOutputs,
     priorityFee,
-    networkId,
-  });
+  );
 
-  if (!created.transactions?.length) {
-    throw new Error('createTransactions returned no spend transactions');
-  }
-
-  const prerequisiteTxs: UnsignedCovenantTx['prerequisiteTxs'] = [];
-  const lastIdx = created.transactions.length - 1;
-
-  for (let i = 0; i < lastIdx; i++) {
-    const compound = created.transactions[i].transaction;
-    compound.version = 1;
-    for (const cin of compound.inputs) {
-      cin.sigOpCount = 0;
-      cin.computeBudget = computeBudget;
-    }
-    compound.finalize();
-    prerequisiteTxs.push({
-      unsignedTxJson: compound.serializeToSafeJSON(),
-      signInputs: Array.from({ length: compound.inputs.length }, (_, index) => ({
-        index,
-        sighashType: SIGHASH_ALL,
-        address: ctx.senderAddress,
-        ...(publicKeyHex ? { publicKey: publicKeyHex } : {}),
-      })),
-    });
-  }
-
-  const tx = created.transactions[lastIdx].transaction;
   tx.version = 1;
   for (const tin of tx.inputs) {
     tin.sigOpCount = 0;
@@ -263,6 +354,7 @@ export async function buildGenericUnsignedSpend(
   }
 
   tx.finalize();
+  tx = ensureCovenantAtInputZero(tx, spendOutpoint, kaspa);
 
   await applyEstimatedSignatureScripts(
     tx,
@@ -299,19 +391,14 @@ export async function buildGenericUnsignedSpend(
 
   clearSignatureScripts(tx);
   tx.finalize();
+  tx = ensureCovenantAtInputZero(tx, spendOutpoint, kaspa);
 
-  // Ensure input 0 is the covenant outpoint (priorityEntries should place it first).
   const serialized = JSON.parse(tx.serializeToSafeJSON()) as {
-    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number } }>;
+    inputs?: Array<{ previousOutpoint?: { transactionId?: string; index?: number | string } }>;
   };
-  const first = serialized.inputs?.[0]?.previousOutpoint;
-  if (
-    !first ||
-    first.transactionId !== spendOutpoint.txid ||
-    Number(first.index) !== spendOutpoint.vout
-  ) {
+  if (findCovenantInputIndex(serialized, spendOutpoint) !== 0) {
     throw new Error(
-      'Spend builder did not place the covenant UTXO at input 0. Try consolidating wallet UTXOs and claim again.',
+      'Spend builder did not place the covenant UTXO at input 0. Try again with a small unlocked KAS balance for fees.',
     );
   }
 
@@ -320,7 +407,6 @@ export async function buildGenericUnsignedSpend(
     signInputs: feeSignInputs(tx.inputs.length, ctx.senderAddress, publicKeyHex),
     contractAddress,
     primaryOutputIndex: 0,
-    prerequisiteTxs: prerequisiteTxs.length ? prerequisiteTxs : undefined,
     spendAuth: {
       covenantInputIndex: 0,
       redeemScriptHex: bytesToHex(redeem),
