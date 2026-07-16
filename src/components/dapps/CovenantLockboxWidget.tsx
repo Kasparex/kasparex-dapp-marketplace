@@ -26,7 +26,12 @@ import { LockboxVaultDetailModal } from '@/components/dapps/covenant/LockboxVaul
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
-import { resolveKpxCovenantClaimPrice } from '@/lib/covenant/kpxCovenantPricing';
+import {
+  covenantPremiumAddButtonLabel,
+  resolveKpxCovenantClaimPrice,
+} from '@/lib/covenant/kpxCovenantPricing';
+import { isAddressInClaimers, resolveVaultClaimers } from '@/lib/covenant/participants';
+import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -34,6 +39,15 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'vaults' | 'metadata';
+
+interface ClaimerRow {
+  key: string;
+  address: string;
+}
+
+function newClaimerRow(): ClaimerRow {
+  return { key: `c_${Math.random().toString(36).slice(2, 9)}`, address: '' };
+}
 
 const UNLOCK_PRESETS = [
   { label: '+1 min', ms: 60_000 },
@@ -86,8 +100,7 @@ function unlockProgress(
 
 function canClaim(vault: CovenantVault, address: string | null): boolean {
   if (!address || vault.status !== 'locked') return false;
-  const norm = (s: string) => s.trim().toLowerCase().replace(/^kaspa:/i, '');
-  if (norm(vault.beneficiary) !== norm(address)) return false;
+  if (!isAddressInClaimers(resolveVaultClaimers(vault), address)) return false;
   if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) return false;
   return true;
 }
@@ -105,17 +118,13 @@ export function CovenantLockboxWidget() {
     runtimeMode,
     effectiveMode,
   } = useCovenantLockbox();
-  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox');
+  const [kind, setKind] = useState<CovenantVaultKind>('escrow');
+  const [claimerRows, setClaimerRows] = useState<ClaimerRow[]>([{ key: 'primary', address: '' }]);
+  const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('lockbox', claimerRows.length);
   const claimPricing = useMemo(
     () => resolveKpxCovenantClaimPrice('lockbox', krexTier),
     [krexTier],
   );
-
-  const tab = useDAppWidgetSection('create') as TabId;
-  const navigateTab = useNavigateDAppWidgetTab();
-  useRegisterWidgetTabLabel('vaults', `Vaults (${vaults.length})`, [vaults.length]);
-  const [kind, setKind] = useState<CovenantVaultKind>('escrow');
-  const [beneficiary, setBeneficiary] = useState('');
   const [amountKas, setAmountKas] = useState('10');
   const [memo, setMemo] = useState('');
   const [unlockLocal, setUnlockLocal] = useState(() => toDatetimeLocalValue(Date.now() + 60_000));
@@ -124,6 +133,10 @@ export function CovenantLockboxWidget() {
   const [busy, setBusy] = useState(false);
   const [detailVaultId, setDetailVaultId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+
+  const tab = useDAppWidgetSection('create') as TabId;
+  const navigateTab = useNavigateDAppWidgetTab();
+  useRegisterWidgetTabLabel('vaults', `Vaults (${vaults.length})`, [vaults.length]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 15_000);
@@ -145,6 +158,8 @@ export function CovenantLockboxWidget() {
     setUnlockLocal(toDatetimeLocalValue(from + ms));
   };
 
+  const primaryClaimerFilled = Boolean(claimerRows[0]?.address.trim());
+
   const handleCreate = async () => {
     setBusy(true);
     try {
@@ -154,12 +169,13 @@ export function CovenantLockboxWidget() {
       const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
       await createVault({
         kind,
-        beneficiary: beneficiary.trim(),
+        beneficiaries: claimerRows.map((r) => r.address),
         amountKas: parseFloat(amountKas),
         memo: memo.trim(),
         unlockAt,
       });
       setMemo('');
+      setClaimerRows([{ key: 'primary', address: '' }]);
       setUnlockLocal(toDatetimeLocalValue(Date.now() + 60_000));
       navigateTab('vaults');
     } catch (e) {
@@ -187,7 +203,9 @@ export function CovenantLockboxWidget() {
     primaryAction: (
       <button
         type="button"
-        disabled={busy || isLoading || !beneficiary.trim() || (kind === 'timelock' && !unlockLocal)}
+        disabled={
+          busy || isLoading || !primaryClaimerFilled || (kind === 'timelock' && !unlockLocal)
+        }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -198,7 +216,7 @@ export function CovenantLockboxWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create lock`}
       </button>
     ),
-    deps: [busy, isLoading, beneficiary, pricing, amountKas, kind, unlockLocal],
+    deps: [busy, isLoading, primaryClaimerFilled, pricing, amountKas, kind, unlockLocal, claimerRows],
     enabled: tab === 'create',
   });
 
@@ -252,20 +270,47 @@ export function CovenantLockboxWidget() {
             </p>
           </div>
 
-          <div className="k-form-group !mb-0">
+          <div className="k-form-group !mb-0 space-y-3">
             <CovenantFieldLabel
-              label="Who receives the KAS"
-              htmlFor="lockbox-beneficiary"
-              tooltip="The Kaspa address that is allowed to claim the locked amount."
+              label="Who can claim"
+              tooltip="First address is required. Add more claimers so any of them can unlock the full amount. Each extra claimer adds +5 KAS to the Hub deploy fee."
             />
-            <input
-              id="lockbox-beneficiary"
-              type="text"
-              value={beneficiary}
-              onChange={(e) => setBeneficiary(e.target.value)}
-              placeholder="kaspa:..."
-              className={covenantInputClass}
-            />
+            {claimerRows.map((row, index) => (
+              <div key={row.key} className="flex gap-2">
+                <input
+                  type="text"
+                  value={row.address}
+                  onChange={(e) =>
+                    setClaimerRows((prev) =>
+                      prev.map((r) => (r.key === row.key ? { ...r, address: e.target.value } : r)),
+                    )
+                  }
+                  placeholder={index === 0 ? 'Primary claimer (kaspa:...)' : 'Extra claimer (kaspa:...)'}
+                  className={covenantInputClass}
+                />
+                {claimerRows.length > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setClaimerRows((prev) => prev.filter((r) => r.key !== row.key))
+                    }
+                    className="shrink-0 rounded-lg border border-zinc-300 px-2 text-xs text-zinc-500 hover:border-rose-400 hover:text-rose-500 dark:border-zinc-700"
+                    aria-label="Remove claimer"
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            {claimerRows.length < 8 ? (
+              <button
+                type="button"
+                onClick={() => setClaimerRows((prev) => [...prev, newClaimerRow()])}
+                className={KX_FORM_ADD_BTN_CLASS}
+              >
+                {covenantPremiumAddButtonLabel('lockbox', claimerRows.length)}
+              </button>
+            ) : null}
           </div>
 
           <div className="k-form-group !mb-0">
@@ -437,7 +482,12 @@ export function CovenantLockboxWidget() {
                     <p className="text-zinc-600 dark:text-zinc-400">{v.memo?.trim() || '(no memo)'}</p>
                     <div className="text-xs text-zinc-500 space-y-1">
                       <p>From: {shortKaspaAddr(v.depositor)}</p>
-                      <p>To: {shortKaspaAddr(v.beneficiary)}</p>
+                      <p>
+                        Claimers:{' '}
+                        {resolveVaultClaimers(v)
+                          .map((a) => shortKaspaAddr(a))
+                          .join(', ')}
+                      </p>
                       <p>Unlock: {formatUnlock(v.unlockAt)}</p>
                     </div>
                     {progress ? (

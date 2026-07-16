@@ -20,7 +20,10 @@ import {
   loadL1LockboxVaults,
   purgeSimulatedLockboxVaults,
   saveL1LockboxVaults,
+  setL1LockboxClaimFeeTxHash,
 } from '@/lib/covenant/lockbox-storage';
+import { normalizeCovenantClaimers, normalizeCovenantMemo } from '@/lib/covenant/participants';
+import { COVENANT_LAB_CONFIG } from '@/lib/covenant/config';
 
 interface UseCovenantLockboxReturn {
   vaults: CovenantVault[];
@@ -31,7 +34,7 @@ interface UseCovenantLockboxReturn {
   refreshVaults: () => Promise<void>;
   createVault: (args: {
     kind: CovenantVaultKind;
-    beneficiary: string;
+    beneficiaries: string[];
     amountKas: number;
     memo: string;
     unlockAt: Date | null;
@@ -73,7 +76,6 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     setError(null);
     try {
       purgeSimulatedLockboxVaults();
-      // Participants only: depositor or beneficiary matches the connected wallet.
       const list = await runtime.listVaults({ address, role: 'any' });
       setVaults(list);
     } catch (err) {
@@ -91,7 +93,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
   const createVault = useCallback(
     async (args: {
       kind: CovenantVaultKind;
-      beneficiary: string;
+      beneficiaries: string[];
       amountKas: number;
       memo: string;
       unlockAt: Date | null;
@@ -101,13 +103,17 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         throw new Error('Timelock requires an unlock date');
       }
 
+      const claimers = normalizeCovenantClaimers(args.beneficiaries);
+      const memo = normalizeCovenantMemo(args.memo, COVENANT_LAB_CONFIG.maxMemoLength);
       const amountSompi = String(Math.round(args.amountKas * 100_000_000));
       const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
 
       setIsLoading(true);
       setError(null);
       try {
-        const pricing = resolveKpxCovenantDeployPrice('lockbox', krexTier);
+        const pricing = resolveKpxCovenantDeployPrice('lockbox', krexTier, {
+          premiumSlotCount: claimers.length,
+        });
         const vault = await runKpxCovenantDeployWithFee({
           template: 'lockbox',
           pricing,
@@ -117,18 +123,28 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
               {
                 kind: args.kind,
                 depositor: walletCtx().userAddress,
-                beneficiary: args.beneficiary,
+                beneficiary: claimers[0],
+                beneficiaries: claimers,
                 amountSompi,
-                memo: args.memo,
+                memo,
                 unlockAt: unlockAtMs,
               },
               walletCtx(),
             ),
         });
-        // Optimistic local list so kind/memo show immediately after create.
-        setVaults((prev) => [vault, ...prev.filter((v) => v.id !== vault.id)]);
+        // Ensure memo/claimers survive even if a later refresh races.
+        const stored = loadL1LockboxVaults();
+        const merged: CovenantVault = {
+          ...vault,
+          memo: vault.memo?.trim() || memo,
+          beneficiaries: vault.beneficiaries?.length ? vault.beneficiaries : claimers,
+          beneficiary: vault.beneficiary || claimers[0],
+        };
+        stored.set(merged.id, merged);
+        saveL1LockboxVaults(stored);
+        setVaults((prev) => [merged, ...prev.filter((v) => v.id !== merged.id)]);
         await refreshVaults();
-        return vault;
+        return merged;
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to create vault';
         setError(msg);
@@ -137,7 +153,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [refreshVaults, runtime, walletCtx, krexTier]
+    [refreshVaults, runtime, walletCtx, krexTier],
   );
 
   const claimVault = useCallback(
@@ -146,10 +162,16 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       setError(null);
       try {
         const pricing = resolveKpxCovenantClaimPrice('lockbox', krexTier);
+        const existing = (await runtime.getVault(vaultId))?.claimFeeTxHash;
         const vault = await runKpxCovenantClaimWithFee({
           template: 'lockbox',
           pricing,
           ctx: walletCtx(),
+          instanceId: vaultId,
+          existingFeeTxHash: existing,
+          onFeePaid: (feeTxHash) => {
+            setL1LockboxClaimFeeTxHash(vaultId, feeTxHash);
+          },
           claim: () => runtime.claimVault(vaultId, walletCtx().userAddress, walletCtx()),
         });
         await refreshVaults();
@@ -162,7 +184,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
         setIsLoading(false);
       }
     },
-    [refreshVaults, runtime, walletCtx, krexTier]
+    [refreshVaults, runtime, walletCtx, krexTier],
   );
 
   const importByCovenantId = useCallback(
@@ -189,6 +211,11 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
           return existing;
         }
 
+        const memo = normalizeCovenantMemo(
+          imported.memo ||
+            (imported.templateLabel ? `Imported ${imported.templateLabel}` : 'Imported covenant'),
+          COVENANT_LAB_CONFIG.maxMemoLength,
+        );
         const vault: CovenantVault = {
           id: `import_${imported.covenantId.slice(0, 12)}`,
           covenantId: imported.covenantId,
@@ -196,10 +223,9 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
           status: imported.status === 'claimed' ? 'claimed' : 'locked',
           depositor: address,
           beneficiary: imported.beneficiary,
+          beneficiaries: imported.beneficiary ? [imported.beneficiary] : [],
           amountSompi: imported.amountSompi,
-          memo:
-            imported.memo ||
-            (imported.templateLabel ? `Imported ${imported.templateLabel}` : 'Imported covenant'),
+          memo,
           unlockAt: imported.unlockAt,
           createdAt: Date.now(),
           claimedAt: imported.status === 'claimed' ? Date.now() : null,

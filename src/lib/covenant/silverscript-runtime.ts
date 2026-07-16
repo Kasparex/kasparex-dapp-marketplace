@@ -15,6 +15,13 @@ import {
 import { loadKaspaComCompiledContract, resolveSpendFunctionName } from './execution/artifacts';
 import { normalizeAddr, randomHex, randomId } from './utils';
 import { loadL1LockboxVaults, saveL1LockboxVaults } from './lockbox-storage';
+import {
+  isAddressInClaimers,
+  isLockboxParticipant,
+  normalizeCovenantClaimers,
+  normalizeCovenantMemo,
+  resolveVaultClaimers,
+} from './participants';
 
 class SilverscriptCovenantRuntime implements CovenantRuntime {
   readonly mode = 'silverscript' as const;
@@ -30,6 +37,17 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     this.vaults = loadL1LockboxVaults();
   }
 
+  private normalizeStoredVault(vault: CovenantVault): CovenantVault {
+    const claimers = resolveVaultClaimers(vault);
+    const memo = normalizeCovenantMemo(vault.memo, COVENANT_LAB_CONFIG.maxMemoLength);
+    return {
+      ...vault,
+      beneficiary: claimers[0] ?? vault.beneficiary,
+      beneficiaries: claimers,
+      memo,
+    };
+  }
+
   async createVault(
     params: CreateVaultParams,
     ctx: CovenantWalletContext
@@ -40,14 +58,19 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     const amount = BigInt(params.amountSompi);
     const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
     if (amount < min) throw new Error(`Minimum lock is ${Number(min) / 1e8} KAS`);
-    if (!params.beneficiary?.trim()) throw new Error('Beneficiary address is required');
+
+    const claimers = normalizeCovenantClaimers(
+      params.beneficiaries?.length
+        ? params.beneficiaries
+        : [params.beneficiary],
+    );
+    const primary = claimers[0];
+    const memo = normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength);
+
     if (params.kind === 'timelock') {
       if (!params.unlockAt || params.unlockAt <= Date.now()) {
         throw new Error('Timelock requires a future unlock time');
       }
-    }
-    if (params.memo.length > COVENANT_LAB_CONFIG.maxMemoLength) {
-      throw new Error(`Memo max ${COVENANT_LAB_CONFIG.maxMemoLength} characters`);
     }
 
     const unlockSeconds =
@@ -62,18 +85,28 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       networkId,
       payloadTemplate: KPX_COVENANT_PAYLOAD_TEMPLATES.lockbox,
       payloadArgs: [
-        { name: 'beneficiary', type: 'address', value: params.beneficiary.trim() },
+        { name: 'beneficiary', type: 'address', value: primary },
         { name: 'depositor', type: 'address', value: params.depositor.trim() },
         { name: 'unlockTimeMs', type: 'u64', value: String(unlockSeconds * 1000) },
         { name: 'kind', type: 'string', value: params.kind },
+        { name: 'memo', type: 'string', value: memo },
+        {
+          name: 'claimers',
+          type: 'string',
+          value: claimers.join(','),
+        },
       ],
-      payloadMeta: params.memo.trim() ? { label: params.memo.trim().slice(0, 80) } : undefined,
+      payloadMeta: {
+        ...(memo ? { label: memo.slice(0, 80) } : {}),
+        claimerCount: String(claimers.length),
+      },
       params: {
         kind: params.kind,
-        beneficiary: params.beneficiary,
+        beneficiary: primary,
+        beneficiaries: claimers,
         depositor: params.depositor,
         unlockTime: unlockSeconds,
-        memo: params.memo,
+        memo,
       },
     });
 
@@ -84,9 +117,10 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       kind: params.kind,
       status: 'locked',
       depositor: params.depositor,
-      beneficiary: params.beneficiary,
+      beneficiary: primary,
+      beneficiaries: claimers,
       amountSompi: params.amountSompi,
-      memo: params.memo.trim(),
+      memo,
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),
       claimedAt: null,
@@ -108,14 +142,14 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     requireCovenantContext(ctx);
     this.reload();
 
-    const vault = this.vaults.get(vaultId);
-    if (!vault) throw new Error('Vault not found');
+    const raw = this.vaults.get(vaultId);
+    if (!raw) throw new Error('Vault not found');
+    const vault = this.normalizeStoredVault(raw);
     if (vault.status === 'claimed') throw new Error('Vault already claimed');
 
-    const claimerNorm = normalizeAddr(claimer);
-    const beneficiaryNorm = normalizeAddr(vault.beneficiary);
-    if (claimerNorm !== beneficiaryNorm) {
-      throw new Error('Only the beneficiary can claim this vault');
+    const claimers = resolveVaultClaimers(vault);
+    if (!isAddressInClaimers(claimers, claimer)) {
+      throw new Error('Only an authorized claimer can claim this vault');
     }
     if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) {
       throw new Error('Timelock has not unlocked yet');
@@ -133,11 +167,11 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       functionName,
       spendOutpoint: { txid: vault.utxo.txId, vout: vault.utxo.index },
       inputAmountSompi: vault.amountSompi,
-      outputs: [{ address: vault.beneficiary, amountSompi: vault.amountSompi }],
+      outputs: [{ address: claimer.trim(), amountSompi: vault.amountSompi }],
       params: {
         action: 'claim',
         vaultId,
-        beneficiary: vault.beneficiary,
+        beneficiary: claimer.trim(),
       },
     });
 
@@ -152,24 +186,34 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     return updated;
   }
 
+  /** Persist Hub claim-fee tx so fee-first retries do not double-charge. */
+  async setClaimFeeTxHash(vaultId: string, feeTxHash: string): Promise<void> {
+    this.reload();
+    const vault = this.vaults.get(vaultId);
+    if (!vault) throw new Error('Vault not found');
+    this.vaults.set(vaultId, { ...vault, claimFeeTxHash: feeTxHash });
+    this.persist();
+  }
+
   async getVault(vaultId: string): Promise<CovenantVault | null> {
     this.reload();
-    return this.vaults.get(vaultId) ?? null;
+    const vault = this.vaults.get(vaultId);
+    return vault ? this.normalizeStoredVault(vault) : null;
   }
 
   async listVaults(filter?: VaultListFilter): Promise<CovenantVault[]> {
     this.reload();
-    let list = Array.from(this.vaults.values()).sort((a, b) => b.createdAt - a.createdAt);
+    let list = Array.from(this.vaults.values())
+      .map((v) => this.normalizeStoredVault(v))
+      .sort((a, b) => b.createdAt - a.createdAt);
     if (filter?.status) list = list.filter((v) => v.status === filter.status);
     if (filter?.address) {
-      const norm = normalizeAddr(filter.address);
       const role = filter.role ?? 'any';
+      const addr = filter.address;
       list = list.filter((v) => {
-        const dep = normalizeAddr(v.depositor);
-        const ben = normalizeAddr(v.beneficiary);
-        if (role === 'depositor') return dep === norm;
-        if (role === 'beneficiary') return ben === norm;
-        return dep === norm || ben === norm;
+        if (role === 'depositor') return normalizeAddr(v.depositor) === normalizeAddr(addr);
+        if (role === 'beneficiary') return isAddressInClaimers(resolveVaultClaimers(v), addr);
+        return isLockboxParticipant(v, addr);
       });
     }
     return list;

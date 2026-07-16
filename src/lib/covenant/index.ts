@@ -78,7 +78,15 @@ export {
   purgeSimulatedLockboxVaults,
   isSimulatedLockboxVault,
   isL1LockboxVault,
+  setL1LockboxClaimFeeTxHash,
 } from './lockbox-storage';
+export {
+  normalizeCovenantClaimers,
+  normalizeCovenantMemo,
+  resolveVaultClaimers,
+  isLockboxParticipant,
+  isAddressInClaimers,
+} from './participants';
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {

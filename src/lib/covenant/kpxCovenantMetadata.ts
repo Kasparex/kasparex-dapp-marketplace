@@ -13,6 +13,7 @@ import {
 } from '@/lib/programmable/config';
 import { getKpxCovenantBrand } from './kpxBranding';
 import type { CovenantVault } from './types';
+import { resolveVaultClaimers } from './participants';
 import type { SplitPayment } from './split-types';
 import type { MilestoneDeal } from './milestone-types';
 import type { CrowdfundCampaign } from './crowdfund-types';
@@ -175,7 +176,17 @@ export function lockboxMetadataInstances(vaults: CovenantVault[]): KpxCovenantMe
       row('Memo', v.memo?.trim() || undefined, { hint: v.memo?.trim() ? undefined : 'No memo' }),
       row('Amount locked', sompiToKasLabel(v.amountSompi)),
       addressRow('Depositor', v.depositor),
-      addressRow('Beneficiary', v.beneficiary),
+      addressRow('Primary claimer', v.beneficiary),
+      row(
+        'All claimers',
+        resolveVaultClaimers(v).length > 1
+          ? resolveVaultClaimers(v).join('\n')
+          : undefined,
+        {
+          mono: true,
+          hint: resolveVaultClaimers(v).length > 1 ? undefined : 'Single claimer',
+        },
+      ),
       row('Unlock rule', v.unlockAt ? formatTs(v.unlockAt) : 'Anytime (escrow)'),
       row('Created', formatTs(v.createdAt)),
       row('Claimed', formatTs(v.claimedAt)),

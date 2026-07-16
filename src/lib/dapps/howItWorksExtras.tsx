@@ -28,8 +28,12 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           move the funds.
         </li>
         <li>
-          <strong>Who can release it?</strong> Only the beneficiary address you set. In escrow mode they can claim as
-          soon as the lock exists. In timelock mode they must wait until the unlock date.
+          <strong>Who can release it?</strong> You set one or more claimer wallets. Any listed claimer can unlock
+          the full amount. Escrow: claim anytime. Timelock: claim after the unlock date.
+        </li>
+        <li>
+          <strong>Extra claimers</strong> The first claimer is included. Each additional claimer adds +5 KAS to the
+          Hub deploy fee (same premium-slot pattern as Split).
         </li>
         <li>
           <strong>Platform fee vs lock amount</strong> Hub deploy and claim fees (shown in the fee panel /
@@ -48,16 +52,15 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           leftover between inputs and outputs.
         </li>
         <li>
-          <strong>Create vs claim</strong> Creating a lock may show a Hub fee payment, then the lock tx.
-          Claiming shows wallet prompts to unlock the covenant, then a separate Hub claim fee (KREX tiers
-          discount both). Claimers also earn Hub Points. Keep a little unlocked KAS for network fees plus
-          the claim fee.
+          <strong>Create vs claim</strong> Creating builds the covenant, then collects the Hub deploy fee. Claiming
+          collects the Hub claim fee first, then unlocks (so the fee always prompts). Claimers earn Hub Points.
+          Keep unlocked KAS for network fees plus Hub fees.
         </li>
         <li>
-          <strong>Escrow</strong> Beneficiary can claim anytime after the lock is created.
+          <strong>Escrow</strong> Any listed claimer can claim anytime after the lock is created.
         </li>
         <li>
-          <strong>Timelock</strong> Same beneficiary rules, but claiming is blocked until the date you pick.
+          <strong>Timelock</strong> Same claimer rules, but claiming is blocked until the date you pick.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>

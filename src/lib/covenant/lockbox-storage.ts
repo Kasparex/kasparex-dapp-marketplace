@@ -73,3 +73,12 @@ export function loadL1LockboxVaults(): Map<string, CovenantVault> {
 export function saveL1LockboxVaults(map: Map<string, CovenantVault>): void {
   saveMap(COVENANT_LAB_CONFIG.storageKeyL1, map);
 }
+
+/** Persist Hub claim-fee tx for fee-first claim retries. */
+export function setL1LockboxClaimFeeTxHash(vaultId: string, feeTxHash: string): void {
+  const map = loadL1LockboxVaults();
+  const vault = map.get(vaultId);
+  if (!vault) return;
+  map.set(vaultId, { ...vault, claimFeeTxHash: feeTxHash });
+  saveL1LockboxVaults(map);
+}

@@ -110,22 +110,35 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
   claim: () => Promise<T>;
   /** Override for multi-claim templates (e.g. split share / milestone step). */
   instanceId?: string;
+  /** Skip re-charging when a prior fee-first attempt already paid. */
+  existingFeeTxHash?: string;
+  /** Called right after Hub fee broadcast so callers can persist for retries. */
+  onFeePaid?: (feeTxHash: string) => void | Promise<void>;
 }): Promise<T> {
-  const claimed = await args.claim();
-  const instanceId = args.instanceId ?? claimed.id;
+  const instanceId = args.instanceId ?? `pending_${Date.now()}`;
 
-  let feeTxHash: string | undefined;
-  if (!args.pricing.waived) {
+  // Fee first, then unlock. Paying after claim often never prompted (wallet busy /
+  // fee UTXOs already spent on network fees) and left successful unlocks without a Hub fee.
+  let feeTxHash = args.existingFeeTxHash?.trim() || undefined;
+  if (!args.pricing.waived && !feeTxHash) {
+    if (!args.pricing.treasuryConfigured) {
+      throw new Error('Hub treasury is not configured; claim fee cannot be collected.');
+    }
     feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
+    if (!feeTxHash) {
+      throw new Error('Hub claim fee payment did not return a transaction id.');
+    }
+    await args.onFeePaid?.(feeTxHash);
   }
+
+  const claimed = await args.claim();
+  const resolvedInstanceId = args.instanceId ?? claimed.id;
 
   const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
   const idempotencyKey = feeTxHash
     ? `kpx:claim:${feeTxHash}`
-    : `kpx:claim:local:${args.template}:${instanceId}`;
+    : `kpx:claim:local:${args.template}:${resolvedInstanceId}`;
 
-  // Claim points always apply on successful claim (base is lower than deploy).
-  // Also require a real fee base when treasury is configured so waived demos stay quiet.
   if (args.pricing.waived || args.pricing.baseFeeKas > 0) {
     appendHubActivityEarn({
       walletRaw: args.ctx.userAddress,
@@ -135,7 +148,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
       krexTier: args.pricing.krexTier,
       meta: {
         template: args.template,
-        instanceId,
+        instanceId: resolvedInstanceId,
         covenantId: claimed.covenantId,
         feeTxHash,
         feeWaived: args.pricing.waived,
@@ -157,7 +170,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
       feeTxHash,
       requiredFeeKas: args.pricing.feeKas,
       covenantId: claimed.covenantId,
-      instanceId,
+      instanceId: resolvedInstanceId,
     });
     if (!verified.ok) {
       console.warn('[kpx-covenant] claim fee verify:', verified.error);

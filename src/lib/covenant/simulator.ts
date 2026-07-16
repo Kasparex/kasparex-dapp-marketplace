@@ -12,6 +12,13 @@ import type {
   VaultListFilter,
 } from './types';
 import { normalizeAddr, randomHex, loadMap, saveMap } from './utils';
+import {
+  isAddressInClaimers,
+  isLockboxParticipant,
+  normalizeCovenantClaimers,
+  normalizeCovenantMemo,
+  resolveVaultClaimers,
+} from './participants';
 
 function makeCovenantId(vaultId: string): string {
   return `cov_${vaultId.slice(0, 8)}_${randomHex(8)}`;
@@ -47,18 +54,16 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       throw new Error(`Minimum lock is ${Number(min) / 1e8} KAS`);
     }
 
-    if (!params.beneficiary?.trim()) {
-      throw new Error('Beneficiary address is required');
-    }
+    const claimers = normalizeCovenantClaimers(
+      params.beneficiaries?.length ? params.beneficiaries : [params.beneficiary],
+    );
+    const primary = claimers[0];
+    const memo = normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength);
 
     if (params.kind === 'timelock') {
       if (!params.unlockAt || params.unlockAt <= Date.now()) {
         throw new Error('Timelock requires a future unlock time');
       }
-    }
-
-    if (params.memo.length > COVENANT_LAB_CONFIG.maxMemoLength) {
-      throw new Error(`Memo max ${COVENANT_LAB_CONFIG.maxMemoLength} characters`);
     }
 
     const id = `vault_${Date.now()}_${randomHex(4)}`;
@@ -69,9 +74,10 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
       kind: params.kind,
       status: 'locked',
       depositor: params.depositor,
-      beneficiary: params.beneficiary,
+      beneficiary: primary,
+      beneficiaries: claimers,
       amountSompi: params.amountSompi,
-      memo: params.memo.trim(),
+      memo,
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
       createdAt: Date.now(),
       claimedAt: null,
@@ -93,10 +99,9 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     if (!vault) throw new Error('Vault not found');
     if (vault.status === 'claimed') throw new Error('Vault already claimed');
 
-    const claimerNorm = normalizeAddr(claimer);
-    const beneficiaryNorm = normalizeAddr(vault.beneficiary);
-    if (claimerNorm !== beneficiaryNorm) {
-      throw new Error('Only the beneficiary can claim this vault');
+    const claimers = resolveVaultClaimers(vault);
+    if (!isAddressInClaimers(claimers, claimer)) {
+      throw new Error('Only an authorized claimer can claim this vault');
     }
 
     if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) {
@@ -105,6 +110,7 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
 
     const updated: CovenantVault = {
       ...vault,
+      beneficiaries: claimers,
       status: 'claimed',
       claimedAt: Date.now(),
       claimTxHash: `sim_claim_${randomHex(16)}`,
@@ -127,14 +133,12 @@ class CovenantSimulatorRuntime implements CovenantRuntime {
     }
 
     if (filter?.address) {
-      const norm = normalizeAddr(filter.address);
       const role = filter.role ?? 'any';
+      const addr = filter.address;
       list = list.filter((v) => {
-        const dep = normalizeAddr(v.depositor);
-        const ben = normalizeAddr(v.beneficiary);
-        if (role === 'depositor') return dep === norm;
-        if (role === 'beneficiary') return ben === norm;
-        return dep === norm || ben === norm;
+        if (role === 'depositor') return normalizeAddr(v.depositor) === normalizeAddr(addr);
+        if (role === 'beneficiary') return isAddressInClaimers(resolveVaultClaimers(v), addr);
+        return isLockboxParticipant(v, addr);
       });
     }
 

@@ -23,8 +23,13 @@ export interface CovenantVault {
   status: CovenantVaultStatus;
   /** Vault creator (kaspa address). */
   depositor: string;
-  /** Who may claim when rules pass. */
+  /** Primary claimer (kaspa address). Same as beneficiaries[0]. */
   beneficiary: string;
+  /**
+   * All wallets allowed to claim this lock (Hub-enforced allowlist).
+   * First entry is also written into the on-chain deploy payload as beneficiary.
+   */
+  beneficiaries?: string[];
   /** Locked amount in sompi (string for bigint safety). */
   amountSompi: string;
   /** Human label / memo. */
@@ -37,6 +42,8 @@ export interface CovenantVault {
   lockTxHash?: string;
   /** L1 tx on claim. */
   claimTxHash?: string;
+  /** Hub claim-fee tx paid before unlock (fee-first flow / retry). */
+  claimFeeTxHash?: string;
   /** Live covenant UTXO outpoint (silverscript mode). */
   utxo?: CovenantUtxoRef;
   /** Where this record was created. Omitted on legacy rows. */
@@ -46,7 +53,10 @@ export interface CovenantVault {
 export interface CreateVaultParams {
   kind: CovenantVaultKind;
   depositor: string;
+  /** Primary claimer (required). Prefer beneficiaries when multiple. */
   beneficiary: string;
+  /** Optional extra claimers; primary should be first. */
+  beneficiaries?: string[];
   amountSompi: string;
   memo: string;
   unlockAt: number | null;

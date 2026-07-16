@@ -12,8 +12,9 @@ import { KPX_COVENANT_PAYLOAD_TEMPLATES } from './kpxBranding';
 
 export type KpxCovenantFeeAction = 'deploy' | 'claim';
 
-/** Included recipient / milestone fields before per-slot premium fees apply. */
+/** Included recipient / milestone / claimer fields before per-slot premium fees apply. */
 export const COVENANT_FREE_SLOTS: Partial<Record<CovenantTemplate, number>> = {
+  lockbox: 1,
   split: 2,
   milestone: 2,
 };
@@ -89,11 +90,12 @@ export function computeCovenantPremiumSlotAddon(
 }
 
 export function covenantPremiumAddButtonLabel(
-  template: 'split' | 'milestone',
+  template: 'split' | 'milestone' | 'lockbox',
   currentSlotCount: number,
 ): string {
-  const noun = template === 'split' ? 'Recipient' : 'Milestone';
-  const included = COVENANT_FREE_SLOTS[template] ?? 2;
+  const noun =
+    template === 'split' ? 'Recipient' : template === 'milestone' ? 'Milestone' : 'Claimer';
+  const included = COVENANT_FREE_SLOTS[template] ?? (template === 'lockbox' ? 1 : 2);
   const prefix = `+ Add ${noun}`;
   if (currentSlotCount >= included) {
     return `${prefix} (+${COVENANT_EXTRA_SLOT_FEE_KAS} KAS)`;
