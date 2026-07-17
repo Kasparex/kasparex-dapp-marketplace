@@ -4,9 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
 import { CovenantFieldLabel, covenantInputClass } from '@/components/dapps/covenant/CovenantWidgetUi';
-import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 
 export const COVENANT_DATETIME_PRESETS = [
   { label: '+1 min', ms: 60_000 },
@@ -52,14 +50,12 @@ export function CovenantDatetimeField({
   compact?: boolean;
   required?: boolean;
 }) {
-  const [customAddMinutes, setCustomAddMinutes] = useState('5');
-
   const bump = (ms: number) => {
     onChange(bumpDatetimeLocalValue(value, ms));
   };
 
   return (
-    <div className={compact ? 'space-y-2' : 'space-y-2'}>
+    <div className="space-y-2">
       <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} required={required} />
       <input
         id={id}
@@ -88,27 +84,6 @@ export function CovenantDatetimeField({
             {p.label}
           </button>
         ))}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="number"
-          min={1}
-          step={1}
-          value={customAddMinutes}
-          onChange={(e) => setCustomAddMinutes(e.target.value)}
-          className={`${covenantInputClass} !w-24`}
-          aria-label="Minutes to add"
-        />
-        <button
-          type="button"
-          onClick={() => {
-            const mins = Math.max(1, Math.floor(Number(customAddMinutes) || 0));
-            bump(mins * 60_000);
-          }}
-          className={KX_FORM_ADD_BTN_CLASS}
-        >
-          Add minutes
-        </button>
       </div>
     </div>
   );

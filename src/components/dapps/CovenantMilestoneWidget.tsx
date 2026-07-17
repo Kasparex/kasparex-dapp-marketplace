@@ -42,6 +42,7 @@ import {
   validateMilestoneRows,
   type CovenantFormAlert,
 } from '@/lib/covenant/datetimeValidation';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -472,9 +473,11 @@ export function CovenantMilestoneWidget() {
                     {sompiToKasNumber(d.totalSompi)} KAS
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500">
-                  {shortKaspaAddr(d.depositor)} → {shortKaspaAddr(d.beneficiary)}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+                  <AuthorInline address={d.depositor} />
+                  <span aria-hidden="true">→</span>
+                  <span>Claimer: {shortKaspaAddr(d.beneficiary)}</span>
+                </div>
                 {d.milestones.map((s) => {
                   const closed = Boolean(s.claimed || s.reclaimed);
                   const canClaim =

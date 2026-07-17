@@ -11,7 +11,6 @@ import {
   covenantInputClass,
   covenantPanelClass,
   covenantCardClass,
-  shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import {
   CovenantRailAlerts,
@@ -25,6 +24,7 @@ import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxC
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
   hasBlockingCovenantAlert,
   validateFutureDeadline,
@@ -293,11 +293,11 @@ export function CovenantVoucherWidget() {
                     </span>
                     <p className="text-[11px] text-[#02abb8] mt-0.5">Tap for details</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-zinc-500 text-xs">{shortKaspaAddr(v.creator)}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <AuthorInline address={v.creator} className="min-w-0" />
                     <button
                       type="button"
-                      className="text-xs px-2 py-1 rounded-lg border border-[#02abb8] text-[#02abb8]"
+                      className="text-xs px-2 py-1 rounded-lg border border-[#02abb8] text-[#02abb8] shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setClaimId(v.id);

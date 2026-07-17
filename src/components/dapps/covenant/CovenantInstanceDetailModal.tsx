@@ -27,7 +27,7 @@ export function CovenantInstanceDetailModal({
     <KxModalShell
       isOpen
       onClose={onClose}
-      panelClassName="max-w-md max-h-[min(90vh,640px)] flex flex-col"
+      panelClassName="max-w-xl w-full max-h-[90vh] flex flex-col"
     >
       <KxModalHeader
         title={instance.title}

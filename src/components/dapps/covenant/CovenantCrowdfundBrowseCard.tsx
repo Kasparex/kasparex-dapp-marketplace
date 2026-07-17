@@ -1,11 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import type { CrowdfundCampaign } from '@/lib/covenant/crowdfund-types';
 import { sompiToKasNumber } from '@/lib/covenant';
 import { normalizeAddr } from '@/lib/covenant/utils';
-import { covenantCardClass, shortKaspaAddr } from '@/components/dapps/covenant/CovenantWidgetUi';
-import { KxCopyIconButton } from '@/components/ui/KxCopyIconButton';
+import { covenantCardClass } from '@/components/dapps/covenant/CovenantWidgetUi';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { getHubPointsBaseForAction } from '@/lib/payments/hubQuote';
 import { placeholderDApps } from '@/lib/dapps';
@@ -53,23 +52,11 @@ export function CovenantCrowdfundBrowseCard({
   const pct = goal > 0 ? Math.min(100, (raised / goal) * 100) : 0;
   const isCreator =
     walletAddress && normalizeAddr(walletAddress) === normalizeAddr(campaign.creator);
-  const profilePath = `/u/${encodeURIComponent(campaign.creator)}`;
 
   return (
     <div className={covenantCardClass}>
       <div className="flex justify-between items-start gap-3">
-        <div className="min-w-0 flex flex-wrap items-center gap-1.5">
-          <Link
-            href={profilePath}
-            className="text-xs font-semibold text-[#02abb8] hover:underline"
-          >
-            Creator profile
-          </Link>
-          <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
-            {shortKaspaAddr(campaign.creator)}
-          </span>
-          <KxCopyIconButton value={campaign.creator} label="Copy creator wallet address" />
-        </div>
+        <AuthorInline address={campaign.creator} className="min-w-0" />
         <div className="flex flex-col items-end gap-1 shrink-0">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             {statusLabel(campaign.status)}

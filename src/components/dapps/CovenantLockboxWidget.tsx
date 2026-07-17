@@ -47,6 +47,7 @@ import {
   type CovenantFormAlert,
 } from '@/lib/covenant/datetimeValidation';
 import { CovenantClaimWindowBar } from '@/components/dapps/covenant/CovenantClaimWindowBar';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import {
   useDAppWidgetSection,
@@ -644,7 +645,7 @@ export function CovenantLockboxWidget() {
                     </div>
                     <p className="text-zinc-600 dark:text-zinc-400">{v.memo?.trim() || '(no memo)'}</p>
                     <div className="text-xs text-zinc-500 space-y-1">
-                      <p>From: {shortKaspaAddr(v.depositor)}</p>
+                      <AuthorInline address={v.depositor} className="text-xs" />
                       <p>
                         Claimer: {shortKaspaAddr(v.beneficiary)}
                         {typeof v.shareBps === 'number'

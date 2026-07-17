@@ -29,6 +29,7 @@ import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import type { CovenantFormAlert } from '@/lib/covenant/datetimeValidation';
+import { AuthorInline } from '@/components/ui/AuthorInline';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -397,7 +398,9 @@ export function CovenantSplitWidget() {
                     >
                       {split.status}
                     </span>
-                    <p className="text-xs text-zinc-500 mt-2">From {shortKaspaAddr(split.depositor)}</p>
+                    <div className="mt-2">
+                      <AuthorInline address={split.depositor} />
+                    </div>
                     <p className="text-[11px] text-[#02abb8] mt-1">Tap for details</p>
                   </div>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
