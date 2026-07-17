@@ -223,7 +223,9 @@ export function splitMetadataInstances(splits: SplitPayment[]): KpxCovenantMetad
         }),
         row(`Recipient ${i + 1} share`, `${(r.shareBps / 100).toFixed(2)}% (${sompiToKasLabel(r.amountSompi)})`),
         row(`Recipient ${i + 1} claimed`, r.claimed ? formatTs(r.claimedAt) ?? 'Yes' : 'No'),
+        txRow(`Recipient ${i + 1} lock tx`, r.lockTxHash),
         txRow(`Recipient ${i + 1} claim tx`, r.claimTxHash),
+        utxoRow(r.utxo),
       ]),
     ],
   }));
@@ -248,6 +250,9 @@ export function milestoneMetadataInstances(deals: MilestoneDeal[]): KpxCovenantM
         row(`Milestone ${i + 1} amount`, sompiToKasLabel(m.amountSompi)),
         row(`Milestone ${i + 1} unlock`, formatTs(m.unlockAt)),
         row(`Milestone ${i + 1} claimed`, m.claimed ? formatTs(m.claimedAt) ?? 'Yes' : 'No'),
+        txRow(`Milestone ${i + 1} lock tx`, m.lockTxHash),
+        txRow(`Milestone ${i + 1} claim tx`, m.claimTxHash),
+        utxoRow(m.utxo),
       ]),
     ],
   }));
@@ -273,6 +278,7 @@ export function crowdfundMetadataInstances(campaigns: CrowdfundCampaign[]): KpxC
         addressRow(`Pledge ${i + 1} backer`, p.backer),
         row(`Pledge ${i + 1} amount`, sompiToKasLabel(p.amountSompi)),
         txRow(`Pledge ${i + 1} tx`, p.txHash),
+        utxoRow(p.utxo),
         row(`Pledge ${i + 1} refunded`, p.refunded ? 'Yes' : 'No'),
       ]),
     ],
@@ -296,6 +302,8 @@ export function voucherMetadataInstances(vouchers: VoucherLock[]): KpxCovenantMe
       row('Claimed', formatTs(v.claimedAt)),
       row('Secret hash', v.secretHash, { mono: true }),
       txRow('Lock transaction', v.lockTxHash),
+      utxoRow(v.utxo),
+      txRow('Claim transaction', v.claimTxHash),
     ],
   }));
 }

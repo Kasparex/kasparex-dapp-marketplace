@@ -20,12 +20,14 @@ import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenant
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'claim' | 'metadata';
+type BusyKey = null | 'create' | 'claim';
 
 export function CovenantVoucherWidget() {
   const { state } = useKaspaWallet();
@@ -42,13 +44,19 @@ export function CovenantVoucherWidget() {
   const [issuedId, setIssuedId] = useState<string | null>(null);
   const [claimId, setClaimId] = useState('');
   const [claimSecret, setClaimSecret] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<BusyKey>(null);
+  const [detailVoucherId, setDetailVoucherId] = useState<string | null>(null);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => voucherMetadataInstances(openVouchers), [openVouchers]);
+  const detailInstance = useMemo(
+    () => metadataInstances.find((i) => i.id === detailVoucherId) ?? null,
+    [metadataInstances, detailVoucherId],
+  );
+  const busy = busyKey != null;
 
   const handleCreate = async () => {
     if (!expires) return;
-    setBusy(true);
+    setBusyKey('create');
     try {
       const { voucher, secret } = await createVoucher({
         amountKas: parseFloat(amountKas),
@@ -59,18 +67,18 @@ export function CovenantVoucherWidget() {
       setIssuedId(voucher.id);
       navigateTab('claim');
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
   const handleClaim = async () => {
-    setBusy(true);
+    setBusyKey('claim');
     try {
       await claimVoucher(claimId.trim(), claimSecret);
       setClaimSecret('');
       await refresh();
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
@@ -84,14 +92,14 @@ export function CovenantVoucherWidget() {
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy
-          ? 'Minting...'
+        {busyKey === 'create'
+          ? 'Minting voucher...'
           : pricing.waived
             ? 'Mint voucher'
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
       </button>
     ),
-    deps: [tab, busy, expires, pricing, amountKas, memo],
+    deps: [tab, busyKey, expires, pricing, amountKas, memo],
   });
 
   if (!state.isConnected) {
@@ -208,7 +216,7 @@ export function CovenantVoucherWidget() {
               onClick={() => void handleClaim()}
               className={covenantSecondaryBtnClass}
             >
-              {busy
+              {busyKey === 'claim'
                 ? 'Redeeming...'
                 : claimPricing.waived
                   ? 'Redeem voucher'
@@ -226,17 +234,39 @@ export function CovenantVoucherWidget() {
               <p className="text-zinc-500 text-sm">No open vouchers right now.</p>
             ) : (
               openVouchers.map((v) => (
-                <button
+                <div
                   key={v.id}
-                  type="button"
-                  className={`${covenantCardClass} w-full text-left flex justify-between items-center hover:border-[#02abb8]/60 transition-colors cursor-pointer`}
-                  onClick={() => setClaimId(v.id)}
+                  className={`${covenantCardClass} w-full flex flex-wrap justify-between items-center gap-2 cursor-pointer hover:border-[#02abb8]/60 transition-colors`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setDetailVoucherId(v.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setDetailVoucherId(v.id);
+                    }
+                  }}
                 >
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {sompiToKasNumber(v.amountSompi)} KAS
-                  </span>
-                  <span className="text-zinc-500 text-xs">{shortKaspaAddr(v.creator)}</span>
-                </button>
+                  <div>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {sompiToKasNumber(v.amountSompi)} KAS
+                    </span>
+                    <p className="text-[11px] text-[#02abb8] mt-0.5">Tap for details</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-zinc-500 text-xs">{shortKaspaAddr(v.creator)}</span>
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-1 rounded-lg border border-[#02abb8] text-[#02abb8]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setClaimId(v.id);
+                      }}
+                    >
+                      Use ID
+                    </button>
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -258,6 +288,14 @@ export function CovenantVoucherWidget() {
         />
         </CovenantTabPanel>
       )}
+
+      {detailInstance ? (
+        <CovenantInstanceDetailModal
+          instance={detailInstance}
+          sectionTitle="Voucher metadata"
+          onClose={() => setDetailVoucherId(null)}
+        />
+      ) : null}
     </KpxCovenantShell>
   );
 }

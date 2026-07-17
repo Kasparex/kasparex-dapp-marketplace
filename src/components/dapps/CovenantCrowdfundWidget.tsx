@@ -17,6 +17,7 @@ import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenant
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -24,6 +25,7 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'browse' | 'create' | 'metadata';
+type BusyKey = null | 'create' | `pledge:${string}` | `claim:${string}` | `refund:${string}`;
 
 export function CovenantCrowdfundWidget() {
   const { state } = useKaspaWallet();
@@ -39,13 +41,19 @@ export function CovenantCrowdfundWidget() {
   const [goalKas, setGoalKas] = useState('5');
   const [deadline, setDeadline] = useState('');
   const [pledgeAmounts, setPledgeAmounts] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<BusyKey>(null);
+  const [detailCampaignId, setDetailCampaignId] = useState<string | null>(null);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => crowdfundMetadataInstances(allCampaigns), [allCampaigns]);
+  const detailInstance = useMemo(
+    () => metadataInstances.find((i) => i.id === detailCampaignId) ?? null,
+    [metadataInstances, detailCampaignId],
+  );
+  const busy = busyKey != null;
 
   const handleCreate = async () => {
     if (!deadline) return;
-    setBusy(true);
+    setBusyKey('create');
     try {
       await createCampaign({
         title,
@@ -55,7 +63,35 @@ export function CovenantCrowdfundWidget() {
       });
       navigateTab('browse');
     } finally {
-      setBusy(false);
+      setBusyKey(null);
+    }
+  };
+
+  const handlePledge = async (campaignId: string, amountKas: number) => {
+    setBusyKey(`pledge:${campaignId}`);
+    try {
+      await pledge(campaignId, amountKas);
+      setPledgeAmounts((p) => ({ ...p, [campaignId]: '' }));
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleClaim = async (campaignId: string) => {
+    setBusyKey(`claim:${campaignId}`);
+    try {
+      await claimFunds(campaignId);
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleRefund = async (campaignId: string, pledgeId: string) => {
+    setBusyKey(`refund:${pledgeId}`);
+    try {
+      await refund(campaignId, pledgeId);
+    } finally {
+      setBusyKey(null);
     }
   };
 
@@ -69,14 +105,14 @@ export function CovenantCrowdfundWidget() {
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy
-          ? 'Launching...'
+        {busyKey === 'create'
+          ? 'Launching campaign...'
           : pricing.waived
             ? 'Launch campaign'
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
       </button>
     ),
-    deps: [tab, busy, title, deadline, pricing, goalKas, memo],
+    deps: [tab, busyKey, title, deadline, pricing, goalKas, memo],
   });
 
   if (!state.isConnected) {
@@ -180,29 +216,37 @@ export function CovenantCrowdfundWidget() {
             <p className="text-center text-zinc-500 py-8">No campaigns yet. Launch the first one.</p>
           ) : (
             allCampaigns.map((c) => (
-              <CovenantCrowdfundBrowseCard
-                key={c.id}
-                campaign={c}
-                minKas={minKas}
-                walletAddress={state.address}
-                pledgeAmount={pledgeAmounts[c.id] ?? ''}
-                onPledgeAmountChange={(value) =>
-                  setPledgeAmounts((p) => ({ ...p, [c.id]: value }))
-                }
-                onPledge={() =>
-                  void pledge(c.id, parseFloat(pledgeAmounts[c.id] || '0')).then(() =>
-                    setPledgeAmounts((p) => ({ ...p, [c.id]: '' }))
-                  )
-                }
-                onClaim={() => void claimFunds(c.id)}
-                claimFeeLabel={
-                  claimPricing.waived
-                    ? 'Claim raised funds'
-                    : `Claim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`
-                }
-                krexTier={krexTier}
-                onRefund={(pledgeId) => void refund(c.id, pledgeId)}
-              />
+              <div key={c.id} className="space-y-2">
+                <button
+                  type="button"
+                  className="text-[11px] text-[#02abb8] hover:underline"
+                  onClick={() => setDetailCampaignId(c.id)}
+                >
+                  View campaign details
+                </button>
+                <CovenantCrowdfundBrowseCard
+                  campaign={c}
+                  minKas={minKas}
+                  walletAddress={state.address}
+                  pledgeAmount={pledgeAmounts[c.id] ?? ''}
+                  onPledgeAmountChange={(value) =>
+                    setPledgeAmounts((p) => ({ ...p, [c.id]: value }))
+                  }
+                  onPledge={() => void handlePledge(c.id, parseFloat(pledgeAmounts[c.id] || '0'))}
+                  onClaim={() => void handleClaim(c.id)}
+                  claimFeeLabel={
+                    busyKey === `claim:${c.id}`
+                      ? 'Claiming...'
+                      : claimPricing.waived
+                        ? 'Claim raised funds'
+                        : `Claim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`
+                  }
+                  krexTier={krexTier}
+                  onRefund={(pledgeId) => void handleRefund(c.id, pledgeId)}
+                  busy={busy}
+                  pledgeBusy={busyKey === `pledge:${c.id}`}
+                />
+              </div>
             ))
           )}
         </div>
@@ -223,6 +267,14 @@ export function CovenantCrowdfundWidget() {
         />
         </CovenantTabPanel>
       )}
+
+      {detailInstance ? (
+        <CovenantInstanceDetailModal
+          instance={detailInstance}
+          sectionTitle="Campaign metadata"
+          onClose={() => setDetailCampaignId(null)}
+        />
+      ) : null}
     </KpxCovenantShell>
   );
 }

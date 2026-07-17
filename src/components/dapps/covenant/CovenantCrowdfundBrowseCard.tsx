@@ -30,6 +30,8 @@ type CovenantCrowdfundBrowseCardProps = {
   claimFeeLabel?: string;
   onRefund?: (pledgeId: string, amountKas: number) => void;
   krexTier?: import('@/lib/rewards/types').KREXTier;
+  busy?: boolean;
+  pledgeBusy?: boolean;
 };
 
 export function CovenantCrowdfundBrowseCard({
@@ -43,6 +45,8 @@ export function CovenantCrowdfundBrowseCard({
   claimFeeLabel,
   onRefund,
   krexTier = 'Tier0',
+  busy = false,
+  pledgeBusy = false,
 }: CovenantCrowdfundBrowseCardProps) {
   const raised = sompiToKasNumber(campaign.raisedSompi);
   const goal = sompiToKasNumber(campaign.goalSompi);
@@ -110,16 +114,22 @@ export function CovenantCrowdfundBrowseCard({
           />
           <button
             type="button"
-            className="px-4 py-2 bg-[#02abb8] text-white rounded-lg text-sm font-medium hover:bg-[#028a94] shrink-0"
+            disabled={busy}
+            className="px-4 py-2 bg-[#02abb8] text-white rounded-lg text-sm font-medium hover:bg-[#028a94] shrink-0 disabled:opacity-50 disabled:cursor-wait"
             onClick={onPledge}
           >
-            Pledge
+            {pledgeBusy ? 'Pledging...' : 'Pledge'}
           </button>
         </div>
       ) : null}
 
       {isCreator && campaign.status === 'succeeded' && !campaign.claimedAt && onClaim ? (
-        <button type="button" className="k-control-btn !border-zinc-300 dark:!border-zinc-700" onClick={onClaim}>
+        <button
+          type="button"
+          disabled={busy}
+          className="k-control-btn !border-zinc-300 dark:!border-zinc-700 disabled:opacity-50 disabled:cursor-wait"
+          onClick={onClaim}
+        >
           {claimFeeLabel ?? 'Claim raised funds'}
         </button>
       ) : null}

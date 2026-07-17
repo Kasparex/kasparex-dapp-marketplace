@@ -21,6 +21,8 @@ export {
   deployL1CovenantLock,
   spendL1CovenantLock,
   requireL1CovenantReady,
+  resolveCovenantUtxoRef,
+  requireCovenantUtxoRef,
 } from './l1';
 export {
   buildLockboxCommitNote,

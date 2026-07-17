@@ -23,6 +23,7 @@ import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxC
 import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -30,6 +31,7 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'splits' | 'metadata';
+type BusyKey = null | 'create' | `claim:${string}:${string}`;
 
 interface RecipientRow {
   key: string;
@@ -73,9 +75,11 @@ export function CovenantSplitWidget() {
   const { pricing: claimPricing } = useKpxCovenantClaimFee('split');
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<BusyKey>(null);
+  const [detailSplitId, setDetailSplitId] = useState<string | null>(null);
 
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
+  const busy = busyKey != null;
 
   const percentSum = useMemo(
     () => rows.reduce((s, r) => s + (parseFloat(r.percent) || 0), 0),
@@ -92,6 +96,10 @@ export function CovenantSplitWidget() {
 
   const openCount = useMemo(() => splits.filter((s) => s.status === 'open').length, [splits]);
   const metadataInstances = useMemo(() => splitMetadataInstances(splits), [splits]);
+  const detailInstance = useMemo(
+    () => metadataInstances.find((i) => i.id === detailSplitId) ?? null,
+    [metadataInstances, detailSplitId],
+  );
 
   const updateRow = (key: string, patch: Partial<RecipientRow>) => {
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -108,7 +116,7 @@ export function CovenantSplitWidget() {
   };
 
   const handleCreate = async () => {
-    setBusy(true);
+    setBusyKey('create');
     try {
       const recipients = rows.map((r) => ({
         address: r.address.trim(),
@@ -124,18 +132,18 @@ export function CovenantSplitWidget() {
     } catch (e) {
       console.error(e);
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
   const handleClaim = async (splitId: string, recipientId: string) => {
-    setBusy(true);
+    setBusyKey(`claim:${splitId}:${recipientId}`);
     try {
       await claimShare(splitId, recipientId);
     } catch (e) {
       console.error(e);
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
@@ -155,14 +163,14 @@ export function CovenantSplitWidget() {
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy
-          ? 'Creating...'
+        {busyKey === 'create'
+          ? 'Creating split...'
           : pricing.waived
             ? 'Create split payment'
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
       </button>
     ),
-    deps: [tab, busy, isLoading, rows, percentSum, pricing, totalKas, rows.length, memo],
+    deps: [tab, busyKey, isLoading, rows, percentSum, pricing, totalKas, rows.length, memo],
   });
 
   if (!kaspaState.isConnected) {
@@ -302,7 +310,19 @@ export function CovenantSplitWidget() {
             <p className="text-center text-zinc-500 py-8">No splits yet. Create your first one.</p>
           ) : (
             splits.map((split) => (
-              <div key={split.id} className={covenantCardClass}>
+              <div
+                key={split.id}
+                className={`${covenantCardClass} cursor-pointer transition hover:border-[#02abb8]/60`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetailSplitId(split.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setDetailSplitId(split.id);
+                  }
+                }}
+              >
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <span
@@ -315,6 +335,7 @@ export function CovenantSplitWidget() {
                       {split.status}
                     </span>
                     <p className="text-xs text-zinc-500 mt-2">From {shortKaspaAddr(split.depositor)}</p>
+                    <p className="text-[11px] text-[#02abb8] mt-1">Tap for details</p>
                   </div>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {sompiToKas(split.totalSompi)} KAS
@@ -324,7 +345,10 @@ export function CovenantSplitWidget() {
                   <p className="text-zinc-600 dark:text-zinc-400">{split.memo}</p>
                 ) : null}
                 <ul className="space-y-3 border-t border-zinc-200 dark:border-zinc-700 pt-3">
-                  {split.recipients.map((r) => (
+                  {split.recipients.map((r) => {
+                    const claimKey = `claim:${split.id}:${r.id}` as const;
+                    const claiming = busyKey === claimKey;
+                    return (
                     <li
                       key={r.id}
                       className="flex flex-wrap items-center justify-between gap-2"
@@ -346,17 +370,22 @@ export function CovenantSplitWidget() {
                         <button
                           type="button"
                           disabled={busy}
-                          onClick={() => void handleClaim(split.id, r.id)}
-                          className="text-xs px-3 py-1.5 rounded-lg border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleClaim(split.id, r.id);
+                          }}
+                          className="text-xs px-3 py-1.5 rounded-lg border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10 shrink-0 disabled:opacity-50 disabled:cursor-wait"
                         >
-                          Claim share
-                            {claimPricing.waived
-                              ? ''
-                              : ` · ${claimPricing.feeKas.toFixed(2)} KAS fee`}
+                          {claiming
+                            ? 'Claiming...'
+                            : claimPricing.waived
+                              ? 'Claim share'
+                              : `Claim share · ${claimPricing.feeKas.toFixed(2)} KAS fee`}
                         </button>
                       )}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             ))
@@ -379,6 +408,14 @@ export function CovenantSplitWidget() {
         />
         </CovenantTabPanel>
       )}
+
+      {detailInstance ? (
+        <CovenantInstanceDetailModal
+          instance={detailInstance}
+          sectionTitle="Split metadata"
+          onClose={() => setDetailSplitId(null)}
+        />
+      ) : null}
     </KpxCovenantShell>
   );
 }

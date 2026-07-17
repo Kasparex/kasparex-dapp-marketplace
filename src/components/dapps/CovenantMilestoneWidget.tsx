@@ -23,6 +23,7 @@ import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxC
 import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
+import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -30,6 +31,7 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'deals' | 'metadata';
+type BusyKey = null | 'create' | `claim:${string}:${string}`;
 
 type MilestoneRow = {
   key: string;
@@ -69,9 +71,15 @@ export function CovenantMilestoneWidget() {
   ]);
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone', milestoneRows.length);
   const { pricing: claimPricing } = useKpxCovenantClaimFee('milestone');
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<BusyKey>(null);
+  const [detailDealId, setDetailDealId] = useState<string | null>(null);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
+  const detailInstance = useMemo(
+    () => metadataInstances.find((i) => i.id === detailDealId) ?? null,
+    [metadataInstances, detailDealId],
+  );
+  const busy = busyKey != null;
 
   const updateMilestoneRow = (key: string, patch: Partial<MilestoneRow>) => {
     setMilestoneRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -89,7 +97,7 @@ export function CovenantMilestoneWidget() {
   };
 
   const handleCreate = async () => {
-    setBusy(true);
+    setBusyKey('create');
     try {
       const milestones = milestoneRows.map((row) => ({
         label: row.label,
@@ -104,7 +112,16 @@ export function CovenantMilestoneWidget() {
       });
       navigateTab('deals');
     } finally {
-      setBusy(false);
+      setBusyKey(null);
+    }
+  };
+
+  const handleClaim = async (dealId: string, stepId: string) => {
+    setBusyKey(`claim:${dealId}:${stepId}`);
+    try {
+      await claimStep(dealId, stepId);
+    } finally {
+      setBusyKey(null);
     }
   };
 
@@ -118,14 +135,14 @@ export function CovenantMilestoneWidget() {
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy
-          ? 'Creating...'
+        {busyKey === 'create'
+          ? 'Creating deal...'
           : pricing.waived
             ? 'Fund milestone deal'
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
       </button>
     ),
-    deps: [tab, busy, beneficiary, pricing, totalKas, milestoneRows.length, memo],
+    deps: [tab, busyKey, beneficiary, pricing, totalKas, milestoneRows.length, memo],
   });
 
   if (!state.isConnected) {
@@ -267,9 +284,24 @@ export function CovenantMilestoneWidget() {
             <p className="text-zinc-500 text-center py-8">No deals yet. Create your first milestone payment.</p>
           ) : (
             deals.map((d) => (
-              <div key={d.id} className={covenantCardClass}>
+              <div
+                key={d.id}
+                className={`${covenantCardClass} cursor-pointer transition hover:border-[#02abb8]/60`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetailDealId(d.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setDetailDealId(d.id);
+                  }
+                }}
+              >
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-xs uppercase tracking-wide text-zinc-500">{d.status}</span>
+                  <div>
+                    <span className="text-xs uppercase tracking-wide text-zinc-500">{d.status}</span>
+                    <p className="text-[11px] text-[#02abb8] mt-1">Tap for details</p>
+                  </div>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     {sompiToKasNumber(d.totalSompi)} KAS
                   </span>
@@ -283,6 +315,7 @@ export function CovenantMilestoneWidget() {
                     normalizeAddr(state.address) === normalizeAddr(d.beneficiary) &&
                     !s.claimed &&
                     Date.now() >= s.unlockAt;
+                  const claiming = busyKey === `claim:${d.id}:${s.id}`;
                   return (
                     <div
                       key={s.id}
@@ -295,13 +328,18 @@ export function CovenantMilestoneWidget() {
                       {canClaim && (
                         <button
                           type="button"
-                          className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto`}
-                          onClick={() => void claimStep(d.id, s.id)}
+                          disabled={busy}
+                          className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto disabled:opacity-50 disabled:cursor-wait`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleClaim(d.id, s.id);
+                          }}
                         >
-                          Claim
-                            {claimPricing.waived
-                              ? ''
-                              : ` · ${claimPricing.feeKas.toFixed(2)} KAS`}
+                          {claiming
+                            ? 'Claiming...'
+                            : claimPricing.waived
+                              ? 'Claim'
+                              : `Claim · ${claimPricing.feeKas.toFixed(2)} KAS`}
                         </button>
                       )}
                     </div>
@@ -328,6 +366,14 @@ export function CovenantMilestoneWidget() {
         />
         </CovenantTabPanel>
       )}
+
+      {detailInstance ? (
+        <CovenantInstanceDetailModal
+          instance={detailInstance}
+          sectionTitle="Deal metadata"
+          onClose={() => setDetailDealId(null)}
+        />
+      ) : null}
     </KpxCovenantShell>
   );
 }

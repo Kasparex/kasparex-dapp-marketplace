@@ -26,6 +26,44 @@ export type L1SpendResult = {
   covenantId?: string;
 };
 
+/**
+ * Resolve a spendable outpoint from stored fields.
+ * Prefer explicit utxo; fall back to lock/funding tx at index 0 (genesis output).
+ */
+export function resolveCovenantUtxoRef(args: {
+  utxo?: CovenantUtxoRef | null;
+  lockTxHash?: string | null;
+  txHash?: string | null;
+}): CovenantUtxoRef | null {
+  const fromUtxo = args.utxo?.txId?.trim();
+  if (fromUtxo) {
+    return {
+      txId: fromUtxo,
+      index: Number.isFinite(args.utxo?.index) ? Number(args.utxo!.index) : 0,
+    };
+  }
+  const fromTx = (args.lockTxHash ?? args.txHash ?? '').trim();
+  if (!fromTx || fromTx.startsWith('sim_') || fromTx.startsWith('pending_')) return null;
+  return { txId: fromTx, index: 0 };
+}
+
+export function requireCovenantUtxoRef(
+  args: {
+    utxo?: CovenantUtxoRef | null;
+    lockTxHash?: string | null;
+    txHash?: string | null;
+  },
+  label = 'Instance',
+): CovenantUtxoRef {
+  const resolved = resolveCovenantUtxoRef(args);
+  if (!resolved) {
+    throw new Error(
+      `${label} is missing an on-chain UTXO reference. Create a new lock with a wallet that supports signPskt + pushTx (older local/demo rows cannot be claimed on L1).`,
+    );
+  }
+  return resolved;
+}
+
 export async function requireL1CovenantReady<T>(
   productLabel: string,
   run: () => Promise<T>,

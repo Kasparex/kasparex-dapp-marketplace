@@ -23,7 +23,7 @@ import {
   KpxCovenantShell,
 } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
-import { LockboxVaultDetailModal } from '@/components/dapps/covenant/LockboxVaultDetailModal';
+import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
@@ -134,8 +134,9 @@ export function CovenantLockboxWidget() {
   const [unlockLocal, setUnlockLocal] = useState(() => toDatetimeLocalValue(Date.now() + 60_000));
   const [customAddMinutes, setCustomAddMinutes] = useState('5');
   const [importId, setImportId] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busyKey, setBusyKey] = useState<null | 'create' | `claim:${string}`>(null);
   const [detailVaultId, setDetailVaultId] = useState<string | null>(null);
+  const busy = busyKey != null;
   const [now, setNow] = useState(() => Date.now());
 
   const tab = useDAppWidgetSection('create') as TabId;
@@ -199,7 +200,7 @@ export function CovenantLockboxWidget() {
   };
 
   const handleCreate = async () => {
-    setBusy(true);
+    setBusyKey('create');
     try {
       if (kind === 'timelock' && !unlockLocal) {
         throw new Error('Choose an unlock date for timelock');
@@ -228,18 +229,18 @@ export function CovenantLockboxWidget() {
     } catch (e) {
       console.error(e);
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
   const handleClaim = async (vaultId: string) => {
-    setBusy(true);
+    setBusyKey(`claim:${vaultId}`);
     try {
       await claimVault(vaultId);
     } catch (e) {
       console.error(e);
     } finally {
-      setBusy(false);
+      setBusyKey(null);
     }
   };
 
@@ -258,7 +259,7 @@ export function CovenantLockboxWidget() {
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy
+        {busyKey === 'create'
           ? claimerRows.length > 1
             ? 'Creating locks...'
             : 'Creating...'
@@ -270,7 +271,7 @@ export function CovenantLockboxWidget() {
       </button>
     ),
     deps: [
-      busy,
+      busyKey,
       isLoading,
       primaryClaimerFilled,
       sharesValid,
@@ -513,7 +514,7 @@ export function CovenantLockboxWidget() {
         <CovenantTabPanel
           title="Vaults"
           heading="Your locks"
-          description="Only locks where you are depositor or beneficiary. Tap a card for full metadata. Simulated demos are hidden."
+          description="Only locks where you are depositor or beneficiary. Tap a card for full metadata."
         >
           <div className="space-y-4">
             <KpxCovenantImportPanel
@@ -522,11 +523,11 @@ export function CovenantLockboxWidget() {
               onChange={setImportId}
               busy={busy}
               onImport={() => {
-                setBusy(true);
+                setBusyKey('create');
                 void importByCovenantId(importId)
                   .then(() => setImportId(''))
                   .catch(console.error)
-                  .finally(() => setBusy(false));
+                  .finally(() => setBusyKey(null));
               }}
             />
             <div className="flex justify-between items-center">
@@ -622,7 +623,7 @@ export function CovenantLockboxWidget() {
                         }}
                         className={covenantSecondaryBtnClass}
                       >
-                        {busy
+                        {busyKey === `claim:${v.id}`
                           ? 'Claiming...'
                           : claimPricing.waived
                             ? 'Claim funds'
@@ -654,7 +655,11 @@ export function CovenantLockboxWidget() {
       )}
 
       {detailInstance ? (
-        <LockboxVaultDetailModal instance={detailInstance} onClose={() => setDetailVaultId(null)} />
+        <CovenantInstanceDetailModal
+          instance={detailInstance}
+          sectionTitle="Vault metadata"
+          onClose={() => setDetailVaultId(null)}
+        />
       ) : null}
     </KpxCovenantShell>
   );

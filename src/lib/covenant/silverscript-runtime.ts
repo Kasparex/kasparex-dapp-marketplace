@@ -146,7 +146,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
 
     const raw = this.vaults.get(vaultId);
     if (!raw) throw new Error('Vault not found');
-    const vault = this.normalizeStoredVault(raw);
+    let vault = this.normalizeStoredVault(raw);
     if (vault.status === 'claimed') throw new Error('Vault already claimed');
 
     const claimers = resolveVaultClaimers(vault);
@@ -156,8 +156,16 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) {
       throw new Error('Timelock has not unlocked yet');
     }
+    if (!vault.utxo?.txId && vault.lockTxHash) {
+      const utxo = { txId: vault.lockTxHash, index: 0 };
+      vault = { ...vault, utxo };
+      this.vaults.set(vaultId, vault);
+      this.persist();
+    }
     if (!vault.utxo) {
-      throw new Error('Vault is missing on-chain UTXO reference');
+      throw new Error(
+        'Vault is missing on-chain UTXO reference. Create a new lock to claim on L1.',
+      );
     }
 
     const compiled = await loadKaspaComCompiledContract('lockbox');

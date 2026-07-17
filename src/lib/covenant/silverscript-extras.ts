@@ -5,7 +5,7 @@
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { deployL1CovenantLock, spendL1CovenantLock } from './l1';
+import { deployL1CovenantLock, resolveCovenantUtxoRef, spendL1CovenantLock } from './l1';
 import { normalizeCovenantMemo } from './participants';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type {
@@ -21,6 +21,7 @@ import type { CrowdfundRuntime } from './crowdfund-runtime';
 import type { CreateCrowdfundParams, CrowdfundCampaign } from './crowdfund-types';
 import type { VoucherRuntime } from './voucher-runtime';
 import type { CreateVoucherParams, VoucherLock } from './voucher-types';
+import type { CovenantUtxoRef } from './types';
 import {
   allocateBps,
   loadMap,
@@ -30,6 +31,64 @@ import {
   saveMap,
   sha256Hex,
 } from './utils';
+
+function withResolvedUtxo<T extends { utxo?: CovenantUtxoRef; lockTxHash?: string; txHash?: string }>(
+  row: T,
+): T {
+  const utxo = resolveCovenantUtxoRef({
+    utxo: row.utxo,
+    lockTxHash: row.lockTxHash,
+    txHash: row.txHash,
+  });
+  if (!utxo) return row;
+  if (row.utxo?.txId === utxo.txId && row.utxo?.index === utxo.index) return row;
+  return {
+    ...row,
+    utxo,
+    lockTxHash: row.lockTxHash ?? utxo.txId,
+  };
+}
+
+function hydrateSplit(split: SplitPayment): SplitPayment {
+  const recipients = split.recipients.map((r) => {
+    const hydrated = withResolvedUtxo({
+      ...r,
+      lockTxHash: r.lockTxHash ?? (r.utxo ? undefined : undefined),
+    });
+    // Legacy single-lock splits: recipients had no per-share tx; only top-level lockTxHash.
+    if (!hydrated.utxo && split.lockTxHash && split.recipients.length === 1) {
+      const utxo = resolveCovenantUtxoRef({ lockTxHash: split.lockTxHash });
+      if (utxo) {
+        return { ...hydrated, utxo, lockTxHash: hydrated.lockTxHash ?? utxo.txId };
+      }
+    }
+    return hydrated;
+  });
+  return { ...split, recipients };
+}
+
+function hydrateMilestone(deal: MilestoneDeal): MilestoneDeal {
+  return {
+    ...deal,
+    milestones: deal.milestones.map((m) => withResolvedUtxo(m)),
+  };
+}
+
+function hydrateCampaign(campaign: CrowdfundCampaign): CrowdfundCampaign {
+  return {
+    ...campaign,
+    pledges: campaign.pledges.map((p) =>
+      withResolvedUtxo({
+        ...p,
+        lockTxHash: p.txHash,
+      }),
+    ),
+  };
+}
+
+function hydrateVoucher(voucher: VoucherLock): VoucherLock {
+  return withResolvedUtxo(voucher);
+}
 
 const MAX_SPLIT_RECIPIENTS = 8;
 
@@ -124,7 +183,9 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
         claimedAt: null,
         covenantId: deployed.covenantId,
         lockTxHash: deployed.txHash,
-        utxo: deployed.utxo,
+        utxo: deployed.utxo?.txId
+          ? deployed.utxo
+          : { txId: deployed.txHash, index: 0 },
         origin: 'l1',
       });
     }
@@ -162,13 +223,43 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
     if (normalizeAddr(claimer) !== normalizeAddr(recipient.address)) {
       throw new Error('Only the assigned recipient can claim this share');
     }
-    if (!recipient.utxo) {
-      throw new Error('Share is missing on-chain UTXO reference');
+
+    const hydrated = hydrateSplit(split);
+    const hydratedRecipient = hydrated.recipients.find((r) => r.id === recipientId) ?? recipient;
+    let utxo = resolveCovenantUtxoRef({
+      utxo: hydratedRecipient.utxo,
+      lockTxHash: hydratedRecipient.lockTxHash,
+    });
+    // Legacy: one funding tx for the whole split (only safe when a single share remains).
+    if (!utxo && split.lockTxHash) {
+      const unclaimed = hydrated.recipients.filter((r) => !r.claimed);
+      if (unclaimed.length === 1 && unclaimed[0].id === recipientId) {
+        utxo = resolveCovenantUtxoRef({ lockTxHash: split.lockTxHash });
+      }
+    }
+    if (!utxo) {
+      throw new Error(
+        'Share is missing an on-chain UTXO reference. This split was likely created before per-share L1 locks. Create a new split to claim on-chain.',
+      );
+    }
+
+    // Persist resolved outpoint so retries do not fail again.
+    if (!recipient.utxo?.txId) {
+      const patched = {
+        ...split,
+        recipients: split.recipients.map((r) =>
+          r.id === recipientId
+            ? { ...r, utxo, lockTxHash: r.lockTxHash ?? utxo!.txId }
+            : r,
+        ),
+      };
+      this.splits.set(splitId, patched);
+      this.persist();
     }
 
     const spent = await spendL1CovenantLock(ctx, {
       template: 'split',
-      utxo: recipient.utxo,
+      utxo,
       amountSompi: recipient.amountSompi,
       toAddress: claimer,
       functionNameFallback: 'distribute',
@@ -180,13 +271,22 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
       },
     });
 
-    const updatedRecipients = split.recipients.map((r) =>
+    this.reload();
+    const latest = this.splits.get(splitId) ?? split;
+    const updatedRecipients = latest.recipients.map((r) =>
       r.id === recipientId
-        ? { ...r, claimed: true, claimedAt: Date.now(), claimTxHash: spent.txHash }
+        ? {
+            ...r,
+            utxo: r.utxo ?? utxo,
+            lockTxHash: r.lockTxHash ?? utxo.txId,
+            claimed: true,
+            claimedAt: Date.now(),
+            claimTxHash: spent.txHash,
+          }
         : r,
     );
     const updated: SplitPayment = {
-      ...split,
+      ...latest,
       recipients: updatedRecipients,
       status: updatedRecipients.every((r) => r.claimed) ? 'completed' : 'open',
     };
@@ -212,12 +312,27 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
 
   async getSplit(splitId: string): Promise<SplitPayment | null> {
     this.reload();
-    return this.splits.get(splitId) ?? null;
+    const split = this.splits.get(splitId);
+    return split ? hydrateSplit(split) : null;
   }
 
   async listSplits(filter?: SplitListFilter): Promise<SplitPayment[]> {
     this.reload();
-    let list = Array.from(this.splits.values())
+    let dirty = false;
+    const hydrated = Array.from(this.splits.values()).map((s) => {
+      const next = hydrateSplit(s);
+      if (next !== s) {
+        const changed = JSON.stringify(next.recipients) !== JSON.stringify(s.recipients);
+        if (changed) {
+          this.splits.set(s.id, next);
+          dirty = true;
+        }
+      }
+      return next;
+    });
+    if (dirty) this.persist();
+
+    let list = hydrated
       .filter((s) => s.origin !== 'simulator')
       .sort((a, b) => b.createdAt - a.createdAt);
     if (filter?.status) list = list.filter((s) => s.status === filter.status);
@@ -308,7 +423,9 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
         claimedAt: null,
         covenantId: deployed.covenantId,
         lockTxHash: deployed.txHash,
-        utxo: deployed.utxo,
+        utxo: deployed.utxo?.txId
+          ? deployed.utxo
+          : { txId: deployed.txHash, index: 0 },
         origin: 'l1',
       });
     }
@@ -348,11 +465,29 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     if (!step) throw new Error('Milestone not found');
     if (step.claimed) throw new Error('Milestone already claimed');
     if (Date.now() < step.unlockAt) throw new Error('Milestone has not unlocked yet');
-    if (!step.utxo) throw new Error('Milestone is missing on-chain UTXO reference');
+    const utxo = resolveCovenantUtxoRef({
+      utxo: step.utxo,
+      lockTxHash: step.lockTxHash,
+    });
+    if (!utxo) {
+      throw new Error(
+        'Milestone is missing an on-chain UTXO reference. Create a new deal to claim on L1.',
+      );
+    }
+    if (!step.utxo?.txId) {
+      const patched = {
+        ...deal,
+        milestones: deal.milestones.map((s) =>
+          s.id === stepId ? { ...s, utxo, lockTxHash: s.lockTxHash ?? utxo.txId } : s,
+        ),
+      };
+      this.deals.set(dealId, patched);
+      this.persist();
+    }
 
     const spent = await spendL1CovenantLock(ctx, {
       template: 'milestone',
-      utxo: step.utxo,
+      utxo,
       amountSompi: step.amountSompi,
       toAddress: claimer,
       functionNameFallback: 'release_next',
@@ -364,13 +499,22 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
       },
     });
 
-    const milestones = deal.milestones.map((s) =>
+    this.reload();
+    const latest = this.deals.get(dealId) ?? deal;
+    const milestones = latest.milestones.map((s) =>
       s.id === stepId
-        ? { ...s, claimed: true, claimedAt: Date.now(), claimTxHash: spent.txHash }
+        ? {
+            ...s,
+            utxo: s.utxo ?? utxo,
+            lockTxHash: s.lockTxHash ?? utxo.txId,
+            claimed: true,
+            claimedAt: Date.now(),
+            claimTxHash: spent.txHash,
+          }
         : s,
     );
     const updated: MilestoneDeal = {
-      ...deal,
+      ...latest,
       milestones,
       status: milestones.every((s) => s.claimed) ? 'completed' : 'active',
     };
@@ -393,7 +537,17 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
   async listForAddress(address: string): Promise<MilestoneDeal[]> {
     this.reload();
     const norm = normalizeAddr(address);
-    return Array.from(this.deals.values())
+    let dirty = false;
+    const deals = Array.from(this.deals.values()).map((d) => {
+      const next = hydrateMilestone(d);
+      if (JSON.stringify(next.milestones) !== JSON.stringify(d.milestones)) {
+        this.deals.set(d.id, next);
+        dirty = true;
+      }
+      return next;
+    });
+    if (dirty) this.persist();
+    return deals
       .filter((d) => d.origin !== 'simulator')
       .filter(
         (d) => normalizeAddr(d.depositor) === norm || normalizeAddr(d.beneficiary) === norm,
@@ -483,8 +637,10 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
         refunded: false,
         createdAt: Date.now(),
         covenantId: deployed.covenantId,
-        utxo: deployed.utxo,
-        origin: 'l1' as const,
+      utxo: deployed.utxo?.txId
+        ? deployed.utxo
+        : { txId: deployed.txHash, index: 0 },
+      origin: 'l1' as const,
       },
     ];
     const raised = pledges
@@ -520,11 +676,24 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     if (campaign.status === 'succeeded') throw new Error('Already claimed');
 
     const active = campaign.pledges.filter((p) => !p.refunded);
-    for (const pledge of active) {
-      if (!pledge.utxo) throw new Error('Pledge is missing on-chain UTXO reference');
+    const resolvedPledges = active.map((pledge) => {
+      const utxo = resolveCovenantUtxoRef({
+        utxo: pledge.utxo,
+        lockTxHash: pledge.txHash,
+        txHash: pledge.txHash,
+      });
+      if (!utxo) {
+        throw new Error(
+          'Pledge is missing an on-chain UTXO reference. Create a new pledge on L1 to claim.',
+        );
+      }
+      return { pledge, utxo };
+    });
+
+    for (const { pledge, utxo } of resolvedPledges) {
       await spendL1CovenantLock(ctx, {
         template: 'crowdfund',
-        utxo: pledge.utxo,
+        utxo,
         amountSompi: pledge.amountSompi,
         toAddress: creator,
         functionNameFallback: 'verify_goal',
@@ -571,11 +740,20 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     if (normalizeAddr(backer) !== normalizeAddr(pledge.backer)) {
       throw new Error('Only the backer can refund this pledge');
     }
-    if (!pledge.utxo) throw new Error('Pledge is missing on-chain UTXO reference');
+    const utxo = resolveCovenantUtxoRef({
+      utxo: pledge.utxo,
+      lockTxHash: pledge.txHash,
+      txHash: pledge.txHash,
+    });
+    if (!utxo) {
+      throw new Error(
+        'Pledge is missing an on-chain UTXO reference. Create a new pledge on L1 to refund.',
+      );
+    }
 
     await spendL1CovenantLock(ctx, {
       template: 'crowdfund',
-      utxo: pledge.utxo,
+      utxo,
       amountSompi: pledge.amountSompi,
       toAddress: backer,
       functionNameFallback: 'verify_goal',
@@ -606,7 +784,17 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
 
   async listAll(): Promise<CrowdfundCampaign[]> {
     this.reload();
-    return Array.from(this.campaigns.values())
+    let dirty = false;
+    const campaigns = Array.from(this.campaigns.values()).map((c) => {
+      const next = hydrateCampaign(c);
+      if (JSON.stringify(next.pledges) !== JSON.stringify(c.pledges)) {
+        this.campaigns.set(c.id, next);
+        dirty = true;
+      }
+      return next;
+    });
+    if (dirty) this.persist();
+    return campaigns
       .filter((c) => c.origin !== 'simulator')
       .sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -715,7 +903,9 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
       expiresAt: params.expiresAt,
       createdAt: Date.now(),
       lockTxHash: deployed.txHash,
-      utxo: deployed.utxo,
+      utxo: deployed.utxo?.txId
+        ? deployed.utxo
+        : { txId: deployed.txHash, index: 0 },
       claimedBy: null,
       claimedAt: null,
       origin: 'l1',
@@ -739,11 +929,27 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
     if (Date.now() > voucher.expiresAt) throw new Error('Voucher has expired');
     const hash = await sha256Hex(secret.trim());
     if (hash !== voucher.secretHash) throw new Error('Invalid claim secret');
-    if (!voucher.utxo) throw new Error('Voucher is missing on-chain UTXO reference');
+    const utxo = resolveCovenantUtxoRef({
+      utxo: voucher.utxo,
+      lockTxHash: voucher.lockTxHash,
+    });
+    if (!utxo) {
+      throw new Error(
+        'Voucher is missing an on-chain UTXO reference. Create a new voucher to redeem on L1.',
+      );
+    }
+    if (!voucher.utxo?.txId) {
+      this.vouchers.set(voucherId, {
+        ...voucher,
+        utxo,
+        lockTxHash: voucher.lockTxHash ?? utxo.txId,
+      });
+      this.persist();
+    }
 
     const spent = await spendL1CovenantLock(ctx, {
       template: 'voucher',
-      utxo: voucher.utxo,
+      utxo,
       amountSompi: voucher.amountSompi,
       toAddress: claimer,
       functionNameFallback: 'redeem',
@@ -758,6 +964,8 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
 
     const updated: VoucherLock = {
       ...voucher,
+      utxo,
+      lockTxHash: voucher.lockTxHash ?? utxo.txId,
       status: 'claimed',
       claimedBy: claimer,
       claimedAt: Date.now(),
@@ -778,7 +986,17 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
 
   async listOpen(): Promise<VoucherLock[]> {
     this.reload();
-    return Array.from(this.vouchers.values())
+    let dirty = false;
+    const vouchers = Array.from(this.vouchers.values()).map((v) => {
+      const next = hydrateVoucher(v);
+      if (next.utxo?.txId !== v.utxo?.txId) {
+        this.vouchers.set(v.id, next);
+        dirty = true;
+      }
+      return next;
+    });
+    if (dirty) this.persist();
+    return vouchers
       .filter((v) => v.origin !== 'simulator')
       .filter((v) => v.status === 'open' && Date.now() <= v.expiresAt)
       .sort((a, b) => b.createdAt - a.createdAt);
@@ -787,7 +1005,17 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
   async listForAddress(address: string): Promise<VoucherLock[]> {
     this.reload();
     const norm = normalizeAddr(address);
-    return Array.from(this.vouchers.values())
+    let dirty = false;
+    const vouchers = Array.from(this.vouchers.values()).map((v) => {
+      const next = hydrateVoucher(v);
+      if (next.utxo?.txId !== v.utxo?.txId) {
+        this.vouchers.set(v.id, next);
+        dirty = true;
+      }
+      return next;
+    });
+    if (dirty) this.persist();
+    return vouchers
       .filter((v) => v.origin !== 'simulator')
       .filter(
         (v) =>
