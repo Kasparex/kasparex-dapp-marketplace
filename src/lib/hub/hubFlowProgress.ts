@@ -81,9 +81,27 @@ export function resolveHubFlowCurrentIndex(args: {
   return 0;
 }
 
-export const HUB_FLOW_PRESETS = {
-  /** Covenant deploy / create lock */
-  covenantCreate: [
+function promptOf(n: number, total: number): string {
+  return `Wallet prompt ${n} of ${total}`;
+}
+
+/** Covenant deploy / create: Create → Sign (×locks) → Pay Fee → Complete */
+export function buildCovenantCreateFlowSteps(args?: {
+  /** How many lock / share txs the user must sign before the Hub fee. */
+  lockSignCount?: number;
+  feeWaived?: boolean;
+}): HubFlowStep[] {
+  const lockCount = Math.max(1, Math.floor(args?.lockSignCount ?? 1));
+  const feeWaived = Boolean(args?.feeWaived);
+  const totalPrompts = lockCount + (feeWaived ? 0 : 1);
+
+  const signLabel = lockCount > 1 ? `Sign ×${lockCount}` : 'Sign';
+  const signTooltip =
+    lockCount > 1
+      ? `${lockCount} lock signatures (${promptOf(1, totalPrompts)} through ${promptOf(lockCount, totalPrompts)}) in your Kaspa wallet.`
+      : `${promptOf(1, totalPrompts)}: approve the covenant lock transaction in your Kaspa wallet.`;
+
+  const steps: HubFlowStep[] = [
     {
       id: 'create',
       label: 'Create',
@@ -91,44 +109,70 @@ export const HUB_FLOW_PRESETS = {
     },
     {
       id: 'sign',
-      label: 'Sign',
-      tooltip: 'Approve the covenant lock transaction in your Kaspa wallet.',
+      label: signLabel,
+      tooltip: signTooltip,
     },
-    {
+  ];
+
+  if (!feeWaived) {
+    steps.push({
       id: 'pay-fee',
       label: 'Pay Fee',
-      tooltip: 'Confirm the separate Hub platform fee transfer to treasury.',
-    },
-    {
-      id: 'complete',
-      label: 'Complete',
-      tooltip: 'Lock is recorded. You can find it on the Vaults / list tab.',
-    },
-  ] satisfies HubFlowStep[],
+      tooltip: `${promptOf(totalPrompts, totalPrompts)}: confirm the Hub platform fee transfer to treasury.`,
+    });
+  }
 
-  /** Covenant claim / redeem / unlock */
-  covenantClaim: [
+  steps.push({
+    id: 'complete',
+    label: 'Complete',
+    tooltip: 'Lock is recorded. You can find it on the Vaults / list tab.',
+  });
+
+  return steps;
+}
+
+/** Covenant claim: Verify → Sign fee → Sign claim → Complete */
+export function buildCovenantClaimFlowSteps(args?: { feeWaived?: boolean }): HubFlowStep[] {
+  const feeWaived = Boolean(args?.feeWaived);
+  const totalPrompts = feeWaived ? 1 : 2;
+
+  const steps: HubFlowStep[] = [
     {
       id: 'verify',
       label: 'Verify',
       tooltip: 'Checks that this lock is claimable and resolves the on-chain UTXO.',
     },
-    {
-      id: 'sign',
-      label: 'Sign',
-      tooltip: 'Approve the Hub claim fee (or claim) signature in your wallet.',
-    },
-    {
-      id: 'claim',
-      label: 'Claim',
-      tooltip: 'Broadcasts the unlock / claim spend to receive the locked KAS.',
-    },
-    {
-      id: 'complete',
-      label: 'Complete',
-      tooltip: 'Claim finished. Funds should appear in your wallet after confirmation.',
-    },
-  ] satisfies HubFlowStep[],
+  ];
+
+  if (!feeWaived) {
+    steps.push({
+      id: 'sign-fee',
+      label: 'Sign Fee',
+      tooltip: `${promptOf(1, totalPrompts)}: approve the Hub claim fee in your Kaspa wallet.`,
+    });
+  }
+
+  steps.push({
+    id: 'claim',
+    label: 'Sign Claim',
+    tooltip: `${promptOf(totalPrompts, totalPrompts)}: approve the unlock / claim spend to receive the locked KAS.`,
+  });
+
+  steps.push({
+    id: 'complete',
+    label: 'Complete',
+    tooltip: 'Claim finished. Funds should appear in your wallet after confirmation.',
+  });
+
+  return steps;
+}
+
+export const HUB_FLOW_PRESETS = {
+  /** Covenant deploy / create lock (single lock + fee). */
+  covenantCreate: buildCovenantCreateFlowSteps({ lockSignCount: 1, feeWaived: false }),
+
+  /** Covenant claim / redeem / unlock (fee + claim). */
+  covenantClaim: buildCovenantClaimFlowSteps({ feeWaived: false }),
 
   /** Generic Hub L1 publish (tokens, vBlog, store listing, CrowdKas) */
   hubPublish: [
@@ -140,7 +184,7 @@ export const HUB_FLOW_PRESETS = {
     {
       id: 'sign',
       label: 'Sign',
-      tooltip: 'Approve the transaction in your connected wallet.',
+      tooltip: 'Wallet prompt 1 of 1: approve the listing / publish transaction in your connected wallet.',
     },
     {
       id: 'pay',
@@ -164,7 +208,7 @@ export const HUB_FLOW_PRESETS = {
     {
       id: 'sign',
       label: 'Sign',
-      tooltip: 'Approve the purchase transaction in your wallet.',
+      tooltip: 'Wallet prompt 1 of 1: approve the purchase transaction in your wallet.',
     },
     {
       id: 'pay',
@@ -188,7 +232,7 @@ export const HUB_FLOW_PRESETS = {
     {
       id: 'sign',
       label: 'Sign',
-      tooltip: 'Approve the payment in your wallet when prompted.',
+      tooltip: 'Wallet prompt 1 of 1: approve the payment in your wallet when prompted.',
     },
     {
       id: 'confirm',

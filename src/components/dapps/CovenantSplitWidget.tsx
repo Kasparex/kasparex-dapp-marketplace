@@ -154,9 +154,14 @@ export function CovenantSplitWidget() {
     flowAlwaysVisible: true,
     flowBusy: busy,
     flowPreset:
-      typeof busyKey === 'string' && busyKey.startsWith('claim:')
+      tab === 'splits' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? 'covenantClaim'
         : 'covenantCreate',
+    flowLockSignCount: rows.length,
+    flowFeeWaived:
+      tab === 'splits' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
+        ? claimPricing.waived
+        : pricing.waived,
     primaryAction: (
       <button
         type="button"
@@ -176,7 +181,7 @@ export function CovenantSplitWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
       </button>
     ),
-    deps: [tab, busyKey, isLoading, rows, percentSum, pricing, totalKas, rows.length, memo],
+    deps: [tab, busyKey, isLoading, rows, percentSum, pricing, claimPricing, totalKas, rows.length, memo],
   });
 
   if (!kaspaState.isConnected) {

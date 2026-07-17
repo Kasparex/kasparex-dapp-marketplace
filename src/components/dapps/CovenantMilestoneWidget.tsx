@@ -132,9 +132,14 @@ export function CovenantMilestoneWidget() {
     flowAlwaysVisible: true,
     flowBusy: busy,
     flowPreset:
-      typeof busyKey === 'string' && busyKey.startsWith('claim:')
+      tab === 'deals' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? 'covenantClaim'
         : 'covenantCreate',
+    flowLockSignCount: milestoneRows.length,
+    flowFeeWaived:
+      tab === 'deals' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
+        ? claimPricing.waived
+        : pricing.waived,
     primaryAction: (
       <button
         type="button"
@@ -149,7 +154,7 @@ export function CovenantMilestoneWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
       </button>
     ),
-    deps: [tab, busyKey, beneficiary, pricing, totalKas, milestoneRows.length, memo],
+    deps: [tab, busyKey, beneficiary, pricing, claimPricing, totalKas, milestoneRows.length, memo],
   });
 
   if (!state.isConnected) {

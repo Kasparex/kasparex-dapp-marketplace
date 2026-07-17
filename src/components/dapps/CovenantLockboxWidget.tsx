@@ -233,10 +233,14 @@ export function CovenantLockboxWidget() {
     enabled: tab === 'create',
     flowAlwaysVisible: true,
     flowBusy: busy,
-    flowPreset:
-      typeof busyKey === 'string' && busyKey.startsWith('claim:')
-        ? 'covenantClaim'
-        : 'covenantCreate',
+    flowPreset: tab === 'vaults' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
+      ? 'covenantClaim'
+      : 'covenantCreate',
+    flowLockSignCount: claimerRows.length,
+    flowFeeWaived:
+      tab === 'vaults' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
+        ? claimPricing.waived
+        : pricing.waived,
     primaryAction: (
       <button
         type="button"
@@ -262,11 +266,13 @@ export function CovenantLockboxWidget() {
       </button>
     ),
     deps: [
+      tab,
       busyKey,
       isLoading,
       primaryClaimerFilled,
       sharesValid,
       pricing,
+      claimPricing,
       amountKas,
       kind,
       unlockLocal,

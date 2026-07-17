@@ -12,7 +12,6 @@ import {
   covenantInputClass,
   covenantPanelClass,
   covenantCardClass,
-  covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
@@ -83,13 +82,28 @@ export function CovenantVoucherWidget() {
     }
   };
 
-  useCovenantWidgetRail(pricing, krexBalance, {
+  const isClaimTab = tab === 'claim';
+  useCovenantWidgetRail(isClaimTab ? claimPricing : pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(amountKas) || 0 : undefined,
-    enabled: tab === 'create',
+    enabled: tab === 'create' || isClaimTab,
     flowAlwaysVisible: true,
     flowBusy: busy,
-    flowPreset: busyKey === 'claim' ? 'covenantClaim' : 'covenantCreate',
-    primaryAction: (
+    flowPreset: isClaimTab || busyKey === 'claim' ? 'covenantClaim' : 'covenantCreate',
+    flowFeeWaived: isClaimTab || busyKey === 'claim' ? claimPricing.waived : pricing.waived,
+    primaryAction: isClaimTab ? (
+      <button
+        type="button"
+        disabled={busy || !claimId.trim() || !claimSecret}
+        onClick={() => void handleClaim()}
+        className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busyKey === 'claim'
+          ? 'Redeeming...'
+          : claimPricing.waived
+            ? 'Redeem voucher'
+            : `Redeem · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
+      </button>
+    ) : (
       <button
         type="button"
         disabled={busy || !expires}
@@ -103,7 +117,17 @@ export function CovenantVoucherWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & mint voucher`}
       </button>
     ),
-    deps: [tab, busyKey, expires, pricing, amountKas, memo],
+    deps: [
+      tab,
+      busyKey,
+      expires,
+      pricing,
+      claimPricing,
+      amountKas,
+      memo,
+      claimId,
+      claimSecret,
+    ],
   });
 
   if (!state.isConnected) {
@@ -208,19 +232,6 @@ export function CovenantVoucherWidget() {
                 onChange={(e) => setClaimSecret(e.target.value)}
               />
             </div>
-
-            <button
-              type="button"
-              disabled={busy || !claimId.trim() || !claimSecret}
-              onClick={() => void handleClaim()}
-              className={covenantSecondaryBtnClass}
-            >
-              {busyKey === 'claim'
-                ? 'Redeeming...'
-                : claimPricing.waived
-                  ? 'Redeem voucher'
-                  : `Redeem · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
-            </button>
           </div>
 
           <div className="space-y-3">

@@ -6,7 +6,13 @@ import { covenantDeployToHubQuote } from '@/lib/payments/hubQuote';
 import { useSyncHubQuote } from '@/lib/dapps/PaymentAmountContext';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
-import { getHubFlowPreset, type HubFlowPresetKey } from '@/lib/hub/hubFlowProgress';
+import {
+  buildCovenantClaimFlowSteps,
+  buildCovenantCreateFlowSteps,
+  getHubFlowPreset,
+  type HubFlowPresetKey,
+  type HubFlowStep,
+} from '@/lib/hub/hubFlowProgress';
 
 export function useCovenantWidgetRail(
   pricing: KpxCovenantDeployPrice,
@@ -19,6 +25,12 @@ export function useCovenantWidgetRail(
     flowBusy?: boolean;
     flowComplete?: boolean;
     flowPreset?: HubFlowPresetKey;
+    /** Override built-in preset steps. */
+    flowSteps?: HubFlowStep[];
+    /** Lock / share signatures before Hub fee (create flows). */
+    flowLockSignCount?: number;
+    /** When true, omit the Hub fee wallet prompt from the flow. */
+    flowFeeWaived?: boolean;
     /** When false, keep quote/actions off but still show Flow Progress. */
     flowAlwaysVisible?: boolean;
   },
@@ -30,15 +42,36 @@ export function useCovenantWidgetRail(
     [enabled, pricing, krexBalance, options.lockAmountKas],
   );
 
+  const flowSteps = useMemo(() => {
+    if (options.flowSteps) return options.flowSteps;
+    if (flowPreset === 'covenantCreate') {
+      return buildCovenantCreateFlowSteps({
+        lockSignCount: options.flowLockSignCount ?? 1,
+        feeWaived: options.flowFeeWaived,
+      });
+    }
+    if (flowPreset === 'covenantClaim') {
+      return buildCovenantClaimFlowSteps({
+        feeWaived: options.flowFeeWaived,
+      });
+    }
+    return getHubFlowPreset(flowPreset);
+  }, [
+    options.flowSteps,
+    flowPreset,
+    options.flowLockSignCount,
+    options.flowFeeWaived,
+  ]);
+
   const flowProgress = useMemo(
     () => (
       <HubFlowProgress
-        steps={getHubFlowPreset(flowPreset)}
+        steps={flowSteps}
         busy={options.flowBusy}
         complete={options.flowComplete}
       />
     ),
-    [flowPreset, options.flowBusy, options.flowComplete],
+    [flowSteps, options.flowBusy, options.flowComplete],
   );
 
   useSyncHubQuote(hubQuote, options.deps ?? [hubQuote, enabled]);

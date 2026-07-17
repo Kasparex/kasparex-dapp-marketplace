@@ -102,9 +102,13 @@ export function CovenantCrowdfundWidget() {
     flowAlwaysVisible: true,
     flowBusy: busy,
     flowPreset:
-      typeof busyKey === 'string' && busyKey.startsWith('claim:')
+      tab === 'browse' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? 'covenantClaim'
         : 'covenantCreate',
+    flowFeeWaived:
+      tab === 'browse' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
+        ? claimPricing.waived
+        : pricing.waived,
     primaryAction: (
       <button
         type="button"
@@ -119,7 +123,7 @@ export function CovenantCrowdfundWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
       </button>
     ),
-    deps: [tab, busyKey, title, deadline, pricing, goalKas, memo],
+    deps: [tab, busyKey, title, deadline, pricing, claimPricing, goalKas, memo],
   });
 
   if (!state.isConnected) {

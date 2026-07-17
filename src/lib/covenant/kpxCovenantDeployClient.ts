@@ -134,7 +134,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
     if (!args.pricing.treasuryConfigured) {
       throw new Error('Hub treasury is not configured; claim fee cannot be collected.');
     }
-    reportHubFlowStep('sign', 'covenantClaim');
+    reportHubFlowStep('sign-fee', 'covenantClaim');
     feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
     if (!feeTxHash) {
       throw new Error('Hub claim fee payment did not return a transaction id.');
