@@ -127,10 +127,12 @@ export function CovenantMilestoneWidget() {
       prev.map((row) => {
         if (row.key !== key) return row;
         const unlockMs = new Date(unlock).getTime();
+        if (!Number.isFinite(unlockMs) || !row.deadline.trim()) {
+          return { ...row, unlock };
+        }
         const deadlineMs = new Date(row.deadline).getTime();
         const nextDeadline =
-          Number.isFinite(unlockMs) &&
-          (!Number.isFinite(deadlineMs) || deadlineMs <= unlockMs)
+          !Number.isFinite(deadlineMs) || deadlineMs <= unlockMs
             ? toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs))
             : row.deadline;
         return { ...row, unlock, deadline: nextDeadline };
@@ -154,14 +156,15 @@ export function CovenantMilestoneWidget() {
     try {
       const milestones = milestoneRows.map((row) => {
         const unlockAt = new Date(row.unlock).getTime();
-        const deadlineAt = new Date(row.deadline).getTime();
+        const deadlineRaw = row.deadline.trim();
+        const deadlineAt = deadlineRaw ? new Date(row.deadline).getTime() : null;
         if (!Number.isFinite(unlockAt)) {
           throw new Error(`Choose an unlock time for "${row.label || 'milestone'}"`);
         }
-        if (!Number.isFinite(deadlineAt)) {
-          throw new Error(`Choose a claim deadline for "${row.label || 'milestone'}"`);
+        if (deadlineRaw && !Number.isFinite(deadlineAt)) {
+          throw new Error(`Claim deadline is invalid for "${row.label || 'milestone'}"`);
         }
-        if (deadlineAt <= unlockAt) {
+        if (deadlineAt != null && deadlineAt <= unlockAt) {
           throw new Error(`Deadline must be after unlock for "${row.label || 'milestone'}"`);
         }
         return {
@@ -218,7 +221,7 @@ export function CovenantMilestoneWidget() {
       id: 'milestone-window-info',
       tone: 'info',
       message:
-        'Each milestone has a claim window from unlock until its deadline. After the deadline, only you (the creator) can reclaim that slice.',
+        'Each milestone unlocks on its date. An optional claim deadline lets you reclaim that slice if unclaimed; leave it empty to allow claiming anytime after unlock.',
     });
     if (!sharesValid) {
       alerts.push({
@@ -298,7 +301,8 @@ export function CovenantMilestoneWidget() {
             <CovenantFieldLabel
               label="Who gets paid"
               htmlFor="milestone-beneficiary"
-              tooltip="The Kaspa address that can claim each milestone during its claim window (after unlock, before deadline)."
+              required
+              tooltip="The Kaspa address that can claim each milestone after unlock (and before its optional deadline)."
             />
             <input
               id="milestone-beneficiary"
@@ -313,6 +317,7 @@ export function CovenantMilestoneWidget() {
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
               htmlFor="milestone-total"
+              required
               tooltip="The full deal size. It is split across milestones below."
             />
             <input
@@ -330,7 +335,8 @@ export function CovenantMilestoneWidget() {
             <div className="flex justify-between items-center gap-2">
               <CovenantFieldLabel
                 label="Milestones"
-                tooltip="Each row is one payment slice. Percentages should add up to 100. After unlock, the beneficiary has until the deadline to claim; otherwise you can reclaim. Claim window: from unlock until the deadline."
+                required
+                tooltip="Each row is one payment slice. Percentages should add up to 100. Unlock is required. Claim deadline is optional and enables creator reclaim if unused."
               />
               <span
                 className={`text-xs font-medium ${
@@ -343,7 +349,7 @@ export function CovenantMilestoneWidget() {
               </span>
             </div>
             {milestoneRows.map((row) => (
-              <div key={row.key} className="space-y-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+              <div key={row.key} className="space-y-5 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                 <div className="flex gap-2 items-start">
                   <div className="grid flex-1 grid-cols-2 gap-2">
                     <input
@@ -375,6 +381,7 @@ export function CovenantMilestoneWidget() {
                 <CovenantDatetimeField
                   id={`milestone-unlock-${row.key}`}
                   label="Unlock after"
+                  required
                   tooltip="This milestone can be claimed after this date and time."
                   value={row.unlock}
                   onChange={(next) => setUnlockAndSyncDeadline(row.key, next)}
@@ -383,7 +390,7 @@ export function CovenantMilestoneWidget() {
                 <CovenantDatetimeField
                   id={`milestone-deadline-${row.key}`}
                   label="Claim deadline"
-                  tooltip="If the beneficiary does not claim before this time, you (the creator) can reclaim this slice. Must be after unlock."
+                  tooltip="Optional. If set, you can reclaim this slice after the deadline. Leave empty to allow claiming anytime after unlock."
                   value={row.deadline}
                   onChange={(next) => updateMilestoneRow(row.key, { deadline: next })}
                   minNow={false}
@@ -403,7 +410,7 @@ export function CovenantMilestoneWidget() {
 
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
-              label="Memo (optional)"
+              label="Memo"
               htmlFor="milestone-memo"
               tooltip="A short note stored with the deal, visible to both sides."
             />

@@ -181,6 +181,7 @@ export function CovenantVoucherWidget() {
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
               htmlFor="voucher-amount"
+              required
               tooltip="How much KAS the voucher is worth. This amount is locked when you mint."
             />
             <input
@@ -198,6 +199,7 @@ export function CovenantVoucherWidget() {
             <CovenantDatetimeField
               id="voucher-expires"
               label="Expires"
+              required
               tooltip="After this date the voucher can no longer be redeemed."
               value={expires}
               onChange={setExpires}
@@ -206,7 +208,7 @@ export function CovenantVoucherWidget() {
 
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
-              label="Memo (optional)"
+              label="Memo"
               htmlFor="voucher-memo"
               tooltip="A note for yourself or the recipient, e.g. Happy birthday."
             />
@@ -233,6 +235,7 @@ export function CovenantVoucherWidget() {
               <CovenantFieldLabel
                 label="Voucher ID"
                 htmlFor="voucher-claim-id"
+                required
                 tooltip="The ID shown when the voucher was created, or pick one from the list below."
               />
               <input
@@ -248,6 +251,7 @@ export function CovenantVoucherWidget() {
               <CovenantFieldLabel
                 label="Secret code"
                 htmlFor="voucher-claim-secret"
+                required
                 tooltip="The one-time code the sender shared with you. Only someone with this code can redeem."
               />
               <input

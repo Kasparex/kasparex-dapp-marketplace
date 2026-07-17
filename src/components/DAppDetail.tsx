@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useChainId } from 'wagmi';
 import { DApp, getDAppNetworkType } from '@/lib/dapps';
 import { useDAppFromContract } from '@/lib/dapps/contractData';
@@ -28,6 +28,7 @@ import {
   DAppWidgetTabLabelProvider,
   useWidgetTabLabelOverrides,
 } from '@/lib/dapps/DAppWidgetTabContext';
+import { useDAppDetailNavOptional } from '@/lib/dapps/DAppDetailNavContext';
 import { DAppWidget } from './DAppWidget';
 
 const CommentsSection = dynamic(
@@ -58,7 +59,10 @@ function DAppDetailBody({
   mergedDApp: DApp;
   contractAddress: string;
 }) {
-  const [tab, setTab] = useState(() => defaultDAppDetailTab(dapp.slug));
+  const sharedNav = useDAppDetailNavOptional();
+  const [localTab, setLocalTab] = useState(() => defaultDAppDetailTab(dapp.slug));
+  const tab = sharedNav?.currentTab ?? localTab;
+  const setTab = sharedNav?.setTab ?? setLocalTab;
   const labelOverrides = useWidgetTabLabelOverrides();
   const articleId = `dapp:${dapp.slug || dapp.id || 'unknown'}`;
   const commentsCount = useDAppCommentsCount(articleId);
@@ -73,6 +77,10 @@ function DAppDetailBody({
       }),
     [mergedDApp, commentsCount, labelOverrides],
   );
+
+  useEffect(() => {
+    sharedNav?.setTabs(tabs);
+  }, [sharedNav, tabs]);
 
   const showCalculationPanel = isWidgetCalculationTab(tab, dapp.slug);
   const widgetSection = isWidgetPageTab(tab, dapp.slug) ? tab : null;

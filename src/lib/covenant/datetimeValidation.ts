@@ -20,7 +20,10 @@ export function parseDatetimeLocal(value: string | null | undefined): number | n
 const SHORT_CLAIM_WINDOW_MS = 60 * 60_000;
 const PAST_GRACE_MS = 30_000;
 
-/** Timelock unlock + claim deadline rules. */
+/**
+ * Timelock unlock + optional claim deadline rules.
+ * Empty deadline is allowed (claim anytime after unlock; no creator reclaim).
+ */
 export function validateTimelockWindow(args: {
   unlockLocal: string;
   deadlineLocal: string;
@@ -29,7 +32,8 @@ export function validateTimelockWindow(args: {
   const now = args.now ?? Date.now();
   const alerts: CovenantFormAlert[] = [];
   const unlockAt = parseDatetimeLocal(args.unlockLocal);
-  const deadlineAt = parseDatetimeLocal(args.deadlineLocal);
+  const deadlineRaw = args.deadlineLocal.trim();
+  const deadlineAt = deadlineRaw ? parseDatetimeLocal(args.deadlineLocal) : null;
 
   if (!args.unlockLocal.trim()) {
     alerts.push({
@@ -57,42 +61,38 @@ export function validateTimelockWindow(args: {
     });
   }
 
-  if (!args.deadlineLocal.trim()) {
-    alerts.push({
-      id: 'deadline-missing',
-      tone: 'error',
-      message: 'Choose a claim deadline so you can reclaim if nobody claims.',
-    });
-  } else if (deadlineAt == null) {
-    alerts.push({
-      id: 'deadline-invalid',
-      tone: 'error',
-      message: 'Claim deadline is invalid. Pick a valid date and time.',
-    });
-  } else if (unlockAt != null && deadlineAt <= unlockAt) {
-    alerts.push({
-      id: 'deadline-before-unlock',
-      tone: 'error',
-      message: 'Claim deadline must be after the unlock time.',
-    });
-  } else if (deadlineAt < now - PAST_GRACE_MS) {
-    alerts.push({
-      id: 'deadline-past',
-      tone: 'error',
-      message: 'Claim deadline is in the past. Choose a future time after unlock.',
-    });
-  } else if (unlockAt != null && deadlineAt - unlockAt < SHORT_CLAIM_WINDOW_MS) {
-    alerts.push({
-      id: 'deadline-short',
-      tone: 'warning',
-      message: 'Claim window is under 1 hour. Claimers may miss it if they are offline.',
-    });
+  if (deadlineRaw) {
+    if (deadlineAt == null) {
+      alerts.push({
+        id: 'deadline-invalid',
+        tone: 'error',
+        message: 'Claim deadline is invalid. Pick a valid date and time, or clear the field.',
+      });
+    } else if (unlockAt != null && deadlineAt <= unlockAt) {
+      alerts.push({
+        id: 'deadline-before-unlock',
+        tone: 'error',
+        message: 'Claim deadline must be after the unlock time.',
+      });
+    } else if (deadlineAt < now - PAST_GRACE_MS) {
+      alerts.push({
+        id: 'deadline-past',
+        tone: 'error',
+        message: 'Claim deadline is in the past. Choose a future time after unlock, or clear it.',
+      });
+    } else if (unlockAt != null && deadlineAt - unlockAt < SHORT_CLAIM_WINDOW_MS) {
+      alerts.push({
+        id: 'deadline-short',
+        tone: 'warning',
+        message: 'Claim window is under 1 hour. Claimers may miss it if they are offline.',
+      });
+    }
   }
 
   return alerts;
 }
 
-/** Per-row milestone unlock/deadline checks. */
+/** Per-row milestone unlock + optional deadline checks. */
 export function validateMilestoneRows(
   rows: { label: string; unlock: string; deadline: string }[],
   now = Date.now(),
@@ -100,7 +100,8 @@ export function validateMilestoneRows(
   return rows.flatMap((row, index) => {
     const name = row.label.trim() || `Milestone ${index + 1}`;
     const unlockAt = parseDatetimeLocal(row.unlock);
-    const deadlineAt = parseDatetimeLocal(row.deadline);
+    const deadlineRaw = row.deadline.trim();
+    const deadlineAt = deadlineRaw ? parseDatetimeLocal(row.deadline) : null;
     const out: CovenantFormAlert[] = [];
 
     if (!row.unlock.trim() || unlockAt == null) {
@@ -117,30 +118,32 @@ export function validateMilestoneRows(
       });
     }
 
-    if (!row.deadline.trim() || deadlineAt == null) {
-      out.push({
-        id: `ms-${index}-deadline`,
-        tone: 'error',
-        message: `${name}: claim deadline is missing or invalid.`,
-      });
-    } else if (unlockAt != null && deadlineAt <= unlockAt) {
-      out.push({
-        id: `ms-${index}-deadline-order`,
-        tone: 'error',
-        message: `${name}: claim deadline must be after unlock.`,
-      });
-    } else if (deadlineAt < now - PAST_GRACE_MS) {
-      out.push({
-        id: `ms-${index}-deadline-past`,
-        tone: 'error',
-        message: `${name}: claim deadline is in the past.`,
-      });
-    } else if (unlockAt != null && deadlineAt - unlockAt < SHORT_CLAIM_WINDOW_MS) {
-      out.push({
-        id: `ms-${index}-deadline-short`,
-        tone: 'warning',
-        message: `${name}: claim window is under 1 hour.`,
-      });
+    if (deadlineRaw) {
+      if (deadlineAt == null) {
+        out.push({
+          id: `ms-${index}-deadline`,
+          tone: 'error',
+          message: `${name}: claim deadline is invalid.`,
+        });
+      } else if (unlockAt != null && deadlineAt <= unlockAt) {
+        out.push({
+          id: `ms-${index}-deadline-order`,
+          tone: 'error',
+          message: `${name}: claim deadline must be after unlock.`,
+        });
+      } else if (deadlineAt < now - PAST_GRACE_MS) {
+        out.push({
+          id: `ms-${index}-deadline-past`,
+          tone: 'error',
+          message: `${name}: claim deadline is in the past.`,
+        });
+      } else if (unlockAt != null && deadlineAt - unlockAt < SHORT_CLAIM_WINDOW_MS) {
+        out.push({
+          id: `ms-${index}-deadline-short`,
+          tone: 'warning',
+          message: `${name}: claim window is under 1 hour.`,
+        });
+      }
     }
 
     return out;

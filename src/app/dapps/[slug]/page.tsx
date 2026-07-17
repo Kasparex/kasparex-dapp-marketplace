@@ -1,14 +1,10 @@
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { DAppSidebar } from '@/components/DAppSidebar';
-import { DAppDetail } from '@/components/DAppDetail';
+import { DAppSlugPageShell } from '@/components/dapps/DAppSlugPageShell';
 import { DAppDirectorySlugPage } from '@/components/dapps/DAppDirectorySlugPage';
-import { DAppFooter } from '@/components/dapps/DAppFooter';
-import { RelatedDApps } from '@/components/dapps/RelatedDApps';
 import { placeholderDApps } from '@/lib/dapps';
 import { getDAppBySlug, generateDAppSlug } from '@/lib/utils';
-import { getContractAddress } from '@/lib/contracts/addresses';
 import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 import { getDirectoryListingBySlugServer, listingFeaturedImageUrl } from '@/lib/dapps/listingServer';
 
@@ -68,34 +64,16 @@ export default async function DAppPage({ params }: PageProps) {
   // Get contract address for Simple Payment dApp
   let contractAddress = dapp.contractAddress;
   if (!contractAddress && dapp.slug === 'simple-payment') {
-    // Try to get from environment (this is server-side, so we can't use hooks)
-    // The client component will handle fetching the actual address
+    // Client component will handle fetching the actual address
     contractAddress = '';
   }
-
-  // Use slug from params (already extracted above)
-  const dappSlug = slug;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Left Sidebar - Rewards & Info */}
-          <DAppSidebar dapp={dapp} />
-
-          {/* Main Content - Two Column Layout */}
-          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:px-16 lg:py-12">
-            <DAppDetail dapp={dapp} contractAddress={contractAddress} />
-            <DAppFooter contractAddress={contractAddress} />
-          </div>
-        </div>
-
-        {/* Related dApps - Below layout */}
-        <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
-          <RelatedDApps currentDApp={dapp} />
-        </div>
+        <DAppSlugPageShell dapp={dapp} contractAddress={contractAddress} />
       </main>
 
       <Footer />

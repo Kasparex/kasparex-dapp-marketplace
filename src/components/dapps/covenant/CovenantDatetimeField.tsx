@@ -39,6 +39,7 @@ export function CovenantDatetimeField({
   onChange,
   minNow = true,
   compact = false,
+  required = false,
 }: {
   id: string;
   label: string;
@@ -49,6 +50,7 @@ export function CovenantDatetimeField({
   minNow?: boolean;
   /** Smaller layout for dense rows (e.g. milestone steps). */
   compact?: boolean;
+  required?: boolean;
 }) {
   const [customAddMinutes, setCustomAddMinutes] = useState('5');
 
@@ -57,8 +59,8 @@ export function CovenantDatetimeField({
   };
 
   return (
-    <div className={compact ? 'space-y-2' : 'space-y-3'}>
-      <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} />
+    <div className={compact ? 'space-y-2' : 'space-y-2'}>
+      <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} required={required} />
       <input
         id={id}
         type="datetime-local"
@@ -66,6 +68,7 @@ export function CovenantDatetimeField({
         min={minNow ? toDatetimeLocalValue(Date.now()) : undefined}
         onChange={(e) => onChange(e.target.value)}
         className={compact ? `${covenantInputClass} text-sm` : covenantInputClass}
+        required={required}
       />
       <div className="flex flex-wrap gap-2">
         <button
@@ -86,7 +89,7 @@ export function CovenantDatetimeField({
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-0.5">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="number"
           min={1}

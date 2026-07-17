@@ -8,6 +8,7 @@ import { DAppSidebar } from '@/components/DAppSidebar';
 import { DirectoryDAppDetail } from '@/components/dapps/DirectoryDAppDetail';
 import { DAppFooter } from '@/components/dapps/DAppFooter';
 import { RelatedDApps } from '@/components/dapps/RelatedDApps';
+import { DirectoryDAppSlugPageShell } from '@/components/dapps/DAppSlugPageShell';
 import {
   directoryListingToDApp,
   getDirectoryListingBySlug,
@@ -53,16 +54,18 @@ export function DAppDirectorySlugPage({ slug }: DAppDirectorySlugPageProps) {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col lg:flex-row">
-          <DAppSidebar dapp={dapp} />
-          <div className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6 lg:px-16 lg:py-12">
-            <DirectoryDAppDetail dapp={dapp} listing={listing} />
-            <DAppFooter contractAddress="" />
+        <DirectoryDAppSlugPageShell dapp={dapp}>
+          <div className="flex-1 flex flex-col lg:flex-row">
+            <DAppSidebar dapp={dapp} />
+            <div className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6 lg:px-16 lg:py-12">
+              <DirectoryDAppDetail dapp={dapp} listing={listing} />
+              <DAppFooter contractAddress="" />
+            </div>
           </div>
-        </div>
-        <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
-          <RelatedDApps currentDApp={dapp} />
-        </div>
+          <div className="px-4 sm:px-6 lg:px-8 lg:pl-6 pb-4 sm:pb-6 lg:pb-8">
+            <RelatedDApps currentDApp={dapp} />
+          </div>
+        </DirectoryDAppSlugPageShell>
       </main>
       <Footer />
     </div>

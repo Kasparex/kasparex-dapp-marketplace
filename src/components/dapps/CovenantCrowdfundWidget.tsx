@@ -172,6 +172,7 @@ export function CovenantCrowdfundWidget() {
             <CovenantFieldLabel
               label="Campaign title"
               htmlFor="crowdfund-title"
+              required
               tooltip="A short name backers will see in the campaign list."
             />
             <input
@@ -187,6 +188,7 @@ export function CovenantCrowdfundWidget() {
             <CovenantFieldLabel
               label={`Funding goal (KAS, min ${minKas})`}
               htmlFor="crowdfund-goal"
+              required
               tooltip="The campaign succeeds only if this amount is pledged before the deadline."
             />
             <input
@@ -205,6 +207,7 @@ export function CovenantCrowdfundWidget() {
             <CovenantDatetimeField
               id="crowdfund-deadline"
               label="Deadline"
+              required
               tooltip="After this date, no new pledges are accepted. The goal must be met by then for the creator to claim."
               value={deadline}
               onChange={setDeadline}
@@ -213,7 +216,7 @@ export function CovenantCrowdfundWidget() {
 
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
-              label="Description (optional)"
+              label="Description"
               htmlFor="crowdfund-memo"
               tooltip="Tell backers what the raise is for."
             />

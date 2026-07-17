@@ -10,9 +10,9 @@ import { useDAppFromContract } from '@/lib/dapps/contractData';
 // Edit functionality removed - dApps are now read-only
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
 import { mergeDAppData } from '@/lib/dapps/contractData';
-import { UnifiedStatusBox } from './rewards/UnifiedStatusBox';
 import { QuickGuideWizard } from './rewards/QuickGuideWizard';
 import { SidebarHeader } from './sidebar/SidebarHeader';
+import { DAppSidebarTabNav } from '@/components/dapps/DAppSidebarTabNav';
 
 interface DAppSidebarProps {
   dapp: DApp;
@@ -244,7 +244,7 @@ export function DAppSidebar({ dapp }: DAppSidebarProps) {
             </div>
 
             <div className="space-y-3">
-              <UnifiedStatusBox />
+              <DAppSidebarTabNav />
               <button
                 type="button"
                 onClick={() => setShowQuickGuide(true)}

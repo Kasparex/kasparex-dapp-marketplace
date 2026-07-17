@@ -250,6 +250,7 @@ export function CovenantSplitWidget() {
             <CovenantFieldLabel
               label={`Total amount (KAS, min ${minKas})`}
               htmlFor="split-total"
+              required
               tooltip="The full amount you lock. It is divided among recipients by the percentages below."
             />
             <input
@@ -267,6 +268,7 @@ export function CovenantSplitWidget() {
             <div className="flex justify-between items-center">
               <CovenantFieldLabel
                 label="Recipients"
+                required
                 tooltip="Add Kaspa addresses and a share for each. All percentages must add up to exactly 100%. Split creates one lock per recipient; you approve one lock transaction per recipient, then a single Hub deployment fee."
               />
               <span
@@ -329,7 +331,7 @@ export function CovenantSplitWidget() {
 
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
-              label="Memo (optional)"
+              label="Memo"
               htmlFor="split-memo"
               tooltip="A note for everyone in the split, e.g. team payout or revenue share."
             />

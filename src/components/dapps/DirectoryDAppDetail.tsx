@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DApp } from '@/lib/dapps';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { DirectoryDAppOverviewPanel } from '@/components/dapps/panels/DirectoryDAppOverviewPanel';
@@ -11,6 +11,7 @@ import type { DirectoryListing } from '@/lib/dapps/listingSubmissions';
 import { DAppDetailShell } from '@/components/dapps/shell/DAppDetailShell';
 import { KX_TAB_SECTION } from '@/lib/hub/shellTokens';
 import { buildDAppDetailTabs } from '@/lib/dapps/buildDAppDetailTabs';
+import { useDAppDetailNavOptional } from '@/lib/dapps/DAppDetailNavContext';
 
 function CommentsTabBadge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -27,7 +28,10 @@ type DirectoryDAppDetailProps = {
 };
 
 export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps) {
-  const [tab, setTab] = useState('overview');
+  const sharedNav = useDAppDetailNavOptional();
+  const [localTab, setLocalTab] = useState('overview');
+  const tab = sharedNav?.currentTab ?? localTab;
+  const setTab = sharedNav?.setTab ?? setLocalTab;
   const articleId = `dapp:${dapp.slug || dapp.id}`;
   const commentsCount = useDAppCommentsCount(articleId);
 
@@ -41,6 +45,10 @@ export function DirectoryDAppDetail({ dapp, listing }: DirectoryDAppDetailProps)
       }),
     [dapp, commentsCount],
   );
+
+  useEffect(() => {
+    sharedNav?.setTabs(tabs);
+  }, [sharedNav, tabs]);
 
   return (
     <PaymentAmountProvider>

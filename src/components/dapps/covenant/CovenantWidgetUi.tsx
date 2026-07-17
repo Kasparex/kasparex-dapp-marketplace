@@ -127,13 +127,15 @@ export function CovenantFieldLabel({
   label,
   tooltip,
   htmlFor,
+  required,
 }: {
   label: string;
   tooltip?: string;
   htmlFor?: string;
+  required?: boolean;
 }) {
   return (
-    <KxFormFieldLabel htmlFor={htmlFor} tooltip={tooltip}>
+    <KxFormFieldLabel htmlFor={htmlFor} tooltip={tooltip} required={required}>
       {label}
     </KxFormFieldLabel>
   );

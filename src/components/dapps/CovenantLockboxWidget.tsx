@@ -179,7 +179,7 @@ export function CovenantLockboxWidget() {
           id: 'timelock-info',
           tone: 'info',
           message:
-            'Timelock: after unlock, claimers have a limited window. If nobody claims before the deadline, you can reclaim the funds.',
+            'Timelock: claimers wait until unlock. An optional claim deadline lets you reclaim if nobody claims in time; leave it empty to allow claiming anytime after unlock.',
         });
         alerts.push(
           ...validateTimelockWindow({
@@ -248,14 +248,15 @@ export function CovenantLockboxWidget() {
       if (kind === 'timelock' && !unlockLocal) {
         throw new Error('Choose an unlock date for timelock');
       }
-      if (kind === 'timelock' && !deadlineLocal) {
-        throw new Error('Choose a claim deadline for timelock');
-      }
       if (!sharesValid) {
         throw new Error('Claimer shares must total 100%');
       }
       const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
-      const deadlineAt = kind === 'timelock' && deadlineLocal ? new Date(deadlineLocal) : null;
+      const deadlineAt =
+        kind === 'timelock' && deadlineLocal.trim() ? new Date(deadlineLocal) : null;
+      if (deadlineAt && Number.isNaN(deadlineAt.getTime())) {
+        throw new Error('Claim deadline is invalid');
+      }
       if (unlockAt && deadlineAt && deadlineAt.getTime() <= unlockAt.getTime()) {
         throw new Error('Deadline must be after the unlock time');
       }
@@ -331,7 +332,7 @@ export function CovenantLockboxWidget() {
           !primaryClaimerFilled ||
           !sharesValid ||
           timeBlocked ||
-          (kind === 'timelock' && (!unlockLocal || !deadlineLocal))
+          (kind === 'timelock' && !unlockLocal)
         }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
@@ -381,7 +382,8 @@ export function CovenantLockboxWidget() {
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Lock type"
-              tooltip="Escrow: beneficiary can claim as soon as the lock is created. Timelock: claimers wait until unlock, then have until the claim deadline; after that you can reclaim."
+              required
+              tooltip="Escrow: beneficiary can claim as soon as the lock is created. Timelock: claimers wait until unlock. Optional claim deadline lets you reclaim if nobody claims in time."
             />
             <div className="flex gap-2">
               {(
@@ -417,6 +419,7 @@ export function CovenantLockboxWidget() {
             <div className="flex justify-between items-center gap-2">
               <CovenantFieldLabel
                 label="Who can claim"
+                required
                 tooltip="Add Kaspa addresses and a share for each. Shares must total 100%. Multi-claimer creates one lock per wallet for their percentage. You will approve one lock transaction per claimer, followed by a single Hub deployment fee. Extra claimers add +5 KAS to the Hub deploy fee."
               />
               {claimerRows.length > 1 ? (
@@ -491,6 +494,7 @@ export function CovenantLockboxWidget() {
             <CovenantFieldLabel
               label={`Amount (KAS, min ${minKas})`}
               htmlFor="lockbox-amount"
+              required
               tooltip="How much KAS to lock under these rules."
             />
             <input
@@ -505,37 +509,42 @@ export function CovenantLockboxWidget() {
           </div>
 
           {kind === 'timelock' ? (
-            <div className="k-form-group !mb-0 space-y-6">
-              <CovenantDatetimeField
-                id="lockbox-unlock"
-                label="Unlock after"
-                tooltip="Claimers cannot take funds before this date and time (your local timezone)."
-                value={unlockLocal}
-                onChange={(next) => {
-                  setUnlockLocal(next);
-                  const unlockMs = new Date(next).getTime();
-                  if (Number.isFinite(unlockMs)) {
-                    const deadlineMs = new Date(deadlineLocal).getTime();
-                    if (!Number.isFinite(deadlineMs) || deadlineMs <= unlockMs) {
-                      setDeadlineLocal(toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs)));
+            <>
+              <div className="k-form-group !mb-0">
+                <CovenantDatetimeField
+                  id="lockbox-unlock"
+                  label="Unlock after"
+                  required
+                  tooltip="Claimers cannot take funds before this date and time (your local timezone)."
+                  value={unlockLocal}
+                  onChange={(next) => {
+                    setUnlockLocal(next);
+                    const unlockMs = new Date(next).getTime();
+                    if (Number.isFinite(unlockMs) && deadlineLocal.trim()) {
+                      const deadlineMs = new Date(deadlineLocal).getTime();
+                      if (!Number.isFinite(deadlineMs) || deadlineMs <= unlockMs) {
+                        setDeadlineLocal(toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs)));
+                      }
                     }
-                  }
-                }}
-              />
-              <CovenantDatetimeField
-                id="lockbox-deadline"
-                label="Claim deadline"
-                tooltip="Claim window runs from unlock until this deadline. After the deadline, claimers are blocked and only you (the creator) can reclaim. Must be after unlock."
-                value={deadlineLocal}
-                onChange={setDeadlineLocal}
-                minNow={false}
-              />
-            </div>
+                  }}
+                />
+              </div>
+              <div className="k-form-group !mb-0">
+                <CovenantDatetimeField
+                  id="lockbox-deadline"
+                  label="Claim deadline"
+                  tooltip="Optional. If set, claimers must claim before this time or you can reclaim. Leave empty to allow claiming anytime after unlock."
+                  value={deadlineLocal}
+                  onChange={setDeadlineLocal}
+                  minNow={false}
+                />
+              </div>
+            </>
           ) : null}
 
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
-              label="Memo (optional)"
+              label="Memo"
               htmlFor="lockbox-memo"
               tooltip="A short note stored with the lock, visible to both sides."
             />
