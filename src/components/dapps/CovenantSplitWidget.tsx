@@ -412,7 +412,6 @@ export function CovenantSplitWidget() {
       {detailInstance ? (
         <CovenantInstanceDetailModal
           instance={detailInstance}
-          sectionTitle="Split metadata"
           onClose={() => setDetailSplitId(null)}
         />
       ) : null}

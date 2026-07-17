@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import type { CovenantTemplate } from '@/lib/programmability/types';
 import {
   buildKpxCovenantExplorerLinkRows,
@@ -44,8 +43,7 @@ export function KpxCovenantMetadataView({
   runtimeMode,
   effectiveMode,
   instances,
-  emptyMessage = 'No covenant instances yet. Create one or import by covenant ID to populate on-chain references.',
-  /** When false, hide the per-instance table (LockBox opens it from Vaults instead). */
+  emptyMessage = 'No locks yet. Create one to see on-chain details here.',
   showInstances = true,
 }: {
   template: CovenantTemplate;
@@ -73,58 +71,28 @@ export function KpxCovenantMetadataView({
     [template, runtimeMode, effectiveMode],
   );
 
-  const selectedCovenantId = selected?.rows.find((r) => r.label === 'Covenant ID')?.value;
   const explorerRows = useMemo(
-    () => buildKpxCovenantExplorerLinkRows(selectedCovenantId),
-    [selectedCovenantId],
+    () => buildKpxCovenantExplorerLinkRows(selected?.covenantId),
+    [selected?.covenantId],
   );
 
   return (
     <div className="space-y-6">
-      <MetadataBlock
-        title="Template and runtime"
-        description="Standard KPX covenant identifiers and the active execution mode for this widget."
-      >
+      <MetadataBlock title="Product" description="What this dApp uses on Kaspa L1.">
         <KxDataTable rows={toTableRows(templateRows)} />
-      </MetadataBlock>
-
-      <MetadataBlock
-        title="Explorers and indexers"
-        description={
-          showInstances
-            ? 'Open the selected instance on KaspaCom, kascov, or the public Kaspa explorer.'
-            : 'Open KaspaCom, kascov, or explorer.kaspa.org. Per-lock details are on the Vaults tab.'
-        }
-      >
-        <KxDataTable rows={toTableRows(explorerRows)} />
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Covenant IDs must be 64-char hex to link indexers. Transaction hashes open on KaspaCom and{' '}
-          <Link
-            href="https://explorer.kaspa.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-[#02abb8] hover:underline"
-          >
-            explorer.kaspa.org
-          </Link>
-          .
-        </p>
       </MetadataBlock>
 
       {showInstances ? (
         instances.length === 0 ? (
-          <MetadataBlock title="Covenant instances">
+          <MetadataBlock title="Your locks">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">{emptyMessage}</p>
           </MetadataBlock>
         ) : (
-          <MetadataBlock
-            title="Covenant instance"
-            description="Technical metadata for a lock, split, campaign, or voucher tracked in this browser."
-          >
+          <MetadataBlock title="Selected lock" description="Pick a lock to see status, amounts, and explorer links.">
             {instances.length > 1 ? (
               <div>
                 <label htmlFor="kpx-metadata-instance" className="k-label">
-                  Select instance
+                  Select lock
                 </label>
                 <select
                   id="kpx-metadata-instance"
@@ -135,7 +103,7 @@ export function KpxCovenantMetadataView({
                   {instances.map((instance) => (
                     <option key={instance.id} value={instance.id}>
                       {instance.title}
-                      {instance.subtitle ? ` (${instance.subtitle})` : ''}
+                      {instance.subtitle ? ` · ${instance.subtitle}` : ''}
                     </option>
                   ))}
                 </select>
@@ -156,12 +124,16 @@ export function KpxCovenantMetadataView({
           </MetadataBlock>
         )
       ) : (
-        <MetadataBlock title="Per-lock details">
+        <MetadataBlock title="Lock details">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Open a lock on the Vaults tab to see its covenant ID, memo, unlock rule, and explorer links.
+            Open a card on the Vaults tab for status, amount, and explorer links.
           </p>
         </MetadataBlock>
       )}
+
+      <MetadataBlock title="Explorers" description="Open the selected lock on Kaspa explorers when an on-chain ID exists.">
+        <KxDataTable rows={toTableRows(explorerRows)} />
+      </MetadataBlock>
     </div>
   );
 }

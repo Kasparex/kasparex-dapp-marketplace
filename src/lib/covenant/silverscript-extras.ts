@@ -6,6 +6,13 @@ import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
 import { deployL1CovenantLock, resolveCovenantUtxoRef, spendL1CovenantLock } from './l1';
+import {
+  isRealL1Crowdfund,
+  isRealL1Milestone,
+  isRealL1Split,
+  isRealL1Voucher,
+  purgeDemoCovenantLabRows,
+} from './l1-rows';
 import { normalizeCovenantMemo } from './participants';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type {
@@ -317,24 +324,22 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
   }
 
   async listSplits(filter?: SplitListFilter): Promise<SplitPayment[]> {
+    purgeDemoCovenantLabRows();
     this.reload();
     let dirty = false;
-    const hydrated = Array.from(this.splits.values()).map((s) => {
+    const hydrated = Array.from(this.splits.values())
+      .filter(isRealL1Split)
+      .map((s) => {
       const next = hydrateSplit(s);
-      if (next !== s) {
-        const changed = JSON.stringify(next.recipients) !== JSON.stringify(s.recipients);
-        if (changed) {
-          this.splits.set(s.id, next);
-          dirty = true;
-        }
+      if (JSON.stringify(next.recipients) !== JSON.stringify(s.recipients)) {
+        this.splits.set(s.id, next);
+        dirty = true;
       }
       return next;
     });
     if (dirty) this.persist();
 
-    let list = hydrated
-      .filter((s) => s.origin !== 'simulator')
-      .sort((a, b) => b.createdAt - a.createdAt);
+    let list = hydrated.sort((a, b) => b.createdAt - a.createdAt);
     if (filter?.status) list = list.filter((s) => s.status === filter.status);
     if (filter?.address) {
       const norm = normalizeAddr(filter.address);
@@ -535,10 +540,13 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
   }
 
   async listForAddress(address: string): Promise<MilestoneDeal[]> {
+    purgeDemoCovenantLabRows();
     this.reload();
     const norm = normalizeAddr(address);
     let dirty = false;
-    const deals = Array.from(this.deals.values()).map((d) => {
+    const deals = Array.from(this.deals.values())
+      .filter(isRealL1Milestone)
+      .map((d) => {
       const next = hydrateMilestone(d);
       if (JSON.stringify(next.milestones) !== JSON.stringify(d.milestones)) {
         this.deals.set(d.id, next);
@@ -548,7 +556,6 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     });
     if (dirty) this.persist();
     return deals
-      .filter((d) => d.origin !== 'simulator')
       .filter(
         (d) => normalizeAddr(d.depositor) === norm || normalizeAddr(d.beneficiary) === norm,
       )
@@ -783,9 +790,12 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
   }
 
   async listAll(): Promise<CrowdfundCampaign[]> {
+    purgeDemoCovenantLabRows();
     this.reload();
     let dirty = false;
-    const campaigns = Array.from(this.campaigns.values()).map((c) => {
+    const campaigns = Array.from(this.campaigns.values())
+      .filter(isRealL1Crowdfund)
+      .map((c) => {
       const next = hydrateCampaign(c);
       if (JSON.stringify(next.pledges) !== JSON.stringify(c.pledges)) {
         this.campaigns.set(c.id, next);
@@ -794,9 +804,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       return next;
     });
     if (dirty) this.persist();
-    return campaigns
-      .filter((c) => c.origin !== 'simulator')
-      .sort((a, b) => b.createdAt - a.createdAt);
+    return campaigns.sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async listForAddress(address: string): Promise<CrowdfundCampaign[]> {
@@ -985,9 +993,12 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
   }
 
   async listOpen(): Promise<VoucherLock[]> {
+    purgeDemoCovenantLabRows();
     this.reload();
     let dirty = false;
-    const vouchers = Array.from(this.vouchers.values()).map((v) => {
+    const vouchers = Array.from(this.vouchers.values())
+      .filter(isRealL1Voucher)
+      .map((v) => {
       const next = hydrateVoucher(v);
       if (next.utxo?.txId !== v.utxo?.txId) {
         this.vouchers.set(v.id, next);
@@ -997,16 +1008,18 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
     });
     if (dirty) this.persist();
     return vouchers
-      .filter((v) => v.origin !== 'simulator')
       .filter((v) => v.status === 'open' && Date.now() <= v.expiresAt)
       .sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async listForAddress(address: string): Promise<VoucherLock[]> {
+    purgeDemoCovenantLabRows();
     this.reload();
     const norm = normalizeAddr(address);
     let dirty = false;
-    const vouchers = Array.from(this.vouchers.values()).map((v) => {
+    const vouchers = Array.from(this.vouchers.values())
+      .filter(isRealL1Voucher)
+      .map((v) => {
       const next = hydrateVoucher(v);
       if (next.utxo?.txId !== v.utxo?.txId) {
         this.vouchers.set(v.id, next);
@@ -1016,7 +1029,6 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
     });
     if (dirty) this.persist();
     return vouchers
-      .filter((v) => v.origin !== 'simulator')
       .filter(
         (v) =>
           normalizeAddr(v.creator) === norm ||

@@ -1,13 +1,11 @@
 /**
- * Unified KPX covenant metadata rows for the Metadata tab.
+ * Simplified KPX covenant metadata for detail modals and the Metadata tab.
  */
 
 import type { CovenantTemplate } from '@/lib/programmability/types';
 import {
   DEFAULT_PROGRAMMABLE_NETWORK,
-  kaspaComCovenantExplorerBase,
   kaspaComCovenantExplorerUrl,
-  kaspaComIndexerBase,
   kaspaComTxExplorerUrl,
   kascovCovenantExplorerUrl,
 } from '@/lib/programmable/config';
@@ -37,6 +35,8 @@ export type KpxCovenantMetadataInstance = {
   id: string;
   title: string;
   subtitle?: string;
+  /** Full on-chain covenant id when known (for explorer links). */
+  covenantId?: string;
   rows: KpxCovenantMetadataRow[];
 };
 
@@ -56,66 +56,53 @@ function formatTs(ms: number | null | undefined): string | undefined {
   return new Date(ms).toLocaleString();
 }
 
+function shortAddr(address: string): string {
+  const a = address.trim();
+  if (a.length <= 18) return a;
+  return `${a.slice(0, 10)}…${a.slice(-6)}`;
+}
+
 function row(label: string, value?: string, opts?: Partial<KpxCovenantMetadataRow>): KpxCovenantMetadataRow {
-  if (!value?.trim()) {
-    return { label, value: undefined, hint: opts?.hint ?? 'Not available yet', ...opts };
-  }
+  if (!value?.trim()) return { label, ...opts };
   return { label, value, ...opts };
 }
 
 function addressRow(label: string, address?: string): KpxCovenantMetadataRow {
-  if (!address?.trim()) return row(label, undefined);
+  if (!address?.trim()) return row(label);
   return {
     label,
-    value: address,
+    value: shortAddr(address),
     mono: true,
-    links: [{ label: 'Kaspa Explorer', href: getKaspaExplorerAddressUrl(address) }],
+    links: [{ label: 'Explorer', href: getKaspaExplorerAddressUrl(address) }],
   };
 }
 
 function txRow(label: string, txHash?: string): KpxCovenantMetadataRow {
-  if (!txHash?.trim()) return row(label, undefined);
+  if (!txHash?.trim() || !/^[a-f0-9]{64}$/i.test(txHash.trim())) return row(label);
   const id = txHash.trim().toLowerCase();
   return {
     label,
-    value: id,
+    value: `${id.slice(0, 10)}…${id.slice(-8)}`,
     mono: true,
     links: [
       { label: 'KaspaCom', href: kaspaComTxExplorerUrl(id, network) },
-      { label: 'Kaspa Explorer', href: getExplorerTxUrl(id) },
+      { label: 'Explorer', href: getExplorerTxUrl(id) },
     ],
   };
 }
 
 function covenantIdRow(covenantId?: string): KpxCovenantMetadataRow {
-  if (!covenantId?.trim()) return row('Covenant ID', undefined);
+  if (!covenantId?.trim()) return row('Covenant ID');
   const id = covenantId.trim().toLowerCase();
-  if (!isOnChainCovenantId(id)) {
-    return {
-      label: 'Covenant ID',
-      value: id,
-      mono: true,
-      hint: 'Local or pending id. Import a 64-char on-chain covenant id to link explorers.',
-    };
-  }
+  if (!isOnChainCovenantId(id)) return row('Covenant ID');
   return {
     label: 'Covenant ID',
-    value: id,
+    value: `${id.slice(0, 10)}…${id.slice(-8)}`,
     mono: true,
     links: [
       { label: 'KaspaCom', href: kaspaComCovenantExplorerUrl(id, network) },
       { label: 'kascov', href: kascovCovenantExplorerUrl(id, network) },
     ],
-  };
-}
-
-function utxoRow(utxo?: { txId: string; index: number }): KpxCovenantMetadataRow {
-  if (!utxo?.txId) return row('Covenant UTXO', undefined);
-  return {
-    label: 'Covenant UTXO',
-    value: `${utxo.txId}:${utxo.index}`,
-    mono: true,
-    links: [{ label: 'Funding tx (KaspaCom)', href: kaspaComTxExplorerUrl(utxo.txId, network) }],
   };
 }
 
@@ -127,18 +114,7 @@ export function buildKpxCovenantTemplateMetadataRows(args: {
   const brand = getKpxCovenantBrand(args.template);
   return [
     row('Product', brand.displayName),
-    row('Payload template', brand.payloadTemplate, { mono: true }),
-    row('Network', network),
-    row('Configured runtime', args.runtimeMode ?? 'hybrid'),
-    row('Active runtime', args.effectiveMode ?? args.runtimeMode ?? 'simulator'),
-    row('KaspaCom indexer', kaspaComIndexerBase(network), {
-      mono: true,
-      links: [{ label: 'Open indexer', href: kaspaComIndexerBase(network) }],
-    }),
-    row('Covenant explorer', kaspaComCovenantExplorerBase(network), {
-      mono: true,
-      links: [{ label: 'Open explorer', href: kaspaComCovenantExplorerBase(network) }],
-    }),
+    row('Network', network === 'mainnet' ? 'Kaspa mainnet' : network),
   ];
 }
 
@@ -146,164 +122,148 @@ export function buildKpxCovenantExplorerLinkRows(covenantId?: string): KpxCovena
   const id = covenantId?.trim().toLowerCase();
   if (!id || !isOnChainCovenantId(id)) {
     return [
-      row('Instance explorers', undefined, {
-        hint: 'Select an on-chain covenant instance to open KaspaCom and kascov links.',
+      row('Explorers', undefined, {
+        hint: 'Open an instance with an on-chain covenant ID to see explorer links.',
       }),
     ];
   }
   return [
     {
-      label: 'KaspaCom covenant',
-      links: [{ label: 'View covenant', href: kaspaComCovenantExplorerUrl(id, network) }],
+      label: 'KaspaCom',
+      links: [{ label: 'Open', href: kaspaComCovenantExplorerUrl(id, network) }],
     },
     {
-      label: 'kascov covenant',
-      links: [{ label: 'View covenant', href: kascovCovenantExplorerUrl(id, network) }],
+      label: 'kascov',
+      links: [{ label: 'Open', href: kascovCovenantExplorerUrl(id, network) }],
     },
   ];
 }
 
 export function lockboxMetadataInstances(vaults: CovenantVault[]): KpxCovenantMetadataInstance[] {
-  return vaults.map((v) => ({
-    id: v.id,
-    title: v.memo?.trim() || `Lock ${sompiToKasLabel(v.amountSompi)}`,
-    subtitle: `${v.kind} · ${v.status}`,
-    rows: [
-      row('Local instance id', v.id, { mono: true }),
-      covenantIdRow(v.covenantId),
-      row('Status', v.status),
-      row('Lock type', v.kind),
-      row('Memo', v.memo?.trim() || undefined, { hint: v.memo?.trim() ? undefined : 'No memo' }),
-      row('Amount locked', sompiToKasLabel(v.amountSompi)),
-      row(
-        'Share',
-        typeof v.shareBps === 'number' ? `${(v.shareBps / 100).toFixed(2)}%` : undefined,
-      ),
-      row('Share group', v.groupId, { mono: true }),
-      addressRow('Depositor', v.depositor),
-      addressRow('Claimer', v.beneficiary),
-      row(
-        'All claimers',
-        resolveVaultClaimers(v).length > 1
-          ? resolveVaultClaimers(v).join('\n')
-          : undefined,
-        {
-          mono: true,
-          hint: resolveVaultClaimers(v).length > 1 ? undefined : 'Single claimer',
-        },
-      ),
-      row('Unlock rule', v.unlockAt ? formatTs(v.unlockAt) : 'Anytime (escrow)'),
-      row('Created', formatTs(v.createdAt)),
-      row('Claimed', formatTs(v.claimedAt)),
-      txRow('Lock transaction', v.lockTxHash ?? v.utxo?.txId),
-      txRow('Claim transaction', v.claimTxHash),
-      utxoRow(v.utxo),
-    ],
-  }));
+  return vaults.map((v) => {
+    const claimers = resolveVaultClaimers(v);
+    return {
+      id: v.id,
+      title: v.memo?.trim() || `Lock ${sompiToKasLabel(v.amountSompi)}`,
+      subtitle: `${v.kind} · ${v.status}`,
+      covenantId: isOnChainCovenantId(v.covenantId) ? v.covenantId : undefined,
+      rows: [
+        row('Status', v.status),
+        row('Amount', sompiToKasLabel(v.amountSompi)),
+        row('Type', v.kind === 'timelock' ? 'Timelock' : 'Escrow'),
+        row('Unlock', v.unlockAt ? formatTs(v.unlockAt) : 'Anytime'),
+        addressRow(claimers.length > 1 ? 'Primary claimer' : 'Claimer', v.beneficiary),
+        claimers.length > 1
+          ? row('Claimers', `${claimers.length} wallets`)
+          : row('Claimers'),
+        row('Memo', v.memo?.trim() || undefined),
+        covenantIdRow(v.covenantId),
+        txRow('Lock tx', v.lockTxHash ?? v.utxo?.txId),
+        txRow('Claim tx', v.claimTxHash),
+      ].filter((r) => r.value || r.links?.length),
+    };
+  });
 }
 
 export function splitMetadataInstances(splits: SplitPayment[]): KpxCovenantMetadataInstance[] {
-  return splits.map((s) => ({
-    id: s.id,
-    title: s.memo?.trim() || `Split ${sompiToKasLabel(s.totalSompi)}`,
-    subtitle: `${s.status} · ${s.recipients.length} recipients`,
-    rows: [
-      row('Local instance id', s.id, { mono: true }),
-      covenantIdRow(s.covenantId),
-      row('Status', s.status),
-      row('Total locked', sompiToKasLabel(s.totalSompi)),
-      addressRow('Depositor', s.depositor),
-      row('Recipients', String(s.recipients.length)),
-      row('Created', formatTs(s.createdAt)),
-      txRow('Lock transaction', s.lockTxHash),
-      ...s.recipients.flatMap((r, i) => [
-        row(`Recipient ${i + 1} address`, r.address, {
-          mono: true,
-          links: [{ label: 'Kaspa Explorer', href: getKaspaExplorerAddressUrl(r.address) }],
-        }),
-        row(`Recipient ${i + 1} share`, `${(r.shareBps / 100).toFixed(2)}% (${sompiToKasLabel(r.amountSompi)})`),
-        row(`Recipient ${i + 1} claimed`, r.claimed ? formatTs(r.claimedAt) ?? 'Yes' : 'No'),
-        txRow(`Recipient ${i + 1} lock tx`, r.lockTxHash),
-        txRow(`Recipient ${i + 1} claim tx`, r.claimTxHash),
-        utxoRow(r.utxo),
-      ]),
-    ],
-  }));
+  return splits.map((s) => {
+    const claimed = s.recipients.filter((r) => r.claimed).length;
+    return {
+      id: s.id,
+      title: s.memo?.trim() || `Split ${sompiToKasLabel(s.totalSompi)}`,
+      subtitle: `${s.status} · ${claimed}/${s.recipients.length} claimed`,
+      covenantId: isOnChainCovenantId(s.covenantId) ? s.covenantId : undefined,
+      rows: [
+        row('Status', s.status),
+        row('Total', sompiToKasLabel(s.totalSompi)),
+        addressRow('From', s.depositor),
+        row('Recipients', `${s.recipients.length}`),
+        row('Claimed', `${claimed} of ${s.recipients.length}`),
+        row('Memo', s.memo?.trim() || undefined),
+        covenantIdRow(s.covenantId),
+        ...s.recipients.flatMap((r, i) => [
+          addressRow(`Share ${i + 1}`, r.address),
+          row(
+            `Share ${i + 1} amount`,
+            `${(r.shareBps / 100).toFixed(1)}% · ${sompiToKasLabel(r.amountSompi)}${r.claimed ? ' · claimed' : ''}`,
+          ),
+          txRow(`Share ${i + 1} lock`, r.lockTxHash ?? r.utxo?.txId),
+        ]),
+      ].filter((r) => r.value || r.links?.length),
+    };
+  });
 }
 
 export function milestoneMetadataInstances(deals: MilestoneDeal[]): KpxCovenantMetadataInstance[] {
-  return deals.map((d) => ({
-    id: d.id,
-    title: d.memo?.trim() || `Milestone ${sompiToKasLabel(d.totalSompi)}`,
-    subtitle: `${d.status} · ${d.milestones.length} steps`,
-    rows: [
-      row('Local instance id', d.id, { mono: true }),
-      covenantIdRow(d.covenantId),
-      row('Status', d.status),
-      row('Total locked', sompiToKasLabel(d.totalSompi)),
-      addressRow('Depositor', d.depositor),
-      addressRow('Beneficiary', d.beneficiary),
-      row('Created', formatTs(d.createdAt)),
-      txRow('Lock transaction', d.lockTxHash),
-      ...d.milestones.flatMap((m, i) => [
-        row(`Milestone ${i + 1}`, m.label),
-        row(`Milestone ${i + 1} amount`, sompiToKasLabel(m.amountSompi)),
-        row(`Milestone ${i + 1} unlock`, formatTs(m.unlockAt)),
-        row(`Milestone ${i + 1} claimed`, m.claimed ? formatTs(m.claimedAt) ?? 'Yes' : 'No'),
-        txRow(`Milestone ${i + 1} lock tx`, m.lockTxHash),
-        txRow(`Milestone ${i + 1} claim tx`, m.claimTxHash),
-        utxoRow(m.utxo),
-      ]),
-    ],
-  }));
+  return deals.map((d) => {
+    const claimed = d.milestones.filter((m) => m.claimed).length;
+    return {
+      id: d.id,
+      title: d.memo?.trim() || `Milestone ${sompiToKasLabel(d.totalSompi)}`,
+      subtitle: `${d.status} · ${claimed}/${d.milestones.length} claimed`,
+      covenantId: isOnChainCovenantId(d.covenantId) ? d.covenantId : undefined,
+      rows: [
+        row('Status', d.status),
+        row('Total', sompiToKasLabel(d.totalSompi)),
+        addressRow('From', d.depositor),
+        addressRow('Beneficiary', d.beneficiary),
+        row('Memo', d.memo?.trim() || undefined),
+        covenantIdRow(d.covenantId),
+        ...d.milestones.flatMap((m, i) => [
+          row(
+            `Step ${i + 1}`,
+            `${m.label} · ${sompiToKasLabel(m.amountSompi)}${m.claimed ? ' · claimed' : ''}`,
+          ),
+          row(`Step ${i + 1} unlock`, formatTs(m.unlockAt)),
+          txRow(`Step ${i + 1} lock`, m.lockTxHash ?? m.utxo?.txId),
+        ]),
+      ].filter((r) => r.value || r.links?.length),
+    };
+  });
 }
 
 export function crowdfundMetadataInstances(campaigns: CrowdfundCampaign[]): KpxCovenantMetadataInstance[] {
-  return campaigns.map((c) => ({
-    id: c.id,
-    title: c.title?.trim() || 'Crowdfund campaign',
-    subtitle: `${c.status} · ${sompiToKasLabel(c.raisedSompi)} / ${sompiToKasLabel(c.goalSompi)}`,
-    rows: [
-      row('Local instance id', c.id, { mono: true }),
-      covenantIdRow(c.covenantId),
-      row('Status', c.status),
-      row('Goal', sompiToKasLabel(c.goalSompi)),
-      row('Raised', sompiToKasLabel(c.raisedSompi)),
-      addressRow('Creator', c.creator),
-      row('Deadline', formatTs(c.deadline)),
-      row('Pledges', String(c.pledges.length)),
-      row('Created', formatTs(c.createdAt)),
-      row('Claimed', formatTs(c.claimedAt)),
-      ...c.pledges.flatMap((p, i) => [
-        addressRow(`Pledge ${i + 1} backer`, p.backer),
-        row(`Pledge ${i + 1} amount`, sompiToKasLabel(p.amountSompi)),
-        txRow(`Pledge ${i + 1} tx`, p.txHash),
-        utxoRow(p.utxo),
-        row(`Pledge ${i + 1} refunded`, p.refunded ? 'Yes' : 'No'),
-      ]),
-    ],
-  }));
+  return campaigns.map((c) => {
+    const activePledges = c.pledges.filter((p) => !p.refunded);
+    return {
+      id: c.id,
+      title: c.title?.trim() || 'Crowdfund',
+      subtitle: `${c.status} · ${sompiToKasLabel(c.raisedSompi)} / ${sompiToKasLabel(c.goalSompi)}`,
+      covenantId: isOnChainCovenantId(c.covenantId) ? c.covenantId : undefined,
+      rows: [
+        row('Status', c.status),
+        row('Raised', `${sompiToKasLabel(c.raisedSompi)} / ${sompiToKasLabel(c.goalSompi)}`),
+        addressRow('Creator', c.creator),
+        row('Deadline', formatTs(c.deadline)),
+        row('Backers', String(activePledges.length)),
+        row('Memo', c.memo?.trim() || undefined),
+        covenantIdRow(c.covenantId),
+        ...activePledges.slice(0, 8).flatMap((p, i) => [
+          addressRow(`Pledge ${i + 1}`, p.backer),
+          row(`Pledge ${i + 1} amount`, sompiToKasLabel(p.amountSompi)),
+          txRow(`Pledge ${i + 1} tx`, p.txHash ?? p.utxo?.txId),
+        ]),
+      ].filter((r) => r.value || r.links?.length),
+    };
+  });
 }
 
 export function voucherMetadataInstances(vouchers: VoucherLock[]): KpxCovenantMetadataInstance[] {
   return vouchers.map((v) => ({
     id: v.id,
     title: v.memo?.trim() || `Voucher ${sompiToKasLabel(v.amountSompi)}`,
-    subtitle: `${v.status}`,
+    subtitle: v.status,
+    covenantId: isOnChainCovenantId(v.covenantId) ? v.covenantId : undefined,
     rows: [
-      row('Local instance id', v.id, { mono: true }),
-      covenantIdRow(v.covenantId),
       row('Status', v.status),
       row('Amount', sompiToKasLabel(v.amountSompi)),
       addressRow('Creator', v.creator),
       addressRow('Claimed by', v.claimedBy ?? undefined),
       row('Expires', formatTs(v.expiresAt)),
-      row('Created', formatTs(v.createdAt)),
-      row('Claimed', formatTs(v.claimedAt)),
-      row('Secret hash', v.secretHash, { mono: true }),
-      txRow('Lock transaction', v.lockTxHash),
-      utxoRow(v.utxo),
-      txRow('Claim transaction', v.claimTxHash),
-    ],
+      row('Memo', v.memo?.trim() || undefined),
+      covenantIdRow(v.covenantId),
+      txRow('Lock tx', v.lockTxHash ?? v.utxo?.txId),
+      txRow('Claim tx', v.claimTxHash),
+    ].filter((r) => r.value || r.links?.length),
   }));
 }

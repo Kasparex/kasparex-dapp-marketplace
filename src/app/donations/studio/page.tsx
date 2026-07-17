@@ -45,6 +45,7 @@ import { CROWDKAS_PREMIUM_SECTION_OFFER, CROWDKAS_PREMIUM_SECTION_ENABLE_FEE_KAS
 import { CrowdKasCampaignPreviewModal } from '@/components/donations/CrowdKasCampaignPreviewModal';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@/components/donations/crowdkasFormTheme';
 import { cleanCrowdKasModulesConfig, type CrowdKasModulesConfig } from '@/lib/donations/crowdkasModules';
 import { useCrowdKasPricing } from '@/hooks/useCrowdKasPricing';
@@ -1377,28 +1378,24 @@ function DonationsStudioPageContent() {
                                     ) : null}
                                   </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div>
-                                    <KxFormFieldLabel>Target (iKAS)</KxFormFieldLabel>
-                                    <input
-                                      type="number"
-                                      value={createForm.targetKAS}
-                                      onChange={(e) => setCreateForm((f) => ({ ...f, targetKAS: e.target.value }))}
-                                      min="100"
-                                      step="1"
-                                      className="k-input text-base"
-                                    />
-                                  </div>
-                                  <div>
-                                    <KxFormFieldLabel>End date</KxFormFieldLabel>
-                                    <input
-                                      type="datetime-local"
-                                      value={createForm.endDate}
-                                      onChange={(e) => setCreateForm((f) => ({ ...f, endDate: e.target.value }))}
-                                      className="k-input text-base"
-                                    />
-                                  </div>
+                                <div>
+                                  <KxFormFieldLabel>Target (iKAS)</KxFormFieldLabel>
+                                  <input
+                                    type="number"
+                                    value={createForm.targetKAS}
+                                    onChange={(e) => setCreateForm((f) => ({ ...f, targetKAS: e.target.value }))}
+                                    min="100"
+                                    step="1"
+                                    className="k-input text-base"
+                                  />
                                 </div>
+                                <CovenantDatetimeField
+                                  id="studio-l2-end-date"
+                                  label="End date"
+                                  tooltip="No donations after this date. The goal must be met by then for the creator to claim."
+                                  value={createForm.endDate}
+                                  onChange={(next) => setCreateForm((f) => ({ ...f, endDate: next }))}
+                                />
                                 <CrowdKasCampaignMediaField
                                   source={l2ImageSource}
                                   onSourceChange={setL2ImageSource}
@@ -1631,15 +1628,13 @@ function DonationsStudioPageContent() {
                       className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">End date</label>
-                    <input
-                      type="datetime-local"
-                      value={createForm.endDate}
-                      onChange={(e) => setCreateForm((f) => ({ ...f, endDate: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                    />
-                  </div>
+                  <CovenantDatetimeField
+                    id="studio-legacy-end-date"
+                    label="End date"
+                    tooltip="No donations after this date. The goal must be met by then for the creator to claim."
+                    value={createForm.endDate}
+                    onChange={(next) => setCreateForm((f) => ({ ...f, endDate: next }))}
+                  />
                   {createErrorMsg && <p className="text-sm text-red-600 dark:text-red-400">{createErrorMsg}</p>}
                   {createError && <p className="text-sm text-red-600 dark:text-red-400">{getErrorMessage(createError, 'Create failed')}</p>}
                   <button

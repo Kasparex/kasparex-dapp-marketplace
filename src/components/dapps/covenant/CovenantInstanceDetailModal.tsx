@@ -1,7 +1,7 @@
 'use client';
 
 import { KxModalShell } from '@/components/ui/KxModalShell';
-import { KxModalHeader, KxModalSectionTitle } from '@/components/payments/KxPaymentUi';
+import { KxModalHeader } from '@/components/payments/KxPaymentUi';
 import { KxDataTable, type KxDataTableRow } from '@/components/kx/KxDataTable';
 import type { KpxCovenantMetadataInstance, KpxCovenantMetadataRow } from '@/lib/covenant/kpxCovenantMetadata';
 
@@ -15,29 +15,26 @@ function toTableRows(rows: KpxCovenantMetadataRow[]): KxDataTableRow[] {
   }));
 }
 
-/** Shared detail modal for Lockbox / Split / Milestone / Crowdfund / Voucher instances. */
+/** Shared detail modal for Lockbox / Split / Milestone / Crowdfund / Voucher. */
 export function CovenantInstanceDetailModal({
   instance,
-  sectionTitle = 'Details',
   onClose,
 }: {
   instance: KpxCovenantMetadataInstance;
-  sectionTitle?: string;
   onClose: () => void;
 }) {
   return (
     <KxModalShell
       isOpen
       onClose={onClose}
-      panelClassName="max-w-lg max-h-[min(90vh,720px)] flex flex-col"
+      panelClassName="max-w-md max-h-[min(90vh,640px)] flex flex-col"
     >
       <KxModalHeader
         title={instance.title}
         subtitle={instance.subtitle}
         onClose={onClose}
       />
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4">
-        <KxModalSectionTitle>{sectionTitle}</KxModalSectionTitle>
+      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
         <KxDataTable rows={toTableRows(instance.rows)} />
       </div>
     </KxModalShell>
@@ -52,11 +49,5 @@ export function LockboxVaultDetailModal({
   instance: KpxCovenantMetadataInstance;
   onClose: () => void;
 }) {
-  return (
-    <CovenantInstanceDetailModal
-      instance={instance}
-      sectionTitle="Vault metadata"
-      onClose={onClose}
-    />
-  );
+  return <CovenantInstanceDetailModal instance={instance} onClose={onClose} />;
 }

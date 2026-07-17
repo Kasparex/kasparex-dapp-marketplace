@@ -12,6 +12,7 @@ import { CROWDKAS_FORM_PANEL_CLASS, CROWDKAS_PREMIUM_MODULE_CARD_CLASS } from '@
 import { VDONATE_PRODUCT_NAME, VDONATE_SHORT_NAME } from '@/lib/donations/brand';
 import { CrowdKasShell, CrowdKasError, CrowdKasPrototypeNotice } from '@/components/donations/CrowdKasUi';
 import { CrowdKasCampaignMediaField } from '@/components/donations/CrowdKasCampaignMediaField';
+import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import { DonationCategoryField } from '@/components/donations/DonationCategoryField';
 import { CrowdKasModulesPanel } from '@/components/donations/CrowdKasModulesPanel';
 import { CrowdKasPremiumSectionFields } from '@/components/donations/CrowdKasPremiumSectionFields';
@@ -302,38 +303,29 @@ export const CrowdKasCovenantPanel = forwardRef<CrowdKasCovenantPanelHandle, Cro
             ) : null}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Tooltip content="The campaign succeeds only if this amount is pledged before the deadline.">
-              <KxFormFieldLabel htmlFor="ck-crowdfund-goal">
-                Funding goal (KAS, min {minKas}) <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
-            </Tooltip>
-            <input
-              id="ck-crowdfund-goal"
-              type="number"
-              min={minKas}
-              step="0.01"
-              className="k-input text-base"
-              value={goalKas}
-              onChange={(e) => setGoalKas(e.target.value)}
-            />
-          </div>
-          <div>
-            <Tooltip content="No pledges after this date. The goal must be met by then for the creator to claim.">
-              <KxFormFieldLabel htmlFor="ck-crowdfund-deadline">
-                Deadline <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
-            </Tooltip>
-            <input
-              id="ck-crowdfund-deadline"
-              type="datetime-local"
-              className="k-input text-base"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-          </div>
+        <div>
+          <Tooltip content="The campaign succeeds only if this amount is pledged before the deadline.">
+            <KxFormFieldLabel htmlFor="ck-crowdfund-goal">
+              Funding goal (KAS, min {minKas}) <span className="text-red-500">*</span>
+            </KxFormFieldLabel>
+          </Tooltip>
+          <input
+            id="ck-crowdfund-goal"
+            type="number"
+            min={minKas}
+            step="0.01"
+            className="k-input text-base"
+            value={goalKas}
+            onChange={(e) => setGoalKas(e.target.value)}
+          />
         </div>
+        <CovenantDatetimeField
+          id="ck-crowdfund-deadline"
+          label="Deadline"
+          tooltip="No pledges after this date. The goal must be met by then for the creator to claim."
+          value={deadline}
+          onChange={setDeadline}
+        />
         <CrowdKasCampaignMediaField
           source={imageSource}
           onSourceChange={setImageSource}

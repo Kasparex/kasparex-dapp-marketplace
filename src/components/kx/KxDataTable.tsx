@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { KX_SURFACE_INSET } from '@/lib/hub/shellTokens';
 
 export type KxDataTableRow = {
   label: string;
@@ -31,21 +30,25 @@ function TableLinks({ links }: { links: { label: string; href: string }[] }) {
 }
 
 export function KxDataTable({ rows, className = '' }: { rows: KxDataTableRow[]; className?: string }) {
-  const visible = rows.filter((row) => row.value?.trim() || row.valueNode || row.links?.length);
+  const visible = rows.filter(
+    (row) => row.value?.trim() || row.valueNode || row.links?.length || row.hint?.trim(),
+  );
   if (visible.length === 0) return null;
 
   return (
-    <div className={`overflow-hidden rounded-xl border ${KX_SURFACE_INSET} ${className}`.trim()}>
-      <table className="w-full text-sm">
+    <div
+      className={`overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 ${className}`.trim()}
+    >
+      <table className="w-full border-collapse text-sm">
         <tbody>
           {visible.map((row) => (
             <tr
               key={row.label}
-              className="border-b border-zinc-200 align-top last:border-b-0 dark:border-zinc-700"
+              className="border-b border-zinc-200/50 align-top last:border-b-0 dark:border-zinc-700/50"
             >
               <th
                 scope="row"
-                className="w-[34%] px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+                className="w-[36%] px-3 py-2.5 text-left text-sm font-medium text-zinc-600 dark:text-zinc-300"
               >
                 {row.label}
               </th>
@@ -53,7 +56,7 @@ export function KxDataTable({ rows, className = '' }: { rows: KxDataTableRow[]; 
                 {row.valueNode ? (
                   row.valueNode
                 ) : row.value ? (
-                  <span className={row.mono !== false ? 'font-mono text-xs break-all' : 'text-sm'}>
+                  <span className={row.mono ? 'font-mono text-xs break-all' : 'text-sm'}>
                     {row.value}
                   </span>
                 ) : row.links?.length ? null : (

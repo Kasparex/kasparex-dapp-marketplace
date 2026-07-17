@@ -441,7 +441,7 @@
 }
 
 .k-label {
-  @apply block text-sm font-bold text-zinc-700 dark:text-zinc-200 mb-2 whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider;
+  @apply block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2;
 }
 
 .k-form-group {

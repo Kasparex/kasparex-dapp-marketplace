@@ -18,6 +18,7 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
+import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -160,17 +161,12 @@ export function CovenantCrowdfundWidget() {
           </div>
 
           <div className="k-form-group !mb-0">
-            <CovenantFieldLabel
-              label="Deadline"
-              htmlFor="crowdfund-deadline"
-              tooltip="After this date, no new pledges are accepted. The goal must be met by then for the creator to claim."
-            />
-            <input
+            <CovenantDatetimeField
               id="crowdfund-deadline"
-              type="datetime-local"
-              className={covenantInputClass}
+              label="Deadline"
+              tooltip="After this date, no new pledges are accepted. The goal must be met by then for the creator to claim."
               value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+              onChange={setDeadline}
             />
           </div>
 
@@ -271,7 +267,6 @@ export function CovenantCrowdfundWidget() {
       {detailInstance ? (
         <CovenantInstanceDetailModal
           instance={detailInstance}
-          sectionTitle="Campaign metadata"
           onClose={() => setDetailCampaignId(null)}
         />
       ) : null}

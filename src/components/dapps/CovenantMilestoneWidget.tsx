@@ -24,6 +24,7 @@ import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
+import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -197,39 +198,43 @@ export function CovenantMilestoneWidget() {
               Label · share % · unlock date
             </p>
             {milestoneRows.map((row) => (
-              <div key={row.key} className="flex gap-2 items-start">
-                <div className="grid flex-1 grid-cols-3 gap-2">
-                  <input
-                    className={covenantSmallInputClass}
-                    placeholder="Label"
-                    value={row.label}
-                    onChange={(e) => updateMilestoneRow(row.key, { label: e.target.value })}
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    className={covenantSmallInputClass}
-                    placeholder="%"
-                    value={row.pct}
-                    onChange={(e) => updateMilestoneRow(row.key, { pct: e.target.value })}
-                  />
-                  <input
-                    type="datetime-local"
-                    className={covenantSmallInputClass}
-                    value={row.unlock}
-                    onChange={(e) => updateMilestoneRow(row.key, { unlock: e.target.value })}
-                  />
+              <div key={row.key} className="space-y-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                <div className="flex gap-2 items-start">
+                  <div className="grid flex-1 grid-cols-2 gap-2">
+                    <input
+                      className={covenantSmallInputClass}
+                      placeholder="Label"
+                      value={row.label}
+                      onChange={(e) => updateMilestoneRow(row.key, { label: e.target.value })}
+                    />
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      className={covenantSmallInputClass}
+                      placeholder="%"
+                      value={row.pct}
+                      onChange={(e) => updateMilestoneRow(row.key, { pct: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeMilestoneRow(row.key)}
+                    disabled={milestoneRows.length <= 2}
+                    className="mt-2.5 p-2 text-zinc-400 hover:text-red-500 disabled:opacity-30 rounded-lg border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
+                    aria-label="Remove milestone"
+                  >
+                    ×
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeMilestoneRow(row.key)}
-                  disabled={milestoneRows.length <= 2}
-                  className="mt-2.5 p-2 text-zinc-400 hover:text-red-500 disabled:opacity-30 rounded-lg border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700"
-                  aria-label="Remove milestone"
-                >
-                  ×
-                </button>
+                <CovenantDatetimeField
+                  id={`milestone-unlock-${row.key}`}
+                  label="Unlock after"
+                  tooltip="This milestone can be claimed after this date and time."
+                  value={row.unlock}
+                  onChange={(next) => updateMilestoneRow(row.key, { unlock: next })}
+                  compact
+                />
               </div>
             ))}
             <button
@@ -370,7 +375,6 @@ export function CovenantMilestoneWidget() {
       {detailInstance ? (
         <CovenantInstanceDetailModal
           instance={detailInstance}
-          sectionTitle="Deal metadata"
           onClose={() => setDetailDealId(null)}
         />
       ) : null}

@@ -21,6 +21,7 @@ import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
+import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -141,17 +142,12 @@ export function CovenantVoucherWidget() {
           </div>
 
           <div className="k-form-group !mb-0">
-            <CovenantFieldLabel
-              label="Expires"
-              htmlFor="voucher-expires"
-              tooltip="After this date the voucher can no longer be redeemed."
-            />
-            <input
+            <CovenantDatetimeField
               id="voucher-expires"
-              type="datetime-local"
-              className={covenantInputClass}
+              label="Expires"
+              tooltip="After this date the voucher can no longer be redeemed."
               value={expires}
-              onChange={(e) => setExpires(e.target.value)}
+              onChange={setExpires}
             />
           </div>
 
@@ -292,7 +288,6 @@ export function CovenantVoucherWidget() {
       {detailInstance ? (
         <CovenantInstanceDetailModal
           instance={detailInstance}
-          sectionTitle="Voucher metadata"
           onClose={() => setDetailVoucherId(null)}
         />
       ) : null}

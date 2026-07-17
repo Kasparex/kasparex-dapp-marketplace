@@ -99,4 +99,13 @@ export {
   getVoucherRuntime,
   getActiveCovenantRuntimeMode,
 } from './resolver';
+export {
+  purgeDemoCovenantLabRows,
+  isRealL1Split,
+  isRealL1Milestone,
+  isRealL1Crowdfund,
+  isRealL1Voucher,
+  isDemoOrLocalCovenantRow,
+  isRealL1TxHash,
+} from './l1-rows';
 export { covenantTemplateFromDAppSlug } from './covenantDAppSlug';

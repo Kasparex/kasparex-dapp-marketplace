@@ -13,20 +13,20 @@ function isHex64(value: string | undefined): boolean {
 /** True for local demo / simulator vaults that must not appear beside real locks. */
 export function isSimulatedLockboxVault(vault: CovenantVault): boolean {
   if (vault.origin === 'simulator') return true;
-  if (vault.origin === 'l1') return false;
 
   const cid = (vault.covenantId ?? '').trim();
-  const tx = (vault.lockTxHash ?? '').trim();
+  const tx = (vault.lockTxHash ?? vault.utxo?.txId ?? '').trim();
 
   if (cid.startsWith('cov_')) return true;
   if (tx.startsWith('sim_')) return true;
   if (vault.claimTxHash?.startsWith('sim_')) return true;
 
-  // Real L1 rows: 64-char tx / covenant id, or pending id after broadcast.
-  if (isHex64(tx) || isHex64(cid) || cid.startsWith('pending_')) return false;
+  // Real L1 rows: 64-char tx / covenant id, or pending id after broadcast with a funding fingerprint.
+  if (isHex64(tx) || isHex64(cid)) return false;
+  if (cid.startsWith('pending_') && isHex64(tx)) return false;
 
-  // Legacy row with no on-chain fingerprint: treat as simulator.
-  return !tx;
+  // No on-chain fingerprint (including origin:l1 without a real tx): treat as local/demo.
+  return true;
 }
 
 export function isL1LockboxVault(vault: CovenantVault): boolean {

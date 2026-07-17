@@ -24,6 +24,10 @@ import {
 } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
+import {
+  CovenantDatetimeField,
+  toDatetimeLocalValue,
+} from '@/components/dapps/covenant/CovenantDatetimeField';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
 import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
 import { lockboxMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
@@ -51,22 +55,9 @@ function newClaimerRow(percent = ''): ClaimerRow {
   return { key: `c_${Math.random().toString(36).slice(2, 9)}`, address: '', percent };
 }
 
-const UNLOCK_PRESETS = [
-  { label: '+1 min', ms: 60_000 },
-  { label: '+10 min', ms: 600_000 },
-  { label: '+1 h', ms: 3_600_000 },
-  { label: '+1 d', ms: 86_400_000 },
-] as const;
-
 function sompiToKas(sompi: string): string {
   const n = Number(BigInt(sompi)) / 1e8;
   return n.toLocaleString(undefined, { maximumFractionDigits: 8 });
-}
-
-function toDatetimeLocalValue(ms: number): string {
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function formatUnlock(unlockAt: number | null): string {
@@ -132,7 +123,6 @@ export function CovenantLockboxWidget() {
   const [amountKas, setAmountKas] = useState('10');
   const [memo, setMemo] = useState('');
   const [unlockLocal, setUnlockLocal] = useState(() => toDatetimeLocalValue(Date.now() + 60_000));
-  const [customAddMinutes, setCustomAddMinutes] = useState('5');
   const [importId, setImportId] = useState('');
   const [busyKey, setBusyKey] = useState<null | 'create' | `claim:${string}`>(null);
   const [detailVaultId, setDetailVaultId] = useState<string | null>(null);
@@ -156,12 +146,6 @@ export function CovenantLockboxWidget() {
     () => metadataInstances.find((i) => i.id === detailVaultId) ?? null,
     [metadataInstances, detailVaultId],
   );
-
-  const bumpUnlockByMs = (ms: number) => {
-    const base = unlockLocal ? new Date(unlockLocal).getTime() : Date.now();
-    const from = Number.isFinite(base) ? Math.max(base, Date.now()) : Date.now();
-    setUnlockLocal(toDatetimeLocalValue(from + ms));
-  };
 
   const primaryClaimerFilled = Boolean(claimerRows[0]?.address.trim());
   const percentSum = useMemo(
@@ -434,60 +418,14 @@ export function CovenantLockboxWidget() {
           </div>
 
           {kind === 'timelock' ? (
-            <div className="k-form-group !mb-0 space-y-2">
-              <CovenantFieldLabel
-                label="Unlock after"
-                htmlFor="lockbox-unlock"
-                tooltip="The beneficiary cannot claim before this date and time (your local timezone)."
-              />
-              <input
+            <div className="k-form-group !mb-0">
+              <CovenantDatetimeField
                 id="lockbox-unlock"
-                type="datetime-local"
+                label="Unlock after"
+                tooltip="The beneficiary cannot claim before this date and time (your local timezone)."
                 value={unlockLocal}
-                min={toDatetimeLocalValue(Date.now())}
-                onChange={(e) => setUnlockLocal(e.target.value)}
-                className={covenantInputClass}
+                onChange={setUnlockLocal}
               />
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setUnlockLocal(toDatetimeLocalValue(Date.now()))}
-                  className="rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-600 hover:border-[#02abb8] hover:text-[#02abb8] dark:border-zinc-700 dark:text-zinc-400"
-                >
-                  Now
-                </button>
-                {UNLOCK_PRESETS.map((p) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => bumpUnlockByMs(p.ms)}
-                    className="rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-600 hover:border-[#02abb8] hover:text-[#02abb8] dark:border-zinc-700 dark:text-zinc-400"
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={customAddMinutes}
-                  onChange={(e) => setCustomAddMinutes(e.target.value)}
-                  className={`${covenantInputClass} !w-24`}
-                  aria-label="Minutes to add"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const mins = Math.max(1, Math.floor(Number(customAddMinutes) || 0));
-                    bumpUnlockByMs(mins * 60_000);
-                  }}
-                  className="rounded-lg border border-[#02abb8]/50 bg-[#02abb8]/10 px-2.5 py-1.5 text-xs font-medium text-[#02abb8] hover:bg-[#02abb8]/20"
-                >
-                  Add minutes
-                </button>
-              </div>
             </div>
           ) : null}
 
@@ -642,7 +580,7 @@ export function CovenantLockboxWidget() {
         <CovenantTabPanel
           title="Metadata"
           heading="On-chain references"
-          description="Template, runtime, and explorer links. Open a vault card for per-lock details."
+          description="Product info and explorer links. Open a vault card for per-lock details."
         >
           <KpxCovenantMetadataView
             template="lockbox"
@@ -657,7 +595,6 @@ export function CovenantLockboxWidget() {
       {detailInstance ? (
         <CovenantInstanceDetailModal
           instance={detailInstance}
-          sectionTitle="Vault metadata"
           onClose={() => setDetailVaultId(null)}
         />
       ) : null}
