@@ -24,15 +24,17 @@ export type HubFlowReportDetail = {
   stepId: string;
   /** Optional preset key for listeners that switch flows (e.g. create vs claim). */
   preset?: string;
+  /** Optional status line for the Flow Progress UI (e.g. settle wait). */
+  message?: string;
 };
 
 /** Report the active wallet / tx stage from async clients (deploy, fee, claim). */
-export function reportHubFlowStep(stepId: string, preset?: string): void {
+export function reportHubFlowStep(stepId: string, preset?: string, message?: string): void {
   if (typeof window === 'undefined') return;
   try {
     window.dispatchEvent(
       new CustomEvent<HubFlowReportDetail>(HUB_FLOW_EVENT, {
-        detail: { stepId, preset },
+        detail: { stepId, preset, message },
       }),
     );
   } catch {
@@ -131,7 +133,7 @@ export function buildCovenantCreateFlowSteps(args?: {
   return steps;
 }
 
-/** Covenant claim: Verify → Sign fee → Sign claim → Complete */
+/** Covenant claim: Verify → Sign Fee → Wait → Sign Claim → Complete */
 export function buildCovenantClaimFlowSteps(args?: { feeWaived?: boolean }): HubFlowStep[] {
   const feeWaived = Boolean(args?.feeWaived);
   const totalPrompts = feeWaived ? 1 : 2;
@@ -149,6 +151,12 @@ export function buildCovenantClaimFlowSteps(args?: { feeWaived?: boolean }): Hub
       id: 'sign-fee',
       label: 'Sign Fee',
       tooltip: `${promptOf(1, totalPrompts)}: approve the Hub claim fee in your Kaspa wallet.`,
+    });
+    steps.push({
+      id: 'settle',
+      label: 'Wait',
+      tooltip:
+        'Waiting for the fee transaction to confirm so the claim can use updated UTXOs. This can take a few moments before the next wallet prompt.',
     });
   }
 
@@ -174,7 +182,10 @@ export const HUB_FLOW_PRESETS = {
   /** Covenant claim / redeem / unlock (fee + claim). */
   covenantClaim: buildCovenantClaimFlowSteps({ feeWaived: false }),
 
-  /** Generic Hub L1 publish (tokens, vBlog, store listing, CrowdKas) */
+  /**
+   * Hub L1 publish (tokens, vBlog, store listing, CrowdKas).
+   * Sign and pay are one wallet action.
+   */
   hubPublish: [
     {
       id: 'prepare',
@@ -182,14 +193,9 @@ export const HUB_FLOW_PRESETS = {
       tooltip: 'Validates your form and builds the payment / payload.',
     },
     {
-      id: 'sign',
-      label: 'Sign',
-      tooltip: 'Wallet prompt 1 of 1: approve the listing / publish transaction in your connected wallet.',
-    },
-    {
-      id: 'pay',
-      label: 'Pay',
-      tooltip: 'Broadcasts the Hub fee / listing payment on Kaspa.',
+      id: 'sign-pay',
+      label: 'Sign & Pay',
+      tooltip: 'Wallet prompt 1 of 1: approve and broadcast the listing payment in your wallet.',
     },
     {
       id: 'complete',
@@ -198,7 +204,7 @@ export const HUB_FLOW_PRESETS = {
     },
   ] satisfies HubFlowStep[],
 
-  /** Store product checkout */
+  /** Store product checkout: Sign and pay are one wallet action. */
   hubCheckout: [
     {
       id: 'review',
@@ -206,14 +212,9 @@ export const HUB_FLOW_PRESETS = {
       tooltip: 'Confirm price, currency, and platform fee before paying.',
     },
     {
-      id: 'sign',
-      label: 'Sign',
-      tooltip: 'Wallet prompt 1 of 1: approve the purchase transaction in your wallet.',
-    },
-    {
-      id: 'pay',
-      label: 'Pay',
-      tooltip: 'Sends payment to the seller and Hub fee where applicable.',
+      id: 'sign-pay',
+      label: 'Sign & Pay',
+      tooltip: 'Wallet prompt 1 of 1: approve and send the purchase in your wallet.',
     },
     {
       id: 'complete',
@@ -222,7 +223,7 @@ export const HUB_FLOW_PRESETS = {
     },
   ] satisfies HubFlowStep[],
 
-  /** Simple dApp pay / tip / donate style actions */
+  /** Simple dApp pay / tip / donate: Sign and pay are one wallet action. */
   hubPay: [
     {
       id: 'review',
@@ -230,14 +231,9 @@ export const HUB_FLOW_PRESETS = {
       tooltip: 'Check the amount and fee breakdown before continuing.',
     },
     {
-      id: 'sign',
-      label: 'Sign',
+      id: 'sign-pay',
+      label: 'Sign & Pay',
       tooltip: 'Wallet prompt 1 of 1: approve the payment in your wallet when prompted.',
-    },
-    {
-      id: 'confirm',
-      label: 'Confirm',
-      tooltip: 'Wait for the network to accept the transaction.',
     },
     {
       id: 'complete',

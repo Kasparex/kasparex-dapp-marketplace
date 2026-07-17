@@ -145,14 +145,19 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
   // Wait for the fee tx to settle before building the claim. Otherwise the claim
   // may spend unconfirmed fee change and the node rejects it as an orphan.
   if (feeTxHash && (feeWasJustPaid || args.existingFeeTxHash)) {
+    reportHubFlowStep(
+      'settle',
+      'covenantClaim',
+      'Waiting for fee confirmation. The next wallet prompt may take a few moments.',
+    );
     const networkId = covenantNetworkIdFromContext(args.ctx);
     const settled = await awaitCovenantSettlement(feeTxHash, networkId, {
-      maxAttempts: feeWasJustPaid ? 10 : 6,
-      delayMs: 2000,
+      maxAttempts: feeWasJustPaid ? 8 : 4,
+      delayMs: 1000,
     });
     if (!settled.indexed && feeWasJustPaid) {
       // Soft wait: still proceed after a short buffer so wallets can refresh UTXOs.
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 1500));
     }
   }
 

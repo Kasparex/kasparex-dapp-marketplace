@@ -24,7 +24,7 @@ export async function awaitCovenantSettlement(
       return { indexed: true, raw: status };
     }
     if (attempt < maxAttempts - 1) {
-      await new Promise((r) => setTimeout(r, baseDelay * (attempt + 1)));
+      await new Promise((r) => setTimeout(r, baseDelay));
     }
   }
 
