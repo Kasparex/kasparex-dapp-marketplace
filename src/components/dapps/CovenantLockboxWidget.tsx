@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantLockbox } from '@/hooks/useCovenantLockbox';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
+import { isAddressInClaimers, resolveVaultClaimers } from '@/lib/covenant/participants';
 import {
   CovenantFieldLabel,
   CovenantError,
@@ -35,7 +36,8 @@ import {
   covenantPremiumAddButtonLabel,
   resolveKpxCovenantClaimPrice,
 } from '@/lib/covenant/kpxCovenantPricing';
-import { isAddressInClaimers, resolveVaultClaimers } from '@/lib/covenant/participants';
+import { defaultDeadlineAfterUnlock, resolveClaimWindowProgress } from '@/lib/covenant/claimWindow';
+import { CovenantClaimWindowBar } from '@/components/dapps/covenant/CovenantClaimWindowBar';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import {
   useDAppWidgetSection,
@@ -65,37 +67,19 @@ function formatUnlock(unlockAt: number | null): string {
   return new Date(unlockAt).toLocaleString();
 }
 
-function unlockProgress(
-  vault: CovenantVault,
-  now: number,
-): { percent: number; label: string; unlocked: boolean } | null {
-  if (vault.kind !== 'timelock' || !vault.unlockAt) return null;
-  if (vault.status === 'claimed') {
-    return { percent: 100, label: 'Claimed', unlocked: true };
-  }
-  const start = vault.createdAt || vault.unlockAt - 60_000;
-  const end = vault.unlockAt;
-  if (now >= end) {
-    return { percent: 100, label: 'Unlocked', unlocked: true };
-  }
-  const span = Math.max(end - start, 1);
-  const percent = Math.max(0, Math.min(99, Math.floor(((now - start) / span) * 100)));
-  const remainingMs = end - now;
-  const remainingMin = Math.ceil(remainingMs / 60_000);
-  const label =
-    remainingMin < 60
-      ? `${remainingMin} min left`
-      : remainingMin < 60 * 48
-        ? `${Math.ceil(remainingMin / 60)} h left`
-        : `${Math.ceil(remainingMin / (60 * 24))} d left`;
-  return { percent, label, unlocked: false };
-}
-
 function canClaim(vault: CovenantVault, address: string | null): boolean {
   if (!address || vault.status !== 'locked') return false;
   if (!isAddressInClaimers(resolveVaultClaimers(vault), address)) return false;
   if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) return false;
+  if (vault.kind === 'timelock' && vault.deadlineAt && Date.now() >= vault.deadlineAt) return false;
   return true;
+}
+
+function canReclaim(vault: CovenantVault, address: string | null): boolean {
+  if (!address || vault.status !== 'locked') return false;
+  if (vault.kind !== 'timelock' || !vault.deadlineAt) return false;
+  if (Date.now() < vault.deadlineAt) return false;
+  return address.toLowerCase() === vault.depositor.toLowerCase();
 }
 
 export function CovenantLockboxWidget() {
@@ -106,6 +90,7 @@ export function CovenantLockboxWidget() {
     error,
     createVault,
     claimVault,
+    reclaimVault,
     refreshVaults,
     importByCovenantId,
     runtimeMode,
@@ -123,8 +108,13 @@ export function CovenantLockboxWidget() {
   const [amountKas, setAmountKas] = useState('10');
   const [memo, setMemo] = useState('');
   const [unlockLocal, setUnlockLocal] = useState(() => toDatetimeLocalValue(Date.now() + 60_000));
+  const [deadlineLocal, setDeadlineLocal] = useState(() =>
+    toDatetimeLocalValue(defaultDeadlineAfterUnlock(Date.now() + 60_000)),
+  );
   const [importId, setImportId] = useState('');
-  const [busyKey, setBusyKey] = useState<null | 'create' | `claim:${string}`>(null);
+  const [busyKey, setBusyKey] = useState<null | 'create' | `claim:${string}` | `reclaim:${string}`>(
+    null,
+  );
   const [detailVaultId, setDetailVaultId] = useState<string | null>(null);
   const busy = busyKey != null;
   const [now, setNow] = useState(() => Date.now());
@@ -189,10 +179,17 @@ export function CovenantLockboxWidget() {
       if (kind === 'timelock' && !unlockLocal) {
         throw new Error('Choose an unlock date for timelock');
       }
+      if (kind === 'timelock' && !deadlineLocal) {
+        throw new Error('Choose a claim deadline for timelock');
+      }
       if (!sharesValid) {
         throw new Error('Claimer shares must total 100%');
       }
       const unlockAt = kind === 'timelock' && unlockLocal ? new Date(unlockLocal) : null;
+      const deadlineAt = kind === 'timelock' && deadlineLocal ? new Date(deadlineLocal) : null;
+      if (unlockAt && deadlineAt && deadlineAt.getTime() <= unlockAt.getTime()) {
+        throw new Error('Deadline must be after the unlock time');
+      }
       await createVault({
         kind,
         recipients: claimerRows.map((r) => ({
@@ -205,10 +202,13 @@ export function CovenantLockboxWidget() {
         amountKas: parseFloat(amountKas),
         memo: memo.trim(),
         unlockAt,
+        deadlineAt,
       });
       setMemo('');
       setClaimerRows([{ key: 'primary', address: '', percent: '100' }]);
-      setUnlockLocal(toDatetimeLocalValue(Date.now() + 60_000));
+      const nextUnlock = Date.now() + 60_000;
+      setUnlockLocal(toDatetimeLocalValue(nextUnlock));
+      setDeadlineLocal(toDatetimeLocalValue(defaultDeadlineAfterUnlock(nextUnlock)));
       navigateTab('vaults');
     } catch (e) {
       console.error(e);
@@ -221,6 +221,17 @@ export function CovenantLockboxWidget() {
     setBusyKey(`claim:${vaultId}`);
     try {
       await claimVault(vaultId);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleReclaim = async (vaultId: string) => {
+    setBusyKey(`reclaim:${vaultId}`);
+    try {
+      await reclaimVault(vaultId);
     } catch (e) {
       console.error(e);
     } finally {
@@ -249,7 +260,7 @@ export function CovenantLockboxWidget() {
           isLoading ||
           !primaryClaimerFilled ||
           !sharesValid ||
-          (kind === 'timelock' && !unlockLocal)
+          (kind === 'timelock' && (!unlockLocal || !deadlineLocal))
         }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
@@ -276,6 +287,7 @@ export function CovenantLockboxWidget() {
       amountKas,
       kind,
       unlockLocal,
+      deadlineLocal,
       claimerRows,
       memo,
       percentSum,
@@ -311,8 +323,10 @@ export function CovenantLockboxWidget() {
                   type="button"
                   onClick={() => {
                     setKind(k);
-                    if (k === 'timelock' && !unlockLocal) {
-                      setUnlockLocal(toDatetimeLocalValue(Date.now() + 60_000));
+                    if (k === 'timelock') {
+                      const nextUnlock = Date.now() + 60_000;
+                      setUnlockLocal(toDatetimeLocalValue(nextUnlock));
+                      setDeadlineLocal(toDatetimeLocalValue(defaultDeadlineAfterUnlock(nextUnlock)));
                     }
                   }}
                   className={`flex-1 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
@@ -328,7 +342,7 @@ export function CovenantLockboxWidget() {
             <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
               {kind === 'escrow'
                 ? 'Beneficiary can claim as soon as the lock is created.'
-                : 'Beneficiary can claim only after the unlock date.'}
+                : 'After unlock, claimers have a limited window. If nobody claims before the deadline, you can reclaim the funds.'}
             </p>
           </div>
 
@@ -430,14 +444,35 @@ export function CovenantLockboxWidget() {
           </div>
 
           {kind === 'timelock' ? (
-            <div className="k-form-group !mb-0">
+            <div className="k-form-group !mb-0 space-y-4">
               <CovenantDatetimeField
                 id="lockbox-unlock"
                 label="Unlock after"
-                tooltip="The beneficiary cannot claim before this date and time (your local timezone)."
+                tooltip="Claimers cannot take funds before this date and time (your local timezone)."
                 value={unlockLocal}
-                onChange={setUnlockLocal}
+                onChange={(next) => {
+                  setUnlockLocal(next);
+                  const unlockMs = new Date(next).getTime();
+                  if (Number.isFinite(unlockMs)) {
+                    const deadlineMs = new Date(deadlineLocal).getTime();
+                    if (!Number.isFinite(deadlineMs) || deadlineMs <= unlockMs) {
+                      setDeadlineLocal(toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs)));
+                    }
+                  }
+                }}
               />
+              <CovenantDatetimeField
+                id="lockbox-deadline"
+                label="Claim deadline"
+                tooltip="If nobody claims before this time, you (the creator) can reclaim the locked KAS. Must be after unlock."
+                value={deadlineLocal}
+                onChange={setDeadlineLocal}
+                minNow={false}
+              />
+              <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+                Claim window: from unlock until the deadline. After the deadline, claimers are blocked and
+                only you can reclaim.
+              </p>
             </div>
           ) : null}
 
@@ -498,7 +533,14 @@ export function CovenantLockboxWidget() {
               <p className="text-center text-zinc-500 py-8">No locks yet. Create your first one.</p>
             ) : (
               vaults.map((v) => {
-                const progress = unlockProgress(v, now);
+                const progress = resolveClaimWindowProgress({
+                  now,
+                  createdAt: v.createdAt,
+                  unlockAt: v.unlockAt,
+                  deadlineAt: v.deadlineAt,
+                  done: v.status === 'claimed' || v.status === 'reclaimed',
+                  doneLabel: v.status === 'reclaimed' ? 'Reclaimed' : 'Claimed',
+                });
                 return (
                   <div
                     key={v.id}
@@ -522,7 +564,9 @@ export function CovenantLockboxWidget() {
                           className={`text-xs px-1.5 py-0.5 rounded ${
                             v.status === 'locked'
                               ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                              : 'bg-green-500/20 text-green-700 dark:text-green-300'
+                              : v.status === 'reclaimed'
+                                ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300'
+                                : 'bg-green-500/20 text-green-700 dark:text-green-300'
                           }`}
                         >
                           {v.status}
@@ -545,24 +589,11 @@ export function CovenantLockboxWidget() {
                         <p className="text-[11px] text-zinc-400">Share group · {v.groupId.slice(0, 12)}</p>
                       ) : null}
                       <p>Unlock: {formatUnlock(v.unlockAt)}</p>
+                      {v.deadlineAt ? (
+                        <p>Deadline: {new Date(v.deadlineAt).toLocaleString()}</p>
+                      ) : null}
                     </div>
-                    {progress ? (
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
-                          <span>Unlock progress</span>
-                          <span className="tabular-nums">
-                            {progress.label}
-                            {progress.unlocked ? '' : ` · ${progress.percent}%`}
-                          </span>
-                        </div>
-                        <div className="relative h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          <div
-                            className="absolute inset-y-0 left-0 rounded-full bg-[#02abb8] transition-all duration-500 ease-out"
-                            style={{ width: `${progress.percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
+                    {progress ? <CovenantClaimWindowBar progress={progress} /> : null}
                     {canClaim(v, kaspaState.address) && (
                       <button
                         type="button"
@@ -578,6 +609,23 @@ export function CovenantLockboxWidget() {
                           : claimPricing.waived
                             ? 'Claim funds'
                             : `Claim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
+                      </button>
+                    )}
+                    {canReclaim(v, kaspaState.address) && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleReclaim(v.id);
+                        }}
+                        className={covenantSecondaryBtnClass}
+                      >
+                        {busyKey === `reclaim:${v.id}`
+                          ? 'Reclaiming...'
+                          : claimPricing.waived
+                            ? 'Reclaim funds'
+                            : `Reclaim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
                       </button>
                     )}
                   </div>

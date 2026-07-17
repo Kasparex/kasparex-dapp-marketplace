@@ -42,6 +42,9 @@ class HybridMilestoneRuntime implements MilestoneRuntime {
   claimMilestone = (...args: Parameters<MilestoneRuntime['claimMilestone']>) =>
     requireL1CovenantReady('Covenant Milestone', () => this.primary.claimMilestone(...args));
 
+  reclaimMilestone = (...args: Parameters<MilestoneRuntime['reclaimMilestone']>) =>
+    requireL1CovenantReady('Covenant Milestone', () => this.primary.reclaimMilestone(...args));
+
   listForAddress = (address: string) => this.primary.listForAddress(address);
 }
 

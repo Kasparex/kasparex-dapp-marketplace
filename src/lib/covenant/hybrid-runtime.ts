@@ -50,6 +50,26 @@ class HybridCovenantRuntime implements CovenantRuntime {
     }
   }
 
+  async reclaimVault(
+    vaultId: string,
+    depositor: string,
+    ctx: CovenantWalletContext,
+  ): Promise<CovenantVault> {
+    if (!this.primary.reclaimVault) {
+      throw new Error('Reclaim is not supported by this runtime');
+    }
+    try {
+      return await this.primary.reclaimVault(vaultId, depositor, ctx);
+    } catch (err) {
+      if (err instanceof CovenantNotReadyError) {
+        throw new CovenantNotReadyError(
+          `${err.message} Local simulator fallback is disabled for LockBox.`,
+        );
+      }
+      throw err;
+    }
+  }
+
   async getVault(vaultId: string): Promise<CovenantVault | null> {
     return this.primary.getVault(vaultId);
   }

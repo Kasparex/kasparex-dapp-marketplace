@@ -15,5 +15,11 @@ export interface MilestoneRuntime {
     claimer: string,
     ctx: CovenantWalletContext
   ): Promise<MilestoneDeal>;
+  reclaimMilestone(
+    dealId: string,
+    stepId: string,
+    depositor: string,
+    ctx: CovenantWalletContext
+  ): Promise<MilestoneDeal>;
   listForAddress(address: string): Promise<MilestoneDeal[]>;
 }

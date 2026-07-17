@@ -23,6 +23,12 @@ export interface CovenantRuntime {
     claimer: string,
     ctx: CovenantWalletContext
   ): Promise<CovenantVault>;
+  /** Depositor reclaim after timelock claim deadline. */
+  reclaimVault?(
+    vaultId: string,
+    depositor: string,
+    ctx: CovenantWalletContext
+  ): Promise<CovenantVault>;
   getVault(vaultId: string): Promise<CovenantVault | null>;
   listVaults(filter?: VaultListFilter): Promise<CovenantVault[]>;
 }

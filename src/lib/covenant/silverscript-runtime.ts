@@ -71,12 +71,20 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       if (!params.unlockAt || params.unlockAt <= Date.now()) {
         throw new Error('Timelock requires a future unlock time');
       }
+      if (params.deadlineAt != null) {
+        if (params.deadlineAt <= params.unlockAt) {
+          throw new Error('Deadline must be after the unlock time');
+        }
+      }
     }
 
     const unlockSeconds =
       params.kind === 'timelock' && params.unlockAt
         ? Math.floor(params.unlockAt / 1000)
         : 0;
+    const deadlineMs =
+      params.kind === 'timelock' ? params.deadlineAt ?? null : null;
+    const deadlineSeconds = deadlineMs ? Math.floor(deadlineMs / 1000) : 0;
 
     const networkId = covenantNetworkIdFromContext(ctx);
     const tx = await executeCovenantDeploy(ctx, {
@@ -88,6 +96,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
         { name: 'beneficiary', type: 'address', value: primary },
         { name: 'depositor', type: 'address', value: params.depositor.trim() },
         { name: 'unlockTimeMs', type: 'u64', value: String(unlockSeconds * 1000) },
+        { name: 'deadlineTimeMs', type: 'u64', value: String(deadlineSeconds * 1000) },
         { name: 'kind', type: 'string', value: params.kind },
         { name: 'memo', type: 'string', value: memo },
         {
@@ -106,6 +115,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
         beneficiaries: claimers,
         depositor: params.depositor,
         unlockTime: unlockSeconds,
+        deadlineTime: deadlineSeconds,
         memo,
       },
     });
@@ -124,6 +134,7 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
       groupId: params.groupId,
       memo,
       unlockAt: params.kind === 'timelock' ? params.unlockAt : null,
+      deadlineAt: deadlineMs,
       createdAt: Date.now(),
       claimedAt: null,
       lockTxHash: tx.txHash,
@@ -155,6 +166,9 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     }
     if (vault.kind === 'timelock' && vault.unlockAt && Date.now() < vault.unlockAt) {
       throw new Error('Timelock has not unlocked yet');
+    }
+    if (vault.kind === 'timelock' && vault.deadlineAt && Date.now() >= vault.deadlineAt) {
+      throw new Error('Claim deadline has passed. Only the creator can reclaim now.');
     }
     if (!vault.utxo?.txId && vault.lockTxHash) {
       const utxo = { txId: vault.lockTxHash, index: 0 };
@@ -188,6 +202,71 @@ class SilverscriptCovenantRuntime implements CovenantRuntime {
     const updated: CovenantVault = {
       ...vault,
       status: 'claimed',
+      claimedAt: Date.now(),
+      claimTxHash: tx.txHash,
+    };
+    this.vaults.set(vaultId, updated);
+    this.persist();
+    return updated;
+  }
+
+  /**
+   * After the claim deadline, the depositor may reclaim unclaimed funds.
+   * Hub-gated; spend uses the depositor wallet as the signing party.
+   */
+  async reclaimVault(
+    vaultId: string,
+    depositor: string,
+    ctx: CovenantWalletContext,
+  ): Promise<CovenantVault> {
+    requireCovenantContext(ctx);
+    this.reload();
+
+    const raw = this.vaults.get(vaultId);
+    if (!raw) throw new Error('Vault not found');
+    let vault = this.normalizeStoredVault(raw);
+    if (vault.status !== 'locked') throw new Error('Vault is no longer locked');
+    if (normalizeAddr(vault.depositor) !== normalizeAddr(depositor)) {
+      throw new Error('Only the creator can reclaim this vault');
+    }
+    if (vault.kind !== 'timelock' || !vault.deadlineAt) {
+      throw new Error('Reclaim is only available for timelock vaults with a deadline');
+    }
+    if (Date.now() < vault.deadlineAt) {
+      throw new Error('Claim deadline has not passed yet');
+    }
+    if (!vault.utxo?.txId && vault.lockTxHash) {
+      const utxo = { txId: vault.lockTxHash, index: 0 };
+      vault = { ...vault, utxo };
+      this.vaults.set(vaultId, vault);
+      this.persist();
+    }
+    if (!vault.utxo) {
+      throw new Error(
+        'Vault is missing on-chain UTXO reference. Create a new lock to reclaim on L1.',
+      );
+    }
+
+    const compiled = await loadKaspaComCompiledContract('lockbox');
+    const functionName = resolveSpendFunctionName(compiled, 'claim');
+
+    const tx = await executeCovenantSpend(ctx, {
+      template: 'lockbox',
+      networkId: covenantNetworkIdFromContext(ctx),
+      functionName,
+      spendOutpoint: { txid: vault.utxo.txId, vout: vault.utxo.index },
+      inputAmountSompi: vault.amountSompi,
+      outputs: [{ address: depositor.trim(), amountSompi: vault.amountSompi }],
+      params: {
+        action: 'reclaim',
+        vaultId,
+        beneficiary: depositor.trim(),
+      },
+    });
+
+    const updated: CovenantVault = {
+      ...vault,
+      status: 'reclaimed',
       claimedAt: Date.now(),
       claimTxHash: tx.txHash,
     };

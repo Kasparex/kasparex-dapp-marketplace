@@ -8,7 +8,16 @@ import type { CovenantVault, CovenantVaultKind } from '../types';
 
 export type ImportedCovenantVault = Pick<
   CovenantVault,
-  'covenantId' | 'beneficiary' | 'amountSompi' | 'status' | 'lockTxHash' | 'utxo' | 'kind' | 'unlockAt' | 'memo'
+  | 'covenantId'
+  | 'beneficiary'
+  | 'amountSompi'
+  | 'status'
+  | 'lockTxHash'
+  | 'utxo'
+  | 'kind'
+  | 'unlockAt'
+  | 'deadlineAt'
+  | 'memo'
 > & {
   source: 'kaspaCom' | 'kascov';
   genesisTxid?: string;
@@ -36,6 +45,9 @@ export async function importVaultFromCovenantId(
 
   const unlockRaw = detail.decodedArgs?.unlockTimeMs ?? detail.decodedArgs?.unlock_at;
   const unlockMs = unlockRaw != null ? Number(unlockRaw) : 0;
+  const deadlineRaw =
+    detail.decodedArgs?.deadlineTimeMs ?? detail.decodedArgs?.deadline_at;
+  const deadlineMs = deadlineRaw != null ? Number(deadlineRaw) : 0;
   const kind: CovenantVaultKind =
     Number.isFinite(unlockMs) && unlockMs > 0 ? 'timelock' : 'escrow';
   const kindArg = detail.decodedArgs?.kind;
@@ -43,6 +55,7 @@ export async function importVaultFromCovenantId(
     typeof kindArg === 'string' && (kindArg === 'timelock' || kindArg === 'escrow')
       ? kindArg
       : null;
+  const isTimelock = kindFromArg === 'timelock' || kind === 'timelock';
   const memoFromMeta =
     (detail.decodedArgs?.label as string | undefined) ??
     (detail.decodedArgs?.memo as string | undefined) ??
@@ -56,7 +69,9 @@ export async function importVaultFromCovenantId(
     lockTxHash: detail.genesis_txid ?? undefined,
     utxo: detail.genesis_txid ? { txId: detail.genesis_txid, index: 0 } : undefined,
     kind: kindFromArg ?? kind,
-    unlockAt: kind === 'timelock' || kindFromArg === 'timelock' ? unlockMs || null : null,
+    unlockAt: isTimelock ? unlockMs || null : null,
+    deadlineAt:
+      isTimelock && Number.isFinite(deadlineMs) && deadlineMs > 0 ? deadlineMs : null,
     memo: memoFromMeta.trim(),
     templateLabel: detail.template,
     source: detail.source,

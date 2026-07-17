@@ -45,8 +45,10 @@ interface UseCovenantLockboxReturn {
     amountKas: number;
     memo: string;
     unlockAt: Date | null;
+    deadlineAt?: Date | null;
   }) => Promise<CovenantVault>;
   claimVault: (vaultId: string) => Promise<CovenantVault>;
+  reclaimVault: (vaultId: string) => Promise<CovenantVault>;
   importByCovenantId: (covenantId: string) => Promise<CovenantVault | null>;
 }
 
@@ -135,16 +137,24 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
       amountKas: number;
       memo: string;
       unlockAt: Date | null;
+      deadlineAt?: Date | null;
     }) => {
       if (args.amountKas <= 0) throw new Error('Amount must be positive');
       if (args.kind === 'timelock' && !args.unlockAt) {
         throw new Error('Timelock requires an unlock date');
+      }
+      if (args.kind === 'timelock' && args.unlockAt && args.deadlineAt) {
+        if (args.deadlineAt.getTime() <= args.unlockAt.getTime()) {
+          throw new Error('Deadline must be after the unlock time');
+        }
       }
 
       const recipients = validateLockboxRecipients(args.recipients);
       const memo = normalizeCovenantMemo(args.memo, COVENANT_LAB_CONFIG.maxMemoLength);
       const totalSompi = BigInt(Math.round(args.amountKas * 100_000_000));
       const unlockAtMs = args.unlockAt ? args.unlockAt.getTime() : null;
+      const deadlineAtMs =
+        args.kind === 'timelock' && args.deadlineAt ? args.deadlineAt.getTime() : null;
       const amounts = allocateBps(
         totalSompi,
         recipients.map((r) => r.shareBps),
@@ -185,6 +195,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
                   groupId,
                   memo,
                   unlockAt: unlockAtMs,
+                  deadlineAt: deadlineAtMs,
                 },
                 ctx,
               );
@@ -259,6 +270,40 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     [refreshVaults, runtime, walletCtx, krexTier],
   );
 
+  const reclaimVault = useCallback(
+    async (vaultId: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        if (!runtime.reclaimVault) {
+          throw new Error('Reclaim is not supported by this runtime');
+        }
+        const pricing = resolveKpxCovenantClaimPrice('lockbox', krexTier);
+        const existing = (await runtime.getVault(vaultId))?.claimFeeTxHash;
+        const vault = await runKpxCovenantClaimWithFee({
+          template: 'lockbox',
+          pricing,
+          ctx: walletCtx(),
+          instanceId: vaultId,
+          existingFeeTxHash: existing,
+          onFeePaid: (feeTxHash) => {
+            setL1LockboxClaimFeeTxHash(vaultId, feeTxHash);
+          },
+          claim: () => runtime.reclaimVault!(vaultId, walletCtx().userAddress, walletCtx()),
+        });
+        await refreshVaults();
+        return vault;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to reclaim vault';
+        setError(msg);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [refreshVaults, runtime, walletCtx, krexTier],
+  );
+
   const importByCovenantId = useCallback(
     async (covenantId: string) => {
       if (!address) throw new Error('Connect your Kaspa wallet first');
@@ -299,6 +344,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
           amountSompi: imported.amountSompi,
           memo,
           unlockAt: imported.unlockAt,
+          deadlineAt: imported.deadlineAt ?? null,
           createdAt: Date.now(),
           claimedAt: imported.status === 'claimed' ? Date.now() : null,
           lockTxHash: imported.lockTxHash,
@@ -330,6 +376,7 @@ export function useCovenantLockbox(): UseCovenantLockboxReturn {
     refreshVaults,
     createVault,
     claimVault,
+    reclaimVault,
     importByCovenantId,
   };
 }

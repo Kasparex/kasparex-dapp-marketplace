@@ -8,6 +8,8 @@ export interface MilestoneStep {
   shareBps: number;
   amountSompi: string;
   unlockAt: number;
+  /** Claim-window end. After this, depositor may reclaim the step. */
+  deadlineAt?: number | null;
   claimed: boolean;
   claimedAt: number | null;
   claimTxHash?: string;
@@ -16,6 +18,8 @@ export interface MilestoneStep {
   claimFeeTxHash?: string;
   utxo?: CovenantUtxoRef;
   origin?: 'l1' | 'simulator';
+  /** True when the depositor reclaimed after the deadline. */
+  reclaimed?: boolean;
 }
 
 export interface MilestoneDeal {
@@ -36,6 +40,7 @@ export interface MilestoneInput {
   label: string;
   shareBps: number;
   unlockAt: number;
+  deadlineAt?: number | null;
 }
 
 export interface CreateMilestoneParams {

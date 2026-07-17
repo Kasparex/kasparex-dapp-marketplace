@@ -27,7 +27,7 @@ const KPX_COVENANT_BRAND_REGISTRY: Record<CovenantTemplate, KpxCovenantBrand> = 
     payloadTemplate: 'KPX_Lockbox_V1',
     shortLabel: 'Lockbox',
     tagline:
-      'Lock KAS for someone else with simple rules. Use escrow so they can claim anytime, or timelock so they can only claim after a date you choose.',
+      'Lock KAS for someone else with simple rules. Use escrow so they can claim anytime, or timelock with an unlock time and claim deadline. If nobody claims before the deadline, you can reclaim.',
     disconnectedMessage: 'Connect your wallet to lock KAS with escrow or timelock rules.',
   },
   split: {
@@ -45,7 +45,7 @@ const KPX_COVENANT_BRAND_REGISTRY: Record<CovenantTemplate, KpxCovenantBrand> = 
     payloadTemplate: 'KPX_Milestone_V1',
     shortLabel: 'Milestone',
     tagline:
-      'Pay someone in steps. Lock the full amount up front, then release each part on the dates you set.',
+      'Pay someone in steps. Lock the full amount up front, release each part after its unlock time, and reclaim any unclaimed slice after its deadline.',
     disconnectedMessage: 'Connect your wallet to create or claim milestone payments.',
   },
   crowdfund: {

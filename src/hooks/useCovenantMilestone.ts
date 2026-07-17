@@ -107,6 +107,30 @@ export function useCovenantMilestone() {
     [refresh, runtime, walletCtx, krexTier]
   );
 
+  const reclaimStep = useCallback(
+    async (dealId: string, stepId: string) => {
+      const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
+      const existing = (await runtime.listForAddress(walletCtx().userAddress))
+        .find((d) => d.id === dealId)
+        ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
+      const deal = await runKpxCovenantClaimWithFee({
+        template: 'milestone',
+        pricing,
+        ctx: walletCtx(),
+        instanceId: `${dealId}:${stepId}:reclaim`,
+        existingFeeTxHash: existing,
+        onFeePaid: async (feeTxHash) => {
+          await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
+        },
+        claim: () =>
+          runtime.reclaimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
+      });
+      await refresh();
+      return deal;
+    },
+    [refresh, runtime, walletCtx, krexTier]
+  );
+
   return {
     deals,
     loading,
@@ -116,5 +140,6 @@ export function useCovenantMilestone() {
     refresh,
     createDeal,
     claimStep,
+    reclaimStep,
   };
 }

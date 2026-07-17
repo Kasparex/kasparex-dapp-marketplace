@@ -396,6 +396,10 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
       const m = params.milestones[i];
       const amountSompi = amounts[i];
       const unlockAt = m.unlockAt;
+      const deadlineAt = m.deadlineAt ?? null;
+      if (deadlineAt != null && deadlineAt <= unlockAt) {
+        throw new Error(`Milestone "${m.label || i + 1}" deadline must be after unlock`);
+      }
       const deployed = await deployL1CovenantLock(ctx, {
         template: 'milestone',
         amountSompi,
@@ -403,6 +407,7 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
           { name: 'beneficiary', type: 'address', value: beneficiary },
           { name: 'depositor', type: 'address', value: params.depositor.trim() },
           { name: 'unlockTimeMs', type: 'u64', value: String(unlockAt) },
+          { name: 'deadlineTimeMs', type: 'u64', value: String(deadlineAt ?? 0) },
           { name: 'stepIndex', type: 'u64', value: String(i + 1) },
           { name: 'memo', type: 'string', value: memo },
           { name: 'dealId', type: 'string', value: id },
@@ -412,6 +417,7 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
           beneficiary,
           depositor: params.depositor,
           unlockTime: Math.floor(unlockAt / 1000),
+          deadlineTime: deadlineAt ? Math.floor(deadlineAt / 1000) : 0,
           stepIndex: i + 1,
           memo,
           dealId: id,
@@ -424,6 +430,7 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
         shareBps: m.shareBps,
         amountSompi,
         unlockAt,
+        deadlineAt,
         claimed: false,
         claimedAt: null,
         covenantId: deployed.covenantId,
@@ -470,6 +477,9 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     if (!step) throw new Error('Milestone not found');
     if (step.claimed) throw new Error('Milestone already claimed');
     if (Date.now() < step.unlockAt) throw new Error('Milestone has not unlocked yet');
+    if (step.deadlineAt && Date.now() >= step.deadlineAt) {
+      throw new Error('Claim deadline has passed. Only the creator can reclaim now.');
+    }
     const utxo = resolveCovenantUtxoRef({
       utxo: step.utxo,
       lockTxHash: step.lockTxHash,
@@ -537,6 +547,87 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     );
     this.deals.set(dealId, { ...deal, milestones });
     this.persist();
+  }
+
+  async reclaimMilestone(
+    dealId: string,
+    stepId: string,
+    depositor: string,
+    ctx: CovenantWalletContext,
+  ): Promise<MilestoneDeal> {
+    requireCovenantContext(ctx);
+    this.reload();
+    const deal = this.deals.get(dealId);
+    if (!deal) throw new Error('Deal not found');
+    if (normalizeAddr(depositor) !== normalizeAddr(deal.depositor)) {
+      throw new Error('Only the creator can reclaim this milestone');
+    }
+    const step = deal.milestones.find((s) => s.id === stepId);
+    if (!step) throw new Error('Milestone not found');
+    if (step.claimed) throw new Error('Milestone already claimed');
+    if (!step.deadlineAt) {
+      throw new Error('Reclaim requires a claim deadline on this milestone');
+    }
+    if (Date.now() < step.deadlineAt) {
+      throw new Error('Claim deadline has not passed yet');
+    }
+    const utxo = resolveCovenantUtxoRef({
+      utxo: step.utxo,
+      lockTxHash: step.lockTxHash,
+    });
+    if (!utxo) {
+      throw new Error(
+        'Milestone is missing an on-chain UTXO reference. Create a new deal to reclaim on L1.',
+      );
+    }
+    if (!step.utxo?.txId) {
+      const patched = {
+        ...deal,
+        milestones: deal.milestones.map((s) =>
+          s.id === stepId ? { ...s, utxo, lockTxHash: s.lockTxHash ?? utxo.txId } : s,
+        ),
+      };
+      this.deals.set(dealId, patched);
+      this.persist();
+    }
+
+    const spent = await spendL1CovenantLock(ctx, {
+      template: 'milestone',
+      utxo,
+      amountSompi: step.amountSompi,
+      toAddress: depositor,
+      functionNameFallback: 'release_next',
+      params: {
+        action: 'reclaim',
+        dealId,
+        stepId,
+        beneficiary: depositor.trim(),
+      },
+    });
+
+    this.reload();
+    const latest = this.deals.get(dealId) ?? deal;
+    const milestones = latest.milestones.map((s) =>
+      s.id === stepId
+        ? {
+            ...s,
+            utxo: s.utxo ?? utxo,
+            lockTxHash: s.lockTxHash ?? utxo.txId,
+            claimed: true,
+            reclaimed: true,
+            claimedAt: Date.now(),
+            claimTxHash: spent.txHash,
+          }
+        : s,
+    );
+    const updated: MilestoneDeal = {
+      ...latest,
+      milestones,
+      status: milestones.every((s) => s.claimed) ? 'completed' : 'active',
+    };
+    this.deals.set(dealId, updated);
+    this.persist();
+    return updated;
   }
 
   async listForAddress(address: string): Promise<MilestoneDeal[]> {

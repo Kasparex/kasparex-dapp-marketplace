@@ -1,9 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useCovenantMilestone } from '@/hooks/useCovenantMilestone';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
+import {
+  defaultDeadlineAfterUnlock,
+  resolveClaimWindowProgress,
+} from '@/lib/covenant/claimWindow';
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
   CovenantFieldLabel,
@@ -24,7 +28,11 @@ import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
-import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
+import {
+  CovenantDatetimeField,
+  toDatetimeLocalValue,
+} from '@/components/dapps/covenant/CovenantDatetimeField';
+import { CovenantClaimWindowBar } from '@/components/dapps/covenant/CovenantClaimWindowBar';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -32,13 +40,14 @@ import {
 } from '@/lib/dapps/DAppWidgetTabContext';
 
 type TabId = 'create' | 'deals' | 'metadata';
-type BusyKey = null | 'create' | `claim:${string}:${string}`;
+type BusyKey = null | 'create' | `claim:${string}:${string}` | `reclaim:${string}:${string}`;
 
 type MilestoneRow = {
   key: string;
   label: string;
   pct: string;
   unlock: string;
+  deadline: string;
 };
 
 function defaultUnlock(days: number) {
@@ -48,18 +57,30 @@ function defaultUnlock(days: number) {
 }
 
 function newMilestoneRow(days: number, label: string, pct: string): MilestoneRow {
+  const unlock = defaultUnlock(days);
+  const unlockMs = new Date(unlock).getTime();
   return {
     key: `m_${Math.random().toString(36).slice(2, 9)}`,
     label,
     pct,
-    unlock: defaultUnlock(days),
+    unlock,
+    deadline: toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs)),
   };
 }
 
 export function CovenantMilestoneWidget() {
   const { state } = useKaspaWallet();
-  const { deals, loading, error, createDeal, claimStep, refresh, runtimeMode, effectiveMode } =
-    useCovenantMilestone();
+  const {
+    deals,
+    loading,
+    error,
+    createDeal,
+    claimStep,
+    reclaimStep,
+    refresh,
+    runtimeMode,
+    effectiveMode,
+  } = useCovenantMilestone();
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
   useRegisterWidgetTabLabel('deals', `Deals (${deals.length})`, [deals.length]);
@@ -74,6 +95,7 @@ export function CovenantMilestoneWidget() {
   const { pricing: claimPricing } = useKpxCovenantClaimFee('milestone');
   const [busyKey, setBusyKey] = useState<BusyKey>(null);
   const [detailDealId, setDetailDealId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
   const detailInstance = useMemo(
@@ -82,8 +104,29 @@ export function CovenantMilestoneWidget() {
   );
   const busy = busyKey != null;
 
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+
   const updateMilestoneRow = (key: string, patch: Partial<MilestoneRow>) => {
     setMilestoneRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  };
+
+  const setUnlockAndSyncDeadline = (key: string, unlock: string) => {
+    setMilestoneRows((prev) =>
+      prev.map((row) => {
+        if (row.key !== key) return row;
+        const unlockMs = new Date(unlock).getTime();
+        const deadlineMs = new Date(row.deadline).getTime();
+        const nextDeadline =
+          Number.isFinite(unlockMs) &&
+          (!Number.isFinite(deadlineMs) || deadlineMs <= unlockMs)
+            ? toDatetimeLocalValue(defaultDeadlineAfterUnlock(unlockMs))
+            : row.deadline;
+        return { ...row, unlock, deadline: nextDeadline };
+      }),
+    );
   };
 
   const addMilestoneRow = () => {
@@ -100,11 +143,25 @@ export function CovenantMilestoneWidget() {
   const handleCreate = async () => {
     setBusyKey('create');
     try {
-      const milestones = milestoneRows.map((row) => ({
-        label: row.label,
-        shareBps: Math.round(parseFloat(row.pct) * 100),
-        unlockAt: new Date(row.unlock).getTime(),
-      }));
+      const milestones = milestoneRows.map((row) => {
+        const unlockAt = new Date(row.unlock).getTime();
+        const deadlineAt = new Date(row.deadline).getTime();
+        if (!Number.isFinite(unlockAt)) {
+          throw new Error(`Choose an unlock time for "${row.label || 'milestone'}"`);
+        }
+        if (!Number.isFinite(deadlineAt)) {
+          throw new Error(`Choose a claim deadline for "${row.label || 'milestone'}"`);
+        }
+        if (deadlineAt <= unlockAt) {
+          throw new Error(`Deadline must be after unlock for "${row.label || 'milestone'}"`);
+        }
+        return {
+          label: row.label,
+          shareBps: Math.round(parseFloat(row.pct) * 100),
+          unlockAt,
+          deadlineAt,
+        };
+      });
       await createDeal({
         beneficiary: beneficiary.trim(),
         totalKas: parseFloat(totalKas),
@@ -126,20 +183,27 @@ export function CovenantMilestoneWidget() {
     }
   };
 
+  const handleReclaim = async (dealId: string, stepId: string) => {
+    setBusyKey(`reclaim:${dealId}:${stepId}`);
+    try {
+      await reclaimStep(dealId, stepId);
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const claimOrReclaimBusy =
+    typeof busyKey === 'string' &&
+    (busyKey.startsWith('claim:') || busyKey.startsWith('reclaim:'));
+
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(totalKas) || 0 : undefined,
     enabled: tab === 'create',
     flowAlwaysVisible: true,
     flowBusy: busy,
-    flowPreset:
-      tab === 'deals' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
-        ? 'covenantClaim'
-        : 'covenantCreate',
+    flowPreset: tab === 'deals' || claimOrReclaimBusy ? 'covenantClaim' : 'covenantCreate',
     flowLockSignCount: milestoneRows.length,
-    flowFeeWaived:
-      tab === 'deals' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
-        ? claimPricing.waived
-        : pricing.waived,
+    flowFeeWaived: tab === 'deals' || claimOrReclaimBusy ? claimPricing.waived : pricing.waived,
     primaryAction: (
       <button
         type="button"
@@ -172,7 +236,7 @@ export function CovenantMilestoneWidget() {
             <CovenantFieldLabel
               label="Who gets paid"
               htmlFor="milestone-beneficiary"
-              tooltip="The Kaspa address that can claim each milestone when its unlock date arrives."
+              tooltip="The Kaspa address that can claim each milestone during its claim window (after unlock, before deadline)."
             />
             <input
               id="milestone-beneficiary"
@@ -203,10 +267,10 @@ export function CovenantMilestoneWidget() {
           <div className="k-form-group !mb-0 space-y-3">
             <CovenantFieldLabel
               label="Milestones"
-              tooltip="Each row is one payment slice. Percentages should add up to 100. The beneficiary can claim after each unlock date."
+              tooltip="Each row is one payment slice. Percentages should add up to 100. After unlock, the beneficiary has until the deadline to claim; otherwise you can reclaim."
             />
             <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1">
-              Label · share % · unlock date
+              Label · share % · unlock · claim deadline
             </p>
             {milestoneRows.map((row) => (
               <div key={row.key} className="space-y-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
@@ -243,9 +307,21 @@ export function CovenantMilestoneWidget() {
                   label="Unlock after"
                   tooltip="This milestone can be claimed after this date and time."
                   value={row.unlock}
-                  onChange={(next) => updateMilestoneRow(row.key, { unlock: next })}
+                  onChange={(next) => setUnlockAndSyncDeadline(row.key, next)}
                   compact
                 />
+                <CovenantDatetimeField
+                  id={`milestone-deadline-${row.key}`}
+                  label="Claim deadline"
+                  tooltip="If the beneficiary does not claim before this time, you (the creator) can reclaim this slice. Must be after unlock."
+                  value={row.deadline}
+                  onChange={(next) => updateMilestoneRow(row.key, { deadline: next })}
+                  minNow={false}
+                  compact
+                />
+                <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                  Claim window: from unlock until the deadline. After the deadline, only you can reclaim.
+                </p>
               </div>
             ))}
             <button
@@ -279,7 +355,7 @@ export function CovenantMilestoneWidget() {
         <CovenantTabPanel
           title="Deals"
           heading="Your milestone deals"
-          description="Funded deals and milestone release status. Beneficiaries claim each slice on schedule."
+          description="Funded deals and release status. Beneficiaries claim each slice in the unlock window; after the deadline, the creator can reclaim."
         >
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -326,38 +402,87 @@ export function CovenantMilestoneWidget() {
                   {shortKaspaAddr(d.depositor)} → {shortKaspaAddr(d.beneficiary)}
                 </p>
                 {d.milestones.map((s) => {
+                  const closed = Boolean(s.claimed || s.reclaimed);
                   const canClaim =
-                    state.address &&
-                    normalizeAddr(state.address) === normalizeAddr(d.beneficiary) &&
-                    !s.claimed &&
-                    Date.now() >= s.unlockAt;
+                    Boolean(state.address) &&
+                    normalizeAddr(state.address!) === normalizeAddr(d.beneficiary) &&
+                    !closed &&
+                    now >= s.unlockAt &&
+                    (!s.deadlineAt || now < s.deadlineAt);
+                  const canReclaim =
+                    Boolean(state.address) &&
+                    normalizeAddr(state.address!) === normalizeAddr(d.depositor) &&
+                    !closed &&
+                    s.deadlineAt != null &&
+                    now >= s.deadlineAt;
                   const claiming = busyKey === `claim:${d.id}:${s.id}`;
+                  const reclaiming = busyKey === `reclaim:${d.id}:${s.id}`;
+                  const progress = resolveClaimWindowProgress({
+                    now,
+                    createdAt: d.createdAt,
+                    unlockAt: s.unlockAt,
+                    deadlineAt: s.deadlineAt,
+                    done: closed,
+                    doneLabel: s.reclaimed ? 'Reclaimed' : 'Claimed',
+                  });
                   return (
                     <div
                       key={s.id}
-                      className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-700 pt-3 mt-1"
+                      className="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3 mt-1"
                     >
-                      <span>
-                        {s.label}: {sompiToKasNumber(s.amountSompi)} KAS
-                        {s.claimed ? ' (claimed)' : ''}
-                      </span>
-                      {canClaim && (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto disabled:opacity-50 disabled:cursor-wait`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void handleClaim(d.id, s.id);
-                          }}
-                        >
-                          {claiming
-                            ? 'Claiming...'
-                            : claimPricing.waived
-                              ? 'Claim'
-                              : `Claim · ${claimPricing.feeKas.toFixed(2)} KAS`}
-                        </button>
-                      )}
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0 space-y-0.5 text-sm">
+                          <p>
+                            {s.label}: {sompiToKasNumber(s.amountSompi)} KAS
+                            {s.reclaimed ? ' (reclaimed)' : s.claimed ? ' (claimed)' : ''}
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            Unlock: {new Date(s.unlockAt).toLocaleString()}
+                          </p>
+                          {s.deadlineAt ? (
+                            <p className="text-xs text-zinc-500">
+                              Deadline: {new Date(s.deadlineAt).toLocaleString()}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="flex shrink-0 flex-col gap-1.5">
+                          {canClaim ? (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto disabled:opacity-50 disabled:cursor-wait`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleClaim(d.id, s.id);
+                              }}
+                            >
+                              {claiming
+                                ? 'Claiming...'
+                                : claimPricing.waived
+                                  ? 'Claim'
+                                  : `Claim · ${claimPricing.feeKas.toFixed(2)} KAS`}
+                            </button>
+                          ) : null}
+                          {canReclaim ? (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className={`text-xs px-3 py-1.5 rounded-lg ${covenantSecondaryBtnClass} w-auto disabled:opacity-50 disabled:cursor-wait`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleReclaim(d.id, s.id);
+                              }}
+                            >
+                              {reclaiming
+                                ? 'Reclaiming...'
+                                : claimPricing.waived
+                                  ? 'Reclaim'
+                                  : `Reclaim · ${claimPricing.feeKas.toFixed(2)} KAS`}
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                      {progress ? <CovenantClaimWindowBar progress={progress} /> : null}
                     </div>
                   );
                 })}

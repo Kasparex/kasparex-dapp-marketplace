@@ -5,7 +5,7 @@
 
 export type CovenantVaultKind = 'escrow' | 'timelock';
 
-export type CovenantVaultStatus = 'locked' | 'claimed';
+export type CovenantVaultStatus = 'locked' | 'claimed' | 'reclaimed';
 
 /** How the runtime executes covenant logic. */
 export type CovenantRuntimeMode = 'simulator' | 'silverscript' | 'hybrid';
@@ -41,6 +41,11 @@ export interface CovenantVault {
   memo: string;
   /** Unix ms when claim is allowed (timelock only). */
   unlockAt: number | null;
+  /**
+   * Unix ms when the claim window ends (timelock only).
+   * After this, claimers are blocked and the depositor may reclaim.
+   */
+  deadlineAt?: number | null;
   createdAt: number;
   claimedAt: number | null;
   /** L1 tx that funded the lock. */
@@ -67,6 +72,8 @@ export interface CreateVaultParams {
   groupId?: string;
   memo: string;
   unlockAt: number | null;
+  /** Claim-window end (timelock). Must be after unlockAt when set. */
+  deadlineAt?: number | null;
   lockTxHash?: string;
 }
 

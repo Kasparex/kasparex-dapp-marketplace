@@ -152,6 +152,7 @@ export function lockboxMetadataInstances(vaults: CovenantVault[]): KpxCovenantMe
         row('Amount', sompiToKasLabel(v.amountSompi)),
         row('Type', v.kind === 'timelock' ? 'Timelock' : 'Escrow'),
         row('Unlock', v.unlockAt ? formatTs(v.unlockAt) : 'Anytime'),
+        row('Deadline', v.deadlineAt ? formatTs(v.deadlineAt) : undefined),
         addressRow(claimers.length > 1 ? 'Primary claimer' : 'Claimer', v.beneficiary),
         claimers.length > 1
           ? row('Claimers', `${claimers.length} wallets`)
@@ -212,9 +213,10 @@ export function milestoneMetadataInstances(deals: MilestoneDeal[]): KpxCovenantM
         ...d.milestones.flatMap((m, i) => [
           row(
             `Step ${i + 1}`,
-            `${m.label} · ${sompiToKasLabel(m.amountSompi)}${m.claimed ? ' · claimed' : ''}`,
+            `${m.label} · ${sompiToKasLabel(m.amountSompi)}${m.reclaimed ? ' · reclaimed' : m.claimed ? ' · claimed' : ''}`,
           ),
           row(`Step ${i + 1} unlock`, formatTs(m.unlockAt)),
+          row(`Step ${i + 1} deadline`, formatTs(m.deadlineAt ?? undefined)),
           txRow(`Step ${i + 1} lock`, m.lockTxHash ?? m.utxo?.txId),
         ]),
       ].filter((r) => r.value || r.links?.length),

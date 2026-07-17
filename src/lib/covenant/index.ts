@@ -92,6 +92,12 @@ export {
 export { payCovenantTreasury } from './treasury';
 export { sha256Hex, sompiToKasNumber, kasToSompiString, randomHex } from './utils';
 export {
+  defaultDeadlineAfterUnlock,
+  resolveClaimWindowProgress,
+  type ClaimWindowPhase,
+  type ClaimWindowProgress,
+} from './claimWindow';
+export {
   getCovenantRuntime,
   getSplitPaymentRuntime,
   getMilestoneRuntime,
