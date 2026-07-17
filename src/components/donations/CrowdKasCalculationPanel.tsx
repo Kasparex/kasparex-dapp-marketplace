@@ -144,6 +144,8 @@ export function CrowdKasL1CalculationPanel({
         hubPointsDetail={hubPointsDetail}
         hubPointsBaseSpendKas={quote.subtotalKas}
         showCurrentTierFootnote
+        flowBusy={isSubmitting}
+        flowPreset="hubPublish"
         footer={
           <>
             {!hasKrexDiscount ? (
@@ -289,6 +291,8 @@ export function CrowdKasL2CalculationPanel({
       hubPointsDetail={hubPointsDetail}
       hubPointsBaseSpendKas={quote.subtotalIkas}
       showCurrentTierFootnote
+      flowBusy={isSubmitting}
+      flowPreset="hubPublish"
       footer={
         <>
           {onSubmit ? (

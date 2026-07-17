@@ -37,8 +37,10 @@ import { cleanPayoutSplitRows, payoutSplitRowsFromModules, validatePayoutSplitRo
 import type { PayoutSplitRow } from '@/components/vblog/VBlogModuleConfigFields';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
-import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 
 const FORM_PANEL_CLASS =
   'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8';
@@ -944,6 +946,10 @@ export function CreateArticleForm({ onSubmit, onUpdate, article, onCancel }: Cre
             </Alert>
           ) : null}
         </KxAlertRegion>
+        <HubFlowProgress
+          steps={getHubFlowPreset('hubPublish')}
+          busy={isSubmitting || isUploading}
+        />
         </aside>
       </div>
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />

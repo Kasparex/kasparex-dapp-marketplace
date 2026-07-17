@@ -14,7 +14,9 @@ import {
 } from '@/lib/payments/hubQuote';
 import { KREX_TIERS } from '@/lib/rewards/types';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
+import { getHubFlowPreset, type HubFlowStep } from '@/lib/hub/hubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
@@ -24,10 +26,19 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   dapp,
   footer,
   showWhenEmpty = false,
+  flowSteps,
+  flowBusy = false,
+  flowComplete = false,
+  flowProgressSlot = null,
 }: {
   dapp: DApp;
   footer?: ReactNode;
   showWhenEmpty?: boolean;
+  flowSteps?: HubFlowStep[];
+  flowBusy?: boolean;
+  flowComplete?: boolean;
+  /** Custom Flow Progress node from the action rail (overrides default). */
+  flowProgressSlot?: ReactNode;
 }) {
   const chainId = useChainId();
   const currency = quoteCurrencyForDApp(dapp, chainId);
@@ -96,6 +107,8 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
   const showBuyKrex = !quote?.hasKrexDiscount && krexBalance < KREX_TIERS.Tier1.minKREX;
   const discountCurrency = quote?.discountCurrency ?? quote?.currency ?? currency;
   const baseSpendKas = paymentAmount ?? quote?.subtotalKas ?? quote?.totalKas;
+  const steps =
+    flowSteps ?? getHubFlowPreset(isCovenant ? 'covenantCreate' : 'hubPay');
 
   return (
     <aside className={KX_CALCULATION_ASIDE}>
@@ -184,6 +197,10 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}
+
+      {flowProgressSlot ?? (
+        <HubFlowProgress steps={steps} busy={flowBusy} complete={flowComplete} />
+      )}
 
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </aside>

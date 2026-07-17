@@ -12,6 +12,7 @@ import { getExplorerTxUrl, getKaspaExplorerAddressUrl } from '@/lib/store/utils'
 import { CopyableAddress } from '@/components/donations/CopyableAddress';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
@@ -260,6 +261,7 @@ export function SendKREXWidget() {
 
   useRegisterDAppWidgetRailSlot('actions', railActions, [state.isConnected, isSending, toAddress, amount]);
   useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, txHash, sentTo, sentAmount, txHashCopied]);
+  useRegisterHubFlowProgress('hubPay', { busy: isSending, complete: Boolean(success) }, [isSending, success]);
 
   return (
     <DAppWidgetShell

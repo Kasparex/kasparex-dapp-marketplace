@@ -15,12 +15,15 @@ export type DAppWidgetRailSlots = {
   actions: ReactNode;
   alerts: ReactNode;
   extraBreakdown: ReactNode;
+  /** Optional Flow Progress override for the calculation sidebar. */
+  flowProgress: ReactNode;
 };
 
 const EMPTY_SLOTS: DAppWidgetRailSlots = {
   actions: null,
   alerts: null,
   extraBreakdown: null,
+  flowProgress: null,
 };
 
 type DAppWidgetActionRailContextValue = {
@@ -28,6 +31,7 @@ type DAppWidgetActionRailContextValue = {
   setActions: (node: ReactNode) => void;
   setAlerts: (node: ReactNode) => void;
   setExtraBreakdown: (node: ReactNode) => void;
+  setFlowProgress: (node: ReactNode) => void;
 };
 
 const DAppWidgetActionRailContext = createContext<DAppWidgetActionRailContextValue | null>(null);
@@ -45,6 +49,7 @@ export function DAppWidgetActionRailProvider({ children }: { children: ReactNode
       setActions: (node) => setSlot('actions', node),
       setAlerts: (node) => setSlot('alerts', node),
       setExtraBreakdown: (node) => setSlot('extraBreakdown', node),
+      setFlowProgress: (node) => setSlot('flowProgress', node),
     }),
     [slots, setSlot],
   );
@@ -60,6 +65,7 @@ export function useDAppWidgetActionRail() {
       setActions: () => {},
       setAlerts: () => {},
       setExtraBreakdown: () => {},
+      setFlowProgress: () => {},
     };
   }
   return ctx;
@@ -74,7 +80,13 @@ export function useRegisterDAppWidgetRailSlot(
 
   useEffect(() => {
     const setter =
-      slot === 'actions' ? rail.setActions : slot === 'alerts' ? rail.setAlerts : rail.setExtraBreakdown;
+      slot === 'actions'
+        ? rail.setActions
+        : slot === 'alerts'
+          ? rail.setAlerts
+          : slot === 'flowProgress'
+            ? rail.setFlowProgress
+            : rail.setExtraBreakdown;
     setter(node);
     return () => setter(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,5 +94,5 @@ export function useRegisterDAppWidgetRailSlot(
 }
 
 export function hasDAppWidgetRailContent(slots: DAppWidgetRailSlots): boolean {
-  return Boolean(slots.actions || slots.alerts || slots.extraBreakdown);
+  return Boolean(slots.actions || slots.alerts || slots.extraBreakdown || slots.flowProgress);
 }

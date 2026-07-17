@@ -124,6 +124,9 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           tier={krexTier}
           krexBalance={krexBalance}
           currencyAccent="store"
+          flowPreset="hubCheckout"
+          flowBusy={isProcessing}
+          flowComplete={Boolean(success)}
           footer={
             <>
               {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}

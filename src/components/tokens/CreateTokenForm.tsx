@@ -1132,6 +1132,7 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                 : undefined
             }
             infoText="One Kaspa L1 payment commits your listing payload on-chain. KREX pay still requires a connected Kaspa L1 wallet for the transfer."
+            flowBusy={isSubmitting}
             footer={
               <>
                 <button

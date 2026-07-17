@@ -11,6 +11,7 @@ import { awaitCovenantSettlement } from './execution/await-settlement';
 import { payKpxCovenantPlatformFee } from './platform-fee';
 import type { KpxCovenantDeployPrice } from './kpxCovenantPricing';
 import { resolveKpxCovenantClaimPoints } from './kpxCovenantPricing';
+import { reportHubFlowStep } from '@/lib/hub/hubFlowProgress';
 
 export async function verifyKpxCovenantFeeOnServer(args: {
   template: CovenantTemplate;
@@ -55,14 +56,19 @@ export async function runKpxCovenantDeployWithFee<T extends { id: string; covena
   ctx: CovenantWalletContext;
   create: () => Promise<T>;
 }): Promise<T> {
+  reportHubFlowStep('create', 'covenantCreate');
   // Create the lock first so a failed WASM build cannot charge the platform fee
   // without producing a vault (seen with networkId vs kaspa: change-address mismatch).
+  reportHubFlowStep('sign', 'covenantCreate');
   const created = await args.create();
 
   let feeTxHash: string | undefined;
   if (!args.pricing.waived) {
+    reportHubFlowStep('pay-fee', 'covenantCreate');
     feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
   }
+
+  reportHubFlowStep('complete', 'covenantCreate');
 
   const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;
   const idempotencyKey = feeTxHash
@@ -118,6 +124,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
   onFeePaid?: (feeTxHash: string) => void | Promise<void>;
 }): Promise<T> {
   const instanceId = args.instanceId ?? `pending_${Date.now()}`;
+  reportHubFlowStep('verify', 'covenantClaim');
 
   // Fee first, then unlock. Paying after claim often never prompted (wallet busy /
   // fee UTXOs already spent on network fees) and left successful unlocks without a Hub fee.
@@ -127,6 +134,7 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
     if (!args.pricing.treasuryConfigured) {
       throw new Error('Hub treasury is not configured; claim fee cannot be collected.');
     }
+    reportHubFlowStep('sign', 'covenantClaim');
     feeTxHash = await payKpxCovenantPlatformFee({ ctx: args.ctx, pricing: args.pricing });
     if (!feeTxHash) {
       throw new Error('Hub claim fee payment did not return a transaction id.');
@@ -148,7 +156,9 @@ export async function runKpxCovenantClaimWithFee<T extends { id: string; covenan
     }
   }
 
+  reportHubFlowStep('claim', 'covenantClaim');
   const claimed = await args.claim();
+  reportHubFlowStep('complete', 'covenantClaim');
   const resolvedInstanceId = args.instanceId ?? claimed.id;
 
   const spendKas = args.pricing.waived ? 0 : args.pricing.feeKas;

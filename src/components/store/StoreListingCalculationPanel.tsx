@@ -3,12 +3,14 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { computeEarnedHubPoints, formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
 import type { StoreListingQuote } from '@/lib/store/listingQuote';
 
@@ -19,6 +21,8 @@ export function StoreListingCalculationPanel({
   krexBalance,
   footer,
   className = '',
+  flowBusy = false,
+  flowComplete = false,
 }: {
   quote: StoreListingQuote;
   isEdit: boolean;
@@ -26,6 +30,8 @@ export function StoreListingCalculationPanel({
   krexBalance: number;
   footer?: ReactNode;
   className?: string;
+  flowBusy?: boolean;
+  flowComplete?: boolean;
 }) {
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
   const tierConfig = KREX_TIERS[tier];
@@ -114,6 +120,12 @@ export function StoreListingCalculationPanel({
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}
+
+      <HubFlowProgress
+        steps={getHubFlowPreset('hubPublish')}
+        busy={flowBusy}
+        complete={flowComplete}
+      />
 
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </aside>

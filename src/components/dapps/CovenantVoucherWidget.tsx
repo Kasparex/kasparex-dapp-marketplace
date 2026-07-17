@@ -86,6 +86,9 @@ export function CovenantVoucherWidget() {
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(amountKas) || 0 : undefined,
     enabled: tab === 'create',
+    flowAlwaysVisible: true,
+    flowBusy: busy,
+    flowPreset: busyKey === 'claim' ? 'covenantClaim' : 'covenantCreate',
     primaryAction: (
       <button
         type="button"

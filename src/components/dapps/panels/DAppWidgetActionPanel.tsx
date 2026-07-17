@@ -13,6 +13,7 @@ export function DAppWidgetActionPanel({ dapp }: { dapp: DApp }) {
     <DAppCalculationBreakdownPanel
       dapp={dapp}
       showWhenEmpty={hasSlots}
+      flowProgressSlot={slots.flowProgress}
       footer={
         <>
           {slots.extraBreakdown}

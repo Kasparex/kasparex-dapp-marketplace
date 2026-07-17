@@ -9,6 +9,7 @@ import { TransactionTracker } from '@/components/transactions/TransactionTracker
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxAlert } from '@/components/ui/KxAlert';
@@ -152,6 +153,7 @@ export function DAOVotingWidget() {
   }, [error]);
 
   useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error]);
+  useRegisterHubFlowProgress('hubPay', { busy: isLoading }, [isLoading, showSubmitForm]);
 
   if (!isConnected) {
     return (

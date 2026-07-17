@@ -567,6 +567,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           isEdit={isEdit}
           tier={tier}
           krexBalance={krexBalance}
+          flowBusy={isProcessing || isUploading}
           footer={
             <>
               <button

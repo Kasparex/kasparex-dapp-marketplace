@@ -93,6 +93,7 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
 
   useGenesisWidgetRail(quote, krexBalance ?? 0, tier, {
     enabled: tab === 'create' && kaspaState.isConnected,
+    flowBusy: isSubmitting,
     primaryAction: (
       <button
         type="button"

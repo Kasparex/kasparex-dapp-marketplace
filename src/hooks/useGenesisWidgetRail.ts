@@ -6,6 +6,8 @@ import { genesisMessageToHubQuote } from '@/lib/payments/hubQuote';
 import type { KREXTier } from '@/lib/rewards/types';
 import { useSyncHubQuote } from '@/lib/dapps/PaymentAmountContext';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 
 export function useGenesisWidgetRail(
   quote: GenesisMessageQuote | null,
@@ -15,6 +17,8 @@ export function useGenesisWidgetRail(
     primaryAction: ReactNode;
     enabled?: boolean;
     deps?: DependencyList;
+    flowBusy?: boolean;
+    flowComplete?: boolean;
   },
 ) {
   const enabled = options.enabled ?? true;
@@ -23,6 +27,25 @@ export function useGenesisWidgetRail(
     [enabled, quote, krexBalance, krexTier],
   );
 
+  const flowProgress = useMemo(
+    () => (
+      <HubFlowProgress
+        steps={getHubFlowPreset('hubPay')}
+        busy={options.flowBusy}
+        complete={options.flowComplete}
+      />
+    ),
+    [options.flowBusy, options.flowComplete],
+  );
+
   useSyncHubQuote(hubQuote, options.deps ?? [hubQuote, enabled]);
-  useRegisterDAppWidgetRailSlot('actions', enabled ? options.primaryAction : null, options.deps ?? [options.primaryAction, enabled]);
+  useRegisterDAppWidgetRailSlot(
+    'actions',
+    enabled ? options.primaryAction : null,
+    options.deps ?? [options.primaryAction, enabled],
+  );
+  useRegisterDAppWidgetRailSlot('flowProgress', enabled ? flowProgress : null, [
+    flowProgress,
+    enabled,
+  ]);
 }

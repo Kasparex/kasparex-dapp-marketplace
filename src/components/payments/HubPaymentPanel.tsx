@@ -2,10 +2,16 @@
 
 import type { ReactNode } from 'react';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { TierBadge } from '@/components/rewards/TierBadge';
 import { KX_CALCULATION_ASIDE } from '@/lib/hub/shellTokens';
+import {
+  getHubFlowPreset,
+  type HubFlowPresetKey,
+  type HubFlowStep,
+} from '@/lib/hub/hubFlowProgress';
 import type { HubPaymentCurrencyOption, HubPaymentQuoteLine } from '@/lib/payments/hubPaymentTypes';
 import { KREX_TIERS, type KREXTier } from '@/lib/rewards/types';
 
@@ -32,6 +38,13 @@ export function HubPaymentPanel({
   hubPointsDetail,
   hubPointsBaseSpendKas,
   showCurrentTierFootnote = false,
+  flowSteps,
+  flowPreset = 'hubPublish',
+  flowBusy = false,
+  flowComplete = false,
+  flowActiveStepId = null,
+  flowCurrentIndex,
+  hideFlowProgress = false,
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -55,9 +68,18 @@ export function HubPaymentPanel({
   hubPointsDetail?: string;
   hubPointsBaseSpendKas?: number;
   showCurrentTierFootnote?: boolean;
+  /** Custom flow steps. Defaults to flowPreset when omitted. */
+  flowSteps?: HubFlowStep[];
+  flowPreset?: HubFlowPresetKey;
+  flowBusy?: boolean;
+  flowComplete?: boolean;
+  flowActiveStepId?: string | null;
+  flowCurrentIndex?: number;
+  hideFlowProgress?: boolean;
 }) {
   const showCurrency =
     currencies && currencies.length > 1 && selectedCurrencyId && onCurrencyChange;
+  const steps = flowSteps ?? getHubFlowPreset(flowPreset);
 
   return (
     <aside className={`${asideClassName ?? KX_CALCULATION_ASIDE} ${className}`.trim()}>
@@ -151,6 +173,16 @@ export function HubPaymentPanel({
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}
+
+      {!hideFlowProgress ? (
+        <HubFlowProgress
+          steps={steps}
+          currentIndex={flowCurrentIndex}
+          busy={flowBusy}
+          complete={flowComplete}
+          activeStepId={flowActiveStepId}
+        />
+      ) : null}
     </aside>
   );
 }

@@ -26,6 +26,7 @@ import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
 import { TransactionSuccessModal } from '@/components/modals/TransactionSuccessModal';
 import { TransactionErrorModal } from '@/components/modals/TransactionErrorModal';
 import { usePaymentAmount, useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
@@ -457,6 +458,11 @@ export function SimplePaymentWidget() {
     isPendingWrite,
   ]);
   useRegisterDAppWidgetRailSlot('alerts', railAlerts, [displayError, isConfirmed, hash]);
+  useRegisterHubFlowProgress(
+    'hubPay',
+    { busy: isPendingWrite || isLoading || isConfirming, complete: Boolean(isConfirmed && hash) },
+    [isPendingWrite, isLoading, isConfirming, isConfirmed, hash],
+  );
 
   // Distribute rewards and reset form on success
   useEffect(() => {

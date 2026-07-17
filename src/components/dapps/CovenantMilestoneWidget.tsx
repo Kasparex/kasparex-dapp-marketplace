@@ -129,6 +129,12 @@ export function CovenantMilestoneWidget() {
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(totalKas) || 0 : undefined,
     enabled: tab === 'create',
+    flowAlwaysVisible: true,
+    flowBusy: busy,
+    flowPreset:
+      typeof busyKey === 'string' && busyKey.startsWith('claim:')
+        ? 'covenantClaim'
+        : 'covenantCreate',
     primaryAction: (
       <button
         type="button"

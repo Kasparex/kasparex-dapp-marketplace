@@ -11,6 +11,7 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { useRegisterDAppWidgetRailSlot } from '@/lib/dapps/DAppWidgetActionRailContext';
+import { useRegisterHubFlowProgress } from '@/hooks/useRegisterHubFlowProgress';
 import { useSyncDAppWidgetQuote } from '@/lib/dapps/PaymentAmountContext';
 import { placeholderDApps } from '@/lib/dapps';
 import { awardDAppHubPoints } from '@/lib/rewards/awardDAppHubPoints';
@@ -128,6 +129,7 @@ export function SendKASWidget() {
 
   useRegisterDAppWidgetRailSlot('actions', railActions, [state.isConnected, isSending, toAddress, amount]);
   useRegisterDAppWidgetRailSlot('alerts', railAlerts, [error, success, txHash]);
+  useRegisterHubFlowProgress('hubPay', { busy: isSending, complete: Boolean(success) }, [isSending, success]);
 
   return (
     <DAppWidgetShell
