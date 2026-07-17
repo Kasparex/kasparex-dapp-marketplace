@@ -19,7 +19,7 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
@@ -70,6 +70,7 @@ export function CovenantSplitWidget() {
     { key: 'b', address: '', percent: '50' },
   ]);
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('split', rows.length);
+  const { pricing: claimPricing } = useKpxCovenantClaimFee('split');
   const [totalKas, setTotalKas] = useState('1');
   const [memo, setMemo] = useState('');
   const [busy, setBusy] = useState(false);
@@ -349,6 +350,9 @@ export function CovenantSplitWidget() {
                           className="text-xs px-3 py-1.5 rounded-lg border border-[#02abb8] text-[#02abb8] hover:bg-[#02abb8]/10 shrink-0"
                         >
                           Claim share
+                            {claimPricing.waived
+                              ? ''
+                              : ` · ${claimPricing.feeKas.toFixed(2)} KAS fee`}
                         </button>
                       )}
                     </li>

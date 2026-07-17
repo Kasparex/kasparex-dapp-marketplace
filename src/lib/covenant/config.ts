@@ -4,9 +4,9 @@ const MIN_LOCK_KAS = 5;
 
 function readRuntimeMode(): CovenantRuntimeMode {
   const raw = process.env.NEXT_PUBLIC_COVENANT_RUNTIME?.trim().toLowerCase();
-  if (raw === 'silverscript' || raw === 'hybrid' || raw === 'simulator') {
-    return raw;
-  }
+  // Local simulator mode is removed; map legacy env to silverscript.
+  if (raw === 'simulator') return 'silverscript';
+  if (raw === 'silverscript' || raw === 'hybrid') return raw;
   return 'hybrid';
 }
 

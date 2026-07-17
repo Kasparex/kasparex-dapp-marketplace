@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getCrowdfundRuntime,
+  getSilverscriptCrowdfundRuntime,
   getActiveCovenantRuntimeMode,
   kasToSompiString,
   runKpxCovenantDeployWithFee,
@@ -145,11 +146,15 @@ export function useCovenantCrowdfund() {
   const claimFunds = useCallback(
     async (campaignId: string) => {
       const pricing = resolveKpxCovenantClaimPrice('crowdfund', krexTier);
+      const existing = (await runtime.listAll()).find((c) => c.id === campaignId)?.claimFeeTxHash;
       const c = await runKpxCovenantClaimWithFee({
         template: 'crowdfund',
         pricing,
         ctx: walletCtx(),
         instanceId: campaignId,
+        existingFeeTxHash: existing,
+        onFeePaid: (feeTxHash) =>
+          getSilverscriptCrowdfundRuntime().setClaimFeeTxHash(campaignId, feeTxHash),
         claim: () => runtime.claimByCreator(campaignId, walletCtx().userAddress, walletCtx()),
       });
       await refresh();

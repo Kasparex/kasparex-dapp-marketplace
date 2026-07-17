@@ -1,19 +1,18 @@
 import { COVENANT_LAB_CONFIG } from './config';
-import { getCovenantSimulatorRuntime } from './simulator';
 import { getSilverscriptCovenantRuntime } from './silverscript-runtime';
 import { getHybridCovenantRuntime } from './hybrid-runtime';
-import { getSplitPaymentSimulatorRuntime } from './split-simulator';
-import { getSilverscriptSplitRuntime } from './silverscript-extras';
-import { getHybridSplitRuntime } from './hybrid-extras';
-import { getMilestoneSimulator } from './milestone-simulator';
-import { getSilverscriptMilestoneRuntime } from './silverscript-extras';
-import { getHybridMilestoneRuntime } from './hybrid-extras';
-import { getCrowdfundSimulator } from './crowdfund-simulator';
-import { getSilverscriptCrowdfundRuntime } from './silverscript-extras';
-import { getHybridCrowdfundRuntime } from './hybrid-extras';
-import { getVoucherSimulator } from './voucher-simulator';
-import { getSilverscriptVoucherRuntime } from './silverscript-extras';
-import { getHybridVoucherRuntime } from './hybrid-extras';
+import {
+  getSilverscriptSplitRuntime,
+  getSilverscriptMilestoneRuntime,
+  getSilverscriptCrowdfundRuntime,
+  getSilverscriptVoucherRuntime,
+} from './silverscript-extras';
+import {
+  getHybridSplitRuntime,
+  getHybridMilestoneRuntime,
+  getHybridCrowdfundRuntime,
+  getHybridVoucherRuntime,
+} from './hybrid-extras';
 import type { CovenantRuntime } from './runtime';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type { MilestoneRuntime } from './milestone-runtime';
@@ -24,66 +23,42 @@ function resolveMode() {
   return COVENANT_LAB_CONFIG.runtimeMode;
 }
 
+/** Prefer silverscript when env asks for removed simulator mode. */
+function resolveL1Mode(): 'silverscript' | 'hybrid' {
+  const mode = resolveMode();
+  return mode === 'silverscript' ? 'silverscript' : 'hybrid';
+}
+
 export function getCovenantRuntime(): CovenantRuntime {
-  switch (resolveMode()) {
-    case 'silverscript':
-      return getSilverscriptCovenantRuntime();
-    case 'hybrid':
-      return getHybridCovenantRuntime();
-    case 'simulator':
-    default:
-      return getCovenantSimulatorRuntime();
-  }
+  return resolveL1Mode() === 'silverscript'
+    ? getSilverscriptCovenantRuntime()
+    : getHybridCovenantRuntime();
 }
 
 export function getSplitPaymentRuntime(): SplitPaymentRuntime {
-  switch (resolveMode()) {
-    case 'silverscript':
-      return getSilverscriptSplitRuntime();
-    case 'hybrid':
-      return getHybridSplitRuntime();
-    case 'simulator':
-    default:
-      return getSplitPaymentSimulatorRuntime();
-  }
+  return resolveL1Mode() === 'silverscript'
+    ? getSilverscriptSplitRuntime()
+    : getHybridSplitRuntime();
 }
 
 export function getMilestoneRuntime(): MilestoneRuntime {
-  switch (resolveMode()) {
-    case 'silverscript':
-      return getSilverscriptMilestoneRuntime();
-    case 'hybrid':
-      return getHybridMilestoneRuntime();
-    case 'simulator':
-    default:
-      return getMilestoneSimulator();
-  }
+  return resolveL1Mode() === 'silverscript'
+    ? getSilverscriptMilestoneRuntime()
+    : getHybridMilestoneRuntime();
 }
 
 export function getCrowdfundRuntime(): CrowdfundRuntime {
-  switch (resolveMode()) {
-    case 'silverscript':
-      return getSilverscriptCrowdfundRuntime();
-    case 'hybrid':
-      return getHybridCrowdfundRuntime();
-    case 'simulator':
-    default:
-      return getCrowdfundSimulator();
-  }
+  return resolveL1Mode() === 'silverscript'
+    ? getSilverscriptCrowdfundRuntime()
+    : getHybridCrowdfundRuntime();
 }
 
 export function getVoucherRuntime(): VoucherRuntime {
-  switch (resolveMode()) {
-    case 'silverscript':
-      return getSilverscriptVoucherRuntime();
-    case 'hybrid':
-      return getHybridVoucherRuntime();
-    case 'simulator':
-    default:
-      return getVoucherSimulator();
-  }
+  return resolveL1Mode() === 'silverscript'
+    ? getSilverscriptVoucherRuntime()
+    : getHybridVoucherRuntime();
 }
 
 export function getActiveCovenantRuntimeMode() {
-  return resolveMode();
+  return resolveL1Mode();
 }

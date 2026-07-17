@@ -636,7 +636,7 @@ export function getDAppLogoSrc(
 
 export function isCovenantDApp(dapp: DApp): boolean {
   const slug = dapp.slug ?? '';
-  return slug.startsWith('covenant-');
+  return slug === 'lockbox' || slug.startsWith('covenant-');
 }
 
 export function matchesDAppNetworkFilter(dapp: DApp, filter: DAppNetworkFilter): boolean {

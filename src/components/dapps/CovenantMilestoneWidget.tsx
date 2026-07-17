@@ -19,7 +19,7 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { milestoneMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
@@ -68,6 +68,7 @@ export function CovenantMilestoneWidget() {
     newMilestoneRow(14, 'Delivery', '50'),
   ]);
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('milestone', milestoneRows.length);
+  const { pricing: claimPricing } = useKpxCovenantClaimFee('milestone');
   const [busy, setBusy] = useState(false);
   const minKas = Number(COVENANT_LAB_CONFIG.minLockSompi) / 1e8;
   const metadataInstances = useMemo(() => milestoneMetadataInstances(deals), [deals]);
@@ -298,6 +299,9 @@ export function CovenantMilestoneWidget() {
                           onClick={() => void claimStep(d.id, s.id)}
                         >
                           Claim
+                            {claimPricing.waived
+                              ? ''
+                              : ` · ${claimPricing.feeKas.toFixed(2)} KAS`}
                         </button>
                       )}
                     </div>

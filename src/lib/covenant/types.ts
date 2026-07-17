@@ -1,6 +1,6 @@
 /**
  * Covenant Lab types.
- * Models covenant UTXO state for programmable L1 money (simulator today, Silverscript post-Toccata).
+ * Models covenant UTXO state for programmable L1 money (Silverscript / hybrid L1).
  */
 
 export type CovenantVaultKind = 'escrow' | 'timelock';

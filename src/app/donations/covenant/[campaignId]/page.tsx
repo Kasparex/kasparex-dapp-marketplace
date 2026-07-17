@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useMemo } from 'react';
+import { use, useMemo } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -8,7 +8,6 @@ import { DonationsSidebar } from '@/components/donations/DonationsSidebar';
 import { CROWDKAS_CAMPAIGN_SECTION_NAV } from '@/components/donations/crowdKasCampaignNav';
 import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { CovenantCrowdfundRightColumn } from '@/components/donations/CovenantCrowdfundRightColumn';
-import { getCrowdfundSimulator } from '@/lib/covenant';
 import {
   covenantCampaignBackerCount,
   covenantCampaignGoalKas,
@@ -28,20 +27,12 @@ export default function CovenantCrowdfundPage({
   params: Promise<{ campaignId: string }>;
 }) {
   const { campaignId } = use(params);
-  const { allCampaigns, loading, refresh } = useCovenantCrowdfund();
+  const { allCampaigns, loading } = useCovenantCrowdfund();
 
   const campaign = useMemo(
     () => allCampaigns.find((c) => c.id === campaignId) ?? null,
     [allCampaigns, campaignId]
   );
-
-  useEffect(() => {
-    void getCrowdfundSimulator()
-      .getById(campaignId)
-      .then((c) => {
-        if (c) void refresh();
-      });
-  }, [campaignId, refresh]);
 
   if (loading && !campaign) {
     return (
@@ -147,9 +138,6 @@ export default function CovenantCrowdfundPage({
                         <span className="text-xs px-2 py-1 rounded bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-200 font-medium">
                           L1 • Covenant
                         </span>
-                        <span className="text-xs px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-medium">
-                          Simulator
-                        </span>
                         {goalReached ? (
                           <span className="text-xs px-2 py-1 rounded bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 font-medium">
                             Goal reached
@@ -234,8 +222,8 @@ export default function CovenantCrowdfundPage({
                       <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">How this campaign works</h3>
                       <ul className="list-disc list-inside space-y-1 kx-body">
                         <li>All-or-nothing: the creator claims only if the goal is met before the deadline.</li>
-                        <li>If the goal is missed, backers can refund their pledges (simulated).</li>
-                        <li>Rules will be enforced on Kaspa L1 by covenants when wallets support them.</li>
+                        <li>If the goal is missed, backers can refund their pledges after the deadline.</li>
+                        <li>Each pledge locks KAS in a Kaspa L1 covenant UTXO until claim or refund.</li>
                       </ul>
                     </div>
                   </div>

@@ -3,137 +3,85 @@ import type { SplitPaymentRuntime } from './split-runtime';
 import type { MilestoneRuntime } from './milestone-runtime';
 import type { CrowdfundRuntime } from './crowdfund-runtime';
 import type { VoucherRuntime } from './voucher-runtime';
-import { getSplitPaymentSimulatorRuntime } from './split-simulator';
 import {
   getSilverscriptSplitRuntime,
   getSilverscriptMilestoneRuntime,
   getSilverscriptCrowdfundRuntime,
   getSilverscriptVoucherRuntime,
 } from './silverscript-extras';
-import { getMilestoneSimulator } from './milestone-simulator';
-import { getCrowdfundSimulator } from './crowdfund-simulator';
-import { getVoucherSimulator } from './voucher-simulator';
+import { requireL1CovenantReady } from './l1';
 
-async function withHybridFallback<T>(
-  primary: () => Promise<T>,
-  fallback: () => Promise<T>
-): Promise<T> {
-  try {
-    return await primary();
-  } catch (err) {
-    if (!(err instanceof CovenantNotReadyError)) throw err;
-    return fallback();
-  }
-}
-
+/**
+ * Hybrid extras: prefer real L1 (silverscript). No simulator fallback
+ * (same policy as LockBox hybrid-runtime).
+ */
 class HybridSplitRuntime implements SplitPaymentRuntime {
   readonly mode = 'hybrid' as const;
   readonly effectiveMode = 'hybrid' as const;
   private primary = getSilverscriptSplitRuntime();
-  private fallback = getSplitPaymentSimulatorRuntime();
 
   createSplit = (...args: Parameters<SplitPaymentRuntime['createSplit']>) =>
-    withHybridFallback(
-      () => this.primary.createSplit(...args),
-      () => this.fallback.createSplit(...args)
-    );
+    requireL1CovenantReady('Covenant Split', () => this.primary.createSplit(...args));
 
   claimShare = (...args: Parameters<SplitPaymentRuntime['claimShare']>) =>
-    withHybridFallback(
-      () => this.primary.claimShare(...args),
-      () => this.fallback.claimShare(...args)
-    );
+    requireL1CovenantReady('Covenant Split', () => this.primary.claimShare(...args));
 
-  getSplit = (id: string) => this.primary.getSplit(id).then((r) => r ?? this.fallback.getSplit(id));
+  getSplit = (id: string) => this.primary.getSplit(id);
   listSplits = (filter?: Parameters<SplitPaymentRuntime['listSplits']>[0]) =>
-    this.primary.listSplits(filter).then((list) => (list.length ? list : this.fallback.listSplits(filter)));
+    this.primary.listSplits(filter);
 }
 
 class HybridMilestoneRuntime implements MilestoneRuntime {
   readonly mode = 'hybrid' as const;
   readonly effectiveMode = 'hybrid' as const;
   private primary = getSilverscriptMilestoneRuntime();
-  private fallback = getMilestoneSimulator();
 
   create = (...args: Parameters<MilestoneRuntime['create']>) =>
-    withHybridFallback(
-      () => this.primary.create(...args),
-      () => this.fallback.create(...args)
-    );
+    requireL1CovenantReady('Covenant Milestone', () => this.primary.create(...args));
 
   claimMilestone = (...args: Parameters<MilestoneRuntime['claimMilestone']>) =>
-    withHybridFallback(
-      () => this.primary.claimMilestone(...args),
-      () => this.fallback.claimMilestone(...args)
-    );
+    requireL1CovenantReady('Covenant Milestone', () => this.primary.claimMilestone(...args));
 
-  listForAddress = (address: string) =>
-    this.primary.listForAddress(address).then((list) =>
-      list.length ? list : this.fallback.listForAddress(address)
-    );
+  listForAddress = (address: string) => this.primary.listForAddress(address);
 }
 
 class HybridCrowdfundRuntime implements CrowdfundRuntime {
   readonly mode = 'hybrid' as const;
   readonly effectiveMode = 'hybrid' as const;
   private primary = getSilverscriptCrowdfundRuntime();
-  private fallback = getCrowdfundSimulator();
 
-  create = (params: Parameters<CrowdfundRuntime['create']>[0]) =>
-    this.primary.create(params);
+  create = (params: Parameters<CrowdfundRuntime['create']>[0]) => this.primary.create(params);
 
   pledge = (...args: Parameters<CrowdfundRuntime['pledge']>) =>
-    withHybridFallback(
-      () => this.primary.pledge(...args),
-      () => this.fallback.pledge(...args)
-    );
+    requireL1CovenantReady('Covenant Crowdfund', () => this.primary.pledge(...args));
 
   claimByCreator = (...args: Parameters<CrowdfundRuntime['claimByCreator']>) =>
-    withHybridFallback(
-      () => this.primary.claimByCreator(...args),
-      () => this.fallback.claimByCreator(...args)
-    );
+    requireL1CovenantReady('Covenant Crowdfund', () => this.primary.claimByCreator(...args));
 
   refundPledge = (...args: Parameters<CrowdfundRuntime['refundPledge']>) =>
-    withHybridFallback(
-      () => this.primary.refundPledge(...args),
-      () => this.fallback.refundPledge(...args)
-    );
+    requireL1CovenantReady('Covenant Crowdfund', () => this.primary.refundPledge(...args));
 
-  listAll = () => this.primary.listAll().then((list) => (list.length ? list : this.fallback.listAll()));
-  listForAddress = (address: string) =>
-    this.primary.listForAddress(address).then((list) =>
-      list.length ? list : this.fallback.listForAddress(address)
-    );
+  listAll = () => this.primary.listAll();
+  listForAddress = (address: string) => this.primary.listForAddress(address);
   updateCampaign = (...args: Parameters<CrowdfundRuntime['updateCampaign']>) =>
-    this.fallback.updateCampaign(...args);
+    this.primary.updateCampaign(...args);
   deleteCampaign = (...args: Parameters<CrowdfundRuntime['deleteCampaign']>) =>
-    this.fallback.deleteCampaign(...args);
+    this.primary.deleteCampaign(...args);
 }
 
 class HybridVoucherRuntime implements VoucherRuntime {
   readonly mode = 'hybrid' as const;
   readonly effectiveMode = 'hybrid' as const;
   private primary = getSilverscriptVoucherRuntime();
-  private fallback = getVoucherSimulator();
 
   create = (...args: Parameters<VoucherRuntime['create']>) =>
-    withHybridFallback(
-      () => this.primary.create(...args),
-      () => this.fallback.create(...args)
-    );
+    requireL1CovenantReady('Covenant Voucher', () => this.primary.create(...args));
 
   claim = (...args: Parameters<VoucherRuntime['claim']>) =>
-    withHybridFallback(
-      () => this.primary.claim(...args),
-      () => this.fallback.claim(...args)
-    );
+    requireL1CovenantReady('Covenant Voucher', () => this.primary.claim(...args));
 
-  listOpen = () => this.primary.listOpen().then((list) => (list.length ? list : this.fallback.listOpen()));
-  listForAddress = (address: string) =>
-    this.primary.listForAddress(address).then((list) =>
-      list.length ? list : this.fallback.listForAddress(address)
-    );
+  listOpen = () => this.primary.listOpen();
+  listForAddress = (address: string) => this.primary.listForAddress(address);
 }
 
 let hybridSplit: HybridSplitRuntime | null = null;
@@ -159,4 +107,14 @@ export function getHybridCrowdfundRuntime(): HybridCrowdfundRuntime {
 export function getHybridVoucherRuntime(): HybridVoucherRuntime {
   if (!hybridVoucher) hybridVoucher = new HybridVoucherRuntime();
   return hybridVoucher;
+}
+
+/** @deprecated Hybrid no longer falls back; kept for call-site clarity. */
+export function assertNoSimulatorFallback(err: unknown, label: string): never {
+  if (err instanceof CovenantNotReadyError) {
+    throw new CovenantNotReadyError(
+      `${err.message} Local simulator fallback is disabled for ${label}.`,
+    );
+  }
+  throw err instanceof Error ? err : new Error(String(err));
 }

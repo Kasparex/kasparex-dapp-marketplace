@@ -10,11 +10,6 @@ export * from './split-runtime';
 export * from './milestone-runtime';
 export * from './crowdfund-runtime';
 export * from './voucher-runtime';
-export { getCovenantSimulatorRuntime } from './simulator';
-export { getSplitPaymentSimulatorRuntime } from './split-simulator';
-export { getMilestoneSimulator } from './milestone-simulator';
-export { getCrowdfundSimulator } from './crowdfund-simulator';
-export { getVoucherSimulator } from './voucher-simulator';
 export { getSilverscriptCovenantRuntime } from './silverscript-runtime';
 export {
   getSilverscriptSplitRuntime,
@@ -22,6 +17,11 @@ export {
   getSilverscriptCrowdfundRuntime,
   getSilverscriptVoucherRuntime,
 } from './silverscript-extras';
+export {
+  deployL1CovenantLock,
+  spendL1CovenantLock,
+  requireL1CovenantReady,
+} from './l1';
 export {
   buildLockboxCommitNote,
   buildSplitCommitNote,
@@ -97,3 +97,4 @@ export {
   getVoucherRuntime,
   getActiveCovenantRuntimeMode,
 } from './resolver';
+export { covenantTemplateFromDAppSlug } from './covenantDAppSlug';

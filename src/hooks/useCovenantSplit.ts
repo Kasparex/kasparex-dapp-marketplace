@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getSplitPaymentRuntime,
+  getSilverscriptSplitRuntime,
   getActiveCovenantRuntimeMode,
   runKpxCovenantDeployWithFee,
   runKpxCovenantClaimWithFee,
@@ -117,11 +118,19 @@ export function useCovenantSplit(): UseCovenantSplitReturn {
       setError(null);
       try {
         const pricing = resolveKpxCovenantClaimPrice('split', krexTier);
+        const existing = (await runtime.getSplit(splitId))?.recipients.find(
+          (r) => r.id === recipientId,
+        )?.claimFeeTxHash;
         const split = await runKpxCovenantClaimWithFee({
           template: 'split',
           pricing,
           ctx: walletCtx(),
           instanceId: `${splitId}:${recipientId}`,
+          existingFeeTxHash: existing,
+          onFeePaid: async (feeTxHash) => {
+            const ss = getSilverscriptSplitRuntime();
+            await ss.setClaimFeeTxHash(splitId, recipientId, feeTxHash);
+          },
           claim: () =>
             runtime.claimShare(splitId, recipientId, walletCtx().userAddress, walletCtx()),
         });

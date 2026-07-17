@@ -7,8 +7,7 @@ import { getSilverscriptCovenantRuntime } from './silverscript-runtime';
 
 /**
  * Hybrid LockBox runtime: prefer real L1 (silverscript).
- * Simulator fallback no longer writes into the Vaults list, so demo rows cannot
- * mix with mainnet locks (that caused escrow/memo confusion).
+ * Simulator fallback is disabled so demo rows cannot mix with mainnet locks.
  */
 class HybridCovenantRuntime implements CovenantRuntime {
   readonly mode = 'hybrid' as const;
@@ -27,7 +26,7 @@ class HybridCovenantRuntime implements CovenantRuntime {
     } catch (err) {
       if (err instanceof CovenantNotReadyError) {
         throw new CovenantNotReadyError(
-          `${err.message} Simulator fallback is disabled for LockBox Vaults so local demos cannot mix with real locks. Use NEXT_PUBLIC_COVENANT_RUNTIME=simulator only for offline demos.`,
+          `${err.message} Local simulator fallback is disabled for LockBox. Connect a wallet with signPskt + pushTx.`,
         );
       }
       throw err;
@@ -44,7 +43,7 @@ class HybridCovenantRuntime implements CovenantRuntime {
     } catch (err) {
       if (err instanceof CovenantNotReadyError) {
         throw new CovenantNotReadyError(
-          `${err.message} Simulator fallback is disabled for LockBox Vaults.`,
+          `${err.message} Local simulator fallback is disabled for LockBox.`,
         );
       }
       throw err;

@@ -1,3 +1,5 @@
+import type { CovenantUtxoRef } from './types';
+
 export type CrowdfundStatus = 'funding' | 'succeeded' | 'failed';
 
 export interface CrowdfundPledge {
@@ -7,6 +9,10 @@ export interface CrowdfundPledge {
   txHash?: string;
   refunded: boolean;
   createdAt: number;
+  covenantId?: string;
+  claimFeeTxHash?: string;
+  utxo?: CovenantUtxoRef;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface CrowdfundCampaign {
@@ -22,6 +28,8 @@ export interface CrowdfundCampaign {
   pledges: CrowdfundPledge[];
   createdAt: number;
   claimedAt: number | null;
+  claimFeeTxHash?: string;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface CreateCrowdfundParams {

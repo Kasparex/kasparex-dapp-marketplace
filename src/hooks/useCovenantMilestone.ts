@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getMilestoneRuntime,
+  getSilverscriptMilestoneRuntime,
   getActiveCovenantRuntimeMode,
   kasToSompiString,
   runKpxCovenantDeployWithFee,
@@ -85,11 +86,18 @@ export function useCovenantMilestone() {
   const claimStep = useCallback(
     async (dealId: string, stepId: string) => {
       const pricing = resolveKpxCovenantClaimPrice('milestone', krexTier);
+      const existing = (await runtime.listForAddress(walletCtx().userAddress))
+        .find((d) => d.id === dealId)
+        ?.milestones.find((s) => s.id === stepId)?.claimFeeTxHash;
       const deal = await runKpxCovenantClaimWithFee({
         template: 'milestone',
         pricing,
         ctx: walletCtx(),
         instanceId: `${dealId}:${stepId}`,
+        existingFeeTxHash: existing,
+        onFeePaid: async (feeTxHash) => {
+          await getSilverscriptMilestoneRuntime().setClaimFeeTxHash(dealId, stepId, feeTxHash);
+        },
         claim: () =>
           runtime.claimMilestone(dealId, stepId, walletCtx().userAddress, walletCtx()),
       });

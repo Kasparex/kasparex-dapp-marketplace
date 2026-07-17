@@ -1,3 +1,5 @@
+import type { CovenantUtxoRef } from './types';
+
 export type MilestoneDealStatus = 'active' | 'completed';
 
 export interface MilestoneStep {
@@ -8,6 +10,12 @@ export interface MilestoneStep {
   unlockAt: number;
   claimed: boolean;
   claimedAt: number | null;
+  claimTxHash?: string;
+  covenantId?: string;
+  lockTxHash?: string;
+  claimFeeTxHash?: string;
+  utxo?: CovenantUtxoRef;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface MilestoneDeal {
@@ -21,6 +29,7 @@ export interface MilestoneDeal {
   milestones: MilestoneStep[];
   createdAt: number;
   lockTxHash?: string;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface MilestoneInput {

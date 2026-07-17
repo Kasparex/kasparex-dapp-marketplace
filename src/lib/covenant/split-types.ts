@@ -1,6 +1,8 @@
 /**
- * Covenant split payment types (1:N fan-out prototype).
+ * Covenant split payment types (1:N: one L1 lock UTXO per recipient share).
  */
+
+import type { CovenantUtxoRef } from './types';
 
 export type SplitPaymentStatus = 'open' | 'completed';
 
@@ -13,6 +15,11 @@ export interface SplitRecipient {
   claimed: boolean;
   claimedAt: number | null;
   claimTxHash?: string;
+  covenantId?: string;
+  lockTxHash?: string;
+  claimFeeTxHash?: string;
+  utxo?: CovenantUtxoRef;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface SplitPayment {
@@ -25,6 +32,7 @@ export interface SplitPayment {
   recipients: SplitRecipient[];
   createdAt: number;
   lockTxHash?: string;
+  origin?: 'l1' | 'simulator';
 }
 
 export interface SplitRecipientInput {

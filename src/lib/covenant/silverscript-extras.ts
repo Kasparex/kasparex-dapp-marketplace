@@ -1,10 +1,12 @@
 /**
- * Silverscript L1 runtimes for split, milestone, crowdfund, and voucher dApps.
+ * Silverscript L1 runtimes for split, milestone, crowdfund, and voucher.
+ * Same deploy/spend path as LockBox via shared `l1.ts` helpers.
  */
 import { COVENANT_LAB_CONFIG } from './config';
 import type { CovenantWalletContext } from './context';
 import { requireCovenantContext } from './context';
-import { submitTemplateCovenantTx } from './silverscript-base';
+import { deployL1CovenantLock, spendL1CovenantLock } from './l1';
+import { normalizeCovenantMemo } from './participants';
 import type { SplitPaymentRuntime } from './split-runtime';
 import type {
   CreateSplitParams,
@@ -49,6 +51,13 @@ function validateSplitRecipients(recipients: SplitRecipientInput[]): void {
   if (bpsSum !== 10000) throw new Error('Shares must total 100%');
 }
 
+function assertMinLockSompi(amountSompi: string, label: string): void {
+  const min = BigInt(COVENANT_LAB_CONFIG.minLockSompi);
+  if (BigInt(amountSompi) < min) {
+    throw new Error(`${label} must be at least ${Number(min) / 1e8} KAS`);
+  }
+}
+
 class SilverscriptSplitRuntime implements SplitPaymentRuntime {
   readonly mode = 'silverscript' as const;
   readonly effectiveMode = 'silverscript' as const;
@@ -58,39 +67,79 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
     saveMap(COVENANT_LAB_CONFIG.splitStorageKey, this.splits);
   }
 
+  private reload(): void {
+    this.splits = loadMap<SplitPayment>(COVENANT_LAB_CONFIG.splitStorageKey);
+  }
+
   async createSplit(
     params: CreateSplitParams,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<SplitPayment> {
     requireCovenantContext(ctx);
+    this.reload();
     validateSplitRecipients(params.recipients);
+
     const total = BigInt(params.totalSompi);
-    const tx = await submitTemplateCovenantTx(ctx, 'split', {
-      depositor: params.depositor,
-      totalSompi: params.totalSompi,
-      recipients: params.recipients,
-      memo: params.memo,
-    });
-    const amounts = allocateBps(total, params.recipients.map((r) => r.shareBps));
+    const amounts = allocateBps(
+      total,
+      params.recipients.map((r) => r.shareBps),
+    );
+    for (const amount of amounts) {
+      assertMinLockSompi(amount, 'Each recipient share');
+    }
+
+    const memo = normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength);
     const id = randomId('split');
-    const recipients: SplitRecipient[] = params.recipients.map((r, i) => ({
-      id: `rcp_${i}_${randomHex(3)}`,
-      address: r.address.trim(),
-      shareBps: r.shareBps,
-      amountSompi: amounts[i],
-      claimed: false,
-      claimedAt: null,
-    }));
+    const recipients: SplitRecipient[] = [];
+
+    for (let i = 0; i < params.recipients.length; i++) {
+      const r = params.recipients[i];
+      const amountSompi = amounts[i];
+      const deployed = await deployL1CovenantLock(ctx, {
+        template: 'split',
+        amountSompi,
+        payloadArgs: [
+          { name: 'beneficiary', type: 'address', value: r.address.trim() },
+          { name: 'depositor', type: 'address', value: params.depositor.trim() },
+          { name: 'shareBps', type: 'u64', value: String(r.shareBps) },
+          { name: 'memo', type: 'string', value: memo },
+          { name: 'splitId', type: 'string', value: id },
+        ],
+        payloadMeta: memo ? { label: memo.slice(0, 80) } : undefined,
+        params: {
+          beneficiary: r.address.trim(),
+          depositor: params.depositor,
+          shareBps: r.shareBps,
+          memo,
+          splitId: id,
+        },
+      });
+
+      recipients.push({
+        id: `rcp_${i}_${randomHex(3)}`,
+        address: r.address.trim(),
+        shareBps: r.shareBps,
+        amountSompi,
+        claimed: false,
+        claimedAt: null,
+        covenantId: deployed.covenantId,
+        lockTxHash: deployed.txHash,
+        utxo: deployed.utxo,
+        origin: 'l1',
+      });
+    }
+
     const split: SplitPayment = {
       id,
-      covenantId: tx.covenantId ?? `pending_${randomHex(16)}`,
+      covenantId: recipients[0]?.covenantId ?? `pending_${randomHex(16)}`,
       status: 'open',
       depositor: params.depositor,
       totalSompi: params.totalSompi,
-      memo: params.memo.trim(),
+      memo,
       recipients,
       createdAt: Date.now(),
-      lockTxHash: tx.txHash,
+      lockTxHash: recipients[0]?.lockTxHash,
+      origin: 'l1',
     };
     this.splits.set(id, split);
     this.persist();
@@ -101,9 +150,10 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
     splitId: string,
     recipientId: string,
     claimer: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<SplitPayment> {
     requireCovenantContext(ctx);
+    this.reload();
     const split = this.splits.get(splitId);
     if (!split) throw new Error('Split payment not found');
     const recipient = split.recipients.find((r) => r.id === recipientId);
@@ -112,16 +162,28 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
     if (normalizeAddr(claimer) !== normalizeAddr(recipient.address)) {
       throw new Error('Only the assigned recipient can claim this share');
     }
-    const tx = await submitTemplateCovenantTx(ctx, 'split', {
-      action: 'claim',
-      splitId,
-      recipientId,
+    if (!recipient.utxo) {
+      throw new Error('Share is missing on-chain UTXO reference');
+    }
+
+    const spent = await spendL1CovenantLock(ctx, {
+      template: 'split',
+      utxo: recipient.utxo,
       amountSompi: recipient.amountSompi,
+      toAddress: claimer,
+      functionNameFallback: 'distribute',
+      params: {
+        action: 'claim',
+        splitId,
+        recipientId,
+        beneficiary: claimer.trim(),
+      },
     });
+
     const updatedRecipients = split.recipients.map((r) =>
       r.id === recipientId
-        ? { ...r, claimed: true, claimedAt: Date.now(), claimTxHash: tx.txHash }
-        : r
+        ? { ...r, claimed: true, claimedAt: Date.now(), claimTxHash: spent.txHash }
+        : r,
     );
     const updated: SplitPayment = {
       ...split,
@@ -133,12 +195,31 @@ class SilverscriptSplitRuntime implements SplitPaymentRuntime {
     return updated;
   }
 
+  async setClaimFeeTxHash(
+    splitId: string,
+    recipientId: string,
+    feeTxHash: string,
+  ): Promise<void> {
+    this.reload();
+    const split = this.splits.get(splitId);
+    if (!split) throw new Error('Split payment not found');
+    const recipients = split.recipients.map((r) =>
+      r.id === recipientId ? { ...r, claimFeeTxHash: feeTxHash } : r,
+    );
+    this.splits.set(splitId, { ...split, recipients });
+    this.persist();
+  }
+
   async getSplit(splitId: string): Promise<SplitPayment | null> {
+    this.reload();
     return this.splits.get(splitId) ?? null;
   }
 
   async listSplits(filter?: SplitListFilter): Promise<SplitPayment[]> {
-    let list = Array.from(this.splits.values()).sort((a, b) => b.createdAt - a.createdAt);
+    this.reload();
+    let list = Array.from(this.splits.values())
+      .filter((s) => s.origin !== 'simulator')
+      .sort((a, b) => b.createdAt - a.createdAt);
     if (filter?.status) list = list.filter((s) => s.status === filter.status);
     if (filter?.address) {
       const norm = normalizeAddr(filter.address);
@@ -165,38 +246,85 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     saveMap(COVENANT_LAB_CONFIG.milestoneStorageKey, this.deals);
   }
 
+  private reload(): void {
+    this.deals = loadMap<MilestoneDeal>(COVENANT_LAB_CONFIG.milestoneStorageKey);
+  }
+
   async create(params: CreateMilestoneParams, ctx: CovenantWalletContext): Promise<MilestoneDeal> {
     requireCovenantContext(ctx);
-    const tx = await submitTemplateCovenantTx(ctx, 'milestone', {
-      depositor: params.depositor,
-      beneficiary: params.beneficiary,
-      totalSompi: params.totalSompi,
-      milestones: params.milestones,
-      memo: params.memo,
-    });
+    this.reload();
+
+    if (params.milestones.length < 1) throw new Error('At least one milestone is required');
+    const bpsSum = params.milestones.reduce((s, m) => s + m.shareBps, 0);
+    if (bpsSum !== 10000) throw new Error('Milestone shares must total 100%');
+
     const total = BigInt(params.totalSompi);
-    const amounts = allocateBps(total, params.milestones.map((m) => m.shareBps));
+    const amounts = allocateBps(
+      total,
+      params.milestones.map((m) => m.shareBps),
+    );
+    for (const amount of amounts) {
+      assertMinLockSompi(amount, 'Each milestone share');
+    }
+
+    const memo = normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength);
+    const beneficiary = params.beneficiary.trim();
     const id = randomId('ms');
-    const milestones: MilestoneStep[] = params.milestones.map((m, i) => ({
-      id: `step_${i}_${randomHex(3)}`,
-      label: m.label.trim() || `Milestone ${i + 1}`,
-      shareBps: m.shareBps,
-      amountSompi: amounts[i],
-      unlockAt: m.unlockAt,
-      claimed: false,
-      claimedAt: null,
-    }));
+    const milestones: MilestoneStep[] = [];
+
+    for (let i = 0; i < params.milestones.length; i++) {
+      const m = params.milestones[i];
+      const amountSompi = amounts[i];
+      const unlockAt = m.unlockAt;
+      const deployed = await deployL1CovenantLock(ctx, {
+        template: 'milestone',
+        amountSompi,
+        payloadArgs: [
+          { name: 'beneficiary', type: 'address', value: beneficiary },
+          { name: 'depositor', type: 'address', value: params.depositor.trim() },
+          { name: 'unlockTimeMs', type: 'u64', value: String(unlockAt) },
+          { name: 'stepIndex', type: 'u64', value: String(i + 1) },
+          { name: 'memo', type: 'string', value: memo },
+          { name: 'dealId', type: 'string', value: id },
+        ],
+        payloadMeta: memo ? { label: memo.slice(0, 80) } : undefined,
+        params: {
+          beneficiary,
+          depositor: params.depositor,
+          unlockTime: Math.floor(unlockAt / 1000),
+          stepIndex: i + 1,
+          memo,
+          dealId: id,
+        },
+      });
+
+      milestones.push({
+        id: `step_${i}_${randomHex(3)}`,
+        label: m.label.trim() || `Milestone ${i + 1}`,
+        shareBps: m.shareBps,
+        amountSompi,
+        unlockAt,
+        claimed: false,
+        claimedAt: null,
+        covenantId: deployed.covenantId,
+        lockTxHash: deployed.txHash,
+        utxo: deployed.utxo,
+        origin: 'l1',
+      });
+    }
+
     const deal: MilestoneDeal = {
       id,
-      covenantId: tx.covenantId ?? `pending_${randomHex(16)}`,
+      covenantId: milestones[0]?.covenantId ?? `pending_${randomHex(16)}`,
       status: 'active',
       depositor: params.depositor,
-      beneficiary: params.beneficiary.trim(),
+      beneficiary,
       totalSompi: params.totalSompi,
-      memo: params.memo.trim(),
+      memo,
       milestones,
       createdAt: Date.now(),
-      lockTxHash: tx.txHash,
+      lockTxHash: milestones[0]?.lockTxHash,
+      origin: 'l1',
     };
     this.deals.set(id, deal);
     this.persist();
@@ -207,23 +335,39 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     dealId: string,
     stepId: string,
     claimer: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<MilestoneDeal> {
     requireCovenantContext(ctx);
+    this.reload();
     const deal = this.deals.get(dealId);
     if (!deal) throw new Error('Deal not found');
+    if (normalizeAddr(claimer) !== normalizeAddr(deal.beneficiary)) {
+      throw new Error('Only the beneficiary can claim milestones');
+    }
     const step = deal.milestones.find((s) => s.id === stepId);
     if (!step) throw new Error('Milestone not found');
-    await submitTemplateCovenantTx(ctx, 'milestone', {
-      action: 'claim',
-      dealId,
-      stepId,
-      claimer,
+    if (step.claimed) throw new Error('Milestone already claimed');
+    if (Date.now() < step.unlockAt) throw new Error('Milestone has not unlocked yet');
+    if (!step.utxo) throw new Error('Milestone is missing on-chain UTXO reference');
+
+    const spent = await spendL1CovenantLock(ctx, {
+      template: 'milestone',
+      utxo: step.utxo,
       amountSompi: step.amountSompi,
-      unlockAt: step.unlockAt,
+      toAddress: claimer,
+      functionNameFallback: 'release_next',
+      params: {
+        action: 'claim',
+        dealId,
+        stepId,
+        beneficiary: claimer.trim(),
+      },
     });
+
     const milestones = deal.milestones.map((s) =>
-      s.id === stepId ? { ...s, claimed: true, claimedAt: Date.now() } : s
+      s.id === stepId
+        ? { ...s, claimed: true, claimedAt: Date.now(), claimTxHash: spent.txHash }
+        : s,
     );
     const updated: MilestoneDeal = {
       ...deal,
@@ -235,11 +379,24 @@ class SilverscriptMilestoneRuntime implements MilestoneRuntime {
     return updated;
   }
 
+  async setClaimFeeTxHash(dealId: string, stepId: string, feeTxHash: string): Promise<void> {
+    this.reload();
+    const deal = this.deals.get(dealId);
+    if (!deal) throw new Error('Deal not found');
+    const milestones = deal.milestones.map((s) =>
+      s.id === stepId ? { ...s, claimFeeTxHash: feeTxHash } : s,
+    );
+    this.deals.set(dealId, { ...deal, milestones });
+    this.persist();
+  }
+
   async listForAddress(address: string): Promise<MilestoneDeal[]> {
+    this.reload();
     const norm = normalizeAddr(address);
     return Array.from(this.deals.values())
+      .filter((d) => d.origin !== 'simulator')
       .filter(
-        (d) => normalizeAddr(d.depositor) === norm || normalizeAddr(d.beneficiary) === norm
+        (d) => normalizeAddr(d.depositor) === norm || normalizeAddr(d.beneficiary) === norm,
       )
       .sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -254,7 +411,12 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     saveMap(COVENANT_LAB_CONFIG.crowdfundStorageKey, this.campaigns);
   }
 
+  private reload(): void {
+    this.campaigns = loadMap<CrowdfundCampaign>(COVENANT_LAB_CONFIG.crowdfundStorageKey);
+  }
+
   async create(params: CreateCrowdfundParams): Promise<CrowdfundCampaign> {
+    this.reload();
     const id = randomId('cf');
     const campaign: CrowdfundCampaign = {
       id,
@@ -262,13 +424,14 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       status: 'funding',
       creator: params.creator,
       title: params.title.trim(),
-      memo: params.memo.trim(),
+      memo: normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength),
       goalSompi: params.goalSompi,
       raisedSompi: '0',
       deadline: params.deadline,
       pledges: [],
       createdAt: Date.now(),
       claimedAt: null,
+      origin: 'l1',
     };
     this.campaigns.set(id, campaign);
     this.persist();
@@ -279,26 +442,49 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     campaignId: string,
     backer: string,
     amountSompi: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
-    const tx = await submitTemplateCovenantTx(ctx, 'crowdfund', {
-      action: 'pledge',
-      campaignId,
-      backer,
-      amountSompi,
-    });
+    this.reload();
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
+    if (campaign.status !== 'funding') throw new Error('Campaign is not accepting pledges');
+    if (Date.now() > campaign.deadline) throw new Error('Campaign deadline has passed');
+    assertMinLockSompi(amountSompi, 'Pledge amount');
+
+    const pledgeId = randomId('plg');
+    const deployed = await deployL1CovenantLock(ctx, {
+      template: 'crowdfund',
+      amountSompi,
+      payloadArgs: [
+        { name: 'creator', type: 'address', value: campaign.creator },
+        { name: 'backer', type: 'address', value: backer.trim() },
+        { name: 'campaignId', type: 'string', value: campaignId },
+        { name: 'goalSompi', type: 'u64', value: campaign.goalSompi },
+        { name: 'deadline', type: 'u64', value: String(campaign.deadline) },
+      ],
+      payloadMeta: { label: campaign.title.slice(0, 80) },
+      params: {
+        creator: campaign.creator,
+        backer: backer.trim(),
+        campaignId,
+        goalSompi: campaign.goalSompi,
+        deadline: campaign.deadline,
+      },
+    });
+
     const pledges = [
       ...campaign.pledges,
       {
-        id: randomId('plg'),
-        backer,
+        id: pledgeId,
+        backer: backer.trim(),
         amountSompi,
-        txHash: tx.txHash,
+        txHash: deployed.txHash,
         refunded: false,
         createdAt: Date.now(),
+        covenantId: deployed.covenantId,
+        utxo: deployed.utxo,
+        origin: 'l1' as const,
       },
     ];
     const raised = pledges
@@ -308,7 +494,8 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
       ...campaign,
       pledges,
       raisedSompi: String(raised),
-      covenantId: tx.covenantId ?? campaign.covenantId,
+      covenantId: deployed.covenantId,
+      origin: 'l1',
     };
     this.campaigns.set(campaignId, updated);
     this.persist();
@@ -318,19 +505,44 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
   async claimByCreator(
     campaignId: string,
     creator: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
+    this.reload();
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
-    await submitTemplateCovenantTx(ctx, 'crowdfund', {
-      action: 'claim',
-      campaignId,
-      creator,
-      goalSompi: campaign.goalSompi,
-      deadline: campaign.deadline,
-    });
-    const updated = { ...campaign, status: 'succeeded' as const, claimedAt: Date.now() };
+    if (normalizeAddr(creator) !== normalizeAddr(campaign.creator)) {
+      throw new Error('Only the creator can claim funds');
+    }
+    if (BigInt(campaign.raisedSompi) < BigInt(campaign.goalSompi)) {
+      throw new Error('Goal not reached');
+    }
+    if (campaign.status === 'succeeded') throw new Error('Already claimed');
+
+    const active = campaign.pledges.filter((p) => !p.refunded);
+    for (const pledge of active) {
+      if (!pledge.utxo) throw new Error('Pledge is missing on-chain UTXO reference');
+      await spendL1CovenantLock(ctx, {
+        template: 'crowdfund',
+        utxo: pledge.utxo,
+        amountSompi: pledge.amountSompi,
+        toAddress: creator,
+        functionNameFallback: 'verify_goal',
+        params: {
+          action: 'claim',
+          campaignId,
+          creator: creator.trim(),
+          goalSompi: campaign.goalSompi,
+          raisedSompi: campaign.raisedSompi,
+        },
+      });
+    }
+
+    const updated = {
+      ...campaign,
+      status: 'succeeded' as const,
+      claimedAt: Date.now(),
+    };
     this.campaigns.set(campaignId, updated);
     this.persist();
     return updated;
@@ -340,19 +552,43 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     campaignId: string,
     pledgeId: string,
     backer: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<CrowdfundCampaign> {
     requireCovenantContext(ctx);
+    this.reload();
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
-    await submitTemplateCovenantTx(ctx, 'crowdfund', {
-      action: 'refund',
-      campaignId,
-      pledgeId,
-      backer,
+    if (Date.now() <= campaign.deadline) {
+      throw new Error('Refunds open after the deadline when the goal is missed');
+    }
+    if (BigInt(campaign.raisedSompi) >= BigInt(campaign.goalSompi)) {
+      throw new Error('Goal was reached; refunds are not available');
+    }
+
+    const pledge = campaign.pledges.find((p) => p.id === pledgeId);
+    if (!pledge) throw new Error('Pledge not found');
+    if (pledge.refunded) throw new Error('Pledge already refunded');
+    if (normalizeAddr(backer) !== normalizeAddr(pledge.backer)) {
+      throw new Error('Only the backer can refund this pledge');
+    }
+    if (!pledge.utxo) throw new Error('Pledge is missing on-chain UTXO reference');
+
+    await spendL1CovenantLock(ctx, {
+      template: 'crowdfund',
+      utxo: pledge.utxo,
+      amountSompi: pledge.amountSompi,
+      toAddress: backer,
+      functionNameFallback: 'verify_goal',
+      params: {
+        action: 'refund',
+        campaignId,
+        pledgeId,
+        backer: backer.trim(),
+      },
     });
+
     const pledges = campaign.pledges.map((p) =>
-      p.id === pledgeId ? { ...p, refunded: true } : p
+      p.id === pledgeId ? { ...p, refunded: true } : p,
     );
     const raised = pledges
       .filter((p) => !p.refunded)
@@ -369,7 +605,10 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
   }
 
   async listAll(): Promise<CrowdfundCampaign[]> {
-    return Array.from(this.campaigns.values()).sort((a, b) => b.createdAt - a.createdAt);
+    this.reload();
+    return Array.from(this.campaigns.values())
+      .filter((c) => c.origin !== 'simulator')
+      .sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async listForAddress(address: string): Promise<CrowdfundCampaign[]> {
@@ -377,7 +616,7 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     return (await this.listAll()).filter(
       (c) =>
         normalizeAddr(c.creator) === norm ||
-        c.pledges.some((p) => normalizeAddr(p.backer) === norm)
+        c.pledges.some((p) => normalizeAddr(p.backer) === norm),
     );
   }
 
@@ -386,13 +625,19 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
     creator: string,
     patch: { title?: string; memo?: string },
   ): Promise<CrowdfundCampaign> {
+    this.reload();
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
-    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) throw new Error('Only the creator can edit');
+    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) {
+      throw new Error('Only the creator can edit');
+    }
     const updated: CrowdfundCampaign = {
       ...campaign,
       title: patch.title?.trim() ? patch.title.trim() : campaign.title,
-      memo: patch.memo !== undefined ? patch.memo.trim() : campaign.memo,
+      memo:
+        patch.memo !== undefined
+          ? normalizeCovenantMemo(patch.memo, COVENANT_LAB_CONFIG.maxMemoLength)
+          : campaign.memo,
     };
     this.campaigns.set(campaignId, updated);
     this.persist();
@@ -400,12 +645,23 @@ class SilverscriptCrowdfundRuntime implements CrowdfundRuntime {
   }
 
   async deleteCampaign(campaignId: string, creator: string): Promise<void> {
+    this.reload();
     const campaign = this.campaigns.get(campaignId);
     if (!campaign) throw new Error('Campaign not found');
-    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) throw new Error('Only the creator can delete');
+    if (normalizeAddr(campaign.creator) !== normalizeAddr(creator)) {
+      throw new Error('Only the creator can delete');
+    }
     const activePledges = campaign.pledges.filter((p) => !p.refunded).length;
     if (activePledges > 0) throw new Error('Cannot delete a campaign that has received pledges');
     this.campaigns.delete(campaignId);
+    this.persist();
+  }
+
+  async setClaimFeeTxHash(campaignId: string, feeTxHash: string): Promise<void> {
+    this.reload();
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+    this.campaigns.set(campaignId, { ...campaign, claimFeeTxHash: feeTxHash });
     this.persist();
   }
 }
@@ -419,29 +675,50 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
     saveMap(COVENANT_LAB_CONFIG.voucherStorageKey, this.vouchers);
   }
 
+  private reload(): void {
+    this.vouchers = loadMap<VoucherLock>(COVENANT_LAB_CONFIG.voucherStorageKey);
+  }
+
   async create(params: CreateVoucherParams, ctx: CovenantWalletContext): Promise<VoucherLock> {
     requireCovenantContext(ctx);
-    const tx = await submitTemplateCovenantTx(ctx, 'voucher', {
-      creator: params.creator,
+    this.reload();
+    assertMinLockSompi(params.amountSompi, 'Voucher amount');
+    const memo = normalizeCovenantMemo(params.memo, COVENANT_LAB_CONFIG.maxMemoLength);
+
+    const deployed = await deployL1CovenantLock(ctx, {
+      template: 'voucher',
       amountSompi: params.amountSompi,
-      secretHash: params.secretHash,
-      expiresAt: params.expiresAt,
-      memo: params.memo,
+      payloadArgs: [
+        { name: 'creator', type: 'address', value: params.creator.trim() },
+        { name: 'secretHash', type: 'hex', value: params.secretHash.toLowerCase() },
+        { name: 'expiresAt', type: 'u64', value: String(params.expiresAt) },
+        { name: 'memo', type: 'string', value: memo },
+      ],
+      payloadMeta: memo ? { label: memo.slice(0, 80) } : undefined,
+      params: {
+        creator: params.creator,
+        secretHash: params.secretHash.toLowerCase(),
+        expiresAt: params.expiresAt,
+        memo,
+      },
     });
+
     const id = randomId('vch');
     const voucher: VoucherLock = {
       id,
-      covenantId: tx.covenantId ?? `pending_${randomHex(16)}`,
+      covenantId: deployed.covenantId,
       status: 'open',
       creator: params.creator,
       amountSompi: params.amountSompi,
       secretHash: params.secretHash.toLowerCase(),
-      memo: params.memo.trim(),
+      memo,
       expiresAt: params.expiresAt,
       createdAt: Date.now(),
-      lockTxHash: tx.txHash,
+      lockTxHash: deployed.txHash,
+      utxo: deployed.utxo,
       claimedBy: null,
       claimedAt: null,
+      origin: 'l1',
     };
     this.vouchers.set(id, voucher);
     this.persist();
@@ -452,45 +729,70 @@ class SilverscriptVoucherRuntime implements VoucherRuntime {
     voucherId: string,
     secret: string,
     claimer: string,
-    ctx: CovenantWalletContext
+    ctx: CovenantWalletContext,
   ): Promise<VoucherLock> {
     requireCovenantContext(ctx);
+    this.reload();
     const voucher = this.vouchers.get(voucherId);
     if (!voucher) throw new Error('Voucher not found');
+    if (voucher.status !== 'open') throw new Error('Voucher is not open');
+    if (Date.now() > voucher.expiresAt) throw new Error('Voucher has expired');
     const hash = await sha256Hex(secret.trim());
     if (hash !== voucher.secretHash) throw new Error('Invalid claim secret');
-    const tx = await submitTemplateCovenantTx(ctx, 'voucher', {
-      action: 'redeem',
-      voucherId,
-      secret,
-      claimer,
+    if (!voucher.utxo) throw new Error('Voucher is missing on-chain UTXO reference');
+
+    const spent = await spendL1CovenantLock(ctx, {
+      template: 'voucher',
+      utxo: voucher.utxo,
       amountSompi: voucher.amountSompi,
+      toAddress: claimer,
+      functionNameFallback: 'redeem',
+      extraArgs: { preimage: secret.trim(), secret_hash: voucher.secretHash },
+      params: {
+        action: 'redeem',
+        voucherId,
+        secret: secret.trim(),
+        claimer: claimer.trim(),
+      },
     });
+
     const updated: VoucherLock = {
       ...voucher,
       status: 'claimed',
       claimedBy: claimer,
       claimedAt: Date.now(),
-      lockTxHash: tx.txHash ?? voucher.lockTxHash,
+      claimTxHash: spent.txHash,
     };
     this.vouchers.set(voucherId, updated);
     this.persist();
     return updated;
   }
 
+  async setClaimFeeTxHash(voucherId: string, feeTxHash: string): Promise<void> {
+    this.reload();
+    const voucher = this.vouchers.get(voucherId);
+    if (!voucher) throw new Error('Voucher not found');
+    this.vouchers.set(voucherId, { ...voucher, claimFeeTxHash: feeTxHash });
+    this.persist();
+  }
+
   async listOpen(): Promise<VoucherLock[]> {
+    this.reload();
     return Array.from(this.vouchers.values())
+      .filter((v) => v.origin !== 'simulator')
       .filter((v) => v.status === 'open' && Date.now() <= v.expiresAt)
       .sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async listForAddress(address: string): Promise<VoucherLock[]> {
+    this.reload();
     const norm = normalizeAddr(address);
     return Array.from(this.vouchers.values())
+      .filter((v) => v.origin !== 'simulator')
       .filter(
         (v) =>
           normalizeAddr(v.creator) === norm ||
-          (v.claimedBy && normalizeAddr(v.claimedBy) === norm)
+          (v.claimedBy && normalizeAddr(v.claimedBy) === norm),
       )
       .sort((a, b) => b.createdAt - a.createdAt);
   }

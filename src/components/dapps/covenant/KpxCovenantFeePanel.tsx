@@ -51,7 +51,7 @@ export function KpxCovenantFeePanel({
         <span>You pay (fee only)</span>
         <span>
           {pricing.waived ? (
-            <span className="text-amber-600 dark:text-amber-400">Waived (demo)</span>
+            <span className="text-amber-600 dark:text-amber-400">Waived</span>
           ) : (
             `${pricing.feeKas.toFixed(2)} KAS`
           )}
@@ -72,9 +72,9 @@ export function KpxCovenantFeePanel({
         </p>
       ) : (
         <p className="text-xs text-zinc-500">
-          Fee is a separate KAS transfer to Kasparex treasury{' '}
-          {actionLabel === 'claim' ? 'after' : 'before'} your covenant {actionLabel}. Locked funds are
-          not taken from this fee.
+          Fee is a separate KAS transfer to Kasparex treasury before your covenant {actionLabel}.
+          Locked funds are not taken from this fee. KREX tiers discount the fee and multiply Hub
+          Points.
         </p>
       )}
     </div>

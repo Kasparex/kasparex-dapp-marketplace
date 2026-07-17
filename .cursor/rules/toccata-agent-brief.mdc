@@ -88,8 +88,9 @@ Docs: https://docs.kaspa.org/toccata/
 ## This repo (Kasparex Hub)
 
 - Covenant templates: `covenant-lockbox/*.sil` compiled to `public/covenant/*.json` via `npm run covenant:compile`.
-- Runtime: `NEXT_PUBLIC_COVENANT_RUNTIME` = `simulator` | `silverscript` | `hybrid` (default `simulator`).
-- Prefer **hybrid** until wallets expose `sendCovenantTransaction`.
+- Runtime: `NEXT_PUBLIC_COVENANT_RUNTIME` = `silverscript` | `hybrid` (default `hybrid`). Legacy `simulator` env maps to `silverscript`.
+- Prefer **hybrid** / **silverscript** for real L1; local simulator fallback is removed.
 - Client-first state (localStorage); no Hub chain scanning indexers by default.
+- Shared L1 helpers: `src/lib/covenant/l1.ts` (`deployL1CovenantLock` / `spendL1CovenantLock`) for all templates.
 
 Do not name plain helpers with a `use*` prefix unless they are real React hooks.

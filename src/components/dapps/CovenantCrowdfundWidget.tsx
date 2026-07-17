@@ -15,7 +15,7 @@ import { CovenantCrowdfundBrowseCard } from '@/components/dapps/covenant/Covenan
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
   useDAppWidgetSection,
@@ -30,6 +30,7 @@ export function CovenantCrowdfundWidget() {
   const { allCampaigns, loading, error, createCampaign, pledge, claimFunds, refund, refresh, runtimeMode, effectiveMode } =
     useCovenantCrowdfund();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('crowdfund');
+  const { pricing: claimPricing } = useKpxCovenantClaimFee('crowdfund');
   const tab = useDAppWidgetSection('browse') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
   useRegisterWidgetTabLabel('browse', `Campaigns (${allCampaigns.length})`, [allCampaigns.length]);
@@ -194,6 +195,12 @@ export function CovenantCrowdfundWidget() {
                   )
                 }
                 onClaim={() => void claimFunds(c.id)}
+                claimFeeLabel={
+                  claimPricing.waived
+                    ? 'Claim raised funds'
+                    : `Claim · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`
+                }
+                krexTier={krexTier}
                 onRefund={(pledgeId) => void refund(c.id, pledgeId)}
               />
             ))

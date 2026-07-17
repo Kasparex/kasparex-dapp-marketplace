@@ -45,7 +45,7 @@ export async function executeCovenantDeploy(
   const provider = createWalletCovenantProvider(ctx.provider as KaspaWalletProvider);
   if (!(await provider.canExecute())) {
     throw new CovenantNotReadyError(
-      'Your wallet does not support Kaspa covenant transactions yet. Hybrid mode will use the local simulator until KasWare/Kastle expose signPskt+pushTx (or sendCovenantTransaction), and Hub can supply an unsigned Safe-JSON tx.',
+      'Your wallet does not support Kaspa covenant transactions yet. Connect a wallet with signPskt + pushTx (KasCoven / KIP-12 path).',
     );
   }
 
@@ -79,7 +79,7 @@ export async function executeCovenantSpend(
   const provider = createWalletCovenantProvider(ctx.provider as KaspaWalletProvider);
   if (!(await provider.canExecute())) {
     throw new CovenantNotReadyError(
-      'Your wallet does not support Kaspa covenant spends yet. Use simulator mode or connect a wallet with signPskt+pushTx (KasCoven / KIP-12 path).',
+      'Your wallet does not support Kaspa covenant spends yet. Connect a wallet with signPskt + pushTx (KasCoven / KIP-12 path).',
     );
   }
 
@@ -109,8 +109,13 @@ export async function executeLegacyTemplateTx(
   params: Record<string, unknown>,
   spendOutpoint?: { txId: string; index: number },
 ): Promise<CovenantTxResult> {
-  const isSpend = params.action === 'claim' || params.action === 'spend' || Boolean(spendOutpoint);
-  if (isSpend && spendOutpoint) {
+  const isSpend = params.action === 'claim' || params.action === 'spend' || params.action === 'redeem' || params.action === 'refund' || Boolean(spendOutpoint);
+  if (isSpend) {
+    if (!spendOutpoint) {
+      throw new Error(
+        `${template} spend requires a covenant UTXO outpoint. Use executeCovenantSpend via shared l1 helpers.`,
+      );
+    }
     return executeCovenantSpend(ctx, {
       template,
       networkId: networkIdFromContext(ctx),

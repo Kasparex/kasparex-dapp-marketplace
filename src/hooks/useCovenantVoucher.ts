@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 import {
   getVoucherRuntime,
+  getSilverscriptVoucherRuntime,
   getActiveCovenantRuntimeMode,
   kasToSompiString,
   randomHex,
@@ -86,11 +87,18 @@ export function useCovenantVoucher() {
   const claimVoucher = useCallback(
     async (voucherId: string, secret: string) => {
       const pricing = resolveKpxCovenantClaimPrice('voucher', krexTier);
+      const existing = (await runtime.listForAddress(walletCtx().userAddress)).find(
+        (v) => v.id === voucherId,
+      )?.claimFeeTxHash;
       const v = await runKpxCovenantClaimWithFee({
         template: 'voucher',
         pricing,
         ctx: walletCtx(),
         instanceId: voucherId,
+        existingFeeTxHash: existing,
+        onFeePaid: async (feeTxHash) => {
+          await getSilverscriptVoucherRuntime().setClaimFeeTxHash(voucherId, feeTxHash);
+        },
         claim: () => runtime.claim(voucherId, secret, walletCtx().userAddress, walletCtx()),
       });
       await refresh();

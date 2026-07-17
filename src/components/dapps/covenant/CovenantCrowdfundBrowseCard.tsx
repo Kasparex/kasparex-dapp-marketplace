@@ -27,7 +27,9 @@ type CovenantCrowdfundBrowseCardProps = {
   onPledgeAmountChange: (value: string) => void;
   onPledge: () => void;
   onClaim?: () => void;
+  claimFeeLabel?: string;
   onRefund?: (pledgeId: string, amountKas: number) => void;
+  krexTier?: import('@/lib/rewards/types').KREXTier;
 };
 
 export function CovenantCrowdfundBrowseCard({
@@ -38,7 +40,9 @@ export function CovenantCrowdfundBrowseCard({
   onPledgeAmountChange,
   onPledge,
   onClaim,
+  claimFeeLabel,
   onRefund,
+  krexTier = 'Tier0',
 }: CovenantCrowdfundBrowseCardProps) {
   const raised = sompiToKasNumber(campaign.raisedSompi);
   const goal = sompiToKasNumber(campaign.goalSompi);
@@ -69,7 +73,7 @@ export function CovenantCrowdfundBrowseCard({
           {campaign.status === 'funding' && PLEDGE_HUB_POINTS_BASE > 0 ? (
             <HubPointsEarnBadge
               basePoints={PLEDGE_HUB_POINTS_BASE}
-              tier="Tier0"
+              tier={krexTier}
               showMinSpendTooltip={false}
               size="sm"
             />
@@ -116,7 +120,7 @@ export function CovenantCrowdfundBrowseCard({
 
       {isCreator && campaign.status === 'succeeded' && !campaign.claimedAt && onClaim ? (
         <button type="button" className="k-control-btn !border-zinc-300 dark:!border-zinc-700" onClick={onClaim}>
-          Claim raised funds
+          {claimFeeLabel ?? 'Claim raised funds'}
         </button>
       ) : null}
 

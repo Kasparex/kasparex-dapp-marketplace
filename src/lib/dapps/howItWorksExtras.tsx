@@ -43,9 +43,9 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           principal. KREX tiers discount both fees and multiply Hub Points.
         </li>
         <li>
-          <strong>Hybrid / simulator mode</strong> Older demo vaults are hidden. LockBox on Hub uses real L1
-          covenants when your wallet supports signPskt + pushTx. Import by covenant ID if you need to restore a lock
-          from an explorer.
+          <strong>L1 covenants</strong> LockBox uses real Kaspa L1 covenants when your wallet
+          supports signPskt + pushTx. Import by covenant ID if you need to restore a lock from an
+          explorer. Older local demo vaults are hidden.
         </li>
         <li>
           <strong>Reading the wallet popup</strong> Kaspa spends whole UTXOs. One input is coins leaving a prior
@@ -75,20 +75,21 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
   'covenant-split': (
     <ProseBlock>
       <p>
-        Covenant Split is for paying several people from one pot of KAS. You lock the total once; each person claims
-        only their share.
+        Covenant Split is for paying several people from one pot of KAS. Each recipient gets their own L1 lock for
+        their share and can claim independently.
       </p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Set shares</strong>: assign a percentage to each recipient. They must add up to 100%.
+          <strong>Set shares</strong>: assign a percentage to each recipient. They must add up to 100%. Each share
+          must meet the minimum lock amount.
         </li>
         <li>
           <strong>Independent claims</strong>: recipients do not need to wait on each other. Each claims their slice
-          when ready.
+          when ready (Hub claim fee + Hub Points, with KREX tier discounts).
         </li>
         <li>
-          <strong>Fixed rules</strong>: amounts are calculated from your split and enforced by covenant logic
-          (simulated here until wallets ship covenant support).
+          <strong>L1 covenants</strong>: each share is a real Kaspa L1 covenant UTXO when your wallet supports
+          signPskt + pushTx.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
@@ -103,15 +104,15 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
       </p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Fund once</strong>: you lock the total KAS for the whole deal.
+          <strong>Fund once</strong>: you lock the total KAS across milestone shares (one L1 lock per step).
         </li>
         <li>
           <strong>Release on schedule</strong>: each milestone unlocks on its date. Only the beneficiary can claim
-          that slice.
+          that slice (Hub claim fee + Hub Points apply).
         </li>
         <li>
-          <strong>No middleman</strong>: rules are enforced by covenant logic on Kaspa L1 (simulated here until
-          wallets ship covenant support).
+          <strong>No middleman</strong>: rules are enforced by Kaspa L1 covenants when your wallet supports signPskt
+          + pushTx.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
@@ -131,13 +132,14 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
           succeed.
         </li>
         <li>
-          <strong>Pledge KAS</strong>: contributions are tracked on-chain style rules (simulated in this prototype).
+          <strong>Pledge KAS</strong>: each pledge locks KAS in a Kaspa L1 covenant UTXO and can earn Hub Points.
         </li>
         <li>
-          <strong>Goal met</strong>: the creator claims the pooled amount.
+          <strong>Goal met</strong>: the creator claims the pooled amount (Hub claim fee + Hub Points, with KREX
+          tier discounts).
         </li>
         <li>
-          <strong>Goal missed</strong>: backers can request refunds instead of losing funds to a failed project.
+          <strong>Goal missed</strong>: after the deadline, backers can refund their pledge locks.
         </li>
       </ul>
       <p className={DAPP_ABOUT_FOOTNOTE_CLASS}>
@@ -153,7 +155,8 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
       </p>
       <ul className={DAPP_ABOUT_LIST_CLASS}>
         <li>
-          <strong>Mint</strong>: choose an amount and expiry date. You get a voucher ID and a secret code.
+          <strong>Mint</strong>: choose an amount and expiry date. You get a voucher ID and a secret code. Hub
+          deploy fee + Hub Points apply (KREX tiers discount fees and multiply points).
         </li>
         <li>
           <strong>Share off-chain</strong>: send the code to the recipient by message or email. Do not post it
@@ -161,7 +164,7 @@ const HOW_IT_WORKS_EXTRAS: Record<string, ReactNode> = {
         </li>
         <li>
           <strong>Redeem once</strong>: whoever enters the correct code first claims the KAS. Each voucher works only
-          one time.
+          one time (Hub claim fee + Hub Points).
         </li>
         <li>
           <strong>Expires</strong>: unredeemed vouchers stop working after the expiry date you set.

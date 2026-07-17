@@ -18,7 +18,7 @@ import {
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
-import { useKpxCovenantDeployFee } from '@/hooks/useKpxCovenantDeployFee';
+import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxCovenantDeployFee';
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import {
   useDAppWidgetSection,
@@ -32,6 +32,7 @@ export function CovenantVoucherWidget() {
   const { openVouchers, loading, error, createVoucher, claimVoucher, refresh, runtimeMode, effectiveMode } =
     useCovenantVoucher();
   const { pricing, krexTier, krexBalance } = useKpxCovenantDeployFee('voucher');
+  const { pricing: claimPricing } = useKpxCovenantClaimFee('voucher');
   const tab = useDAppWidgetSection('create') as TabId;
   const navigateTab = useNavigateDAppWidgetTab();
   const [amountKas, setAmountKas] = useState('0.1');
@@ -207,7 +208,11 @@ export function CovenantVoucherWidget() {
               onClick={() => void handleClaim()}
               className={covenantSecondaryBtnClass}
             >
-              {busy ? 'Redeeming...' : 'Redeem voucher'}
+              {busy
+                ? 'Redeeming...'
+                : claimPricing.waived
+                  ? 'Redeem voucher'
+                  : `Redeem · pay ${claimPricing.feeKas.toFixed(2)} KAS fee`}
             </button>
           </div>
 
