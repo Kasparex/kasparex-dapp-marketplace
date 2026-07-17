@@ -105,7 +105,7 @@ export function CovenantLockboxWidget() {
     runtimeMode,
     effectiveMode,
   } = useCovenantLockbox();
-  const [kind, setKind] = useState<CovenantVaultKind>('escrow');
+  const [kind, setKind] = useState<CovenantVaultKind>('timelock');
   const [claimerRows, setClaimerRows] = useState<ClaimerRow[]>([
     { key: 'primary', address: '', percent: '100' },
   ]);
@@ -388,8 +388,8 @@ export function CovenantLockboxWidget() {
             <div className="flex gap-2">
               {(
                 [
-                  ['escrow', 'Escrow'],
                   ['timelock', 'Timelock'],
+                  ['escrow', 'Escrow'],
                 ] as const
               ).map(([k, label]) => (
                 <button

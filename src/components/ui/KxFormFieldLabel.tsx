@@ -25,9 +25,9 @@ export function KxFormFieldLabel({
         className="h-3.5 w-0.5 shrink-0 rounded-full bg-[color:var(--hub-accent)] shadow-[0_0_10px_var(--hub-accent-shadow)] -skew-y-12"
         aria-hidden="true"
       />
-      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 inline-flex items-center gap-1.5">
         {children}
-        {required ? <span className="text-rose-500 ml-0.5" aria-hidden="true">*</span> : null}
+        {required ? <span className="text-rose-500" aria-hidden="true">*</span> : null}
       </span>
       {layoutHint ? (
         <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
