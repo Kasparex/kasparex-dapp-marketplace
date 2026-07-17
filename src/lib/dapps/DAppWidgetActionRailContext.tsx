@@ -13,7 +13,12 @@ import {
 
 export type DAppWidgetRailSlots = {
   actions: ReactNode;
+  /**
+   * Status / validation / one-time notices rendered in Calculation Breakdown
+   * directly below the primary action button (after `actions`, before Flow Progress).
+   */
   alerts: ReactNode;
+  /** Optional quote extras above the primary action. */
   extraBreakdown: ReactNode;
   /** Optional Flow Progress override for the calculation sidebar. */
   flowProgress: ReactNode;

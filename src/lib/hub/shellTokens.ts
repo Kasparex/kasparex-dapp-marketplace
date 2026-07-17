@@ -43,6 +43,10 @@ export const KX_DETAIL_HEADER =
 export const KX_EMPTY_STATE =
   'rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-950/50';
 
+/** Dashed informational callout (field context, not post-CTA alerts). */
+export const KX_INFO_DASHED =
+  'rounded-xl border border-dashed border-[#02abb8]/35 bg-[#02abb8]/[0.06] px-3.5 py-3 text-sm leading-snug text-zinc-700 dark:border-[#02abb8]/30 dark:bg-[#02abb8]/10 dark:text-zinc-300';
+
 export const KX_ASIDE_PANEL = `${KX_PANEL} ${KX_PANEL_PADDING}`;
 
 export const KX_FORM_GRID = 'grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 xl:gap-8';

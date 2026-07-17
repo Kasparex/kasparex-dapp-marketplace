@@ -6,11 +6,15 @@ import { useCovenantCrowdfund } from '@/hooks/useCovenantCrowdfund';
 import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
-  CovenantError,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  CovenantRailAlerts,
+  renderCovenantFormAlerts,
+} from '@/components/dapps/covenant/CovenantRailAlerts';
+import { Alert } from '@/components/Alert';
 import { CovenantCrowdfundBrowseCard } from '@/components/dapps/covenant/CovenantCrowdfundBrowseCard';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
@@ -19,6 +23,10 @@ import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxC
 import { crowdfundMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
+import {
+  hasBlockingCovenantAlert,
+  validateFutureDeadline,
+} from '@/lib/covenant/datetimeValidation';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -109,10 +117,35 @@ export function CovenantCrowdfundWidget() {
       tab === 'browse' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? claimPricing.waived
         : pricing.waived,
+    alerts: (
+      <CovenantRailAlerts>
+        {error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null}
+        {tab === 'create' ? (
+          <>
+            <Alert type="info" compact region>
+              After the deadline, no new pledges are accepted. The goal must be met by then for the creator to
+              claim; otherwise backers can refund.
+            </Alert>
+            {deadline.trim()
+              ? renderCovenantFormAlerts(validateFutureDeadline(deadline, { label: 'Deadline' }))
+              : null}
+          </>
+        ) : null}
+      </CovenantRailAlerts>
+    ),
     primaryAction: (
       <button
         type="button"
-        disabled={busy || !title || !deadline}
+        disabled={
+          busy ||
+          !title ||
+          !deadline ||
+          hasBlockingCovenantAlert(validateFutureDeadline(deadline, { label: 'Deadline' }))
+        }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -123,7 +156,7 @@ export function CovenantCrowdfundWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & launch`}
       </button>
     ),
-    deps: [tab, busyKey, title, deadline, pricing, claimPricing, goalKas, memo],
+    deps: [tab, busyKey, title, deadline, pricing, claimPricing, goalKas, memo, error],
   });
 
   if (!state.isConnected) {
@@ -132,8 +165,6 @@ export function CovenantCrowdfundWidget() {
 
   return (
     <KpxCovenantShell template="crowdfund" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
         <CovenantCreateShell template="crowdfund" heading="Launch campaign">

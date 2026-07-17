@@ -8,7 +8,6 @@ import type { CovenantVault, CovenantVaultKind } from '@/lib/covenant';
 import { isAddressInClaimers, resolveVaultClaimers } from '@/lib/covenant/participants';
 import {
   CovenantFieldLabel,
-  CovenantError,
   CovenantTabPanel,
   covenantInputClass,
   covenantSmallInputClass,
@@ -16,6 +15,11 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  CovenantRailAlerts,
+  renderCovenantFormAlerts,
+} from '@/components/dapps/covenant/CovenantRailAlerts';
+import { Alert } from '@/components/Alert';
 import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { getKpxCovenantBrand } from '@/lib/covenant/kpxBranding';
 import {
@@ -37,6 +41,11 @@ import {
   resolveKpxCovenantClaimPrice,
 } from '@/lib/covenant/kpxCovenantPricing';
 import { defaultDeadlineAfterUnlock, resolveClaimWindowProgress } from '@/lib/covenant/claimWindow';
+import {
+  hasBlockingCovenantAlert,
+  validateTimelockWindow,
+  type CovenantFormAlert,
+} from '@/lib/covenant/datetimeValidation';
 import { CovenantClaimWindowBar } from '@/components/dapps/covenant/CovenantClaimWindowBar';
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import {
@@ -156,6 +165,66 @@ export function CovenantLockboxWidget() {
       ? true
       : Math.abs(percentSum - 100) < 0.01 && claimerRows.every((r) => (parseFloat(r.percent) || 0) > 0);
 
+  const formAlerts = useMemo(() => {
+    const alerts: CovenantFormAlert[] = [];
+    if (tab === 'create') {
+      if (kind === 'escrow') {
+        alerts.push({
+          id: 'escrow-info',
+          tone: 'info',
+          message: 'Escrow: the beneficiary can claim as soon as the lock is created.',
+        });
+      } else {
+        alerts.push({
+          id: 'timelock-info',
+          tone: 'info',
+          message:
+            'Timelock: after unlock, claimers have a limited window. If nobody claims before the deadline, you can reclaim the funds.',
+        });
+        alerts.push(
+          ...validateTimelockWindow({
+            unlockLocal,
+            deadlineLocal,
+            now,
+          }),
+        );
+      }
+      if (claimerRows.length > 1) {
+        alerts.push({
+          id: 'multi-claimer-info',
+          tone: 'info',
+          message:
+            'Multi-claimer creates one lock per wallet for their percentage. You will approve one lock transaction per claimer, followed by a single Hub deployment fee.',
+        });
+        if (!sharesValid) {
+          alerts.push({
+            id: 'shares-invalid',
+            tone: 'error',
+            message: 'Claimer shares must total exactly 100%.',
+          });
+        }
+      }
+    }
+    return alerts;
+  }, [tab, kind, unlockLocal, deadlineLocal, now, claimerRows.length, sharesValid]);
+
+  const timeBlocked =
+    kind === 'timelock' && hasBlockingCovenantAlert(formAlerts);
+
+  const railAlerts = useMemo(
+    () => (
+      <CovenantRailAlerts>
+        {error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null}
+        {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
+      </CovenantRailAlerts>
+    ),
+    [error, tab, formAlerts],
+  );
+
   const updateClaimerRow = (key: string, patch: Partial<ClaimerRow>) => {
     setClaimerRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   };
@@ -252,6 +321,7 @@ export function CovenantLockboxWidget() {
       tab === 'vaults' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? claimPricing.waived
         : pricing.waived,
+    alerts: railAlerts,
     primaryAction: (
       <button
         type="button"
@@ -260,6 +330,7 @@ export function CovenantLockboxWidget() {
           isLoading ||
           !primaryClaimerFilled ||
           !sharesValid ||
+          timeBlocked ||
           (kind === 'timelock' && (!unlockLocal || !deadlineLocal))
         }
         onClick={() => void handleCreate()}
@@ -282,6 +353,7 @@ export function CovenantLockboxWidget() {
       isLoading,
       primaryClaimerFilled,
       sharesValid,
+      timeBlocked,
       pricing,
       claimPricing,
       amountKas,
@@ -291,6 +363,8 @@ export function CovenantLockboxWidget() {
       claimerRows,
       memo,
       percentSum,
+      railAlerts,
+      error,
     ],
   });
 
@@ -302,14 +376,12 @@ export function CovenantLockboxWidget() {
 
   return (
     <KpxCovenantShell template="lockbox" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-      {error && <CovenantError message={error} />}
-
       {tab === 'create' && (
         <DAppWidgetShell title="Interact" heading="Create lock" description={brand.tagline}>
           <div className="k-form-group !mb-0">
             <CovenantFieldLabel
               label="Lock type"
-              tooltip="Escrow lets the beneficiary claim whenever they are ready. Timelock waits until the date you set before they can claim."
+              tooltip="Escrow: beneficiary can claim as soon as the lock is created. Timelock: claimers wait until unlock, then have until the claim deadline; after that you can reclaim."
             />
             <div className="flex gap-2">
               {(
@@ -339,18 +411,13 @@ export function CovenantLockboxWidget() {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              {kind === 'escrow'
-                ? 'Beneficiary can claim as soon as the lock is created.'
-                : 'After unlock, claimers have a limited window. If nobody claims before the deadline, you can reclaim the funds.'}
-            </p>
           </div>
 
           <div className="k-form-group !mb-0 space-y-3">
             <div className="flex justify-between items-center gap-2">
               <CovenantFieldLabel
                 label="Who can claim"
-                tooltip="Add Kaspa addresses and a share for each. Shares must total 100%. Each claimer gets their own lock for that slice (you will sign once per claimer). Extra claimers add +5 KAS to the Hub deploy fee."
+                tooltip="Add Kaspa addresses and a share for each. Shares must total 100%. Multi-claimer creates one lock per wallet for their percentage. You will approve one lock transaction per claimer, followed by a single Hub deployment fee. Extra claimers add +5 KAS to the Hub deploy fee."
               />
               {claimerRows.length > 1 ? (
                 <span
@@ -418,12 +485,6 @@ export function CovenantLockboxWidget() {
                 {covenantPremiumAddButtonLabel('lockbox', claimerRows.length)}
               </button>
             ) : null}
-            {claimerRows.length > 1 ? (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Multi-claimer creates one lock per wallet for their %. You will approve one lock transaction per
-                claimer, then the Hub deploy fee once.
-              </p>
-            ) : null}
           </div>
 
           <div className="k-form-group !mb-0">
@@ -444,7 +505,7 @@ export function CovenantLockboxWidget() {
           </div>
 
           {kind === 'timelock' ? (
-            <div className="k-form-group !mb-0 space-y-4">
+            <div className="k-form-group !mb-0 space-y-6">
               <CovenantDatetimeField
                 id="lockbox-unlock"
                 label="Unlock after"
@@ -464,15 +525,11 @@ export function CovenantLockboxWidget() {
               <CovenantDatetimeField
                 id="lockbox-deadline"
                 label="Claim deadline"
-                tooltip="If nobody claims before this time, you (the creator) can reclaim the locked KAS. Must be after unlock."
+                tooltip="Claim window runs from unlock until this deadline. After the deadline, claimers are blocked and only you (the creator) can reclaim. Must be after unlock."
                 value={deadlineLocal}
                 onChange={setDeadlineLocal}
                 minNow={false}
               />
-              <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">
-                Claim window: from unlock until the deadline. After the deadline, claimers are blocked and
-                only you can reclaim.
-              </p>
             </div>
           ) : null}
 

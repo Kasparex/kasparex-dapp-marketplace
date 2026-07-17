@@ -15,6 +15,8 @@ export function useGenesisWidgetRail(
   krexTier: KREXTier,
   options: {
     primaryAction: ReactNode;
+    /** Shown in Calculation Breakdown directly below the primary action. */
+    alerts?: ReactNode;
     enabled?: boolean;
     deps?: DependencyList;
     flowBusy?: boolean;
@@ -43,6 +45,11 @@ export function useGenesisWidgetRail(
     'actions',
     enabled ? options.primaryAction : null,
     options.deps ?? [options.primaryAction, enabled],
+  );
+  useRegisterDAppWidgetRailSlot(
+    'alerts',
+    options.alerts ?? null,
+    options.deps ?? [options.alerts],
   );
   useRegisterDAppWidgetRailSlot('flowProgress', enabled ? flowProgress : null, [
     flowProgress,

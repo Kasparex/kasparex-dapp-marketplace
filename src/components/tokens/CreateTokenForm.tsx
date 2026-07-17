@@ -655,18 +655,6 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
 
   return (
     <>
-      {error ? (
-        <Alert type="error" title="Could not publish" className="mb-4">
-          {error}
-        </Alert>
-      ) : null}
-
-      {!canPublish && (walletAddress || isEvmConnected) ? (
-        <Alert type="info" title="Kaspa wallet required" className="mb-4">
-          Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee and verify on-chain.
-        </Alert>
-      ) : null}
-
       <form
         className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start"
         onSubmit={(e) => {
@@ -1155,6 +1143,22 @@ export function CreateTokenForm({ listing, media, onMediaChange, onSuccess, onCa
                   Preview Token Page
                 </button>
               </>
+            }
+            alerts={
+              error || (!canPublish && (walletAddress || isEvmConnected)) ? (
+                <>
+                  {error ? (
+                    <Alert type="error" compact region>
+                      Could not publish: {error}
+                    </Alert>
+                  ) : null}
+                  {!canPublish && (walletAddress || isEvmConnected) ? (
+                    <Alert type="info" compact region>
+                      Connect Kasware (or another Kaspa L1 wallet) to pay the listing fee and verify on-chain.
+                    </Alert>
+                  ) : null}
+                </>
+              ) : null
             }
           />
         </div>

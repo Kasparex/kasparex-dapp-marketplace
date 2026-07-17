@@ -11,7 +11,6 @@ import {
 import { normalizeAddr } from '@/lib/covenant/utils';
 import {
   CovenantFieldLabel,
-  CovenantError,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -20,6 +19,11 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  CovenantRailAlerts,
+  renderCovenantFormAlerts,
+} from '@/components/dapps/covenant/CovenantRailAlerts';
+import { Alert } from '@/components/Alert';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
@@ -33,6 +37,11 @@ import {
   toDatetimeLocalValue,
 } from '@/components/dapps/covenant/CovenantDatetimeField';
 import { CovenantClaimWindowBar } from '@/components/dapps/covenant/CovenantClaimWindowBar';
+import {
+  hasBlockingCovenantAlert,
+  validateMilestoneRows,
+  type CovenantFormAlert,
+} from '@/lib/covenant/datetimeValidation';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -196,6 +205,48 @@ export function CovenantMilestoneWidget() {
     typeof busyKey === 'string' &&
     (busyKey.startsWith('claim:') || busyKey.startsWith('reclaim:'));
 
+  const pctSum = useMemo(
+    () => milestoneRows.reduce((s, r) => s + (parseFloat(r.pct) || 0), 0),
+    [milestoneRows],
+  );
+  const sharesValid = Math.abs(pctSum - 100) < 0.01;
+
+  const formAlerts = useMemo(() => {
+    const alerts: CovenantFormAlert[] = [];
+    if (tab !== 'create') return alerts;
+    alerts.push({
+      id: 'milestone-window-info',
+      tone: 'info',
+      message:
+        'Each milestone has a claim window from unlock until its deadline. After the deadline, only you (the creator) can reclaim that slice.',
+    });
+    if (!sharesValid) {
+      alerts.push({
+        id: 'milestone-shares',
+        tone: 'error',
+        message: `Milestone shares must total 100% (currently ${pctSum.toFixed(1)}%).`,
+      });
+    }
+    alerts.push(...validateMilestoneRows(milestoneRows, now));
+    return alerts;
+  }, [tab, sharesValid, pctSum, milestoneRows, now]);
+
+  const timeBlocked = hasBlockingCovenantAlert(formAlerts);
+
+  const railAlerts = useMemo(
+    () => (
+      <CovenantRailAlerts>
+        {error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null}
+        {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
+      </CovenantRailAlerts>
+    ),
+    [error, tab, formAlerts],
+  );
+
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(totalKas) || 0 : undefined,
     enabled: tab === 'create',
@@ -204,10 +255,11 @@ export function CovenantMilestoneWidget() {
     flowPreset: tab === 'deals' || claimOrReclaimBusy ? 'covenantClaim' : 'covenantCreate',
     flowLockSignCount: milestoneRows.length,
     flowFeeWaived: tab === 'deals' || claimOrReclaimBusy ? claimPricing.waived : pricing.waived,
+    alerts: railAlerts,
     primaryAction: (
       <button
         type="button"
-        disabled={busy || !beneficiary.trim()}
+        disabled={busy || !beneficiary.trim() || !sharesValid || timeBlocked}
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -218,7 +270,19 @@ export function CovenantMilestoneWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & fund deal`}
       </button>
     ),
-    deps: [tab, busyKey, beneficiary, pricing, claimPricing, totalKas, milestoneRows.length, memo],
+    deps: [
+      tab,
+      busyKey,
+      beneficiary,
+      pricing,
+      claimPricing,
+      totalKas,
+      milestoneRows,
+      memo,
+      railAlerts,
+      sharesValid,
+      timeBlocked,
+    ],
   });
 
   if (!state.isConnected) {
@@ -227,8 +291,6 @@ export function CovenantMilestoneWidget() {
 
   return (
     <KpxCovenantShell template="milestone" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
         <CovenantCreateShell template="milestone" heading="New milestone deal">
@@ -265,15 +327,23 @@ export function CovenantMilestoneWidget() {
           </div>
 
           <div className="k-form-group !mb-0 space-y-3">
-            <CovenantFieldLabel
-              label="Milestones"
-              tooltip="Each row is one payment slice. Percentages should add up to 100. After unlock, the beneficiary has until the deadline to claim; otherwise you can reclaim."
-            />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 -mt-1">
-              Label · share % · unlock · claim deadline
-            </p>
+            <div className="flex justify-between items-center gap-2">
+              <CovenantFieldLabel
+                label="Milestones"
+                tooltip="Each row is one payment slice. Percentages should add up to 100. After unlock, the beneficiary has until the deadline to claim; otherwise you can reclaim. Claim window: from unlock until the deadline."
+              />
+              <span
+                className={`text-xs font-medium ${
+                  sharesValid
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-amber-600 dark:text-amber-400'
+                }`}
+              >
+                Total: {pctSum.toFixed(1)}%
+              </span>
+            </div>
             {milestoneRows.map((row) => (
-              <div key={row.key} className="space-y-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+              <div key={row.key} className="space-y-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                 <div className="flex gap-2 items-start">
                   <div className="grid flex-1 grid-cols-2 gap-2">
                     <input
@@ -319,9 +389,6 @@ export function CovenantMilestoneWidget() {
                   minNow={false}
                   compact
                 />
-                <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                  Claim window: from unlock until the deadline. After the deadline, only you can reclaim.
-                </p>
               </div>
             ))}
             <button

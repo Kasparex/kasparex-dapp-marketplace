@@ -7,7 +7,6 @@ import { COVENANT_LAB_CONFIG } from '@/lib/covenant';
 import type { SplitPayment, SplitRecipient } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
-  CovenantError,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -16,6 +15,11 @@ import {
   covenantSecondaryBtnClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  CovenantRailAlerts,
+  renderCovenantFormAlerts,
+} from '@/components/dapps/covenant/CovenantRailAlerts';
+import { Alert } from '@/components/Alert';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
@@ -24,6 +28,7 @@ import { covenantPremiumAddButtonLabel } from '@/lib/covenant/kpxCovenantPricing
 import { KX_FORM_ADD_BTN_CLASS } from '@/components/ui/KxLinkRowsEditor';
 import { splitMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
+import type { CovenantFormAlert } from '@/lib/covenant/datetimeValidation';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -148,6 +153,41 @@ export function CovenantSplitWidget() {
   };
 
   const splitTotal = parseFloat(totalKas) || 0;
+  const sharesOk = Math.abs(percentSum - 100) <= 0.01;
+
+  const formAlerts = useMemo(() => {
+    const alerts: CovenantFormAlert[] = [];
+    if (tab !== 'create') return alerts;
+    alerts.push({
+      id: 'split-info',
+      tone: 'info',
+      message:
+        'Split creates one lock per recipient for their share. You approve one lock transaction per recipient, then a single Hub deployment fee.',
+    });
+    if (!sharesOk) {
+      alerts.push({
+        id: 'split-shares',
+        tone: 'error',
+        message: `Recipient shares must total 100% (currently ${percentSum.toFixed(1)}%).`,
+      });
+    }
+    return alerts;
+  }, [tab, sharesOk, percentSum]);
+
+  const railAlerts = useMemo(
+    () => (
+      <CovenantRailAlerts>
+        {error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null}
+        {tab === 'create' ? renderCovenantFormAlerts(formAlerts) : null}
+      </CovenantRailAlerts>
+    ),
+    [error, tab, formAlerts],
+  );
+
   useCovenantWidgetRail(pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? splitTotal : undefined,
     enabled: tab === 'create',
@@ -162,6 +202,7 @@ export function CovenantSplitWidget() {
       tab === 'splits' || (typeof busyKey === 'string' && busyKey.startsWith('claim:'))
         ? claimPricing.waived
         : pricing.waived,
+    alerts: railAlerts,
     primaryAction: (
       <button
         type="button"
@@ -169,7 +210,7 @@ export function CovenantSplitWidget() {
           busy ||
           isLoading ||
           rows.some((r) => !r.address.trim()) ||
-          Math.abs(percentSum - 100) > 0.01
+          !sharesOk
         }
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
@@ -181,7 +222,19 @@ export function CovenantSplitWidget() {
             : `Pay ${pricing.feeKas.toFixed(2)} KAS fee & create split`}
       </button>
     ),
-    deps: [tab, busyKey, isLoading, rows, percentSum, pricing, claimPricing, totalKas, rows.length, memo],
+    deps: [
+      tab,
+      busyKey,
+      isLoading,
+      rows,
+      percentSum,
+      pricing,
+      claimPricing,
+      totalKas,
+      memo,
+      railAlerts,
+      sharesOk,
+    ],
   });
 
   if (!kaspaState.isConnected) {
@@ -190,9 +243,6 @@ export function CovenantSplitWidget() {
 
   return (
     <KpxCovenantShell template="split" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-
-      {error && <CovenantError message={error} />}
 
       {tab === 'create' && (
         <CovenantCreateShell template="split" heading="Create split">
@@ -217,7 +267,7 @@ export function CovenantSplitWidget() {
             <div className="flex justify-between items-center">
               <CovenantFieldLabel
                 label="Recipients"
-                tooltip="Add Kaspa addresses and a share for each. All percentages must add up to exactly 100%."
+                tooltip="Add Kaspa addresses and a share for each. All percentages must add up to exactly 100%. Split creates one lock per recipient; you approve one lock transaction per recipient, then a single Hub deployment fee."
               />
               <span
                 className={`text-xs font-medium ${

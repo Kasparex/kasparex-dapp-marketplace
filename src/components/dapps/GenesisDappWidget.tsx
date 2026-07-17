@@ -10,7 +10,6 @@ import { DAppWidgetShell } from '@/components/dapps/DAppWidgetShell';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Alert } from '@/components/Alert';
 import {
   CovenantTabPanel,
@@ -94,6 +93,26 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
   useGenesisWidgetRail(quote, krexBalance ?? 0, tier, {
     enabled: tab === 'create' && kaspaState.isConnected,
     flowBusy: isSubmitting,
+    alerts:
+      (validationError && contentHtml.trim()) || error || success ? (
+        <div className="space-y-2">
+          {validationError && contentHtml.trim() ? (
+            <Alert type="warning" compact region>
+              {validationError}
+            </Alert>
+          ) : null}
+          {error ? (
+            <Alert type="error" title="Error" compact region>
+              {error}
+            </Alert>
+          ) : null}
+          {success ? (
+            <Alert type="success" compact region onDismiss={() => setSuccess(null)}>
+              {success}
+            </Alert>
+          ) : null}
+        </div>
+      ) : null,
     primaryAction: (
       <button
         type="button"
@@ -114,7 +133,17 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
             : 'Leave message'}
       </button>
     ),
-    deps: [tab, isSubmitting, isLoading, contentHtml, validationError, quote, kaspaState.isConnected],
+    deps: [
+      tab,
+      isSubmitting,
+      isLoading,
+      contentHtml,
+      validationError,
+      quote,
+      kaspaState.isConnected,
+      error,
+      success,
+    ],
   });
 
   if (!kaspaState.isConnected) {
@@ -181,24 +210,6 @@ export function GenesisDappWidget({ dapp }: { dapp?: DApp }) {
               </p>
             </div>
           ) : null}
-
-          <KxAlertRegion>
-            {validationError && contentHtml.trim() ? (
-              <Alert type="warning" compact region>
-                <p>{validationError}</p>
-              </Alert>
-            ) : null}
-            {error ? (
-              <Alert type="error" title="Error" compact region>
-                <p>{error}</p>
-              </Alert>
-            ) : null}
-            {success ? (
-              <Alert type="success" compact region onDismiss={() => setSuccess(null)}>
-                <p>{success}</p>
-              </Alert>
-            ) : null}
-          </KxAlertRegion>
         </DAppWidgetShell>
 
         <div className={`${KX_FORM_PANEL} space-y-4`}>

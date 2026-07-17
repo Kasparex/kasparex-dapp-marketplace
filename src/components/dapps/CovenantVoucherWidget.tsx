@@ -6,7 +6,6 @@ import { useCovenantVoucher } from '@/hooks/useCovenantVoucher';
 import { COVENANT_LAB_CONFIG, sompiToKasNumber } from '@/lib/covenant';
 import {
   CovenantFieldLabel,
-  CovenantError,
   CovenantTabPanel,
   CovenantCreateShell,
   covenantInputClass,
@@ -14,6 +13,11 @@ import {
   covenantCardClass,
   shortKaspaAddr,
 } from '@/components/dapps/covenant/CovenantWidgetUi';
+import {
+  CovenantRailAlerts,
+  renderCovenantFormAlerts,
+} from '@/components/dapps/covenant/CovenantRailAlerts';
+import { Alert } from '@/components/Alert';
 import { KpxCovenantDisconnected, KpxCovenantShell } from '@/components/dapps/covenant/KpxCovenantShell';
 import { KpxCovenantMetadataView } from '@/components/dapps/covenant/KpxCovenantMetadataView';
 import { useCovenantWidgetRail } from '@/hooks/useCovenantWidgetRail';
@@ -21,6 +25,10 @@ import { useKpxCovenantDeployFee, useKpxCovenantClaimFee } from '@/hooks/useKpxC
 import { voucherMetadataInstances } from '@/lib/covenant/kpxCovenantMetadata';
 import { CovenantInstanceDetailModal } from '@/components/dapps/covenant/CovenantInstanceDetailModal';
 import { CovenantDatetimeField } from '@/components/dapps/covenant/CovenantDatetimeField';
+import {
+  hasBlockingCovenantAlert,
+  validateFutureDeadline,
+} from '@/lib/covenant/datetimeValidation';
 import {
   useDAppWidgetSection,
   useNavigateDAppWidgetTab,
@@ -83,6 +91,9 @@ export function CovenantVoucherWidget() {
   };
 
   const isClaimTab = tab === 'claim';
+  const expiryAlerts = expires.trim()
+    ? validateFutureDeadline(expires, { label: 'Expiry' })
+    : [];
   useCovenantWidgetRail(isClaimTab ? claimPricing : pricing, krexBalance, {
     lockAmountKas: tab === 'create' ? parseFloat(amountKas) || 0 : undefined,
     enabled: tab === 'create' || isClaimTab,
@@ -90,6 +101,30 @@ export function CovenantVoucherWidget() {
     flowBusy: busy,
     flowPreset: isClaimTab || busyKey === 'claim' ? 'covenantClaim' : 'covenantCreate',
     flowFeeWaived: isClaimTab || busyKey === 'claim' ? claimPricing.waived : pricing.waived,
+    alerts: (
+      <CovenantRailAlerts>
+        {error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null}
+        {issuedSecret && issuedId ? (
+          <Alert type="warning" compact region>
+            <p className="font-medium">Save this secret (shown once)</p>
+            <p className="font-mono break-all text-xs mt-1">{issuedSecret}</p>
+            <p className="text-[11px] mt-1 opacity-80">Voucher ID: {issuedId}</p>
+          </Alert>
+        ) : null}
+        {tab === 'create' ? (
+          <>
+            <Alert type="info" compact region>
+              After expiry the voucher can no longer be redeemed. Share the secret only with the recipient.
+            </Alert>
+            {renderCovenantFormAlerts(expiryAlerts)}
+          </>
+        ) : null}
+      </CovenantRailAlerts>
+    ),
     primaryAction: isClaimTab ? (
       <button
         type="button"
@@ -106,7 +141,7 @@ export function CovenantVoucherWidget() {
     ) : (
       <button
         type="button"
-        disabled={busy || !expires}
+        disabled={busy || !expires || hasBlockingCovenantAlert(expiryAlerts)}
         onClick={() => void handleCreate()}
         className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -127,6 +162,9 @@ export function CovenantVoucherWidget() {
       memo,
       claimId,
       claimSecret,
+      error,
+      issuedSecret,
+      issuedId,
     ],
   });
 
@@ -136,18 +174,6 @@ export function CovenantVoucherWidget() {
 
   return (
     <KpxCovenantShell template="voucher" runtimeMode={runtimeMode} effectiveMode={effectiveMode}>
-
-      {error && <CovenantError message={error} />}
-
-      {issuedSecret && issuedId && (
-        <div className="p-4 bg-amber-500/10 border border-amber-500/40 rounded-xl text-sm space-y-2">
-          <p className="font-medium text-amber-800 dark:text-amber-200">
-            Save this secret code (shown once):
-          </p>
-          <p className="font-mono break-all text-zinc-900 dark:text-zinc-100">{issuedSecret}</p>
-          <p className="text-xs text-zinc-500">Voucher ID: {issuedId}</p>
-        </div>
-      )}
 
       {tab === 'create' && (
         <CovenantCreateShell template="voucher" heading="Mint voucher">

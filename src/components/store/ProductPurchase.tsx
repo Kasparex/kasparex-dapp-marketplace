@@ -9,6 +9,7 @@ import { useHubListingGate } from '@/hooks/useHubListingGate';
 import { storeProductGateConfig } from '@/lib/hub/gateConfigs';
 import { HubWalletGateModal } from '@/components/hub/HubWalletGateModal';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
+import { Alert } from '@/components/Alert';
 import {
   getProductPaymentCurrency,
 } from '@/lib/store/currencies';
@@ -128,20 +129,30 @@ export function ProductPurchase({ product, onPurchaseComplete }: ProductPurchase
           flowBusy={isProcessing}
           flowComplete={Boolean(success)}
           footer={
-            <>
-              {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-              {success && txHash ? (
-                <p className="text-sm text-emerald-600 dark:text-emerald-400">Purchase complete.</p>
-              ) : null}
-              <button
-                type="button"
-                onClick={handlePurchase}
-                disabled={isProcessing || !state.isConnected}
-                className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] disabled:opacity-50"
-              >
-                {isProcessing ? 'Processing…' : state.isConnected ? 'Purchase' : 'Connect wallet to purchase'}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={handlePurchase}
+              disabled={isProcessing || !state.isConnected}
+              className="w-full k-control-btn !bg-[#02abb8] !text-white !border-[#02abb8] disabled:opacity-50"
+            >
+              {isProcessing ? 'Processing…' : state.isConnected ? 'Purchase' : 'Connect wallet to purchase'}
+            </button>
+          }
+          alerts={
+            error || (success && txHash) ? (
+              <>
+                {error ? (
+                  <Alert type="error" compact region>
+                    {error}
+                  </Alert>
+                ) : null}
+                {success && txHash ? (
+                  <Alert type="success" compact region>
+                    Purchase complete.
+                  </Alert>
+                ) : null}
+              </>
+            ) : null
           }
         />
       </div>

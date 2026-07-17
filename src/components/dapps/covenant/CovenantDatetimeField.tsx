@@ -57,7 +57,7 @@ export function CovenantDatetimeField({
   };
 
   return (
-    <div className={compact ? 'space-y-1.5' : 'space-y-2'}>
+    <div className={compact ? 'space-y-2' : 'space-y-3'}>
       <CovenantFieldLabel label={label} htmlFor={id} tooltip={tooltip} />
       <input
         id={id}
@@ -86,7 +86,7 @@ export function CovenantDatetimeField({
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-0.5">
         <input
           type="number"
           min={1}

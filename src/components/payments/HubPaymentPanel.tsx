@@ -45,6 +45,8 @@ export function HubPaymentPanel({
   flowActiveStepId = null,
   flowCurrentIndex,
   hideFlowProgress = false,
+  /** Status / validation notices rendered below the primary action (footer). */
+  alerts,
 }: {
   title?: string;
   lines: HubPaymentQuoteLine[];
@@ -59,6 +61,8 @@ export function HubPaymentPanel({
   tier?: KREXTier;
   krexBalance?: number;
   footer?: ReactNode;
+  /** Rendered directly below footer (CTA). Prefer for errors / success / validation. */
+  alerts?: ReactNode;
   className?: string;
   asideClassName?: string;
   currencyAccent?: 'default' | 'store';
@@ -173,6 +177,8 @@ export function HubPaymentPanel({
       ) : null}
 
       {footer ? <div className="space-y-3">{footer}</div> : null}
+
+      {alerts ? <div className="space-y-2">{alerts}</div> : null}
 
       {!hideFlowProgress ? (
         <HubFlowProgress

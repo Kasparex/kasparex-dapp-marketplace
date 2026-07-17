@@ -20,6 +20,8 @@ export function useCovenantWidgetRail(
   options: {
     lockAmountKas?: number;
     primaryAction: ReactNode;
+    /** Shown in Calculation Breakdown directly below the primary action. */
+    alerts?: ReactNode;
     enabled?: boolean;
     deps?: DependencyList;
     flowBusy?: boolean;
@@ -79,6 +81,11 @@ export function useCovenantWidgetRail(
     'actions',
     enabled ? options.primaryAction : null,
     options.deps ?? [options.primaryAction, enabled],
+  );
+  useRegisterDAppWidgetRailSlot(
+    'alerts',
+    options.alerts ?? null,
+    options.deps ?? [options.alerts],
   );
   useRegisterDAppWidgetRailSlot(
     'flowProgress',

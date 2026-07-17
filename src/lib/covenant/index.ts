@@ -98,6 +98,15 @@ export {
   type ClaimWindowProgress,
 } from './claimWindow';
 export {
+  validateTimelockWindow,
+  validateMilestoneRows,
+  validateFutureDeadline,
+  hasBlockingCovenantAlert,
+  parseDatetimeLocal,
+  type CovenantFormAlert,
+  type CovenantFormAlertTone,
+} from './datetimeValidation';
+export {
   getCovenantRuntime,
   getSplitPaymentRuntime,
   getMilestoneRuntime,

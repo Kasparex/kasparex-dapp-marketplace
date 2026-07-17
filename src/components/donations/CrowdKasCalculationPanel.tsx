@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { HubPaymentPanel } from '@/components/payments/HubPaymentPanel';
 import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
-import { KxAlertRegion } from '@/components/ui/KxAlertRegion';
 import { Alert } from '@/components/Alert';
 import { buildKasKrexCurrencyOptions, formatHubPaymentAmount } from '@/lib/payments/hubPaymentTypes';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
@@ -187,14 +186,14 @@ export function CrowdKasL1CalculationPanel({
                 {previewLabel}
               </button>
             ) : null}
-            <KxAlertRegion>
-              {error ? (
-                <Alert type="error" compact region>
-                  <p>{error}</p>
-                </Alert>
-              ) : null}
-            </KxAlertRegion>
           </>
+        }
+        alerts={
+          error ? (
+            <Alert type="error" compact region>
+              {error}
+            </Alert>
+          ) : null
         }
       />
       <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
@@ -325,14 +324,14 @@ export function CrowdKasL2CalculationPanel({
               {previewLabel}
             </button>
           ) : null}
-          <KxAlertRegion>
-            {error ? (
-              <Alert type="error" compact region>
-                <p>{error}</p>
-              </Alert>
-            ) : null}
-          </KxAlertRegion>
         </>
+      }
+      alerts={
+        error ? (
+          <Alert type="error" compact region>
+            {error}
+          </Alert>
+        ) : null
       }
     />
   );

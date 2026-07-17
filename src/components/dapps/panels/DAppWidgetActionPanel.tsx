@@ -4,7 +4,9 @@ import { useDAppWidgetActionRail, hasDAppWidgetRailContent } from '@/lib/dapps/D
 import { DAppCalculationBreakdownPanel } from '@/components/dapps/panels/DAppCalculationBreakdownPanel';
 import type { DApp } from '@/lib/dapps';
 
-/** Sticky action rail beside the widget: fee breakdown, discounts, and dApp action buttons. */
+/** Sticky action rail beside the widget: fee breakdown, discounts, and dApp action buttons.
+ * Footer order: extraBreakdown → actions (CTA) → alerts (below CTA) → Flow Progress outside footer.
+ */
 export function DAppWidgetActionPanel({ dapp }: { dapp: DApp }) {
   const { slots } = useDAppWidgetActionRail();
   const hasSlots = hasDAppWidgetRailContent(slots);
