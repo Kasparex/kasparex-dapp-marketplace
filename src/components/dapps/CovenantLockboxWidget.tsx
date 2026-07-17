@@ -274,7 +274,6 @@ export function CovenantLockboxWidget() {
       memo,
       percentSum,
     ],
-    enabled: tab === 'create',
   });
 
   const brand = getKpxCovenantBrand('lockbox');
