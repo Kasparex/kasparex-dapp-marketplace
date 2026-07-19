@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { HubDocPageShell } from '@/components/hub/HubDocPageShell';
 import { HubLandingSidebar } from '@/components/hub/HubLandingSidebar';
 import { ProjectCard } from '@/components/ProjectCard';
+import { AdSlider } from '@/components/ads/AdSlider';
 import { hubProjects } from '@/lib/hubProjects';
 
-/** Hub marketing content is static; cache at the edge for faster first paint. */
-export const revalidate = 3600;
+/** Static Hub marketing shell. Cache indefinitely until the next deploy. */
+export const dynamic = 'force-static';
+export const revalidate = false;
 
 export default function HubPage() {
   return (
@@ -22,29 +24,47 @@ export default function HubPage() {
         </>
       }
     >
-      {/* Minimal welcome header */}
-      <section id="hub-welcome" className="scroll-mt-24 relative mb-10 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+      {/* Minimal welcome header + halo ad slider */}
+      <section
+        id="hub-welcome"
+        className="scroll-mt-24 relative mb-10 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
+      >
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.08),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(2,171,184,0.14),transparent_55%)]"
           aria-hidden
         />
-        <div className="relative z-10 px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--k-primary)]">
-            The Kasparex Ecosystem
-          </p>
-          <h1 className="mb-3 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
-            Kasparex Hub
-          </h1>
-          <p className="kx-body mb-6 max-w-2xl leading-relaxed">
-            Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, publishing tools, and infrastructure built around Kaspa.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
-              Explore dApps
-            </Link>
-            <Link href="/rewards" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
-              View Rewards
-            </Link>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          <div className="max-w-2xl min-w-0">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--k-primary)]">
+              The Kasparex Ecosystem
+            </p>
+            <h1 className="mb-3 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
+              Kasparex Hub
+            </h1>
+            <p className="kx-body mb-6 max-w-xl leading-relaxed">
+              Your unified gateway to the Kasparex ecosystem. Explore modular dApps, media, games, publishing tools, and infrastructure built around Kaspa.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/dapps" className="k-cta-primary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
+                Explore dApps
+              </Link>
+              <Link href="/rewards" className="k-cta-secondary w-full sm:w-auto justify-center text-xs py-2.5 px-5">
+                View Rewards
+              </Link>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center justify-center flex-shrink-0 relative w-[280px] min-h-[200px]">
+            <div className="relative opacity-90 pointer-events-none" aria-hidden>
+              <div className="w-48 h-56 rounded-2xl border-2 border-[var(--k-primary)]/30 bg-white/80 dark:bg-zinc-900/80 shadow-2xl shadow-cyan-500/10 rotate-3 transform" />
+              <div className="absolute -bottom-2 -right-2 w-40 h-48 rounded-xl border-2 border-teal-500/20 bg-zinc-100/90 dark:bg-zinc-800/90 shadow-xl -rotate-6 transform" />
+            </div>
+            <div
+              id="ad-slot-hub-halo"
+              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto scroll-mt-24"
+            >
+              <AdSlider slotId="HALO_HUB_RIGHT" />
+            </div>
           </div>
         </div>
       </section>

@@ -14,6 +14,12 @@ export const AD_SLOT_PLACEMENT_LINKS: {
     placement: 'dApps home, hero right',
   },
   {
+    slotId: 'HALO_HUB_RIGHT',
+    title: 'Hub halo',
+    href: '/hub#ad-slot-hub-halo',
+    placement: 'Kasparex Hub landing, hero right',
+  },
+  {
     slotId: 'HALO_PROTOCOLS_RIGHT',
     title: 'Protocols halo',
     href: '/protocols#ad-slot-protocols-halo',
