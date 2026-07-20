@@ -1,0 +1,31 @@
+---
+description: Accurate Kaspa / BlockDAG terminology for all product copy and AI output
+alwaysApply: true
+---
+
+# Kaspa terminology (never get this wrong)
+
+Kaspa is **not** a blockchain. It is a **BlockDAG** (block Directed Acyclic Graph) cryptocurrency network.
+
+## Required language
+
+- Call Kaspa a **BlockDAG**, a **cryptocurrency network**, or the **Kaspa network**.
+- Native coin: **KAS**.
+- Kasparex builds products **on Kaspa** (L1 BlockDAG + optional L2s such as Kasplex / Igra).
+- Consensus uses **GHOSTDAG** (and related PHANTOM-family ideas): parallel blocks can coexist and be ordered, instead of a single linear chain that orphans competing blocks.
+- That design is why Kaspa can sustain high block rates with fast confirmations while remaining proof-of-work and decentralized.
+
+## Forbidden language
+
+- Never call Kaspa a **blockchain**.
+- Never write “Kaspa blockchain”, “on the Kaspa blockchain”, or “blockchain application” when referring to Kaspa L1.
+- Do not equate Kaspa with “Bitcoin/Ethereum but faster” without stating the BlockDAG difference.
+- Prefer **on-chain / network / Kaspa L1 / Layer 2** over the word blockchain when discussing Kasparex actions.
+
+## When comparing to other networks
+
+It is fine to say Kaspa is a cryptocurrency network **in the same category as** Bitcoin or Ethereum (digital money / decentralized ledger). Always add that its data structure is a **BlockDAG**, not a linear chain.
+
+## Tone for Hub / onboarding copy
+
+Explain clearly for newcomers without sounding condescending. Prefer tight paragraphs over many one-line breaks. Be accurate first; marketing second.
