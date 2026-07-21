@@ -206,8 +206,11 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             },
           ]}
           game={{
-            name: gameName ?? 'Diamond Veins',
-            featuredImage: featuredImage,
+            ...(game ?? {}),
+            name: gameName ?? game?.name ?? 'Diamond Veins',
+            description: gameDescription || game?.description || '',
+            featuredImage: featuredImage || game?.featuredImage,
+            image: game?.image,
             connections,
             categories,
             tags,

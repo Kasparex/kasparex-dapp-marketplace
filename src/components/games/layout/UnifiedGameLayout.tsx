@@ -55,6 +55,9 @@ export function UnifiedGameLayout({
     image: game.image,
     entryCostKAS: game.entryCostKAS ?? 0,
     version: game.version,
+    publisher: game.publisher,
+    categories: game.categories,
+    tags: game.tags,
   };
 
   const sidebar = (

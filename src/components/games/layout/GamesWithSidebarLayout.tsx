@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * Token-style header + tighter tab/content stack, then collapsible main / right-column grid.
+ * Matches Tokens page stack: header (own mb-10) then equal gap-6 between tabs and content.
  */
 export function GamesWithSidebarLayout({
   tabs,
@@ -33,10 +33,10 @@ export function GamesWithSidebarLayout({
 
   return (
     <GamesLayoutProvider rightPanelOpen={rightOpen}>
-      <div className="flex w-full min-w-0 flex-col gap-3">
-        {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
+      {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
 
-        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+      <div className="flex w-full min-w-0 flex-col gap-6">
+        <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div className="min-w-0 flex-1">
             <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
           </div>
@@ -55,6 +55,7 @@ export function GamesWithSidebarLayout({
           sidebar={sidebar}
           mainColClass="lg:col-span-8"
           asideColClass="lg:col-span-4"
+          gridClassName="grid grid-cols-1 gap-8 xl:gap-10"
           hideToggle
         >
           {main}

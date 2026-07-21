@@ -34,7 +34,6 @@ import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
@@ -317,8 +316,11 @@ export function MinecoreDashboard(_props: {
           onTabChange={setTab}
           resources={resources}
           game={{
-            name: _props.gameName ?? 'Minecore',
-            featuredImage: _props.featuredImage,
+            ...(_props.game ?? {}),
+            name: _props.gameName ?? _props.game?.name ?? 'Minecore',
+            description: _props.gameDescription ?? _props.game?.description ?? '',
+            featuredImage: _props.featuredImage || _props.game?.featuredImage,
+            image: _props.game?.image,
             connections,
             categories,
             tags,

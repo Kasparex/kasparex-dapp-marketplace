@@ -73,17 +73,26 @@ export function CipherVaultsDashboard({
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
 
-  const haloGame = game ?? {
-    name: gameName || 'Cipher Vaults',
-    description: gameDescription || '',
-    developer: 'Kasparex',
-    status: 'active' as const,
-    difficulty: 'medium' as const,
-    gameType: 'puzzle' as const,
-    featuredImage,
-    image: featuredImage,
-    entryCostKAS: 0,
-  };
+  const haloGame = game
+    ? {
+        ...game,
+        categories: (game as { categories?: string[] }).categories ?? categories,
+        tags: (game as { tags?: string[] }).tags ?? tags,
+      }
+    : {
+        name: gameName || 'Cipher Vaults',
+        description: gameDescription || '',
+        developer: 'Kasparex',
+        status: 'active' as const,
+        difficulty: 'medium' as const,
+        gameType: 'puzzle' as const,
+        featuredImage,
+        image: featuredImage,
+        entryCostKAS: 0,
+        publisher: 'kasparex' as const,
+        categories,
+        tags,
+      };
 
   useEffect(() => {
     if (!walletState.isConnected) return;
