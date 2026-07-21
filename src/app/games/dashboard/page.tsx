@@ -56,9 +56,9 @@ export default function GamesDashboardPage() {
   const [content, setContent] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
   const [boostEnabled, setBoostEnabled] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [listingsVersion, setListingsVersion] = useState(0);
 
-  const listings = useMemo(() => readListings(state.address), [state.address, submitted]);
+  const listings = useMemo(() => readListings(state.address), [state.address, listingsVersion]);
   const totalKas = BASE_FEE_KAS + (boostEnabled ? PREMIUM_MODULE_FEE_KAS : 0);
 
   const handleSave = () => {
@@ -78,7 +78,7 @@ export default function GamesDashboardPage() {
     setContent('');
     setCoverUrl('');
     setBoostEnabled(false);
-    setSubmitted((v) => !v);
+    setListingsVersion((v) => v + 1);
     setTab('listings');
   };
 
@@ -145,7 +145,9 @@ export default function GamesDashboardPage() {
               </div>
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {listings.length === 0 ? (
-                  <p className="p-8 text-sm text-zinc-500">No listings yet. Use "List Project" to add your first promotion.</p>
+                  <p className="p-8 text-sm text-zinc-500">
+                    No listings yet. Open the List Project tab to add your first promotion.
+                  </p>
                 ) : (
                   listings.map((item) => (
                     <div key={item.id} className="p-5">
