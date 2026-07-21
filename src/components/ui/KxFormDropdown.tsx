@@ -59,7 +59,7 @@ export function KxFormDropdown({
         <div
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute left-0 top-full z-[80] mt-1.5 w-full min-w-[12rem] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 max-h-64 overflow-y-auto"
+          className="k-menu-surface absolute left-0 top-full z-[80] mt-1.5 w-full min-w-[12rem] overflow-hidden rounded-xl shadow-lg max-h-64 overflow-y-auto"
         >
           {options.map((opt) => {
             const selected = opt.value === value;

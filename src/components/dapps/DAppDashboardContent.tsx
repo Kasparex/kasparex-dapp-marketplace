@@ -22,6 +22,7 @@ import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader'
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
@@ -273,12 +274,20 @@ export function DAppDashboardContent() {
         <div id="dapps-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
           <VBlogFeeCard
             title="Listing Fee"
-            feeKas={DAPP_LISTING_FEE_KAS}
+            feeKas={applyKrexFeeDiscount(DAPP_LISTING_FEE_KAS, krexTier)}
             basePoints={HUB_EARN_POINTS.dappDirectoryList}
             tier={krexTier}
           />
-          <VBlogFeeCard title="Edit / Update" feeKas={DAPP_LISTING_ACTION_FEE_KAS} tier={krexTier} />
-          <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.dapps} tier={krexTier} />
+          <VBlogFeeCard
+            title="Edit / Update"
+            feeKas={applyKrexFeeDiscount(DAPP_LISTING_ACTION_FEE_KAS, krexTier)}
+            tier={krexTier}
+          />
+          <VBlogFeeCard
+            title="Delete Fee"
+            feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS.dapps, krexTier)}
+            tier={krexTier}
+          />
         </div>
       ) : null}
 

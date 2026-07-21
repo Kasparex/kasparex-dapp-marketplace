@@ -25,13 +25,15 @@ import {
 } from '@/lib/dapps/listingSubmissions';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { DIRECTORY_LISTING_CHAINS } from '@/lib/dapps/listingChains';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
+import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
 import {
   KX_FORM_GRID,
@@ -434,12 +436,14 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         });
 
         const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
-        appendHubActivityEarn({
+        creditHubListingEarn({
           walletRaw: state.address,
           source: 'dapp_directory_list',
           redeemableDelta: HUB_EARN_POINTS.dappDirectoryList,
           krexBalance,
+          krexTier,
           idempotencyKey: `dapps:listing:${txNorm}`,
+          txHash: txNorm,
           meta: { name: name.trim() },
         });
       }
@@ -492,11 +496,15 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            {fieldLabel('name')}
+            <div className="mb-2 flex items-center justify-between gap-2">
+              {fieldLabel('name')}
+              <KxFieldCharCount value={name} max={HUB_FORM_LIMITS.name.max} min={HUB_FORM_LIMITS.name.min} />
+            </div>
             <input
               type="text"
               className="k-input"
               value={name}
+              maxLength={HUB_FORM_LIMITS.name.max}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your dApp, game, or tool name"
               required
@@ -504,10 +512,18 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            {fieldLabel('shortDescription')}
+            <div className="mb-2 flex items-center justify-between gap-2">
+              {fieldLabel('shortDescription')}
+              <KxFieldCharCount
+                value={shortDescription}
+                max={HUB_FORM_LIMITS.shortDescription.max}
+                min={HUB_FORM_LIMITS.shortDescription.min}
+              />
+            </div>
             <textarea
               className="k-textarea min-h-[80px]"
               value={shortDescription}
+              maxLength={HUB_FORM_LIMITS.shortDescription.max}
               onChange={(e) => setShortDescription(e.target.value)}
               placeholder="One or two sentences for cards and search"
               required
@@ -515,18 +531,26 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <KxFormFieldLabel required>Full description / overview</KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Full description / overview</KxFormFieldLabel>
+              <KxFieldCharCount
+                value={htmlToPlainText(fullDescription)}
+                max={HUB_FORM_LIMITS.content.max}
+                min={HUB_FORM_LIMITS.content.min}
+              />
+            </div>
             <KxRichTextEditor
               value={fullDescription}
               onChange={setFullDescription}
               placeholder="Detailed overview of your project"
               minRows={12}
+              maxLength={HUB_FORM_LIMITS.content.max}
             />
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="k-form-group">
-              <label className="k-label">Category *</label>
+              <KxFormFieldLabel required>Category</KxFormFieldLabel>
               <KxFilterDropdown
                 value={category}
                 onChange={(value) => setCategory(value as Category)}
@@ -540,7 +564,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               />
             </div>
             <div className="k-form-group">
-              <label className="k-label">Layer *</label>
+              <KxFormFieldLabel required>Layer</KxFormFieldLabel>
               <KxSegmentToggle
                 value={networkLayer}
                 onChange={setNetworkLayer}
@@ -555,21 +579,29 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Tags</label>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel>Tags</KxFormFieldLabel>
+              <KxFieldCharCount value={tagsRaw} max={HUB_FORM_LIMITS.tags.max} />
+            </div>
             <input
               type="text"
               className="k-input"
               value={tagsRaw}
+              maxLength={HUB_FORM_LIMITS.tags.max}
               onChange={(e) => setTagsRaw(e.target.value)}
               placeholder="defi, gaming, nft (comma separated)"
             />
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Utility / use case</label>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel>Utility / use case</KxFormFieldLabel>
+              <KxFieldCharCount value={utility} max={HUB_FORM_LIMITS.utility.max} />
+            </div>
             <textarea
               className="k-textarea min-h-[80px]"
               value={utility}
+              maxLength={HUB_FORM_LIMITS.utility.max}
               onChange={(e) => setUtility(e.target.value)}
               placeholder="What problem does your project solve?"
             />

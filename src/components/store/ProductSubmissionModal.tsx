@@ -8,7 +8,7 @@ import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { createProduct } from '@/lib/store/products';
 import type { ProductCategory, ProductNetwork } from '@/lib/store/types';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 
@@ -27,7 +27,7 @@ export function ProductSubmissionModal({
   onSuccess,
 }: ProductSubmissionModalProps) {
   const { state, connect } = useKaspaWallet();
-  const { balance: krexBalance } = useKREXBalance();
+  const { balance: krexBalance, tier: krexTier } = useKREXBalance();
   const { upload, uploadJSON, isUploading } = useIPFSUpload();
 
   const [formData, setFormData] = useState({
@@ -165,12 +165,14 @@ export function ProductSubmissionModal({
       }
 
       const txNorm = extractKaspaTransactionId(result.txHash) ?? result.txHash;
-      appendHubActivityEarn({
+      creditHubListingEarn({
         walletRaw: state.address,
         source: 'store_product_list',
         redeemableDelta: HUB_EARN_POINTS.storeProductList,
         krexBalance,
+        krexTier,
         idempotencyKey: `store:product:${txNorm}`,
+        txHash: txNorm,
         meta: { productId: productResult.product.id },
       });
 

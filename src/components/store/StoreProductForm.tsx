@@ -13,7 +13,7 @@ import { useIntegratedTokens } from '@/hooks/useIntegratedToken';
 import { usePricingSnapshot } from '@/hooks/usePricingSnapshot';
 import { formatKasEq, toKasEq, mergePricingTickers } from '@/lib/pricing';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
@@ -22,6 +22,8 @@ import { getBestGatewayUrl, normalizeIpfsUrlForForm, extractCidFromIpfsUrl } fro
 import { IPFS_MAX_UPLOAD_MB } from '@/lib/ipfs/limits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
+import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxImageSourceField } from '@/components/ui/KxImageSourceField';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
@@ -248,12 +250,14 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
         if (!productResult) throw new Error('Failed to create product');
 
         const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
-        appendHubActivityEarn({
+        creditHubListingEarn({
           walletRaw: state.address,
           source: 'store_product_list',
           redeemableDelta: HUB_EARN_POINTS.storeProductList,
           krexBalance,
+          krexTier: tier,
           idempotencyKey: `store:product:${txNorm}`,
+          txHash: txNorm,
           meta: { productId: productResult.product.id },
         });
 
@@ -312,13 +316,19 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           </div>
 
           <div>
-            <KxFormFieldLabel>
-              Title <span className="text-red-500">*</span>
-            </KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Title</KxFormFieldLabel>
+              <KxFieldCharCount
+                value={formData.title}
+                max={HUB_FORM_LIMITS.title.max}
+                min={HUB_FORM_LIMITS.title.min}
+              />
+            </div>
             <input
               type="text"
               className="k-input text-base"
               value={formData.title}
+              maxLength={HUB_FORM_LIMITS.title.max}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Product title"
               required
@@ -328,9 +338,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <KxFormFieldLabel>
-                Price <span className="text-red-500">*</span>
-              </KxFormFieldLabel>
+              <KxFormFieldLabel required>Price</KxFormFieldLabel>
               <input
                 type="number"
                 step="0.0001"
@@ -367,14 +375,20 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
           </div>
 
           <div>
-            <KxFormFieldLabel>
-              Description <span className="text-red-500">*</span>
-            </KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Description</KxFormFieldLabel>
+              <KxFieldCharCount
+                value={description.replace(/<[^>]*>/g, '')}
+                max={HUB_FORM_LIMITS.content.max}
+                min={HUB_FORM_LIMITS.shortDescription.min}
+              />
+            </div>
             <KxRichTextEditor
               value={description}
               onChange={setDescription}
               placeholder="Describe your product for buyers..."
               minRows={6}
+              maxLength={HUB_FORM_LIMITS.content.max}
               disabled={isProcessing || isUploading}
             />
           </div>

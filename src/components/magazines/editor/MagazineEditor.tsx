@@ -29,12 +29,14 @@ import {
   VBlogSubmissionsPanel,
   vblogSectionsFromSlugs,
 } from '@/components/magazines/editor/VBlogSubmissionsPanel';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
+import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
@@ -328,12 +330,14 @@ export function MagazineEditor() {
 
       savePublishedMagazineIssue({ ...mag, totalIssues: Math.max(mag.totalIssues, issueNumber) }, issue);
 
-      appendHubActivityEarn({
+      creditHubListingEarn({
         walletRaw: payer,
         source: 'magazine_issue_publish',
         redeemableDelta: HUB_EARN_POINTS.magazineIssuePublish,
         krexBalance,
+        krexTier,
         idempotencyKey: `mag:publish:${txHash}`,
+        txHash,
         meta: { cid, slug: mag.slug, issueNumber, magazineId: mag.id },
       });
 
@@ -369,10 +373,14 @@ export function MagazineEditor() {
           </div>
 
           <div>
-            <KxFormFieldLabel required>Issue title</KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Issue title</KxFormFieldLabel>
+              <KxFieldCharCount value={title} max={HUB_FORM_LIMITS.title.max} min={HUB_FORM_LIMITS.title.min} />
+            </div>
             <input
               type="text"
               value={title}
+              maxLength={HUB_FORM_LIMITS.title.max}
               onChange={(e) => setTitle(e.target.value)}
               className="k-input text-base"
               placeholder="Issue title"

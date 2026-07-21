@@ -62,7 +62,7 @@ export function KxFilterDropdown<T extends string>({
 
       {isOpen ? (
         <div
-          className={`absolute top-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden max-h-64 overflow-y-auto ${menuClassName} ${
+          className={`k-menu-surface absolute top-full mt-1.5 rounded-xl shadow-lg z-[9999] overflow-hidden max-h-64 overflow-y-auto ${menuClassName} ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >

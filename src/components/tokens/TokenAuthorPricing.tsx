@@ -4,6 +4,7 @@ import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { useTokenPricing } from '@/hooks/useTokenPricing';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 
 export function TokenPricingCards({ className = '' }: { className?: string }) {
   const { createFee, editFee, tier } = useTokenPricing();
@@ -23,7 +24,11 @@ export function TokenPricingCards({ className = '' }: { className?: string }) {
         tier={tier}
         note="Refresh on-chain metadata and landing content."
       />
-      <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.tokens} tier={tier} />
+      <VBlogFeeCard
+        title="Delete Fee"
+        feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS.tokens, tier ?? 'Tier0')}
+        tier={tier}
+      />
     </div>
   );
 }

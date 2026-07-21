@@ -23,12 +23,14 @@ import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesComm
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
+import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
@@ -238,12 +240,14 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
       if (kind === 'article') {
         const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
-        appendHubActivityEarn({
+        creditHubListingEarn({
           walletRaw: state.address,
           source: 'chronicles_article_create',
           redeemableDelta: HUB_EARN_POINTS.chroniclesArticleCreate,
           krexBalance,
+          krexTier,
           idempotencyKey: `chronicles:article:${txNorm}`,
+          txHash: txNorm,
           meta: { title: title.trim() },
         });
       }
@@ -286,11 +290,15 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <KxFormFieldLabel required>Title</KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Title</KxFormFieldLabel>
+              <KxFieldCharCount value={title} max={HUB_FORM_LIMITS.title.max} min={HUB_FORM_LIMITS.title.min} />
+            </div>
             <input
               type="text"
               className="k-input"
               value={title}
+              maxLength={HUB_FORM_LIMITS.title.max}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Chapter or entity title"
               required
@@ -298,10 +306,18 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <KxFormFieldLabel required>Summary / teaser</KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Summary / teaser</KxFormFieldLabel>
+              <KxFieldCharCount
+                value={summary}
+                max={HUB_FORM_LIMITS.shortDescription.max}
+                min={HUB_FORM_LIMITS.shortDescription.min}
+              />
+            </div>
             <textarea
               className="k-textarea min-h-[80px]"
               value={summary}
+              maxLength={HUB_FORM_LIMITS.shortDescription.max}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="One or two sentences for cards and search"
               required
@@ -309,12 +325,20 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <KxFormFieldLabel required>Body</KxFormFieldLabel>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <KxFormFieldLabel required>Body</KxFormFieldLabel>
+              <KxFieldCharCount
+                value={htmlToPlainText(bodyMarkdown)}
+                max={HUB_FORM_LIMITS.content.max}
+                min={HUB_FORM_LIMITS.content.min}
+              />
+            </div>
             <KxRichTextEditor
               value={bodyMarkdown}
               onChange={setBodyMarkdown}
               placeholder="Full lore content"
               minRows={12}
+              maxLength={HUB_FORM_LIMITS.content.max}
             />
           </div>
 

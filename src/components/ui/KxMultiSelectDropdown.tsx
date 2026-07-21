@@ -84,7 +84,7 @@ export function KxMultiSelectDropdown({
 
       {isOpen && (
         <div
-          className={`absolute left-0 top-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden ${menuClassName}`}
+          className={`k-menu-surface absolute left-0 top-full mt-1.5 rounded-xl shadow-lg z-[9999] overflow-hidden ${menuClassName}`}
         >
           {showFilter ? (
             <div className="p-2 border-b border-zinc-200 dark:border-zinc-800">

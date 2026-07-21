@@ -34,9 +34,10 @@ import {
 } from '@/lib/hub/listingPricing';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
-import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { creditHubListingEarn } from '@/lib/rewards/creditHubListingEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { HUB_DELETE_FEE_KAS_STANDARD } from '@/lib/hub/paidDelete';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectGamesPromoMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
@@ -45,6 +46,8 @@ import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
+import { KxFieldCharCount } from '@/components/ui/KxFieldCharCount';
+import { HUB_FORM_LIMITS } from '@/lib/hub/formLimits';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
@@ -229,8 +232,9 @@ export default function GamesDashboardPage() {
   const canSubmit = Boolean(
     state.isConnected &&
       state.address &&
-      title.trim() &&
-      shortDescription.trim() &&
+      title.trim().length >= HUB_FORM_LIMITS.title.min &&
+      slug.trim().length >= HUB_FORM_LIMITS.slug.min &&
+      shortDescription.trim().length >= HUB_FORM_LIMITS.shortDescription.min &&
       !isProcessing &&
       !isUploading,
   );
@@ -417,12 +421,15 @@ export default function GamesDashboardPage() {
       });
 
       if (!editingId && feeTxHash) {
-        appendHubActivityEarn({
+        const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
+        creditHubListingEarn({
           walletRaw: state.address,
           source: 'games_promo_list',
           redeemableDelta: HUB_EARN_POINTS.gamesPromoList,
           krexBalance,
-          idempotencyKey: `games:promo:${feeTxHash}`,
+          krexTier,
+          idempotencyKey: `games:promo:${txNorm}`,
+          txHash: txNorm,
           meta: { title: title.trim(), slug: resolvedSlug },
         });
       }
@@ -493,12 +500,25 @@ export default function GamesDashboardPage() {
             <div id="games-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
               <VBlogFeeCard
                 title="Listing Fee"
-                feeKas={BASE_FEE_KAS}
+                feeKas={applyKrexFeeDiscount(BASE_FEE_KAS, krexTier)}
                 basePoints={HUB_EARN_POINTS.gamesPromoList}
                 tier={krexTier}
+                note={
+                  krexTierDiscountPercent(krexTier) > 0
+                    ? `${krexTierDiscountPercent(krexTier)}% KREX discount applied (base ${BASE_FEE_KAS} KAS). Size fees extra.`
+                    : 'Base listing fee before payload size. Hold KREX for tier discounts.'
+                }
               />
-              <VBlogFeeCard title="Edit / Update" feeKas={GAMES_LISTING_ACTION_FEE_KAS} tier={krexTier} />
-              <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS_STANDARD} tier={krexTier} />
+              <VBlogFeeCard
+                title="Edit / Update"
+                feeKas={applyKrexFeeDiscount(GAMES_LISTING_ACTION_FEE_KAS, krexTier)}
+                tier={krexTier}
+              />
+              <VBlogFeeCard
+                title="Delete Fee"
+                feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS_STANDARD, krexTier)}
+                tier={krexTier}
+              />
             </div>
           ) : null}
 
@@ -540,10 +560,10 @@ export default function GamesDashboardPage() {
                           {item.shortDescription}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+                          <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             {item.gameType}
                           </span>
-                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+                          <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             {item.status}
                           </span>
                         </div>
@@ -598,10 +618,18 @@ export default function GamesDashboardPage() {
                   </div>
 
                   <div>
-                    <KxFormFieldLabel required>Game title</KxFormFieldLabel>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel required>Game title</KxFormFieldLabel>
+                      <KxFieldCharCount
+                        value={title}
+                        max={HUB_FORM_LIMITS.title.max}
+                        min={HUB_FORM_LIMITS.title.min}
+                      />
+                    </div>
                     <input
                       className="k-input"
                       value={title}
+                      maxLength={HUB_FORM_LIMITS.title.max}
                       onChange={(e) => {
                         const next = e.target.value;
                         setTitle(next);
@@ -612,35 +640,67 @@ export default function GamesDashboardPage() {
                   </div>
 
                   <div>
-                    <KxFormFieldLabel>URL slug</KxFormFieldLabel>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel required>URL slug</KxFormFieldLabel>
+                      <KxFieldCharCount
+                        value={slug}
+                        max={HUB_FORM_LIMITS.slug.max}
+                        min={HUB_FORM_LIMITS.slug.min}
+                      />
+                    </div>
                     <input
                       className="k-input"
                       value={slug}
+                      maxLength={HUB_FORM_LIMITS.slug.max}
                       onChange={(e) => setSlug(slugify(e.target.value))}
                       placeholder="minecore"
                     />
                   </div>
 
                   <div>
-                    <KxFormFieldLabel required>Short description</KxFormFieldLabel>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel required>Short description</KxFormFieldLabel>
+                      <KxFieldCharCount
+                        value={shortDescription}
+                        max={HUB_FORM_LIMITS.shortDescription.max}
+                        min={HUB_FORM_LIMITS.shortDescription.min}
+                      />
+                    </div>
                     <textarea
                       className="k-textarea min-h-[90px]"
                       value={shortDescription}
+                      maxLength={HUB_FORM_LIMITS.shortDescription.max}
                       onChange={(e) => setShortDescription(e.target.value)}
                       placeholder="One or two sentences for cards and the game halo"
                     />
                   </div>
 
                   <div>
-                    <KxFormFieldLabel>Full description</KxFormFieldLabel>
-                    <KxRichTextEditor value={content} onChange={setContent} minRows={10} />
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel required>Full description</KxFormFieldLabel>
+                      <KxFieldCharCount
+                        value={htmlToPlainText(content)}
+                        max={HUB_FORM_LIMITS.content.max}
+                        min={HUB_FORM_LIMITS.content.min}
+                      />
+                    </div>
+                    <KxRichTextEditor
+                      value={content}
+                      onChange={setContent}
+                      minRows={10}
+                      maxLength={HUB_FORM_LIMITS.content.max}
+                    />
                   </div>
 
                   <div>
-                    <KxFormFieldLabel>How to play / instructions</KxFormFieldLabel>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel>How to play / instructions</KxFormFieldLabel>
+                      <KxFieldCharCount value={instructions} max={HUB_FORM_LIMITS.instructions.max} />
+                    </div>
                     <textarea
                       className="k-textarea min-h-[100px]"
                       value={instructions}
+                      maxLength={HUB_FORM_LIMITS.instructions.max}
                       onChange={(e) => setInstructions(e.target.value)}
                       placeholder="Connect wallet, unlock a slot, start a run…"
                     />
@@ -738,20 +798,28 @@ export default function GamesDashboardPage() {
                       />
                     </div>
                     <div>
-                      <KxFormFieldLabel>Version</KxFormFieldLabel>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <KxFormFieldLabel>Version</KxFormFieldLabel>
+                        <KxFieldCharCount value={version} max={HUB_FORM_LIMITS.version.max} />
+                      </div>
                       <input
                         className="k-input"
                         value={version}
+                        maxLength={HUB_FORM_LIMITS.version.max}
                         onChange={(e) => setVersion(e.target.value)}
                         placeholder="0.1.0"
                       />
                     </div>
                     <div>
-                      <KxFormFieldLabel>Game URL / embed</KxFormFieldLabel>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <KxFormFieldLabel>Game URL / embed</KxFormFieldLabel>
+                        <KxFieldCharCount value={gameUrl} max={HUB_FORM_LIMITS.url.max} />
+                      </div>
                       <input
                         type="url"
                         className="k-input"
                         value={gameUrl}
+                        maxLength={HUB_FORM_LIMITS.url.max}
                         onChange={(e) => setGameUrl(e.target.value)}
                         placeholder="https://…"
                       />
@@ -774,10 +842,14 @@ export default function GamesDashboardPage() {
                   </div>
 
                   <div>
-                    <KxFormFieldLabel>Tags</KxFormFieldLabel>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <KxFormFieldLabel>Tags</KxFormFieldLabel>
+                      <KxFieldCharCount value={tagsRaw} max={HUB_FORM_LIMITS.tags.max} />
+                    </div>
                     <input
                       className="k-input"
                       value={tagsRaw}
+                      maxLength={HUB_FORM_LIMITS.tags.max}
                       onChange={(e) => setTagsRaw(e.target.value)}
                       placeholder="Timers, Refine, GRID (comma separated)"
                     />

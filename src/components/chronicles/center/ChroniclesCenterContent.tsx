@@ -34,6 +34,7 @@ import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader'
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
@@ -231,16 +232,20 @@ export function ChroniclesCenterContent() {
         <div id="chronicles-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
           <VBlogFeeCard
             title="Chapter fee"
-            feeKas={CHRONICLES_SUBMISSION_FEES_KAS.chapter}
+            feeKas={applyKrexFeeDiscount(CHRONICLES_SUBMISSION_FEES_KAS.chapter, krexTier)}
             tier={krexTier}
           />
           <VBlogFeeCard
             title="Article fee"
-            feeKas={CHRONICLES_SUBMISSION_FEES_KAS.article}
+            feeKas={applyKrexFeeDiscount(CHRONICLES_SUBMISSION_FEES_KAS.article, krexTier)}
             basePoints={HUB_EARN_POINTS.chroniclesArticleCreate}
             tier={krexTier}
           />
-          <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.chronicles} tier={krexTier} />
+          <VBlogFeeCard
+            title="Delete Fee"
+            feeKas={applyKrexFeeDiscount(HUB_DELETE_FEE_KAS.chronicles, krexTier)}
+            tier={krexTier}
+          />
         </div>
       ) : null}
 
