@@ -27,8 +27,9 @@ type GamesHaloHeaderProps = {
     | 'version'
     | 'publisher'
     | 'authorAddress'
-    | 'description'
   > & {
+    /** Optional intro used in the featured-image hover tooltip. */
+    description?: string;
     categories?: string[];
     tags?: string[];
     capabilities?: GameCapability[];
