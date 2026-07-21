@@ -12,9 +12,12 @@ import { filterGames, getGameTypeCounts, getDifficultyCounts, getStatusCounts, G
 import { sortGames, GameSortOption } from '@/lib/games/sorting';
 import { matchesGameSourceFilter, type GameSourceFilter } from '@/lib/games/source';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useLikes } from '@/hooks/useLikes';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
+import {
+  GAMES_LISTING_VOTES_CHANGED_EVENT,
+  getAllGameListingVoteScores,
+} from '@/lib/games/votes';
 import { getGameListingCurrencies } from '@/lib/hub/listingCurrencies';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
@@ -32,10 +35,20 @@ function GamesContent() {
   const [sortBy, setSortBy] = useState<GameSortOption>('newest');
   const [viewMode, setViewMode] = useState<GameViewMode>('compact');
   const [displayedCount, setDisplayedCount] = useState(50);
+  const [voteTick, setVoteTick] = useState(0);
   const { favoritesSet } = useFavorites();
-  const { likes } = useLikes();
   const allGames = useMemo(() => listGames(), []);
   const currencyOptions = useMemo(() => getGameListingCurrencies(allGames), [allGames]);
+  const voteScores = useMemo(() => {
+    void voteTick;
+    return getAllGameListingVoteScores();
+  }, [voteTick]);
+
+  useEffect(() => {
+    const onVotes = () => setVoteTick((t) => t + 1);
+    window.addEventListener(GAMES_LISTING_VOTES_CHANGED_EVENT, onVotes);
+    return () => window.removeEventListener(GAMES_LISTING_VOTES_CHANGED_EVENT, onVotes);
+  }, []);
 
   const games = useMemo(
     () => allGames.filter((game) => matchesGameSourceFilter(game, sourceFilter)),
@@ -89,8 +102,8 @@ function GamesContent() {
       filtered = filtered.filter((game) => favoritesSet.has(game.id));
     }
 
-    return sortGames(filtered, sortBy, favoritesSet, likes);
-  }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, selectedCurrencies, costRange, searchQuery, sortBy, favoritesSet, likes]);
+    return sortGames(filtered, sortBy, favoritesSet, voteScores);
+  }, [games, selectedGameTypes, selectedDifficulties, selectedStatuses, selectedCurrencies, costRange, searchQuery, sortBy, favoritesSet, voteScores]);
 
   useEffect(() => {
     setDisplayedCount(50);

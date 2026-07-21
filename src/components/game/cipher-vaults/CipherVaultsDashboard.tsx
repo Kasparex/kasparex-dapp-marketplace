@@ -15,7 +15,6 @@ import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSideb
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
@@ -55,8 +54,6 @@ export function CipherVaultsDashboard({
   const { state, tickets, canPayWithL1, startRun, submitRun, loadActiveRun, cancelRun, redeemRefinement, fetchDiamondVeinsRefinementPoints } = useCipherVaults();
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
-  const interactions = (game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
-
   const [tab, setTab] = useState<TabId>('vaults');
   const [tierId, setTierId] = useState<CipherVaultTierId>('t1');
   const [payWith, setPayWith] = useState<'KAS' | 'TICKET'>('KAS');
@@ -591,8 +588,6 @@ export function CipherVaultsDashboard({
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-
-        <GameInteractionsPanel interactions={interactions} />
 
         <GamePurchasesPanel>
           <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-sm text-zinc-600 dark:text-zinc-400">

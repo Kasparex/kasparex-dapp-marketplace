@@ -10,6 +10,8 @@ import {
 } from '@/components/games/panels/GameDeckPanel';
 import { AuthorInline } from '@/components/ui/AuthorInline';
 import { KASPAREX_GAMES_AUTHOR_SEED } from '@/lib/hub/hubProjectAccent';
+import { GameNetworkBadge } from '@/components/games/GameNetworkBadge';
+import type { GameCapability } from '@/lib/games/registry';
 
 type GamesHaloHeaderProps = {
   game: Pick<
@@ -27,6 +29,7 @@ type GamesHaloHeaderProps = {
   > & {
     categories?: string[];
     tags?: string[];
+    capabilities?: GameCapability[];
   };
   /** Live Game Deck resources shown in the left column. */
   resources?: GameDeckResource[];
@@ -76,7 +79,11 @@ export function GamesHaloHeader({ game, resources = [], deckFooter }: GamesHaloH
 
       <div className="relative flex min-h-[360px] flex-col lg:flex-row">
         <div className="relative flex w-full flex-1 flex-col p-6 sm:p-8 lg:w-1/2 lg:p-10">
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent,#10b981)]">
+          <div className="absolute right-6 top-6 z-10 sm:right-8 sm:top-8 lg:right-10 lg:top-10">
+            <GameNetworkBadge capabilities={game.capabilities} size="sm" />
+          </div>
+
+          <p className="mb-3 pr-28 text-[10px] font-black uppercase tracking-[0.2em] text-[color:var(--hub-accent,#10b981)]">
             Kasparex Games · {typeName}
           </p>
 

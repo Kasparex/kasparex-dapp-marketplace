@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import type { Game } from '@/lib/games/games';
 import type { GameDeckResource } from '../panels/GameDeckPanel';
-import { GameInteractionsPanel } from '../panels/GameInteractionsPanel';
 import { GameMetadataPanel } from '../panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '../GamesPlayAdRail';
 import { GamesWithSidebarLayout } from './GamesWithSidebarLayout';
@@ -13,9 +12,9 @@ import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 /** Partial game payloads from play dashboards (e.g. Diamond Veins) plus full registry games. */
 export type UnifiedGameLayoutGame = Partial<Game> & {
   name: string;
-  connections?: any[];
   categories?: any[];
   tags?: any[];
+  capabilities?: import('@/lib/games/registry').GameCapability[];
 };
 
 interface UnifiedGameLayoutProps {
@@ -30,7 +29,6 @@ interface UnifiedGameLayoutProps {
   deckFeaturedTooltip?: string;
   showDeckInfoButton?: boolean;
   belowDeck?: ReactNode;
-  tabAlerts?: ReactNode;
 }
 
 export function UnifiedGameLayout({
@@ -41,7 +39,6 @@ export function UnifiedGameLayout({
   game,
   children,
   belowDeck,
-  tabAlerts,
   deckFooter,
 }: UnifiedGameLayoutProps) {
   const haloGame = {
@@ -57,13 +54,13 @@ export function UnifiedGameLayout({
     authorAddress: game.authorAddress,
     categories: game.categories,
     tags: game.tags,
+    capabilities: game.capabilities,
   };
 
   const sidebar = (
     <div className="flex flex-col gap-4">
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
       {belowDeck}
-      <GameInteractionsPanel interactions={game.connections || []} />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesPlayAdRail />
     </div>
@@ -74,7 +71,6 @@ export function UnifiedGameLayout({
       tabs={tabs}
       currentTab={currentTab}
       onTabChange={onTabChange}
-      tabAlerts={tabAlerts}
       haloHeader={<GamesHaloHeader game={haloGame} resources={resources} deckFooter={deckFooter} />}
       main={children}
       sidebar={sidebar}

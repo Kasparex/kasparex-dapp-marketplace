@@ -78,7 +78,6 @@ export function GamesSidebar({
 }: GamesSidebarProps) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/games/dashboard') ?? false;
-  const mapActive = pathname?.startsWith('/games/connections') ?? false;
 
   const handleGameTypeToggle = (type: GameType) => {
     const next = selectedGameTypes.includes(type)
@@ -129,18 +128,11 @@ export function GamesSidebar({
         <div className="mb-6 space-y-2 px-1">
           <Link
             href="/games/dashboard"
-            className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+            className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+              dashboardActive ? 'hub-sidebar-action-active' : ''
+            }`}
           >
             Games Dashboard
-          </Link>
-          <Link
-            href="/games/connections"
-            className={`k-control-btn w-full justify-center gap-2 ${mapActive ? '!bg-cyan-600 !text-white' : ''}`}
-          >
-            Games Map
-          </Link>
-          <Link href="/games" className="k-control-btn w-full justify-center gap-2">
-            Browse Games
           </Link>
         </div>
 

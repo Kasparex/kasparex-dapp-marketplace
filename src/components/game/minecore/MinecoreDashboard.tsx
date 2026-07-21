@@ -31,7 +31,6 @@ import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POI
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
-import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
@@ -257,59 +256,56 @@ export function MinecoreDashboard(_props: {
 
   const tabsWithComments = useGameCommentsTabs(TABS, 'minecore');
 
-  const connections = (_props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
-
-  const tabAlerts =
-    profileNotice || lastPaymentError || lastSetupError ? (
-      <div className="space-y-3">
-        {profileNotice ? (
-          <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
-            <button
-              type="button"
-              onClick={() => dismissProfileNotice()}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 text-sky-700 transition-colors hover:bg-sky-500/20 dark:text-sky-200 dark:hover:bg-sky-500/15"
-              aria-label="Dismiss notice"
-            >
-              <Icons.X className="h-4 w-4" />
-            </button>
-            {profileNotice}
-          </div>
-        ) : null}
-        {lastPaymentError ? (
-          <div className="relative rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 pr-11 text-sm font-semibold text-rose-800 dark:text-rose-200">
-            <button
-              type="button"
-              onClick={() => dismissLastPaymentError()}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/30 text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-200 dark:hover:bg-rose-500/15"
-              aria-label="Dismiss error"
-            >
-              <Icons.X className="h-4 w-4" />
-            </button>
-            {lastPaymentError}
-          </div>
-        ) : null}
-        {lastSetupError ? (
-          <div className="relative rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 pr-11 text-sm font-semibold text-amber-950 dark:text-amber-100">
-            <button
-              type="button"
-              onClick={() => dismissLastSetupError()}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 text-amber-900 transition-colors hover:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/15"
-              aria-label="Dismiss setup message"
-            >
-              <Icons.X className="h-4 w-4" />
-            </button>
-            {lastSetupError}
-          </div>
-        ) : null}
-      </div>
-    ) : null;
 
   return (
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
       <div className="flex flex-col space-y-6">
+        {profileNotice || lastPaymentError || lastSetupError ? (
+          <div className="space-y-3">
+            {profileNotice ? (
+              <div className="relative rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 pr-11 text-sm font-semibold text-sky-900 dark:text-sky-100">
+                <button
+                  type="button"
+                  onClick={() => dismissProfileNotice()}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-sky-500/30 text-sky-700 transition-colors hover:bg-sky-500/20 dark:text-sky-200 dark:hover:bg-sky-500/15"
+                  aria-label="Dismiss notice"
+                >
+                  <Icons.X className="h-4 w-4" />
+                </button>
+                {profileNotice}
+              </div>
+            ) : null}
+            {lastPaymentError ? (
+              <div className="relative rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 pr-11 text-sm font-semibold text-rose-800 dark:text-rose-200">
+                <button
+                  type="button"
+                  onClick={() => dismissLastPaymentError()}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/30 text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-200 dark:hover:bg-rose-500/15"
+                  aria-label="Dismiss error"
+                >
+                  <Icons.X className="h-4 w-4" />
+                </button>
+                {lastPaymentError}
+              </div>
+            ) : null}
+            {lastSetupError ? (
+              <div className="relative rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 pr-11 text-sm font-semibold text-amber-950 dark:text-amber-100">
+                <button
+                  type="button"
+                  onClick={() => dismissLastSetupError()}
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 text-amber-900 transition-colors hover:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/15"
+                  aria-label="Dismiss setup message"
+                >
+                  <Icons.X className="h-4 w-4" />
+                </button>
+                {lastSetupError}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <UnifiedGameLayout
           tabs={tabsWithComments as any}
           currentTab={tab}
@@ -321,7 +317,6 @@ export function MinecoreDashboard(_props: {
             description: _props.gameDescription ?? _props.game?.description ?? '',
             featuredImage: _props.featuredImage || _props.game?.featuredImage,
             image: _props.game?.image,
-            connections,
             categories,
             tags,
           }}
@@ -329,7 +324,6 @@ export function MinecoreDashboard(_props: {
           deckFooter={<span>Values update live as you mine, refine, and pay for slots.</span>}
           deckFeaturedTooltip={MINECORE_DECK_FEATURED_TOOLTIP}
           showDeckInfoButton={false}
-          tabAlerts={tabAlerts}
         >
           {tab === 'overview' && (
             <div className="space-y-6">

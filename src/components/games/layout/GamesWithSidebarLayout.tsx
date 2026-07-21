@@ -11,7 +11,6 @@ type Props = {
   tabs: readonly any[];
   currentTab: string;
   onTabChange: (id: any) => void;
-  tabAlerts?: ReactNode;
   /** Halo header rendered above the tab strip (individual game pages). */
   haloHeader?: ReactNode;
   main: ReactNode;
@@ -25,7 +24,6 @@ export function GamesWithSidebarLayout({
   tabs,
   currentTab,
   onTabChange,
-  tabAlerts,
   haloHeader,
   main,
   sidebar,
@@ -48,8 +46,6 @@ export function GamesWithSidebarLayout({
               onToggle={() => setRightOpen(!rightOpen)}
             />
           </div>
-
-          {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
 
           <HubPageRightPanelGrid
             panelId="kasparex-games-side-panel"

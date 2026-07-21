@@ -53,14 +53,6 @@ import {
   type GameType,
 } from '@/lib/games/games';
 
-type GameConnectionDraft = {
-  id: string;
-  title: string;
-  punch: string;
-  toHref: string;
-  requirement: string;
-};
-
 type GamePromoListing = {
   id: string;
   wallet: string;
@@ -79,7 +71,6 @@ type GamePromoListing = {
   gameUrl: string;
   categories: string[];
   tags: string[];
-  connections: Omit<GameConnectionDraft, 'id'>[];
   listingStatus: 'draft' | 'published';
   createdAt: string;
   feeTxHash?: string;
@@ -173,16 +164,6 @@ function saveListing(listing: GamePromoListing): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([listing, ...all]));
 }
 
-function newConnection(): GameConnectionDraft {
-  return {
-    id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    title: '',
-    punch: '',
-    toHref: '',
-    requirement: '',
-  };
-}
-
 export default function GamesDashboardPage() {
   const { state } = useKaspaWallet();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
@@ -207,7 +188,6 @@ export default function GamesDashboardPage() {
   const [gameUrl, setGameUrl] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [tagsRaw, setTagsRaw] = useState('');
-  const [connections, setConnections] = useState<GameConnectionDraft[]>([]);
   const [boostEnabled, setBoostEnabled] = useState(false);
   const [listingsVersion, setListingsVersion] = useState(0);
 
@@ -222,19 +202,6 @@ export default function GamesDashboardPage() {
     if (!boostEnabled) return [];
     return [{ id: 'featured', title: 'Featured placement module', kas: PREMIUM_MODULE_FEE_KAS }];
   }, [boostEnabled]);
-
-  const connectionPayload = useMemo(
-    () =>
-      connections
-        .map(({ title: t, punch, toHref, requirement }) => ({
-          title: t.trim(),
-          punch: punch.trim(),
-          toHref: toHref.trim(),
-          requirement: requirement.trim(),
-        }))
-        .filter((c) => c.title && c.punch),
-    [connections],
-  );
 
   const formQuote = useMemo(
     () =>
@@ -260,7 +227,6 @@ export default function GamesDashboardPage() {
           gameUrl: gameUrl.trim(),
           categories,
           tags,
-          connections: connectionPayload,
           featuredPlacementEnabled: boostEnabled,
         },
       }),
@@ -282,7 +248,6 @@ export default function GamesDashboardPage() {
       gameUrl,
       categories,
       tags,
-      connectionPayload,
       boostEnabled,
     ],
   );
@@ -340,7 +305,6 @@ export default function GamesDashboardPage() {
     setGameUrl('');
     setCategories([]);
     setTagsRaw('');
-    setConnections([]);
     setBoostEnabled(false);
   };
 
@@ -385,7 +349,6 @@ export default function GamesDashboardPage() {
         gameUrl: gameUrl.trim(),
         categories,
         tags,
-        connections: connectionPayload,
         listingStatus: 'published',
         createdAt: new Date().toISOString(),
         feeTxHash: txNorm,
@@ -437,7 +400,7 @@ export default function GamesDashboardPage() {
             kicker="Games dashboard"
             title="Games"
             titleAccent="Studio"
-            excerpt="Create and list games with the same fields the public game template uses: media, metadata, connections, and Hub pricing."
+            excerpt="Create and list games with the same fields the public game template uses: media, metadata, and Hub pricing."
             meta={
               state.address ? (
                 <p className="font-mono text-xs text-zinc-500">{state.address}</p>
@@ -523,7 +486,7 @@ export default function GamesDashboardPage() {
                       List a Game
                     </h3>
                     <p className="kx-body">
-                      Fields map to the public game template (halo header, metadata panel, interactions). Estimated
+                      Fields map to the public game template (halo header, metadata panel). Estimated
                       cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunks, {formQuote.payloadBytes} bytes)
                       {formQuote.discountKas > 0 ? ' (KREX holder discount)' : ''}.
                     </p>
@@ -716,90 +679,6 @@ export default function GamesDashboardPage() {
                     <p className="mt-1.5 text-xs text-zinc-500">
                       Wired to the Metadata panel and halo chips (max 12).
                     </p>
-                  </div>
-
-                  <div className="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Connections</p>
-                        <p className="text-xs text-zinc-500">
-                          Interaction links for the game sidebar (same shape as registry connections).
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="k-control-btn !h-9 !px-3 !text-xs"
-                        onClick={() => setConnections((rows) => [...rows, newConnection()])}
-                      >
-                        Add connection
-                      </button>
-                    </div>
-                    {connections.length === 0 ? (
-                      <p className="text-sm text-zinc-500">No connections yet.</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {connections.map((row) => (
-                          <div
-                            key={row.id}
-                            className="space-y-3 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-950/40"
-                          >
-                            <div className="flex justify-end">
-                              <button
-                                type="button"
-                                className="text-xs font-semibold text-red-600 hover:underline"
-                                onClick={() =>
-                                  setConnections((rows) => rows.filter((r) => r.id !== row.id))
-                                }
-                              >
-                                Remove
-                              </button>
-                            </div>
-                            <input
-                              className="k-input"
-                              value={row.title}
-                              onChange={(e) =>
-                                setConnections((rows) =>
-                                  rows.map((r) => (r.id === row.id ? { ...r, title: e.target.value } : r)),
-                                )
-                              }
-                              placeholder="Connection title"
-                            />
-                            <textarea
-                              className="k-textarea min-h-[70px]"
-                              value={row.punch}
-                              onChange={(e) =>
-                                setConnections((rows) =>
-                                  rows.map((r) => (r.id === row.id ? { ...r, punch: e.target.value } : r)),
-                                )
-                              }
-                              placeholder="Short punch line shown in the tooltip"
-                            />
-                            <input
-                              className="k-input"
-                              value={row.toHref}
-                              onChange={(e) =>
-                                setConnections((rows) =>
-                                  rows.map((r) => (r.id === row.id ? { ...r, toHref: e.target.value } : r)),
-                                )
-                              }
-                              placeholder="/games/cipher-vaults or https://…"
-                            />
-                            <input
-                              className="k-input"
-                              value={row.requirement}
-                              onChange={(e) =>
-                                setConnections((rows) =>
-                                  rows.map((r) =>
-                                    r.id === row.id ? { ...r, requirement: e.target.value } : r,
-                                  ),
-                                )
-                              }
-                              placeholder="Optional requirement note"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
 

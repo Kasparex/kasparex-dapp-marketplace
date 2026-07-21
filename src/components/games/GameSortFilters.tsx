@@ -83,8 +83,8 @@ export function GameSortFilters({
     { value: 'difficulty', label: 'By Difficulty' },
     { value: 'popularity', label: 'Most Popular' },
     { value: 'favorites', label: 'Favorites' },
-    { value: 'likes-high', label: 'Most Likes' },
-    { value: 'likes-low', label: 'Least Likes' },
+    { value: 'votes-high', label: 'Highest Votes' },
+    { value: 'votes-low', label: 'Lowest Votes' },
   ];
 
   const currentLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Sort by...';

@@ -10,20 +10,17 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
-import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
-import { GameCommentsTabBadge, gameCommentsArticleId } from '@/components/games/comments/gameComments';
-import { useDAppCommentsCount } from '@/hooks/useDAppCommentsCount';
+import { gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 
@@ -107,25 +104,18 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
   const mission = missions[missionIndex]!;
 
-  const connections = (props.game?.connections ?? []) as Array<{ toSlug?: string; toHref?: string; title: string; punch: string; requirement?: string }>;
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const rewardsTone = 'info' as const;
-  const rewardsTip = 'Rewards tab shows deck preview. Claim GRID on Rewards & Points.';
-  const boostersTone = (krexBoosterMult > 1 || tier !== 'Tier0' || hasAnyNFT) ? 'ok' : 'warn';
-  const boostersTip = boostersTone === 'ok' ? 'Boosters active (tier/deck/booster).' : 'Boosters available: add KREX tier, deck NFTs, or a KREX booster.';
-
-  const commentsCount = useDAppCommentsCount(gameCommentsArticleId('token-strategy'));
   const tabs = useMemo(
     () => [
       { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
       { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards />, rightAdornment: <StatusDot tone={rewardsTone as any} tooltip={rewardsTip} /> },
-      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters />, rightAdornment: <StatusDot tone={boostersTone as any} tooltip={boostersTip} /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments />, rightAdornment: <GameCommentsTabBadge count={commentsCount} /> },
+      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
+      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
+      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
-    [boostersTip, boostersTone, commentsCount]
+    []
   );
 
   const deckResources: GameDeckResource[] = [];
@@ -266,7 +256,6 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
 
-        <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {krexBoostActive && krexBoostUntil ? (

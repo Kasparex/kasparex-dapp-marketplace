@@ -155,7 +155,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
     ...item,
   });
 
-  const connections = (game?.connections ?? []) as any[];
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
   
@@ -211,7 +210,6 @@ export function MiningDashboard({ featuredImage = '', loreStory = '', gameDescri
             description: gameDescription || game?.description || '',
             featuredImage: featuredImage || game?.featuredImage,
             image: game?.image,
-            connections,
             categories,
             tags,
           }}

@@ -37,15 +37,6 @@ export type UnifiedGame = Game & {
   skus?: GameSKU[];
   categories?: string[];
   tags?: string[];
-  connections?: Array<{
-    toSlug?: string;
-    toHref?: string;
-    title: string;
-    punch: string;
-    requirement?: string;
-    actionKey?: 'wallet' | 'diamonds_100' | 'krex_or_nft' | 'tickets' | 'read_chronicles' | 'none';
-    actionHint?: string;
-  }>;
 };
 
 function baseGame(input: {
@@ -115,16 +106,6 @@ export const gamesRegistry: UnifiedGame[] = [
     capabilities: ['wallet_l1', 'currency_diamonds', 'nft_deck', 'leaderboard_unified'],
     categories: ['Economy', 'Mining', 'Lore'],
     tags: ['Diamonds', 'NFT slots', 'Refinement points', 'KREX boosts'],
-    connections: [
-      {
-        toSlug: 'cipher-vaults',
-        title: 'Refinement → Cipher Tickets',
-        punch: 'Mine diamonds, refine points, then redeem tickets to enter Cipher Vaults without paying KAS.',
-        requirement: 'Refine at least 100 diamonds to earn refinement points.',
-        actionKey: 'diamonds_100',
-        actionHint: 'Mine more diamonds, then refine (100+).',
-      },
-    ],
   },
   {
     ...baseGame({
@@ -167,15 +148,6 @@ export const gamesRegistry: UnifiedGame[] = [
     ],
     categories: ['Economy', 'Mining', 'Crafting'],
     tags: ['Plant slots', 'Timers', 'Refine', 'GRID'],
-    connections: [
-      {
-        toSlug: 'cipher-vaults',
-        title: 'Diamonds → Vault access',
-        punch: 'Mine diamonds in Minecore, then spend them later across Kasparex Games unlocks and entries.',
-        actionKey: 'none',
-        actionHint: 'Open Minecore and start a plant cycle.',
-      },
-    ],
   },
   {
     ...baseGame({
@@ -210,16 +182,6 @@ export const gamesRegistry: UnifiedGame[] = [
     ],
     categories: ['Puzzles', 'Vaults', 'Lore'],
     tags: ['Cipher grid', 'Tickets', 'Checkpoints'],
-    connections: [
-      {
-        toSlug: 'diamond-veins',
-        title: 'Need tickets?',
-        punch: 'To farm Cipher Tickets cheaply, mine and refine in Diamond Veins first.',
-        requirement: 'Redeem Diamond Veins refinement points into tickets.',
-        actionKey: 'diamonds_100',
-        actionHint: 'Mine diamonds and refine to generate redeemable points.',
-      },
-    ],
   },
   {
     ...baseGame({
@@ -248,16 +210,6 @@ export const gamesRegistry: UnifiedGame[] = [
     ],
     categories: ['Strategy', 'Defense', 'Lore'],
     tags: ['Security', 'Stealth', 'Null Gang'],
-    connections: [
-      {
-        toSlug: 'diamond-veins',
-        title: 'Gear up with the deck',
-        punch: 'Your KREX tier + NFT deck boosts your final score. Build your deck power in Diamond Veins.',
-        requirement: 'Hold KREX and/or equip NFTs for better multipliers.',
-        actionKey: 'krex_or_nft',
-        actionHint: 'Hold KREX or equip any supported NFT to boost multipliers.',
-      },
-    ],
   },
   {
     ...baseGame({
@@ -286,23 +238,6 @@ export const gamesRegistry: UnifiedGame[] = [
     ],
     categories: ['Trivia', 'Chronicles', 'Lore'],
     tags: ['Chapters', 'Characters', 'Mystery'],
-    connections: [
-      {
-        toHref: '/chronicles/chapters',
-        title: 'Read the source',
-        punch: 'Want perfect clears? Skim the Chronicles chapters and character dossiers.',
-        requirement: 'Explore chapters and characters in Chronicles.',
-        actionKey: 'read_chronicles',
-        actionHint: 'Open Chapters / Characters for lore context.',
-      },
-      {
-        toSlug: 'cipher-vaults',
-        title: 'Solve the real locks',
-        punch: 'Quiz trained your mind. Cipher Vaults tests it for real - decode the grid and record checkpoints.',
-        actionKey: 'none',
-        actionHint: 'Start a Cipher Vault run and submit a clear.',
-      },
-    ],
   },
   {
     ...baseGame({
@@ -331,15 +266,6 @@ export const gamesRegistry: UnifiedGame[] = [
     ],
     categories: ['Skill', 'Training', 'Lore'],
     tags: ['ARIA', 'Fragments', 'Reflex'],
-    connections: [
-      {
-        toSlug: 'cipher-vaults',
-        title: 'ARIA fragments → Vaults',
-        punch: 'Precision Lock trains the fragment timing. Then go clear Cipher Vaults for real checkpoints.',
-        actionKey: 'none',
-        actionHint: 'Start a Cipher Vault run and record checkpoints.',
-      },
-    ],
   },
 ];
 

@@ -1,6 +1,6 @@
 import { Game, GameDifficulty } from './games';
 
-export type GameSortOption = 
+export type GameSortOption =
   | 'newest'
   | 'oldest'
   | 'alphabetical-az'
@@ -10,15 +10,8 @@ export type GameSortOption =
   | 'difficulty'
   | 'popularity'
   | 'favorites'
-  | 'likes-high'
-  | 'likes-low';
-
-export interface LikesData {
-  [gameId: string]: {
-    count: number;
-    wallets: string[];
-  };
-}
+  | 'votes-high'
+  | 'votes-low';
 
 const difficultyOrder: Record<GameDifficulty, number> = {
   easy: 1,
@@ -31,7 +24,7 @@ export function sortGames(
   games: Game[],
   sortBy: GameSortOption,
   favorites?: Set<string>,
-  likes?: LikesData
+  voteScores?: Record<string, number>
 ): Game[] {
   const sorted = [...games];
 
@@ -128,27 +121,19 @@ export function sortGames(
         return a.name.localeCompare(b.name);
       });
 
-    case 'likes-high':
-      // Sort by like count descending (highest first)
+    case 'votes-high':
       return sorted.sort((a, b) => {
-        const aLikes = likes?.[a.id]?.count || a.likeCount || 0;
-        const bLikes = likes?.[b.id]?.count || b.likeCount || 0;
-        if (aLikes !== bLikes) {
-          return bLikes - aLikes; // Descending order
-        }
-        // If same likes, sort alphabetically
+        const aScore = voteScores?.[a.id] ?? 0;
+        const bScore = voteScores?.[b.id] ?? 0;
+        if (aScore !== bScore) return bScore - aScore;
         return a.name.localeCompare(b.name);
       });
 
-    case 'likes-low':
-      // Sort by like count ascending (lowest first)
+    case 'votes-low':
       return sorted.sort((a, b) => {
-        const aLikes = likes?.[a.id]?.count || a.likeCount || 0;
-        const bLikes = likes?.[b.id]?.count || b.likeCount || 0;
-        if (aLikes !== bLikes) {
-          return aLikes - bLikes; // Ascending order
-        }
-        // If same likes, sort alphabetically
+        const aScore = voteScores?.[a.id] ?? 0;
+        const bScore = voteScores?.[b.id] ?? 0;
+        if (aScore !== bScore) return aScore - bScore;
         return a.name.localeCompare(b.name);
       });
 
