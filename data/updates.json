@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1784664847-8fdc7d3",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Sync hub content: 2026-07-21T20:13:51.107Z (by Kasparex)",
+      "date": "2026-07-21T22:13:51+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1783797435-ff37210",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Fix vDonate edit pricing, save flow, and emerald form accents. (by Kasparex)",
