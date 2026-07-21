@@ -12,6 +12,7 @@ import { AuthorInline } from '@/components/ui/AuthorInline';
 import { KASPAREX_GAMES_AUTHOR_SEED } from '@/lib/hub/hubProjectAccent';
 import { GameNetworkBadge } from '@/components/games/GameNetworkBadge';
 import type { GameCapability } from '@/lib/games/registry';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 type GamesHaloHeaderProps = {
   game: Pick<
@@ -26,6 +27,7 @@ type GamesHaloHeaderProps = {
     | 'version'
     | 'publisher'
     | 'authorAddress'
+    | 'description'
   > & {
     categories?: string[];
     tags?: string[];
@@ -132,19 +134,37 @@ export function GamesHaloHeader({ game, resources = [], deckFooter }: GamesHaloH
         </div>
 
         <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
-          {cover ? (
-            <Image
-              src={cover}
-              alt={game.name}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              unoptimized
-            />
-          ) : (
-            <KxListingFeaturedPlaceholder className="min-h-[220px] lg:min-h-full" iconClassName="h-16 w-16" />
-          )}
+          <Tooltip
+            content={
+              <div className="space-y-1.5">
+                <p className="font-bold text-zinc-900 dark:text-zinc-50">{game.name}</p>
+                {game.description?.trim() ? (
+                  <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
+                    {game.description.trim()}
+                  </p>
+                ) : (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">No intro description yet.</p>
+                )}
+              </div>
+            }
+            className="max-w-xs"
+          >
+            <div className="absolute inset-0 cursor-help">
+              {cover ? (
+                <Image
+                  src={cover}
+                  alt={game.name}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  unoptimized
+                />
+              ) : (
+                <KxListingFeaturedPlaceholder className="min-h-[220px] lg:min-h-full" iconClassName="h-16 w-16" />
+              )}
+            </div>
+          </Tooltip>
         </div>
       </div>
     </div>

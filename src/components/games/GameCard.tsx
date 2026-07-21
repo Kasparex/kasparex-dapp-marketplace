@@ -40,7 +40,7 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
       href={`/games/${game.slug}`}
       accent="games"
       config={gameL1PlayGateConfig(game)}
-      className="relative flex min-h-[320px] flex-col"
+      className="relative flex h-full min-h-[320px] flex-col"
     >
       <KxListingCardMedia className="border-b border-zinc-200/50 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:border-zinc-800/50 dark:from-zinc-800 dark:to-zinc-900">
         {game.featuredImage ? (
@@ -89,11 +89,11 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
           />
         </div>
 
-        <div className="mb-3 min-h-0 flex-grow">
+        <div className="mb-3 min-h-[4.5rem] flex-1">
           <p className="kx-body-sm line-clamp-3">{game.description}</p>
         </div>
 
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto shrink-0 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200/50 pt-3 dark:border-zinc-800/50">
             <button
               type="button"

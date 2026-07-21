@@ -38,6 +38,8 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { HUB_DELETE_FEE_KAS_STANDARD } from '@/lib/hub/paidDelete';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
+import { collectGamesPromoMediaCids, requestIpfsUnpin } from '@/lib/ipfs/cidUtils';
 import { htmlToPlainText } from '@/lib/richText/html';
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
@@ -135,6 +137,7 @@ export default function GamesDashboardPage() {
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
   const { upload, isUploading } = useIPFSUpload();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
+  const { confirm, alert } = useKxSystemDialog();
   const [tab, setTab] = useState<'create' | 'listings'>('create');
 
   const [title, setTitle] = useState('');
@@ -306,15 +309,53 @@ export default function GamesDashboardPage() {
     }, 80);
   };
 
-  const handleDeleteListing = (id: string) => {
-    if (typeof window !== 'undefined' && !window.confirm('Delete this game listing from your dashboard?')) {
+  const handleDeleteListing = async (id: string) => {
+    const listing = listings.find((x) => x.id === id);
+    if (!listing) return;
+
+    if (!state.isConnected || !state.address) {
+      await alert({
+        title: 'Wallet required',
+        message: 'Connect your Kaspa wallet to delete a game listing.',
+      });
       return;
     }
+
+    const deleteFeeKas = HUB_DELETE_FEE_KAS_STANDARD;
+    const ok = await confirm({
+      title: 'Delete game listing',
+      message: `Remove "${listing.title}" from Games and your dashboard? A ${deleteFeeKas} KAS fee applies. Uploaded featured images on IPFS will be unpinned.`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+
     setDeletingId(id);
+    setError(null);
     try {
+      const commitNote = hubListingCommitNote({
+        kind: 'games-promo-delete',
+        contentHash: listing.id,
+        payloadBytes: 0,
+        chunkCount: 1,
+        totalKas: deleteFeeKas,
+      });
+      await payActionFee('KAS', deleteFeeKas, commitNote);
+
+      const mediaCids = collectGamesPromoMediaCids(listing);
+      if (mediaCids.length) {
+        await requestIpfsUnpin(mediaCids);
+      }
+
       deleteGamePromoListing(id);
       if (editingId === id) resetForm();
       setListingsVersion((v) => v + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete game listing');
+      await alert({
+        title: 'Delete failed',
+        message: err instanceof Error ? err.message : 'Failed to delete game listing',
+      });
     } finally {
       setDeletingId(null);
     }
@@ -526,7 +567,7 @@ export default function GamesDashboardPage() {
                           <button
                             type="button"
                             disabled={deletingId === item.id}
-                            onClick={() => handleDeleteListing(item.id)}
+                            onClick={() => void handleDeleteListing(item.id)}
                             className="k-control-btn flex-1 justify-center text-sm text-red-600 disabled:opacity-50 dark:text-red-400"
                           >
                             {deletingId === item.id ? '…' : 'Delete'}

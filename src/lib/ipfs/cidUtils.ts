@@ -63,6 +63,13 @@ export function collectChroniclesMediaCids(submission: { featuredImageUrl?: stri
   return extractCidsFromValues(submission.featuredImageUrl);
 }
 
+export function collectGamesPromoMediaCids(listing: {
+  featuredImageCid?: string | null;
+  featuredImageUrl?: string | null;
+}): string[] {
+  return extractCidsFromValues(listing.featuredImageCid, listing.featuredImageUrl);
+}
+
 export function collectStoreMediaCids(product: {
   thumbnailCid?: string | null;
   assetCids?: string[];

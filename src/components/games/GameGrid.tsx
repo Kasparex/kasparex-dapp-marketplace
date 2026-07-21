@@ -79,7 +79,7 @@ export function GameGrid({ games, viewMode = 'grid', onCategoryFilter }: GameGri
   return (
     <div className={`grid ${gridCols} gap-4 items-stretch`}>
       {games.map((game) => (
-        <div key={game.id} className="transform transition-all">
+        <div key={game.id} className="h-full min-h-0 transform transition-all">
           <GameCard game={game} onCategoryFilter={onCategoryFilter} />
         </div>
       ))}
