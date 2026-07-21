@@ -18,10 +18,19 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 
 ## Sidebars (dashboard mode)
 
-- Primary CTAs: `k-control-btn` + `hub-cta-btn` / `hub-sidebar-action-active` (accent), not cyan hardcodes.
+- Primary CTAs: plain `k-control-btn` by default. Apply `hub-sidebar-action-active` **only when that CTA is the current page/tab**. Never leave `hub-cta-btn` on inactive sidebar buttons.
 - Include an **"On this page"** / **"Page sections"** / **"Form navigation"** / **"Dashboard sections"** nav that scrolls to form anchors (create, pricing, modules, listings).
 - **No sidebar footer** (no brand KD/KM/KC/KT footer strip) on these Hub project dashboards.
 - Do not add "Browse X" links on dashboard sidebars unless the product explicitly requires them.
+
+## Dashboard headers
+
+- Use `HubDashboardPageHeader`. Never put the connected wallet under the excerpt.
+- Pass the matching project halo `adSlotId` (e.g. `HALO_DAPPS_RIGHT`, `HALO_GAMES_RIGHT`) so dashboards show the same Ad Slot slider as the listing halo.
+
+## My Listings / Archives
+
+- Render as **card grids** (vBlog `ArticleList` / `VBlogCard` pattern), not row lists.
 
 ## Calculation Breakdown
 

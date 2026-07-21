@@ -22,7 +22,6 @@ import {
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { ChroniclesListingForm } from '@/components/chronicles/center/ChroniclesListingForm';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
-import { getExplorerTxUrl } from '@/lib/store/utils';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import Link from 'next/link';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
@@ -39,6 +38,8 @@ import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
 const DASHBOARD_TABS: ChroniclesCenterTab[] = ['create', 'listings'];
@@ -50,7 +51,7 @@ const TAB_LABELS: Record<ChroniclesCenterTab, string> = {
 
 const KIND_OPTIONS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
 
-function SubmissionRow({
+function SubmissionCard({
   item,
   onArchive,
   isArchiving,
@@ -60,66 +61,51 @@ function SubmissionRow({
   isArchiving: boolean;
 }) {
   return (
-    <div className="p-4 flex items-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-      <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center flex-shrink-0 font-black text-lg">
-        {item.title.slice(0, 1).toUpperCase()}
-      </div>
-      <div className="flex-1 min-w-0">
+    <KxListingCard accent="chronicles" className="h-full flex flex-col">
+      <KxListingCardMedia aspectClass="aspect-[16/10]">
+        <div className={`flex h-full w-full items-center justify-center text-4xl font-black text-zinc-500 dark:text-zinc-400 ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
+          {item.title.slice(0, 1).toUpperCase()}
+        </div>
+        <span className="absolute left-2 top-2 rounded-md border border-zinc-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 backdrop-blur-md dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-300">
+          {CHRONICLES_CONTENT_KIND_LABELS[item.kind]}
+        </span>
+      </KxListingCardMedia>
+      <KxListingCardBody comfortable className="flex flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.title}</h3>
+          <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+            {item.title}
+          </h3>
           <ChroniclesCommunityBadge />
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1">
-          <span>{CHRONICLES_CONTENT_KIND_LABELS[item.kind]}</span>
-          <span>•</span>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          {item.summary}
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
           <span>
             {item.feeAmountKas} KAS fee ({item.paymentCurrency})
           </span>
-          <span>•</span>
+          <span aria-hidden>•</span>
           <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
         </div>
-        <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{item.summary}</p>
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <Link
-          href={communityDetailHref(item.kind, item.slug)}
-          className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          title="View page"
-          aria-label="View page"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        </Link>
-        {item.feeTxHash ? (
-          <a
-            href={getExplorerTxUrl(item.feeTxHash)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            title="View transaction"
-            aria-label="View transaction"
+        <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+          <Link
+            href={communityDetailHref(item.kind, item.slug)}
+            className="k-control-btn flex-1 justify-center text-sm text-center"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        ) : null}
-        <button
-          type="button"
-          disabled={isArchiving}
-          onClick={() => onArchive(item.id)}
-          className="p-2 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
-          title="Archive submission"
-          aria-label="Archive submission"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
-    </div>
+            View
+          </Link>
+          <button
+            type="button"
+            disabled={isArchiving}
+            onClick={() => onArchive(item.id)}
+            className="k-control-btn flex-1 justify-center text-sm text-red-600 disabled:opacity-50 dark:text-red-400"
+            title="Archive submission"
+          >
+            {isArchiving ? '…' : 'Archive'}
+          </button>
+        </div>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }
 
@@ -223,9 +209,8 @@ export function ChroniclesCenterContent() {
         title="Chronicles"
         titleAccent="Center"
         excerpt="Submit community lore with modular Hub pricing, KREX discounts, and Hub Points."
-        meta={
-          state.address ? <p className="font-mono text-sm text-zinc-500">{state.address}</p> : null
-        }
+        adSlotId="HALO_CHRONICLES_RIGHT"
+        adFrameLabel="Lore"
       />
 
       <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />
@@ -293,60 +278,58 @@ export function ChroniclesCenterContent() {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-                  <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
-                    Your community submissions
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <KxFilterDropdown
-                      value={kindFilter}
-                      onChange={setKindFilter}
-                      options={[
-                        { value: 'all', label: 'All types' },
-                        ...KIND_OPTIONS.map((k) => ({
-                          value: k,
-                          label: CHRONICLES_CONTENT_KIND_LABELS[k],
-                        })),
-                      ]}
-                      ariaLabel="Filter by content type"
-                      triggerClassName="k-control-btn min-w-[160px]"
-                      menuClassName="w-56"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => goTab('create')}
-                      className="hub-cta-btn k-control-btn text-xs"
-                    >
-                      Create lore
-                    </button>
-                  </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                  Your community submissions
+                </h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <KxFilterDropdown
+                    value={kindFilter}
+                    onChange={setKindFilter}
+                    options={[
+                      { value: 'all', label: 'All types' },
+                      ...KIND_OPTIONS.map((k) => ({
+                        value: k,
+                        label: CHRONICLES_CONTENT_KIND_LABELS[k],
+                      })),
+                    ]}
+                    ariaLabel="Filter by content type"
+                    triggerClassName="k-control-btn min-w-[160px]"
+                    menuClassName="w-56"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => goTab('create')}
+                    className="hub-cta-btn k-control-btn text-xs"
+                  >
+                    Create lore
+                  </button>
                 </div>
-
-                {filteredListings.length === 0 ? (
-                  <div className="p-12 text-center text-zinc-500">
-                    <p>You haven&apos;t published any community lore yet.</p>
-                    <button
-                      type="button"
-                      onClick={() => goTab('create')}
-                      className="hub-cta-btn k-control-btn mt-4 text-sm"
-                    >
-                      Submit first entry
-                    </button>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    {filteredListings.map((item) => (
-                      <SubmissionRow
-                        key={item.id}
-                        item={item}
-                        onArchive={handleArchive}
-                        isArchiving={archivingId === item.id}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
+
+              {filteredListings.length === 0 ? (
+                <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+                  <p>You haven&apos;t published any community lore yet.</p>
+                  <button
+                    type="button"
+                    onClick={() => goTab('create')}
+                    className="hub-cta-btn k-control-btn mt-4 text-sm"
+                  >
+                    Submit first entry
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {filteredListings.map((item) => (
+                    <SubmissionCard
+                      key={item.id}
+                      item={item}
+                      onArchive={handleArchive}
+                      isArchiving={archivingId === item.id}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           ) : null}
         </div>

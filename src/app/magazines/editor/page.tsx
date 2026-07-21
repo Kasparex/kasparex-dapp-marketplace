@@ -29,6 +29,7 @@ export default function MagazineEditorPage() {
             title="Create"
             titleAccent="Issue"
             excerpt="Build a modular magazine issue with form panels, premium modules, Benefits, and calculation breakdown."
+            adSlotId="HALO_MAGAZINES_RIGHT"
           />
 
           <div id="magazines-dashboard-pricing" className="mb-8 grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-3">

@@ -45,6 +45,8 @@ import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useIPFSUpload } from '@/lib/ipfs/hooks';
 import { normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import {
   difficultyLevels,
   gameTypes,
@@ -407,11 +409,8 @@ export default function GamesDashboardPage() {
             title="Games"
             titleAccent="Studio"
             excerpt="Create and list games with the same fields the public game template uses: media, metadata, and Hub pricing."
-            meta={
-              state.address ? (
-                <p className="font-mono text-xs text-zinc-500">{state.address}</p>
-              ) : null
-            }
+            adSlotId="HALO_GAMES_RIGHT"
+            adFrameLabel="Game"
           />
 
           <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
@@ -450,38 +449,58 @@ export default function GamesDashboardPage() {
           ) : null}
 
           {tab === 'listings' ? (
-            <div
-              id="games-dashboard-listings"
-              className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <div className="border-b border-zinc-200 p-5 dark:border-zinc-800">
+            <div id="games-dashboard-listings" className="scroll-mt-24 space-y-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">My game listings</h2>
               </div>
-              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {listings.length === 0 ? (
-                  <p className="p-8 text-sm text-zinc-500">
+              {listings.length === 0 ? (
+                <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                  <p className="text-sm text-zinc-500">
                     No listings yet. Open the Game tab to publish your first title.
                   </p>
-                ) : (
-                  listings.map((item) => (
-                    <div key={item.id} className="p-5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-bold text-zinc-900 dark:text-zinc-100">{item.title}</p>
-                        <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
-                          {item.gameType}
-                        </span>
-                        <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
-                          {item.status}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm text-zinc-500">{item.shortDescription}</p>
-                      {item.categories?.length ? (
-                        <p className="mt-2 text-xs text-zinc-400">{item.categories.join(' · ')}</p>
-                      ) : null}
-                    </div>
-                  ))
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {listings.map((item) => (
+                    <KxListingCard key={item.id} accent="games" className="h-full flex flex-col">
+                      <KxListingCardMedia aspectClass="aspect-[16/10]">
+                        {item.featuredImageUrl ? (
+                          <img
+                            src={item.featuredImageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-full w-full items-center justify-center text-sm font-bold uppercase tracking-wide text-zinc-500 ${KX_LISTING_PLACEHOLDER_GRADIENT}`}
+                          >
+                            {gameTypes[item.gameType]?.name ?? item.gameType}
+                          </div>
+                        )}
+                      </KxListingCardMedia>
+                      <KxListingCardBody comfortable className="flex flex-1 flex-col">
+                        <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                          {item.shortDescription}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+                            {item.gameType}
+                          </span>
+                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+                            {item.status}
+                          </span>
+                        </div>
+                        {item.categories?.length ? (
+                          <p className="mt-2 text-xs text-zinc-400">{item.categories.join(' · ')}</p>
+                        ) : null}
+                      </KxListingCardBody>
+                    </KxListingCard>
+                  ))}
+                </div>
+              )}
             </div>
           ) : null}
 

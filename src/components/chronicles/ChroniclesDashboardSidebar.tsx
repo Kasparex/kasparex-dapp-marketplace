@@ -87,7 +87,7 @@ export function ChroniclesDashboardSidebar({
       <div className="mb-6 space-y-2 px-1">
         <Link
           href="/chronicles/center"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             dashboardTab === 'create' ? 'hub-sidebar-action-active' : ''
           }`}
         >

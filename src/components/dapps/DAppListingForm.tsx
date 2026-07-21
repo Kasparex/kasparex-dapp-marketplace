@@ -32,7 +32,6 @@ import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { DIRECTORY_LISTING_CHAINS } from '@/lib/dapps/listingChains';
 import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
 import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { DAppListingPreview } from '@/components/dapps/DAppListingPreview';
 import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
 import {
   KX_FORM_GRID,
@@ -287,44 +286,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       hasFeatureImage &&
       !isProcessing &&
       !isUploading,
-  );
-
-  const previewDraft = useMemo(
-    () => ({
-      name,
-      shortDescription,
-      fullDescription,
-      category,
-      tags: parseTags(tagsRaw),
-      networkLayer,
-      supportedChains: chains,
-      websiteUrl,
-      socialLinks: cleanLinks(socialLinks),
-      utility,
-      logoUrl: logoPreviewUrl,
-      featureImageUrl:
-        featureImageSource === 'url' && featureImageUrl.trim()
-          ? featureImageUrl.trim()
-          : featureImageCid
-            ? getBestGatewayUrl(featureImageCid)
-            : null,
-    }),
-    [
-      name,
-      shortDescription,
-      fullDescription,
-      category,
-      tagsRaw,
-      networkLayer,
-      chains,
-      websiteUrl,
-      socialLinks,
-      utility,
-      logoPreviewUrl,
-      featureImageSource,
-      featureImageUrl,
-      featureImageCid,
-    ],
   );
 
   const fieldLabel = (key: string) => {
@@ -886,7 +847,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
 
       <div className={KX_FORM_STICKY_RAIL}>
         <HubBenefitsPanel variant="panel" scope="dapps" />
-        <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
 
         <aside className={KX_CALCULATION_ASIDE}>
           <HubListingCalculationBreakdown

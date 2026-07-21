@@ -26,6 +26,8 @@ function TokensDashboardPageContent() {
                 title="Token"
                 titleAccent="Builder"
                 excerpt="List your project, verify ownership on-chain, and publish modular token landing pages with Kasparex Hub utility."
+                adSlotId="HALO_TOKENS_RIGHT"
+                adFrameLabel="Token"
               />
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>

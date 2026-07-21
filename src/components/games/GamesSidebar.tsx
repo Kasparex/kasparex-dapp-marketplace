@@ -146,7 +146,7 @@ export function GamesSidebar({
         <div className="mb-6 space-y-2 px-1">
           <Link
             href="/games/dashboard"
-            className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            className={`k-control-btn w-full justify-center gap-2 ${
               dashboardActive ? 'hub-sidebar-action-active' : ''
             }`}
           >

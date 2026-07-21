@@ -284,7 +284,7 @@ export function VBlogSidebar({
       <div className="mb-6 space-y-2">
         <Link
           href="/vblog/dashboard"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             dashboardActive ? 'hub-sidebar-action-active' : ''
           }`}
         >
@@ -295,7 +295,7 @@ export function VBlogSidebar({
         </Link>
         <Link
           href="/vblog/vault"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             vaultActive ? 'hub-sidebar-action-active' : ''
           }`}
         >

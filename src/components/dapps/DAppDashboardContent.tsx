@@ -35,9 +35,9 @@ import { useDirectoryListings } from '@/hooks/useDirectoryListings';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
-import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { KxListingCard, KxListingCardBody, KxListingCardMedia } from '@/components/kx/KxListingCard';
+import { KX_LISTING_PLACEHOLDER_GRADIENT } from '@/lib/ui/kxListingPlaceholder';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
@@ -52,7 +52,7 @@ const TAB_LABELS: Record<DAppDashboardTab, string> = {
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
 
-function ListingRow({
+function ListingCard({
   item,
   onEdit,
   onDelete,
@@ -75,101 +75,63 @@ function ListingRow({
           : null;
 
   return (
-    <div className="p-4 flex items-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-      <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 flex items-center justify-center flex-shrink-0 font-black text-lg">
+    <KxListingCard accent="dapps" className="h-full flex flex-col">
+      <KxListingCardMedia aspectClass="aspect-[16/10]">
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
-          (cat?.emoji ?? '⚡')
+          <div className={`flex h-full w-full items-center justify-center text-4xl ${KX_LISTING_PLACEHOLDER_GRADIENT}`}>
+            {cat?.emoji ?? '⚡'}
+          </div>
         )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{item.name}</h3>
-          {item.status === 'archived' ? (
-            <span className="rounded px-2 py-0.5 text-[10px] font-bold uppercase bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-              archived
-            </span>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1">
+        {item.status === 'archived' ? (
+          <span className="absolute left-2 top-2 rounded-md border border-zinc-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 backdrop-blur-md dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-400">
+            archived
+          </span>
+        ) : null}
+      </KxListingCardMedia>
+      <KxListingCardBody comfortable className="flex flex-1 flex-col">
+        <h3 className="line-clamp-2 text-[17px] font-semibold leading-snug text-zinc-900 dark:text-white">
+          {item.name}
+        </h3>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          {item.shortDescription}
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
           {cat ? <span>{cat.name}</span> : null}
-          <span>•</span>
+          {cat ? <span aria-hidden>•</span> : null}
           <span>
             {item.feeAmountKAS} KAS fee ({item.paymentCurrency})
           </span>
-          <span>•</span>
+          <span aria-hidden>•</span>
           <span>{new Date(item.submittedAt).toLocaleDateString()}</span>
         </div>
-        <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{item.shortDescription}</p>
-        {item.websiteUrl ? (
-          <a
-            href={item.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-[#02abb8] hover:underline mt-1 inline-block"
-          >
-            {item.websiteUrl}
-          </a>
-        ) : null}
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
         {item.status === 'active' ? (
-          <Link
-            href={`/dapps/${item.slug}`}
-            className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            title="View page"
-            aria-label="View page"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </Link>
-        ) : null}
-        {item.feeTxHash ? (
-          <a
-            href={getExplorerTxUrl(item.feeTxHash)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            title="View transaction"
-            aria-label="View transaction"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        ) : null}
-        {item.status === 'active' ? (
-          <>
+          <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+            <Link href={`/dapps/${item.slug}`} className="k-control-btn flex-1 justify-center text-sm text-center">
+              View
+            </Link>
             <button
               type="button"
               onClick={() => onEdit(item.id)}
-              className="p-2 text-zinc-400 hover:text-[#02abb8] transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="hub-cta-btn k-control-btn flex-1 justify-center text-sm"
               title={`Edit (${DAPP_LISTING_ACTION_FEE_KAS} KAS)`}
-              aria-label="Edit listing"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+              Edit
             </button>
             <button
               type="button"
               disabled={isDeleting}
               onClick={() => onDelete(item.id)}
-              className="p-2 text-zinc-400 hover:text-red-500 transition-colors rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+              className="k-control-btn justify-center text-sm text-red-600 disabled:opacity-50 dark:text-red-400"
               title={`Delete (${HUB_DELETE_FEE_KAS.dapps} KAS)`}
-              aria-label="Delete listing"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              {isDeleting ? '…' : 'Delete'}
             </button>
-          </>
+          </div>
         ) : null}
-      </div>
-    </div>
+      </KxListingCardBody>
+    </KxListingCard>
   );
 }
 
@@ -288,9 +250,9 @@ export function DAppDashboardContent() {
         title="dApps"
         titleAccent="Center"
         excerpt="List your dApp in the Kasparex directory with modular pricing, KREX discounts, and Hub Points."
-        meta={
-          state.address ? <p className="font-mono text-sm text-zinc-500">{state.address}</p> : null
-        }
+        adSlotId="HALO_DAPPS_RIGHT"
+        adSlotDomId="ad-slot-dapps-dashboard"
+        adFrameLabel="dApp"
       />
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
@@ -383,61 +345,59 @@ export function DAppDashboardContent() {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-                <div className="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-                  <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
-                    Your directory listings
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <KxFilterDropdown
-                      value={categoryFilter}
-                      onChange={setCategoryFilter}
-                      options={[
-                        { value: 'all', label: 'All categories' },
-                        ...LISTING_CATEGORIES.map((c) => ({
-                          value: c.id,
-                          label: `${c.emoji} ${c.name}`,
-                        })),
-                      ]}
-                      ariaLabel="Filter by category"
-                      triggerClassName="k-control-btn min-w-[160px]"
-                      menuClassName="w-56"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => goTab('create')}
-                      className="hub-cta-btn k-control-btn text-xs"
-                    >
-                      List a DApp
-                    </button>
-                  </div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                  Your directory listings
+                </h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <KxFilterDropdown
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    options={[
+                      { value: 'all', label: 'All categories' },
+                      ...LISTING_CATEGORIES.map((c) => ({
+                        value: c.id,
+                        label: `${c.emoji} ${c.name}`,
+                      })),
+                    ]}
+                    ariaLabel="Filter by category"
+                    triggerClassName="k-control-btn min-w-[160px]"
+                    menuClassName="w-56"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => goTab('create')}
+                    className="hub-cta-btn k-control-btn text-xs"
+                  >
+                    List a DApp
+                  </button>
                 </div>
-
-                {filteredListings.length === 0 ? (
-                  <div className="p-12 text-center text-zinc-500">
-                    <p>You haven&apos;t published any directory listings yet.</p>
-                    <button
-                      type="button"
-                      onClick={() => goTab('create')}
-                      className="hub-cta-btn k-control-btn mt-4 text-sm"
-                    >
-                      Submit first listing
-                    </button>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    {filteredListings.map((item) => (
-                      <ListingRow
-                        key={item.id}
-                        item={item}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        isDeleting={deletingId === item.id}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
+
+              {filteredListings.length === 0 ? (
+                <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+                  <p>You haven&apos;t published any directory listings yet.</p>
+                  <button
+                    type="button"
+                    onClick={() => goTab('create')}
+                    className="hub-cta-btn k-control-btn mt-4 text-sm"
+                  >
+                    Submit first listing
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {filteredListings.map((item) => (
+                    <ListingCard
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      isDeleting={deletingId === item.id}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           ) : null}
         </div>

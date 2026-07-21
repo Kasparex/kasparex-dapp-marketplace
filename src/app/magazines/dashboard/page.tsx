@@ -125,14 +125,8 @@ export default function MagazinesDashboardPage() {
                             title="Magazines"
                             titleAccent="Creator Center"
                             excerpt="Manage issues, reader library, and revenue splits with Magazines Hub accents and KREX perks."
-                            meta={
-                                walletState.address ? (
-                                    <div className="flex items-center gap-2 font-mono text-xs text-zinc-500">
-                                        <div className="h-2 w-2 rounded-full bg-green-500" />
-                                        {walletState.address}
-                                    </div>
-                                ) : null
-                            }
+                            adSlotId="HALO_MAGAZINES_RIGHT"
+                            adFrameLabel="Issue"
                         />
 
                         <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8`}>

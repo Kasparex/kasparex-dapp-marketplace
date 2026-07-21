@@ -125,7 +125,7 @@ export function TokensListingSidebar({
       <div className="mb-6">
         <Link
           href="/tokens/dashboard"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             dashboardActive ? 'hub-sidebar-action-active' : ''
           }`}
         >

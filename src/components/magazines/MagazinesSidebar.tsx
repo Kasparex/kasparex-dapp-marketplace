@@ -82,7 +82,7 @@ export function MagazinesSidebar({
       <div className="mb-6 space-y-2 px-1">
         <Link
           href="/magazines/dashboard"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             dashboardActive ? 'hub-sidebar-action-active' : ''
           }`}
         >
@@ -93,7 +93,7 @@ export function MagazinesSidebar({
         </Link>
         <Link
           href="/magazines/editor"
-          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+          className={`k-control-btn w-full justify-center gap-2 ${
             editorActive ? 'hub-sidebar-action-active' : ''
           }`}
         >
