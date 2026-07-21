@@ -26,8 +26,8 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
 
   return (
-    <div className={className ?? 'flex flex-col space-y-4'}>
-      <div className="mb-1 flex items-center justify-between gap-2">
+    <div className={className ?? 'flex flex-col gap-4'}>
+      <div className="flex items-center justify-between gap-2">
         <DAppSectionHeader title="Calculation breakdown" className="!mb-0" />
         <TierBadge tier={tier} isUnlocked={krexBalance > 0} />
       </div>
