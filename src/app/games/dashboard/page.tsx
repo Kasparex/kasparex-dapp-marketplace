@@ -23,6 +23,23 @@ import {
   KX_DASHBOARD_TAB_BTN_ACTIVE,
 } from '@/lib/hub/shellTokens';
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
+import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
+import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
+import type { StorePaymentCurrency } from '@/lib/store/currencies';
+import { listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
+import {
+  estimateHubListingQuote,
+  hubListingCommitNote,
+  type HubListingModuleLine,
+} from '@/lib/hub/listingPricing';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { htmlToPlainText } from '@/lib/richText/html';
 
 type GamePromoListing = {
   id: string;
@@ -33,12 +50,14 @@ type GamePromoListing = {
   coverUrl: string;
   status: 'draft' | 'published';
   createdAt: string;
+  feeTxHash?: string;
+  feeAmountKas?: number;
+  paymentCurrency?: StorePaymentCurrency;
 };
 
 const STORAGE_KEY = 'kasparex_games_dashboard_promotions';
 const BASE_FEE_KAS = 25;
 const PREMIUM_MODULE_FEE_KAS = 10;
-const HUB_POINTS = 50;
 
 function readAllListings(): GamePromoListing[] {
   if (typeof window === 'undefined') return [];
@@ -62,36 +81,103 @@ function saveListing(listing: GamePromoListing): void {
 
 export default function GamesDashboardPage() {
   const { state } = useKaspaWallet();
+  const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const [tab, setTab] = useState<'overview' | 'listings' | 'create'>('overview');
   const [title, setTitle] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [content, setContent] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
   const [boostEnabled, setBoostEnabled] = useState(false);
+  const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
   const [listingsVersion, setListingsVersion] = useState(0);
 
   const listings = useMemo(() => readListings(state.address), [state.address, listingsVersion]);
-  const totalKas = BASE_FEE_KAS + (boostEnabled ? PREMIUM_MODULE_FEE_KAS : 0);
 
-  const handleSave = () => {
-    if (!state.address || !title.trim() || !shortDescription.trim()) return;
-    saveListing({
-      id: `game-${Date.now()}`,
-      wallet: state.address,
-      title: title.trim(),
-      shortDescription: shortDescription.trim(),
-      content: content.trim(),
-      coverUrl: coverUrl.trim(),
-      status: 'published',
-      createdAt: new Date().toISOString(),
-    });
-    setTitle('');
-    setShortDescription('');
-    setContent('');
-    setCoverUrl('');
-    setBoostEnabled(false);
-    setListingsVersion((v) => v + 1);
-    setTab('listings');
+  const moduleLines = useMemo((): HubListingModuleLine[] => {
+    if (!boostEnabled) return [];
+    return [{ id: 'featured', title: 'Featured placement module', kas: PREMIUM_MODULE_FEE_KAS }];
+  }, [boostEnabled]);
+
+  const formQuote = useMemo(
+    () =>
+      estimateHubListingQuote({
+        action: 'create',
+        baseFeeKas: BASE_FEE_KAS,
+        discountPercent: krexTierDiscountPercent(krexTier),
+        moduleLines,
+        fields: {
+          kind: 'games-promo',
+          title: title.trim(),
+          shortDescription: shortDescription.trim(),
+          content: htmlToPlainText(content).trim(),
+          coverUrl: coverUrl.trim(),
+          featuredPlacementEnabled: boostEnabled,
+        },
+      }),
+    [krexTier, moduleLines, title, shortDescription, content, coverUrl, boostEnabled],
+  );
+  const feeLabel = listingActionFeeLabel(paymentCurrency, formQuote.totalKas);
+
+  const canSubmit = Boolean(
+    state.isConnected && state.address && title.trim() && shortDescription.trim() && !isProcessing,
+  );
+
+  const handleSave = async () => {
+    setError(null);
+    if (!state.isConnected || !state.address) {
+      setError('Connect your Kaspa wallet to publish a game promotion.');
+      return;
+    }
+    if (!title.trim() || !shortDescription.trim()) {
+      setError('Title and short description are required.');
+      return;
+    }
+
+    try {
+      const commitNote = hubListingCommitNote({
+        kind: 'games-promo',
+        contentHash: formQuote.contentHash,
+        payloadBytes: formQuote.payloadBytes,
+        chunkCount: formQuote.chunkCount,
+        totalKas: formQuote.totalKas,
+      });
+      const feeTxHash = await payActionFee(paymentCurrency, formQuote.totalKas, commitNote);
+      const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
+
+      saveListing({
+        id: `game-${Date.now()}`,
+        wallet: state.address,
+        title: title.trim(),
+        shortDescription: shortDescription.trim(),
+        content: content.trim(),
+        coverUrl: coverUrl.trim(),
+        status: 'published',
+        createdAt: new Date().toISOString(),
+        feeTxHash: txNorm,
+        feeAmountKas: formQuote.totalKas,
+        paymentCurrency,
+      });
+
+      appendHubActivityEarn({
+        walletRaw: state.address,
+        source: 'games_promo_list',
+        redeemableDelta: HUB_EARN_POINTS.gamesPromoList,
+        krexBalance,
+        idempotencyKey: `games:promo:${txNorm}`,
+        meta: { title: title.trim() },
+      });
+
+      setTitle('');
+      setShortDescription('');
+      setContent('');
+      setCoverUrl('');
+      setBoostEnabled(false);
+      setListingsVersion((v) => v + 1);
+      setTab('listings');
+    } catch {
+      /* payActionFee sets error */
+    }
   };
 
   return (
@@ -139,9 +225,13 @@ export default function GamesDashboardPage() {
 
           {tab === 'create' ? (
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <VBlogFeeCard title="Listing Fee" feeKas={BASE_FEE_KAS} basePoints={HUB_POINTS} />
+              <VBlogFeeCard title="Listing Fee" feeKas={BASE_FEE_KAS} basePoints={HUB_EARN_POINTS.gamesPromoList} />
               <VBlogFeeCard title="Featured module" feeKas={PREMIUM_MODULE_FEE_KAS} />
-              <VBlogFeeCard title="Hub points" feeKas={0} note={`Earn +${HUB_POINTS} pts on publish`} />
+              <VBlogFeeCard
+                title="Hub points"
+                feeKas={0}
+                note={`Earn +${HUB_EARN_POINTS.gamesPromoList} pts on publish`}
+              />
             </div>
           ) : null}
 
@@ -153,7 +243,9 @@ export default function GamesDashboardPage() {
               </div>
               <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 dark:border-cyan-900/40 dark:bg-cyan-950/25">
                 <p className="text-xs font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">Hub points</p>
-                <p className="mt-2 text-3xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_POINTS} pts</p>
+                <p className="mt-2 text-3xl font-black text-cyan-900 dark:text-cyan-100">
+                  +{HUB_EARN_POINTS.gamesPromoList} pts
+                </p>
               </div>
             </div>
           ) : null}
@@ -189,7 +281,11 @@ export default function GamesDashboardPage() {
                     <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                       List Game Project
                     </h3>
-                    <p className="kx-body">Promotion listing for now. Estimated cost: {totalKas} KAS.</p>
+                    <p className="kx-body">
+                      Promotion listing for now. Estimated cost: {formQuote.totalKas} KAS (
+                      {formQuote.chunkCount} chunks, {formQuote.payloadBytes} bytes)
+                      {formQuote.discountKas > 0 ? ' (KREX holder discount)' : ''}.
+                    </p>
                   </div>
                   <div>
                     <KxFormFieldLabel required>Project title</KxFormFieldLabel>
@@ -197,11 +293,20 @@ export default function GamesDashboardPage() {
                   </div>
                   <div>
                     <KxFormFieldLabel required>Short description</KxFormFieldLabel>
-                    <textarea className="k-textarea min-h-[90px]" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
+                    <textarea
+                      className="k-textarea min-h-[90px]"
+                      value={shortDescription}
+                      onChange={(e) => setShortDescription(e.target.value)}
+                    />
                   </div>
                   <div>
                     <KxFormFieldLabel>Cover image URL</KxFormFieldLabel>
-                    <input className="k-input" value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://..." />
+                    <input
+                      className="k-input"
+                      value={coverUrl}
+                      onChange={(e) => setCoverUrl(e.target.value)}
+                      placeholder="https://..."
+                    />
                   </div>
                   <div>
                     <KxFormFieldLabel>Details (rich text)</KxFormFieldLabel>
@@ -238,23 +343,39 @@ export default function GamesDashboardPage() {
               <div className={KX_FORM_STICKY_RAIL}>
                 <HubBenefitsPanel variant="panel" />
                 <aside className={KX_CALCULATION_ASIDE}>
-                  <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-                  <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                    <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{BASE_FEE_KAS} KAS</span></div>
-                    <div className="flex justify-between"><span>Premium modules</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{boostEnabled ? PREMIUM_MODULE_FEE_KAS : 0} KAS</span></div>
+                  <HubListingCalculationBreakdown
+                    quote={formQuote}
+                    hubPoints={HUB_EARN_POINTS.gamesPromoList}
+                    footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
+                    className="contents"
+                  />
+
+                  <div>
+                    <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
+                    <HubPaymentCurrencyDropdown
+                      value={paymentCurrency}
+                      onChange={setPaymentCurrency}
+                      options={buildKasKrexMenuOptions()}
+                      ariaLabel="Listing fee currency"
+                    />
+                    <p className="mt-2 text-xs text-zinc-500">Amount due: {feeLabel}</p>
                   </div>
-                  <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-                    <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-                    <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{totalKas} KAS</p>
-                  </div>
-                  <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-                    <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
-                    <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_POINTS} pts</p>
-                  </div>
-                  <button type="button" onClick={handleSave} className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94]">
-                    Publish Game Promotion
+
+                  {error ? (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+                      {error}
+                    </div>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    disabled={!canSubmit}
+                    className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isProcessing ? 'Processing...' : 'Publish Game Promotion'}
                   </button>
-                  <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={false} />
+                  <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing} />
                 </aside>
               </div>
             </div>

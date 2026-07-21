@@ -1,94 +1,100 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { gameTypes, type Game } from '@/lib/games/games';
 import { GAMES_GRADIENT_TEXT } from '@/lib/games/theme';
-import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
+import { KxListingFeaturedPlaceholder } from '@/components/kx/KxListingFeaturedPlaceholder';
+import {
+  GameDeckResourceRows,
+  type GameDeckResource,
+} from '@/components/games/panels/GameDeckPanel';
 
 type GamesHaloHeaderProps = {
   game: Pick<
     Game,
     'name' | 'description' | 'developer' | 'status' | 'difficulty' | 'gameType' | 'featuredImage' | 'image' | 'entryCostKAS' | 'version'
   >;
+  /** Live Game Deck resources shown in the left column (Token-style header). */
+  resources?: GameDeckResource[];
+  /** Optional footer under deck rows (e.g. live update hint). */
+  deckFooter?: ReactNode;
 };
 
 /**
- * Two-column Halo header for individual game pages (above tabs).
- * Left: game info deck / metadata. Right: featured image + status badge.
+ * Token-style two-column game header (above tabs).
+ * Left: title, meta, Game Deck resources. Right: featured cover + status.
  */
-export function GamesHaloHeader({ game }: GamesHaloHeaderProps) {
+export function GamesHaloHeader({ game, resources = [], deckFooter }: GamesHaloHeaderProps) {
   const typeName = gameTypes[game.gameType]?.name ?? game.gameType;
   const cover = game.featuredImage || game.image;
 
   return (
-    <>
-      <div className={`mb-4 ${HUB_HALO_MOBILE_FALLBACK}`}>
-        <p className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-          {typeName} · {game.status}
-        </p>
-        <h1 className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{game.name}</h1>
-      </div>
+    <div
+      id="game-header"
+      className="relative mb-4 scroll-mt-24 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/80 select-text dark:border-zinc-800 dark:bg-zinc-900/45"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-transparent to-transparent" />
 
-      <section
-        className={`relative mb-8 overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-100 via-emerald-50/50 to-zinc-100 px-5 py-8 sm:px-8 dark:border-zinc-800/50 dark:from-zinc-950 dark:via-emerald-950/30 dark:to-zinc-950 ${HUB_HALO_DESKTOP_ONLY}`}
-      >
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 h-[80%] w-[60%] rounded-full bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),transparent_70%)] blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-[60%] w-[50%] rounded-full bg-[radial-gradient(ellipse_at_bottom_left,_rgba(52,211,153,0.08),transparent_70%)] blur-3xl" />
-        </div>
-
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:items-center">
-          <div className="min-w-0 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              Kasparex Games
-            </div>
-            <h1 className="text-3xl font-black leading-tight text-zinc-900 dark:text-white sm:text-4xl md:text-5xl">
-              <span className={GAMES_GRADIENT_TEXT}>{game.name}</span>
-            </h1>
-            <p className="kx-body max-w-xl text-base leading-relaxed sm:text-lg">
-              {game.description}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
-                {typeName}
-              </span>
-              <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold capitalize text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
-                {game.difficulty}
-              </span>
-              <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
+      <div className="relative flex min-h-[360px] flex-col lg:flex-row">
+        <div className="relative flex w-full flex-1 flex-col p-6 sm:p-8 lg:w-1/2 lg:p-10">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">
+                Kasparex Games · {typeName}
+              </p>
+              <h1 className="mt-2 text-3xl font-black leading-tight text-zinc-900 dark:text-white sm:text-4xl">
+                <span className={GAMES_GRADIENT_TEXT}>{game.name}</span>
+              </h1>
+              <p className="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
                 by {game.developer}
-              </span>
-              {game.version ? (
-                <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
-                  v{game.version}
-                </span>
-              ) : null}
-              <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                Entry {game.entryCostKAS} KAS
-              </span>
+                {game.version ? ` · v${game.version}` : ''}
+              </p>
             </div>
+            <span className="shrink-0 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+              {game.status}
+            </span>
           </div>
 
-          <aside className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white/90 shadow-lg dark:border-zinc-700 dark:bg-zinc-900/80">
-            <div className="relative aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-800">
-              {cover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs font-bold uppercase tracking-widest text-zinc-400">
-                  Game art
-                </div>
-              )}
-              <span className="absolute right-3 top-3 rounded-lg border border-emerald-500/40 bg-emerald-500/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow">
-                {game.status}
-              </span>
+          {game.description ? (
+            <p className="kx-body mb-5 max-w-2xl select-text">{game.description}</p>
+          ) : null}
+
+          <div className="mb-5 flex flex-wrap gap-2">
+            <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
+              {typeName}
+            </span>
+            <span className="rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold capitalize text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300">
+              {game.difficulty}
+            </span>
+            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+              Entry {game.entryCostKAS} KAS
+            </span>
+          </div>
+
+          {resources.length > 0 ? (
+            <div className="mt-auto space-y-2 pt-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Game Deck</p>
+                {deckFooter ? (
+                  <p className="text-[10px] font-medium text-zinc-400">{deckFooter}</p>
+                ) : (
+                  <p className="text-[10px] font-medium text-zinc-400">Live as you play</p>
+                )}
+              </div>
+              <GameDeckResourceRows resources={resources} />
             </div>
-          </aside>
+          ) : null}
         </div>
-      </section>
-    </>
+
+        <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
+          {cover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <KxListingFeaturedPlaceholder className="min-h-[220px] lg:min-h-full" iconClassName="h-16 w-16" />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

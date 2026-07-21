@@ -10,7 +10,7 @@ import { CipherGridPuzzle } from './CipherGridPuzzle';
 import { Tooltip, TooltipProvider } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import dynamic from 'next/dynamic';
-import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
@@ -146,13 +146,50 @@ export function CipherVaultsDashboard({
   );
   const tabs = useGameCommentsTabs(baseTabs, 'cipher-vaults');
 
+  const deckResources: GameDeckResource[] = [
+    {
+      id: 'reward_weight',
+      label: 'Reward Weight',
+      value: tickets.available.toLocaleString(),
+      subValue: `${redeemableRemaining.toLocaleString()} redeemable pts`,
+      description: 'Combined reward potential',
+      tooltip: 'Your total reward weight decides your share of GRID distribution when snapshots run. Tap this row to view details.',
+      accent: 'diamonds',
+      onClick: () => setTab('redeem'),
+    },
+    {
+      id: 'tickets',
+      label: 'Cipher Tickets',
+      value: tickets.available.toLocaleString(),
+      description: 'Run entry tickets',
+      tooltip: 'Entry tickets you can spend instead of KAS to start runs. Click to open Redeem.',
+      accent: 'games',
+      onClick: () => setTab('redeem'),
+    },
+    {
+      id: 'refinement',
+      label: 'Redeemable Points',
+      value: redeemableRemaining.toLocaleString(),
+      description: 'From Diamond Veins refinement',
+      tooltip: `Mine diamonds, convert them into refinement points, and redeem tickets to enter Cipher Vaults without paying KAS. (${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket). Click to open Redeem.`,
+      accent: 'diamonds',
+      onClick: () => setTab('redeem'),
+    },
+  ];
+
   return (
     <TooltipProvider>
     <GamesWithSidebarLayout
       tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
-      haloHeader={<GamesHaloHeader game={haloGame} />}
+      haloHeader={
+        <GamesHaloHeader
+          game={haloGame}
+          resources={deckResources}
+          deckFooter="Values update live as you earn tickets and clear vaults."
+        />
+      }
       main={
         <>
         {toast && (
@@ -552,41 +589,8 @@ export function CipherVaultsDashboard({
         </>
       }
       sidebar={
-        <>
+        <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" className="w-full" />
-        <GameDeckPanel
-          rewardWeight={{
-            value: tickets.available.toLocaleString(),
-            subValue: `${redeemableRemaining.toLocaleString()} redeemable pts`,
-            onClick: () => setTab('redeem'),
-          }}
-          resources={[
-            {
-              id: 'tickets',
-              label: 'Cipher Tickets',
-              value: tickets.available.toLocaleString(),
-              description: 'Run entry tickets',
-              tooltip: 'Entry tickets you can spend instead of KAS to start runs. Click to open Redeem.',
-              accent: 'games',
-              onClick: () => setTab('redeem'),
-            },
-            {
-              id: 'refinement',
-              label: 'Redeemable Points',
-              value: redeemableRemaining.toLocaleString(),
-              description: 'From Diamond Veins refinement',
-              tooltip: `Mine diamonds, convert them into refinement points, and redeem tickets to enter Cipher Vaults without paying KAS. (${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket). Click to open Redeem.`,
-              accent: 'diamonds',
-              onClick: () => setTab('redeem'),
-            },
-          ]}
-          footer={<span>Values update live as you earn tickets and clear vaults.</span>}
-          featured={{
-            image: featuredImage || undefined,
-            onOpenOverview: openOverview,
-            tooltip: 'Click to open game overview',
-          }}
-        />
 
         <GameInteractionsPanel interactions={interactions} />
 
@@ -629,7 +633,7 @@ export function CipherVaultsDashboard({
         </div>
 
         <GamesPlayAdRail />
-        </>
+        </div>
       }
     />
     </TooltipProvider>

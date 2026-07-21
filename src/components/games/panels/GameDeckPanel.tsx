@@ -19,12 +19,91 @@ export type GameDeckResource = {
 };
 
 function accentValueClass(accent?: GameDeckResource['accent']) {
-  if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300'; // changed to emerald per request
+  if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'krex') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'grid') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'diamonds') return 'text-amber-600 dark:text-amber-400'; // restored to original yellow
+  if (accent === 'diamonds') return 'text-amber-600 dark:text-amber-400';
   if (accent === 'purple') return 'text-purple-500 dark:text-purple-400';
   return 'text-emerald-700 dark:text-emerald-300';
+}
+
+/** Resource rows used in Game Deck panel and in-game Halo header left column. */
+export function GameDeckResourceRows({
+  resources,
+  className = '',
+  bordered = true,
+}: {
+  resources: GameDeckResource[];
+  className?: string;
+  bordered?: boolean;
+}) {
+  if (resources.length === 0) return null;
+  return (
+    <ul
+      className={`space-y-0 ${
+        bordered
+          ? 'rounded-xl border border-zinc-200 bg-white/80 dark:border-zinc-700 dark:bg-zinc-900/70'
+          : ''
+      } ${className}`}
+    >
+      {resources.map((r) => {
+        const clickable = typeof r.onClick === 'function';
+        const Row = clickable ? 'button' : 'div';
+        const Wrapper = r.tooltip ? Tooltip : null;
+        const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
+        const innerContent = (
+          <>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 kx-body">
+                {r.icon ? (
+                  <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">
+                    {r.icon}
+                  </span>
+                ) : null}
+                <span className="truncate font-medium">{r.label}</span>
+              </div>
+              {r.description ? (
+                <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div>
+              ) : null}
+            </div>
+            <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
+              <div
+                className={`text-base font-black tabular-nums ${
+                  typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
+                }`}
+              >
+                {r.value}
+              </div>
+              {r.subValue ? (
+                <div className="mt-0.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
+              ) : null}
+            </div>
+          </>
+        );
+
+        const rowClassName = [
+          'w-full flex items-start justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+          clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
+        ].join(' ');
+
+        return (
+          <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+            {Wrapper ? (
+              <Wrapper {...wrapperProps!}>
+                <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+                  {innerContent}
+                </Row>
+              </Wrapper>
+            ) : (
+              <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
+                {innerContent}
+              </Row>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 /** Modal explaining each Game Deck capsule as a visual flow */
@@ -167,58 +246,7 @@ export function GameDeckPanel(props: {
           </div>
         ) : null}
 
-        <ul className="space-y-0">
-          {resources.map((r) => {
-            const clickable = typeof r.onClick === 'function';
-            const Row = clickable ? 'button' : 'div';
-            const Wrapper = r.tooltip ? Tooltip : null;
-            const wrapperProps = r.tooltip ? ({ content: gameTooltipRich(r.label, r.tooltip) } as const) : null;
-            const innerContent = (
-              <>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 kx-body">
-                    {r.icon ? <span className="inline-flex h-4 w-4 items-center justify-center text-zinc-500 dark:text-zinc-400">{r.icon}</span> : null}
-                    <span className="truncate font-medium">{r.label}</span>
-                  </div>
-                  {r.description ? <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div> : null}
-                </div>
-                <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
-                  <div
-                    className={`text-base font-black tabular-nums ${
-                      typeof r.value === 'string' || typeof r.value === 'number' ? accentValueClass(r.accent) : ''
-                    }`}
-                  >
-                    {r.value}
-                  </div>
-                  {r.subValue ? (
-                    <div className="mt-0.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
-                  ) : null}
-                </div>
-              </>
-            );
-
-            const rowClassName = [
-              'w-full flex items-start justify-between gap-3 py-2.5 px-3 text-left transition-colors',
-              clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
-            ].join(' ');
-
-            return (
-              <li key={r.id} className="border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-                {Wrapper ? (
-                  <Wrapper {...wrapperProps!}>
-                    <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
-                      {innerContent}
-                    </Row>
-                  </Wrapper>
-                ) : (
-                  <Row type={clickable ? 'button' : undefined} onClick={r.onClick} className={rowClassName}>
-                    {innerContent}
-                  </Row>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <GameDeckResourceRows resources={resources} bordered={false} />
 
         {props.footer ? <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">{props.footer}</div> : null}
       </GamePanelCard>

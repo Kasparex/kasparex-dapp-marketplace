@@ -8,8 +8,7 @@ import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
-import { calculateDirectoryListingFeeKas, listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
+import { listingActionFeeLabel } from '@/lib/dapps/listingSubmissions';
 import type { StorePaymentCurrency } from '@/lib/store/currencies';
 import {
   CHRONICLES_CONTENT_KIND_LABELS,
@@ -42,6 +41,13 @@ import {
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
 } from '@/lib/hub/shellTokens';
+import {
+  estimateHubListingQuote,
+  hubListingCommitNote,
+  type HubListingModuleLine,
+} from '@/lib/hub/listingPricing';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 
 const CONTENT_KINDS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
 const FEATURED_IMAGE_MAX_SIZE_MB = 5;
@@ -75,7 +81,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
   const { upload, isUploading } = useIPFSUpload();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
-  const { nftStatus } = useNFTStatus();
 
   const [kind, setKind] = useState<ChroniclesContentKind>('chapter');
   const [paymentCurrency, setPaymentCurrency] = useState<StorePaymentCurrency>('KAS');
@@ -95,14 +100,65 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const [canonHintEnabled, setCanonHintEnabled] = useState(false);
 
   const baseFeeKas = useMemo(() => submissionFeeKas(kind), [kind]);
-  const modulesFeeKas =
-    (illustratedEnabled ? PREMIUM_ILLUSTRATED_FEE_KAS : 0) +
-    (canonHintEnabled ? PREMIUM_CANON_HINT_FEE_KAS : 0);
-  const listingFee = useMemo(
-    () => calculateDirectoryListingFeeKas(baseFeeKas + modulesFeeKas, krexTier, nftStatus),
-    [baseFeeKas, modulesFeeKas, krexTier, nftStatus],
+  const parsedTags = useMemo(
+    () =>
+      tags
+        .split(/[,#]/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .slice(0, 12),
+    [tags],
   );
-  const feeLabel = listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas);
+  const moduleLines = useMemo((): HubListingModuleLine[] => {
+    const lines: HubListingModuleLine[] = [];
+    if (illustratedEnabled) {
+      lines.push({ id: 'illustrated', title: 'Illustrated entry', kas: PREMIUM_ILLUSTRATED_FEE_KAS });
+    }
+    if (canonHintEnabled) {
+      lines.push({ id: 'canon-hint', title: 'Canon hint notes', kas: PREMIUM_CANON_HINT_FEE_KAS });
+    }
+    return lines;
+  }, [illustratedEnabled, canonHintEnabled]);
+
+  const formQuote = useMemo(
+    () =>
+      estimateHubListingQuote({
+        action: 'create',
+        baseFeeKas,
+        discountPercent: krexTierDiscountPercent(krexTier),
+        moduleLines,
+        fields: {
+          kind,
+          title: title.trim(),
+          summary: summary.trim(),
+          body: htmlToPlainText(bodyMarkdown).trim(),
+          tags: parsedTags,
+          chapterNumber: kind === 'chapter' && chapterNumber ? Number(chapterNumber) : undefined,
+          timeline: kind === 'chapter' ? timeline : undefined,
+          characterKind: kind === 'character' ? characterKind : undefined,
+          vehicleKind: kind === 'vehicle' ? vehicleKind : undefined,
+          illustratedEnabled,
+          canonHintEnabled,
+        },
+      }),
+    [
+      baseFeeKas,
+      krexTier,
+      moduleLines,
+      kind,
+      title,
+      summary,
+      bodyMarkdown,
+      parsedTags,
+      chapterNumber,
+      timeline,
+      characterKind,
+      vehicleKind,
+      illustratedEnabled,
+      canonHintEnabled,
+    ],
+  );
+  const feeLabel = listingActionFeeLabel(paymentCurrency, formQuote.totalKas);
   const featuredPreviewUrl =
     featuredImageSource === 'url' && featuredImageUrl.trim()
       ? featuredImageUrl.trim()
@@ -155,14 +211,21 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
     }
 
     try {
-      const feeTxHash = await payActionFee(paymentCurrency, listingFee.effectiveKas);
+      const commitNote = hubListingCommitNote({
+        kind: 'chronicles',
+        contentHash: formQuote.contentHash,
+        payloadBytes: formQuote.payloadBytes,
+        chunkCount: formQuote.chunkCount,
+        totalKas: formQuote.totalKas,
+      });
+      const feeTxHash = await payActionFee(paymentCurrency, formQuote.totalKas, commitNote);
       const entry = saveCommunitySubmission({
         kind,
         title: title.trim(),
         summary: summary.trim(),
         bodyMarkdown: bodyMarkdown.trim(),
         authorAddress: state.address,
-        feeAmountKas: listingFee.effectiveKas,
+        feeAmountKas: formQuote.totalKas,
         paymentCurrency,
         feeTxHash,
         featuredImageUrl: resolveFeaturedImageUrl(),
@@ -170,11 +233,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
         timeline: kind === 'chapter' ? timeline : undefined,
         characterKind: kind === 'character' ? characterKind : undefined,
         vehicleKind: kind === 'vehicle' ? vehicleKind : undefined,
-        tags: tags
-          .split(/[,#]/)
-          .map((t) => t.trim())
-          .filter(Boolean)
-          .slice(0, 12),
+        tags: parsedTags,
       });
 
       if (kind === 'article') {
@@ -206,8 +265,9 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               Create lore
             </h3>
             <p className="kx-body">
-              Submit community lore for Krex&apos;s Chronicles. Estimated cost: {listingFee.effectiveKas} KAS
-              {listingFee.discountPercent > 0 ? ' (KREX holder discount)' : ''}.
+              Submit community lore for Krex&apos;s Chronicles. Estimated cost: {formQuote.totalKas} KAS (
+              {formQuote.chunkCount} chunks, {formQuote.payloadBytes} bytes)
+              {formQuote.discountKas > 0 ? ' (KREX holder discount)' : ''}.
             </p>
           </div>
 
@@ -441,37 +501,12 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
         </div>
 
         <aside className={KX_CALCULATION_ASIDE}>
-          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <div className="flex justify-between">
-              <span>Base fee</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{baseFeeKas} KAS</span>
-            </div>
-            {illustratedEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Illustrated entry</span>
-                <span className="shrink-0 font-semibold">+{PREMIUM_ILLUSTRATED_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {canonHintEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Canon hint notes</span>
-                <span className="shrink-0 font-semibold">+{PREMIUM_CANON_HINT_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {modulesFeeKas > 0 ? (
-              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
-                <span>Modules subtotal</span>
-                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
-              </div>
-            ) : null}
-            {listingFee.discountPercent > 0 ? (
-              <div className="flex justify-between">
-                <span>KREX discount</span>
-                <span className="font-semibold text-emerald-600">-{listingFee.discountPercent}%</span>
-              </div>
-            ) : null}
-          </div>
+          <HubListingCalculationBreakdown
+            quote={formQuote}
+            hubPoints={kind === 'article' ? HUB_EARN_POINTS.chroniclesArticleCreate : undefined}
+            footerNote="One Kaspa L1 payment covers the submission, payload size, and any enabled modules."
+            className="contents"
+          />
 
           <div>
             <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
@@ -481,25 +516,8 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
               options={buildKasKrexMenuOptions()}
               ariaLabel="Listing fee currency"
             />
+            <p className="mt-2 text-xs text-zinc-500">Amount due: {feeLabel}</p>
           </div>
-
-          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{feeLabel}</p>
-          </div>
-
-          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-            One Kaspa L1 payment covers the submission and any enabled modules.
-          </div>
-
-          {kind === 'article' ? (
-            <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-              <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
-              <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">
-                +{HUB_EARN_POINTS.chroniclesArticleCreate} pts
-              </p>
-            </div>
-          ) : null}
 
           {error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">

@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * Profile Hub-style Halo (optional) + full-width tab strip, then collapsible main / right-column grid.
+ * Token-style header + tighter tab/content stack, then collapsible main / right-column grid.
  */
 export function GamesWithSidebarLayout({
   tabs,
@@ -33,10 +33,10 @@ export function GamesWithSidebarLayout({
 
   return (
     <GamesLayoutProvider rightPanelOpen={rightOpen}>
-      <div className="flex w-full min-w-0 flex-col gap-6">
+      <div className="flex w-full min-w-0 flex-col gap-3">
         {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
 
-        <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div className="min-w-0 flex-1">
             <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
           </div>

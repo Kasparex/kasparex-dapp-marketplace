@@ -13,11 +13,9 @@ import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { StoreFileUpload } from '@/components/store/StoreFileUpload';
 import { useDAppListingPayment } from '@/hooks/useDAppListingPayment';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useNFTStatus } from '@/hooks/useNFTStatus';
 import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
-  calculateDirectoryListingFeeKas,
   listingActionFeeLabel,
   saveDirectoryListing,
   updateDirectoryListing,
@@ -50,6 +48,13 @@ import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { htmlToPlainText } from '@/lib/richText/html';
+import {
+  estimateHubListingQuote,
+  hubListingCommitNote,
+  type HubListingModuleLine,
+} from '@/lib/hub/listingPricing';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
 const IMAGE_MAX_SIZE_MB = 0.5;
@@ -109,7 +114,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   const { upload, isUploading } = useIPFSUpload();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
   const { tier: krexTier, balance: krexBalance } = useKREXBalance();
-  const { nftStatus } = useNFTStatus();
 
   const [name, setName] = useState(listing?.name ?? '');
   const [shortDescription, setShortDescription] = useState(listing?.shortDescription ?? '');
@@ -209,16 +213,61 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   }, [listing]);
 
   const baseFeeKas = isEdit ? DAPP_LISTING_ACTION_FEE_KAS : DAPP_LISTING_FEE_KAS;
-  const modulesFeeKas =
-    (featuredPlacementEnabled ? PREMIUM_FEATURED_FEE_KAS : 0) +
-    (highlightBadgeEnabled ? PREMIUM_HIGHLIGHT_FEE_KAS : 0);
-  const listingFee = useMemo(
-    () => calculateDirectoryListingFeeKas(baseFeeKas + modulesFeeKas, krexTier, nftStatus),
-    [baseFeeKas, modulesFeeKas, krexTier, nftStatus],
+  const moduleLines = useMemo((): HubListingModuleLine[] => {
+    const lines: HubListingModuleLine[] = [];
+    if (featuredPlacementEnabled) {
+      lines.push({ id: 'featured', title: 'Featured placement', kas: PREMIUM_FEATURED_FEE_KAS });
+    }
+    if (highlightBadgeEnabled) {
+      lines.push({ id: 'highlight', title: 'Highlight badge', kas: PREMIUM_HIGHLIGHT_FEE_KAS });
+    }
+    return lines;
+  }, [featuredPlacementEnabled, highlightBadgeEnabled]);
+
+  const formQuote = useMemo(
+    () =>
+      estimateHubListingQuote({
+        action: isEdit ? 'edit' : 'create',
+        baseFeeKas,
+        discountPercent: krexTierDiscountPercent(krexTier),
+        moduleLines,
+        fields: {
+          kind: 'dapp-directory',
+          name: name.trim(),
+          shortDescription: shortDescription.trim(),
+          fullDescription: htmlToPlainText(fullDescription).trim(),
+          category,
+          tags: parseTags(tagsRaw),
+          networkLayer,
+          chains,
+          websiteUrl: websiteUrl.trim(),
+          utility: utility.trim(),
+          featuredPlacementEnabled,
+          highlightBadgeEnabled,
+        },
+      }),
+    [
+      isEdit,
+      baseFeeKas,
+      krexTier,
+      moduleLines,
+      name,
+      shortDescription,
+      fullDescription,
+      category,
+      tagsRaw,
+      networkLayer,
+      chains,
+      websiteUrl,
+      utility,
+      featuredPlacementEnabled,
+      highlightBadgeEnabled,
+    ],
   );
+
   const feeLabel = useMemo(
-    () => listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas),
-    [paymentCurrency, listingFee.effectiveKas],
+    () => listingActionFeeLabel(paymentCurrency, formQuote.totalKas),
+    [paymentCurrency, formQuote.totalKas],
   );
   const logoPreviewUrl =
     logoSource === 'url' && logoUrl.trim()
@@ -399,20 +448,27 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     setStep('payment');
 
     try {
-      const feeTxHash = await payActionFee(paymentCurrency, listingFee.effectiveKas);
+      const commitNote = hubListingCommitNote({
+        kind: 'dapp-directory',
+        contentHash: formQuote.contentHash,
+        payloadBytes: formQuote.payloadBytes,
+        chunkCount: formQuote.chunkCount,
+        totalKas: formQuote.totalKas,
+      });
+      const feeTxHash = await payActionFee(paymentCurrency, formQuote.totalKas, commitNote);
 
       if (isEdit && listing) {
         const updated = updateDirectoryListing(listing.id, state.address, {
           ...buildPayload(),
           feeTxHash,
-          feeAmountKAS: listingFee.effectiveKas,
+          feeAmountKAS: formQuote.totalKas,
         });
         if (!updated) throw new Error('Failed to update listing');
       } else {
         saveDirectoryListing({
           ...buildPayload(),
           feeTxHash,
-          feeAmountKAS: listingFee.effectiveKas,
+          feeAmountKAS: formQuote.totalKas,
         });
 
         const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
@@ -468,8 +524,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             </h3>
             <p className="kx-body">
               {isEdit
-                ? `Updates require a ${feeLabel} fee. Estimated total: ${listingFee.effectiveKas} KAS.`
-                : `Fill in your project profile for the public directory. Estimated cost: ${listingFee.effectiveKas} KAS${listingFee.discountPercent > 0 ? ' (KREX holder discount)' : ''}.`}
+                ? `Updates require a ${feeLabel} fee. Estimated total: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunks, ${formQuote.payloadBytes} bytes).`
+                : `Fill in your project profile for the public directory. Estimated cost: ${formQuote.totalKas} KAS (${formQuote.chunkCount} chunks, ${formQuote.payloadBytes} bytes)${formQuote.discountKas > 0 ? ' (KREX holder discount)' : ''}.`}
             </p>
           </div>
 
@@ -833,37 +889,12 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
         <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
 
         <aside className={KX_CALCULATION_ASIDE}>
-          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <div className="flex justify-between">
-              <span>Base fee</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{baseFeeKas} KAS</span>
-            </div>
-            {featuredPlacementEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Featured placement</span>
-                <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">+{PREMIUM_FEATURED_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {highlightBadgeEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Highlight badge</span>
-                <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">+{PREMIUM_HIGHLIGHT_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {modulesFeeKas > 0 ? (
-              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
-                <span>Modules subtotal</span>
-                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
-              </div>
-            ) : null}
-            {listingFee.discountPercent > 0 ? (
-              <div className="flex justify-between">
-                <span>KREX discount</span>
-                <span className="font-semibold text-emerald-600">-{listingFee.discountPercent}%</span>
-              </div>
-            ) : null}
-          </div>
+          <HubListingCalculationBreakdown
+            quote={formQuote}
+            hubPoints={isEdit ? undefined : HUB_EARN_POINTS.dappDirectoryList}
+            footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
+            className="contents"
+          />
 
           <div>
             <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
@@ -873,23 +904,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               options={buildKasKrexMenuOptions()}
               ariaLabel="Listing fee currency"
             />
+            <p className="mt-2 text-xs text-zinc-500">Amount due: {feeLabel}</p>
           </div>
-
-          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{feeLabel}</p>
-          </div>
-
-          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-            One Kaspa L1 payment covers the listing and any enabled modules. Ensure your wallet has enough balance.
-          </div>
-
-          {!isEdit ? (
-            <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-              <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
-              <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_EARN_POINTS.dappDirectoryList} pts</p>
-            </div>
-          ) : null}
 
           {error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">

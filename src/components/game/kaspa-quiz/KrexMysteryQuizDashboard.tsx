@@ -12,7 +12,7 @@ import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
-import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
@@ -238,14 +238,26 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
     [boostersTip, boostersTone, commentsCount]
   );
 
-  const openOverview = () => {
-    setTab('overview');
-    try {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      // ignore
-    }
-  };
+  const deckResources: GameDeckResource[] = [
+    {
+      id: 'tier',
+      label: 'KREX Tier',
+      value: tier,
+      description: 'Tier perks',
+      tooltip: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
+      accent: 'krex',
+      onClick: () => setTab('boosters'),
+    },
+    {
+      id: 'mult',
+      label: 'Hub boost',
+      value: `×${boosterMult.toFixed(2)}`,
+      description: 'Tier + deck + booster',
+      tooltip: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
+      accent: 'games',
+      onClick: () => setTab('boosters'),
+    },
+  ];
 
   return (
     <TooltipProvider>
@@ -253,7 +265,13 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
       tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
-      haloHeader={<GamesHaloHeader game={props.game} />}
+      haloHeader={
+        <GamesHaloHeader
+          game={props.game}
+          resources={deckResources}
+          deckFooter="Values update live as you clear levels."
+        />
+      }
       main={
         <>
         {tab === 'overview' && (
@@ -426,35 +444,8 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         </>
       }
       sidebar={
-        <>
+        <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" className="w-full" />
-        <GameDeckPanel
-          resources={[
-            {
-              id: 'tier',
-              label: 'KREX Tier',
-              value: tier,
-              description: 'Tier perks',
-              tooltip: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
-              accent: 'krex',
-              onClick: () => setTab('boosters'),
-            },
-            {
-              id: 'mult',
-              label: 'Hub boost',
-              value: `×${boosterMult.toFixed(2)}`,
-              description: 'Tier + deck + booster',
-              tooltip: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
-              accent: 'games',
-              onClick: () => setTab('boosters'),
-            },
-          ]}
-          featured={{
-            image: props.featuredImage || undefined,
-            onOpenOverview: openOverview,
-            tooltip: 'Click to open game overview',
-          }}
-        />
 
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
@@ -488,7 +479,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         </div>
 
         <GamesPlayAdRail />
-        </>
+        </div>
       }
     />
     </TooltipProvider>

@@ -11,7 +11,7 @@ import { useKrexBoosters } from '@/hooks/useKrexBoosters';
 import { RewardsPreview } from '@/components/games/modules/RewardsPreview';
 import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
-import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
+import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
@@ -104,14 +104,37 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
     [boostersTip, boostersTone, commentsCount, rewardsTip, rewardsTone]
   );
 
-  const openOverview = () => {
-    setTab('overview');
-    try {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      // ignore
-    }
-  };
+  const deckResources: GameDeckResource[] = [
+    {
+      id: 'reward_weight',
+      label: 'Reward Weight',
+      value: `×${booster.toFixed(2)}`,
+      subValue: 'Hub boost multiplier',
+      description: 'Combined reward potential',
+      tooltip:
+        'Your total reward weight decides your share of GRID distribution when snapshots run. Tap this row to view details.',
+      accent: 'diamonds',
+      onClick: () => setTab('boosters'),
+    },
+    {
+      id: 'tier',
+      label: 'KREX Tier',
+      value: tier,
+      description: 'Tier perks',
+      tooltip: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
+      accent: 'krex',
+      onClick: () => setTab('boosters'),
+    },
+    {
+      id: 'mult',
+      label: 'Hub boost',
+      value: `×${booster.toFixed(2)}`,
+      description: 'Tier + deck + booster',
+      tooltip: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
+      accent: 'games',
+      onClick: () => setTab('boosters'),
+    },
+  ];
 
   function spawnTarget() {
     const el = arenaRef.current;
@@ -181,7 +204,13 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
-      haloHeader={<GamesHaloHeader game={props.game} />}
+      haloHeader={
+        <GamesHaloHeader
+          game={props.game}
+          resources={deckResources}
+          deckFooter="Values update live as you train and boost."
+        />
+      }
       main={
         <>
         {tab === 'overview' && (
@@ -305,40 +334,8 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         </>
       }
       sidebar={
-        <>
+        <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" className="w-full" />
-        <GameDeckPanel
-          rewardWeight={{
-            value: `×${booster.toFixed(2)}`,
-            subValue: 'Hub boost multiplier',
-            onClick: () => setTab('boosters'),
-          }}
-          resources={[
-            {
-              id: 'tier',
-              label: 'KREX Tier',
-              value: tier,
-              description: 'Tier perks',
-              tooltip: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
-              accent: 'krex',
-              onClick: () => setTab('boosters'),
-            },
-            {
-              id: 'mult',
-              label: 'Hub boost',
-              value: `×${booster.toFixed(2)}`,
-              description: 'Tier + deck + booster',
-              tooltip: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
-              accent: 'games',
-              onClick: () => setTab('boosters'),
-            },
-          ]}
-          featured={{
-            image: props.featuredImage || undefined,
-            onOpenOverview: openOverview,
-            tooltip: 'Click to open game overview',
-          }}
-        />
 
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>
@@ -370,7 +367,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         </div>
 
         <GamesPlayAdRail />
-        </>
+        </div>
       }
     />
     </TooltipProvider>

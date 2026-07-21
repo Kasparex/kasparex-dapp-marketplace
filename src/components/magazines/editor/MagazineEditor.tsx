@@ -46,6 +46,13 @@ import {
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
 } from '@/lib/hub/shellTokens';
+import {
+  estimateHubListingQuote,
+  type HubListingModuleLine,
+} from '@/lib/hub/listingPricing';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
+import { htmlToPlainText } from '@/lib/richText/html';
 
 interface EditorBlock {
   id: string;
@@ -59,7 +66,7 @@ const MAGAZINE_PREMIUM_MODULE_FEE_KAS = 12;
 
 export function MagazineEditor() {
   const { state: kaspa } = useKaspaWallet();
-  const { balance: krexBalance } = useKREXBalance();
+  const { tier: krexTier, balance: krexBalance } = useKREXBalance();
   const { uploadJSON, isUploading } = useIPFSUpload();
 
   const [title, setTitle] = useState('New Magazine Issue');
@@ -144,10 +151,60 @@ export function MagazineEditor() {
 
   const totalContributorShare = contributors.reduce((sum, c) => sum + (Number(c.sharePercentage) || 0), 0);
   const totalShare = totalContributorShare + treasurySplit;
-  const modulesFeeKas =
-    (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
-    (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
-  const totalPublishKas = MAGAZINE_LISTING_FEE_KAS + modulesFeeKas;
+  const moduleLines = useMemo((): HubListingModuleLine[] => {
+    const lines: HubListingModuleLine[] = [];
+    if (spotlightEnabled) {
+      lines.push({ id: 'spotlight', title: 'Issue spotlight placement', kas: MAGAZINE_PREMIUM_MODULE_FEE_KAS });
+    }
+    if (collectibleCoverEnabled) {
+      lines.push({
+        id: 'collectible-cover',
+        title: 'Collectible cover metadata',
+        kas: MAGAZINE_PREMIUM_MODULE_FEE_KAS,
+      });
+    }
+    return lines;
+  }, [spotlightEnabled, collectibleCoverEnabled]);
+
+  const formQuote = useMemo(
+    () =>
+      estimateHubListingQuote({
+        action: 'create',
+        baseFeeKas: MAGAZINE_LISTING_FEE_KAS,
+        discountPercent: krexTierDiscountPercent(krexTier),
+        moduleLines,
+        fields: {
+          kind: 'magazine-issue',
+          title: title.trim(),
+          blocks: blocks.map((b) => ({
+            type: b.type,
+            content: b.type === 'text' ? htmlToPlainText(b.content).trim() : b.content.trim(),
+          })),
+          contributors: contributors.map((c) => ({
+            address: c.address.trim(),
+            role: c.role,
+            sharePercentage: c.sharePercentage,
+          })),
+          includedVblogSlugs,
+          spotlightEnabled,
+          collectibleCoverEnabled,
+          priceKAS: price,
+          treasurySplitPct: treasurySplit,
+        },
+      }),
+    [
+      krexTier,
+      moduleLines,
+      title,
+      blocks,
+      contributors,
+      includedVblogSlugs,
+      spotlightEnabled,
+      collectibleCoverEnabled,
+      price,
+      treasurySplit,
+    ],
+  );
 
   const resolveMagazineHeading = useCallback((): Magazine | null => {
     if (!kaspa.address) return null;
@@ -241,7 +298,7 @@ export function MagazineEditor() {
 
       const txRes = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
         to: MAGAZINE_TREASURY,
-        amount: String(kasToSompis(totalPublishKas)),
+        amount: String(kasToSompis(formQuote.totalKas)),
         note: plainNote,
         payload: payloadHex,
       });
@@ -306,7 +363,8 @@ export function MagazineEditor() {
             </h3>
             <p className="kx-body">
               Compose issue content, attach vBlog submissions, and publish with an on-chain binding payment. Estimated
-              cost: {totalPublishKas} KAS.
+              cost: {formQuote.totalKas} KAS ({formQuote.chunkCount} chunks, {formQuote.payloadBytes} bytes)
+              {formQuote.discountKas > 0 ? ' (KREX holder discount)' : ''}.
             </p>
           </div>
 
@@ -548,42 +606,12 @@ export function MagazineEditor() {
       <div className={KX_FORM_STICKY_RAIL}>
         <HubBenefitsPanel variant="panel" />
         <aside className={KX_CALCULATION_ASIDE}>
-          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
-          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <div className="flex justify-between">
-              <span>Base fee</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{MAGAZINE_LISTING_FEE_KAS} KAS</span>
-            </div>
-            {spotlightEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Issue spotlight</span>
-                <span className="shrink-0 font-semibold">+{MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {collectibleCoverEnabled ? (
-              <div className="flex justify-between gap-2">
-                <span className="truncate">Collectible cover</span>
-                <span className="shrink-0 font-semibold">+{MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS</span>
-              </div>
-            ) : null}
-            {modulesFeeKas > 0 ? (
-              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
-                <span>Modules subtotal</span>
-                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
-              </div>
-            ) : null}
-          </div>
-          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{totalPublishKas} KAS</p>
-          </div>
-          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-            One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain.
-          </div>
-          <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-            <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
-            <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_EARN_POINTS.magazineIssuePublish} pts</p>
-          </div>
+          <HubListingCalculationBreakdown
+            quote={formQuote}
+            hubPoints={HUB_EARN_POINTS.magazineIssuePublish}
+            footerNote="One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain."
+            className="contents"
+          />
           {publishNote ? (
             <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">
               {publishNote}
@@ -594,7 +622,7 @@ export function MagazineEditor() {
             disabled={busyPublish || totalShare !== 100}
             className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busyPublish ? 'Publishing...' : `Publish Issue (${totalPublishKas} KAS)`}
+            {busyPublish ? 'Publishing...' : `Publish Issue (${formQuote.totalKas} KAS)`}
           </button>
           <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
         </aside>

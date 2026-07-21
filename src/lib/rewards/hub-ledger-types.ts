@@ -24,6 +24,7 @@ export type EarnSource =
   | 'krex_node_operator'
   | 'chronicles_article_create'
   | 'chronicles_quiz_complete'
+  | 'games_promo_list'
   | 'token_listing_create'
   | 'token_listing_update'
   | 'token_listing_verify'

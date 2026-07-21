@@ -42,7 +42,7 @@ export function useDAppListingPayment() {
   const [error, setError] = useState<string | null>(null);
 
   const payFee = useCallback(
-    async (currency: StorePaymentCurrency, feeKas: number): Promise<string> => {
+    async (currency: StorePaymentCurrency, feeKas: number, note?: string): Promise<string> => {
       if (!state.isConnected || !state.address || !state.provider) {
         throw new Error('Connect your Kaspa wallet to pay the listing fee');
       }
@@ -65,6 +65,7 @@ export function useDAppListingPayment() {
         const result = await sendKaspaTransaction(state.provider, {
           to: TREASURY,
           amount: kasToSompis(feeKas).toString(),
+          note,
         });
         if (result.status === 'failed') {
           throw new Error(result.error || 'Listing fee payment failed');
@@ -87,7 +88,7 @@ export function useDAppListingPayment() {
   );
 
   const payActionFee = useCallback(
-    (currency: StorePaymentCurrency, feeKas: number) => payFee(currency, feeKas),
+    (currency: StorePaymentCurrency, feeKas: number, note?: string) => payFee(currency, feeKas, note),
     [payFee],
   );
 

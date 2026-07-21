@@ -22,6 +22,7 @@ export const HUB_EARN_POINTS = {
   krexNodeEnrollmentOnce: 1000,
   chroniclesArticleCreate: 50,
   chroniclesQuizComplete: 25,
+  gamesPromoList: 50,
   tokenListingCreate: 100,
   tokenListingUpdate: 15,
   tokenListingVerify: 1000,

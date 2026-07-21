@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import type { Game } from '@/lib/games/games';
-import { GameDeckPanel } from '../panels/GameDeckPanel';
+import type { GameDeckResource } from '../panels/GameDeckPanel';
 import { GameInteractionsPanel } from '../panels/GameInteractionsPanel';
 import { GameMetadataPanel } from '../panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '../GamesPlayAdRail';
@@ -22,7 +22,7 @@ interface UnifiedGameLayoutProps {
   tabs: any[];
   currentTab: string;
   onTabChange: (id: any) => void;
-  resources: any[];
+  resources: GameDeckResource[];
   game: UnifiedGameLayoutGame;
   children: ReactNode;
   onOpenOverview?: () => void;
@@ -40,12 +40,9 @@ export function UnifiedGameLayout({
   resources,
   game,
   children,
-  onOpenOverview,
-  deckFooter,
-  deckFeaturedTooltip,
-  showDeckInfoButton,
   belowDeck,
   tabAlerts,
+  deckFooter,
 }: UnifiedGameLayoutProps) {
   const haloGame = {
     name: game.name,
@@ -61,23 +58,13 @@ export function UnifiedGameLayout({
   };
 
   const sidebar = (
-    <>
+    <div className="flex flex-col gap-4">
       <HubBenefitsPanel variant="panel" className="w-full" />
-      <GameDeckPanel
-        resources={resources}
-        footer={deckFooter}
-        featured={{
-          image: game.featuredImage || game.image || '',
-          onOpenOverview: onOpenOverview || (() => onTabChange('overview')),
-          tooltip: deckFeaturedTooltip ?? 'Game details',
-        }}
-        showDeckHelpButton={showDeckInfoButton !== false}
-      />
       {belowDeck}
       <GameInteractionsPanel interactions={game.connections || []} />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesPlayAdRail />
-    </>
+    </div>
   );
 
   return (
@@ -86,7 +73,7 @@ export function UnifiedGameLayout({
       currentTab={currentTab}
       onTabChange={onTabChange}
       tabAlerts={tabAlerts}
-      haloHeader={<GamesHaloHeader game={haloGame} />}
+      haloHeader={<GamesHaloHeader game={haloGame} resources={resources} deckFooter={deckFooter} />}
       main={children}
       sidebar={sidebar}
     />
