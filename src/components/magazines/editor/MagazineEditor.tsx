@@ -34,6 +34,18 @@ import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
 import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
+import {
+  KX_FORM_GRID,
+  KX_FORM_PANEL,
+  KX_FORM_STICKY_RAIL,
+  KX_CALCULATION_ASIDE,
+  KX_PREMIUM_MODULE_CARD,
+} from '@/lib/hub/shellTokens';
 
 interface EditorBlock {
   id: string;
@@ -58,7 +70,7 @@ export function MagazineEditor() {
   const [existingMagazineId, setExistingMagazineId] = useState<string | ''>('');
   const [blocks, setBlocks] = useState<EditorBlock[]>([
     { id: '1', type: 'header', content: 'Genesis Section' },
-    { id: '2', type: 'text', content: 'Start writing your collaborative masterpiece here.' },
+    { id: '2', type: 'text', content: '<p>Start writing your collaborative masterpiece here.</p>' },
   ]);
   const [contributors, setContributors] = useState<ContributorShare[]>([
     { address: '', role: 'Author', sharePercentage: 95 },
@@ -99,7 +111,7 @@ export function MagazineEditor() {
     const newBlock: EditorBlock = {
       id: Date.now().toString(),
       type,
-      content: type === 'header' ? 'New Section' : '',
+      content: type === 'header' ? 'New Section' : '<p></p>',
     };
     setBlocks((blocks) => [...blocks, newBlock]);
   };
@@ -116,12 +128,10 @@ export function MagazineEditor() {
   };
 
   const addContributor = () => {
-    const newContributor: ContributorShare = {
-      address: '',
-      role: 'Writer',
-      sharePercentage: 0,
-    };
-    setContributors((contributors) => [...contributors, newContributor]);
+    setContributors((contributors) => [
+      ...contributors,
+      { address: '', role: 'Writer', sharePercentage: 0 },
+    ]);
   };
 
   const updateContributor = (index: number, updates: Partial<ContributorShare>) => {
@@ -134,6 +144,10 @@ export function MagazineEditor() {
 
   const totalContributorShare = contributors.reduce((sum, c) => sum + (Number(c.sharePercentage) || 0), 0);
   const totalShare = totalContributorShare + treasurySplit;
+  const modulesFeeKas =
+    (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
+    (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
+  const totalPublishKas = MAGAZINE_LISTING_FEE_KAS + modulesFeeKas;
 
   const resolveMagazineHeading = useCallback((): Magazine | null => {
     if (!kaspa.address) return null;
@@ -199,7 +213,7 @@ export function MagazineEditor() {
     const snippet =
       blocks
         .filter((b) => b.type === 'text')
-        .map((b) => b.content)
+        .map((b) => b.content.replace(/<[^>]+>/g, ' '))
         .join(' ')
         .slice(0, 280) || title;
 
@@ -211,16 +225,9 @@ export function MagazineEditor() {
       priceKAS: price,
       treasurySplitPct: treasurySplit,
       contributors,
-      sections: [
-        ...vblogSectionsFromSlugs(includedVblogSlugs),
-        ...blocksToSections(blocks),
-      ],
+      sections: [...vblogSectionsFromSlugs(includedVblogSlugs), ...blocksToSections(blocks)],
       authoredBy: payer,
     });
-    const totalFeeKas =
-      MAGAZINE_LISTING_FEE_KAS +
-      (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
-      (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
 
     try {
       const cid = await uploadJSON(payloadJson as unknown as Record<string, unknown>);
@@ -234,7 +241,7 @@ export function MagazineEditor() {
 
       const txRes = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
         to: MAGAZINE_TREASURY,
-        amount: String(kasToSompis(totalFeeKas)),
+        amount: String(kasToSompis(totalPublishKas)),
         note: plainNote,
         payload: payloadHex,
       });
@@ -281,65 +288,55 @@ export function MagazineEditor() {
   };
 
   const busyPublish = isUploading;
-  const totalPublishKas =
-    MAGAZINE_LISTING_FEE_KAS +
-    (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
-    (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
 
   return (
-    <div className="flex flex-col gap-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 lg:flex-row">
-      <div className="flex-1 space-y-6">
-        <div className="flex flex-col gap-4 mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="text-2xl font-black bg-transparent border-none focus:ring-0 text-zinc-900 dark:text-zinc-100 p-0"
-            placeholder="Issue title"
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => addBlock('text')}
-              className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all"
-            >
-              + Text
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        void handlePublish();
+      }}
+      className={`${KX_FORM_GRID} items-start`}
+    >
+      <div className="flex min-w-0 flex-col gap-6">
+        <div className={`${KX_FORM_PANEL} space-y-6`}>
+          <div>
+            <DAppSectionHeader title="Main content" className="mb-3" />
+            <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              Create New Issue
+            </h3>
+            <p className="kx-body">
+              Compose issue content, attach vBlog submissions, and publish with an on-chain binding payment. Estimated
+              cost: {totalPublishKas} KAS.
+            </p>
+          </div>
+
+          <div>
+            <KxFormFieldLabel required>Issue title</KxFormFieldLabel>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="k-input text-base"
+              placeholder="Issue title"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => addBlock('text')} className="k-control-btn text-xs">
+              + Text block
             </button>
-            <button
-              type="button"
-              onClick={() => addBlock('header')}
-              className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg text-xs font-bold hover:bg-cyan-500 hover:text-white transition-all"
-            >
+            <button type="button" onClick={() => addBlock('header')} className="k-control-btn text-xs">
               + Section
             </button>
-            <button
-              type="button"
-              onClick={() => void handlePublish()}
-              disabled={busyPublish || totalShare !== 100}
-              className={`ml-auto px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg ${
-                busyPublish || totalShare !== 100
-                  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-                  : 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-cyan-500/20'
-              }`}
-            >
-              {busyPublish ? 'Publishing…' : `Publish (${totalPublishKas} KAS + IPFS)`}
-            </button>
           </div>
-          {publishNote ? (
-            <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">
-              {publishNote}
-            </p>
-          ) : null}
-        </div>
 
-        <div className="space-y-4">
           {includedVblogSlugs.length > 0 ? (
-            <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
-              <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">vBlog articles in issue</div>
+            <div className="space-y-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">vBlog articles in issue</div>
               {includedVblogSlugs.map((slug) => (
                 <div key={slug} className="flex items-center justify-between gap-2 text-xs font-bold text-zinc-700 dark:text-zinc-300">
                   <span className="truncate">{slug}</span>
-                  <button type="button" onClick={() => removeVblogSlug(slug)} className="text-red-500 text-[10px] hover:underline shrink-0">
+                  <button type="button" onClick={() => removeVblogSlug(slug)} className="shrink-0 text-[10px] text-red-500 hover:underline">
                     Remove
                   </button>
                 </div>
@@ -347,53 +344,51 @@ export function MagazineEditor() {
             </div>
           ) : null}
 
-          {blocks.map((block) => (
-            <div
-              key={block.id}
-              className="group relative flex gap-4 p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-cyan-500/50 transition-colors"
-            >
-              <div className="flex-1">
-                {block.type === 'header' ? (
-                  <input
-                    type="text"
-                    value={block.content}
-                    onChange={(e) => updateBlock(block.id, e.target.value)}
-                    className="w-full text-xl font-black bg-transparent border-none focus:ring-0 text-zinc-900 dark:text-zinc-100"
-                    placeholder="Section title"
-                  />
-                ) : (
-                  <KxRichTextEditor
-                    value={block.content}
-                    onChange={(next) => updateBlock(block.id, next)}
-                    minRows={6}
-                    placeholder="Type your content..."
-                  />
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => removeBlock(block.id)}
-                className="opacity-0 group-hover:opacity-100 px-2 text-zinc-400 hover:text-red-500 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="w-full lg:w-80 space-y-8 border-l border-zinc-100 dark:border-zinc-800 lg:pl-8">
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Publication</h3>
           <div className="space-y-4">
+            {blocks.map((block) => (
+              <div
+                key={block.id}
+                className="group relative flex gap-4 rounded-xl border border-dashed border-zinc-200 p-4 transition-colors hover:border-[#02abb8]/50 dark:border-zinc-800"
+              >
+                <div className="min-w-0 flex-1">
+                  {block.type === 'header' ? (
+                    <input
+                      type="text"
+                      value={block.content}
+                      onChange={(e) => updateBlock(block.id, e.target.value)}
+                      className="k-input text-xl font-black"
+                      placeholder="Section title"
+                    />
+                  ) : (
+                    <KxRichTextEditor
+                      value={block.content}
+                      onChange={(next) => updateBlock(block.id, next)}
+                      minRows={8}
+                      placeholder="Type your content..."
+                    />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeBlock(block.id)}
+                  className="shrink-0 self-start p-2 text-zinc-400 opacity-0 transition-all hover:text-red-500 group-hover:opacity-100"
+                  aria-label="Remove block"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Existing magazine</label>
+              <KxFormFieldLabel>Existing magazine</KxFormFieldLabel>
               <select
                 value={existingMagazineId}
                 onChange={(e) => setExistingMagazineId(e.target.value)}
-                className="w-full text-xs font-bold bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-2"
+                className="k-select"
               >
                 <option value="">New magazine (use slug below)</option>
                 {myMagazines.map((m) => (
@@ -403,60 +398,118 @@ export function MagazineEditor() {
                 ))}
               </select>
             </div>
-            {!existingMagazineId ? (
-              <>
-                <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Magazine slug (URL key)</label>
-                  <input
-                    type="text"
-                    value={magazineSlug}
-                    onChange={(e) => setMagazineSlug(e.target.value)}
-                    className="w-full text-xs font-mono bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-2"
-                    placeholder="e.g. my-hub-zine"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Display name</label>
-                  <input
-                    type="text"
-                    value={magazineDisplayName}
-                    onChange={(e) => setMagazineDisplayName(e.target.value)}
-                    className="w-full text-xs font-bold bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-2"
-                    placeholder="Title shown on the hub"
-                  />
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-
-        <VBlogSubmissionsPanel
-          magazineId={targetMagazine?.id ?? null}
-          issueNumber={targetIssueNumber}
-          includedSlugs={includedVblogSlugs}
-          onAddArticle={addVblogArticle}
-          onRemoveSlug={removeVblogSlug}
-        />
-
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Pricing & Access</h3>
-          <div className="space-y-4">
             <div>
-              <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Issue price (KAS)</label>
+              <KxFormFieldLabel>Issue price (KAS)</KxFormFieldLabel>
               <input
                 type="number"
                 min={1}
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm font-bold"
+                className="k-input"
               />
             </div>
           </div>
+
+          {!existingMagazineId ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <KxFormFieldLabel>Magazine slug</KxFormFieldLabel>
+                <input
+                  type="text"
+                  value={magazineSlug}
+                  onChange={(e) => setMagazineSlug(e.target.value)}
+                  className="k-input font-mono text-sm"
+                  placeholder="e.g. my-hub-zine"
+                />
+              </div>
+              <div>
+                <KxFormFieldLabel>Display name</KxFormFieldLabel>
+                <input
+                  type="text"
+                  value={magazineDisplayName}
+                  onChange={(e) => setMagazineDisplayName(e.target.value)}
+                  className="k-input"
+                  placeholder="Title shown on the hub"
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <VBlogSubmissionsPanel
+            magazineId={targetMagazine?.id ?? null}
+            issueNumber={targetIssueNumber}
+            includedSlugs={includedVblogSlugs}
+            onAddArticle={addVblogArticle}
+            onRemoveSlug={removeVblogSlug}
+          />
         </div>
 
-        <div className="rounded-2xl border-2 border-dashed border-amber-400/60 bg-gradient-to-b from-amber-50/70 to-white p-5 dark:border-amber-300/40 dark:from-amber-500/[0.08] dark:to-zinc-900">
-          <h3 className="mb-4 text-xs font-black uppercase tracking-widest text-zinc-500">Premium modules</h3>
-          <div className="space-y-3">
+        <div className={`${KX_FORM_PANEL} space-y-4`}>
+          <DAppSectionHeader title="Revenue split" className="mb-0" />
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+            <div className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Kasparex treasury (%)</div>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={treasurySplit}
+              onChange={(e) => setTreasurySplit(Number(e.target.value))}
+              className="k-input w-20 text-right"
+            />
+          </div>
+          {contributors.map((c, i) => (
+            <div key={i} className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <input
+                type="text"
+                placeholder="kaspa:… wallet"
+                value={c.address}
+                onChange={(e) => updateContributor(i, { address: e.target.value })}
+                className="k-input font-mono text-xs"
+              />
+              <div className="flex items-center gap-2">
+                <select
+                  value={c.role}
+                  onChange={(e) => updateContributor(i, { role: e.target.value as ContributorRole })}
+                  className="k-select flex-1"
+                >
+                  <option>Author</option>
+                  <option>Writer</option>
+                  <option>Designer</option>
+                  <option>Editor</option>
+                </select>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={c.sharePercentage}
+                  onChange={(e) => updateContributor(i, { sharePercentage: Number(e.target.value) })}
+                  className="k-input w-20 text-right"
+                />
+                <span className="text-xs">%</span>
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={addContributor} className="w-full k-control-btn border-dashed">
+            + Add contributor
+          </button>
+          <div className="flex items-center justify-between text-xs font-black">
+            <span className="text-zinc-500">Total split</span>
+            <span className={totalShare === 100 ? 'text-green-500' : 'text-red-500'}>{totalShare}%</span>
+          </div>
+        </div>
+
+        <div id="magazines-dashboard-modules" className={`${KX_FORM_PANEL} my-2 scroll-mt-24 space-y-6 py-10 sm:py-12`}>
+          <div className="space-y-2">
+            <DAppSectionHeader title="Premium modules" className="mb-0" />
+            <h4 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              Optional premium features
+            </h4>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Toggle modules on to add them to your total. They activate when you pay and publish.
+            </p>
+          </div>
+
+          <div className={KX_PREMIUM_MODULE_CARD}>
             <KxInFormPremiumRow
               flat
               accent="hub"
@@ -466,6 +519,14 @@ export function MagazineEditor() {
               checked={spotlightEnabled}
               onToggle={() => setSpotlightEnabled((v) => !v)}
             />
+            {spotlightEnabled ? (
+              <div className="mt-5 border-t border-zinc-200 pt-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                Spotlight settings expand inside this module container and feed the calculation breakdown.
+              </div>
+            ) : null}
+          </div>
+
+          <div className={KX_PREMIUM_MODULE_CARD}>
             <KxInFormPremiumRow
               flat
               accent="hub"
@@ -475,107 +536,69 @@ export function MagazineEditor() {
               checked={collectibleCoverEnabled}
               onToggle={() => setCollectibleCoverEnabled((v) => !v)}
             />
-          </div>
-          {spotlightEnabled || collectibleCoverEnabled ? (
-            <div className="mt-4 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-              Premium module details expand inside this container to keep the editor layout stable and consistent.
-            </div>
-          ) : null}
-        </div>
-
-        <div>
-          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Revenue split</h3>
-          <div className="space-y-3">
-            <div className="p-3 bg-cyan-500/5 rounded-xl border border-cyan-500/20 flex items-center justify-between gap-2">
-              <div className="text-[10px] font-bold text-cyan-600">Kasparex treasury (%)</div>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={treasurySplit}
-                onChange={(e) => setTreasurySplit(Number(e.target.value))}
-                className="w-14 text-[10px] font-black border border-cyan-500/40 rounded px-1 py-1 text-right bg-white dark:bg-zinc-950"
-              />
-            </div>
-
-            {contributors.map((c, i) => (
-              <div key={i} className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
-                <input
-                  type="text"
-                  placeholder="kaspa:… wallet"
-                  value={c.address}
-                  onChange={(e) => updateContributor(i, { address: e.target.value })}
-                  className="w-full text-[10px] font-mono bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1"
-                />
-                <div className="flex items-center gap-2">
-                  <select
-                    value={c.role}
-                    onChange={(e) => updateContributor(i, { role: e.target.value as ContributorRole })}
-                    className="flex-1 text-[10px] font-bold bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1"
-                  >
-                    <option>Author</option>
-                    <option>Writer</option>
-                    <option>Designer</option>
-                    <option>Editor</option>
-                  </select>
-                  <div className="flex items-center gap-1 w-16">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={c.sharePercentage}
-                      onChange={(e) => updateContributor(i, { sharePercentage: Number(e.target.value) })}
-                      className="w-full text-[10px] font-bold bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 text-right"
-                    />
-                    <span className="text-[10px]">%</span>
-                  </div>
-                </div>
+            {collectibleCoverEnabled ? (
+              <div className="mt-5 border-t border-zinc-200 pt-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                Collectible metadata is configured inside this module and included in the publish total.
               </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={addContributor}
-            className="w-full mt-4 py-2 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-xs font-bold text-zinc-500 hover:border-cyan-500 hover:text-cyan-500 transition-all"
-          >
-            + Add contributor
-          </button>
-
-          <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between text-xs font-black">
-              <span className="text-zinc-500">Total split</span>
-              <span className={totalShare === 100 ? 'text-green-500' : 'text-red-500'}>{totalShare}%</span>
-            </div>
-            {totalShare !== 100 ? (
-              <p className="text-[9px] text-red-400 mt-1">Total split must equal 100%.</p>
             ) : null}
           </div>
         </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-4 dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80">
-          <h4 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-500">Calculation breakdown</h4>
-          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{MAGAZINE_LISTING_FEE_KAS} KAS</span></div>
-            <div className="flex justify-between"><span>Premium modules</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{(spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) + (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0)} KAS</span></div>
-          </div>
-          <div className="mt-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
-              {MAGAZINE_LISTING_FEE_KAS +
-                (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
-                (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0)} KAS
-            </p>
-          </div>
-        </div>
-
-        <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-          <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Pin + bind</h4>
-          <p className="text-[10px] text-zinc-500 leading-normal">
-            Issue metadata is pinned to IPFS, then anchored with a Kaspa L1 treasury payment carrying a compact binding note.
-            Matches the Kasparex store listing fee treasury by default so operators only configure one payouts address.
-          </p>
-        </div>
       </div>
-    </div>
+
+      <div className={KX_FORM_STICKY_RAIL}>
+        <HubBenefitsPanel variant="panel" />
+        <aside className={KX_CALCULATION_ASIDE}>
+          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between">
+              <span>Base fee</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{MAGAZINE_LISTING_FEE_KAS} KAS</span>
+            </div>
+            {spotlightEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Issue spotlight</span>
+                <span className="shrink-0 font-semibold">+{MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {collectibleCoverEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Collectible cover</span>
+                <span className="shrink-0 font-semibold">+{MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {modulesFeeKas > 0 ? (
+              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+                <span>Modules subtotal</span>
+                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
+              </div>
+            ) : null}
+          </div>
+          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{totalPublishKas} KAS</p>
+          </div>
+          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+            One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain.
+          </div>
+          <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
+            <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
+            <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_EARN_POINTS.magazineIssuePublish} pts</p>
+          </div>
+          {publishNote ? (
+            <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">
+              {publishNote}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={busyPublish || totalShare !== 100}
+            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busyPublish ? 'Publishing...' : `Publish Issue (${totalPublishKas} KAS)`}
+          </button>
+          <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={busyPublish} />
+        </aside>
+      </div>
+    </form>
   );
 }

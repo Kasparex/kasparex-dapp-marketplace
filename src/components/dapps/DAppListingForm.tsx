@@ -30,10 +30,26 @@ import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { getBestGatewayUrl, normalizeIpfsUrlForForm } from '@/lib/ipfs/gateway';
-import { getCategoryById } from '@/lib/categories';
-import { DAppIcon } from '@/components/dapps/DAppIcon';
 import { KxMultiSelectDropdown } from '@/components/ui/KxMultiSelectDropdown';
 import { DIRECTORY_LISTING_CHAINS } from '@/lib/dapps/listingChains';
+import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { DAppListingPreview } from '@/components/dapps/DAppListingPreview';
+import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
+import {
+  KX_FORM_GRID,
+  KX_FORM_PANEL,
+  KX_FORM_STICKY_RAIL,
+  KX_CALCULATION_ASIDE,
+  KX_PREMIUM_MODULE_CARD,
+} from '@/lib/hub/shellTokens';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { htmlToPlainText } from '@/lib/richText/html';
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
 const IMAGE_MAX_SIZE_MB = 0.5;
@@ -43,13 +59,8 @@ const CHAIN_OPTIONS = DIRECTORY_LISTING_CHAINS.map((chain) => ({
   label: chain,
 }));
 
-import { KxLinkRowsEditor, type KxLinkRow } from '@/components/ui/KxLinkRowsEditor';
-import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
-import { DAppsBenefitsPanel } from '@/components/dapps/DAppsBenefitsPanel';
-import { DAppListingPreview } from '@/components/dapps/DAppListingPreview';
-import { getFieldDef } from '@/lib/dapps/pageLayoutMap';
-import { KX_FORM_GRID, KX_STICKY_RAIL } from '@/lib/hub/shellTokens';
-
+const PREMIUM_FEATURED_FEE_KAS = 15;
+const PREMIUM_HIGHLIGHT_FEE_KAS = 10;
 function parseTags(raw: string): string[] {
   return raw
     .split(/[,#]/)
@@ -152,7 +163,8 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     listing?.paymentCurrency ?? 'KAS',
   );
   const [step, setStep] = useState<'form' | 'payment' | 'complete'>('form');
-
+  const [featuredPlacementEnabled, setFeaturedPlacementEnabled] = useState(false);
+  const [highlightBadgeEnabled, setHighlightBadgeEnabled] = useState(false);
   useEffect(() => {
     if (!listing) return;
     setName(listing.name);
@@ -197,9 +209,12 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   }, [listing]);
 
   const baseFeeKas = isEdit ? DAPP_LISTING_ACTION_FEE_KAS : DAPP_LISTING_FEE_KAS;
+  const modulesFeeKas =
+    (featuredPlacementEnabled ? PREMIUM_FEATURED_FEE_KAS : 0) +
+    (highlightBadgeEnabled ? PREMIUM_HIGHLIGHT_FEE_KAS : 0);
   const listingFee = useMemo(
-    () => calculateDirectoryListingFeeKas(baseFeeKas, krexTier, nftStatus),
-    [baseFeeKas, krexTier, nftStatus],
+    () => calculateDirectoryListingFeeKas(baseFeeKas + modulesFeeKas, krexTier, nftStatus),
+    [baseFeeKas, modulesFeeKas, krexTier, nftStatus],
   );
   const feeLabel = useMemo(
     () => listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas),
@@ -211,7 +226,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       : logoCid
         ? getBestGatewayUrl(logoCid)
         : null;
-  const listingCategory = getCategoryById(category);
 
   const hasFeatureImage =
     featureImageSource === 'url' ? Boolean(featureImageUrl.trim()) : Boolean(featureImageCid);
@@ -220,7 +234,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
     state.isConnected &&
       name.trim() &&
       shortDescription.trim() &&
-      fullDescription.trim() &&
+      htmlToPlainText(fullDescription).trim() &&
       hasFeatureImage &&
       !isProcessing &&
       !isUploading,
@@ -444,8 +458,21 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className={KX_FORM_GRID}>
-      <div className="space-y-6">
+    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID} items-start`}>
+      <div className="flex min-w-0 flex-col gap-6">
+        <div className={`${KX_FORM_PANEL} space-y-6`}>
+          <div>
+            <DAppSectionHeader title="Main content" className="mb-3" />
+            <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              {isEdit ? 'Edit Directory Listing' : 'List a DApp'}
+            </h3>
+            <p className="kx-body">
+              {isEdit
+                ? `Updates require a ${feeLabel} fee. Estimated total: ${listingFee.effectiveKas} KAS.`
+                : `Fill in your project profile for the public directory. Estimated cost: ${listingFee.effectiveKas} KAS${listingFee.discountPercent > 0 ? ' (KREX holder discount)' : ''}.`}
+            </p>
+          </div>
+
           <div className="k-form-group">
             {fieldLabel('name')}
             <input
@@ -470,17 +497,16 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Full description / overview *</label>
-            <textarea
-              className="k-textarea min-h-[160px]"
+            <KxFormFieldLabel required>Full description / overview</KxFormFieldLabel>
+            <KxRichTextEditor
               value={fullDescription}
-              onChange={(e) => setFullDescription(e.target.value)}
+              onChange={setFullDescription}
               placeholder="Detailed overview of your project"
-              required
+              minRows={12}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="k-form-group">
               <label className="k-label">Category *</label>
               <KxFilterDropdown
@@ -551,7 +577,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             />
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-4">
+          <div className="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Fees &amp; costs (public page)</h3>
             <div className="k-form-group">
               <label className="k-label">Fees overview</label>
@@ -592,9 +618,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               placeholder="Select chains"
               triggerClassName="k-control-btn w-full min-w-0 h-10"
             />
-            <p className="text-xs text-zinc-500 mt-1.5">
-              Choose every network your dApp supports ({DIRECTORY_LISTING_CHAINS.join(', ')}).
-            </p>
           </div>
 
           <div className="k-form-group">
@@ -608,12 +631,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             />
           </div>
 
-          <KxLinkRowsEditor
-            label="Social links"
-            rows={socialLinks}
-            onChange={setSocialLinks}
-            addLabel="Add social link"
-          />
+          <KxLinkRowsEditor label="Social links" rows={socialLinks} onChange={setSocialLinks} addLabel="Add social link" />
           <KxLinkRowsEditor
             label="Documentation links"
             rows={documentationLinks}
@@ -632,22 +650,17 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             <div className="space-y-3">
               <ImageSourceToggle value={logoSource} onChange={setLogoSource} />
               {logoSource === 'url' ? (
-                <div>
-                  <input
-                    type="url"
-                    className="k-input"
-                    value={logoUrl}
-                    onChange={(e) => {
-                      setLogoUrl(normalizeIpfsUrlForForm(e.target.value));
-                      setLogoCid(null);
-                      setLogoName(null);
-                    }}
-                    placeholder="https://..."
-                  />
-                  <p className="text-xs text-zinc-500 mt-1.5">
-                    Direct HTTPS image URL. Recommended square ratio, max 500 KB file size when hosted.
-                  </p>
-                </div>
+                <input
+                  type="url"
+                  className="k-input"
+                  value={logoUrl}
+                  onChange={(e) => {
+                    setLogoUrl(normalizeIpfsUrlForForm(e.target.value));
+                    setLogoCid(null);
+                    setLogoName(null);
+                  }}
+                  placeholder="https://..."
+                />
               ) : (
                 <StoreFileUpload
                   label=""
@@ -670,23 +683,18 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             <div className="space-y-3">
               <ImageSourceToggle value={featureImageSource} onChange={setFeatureImageSource} />
               {featureImageSource === 'url' ? (
-                <div>
-                  <input
-                    type="url"
-                    className="k-input"
-                    value={featureImageUrl}
-                    onChange={(e) => {
-                      setFeatureImageUrl(normalizeIpfsUrlForForm(e.target.value));
-                      setFeatureImageCid(null);
-                      setFeatureImageName(null);
-                    }}
-                    placeholder="https://..."
-                    required={featureImageSource === 'url'}
-                  />
-                  <p className="text-xs text-zinc-500 mt-1.5">
-                    Direct HTTPS image URL. PNG, JPG, or WebP under 500 KB when hosted.
-                  </p>
-                </div>
+                <input
+                  type="url"
+                  className="k-input"
+                  value={featureImageUrl}
+                  onChange={(e) => {
+                    setFeatureImageUrl(normalizeIpfsUrlForForm(e.target.value));
+                    setFeatureImageCid(null);
+                    setFeatureImageName(null);
+                  }}
+                  placeholder="https://..."
+                  required={featureImageSource === 'url'}
+                />
               ) : (
                 <StoreFileUpload
                   label=""
@@ -712,21 +720,16 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             <div className="space-y-3">
               <ImageSourceToggle value={gallerySource} onChange={setGallerySource} />
               {gallerySource === 'url' ? (
-                <div>
-                  <textarea
-                    className="k-textarea min-h-[100px]"
-                    value={galleryUrlsRaw}
-                    onChange={(e) => {
-                      setGalleryUrlsRaw(e.target.value);
-                      setGalleryCids([]);
-                      setGalleryFileNames([]);
-                    }}
-                    placeholder="One image URL per line"
-                  />
-                  <p className="text-xs text-zinc-500 mt-1.5">
-                    Direct HTTPS image URLs. Max 500 KB per file when hosted.
-                  </p>
-                </div>
+                <textarea
+                  className="k-textarea min-h-[100px]"
+                  value={galleryUrlsRaw}
+                  onChange={(e) => {
+                    setGalleryUrlsRaw(e.target.value);
+                    setGalleryCids([]);
+                    setGalleryFileNames([]);
+                  }}
+                  placeholder="One image URL per line"
+                />
               ) : (
                 <StoreFileUpload
                   label=""
@@ -747,44 +750,23 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             onChange={setOptionalFileLinks}
             addLabel="Add file link"
           />
-          <p className="text-xs text-zinc-500 -mt-4">
-            PDFs, docs, or assets linked via HTTPS. Direct uploads are not supported.
-          </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div className="k-form-group">
               <label className="k-label">X handle</label>
-              <input
-                type="text"
-                className="k-input"
-                value={contactX}
-                onChange={(e) => setContactX(e.target.value)}
-                placeholder="@username"
-              />
+              <input type="text" className="k-input" value={contactX} onChange={(e) => setContactX(e.target.value)} placeholder="@username" />
             </div>
             <div className="k-form-group">
               <label className="k-label">Telegram</label>
-              <input
-                type="text"
-                className="k-input"
-                value={contactTelegram}
-                onChange={(e) => setContactTelegram(e.target.value)}
-                placeholder="@handle or t.me/..."
-              />
+              <input type="text" className="k-input" value={contactTelegram} onChange={(e) => setContactTelegram(e.target.value)} placeholder="@handle or t.me/..." />
             </div>
             <div className="k-form-group">
               <label className="k-label">Discord</label>
-              <input
-                type="text"
-                className="k-input"
-                value={contactDiscord}
-                onChange={(e) => setContactDiscord(e.target.value)}
-                placeholder="Server invite or username"
-              />
+              <input type="text" className="k-input" value={contactDiscord} onChange={(e) => setContactDiscord(e.target.value)} placeholder="Server invite or username" />
             </div>
           </div>
 
-          <div className="k-form-group">
+          <div className="k-form-group !mb-0">
             <label className="k-label">Additional notes</label>
             <textarea
               className="k-textarea min-h-[80px]"
@@ -795,78 +777,137 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           </div>
         </div>
 
-        <aside className={KX_STICKY_RAIL}>
-          <DAppsBenefitsPanel variant="panel" />
-          <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
-
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-              {isEdit ? 'Update listing' : 'Listing fee'}
-            </h3>
-            <div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case tracking-normal">
-                Pay with *
-              </span>
-              <HubPaymentCurrencyDropdown
-                value={paymentCurrency}
-                onChange={setPaymentCurrency}
-                options={buildKasKrexMenuOptions()}
-                ariaLabel="Listing fee currency"
-              />
-            </div>
-            <p className="kx-body">
-              {isEdit ? 'Update fee' : 'One-time directory fee'}:{' '}
-              {listingFee.discountPercent > 0 ? (
-                <span className="line-through text-zinc-400 mr-1">
-                  {listingActionFeeLabel(paymentCurrency, listingFee.baseKas)}
-                </span>
-              ) : null}
-              <span className="font-black text-[#02abb8]">{feeLabel}</span>
+        <div id="dapps-dashboard-modules" className={`${KX_FORM_PANEL} my-2 scroll-mt-24 space-y-6 py-10 sm:py-12`}>
+          <div className="space-y-2">
+            <DAppSectionHeader title="Premium modules" className="mb-0" />
+            <h4 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              Optional premium features
+            </h4>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Toggle modules on to add them to your total. They activate when you pay and publish.
             </p>
-            {listingFee.discountPercent > 0 ? (
-              <p className="text-xs text-green-700 dark:text-green-400">
-                KREX tier discount applied ({listingFee.discountPercent}% off)
-              </p>
-            ) : null}
-            <p className="text-xs text-zinc-500">
-              Paid to the Kasparex treasury when you {isEdit ? 'save changes' : 'publish'}.
-            </p>
+          </div>
 
-            {error ? (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
-                {error}
+          <div className={KX_PREMIUM_MODULE_CARD}>
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Featured placement"
+              description="Promote this listing in highlighted discovery placements across the dApps directory."
+              priceLabel={`+${PREMIUM_FEATURED_FEE_KAS} KAS`}
+              checked={featuredPlacementEnabled}
+              onToggle={() => setFeaturedPlacementEnabled((v) => !v)}
+            />
+            {featuredPlacementEnabled ? (
+              <div className="mt-5 space-y-3 border-t border-zinc-200 pt-5 dark:border-zinc-700">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Featured placement is enabled. Spotlights appear in directory discovery rails after payment confirms.
+                </p>
               </div>
             ) : null}
+          </div>
 
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="w-full k-cta-primary !justify-center !tracking-normal disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isUploading
-                ? 'Uploading...'
-                : isProcessing
-                  ? 'Processing...'
-                  : isEdit
-                    ? 'Save changes'
-                    : 'PUBLISH'}
-            </button>
+          <div className={KX_PREMIUM_MODULE_CARD}>
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Highlight badge"
+              description="Add a highlight badge on the public listing card to stand out in search results."
+              priceLabel={`+${PREMIUM_HIGHLIGHT_FEE_KAS} KAS`}
+              checked={highlightBadgeEnabled}
+              onToggle={() => setHighlightBadgeEnabled((v) => !v)}
+            />
+            {highlightBadgeEnabled ? (
+              <div className="mt-5 space-y-3 border-t border-zinc-200 pt-5 dark:border-zinc-700">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Highlight badge content opens inside this module container and is included in the calculation breakdown.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className={KX_FORM_STICKY_RAIL}>
+        <HubBenefitsPanel variant="panel" />
+        <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
+
+        <aside className={KX_CALCULATION_ASIDE}>
+          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between">
+              <span>Base fee</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{baseFeeKas} KAS</span>
+            </div>
+            {featuredPlacementEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Featured placement</span>
+                <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">+{PREMIUM_FEATURED_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {highlightBadgeEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Highlight badge</span>
+                <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">+{PREMIUM_HIGHLIGHT_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {modulesFeeKas > 0 ? (
+              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+                <span>Modules subtotal</span>
+                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
+              </div>
+            ) : null}
+            {listingFee.discountPercent > 0 ? (
+              <div className="flex justify-between">
+                <span>KREX discount</span>
+                <span className="font-semibold text-emerald-600">-{listingFee.discountPercent}%</span>
+              </div>
+            ) : null}
+          </div>
+
+          <div>
+            <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
+            <HubPaymentCurrencyDropdown
+              value={paymentCurrency}
+              onChange={setPaymentCurrency}
+              options={buildKasKrexMenuOptions()}
+              ariaLabel="Listing fee currency"
+            />
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{feeLabel}</p>
+          </div>
+
+          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+            One Kaspa L1 payment covers the listing and any enabled modules. Ensure your wallet has enough balance.
           </div>
 
           {!isEdit ? (
-            <div className="rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-5 space-y-2">
-              <h3 className="text-sm font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">
-                Hub points
-              </h3>
-              <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
-                +{HUB_EARN_POINTS.dappDirectoryList} pts
-              </p>
-              <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 leading-relaxed">
-                Redeemable Hub points awarded once when you publish a new listing.
-              </p>
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
+              <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
+              <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_EARN_POINTS.dappDirectoryList} pts</p>
             </div>
           ) : null}
+
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isUploading ? 'Uploading...' : isProcessing ? 'Processing...' : isEdit ? 'Save changes' : 'Create Listing'}
+          </button>
+
+          <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
+      </div>
     </form>
   );
 }

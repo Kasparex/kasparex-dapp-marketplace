@@ -12,6 +12,8 @@ import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 import dynamic from 'next/dynamic';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
+import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -70,6 +72,18 @@ export function CipherVaultsDashboard({
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
+
+  const haloGame = game ?? {
+    name: gameName || 'Cipher Vaults',
+    description: gameDescription || '',
+    developer: 'Kasparex',
+    status: 'active' as const,
+    difficulty: 'medium' as const,
+    gameType: 'puzzle' as const,
+    featuredImage,
+    image: featuredImage,
+    entryCostKAS: 0,
+  };
 
   useEffect(() => {
     if (!walletState.isConnected) return;
@@ -138,6 +152,7 @@ export function CipherVaultsDashboard({
       tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
+      haloHeader={<GamesHaloHeader game={haloGame} />}
       main={
         <>
         {toast && (
@@ -538,6 +553,7 @@ export function CipherVaultsDashboard({
       }
       sidebar={
         <>
+        <HubBenefitsPanel variant="panel" className="w-full" />
         <GameDeckPanel
           rewardWeight={{
             value: tickets.available.toLocaleString(),

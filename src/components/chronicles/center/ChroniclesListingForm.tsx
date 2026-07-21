@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { KxSegmentToggle } from '@/components/ui/KxSegmentToggle';
 import { HubPaymentCurrencyDropdown } from '@/components/payments/HubPaymentCurrencyDropdown';
 import { buildKasKrexMenuOptions } from '@/lib/payments/hubPaymentTypes';
 import { KxTabStrip } from '@/components/ui/KxTabStrip';
@@ -28,9 +27,26 @@ import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
+import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
+import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
+import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
+import { htmlToPlainText } from '@/lib/richText/html';
+import {
+  KX_FORM_GRID,
+  KX_FORM_PANEL,
+  KX_FORM_STICKY_RAIL,
+  KX_CALCULATION_ASIDE,
+  KX_PREMIUM_MODULE_CARD,
+} from '@/lib/hub/shellTokens';
 
 const CONTENT_KINDS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
 const FEATURED_IMAGE_MAX_SIZE_MB = 5;
+const PREMIUM_ILLUSTRATED_FEE_KAS = 8;
+const PREMIUM_CANON_HINT_FEE_KAS = 6;
 
 function FeaturedImageSourceToggle({
   value,
@@ -75,11 +91,16 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   const [characterKind, setCharacterKind] = useState<CharacterKind>('person');
   const [vehicleKind, setVehicleKind] = useState<VehicleKind>('vehicle');
   const [tags, setTags] = useState('');
+  const [illustratedEnabled, setIllustratedEnabled] = useState(false);
+  const [canonHintEnabled, setCanonHintEnabled] = useState(false);
 
   const baseFeeKas = useMemo(() => submissionFeeKas(kind), [kind]);
+  const modulesFeeKas =
+    (illustratedEnabled ? PREMIUM_ILLUSTRATED_FEE_KAS : 0) +
+    (canonHintEnabled ? PREMIUM_CANON_HINT_FEE_KAS : 0);
   const listingFee = useMemo(
-    () => calculateDirectoryListingFeeKas(baseFeeKas, krexTier, nftStatus),
-    [baseFeeKas, krexTier, nftStatus],
+    () => calculateDirectoryListingFeeKas(baseFeeKas + modulesFeeKas, krexTier, nftStatus),
+    [baseFeeKas, modulesFeeKas, krexTier, nftStatus],
   );
   const feeLabel = listingActionFeeLabel(paymentCurrency, listingFee.effectiveKas);
   const featuredPreviewUrl =
@@ -89,7 +110,12 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
         ? getBestGatewayUrl(featuredImageCid)
         : undefined;
   const canSubmit = Boolean(
-    state.isConnected && title.trim() && summary.trim() && bodyMarkdown.trim() && !isProcessing && !isUploading,
+    state.isConnected &&
+      title.trim() &&
+      summary.trim() &&
+      htmlToPlainText(bodyMarkdown).trim() &&
+      !isProcessing &&
+      !isUploading,
   );
 
   const uploadFeaturedImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,11 +197,22 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-8">
-        <div className="space-y-6">
+    <form onSubmit={handleSubmit} className={`${KX_FORM_GRID} items-start`}>
+      <div className="flex min-w-0 flex-col gap-6">
+        <div className={`${KX_FORM_PANEL} space-y-6`}>
+          <div>
+            <DAppSectionHeader title="Main content" className="mb-3" />
+            <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              Create lore
+            </h3>
+            <p className="kx-body">
+              Submit community lore for Krex&apos;s Chronicles. Estimated cost: {listingFee.effectiveKas} KAS
+              {listingFee.discountPercent > 0 ? ' (KREX holder discount)' : ''}.
+            </p>
+          </div>
+
           <div className="k-form-group">
-            <label className="k-label">Content type *</label>
+            <KxFormFieldLabel required>Content type</KxFormFieldLabel>
             <KxTabStrip
               value={kind}
               onChange={setKind}
@@ -189,7 +226,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Title *</label>
+            <KxFormFieldLabel required>Title</KxFormFieldLabel>
             <input
               type="text"
               className="k-input"
@@ -201,7 +238,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Summary / teaser *</label>
+            <KxFormFieldLabel required>Summary / teaser</KxFormFieldLabel>
             <textarea
               className="k-textarea min-h-[80px]"
               value={summary}
@@ -212,40 +249,31 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Body (Markdown) *</label>
-            <textarea
-              className="k-textarea min-h-[160px]"
+            <KxFormFieldLabel required>Body</KxFormFieldLabel>
+            <KxRichTextEditor
               value={bodyMarkdown}
-              onChange={(e) => setBodyMarkdown(e.target.value)}
-              placeholder="Full lore content in Markdown"
-              required
+              onChange={setBodyMarkdown}
+              placeholder="Full lore content"
+              minRows={12}
             />
           </div>
 
           <div className="k-form-group">
-            <label className="k-label">Featured image (optional)</label>
+            <KxFormFieldLabel>Featured image (optional)</KxFormFieldLabel>
             <div className="space-y-3">
-              <FeaturedImageSourceToggle
-                value={featuredImageSource}
-                onChange={setFeaturedImageSource}
-              />
+              <FeaturedImageSourceToggle value={featuredImageSource} onChange={setFeaturedImageSource} />
               {featuredImageSource === 'url' ? (
-                <div>
-                  <input
-                    type="url"
-                    className="k-input"
-                    value={featuredImageUrl}
-                    onChange={(e) => {
-                      setFeaturedImageUrl(e.target.value);
-                      setFeaturedImageCid(null);
-                      setFeaturedImageName(null);
-                    }}
-                    placeholder="https://..."
-                  />
-                  <p className="text-xs text-zinc-500 mt-1.5">
-                    Direct HTTPS image URL. PNG, JPG, or WebP.
-                  </p>
-                </div>
+                <input
+                  type="url"
+                  className="k-input"
+                  value={featuredImageUrl}
+                  onChange={(e) => {
+                    setFeaturedImageUrl(e.target.value);
+                    setFeaturedImageCid(null);
+                    setFeaturedImageName(null);
+                  }}
+                  placeholder="https://..."
+                />
               ) : (
                 <StoreFileUpload
                   label=""
@@ -267,9 +295,9 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
 
           {kind === 'chapter' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div className="k-form-group">
-                <label className="k-label">Chapter number</label>
+                <KxFormFieldLabel>Chapter number</KxFormFieldLabel>
                 <input
                   type="number"
                   min={1}
@@ -279,7 +307,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
                 />
               </div>
               <div className="k-form-group">
-                <label className="k-label">Timeline</label>
+                <KxFormFieldLabel>Timeline</KxFormFieldLabel>
                 <KxTabStrip
                   value={timeline}
                   onChange={setTimeline}
@@ -296,7 +324,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
           {kind === 'character' ? (
             <div className="k-form-group">
-              <label className="k-label">Character kind</label>
+              <KxFormFieldLabel>Character kind</KxFormFieldLabel>
               <KxTabStrip
                 value={characterKind}
                 onChange={setCharacterKind}
@@ -315,7 +343,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
 
           {kind === 'vehicle' ? (
             <div className="k-form-group">
-              <label className="k-label">Tech kind</label>
+              <KxFormFieldLabel>Tech kind</KxFormFieldLabel>
               <KxTabStrip
                 value={vehicleKind}
                 onChange={setVehicleKind}
@@ -331,8 +359,8 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             </div>
           ) : null}
 
-          <div className="k-form-group">
-            <label className="k-label">Tags</label>
+          <div className="k-form-group !mb-0">
+            <KxFormFieldLabel>Tags</KxFormFieldLabel>
             <input
               type="text"
               className="k-input"
@@ -343,89 +371,151 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           </div>
         </div>
 
-        <aside className="xl:sticky xl:top-6 h-fit space-y-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Card preview</p>
-            <div className="flex items-start gap-3">
-              <ChronicleThumb
-                imageUrl={featuredPreviewUrl}
-                alt=""
-                className="w-12 h-12 shrink-0 rounded-xl"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">
-                    {title.trim() || 'Title'}
-                  </p>
-                  <ChroniclesCommunityBadge />
-                </div>
-                <p className="text-[10px] text-zinc-500 mt-0.5">{CHRONICLES_CONTENT_KIND_LABELS[kind]}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
-                  {summary.trim() || 'Summary appears on listing cards.'}
-                </p>
-              </div>
-            </div>
+        <div id="chronicles-dashboard-modules" className={`${KX_FORM_PANEL} my-2 scroll-mt-24 space-y-6 py-10 sm:py-12`}>
+          <div className="space-y-2">
+            <DAppSectionHeader title="Premium modules" className="mb-0" />
+            <h4 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+              Optional premium features
+            </h4>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Toggle modules on to add them to your total. They activate when you pay and publish.
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-5 space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-              Listing fee
-            </h3>
-            <div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2 block normal-case tracking-normal">
-                Pay with *
-              </span>
-              <HubPaymentCurrencyDropdown
-                value={paymentCurrency}
-                onChange={setPaymentCurrency}
-                options={buildKasKrexMenuOptions()}
-                ariaLabel="Listing fee currency"
-              />
-            </div>
-            <p className="kx-body">
-              One-time submission fee:{' '}
-              {listingFee.discountPercent > 0 ? (
-                <span className="line-through text-zinc-400 mr-1">
-                  {listingActionFeeLabel(paymentCurrency, listingFee.baseKas)}
-                </span>
-              ) : null}
-              <span className="font-black text-[#02abb8]">{feeLabel}</span>
-            </p>
-            {listingFee.discountPercent > 0 ? (
-              <p className="text-xs text-green-700 dark:text-green-400">
-                KREX tier discount applied ({listingFee.discountPercent}% off)
-              </p>
-            ) : null}
-            <p className="text-xs text-zinc-500">Paid to the Kasparex treasury when you publish.</p>
-
-            {error ? (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-300">
-                {error}
+          <div className={KX_PREMIUM_MODULE_CARD}>
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Illustrated entry"
+              description="Mark this submission for illustrated treatment in discovery rails."
+              priceLabel={`+${PREMIUM_ILLUSTRATED_FEE_KAS} KAS`}
+              checked={illustratedEnabled}
+              onToggle={() => setIllustratedEnabled((v) => !v)}
+            />
+            {illustratedEnabled ? (
+              <div className="mt-5 border-t border-zinc-200 pt-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                Illustrated options expand inside this module and are included in the calculation breakdown.
               </div>
             ) : null}
+          </div>
 
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="w-full k-cta-primary !justify-center !tracking-normal disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isProcessing ? 'Processing...' : isUploading ? 'Uploading...' : 'PUBLISH'}
-            </button>
+          <div className={KX_PREMIUM_MODULE_CARD}>
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Canon hint notes"
+              description="Attach optional canon-alignment notes for community reviewers."
+              priceLabel={`+${PREMIUM_CANON_HINT_FEE_KAS} KAS`}
+              checked={canonHintEnabled}
+              onToggle={() => setCanonHintEnabled((v) => !v)}
+            />
+            {canonHintEnabled ? (
+              <div className="mt-5 border-t border-zinc-200 pt-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                Canon hint fields stay inside this container so the form layout stays stable.
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className={KX_FORM_STICKY_RAIL}>
+        <HubBenefitsPanel variant="panel" />
+
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Card preview</p>
+          <div className="flex items-start gap-3">
+            <ChronicleThumb imageUrl={featuredPreviewUrl} alt="" className="h-12 w-12 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <p className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  {title.trim() || 'Title'}
+                </p>
+                <ChroniclesCommunityBadge />
+              </div>
+              <p className="text-[10px] text-zinc-500">{CHRONICLES_CONTENT_KIND_LABELS[kind]}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-zinc-500 dark:text-zinc-400">
+                {summary.trim() || 'Summary appears on listing cards.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <aside className={KX_CALCULATION_ASIDE}>
+          <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between">
+              <span>Base fee</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{baseFeeKas} KAS</span>
+            </div>
+            {illustratedEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Illustrated entry</span>
+                <span className="shrink-0 font-semibold">+{PREMIUM_ILLUSTRATED_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {canonHintEnabled ? (
+              <div className="flex justify-between gap-2">
+                <span className="truncate">Canon hint notes</span>
+                <span className="shrink-0 font-semibold">+{PREMIUM_CANON_HINT_FEE_KAS} KAS</span>
+              </div>
+            ) : null}
+            {modulesFeeKas > 0 ? (
+              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+                <span>Modules subtotal</span>
+                <span className="font-semibold text-[#02abb8]">{modulesFeeKas} KAS</span>
+              </div>
+            ) : null}
+            {listingFee.discountPercent > 0 ? (
+              <div className="flex justify-between">
+                <span>KREX discount</span>
+                <span className="font-semibold text-emerald-600">-{listingFee.discountPercent}%</span>
+              </div>
+            ) : null}
+          </div>
+
+          <div>
+            <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Pay with *</span>
+            <HubPaymentCurrencyDropdown
+              value={paymentCurrency}
+              onChange={setPaymentCurrency}
+              options={buildKasKrexMenuOptions()}
+              ariaLabel="Listing fee currency"
+            />
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{feeLabel}</p>
+          </div>
+
+          <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+            One Kaspa L1 payment covers the submission and any enabled modules.
           </div>
 
           {kind === 'article' ? (
-            <div className="rounded-2xl border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50 dark:bg-cyan-950/25 p-5 space-y-2">
-              <h3 className="text-sm font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">
-                Hub points
-              </h3>
-              <p className="text-2xl font-black text-cyan-900 dark:text-cyan-100">
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
+              <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
+              <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">
                 +{HUB_EARN_POINTS.chroniclesArticleCreate} pts
-              </p>
-              <p className="text-xs text-cyan-800/90 dark:text-cyan-300/80 leading-relaxed">
-                Redeemable Hub points awarded once when you publish a new article.
               </p>
             </div>
           ) : null}
+
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isProcessing ? 'Processing...' : isUploading ? 'Uploading...' : 'Create Lore Entry'}
+          </button>
+
+          <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
         </aside>
       </div>
     </form>

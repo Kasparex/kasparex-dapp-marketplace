@@ -13,6 +13,8 @@ import { StatusDot } from '@/components/ui/StatusDot';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { GameDeckPanel } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
+import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GameInteractionsPanel } from '@/components/games/panels/GameInteractionsPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
@@ -179,6 +181,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       tabs={tabs}
       currentTab={tab}
       onTabChange={setTab}
+      haloHeader={<GamesHaloHeader game={props.game} />}
       main={
         <>
         {tab === 'overview' && (
@@ -303,6 +306,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       }
       sidebar={
         <>
+        <HubBenefitsPanel variant="panel" className="w-full" />
         <GameDeckPanel
           rewardWeight={{
             value: `×${booster.toFixed(2)}`,

@@ -10,10 +10,27 @@ export const KX_WIDGET_DETAIL_PANEL =
 
 /** Primary form surface for dApp widgets and hub editors (matches vBlog Create Article). */
 export const KX_FORM_PANEL =
-  'rounded-2xl border border-zinc-200 bg-zinc-100 p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900';
+  'rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900';
+
+/** Amber dashed premium module card (matches vBlog Create Article). */
+export const KX_PREMIUM_MODULE_CARD =
+  'rounded-2xl border-2 border-dashed border-amber-400/60 dark:border-amber-300/40 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-500/[0.08] dark:to-zinc-900 p-5 sm:p-6 shadow-sm';
+
+/** Dashboard pill tab strip (matches vBlog AuthorDashboard). */
+export const KX_DASHBOARD_TAB_SHELL =
+  'flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800';
+
+export const KX_DASHBOARD_TAB_BTN =
+  'px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300';
+
+export const KX_DASHBOARD_TAB_BTN_ACTIVE =
+  'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700';
 
 export const KX_CALCULATION_ASIDE =
   'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.35)] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
+
+/** Sticky form right rail: Benefits + calculation (matches vBlog Create Article). */
+export const KX_FORM_STICKY_RAIL = 'flex flex-col gap-4 xl:sticky xl:top-6';
 
 export const KX_PANEL_PADDING = 'p-4 sm:p-5';
 

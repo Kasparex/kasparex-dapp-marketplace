@@ -4,59 +4,53 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MagazineEditor } from '@/components/magazines/editor/MagazineEditor';
 import { MagazinesSidebar } from '@/components/magazines/MagazinesSidebar';
-import Link from 'next/link';
+import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+
+const MAGAZINE_LISTING_FEE_KAS = 50;
+const MAGAZINE_PREMIUM_MODULE_FEE_KAS = 12;
 
 export default function MagazineEditorPage() {
-    return (
-        <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
-            <Header />
+  const { tier: krexTier } = useKREXBalance();
 
-            <div className="flex flex-1">
-                <MagazinesSidebar mode="utility" />
+  return (
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+      <Header />
 
-                <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
-                    <div className="w-full">
-                        <nav className="flex items-center gap-2 text-sm text-zinc-500 mb-8 font-medium">
-                            <Link href="/magazines" className="hover:text-cyan-500 transition-colors">Magazines</Link>
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                            <span className="text-zinc-900 dark:text-zinc-100">Issue Editor</span>
-                        </nav>
+      <div className="flex flex-1">
+        <MagazinesSidebar mode="utility" />
 
-                        <div className="mb-12">
-                            <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-4">
-                                Collaborative <span className="text-cyan-500">Editor</span>
-                            </h1>
-                            <p className="text-zinc-600 dark:text-zinc-400 max-w-2xl">
-                                Create modular, high-quality magazine issues with your team. Every block of content is tracked, and revenue shares are calculated automatically for on-chain distribution.
-                            </p>
-                        </div>
+        <main className="w-full flex-1 overflow-y-auto bg-white p-4 dark:bg-zinc-950 sm:p-6 lg:p-12">
+          <div className="mb-10">
+            <p className="mb-2 text-sm font-black uppercase tracking-widest text-[#02abb8]">Magazines dashboard</p>
+            <h1 className="mb-3 text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl lg:text-5xl">
+              Create{' '}
+              <span className="bg-gradient-to-r from-cyan-600 to-emerald-500 bg-clip-text text-transparent">Issue</span>
+            </h1>
+            <p className="kx-body max-w-2xl">
+              Build a modular magazine issue with the same creator layout as vBlog: form panels, premium modules, Benefits, and calculation breakdown.
+            </p>
+          </div>
 
-                        <MagazineEditor />
+          <div id="magazines-dashboard-pricing" className="mb-8 grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-3">
+            <VBlogFeeCard
+              title="Issue publish fee"
+              feeKas={MAGAZINE_LISTING_FEE_KAS}
+              basePoints={HUB_EARN_POINTS.magazineIssuePublish}
+              tier={krexTier}
+            />
+            <VBlogFeeCard title="Premium module" feeKas={MAGAZINE_PREMIUM_MODULE_FEE_KAS} tier={krexTier} />
+            <VBlogFeeCard title="Hub points" feeKas={0} note={`Earn +${HUB_EARN_POINTS.magazineIssuePublish} pts on publish`} />
+          </div>
 
-                        <div className="mt-12 bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-                            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Editor Features</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="space-y-2">
-                                    <h3 className="text-sm font-black text-cyan-500 uppercase tracking-widest">Modular Design</h3>
-                                    <p className="text-xs text-zinc-500 leading-relaxed">Blocks can be reordered, reused, and styled independently. Perfect for rich editorial layouts.</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-sm font-black text-emerald-500 uppercase tracking-widest">Revenue Sharing</h3>
-                                    <p className="text-xs text-zinc-500 leading-relaxed">Built-in contributor tracking ensures transparent sales distribution for all creators.</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-sm font-black text-purple-500 uppercase tracking-widest">Cross-Ecosystem</h3>
-                                    <p className="text-xs text-zinc-500 leading-relaxed">Embed this editor directly into vBlog or other community tools for a unified publishing experience.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
+          <div id="magazines-dashboard-create" className="scroll-mt-24">
+            <MagazineEditor />
+          </div>
+        </main>
+      </div>
 
-            <Footer />
-        </div>
-    );
+      <Footer />
+    </div>
+  );
 }

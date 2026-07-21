@@ -11,20 +11,32 @@ type Props = {
   currentTab: string;
   onTabChange: (id: any) => void;
   tabAlerts?: ReactNode;
+  /** Halo header rendered above the tab strip (individual game pages). */
+  haloHeader?: ReactNode;
   main: ReactNode;
   sidebar: ReactNode;
 };
 
 /**
- * Profile Hub-style full-width tab strip, then optional alerts, then a collapsible main / right-column grid.
+ * Profile Hub-style Halo (optional) + full-width tab strip, then collapsible main / right-column grid.
  */
-export function GamesWithSidebarLayout({ tabs, currentTab, onTabChange, tabAlerts, main, sidebar }: Props) {
+export function GamesWithSidebarLayout({
+  tabs,
+  currentTab,
+  onTabChange,
+  tabAlerts,
+  haloHeader,
+  main,
+  sidebar,
+}: Props) {
   const [rightOpen, setRightOpen] = useGamesRightPanelOpen(true);
 
   return (
     <GamesLayoutProvider rightPanelOpen={rightOpen}>
       <div className="flex w-full min-w-0 flex-col gap-6">
-        <div className="mb-6 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+        {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
+
+        <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div className="min-w-0 flex-1">
             <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
           </div>

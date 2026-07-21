@@ -14,6 +14,14 @@ import {
   type DAppDashboardTab,
 } from '@/lib/dapps/dashboardTabs';
 import {
+  KX_DASHBOARD_TAB_SHELL,
+  KX_DASHBOARD_TAB_BTN,
+  KX_DASHBOARD_TAB_BTN_ACTIVE,
+} from '@/lib/hub/shellTokens';
+import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import {
   DAPP_LISTING_ACTION_FEE_KAS,
   DAPP_LISTING_FEE_KAS,
   archiveDirectoryListingLocal,
@@ -23,15 +31,14 @@ import {
   type DirectoryListing,
 } from '@/lib/dapps/listingSubmissions';
 import { useDirectoryListings } from '@/hooks/useDirectoryListings';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { useNFTStatus } from '@/hooks/useNFTStatus';
 import { getCategoryById, categories, type Category } from '@/lib/categories';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { getBestGatewayUrl } from '@/lib/hub/ipfsStandard';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
-import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
+import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
@@ -284,33 +291,46 @@ export function DAppDashboardContent() {
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
 
-      <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-8 flex-wrap rounded-2xl">
+      <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
         {(Object.keys(TAB_LABELS) as DAppDashboardTab[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => goTab(tab)}
-            className={`k-tab-btn rounded-xl ${activeTab === tab ? 'k-tab-btn-active' : ''}`}
+            className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === tab ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
           >
             {TAB_LABELS[tab]}
           </button>
         ))}
       </div>
 
+      {activeTab === 'create' ? (
+        <div id="dapps-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <VBlogFeeCard
+            title="Listing Fee"
+            feeKas={DAPP_LISTING_FEE_KAS}
+            basePoints={HUB_EARN_POINTS.dappDirectoryList}
+            tier={krexTier}
+          />
+          <VBlogFeeCard title="Edit / Update" feeKas={DAPP_LISTING_ACTION_FEE_KAS} tier={krexTier} />
+          <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.dapps} tier={krexTier} />
+        </div>
+      ) : null}
+
       {actionError ? (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
           <p className="text-sm font-bold text-red-800 dark:text-red-300">{actionError}</p>
         </div>
       ) : null}
 
       {activeTab === 'create' ? (
-        <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+        <div id="dapps-dashboard-create" className="scroll-mt-24">
           {state.isConnected ? (
             editId && !editListing ? (
-              <p className="text-center text-zinc-500 py-12">Listing not found or you do not have access.</p>
+              <p className="py-12 text-center text-zinc-500">Listing not found or you do not have access.</p>
             ) : editListing &&
               editListing.submitterAddress.toLowerCase() !== state.address?.toLowerCase() ? (
-              <p className="text-center text-zinc-500 py-12">Only the listing owner can edit this entry.</p>
+              <p className="py-12 text-center text-zinc-500">Only the listing owner can edit this entry.</p>
             ) : (
               <>
                 {editListing ? (
@@ -331,7 +351,7 @@ export function DAppDashboardContent() {
               </>
             )
           ) : (
-            <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to list a dApp.</p>
+            <p className="py-12 text-center text-zinc-500">Connect your Kaspa wallet to list a dApp.</p>
           )}
         </div>
       ) : !state.isConnected ? (

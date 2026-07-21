@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { GameType, GameDifficulty, GameStatus, gameTypes, difficultyLevels } from '@/lib/games/games';
 import { UnifiedSidebar } from '@/components/UnifiedSidebar';
+import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
-import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { usePathname } from 'next/navigation';
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -75,6 +76,10 @@ export function GamesSidebar({
   showCategories = true,
   backLink = { href: '/hub', label: 'Back to Hub' },
 }: GamesSidebarProps) {
+  const pathname = usePathname();
+  const dashboardActive = pathname?.startsWith('/games/dashboard') ?? false;
+  const mapActive = pathname?.startsWith('/games/connections') ?? false;
+
   const handleGameTypeToggle = (type: GameType) => {
     const next = selectedGameTypes.includes(type)
       ? selectedGameTypes.filter((t) => t !== type)
@@ -95,29 +100,7 @@ export function GamesSidebar({
   };
 
   const header = (onHide: () => void) => (
-    <div className="flex-shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 p-4">
-      <div className="flex items-center justify-between">
-        <Link
-          href={backLink.href}
-          className="hub-sidebar-reset-link text-zinc-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors group"
-        >
-          <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-          </svg>
-          {backLink.label}
-        </Link>
-        <button
-          type="button"
-          onClick={onHide}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
-          aria-label="Hide sidebar"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-    </div>
+    <SidebarHeader backHref={backLink.href} backLabel={backLink.label} onHide={onHide} />
   );
 
   const gameTypeItems = Object.entries(gameTypes).map(([type, info]) => ({
@@ -143,12 +126,21 @@ export function GamesSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="games" header={header}>
-        <div className="space-y-2 p-4 pt-3">
-          <Link href="/games/dashboard" className="w-full k-control-btn justify-center">
+        <div className="mb-6 space-y-2 px-1">
+          <Link
+            href="/games/dashboard"
+            className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+          >
             Games Dashboard
           </Link>
-          <Link href="/games/connections" className="w-full k-control-btn justify-center">
+          <Link
+            href="/games/connections"
+            className={`k-control-btn w-full justify-center gap-2 ${mapActive ? '!bg-cyan-600 !text-white' : ''}`}
+          >
             Games Map
+          </Link>
+          <Link href="/games" className="k-control-btn w-full justify-center gap-2">
+            Browse Games
           </Link>
         </div>
 

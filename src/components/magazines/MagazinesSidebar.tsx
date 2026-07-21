@@ -6,7 +6,6 @@ import { Magazine, MagazineIssue } from '@/lib/magazines/types';
 import { UnifiedSidebar } from '../UnifiedSidebar';
 import { SidebarHeader } from '../sidebar/SidebarHeader';
 import { SidebarSection } from '../sidebar/SidebarSection';
-import { SidebarQuickActions } from '../sidebar/SidebarQuickActions';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarTags } from '../sidebar/SidebarTags';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
@@ -25,11 +24,8 @@ interface MagazinesSidebarProps {
   currentIssueId?: string;
 }
 
-const quickActionsListing = [
-  { id: 'dashboard', label: 'My Dashboard', href: '/magazines/dashboard', icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
-  { id: 'create', label: 'Create Issue', href: '/magazines/editor', icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg> },
-  { id: 'explore', label: 'Explore Magazines', href: '/magazines', icon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> },
-];
+const SIDEBAR_BTN_ICON = 'w-3.5 h-3.5';
+const SIDEBAR_BTN_ICON_ACTIVE = 'w-3.5 h-3.5 text-white';
 
 function MagazineCategoryIcon({ category, className = '' }: { category: string; className?: string }) {
   const iconProps = { className: `w-4 h-4 ${className}`, strokeWidth: 2, fill: 'none' as const, viewBox: '0 0 24 24', stroke: 'currentColor' as const };
@@ -68,10 +64,8 @@ export function MagazinesSidebar({
   const pathname = usePathname();
   const isListing = mode === 'listing';
   const isIssue = mode === 'issue';
-  const isUtility = mode === 'utility';
-
-  const backHref = isUtility || !pathname.startsWith('/magazines') ? '/magazines' : '/hub';
-  const backLabel = isUtility || !pathname.startsWith('/magazines') ? 'Back to Magazines' : 'Back to Hub';
+  const dashboardActive = pathname?.startsWith('/magazines/dashboard') ?? false;
+  const editorActive = pathname?.startsWith('/magazines/editor') ?? false;
 
   const categoryItems = categories.map((cat) => ({
     id: cat,
@@ -81,11 +75,15 @@ export function MagazinesSidebar({
   }));
 
   const magazinesFooter = (
-    <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-      <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">KM</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">Kasparex Mag</p>
-        <p className="text-[9px] font-bold text-zinc-500 uppercase">Publishing Suite</p>
+    <div className="flex items-center gap-3 border-t border-zinc-200 bg-transparent p-4 dark:border-zinc-800">
+      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#02abb8]/10 text-[10px] font-black text-[#02abb8]">
+        KM
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
+          Kasparex Mag
+        </p>
+        <p className="text-[9px] font-bold uppercase text-zinc-500">Publishing Suite</p>
       </div>
     </div>
   );
@@ -93,10 +91,55 @@ export function MagazinesSidebar({
   return (
     <UnifiedSidebar
       storageKeyPrefix="magazines"
-      header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} className="bg-white dark:bg-zinc-950" />}
+      header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
       footer={magazinesFooter}
     >
-      <SidebarQuickActions items={quickActionsListing} />
+      <div className="mb-6 space-y-2 px-1">
+        <Link
+          href="/magazines/dashboard"
+          className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+        >
+          <svg className={dashboardActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Creator Dashboard
+        </Link>
+        <Link
+          href="/magazines/editor"
+          className={`k-control-btn w-full justify-center gap-2 ${editorActive ? '!bg-cyan-600 !text-white' : ''}`}
+        >
+          <svg className={editorActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Create Issue
+        </Link>
+        <Link href="/magazines" className="k-control-btn w-full justify-center gap-2">
+          <svg className={SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Browse Magazines
+        </Link>
+      </div>
+
+      {editorActive ? (
+        <SidebarSection title="Editor sections">
+          <nav className="space-y-1">
+            <SidebarNavItem
+              label="Issue form"
+              active
+              onClick={() => document.getElementById('magazines-dashboard-create')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            />
+            <SidebarNavItem
+              label="Fees & rewards"
+              onClick={() => document.getElementById('magazines-dashboard-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            />
+            <SidebarNavItem
+              label="Premium modules"
+              onClick={() => document.getElementById('magazines-dashboard-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            />
+          </nav>
+        </SidebarSection>
+      ) : null}
 
       {isListing && categories.length > 0 && (
         <SidebarCategories
@@ -115,16 +158,12 @@ export function MagazinesSidebar({
 
       {isIssue && currentMagazine && issues.length > 0 && (
         <SidebarSection title="Magazine Issues">
-          <div className="px-1 mb-4">
-            <p className="text-[10px] font-bold text-zinc-400 mb-2 truncate italic px-1">{currentMagazine.name}</p>
+          <div className="mb-4 px-1">
+            <p className="mb-2 truncate px-1 text-[10px] font-bold italic text-zinc-400">{currentMagazine.name}</p>
           </div>
           <nav className="space-y-0.5">
             {issues.map((issue) => (
-              <Link
-                key={issue.id}
-                href={`/magazines/${currentMagazine.slug}/${issue.issueNumber}`}
-                className="block"
-              >
+              <Link key={issue.id} href={`/magazines/${currentMagazine.slug}/${issue.issueNumber}`} className="block">
                 <SidebarNavItem
                   label={issue.title}
                   icon={issueIcon}

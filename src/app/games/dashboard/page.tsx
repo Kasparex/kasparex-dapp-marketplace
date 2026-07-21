@@ -11,6 +11,18 @@ import { KxFormFieldLabel } from '@/components/ui/KxFormFieldLabel';
 import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import {
+  KX_FORM_GRID,
+  KX_FORM_PANEL,
+  KX_FORM_STICKY_RAIL,
+  KX_CALCULATION_ASIDE,
+  KX_PREMIUM_MODULE_CARD,
+  KX_DASHBOARD_TAB_SHELL,
+  KX_DASHBOARD_TAB_BTN,
+  KX_DASHBOARD_TAB_BTN_ACTIVE,
+} from '@/lib/hub/shellTokens';
+import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 
 type GamePromoListing = {
   id: string;
@@ -112,18 +124,26 @@ export default function GamesDashboardPage() {
             {state.address ? <p className="mt-2 text-xs font-mono text-zinc-500">{state.address}</p> : null}
           </div>
 
-          <div className="mb-6 flex w-fit items-center gap-1 rounded-2xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className={`${KX_DASHBOARD_TAB_SHELL} mb-6 flex-wrap`}>
             {(['overview', 'listings', 'create'] as const).map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => setTab(item)}
-                className={`k-tab-btn rounded-xl ${tab === item ? 'k-tab-btn-active' : ''}`}
+                className={`${KX_DASHBOARD_TAB_BTN} ${tab === item ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
               >
                 {item === 'overview' ? 'Overview' : item === 'listings' ? 'My Listings' : 'List Project'}
               </button>
             ))}
           </div>
+
+          {tab === 'create' ? (
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <VBlogFeeCard title="Listing Fee" feeKas={BASE_FEE_KAS} basePoints={HUB_POINTS} />
+              <VBlogFeeCard title="Featured module" feeKas={PREMIUM_MODULE_FEE_KAS} />
+              <VBlogFeeCard title="Hub points" feeKas={0} note={`Earn +${HUB_POINTS} pts on publish`} />
+            </div>
+          ) : null}
 
           {tab === 'overview' ? (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -161,68 +181,82 @@ export default function GamesDashboardPage() {
           ) : null}
 
           {tab === 'create' ? (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
-              <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <DAppSectionHeader title="Main content" />
-                <div>
-                  <KxFormFieldLabel required>Project title</KxFormFieldLabel>
-                  <input className="k-input" value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
-                <div>
-                  <KxFormFieldLabel required>Short description</KxFormFieldLabel>
-                  <textarea className="k-textarea min-h-[90px]" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
-                </div>
-                <div>
-                  <KxFormFieldLabel>Cover image URL</KxFormFieldLabel>
-                  <input className="k-input" value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://..." />
-                </div>
-                <div>
-                  <KxFormFieldLabel>Details (rich text)</KxFormFieldLabel>
-                  <KxRichTextEditor value={content} onChange={setContent} minRows={10} />
+            <div className={`${KX_FORM_GRID} items-start`}>
+              <div className="flex min-w-0 flex-col gap-6">
+                <div className={`${KX_FORM_PANEL} space-y-6`}>
+                  <div>
+                    <DAppSectionHeader title="Main content" className="mb-3" />
+                    <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+                      List Game Project
+                    </h3>
+                    <p className="kx-body">Promotion listing for now. Estimated cost: {totalKas} KAS.</p>
+                  </div>
+                  <div>
+                    <KxFormFieldLabel required>Project title</KxFormFieldLabel>
+                    <input className="k-input" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  </div>
+                  <div>
+                    <KxFormFieldLabel required>Short description</KxFormFieldLabel>
+                    <textarea className="k-textarea min-h-[90px]" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
+                  </div>
+                  <div>
+                    <KxFormFieldLabel>Cover image URL</KxFormFieldLabel>
+                    <input className="k-input" value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://..." />
+                  </div>
+                  <div>
+                    <KxFormFieldLabel>Details (rich text)</KxFormFieldLabel>
+                    <KxRichTextEditor value={content} onChange={setContent} minRows={10} />
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border-2 border-dashed border-amber-400/60 bg-gradient-to-b from-amber-50/70 to-white p-5 dark:border-amber-300/40 dark:from-amber-500/[0.08] dark:to-zinc-900">
-                  <KxInFormPremiumRow
-                    flat
-                    accent="hub"
-                    title="Featured placement module"
-                    description="Boost placement in upcoming Games spotlight sections."
-                    priceLabel={`+${PREMIUM_MODULE_FEE_KAS} KAS`}
-                    checked={boostEnabled}
-                    onToggle={() => setBoostEnabled((v) => !v)}
-                  />
-                  {boostEnabled ? (
-                    <div className="mt-4 border-t border-zinc-200 pt-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
-                      Featured module is active. Boost settings are applied inside this container to match the vBlog premium module behavior.
-                    </div>
-                  ) : null}
+                <div id="games-dashboard-modules" className={`${KX_FORM_PANEL} my-2 scroll-mt-24 space-y-6 py-10 sm:py-12`}>
+                  <div className="space-y-2">
+                    <DAppSectionHeader title="Premium modules" className="mb-0" />
+                    <h4 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+                      Optional premium features
+                    </h4>
+                  </div>
+                  <div className={KX_PREMIUM_MODULE_CARD}>
+                    <KxInFormPremiumRow
+                      flat
+                      accent="hub"
+                      title="Featured placement module"
+                      description="Boost placement in upcoming Games spotlight sections."
+                      priceLabel={`+${PREMIUM_MODULE_FEE_KAS} KAS`}
+                      checked={boostEnabled}
+                      onToggle={() => setBoostEnabled((v) => !v)}
+                    />
+                    {boostEnabled ? (
+                      <div className="mt-4 border-t border-zinc-200 pt-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                        Featured module is active. Boost settings stay inside this container.
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
-              <aside className="space-y-4 xl:sticky xl:top-6">
-                <div className="rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80">
-                  <DAppSectionHeader title="Calculation breakdown" className="mb-0" />
-                  <div className="mt-3 space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <div className={KX_FORM_STICKY_RAIL}>
+                <HubBenefitsPanel variant="panel" />
+                <aside className={KX_CALCULATION_ASIDE}>
+                  <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+                  <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
                     <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{BASE_FEE_KAS} KAS</span></div>
                     <div className="flex justify-between"><span>Premium modules</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{boostEnabled ? PREMIUM_MODULE_FEE_KAS : 0} KAS</span></div>
                   </div>
-                  <div className="mt-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+                  <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
                     <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
                     <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{totalKas} KAS</p>
                   </div>
-                  <button type="button" onClick={handleSave} className="mt-4 w-full k-control-btn hub-cta-btn">
+                  <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
+                    <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
+                    <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_POINTS} pts</p>
+                  </div>
+                  <button type="button" onClick={handleSave} className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94]">
                     Publish Game Promotion
                   </button>
-                </div>
-
-                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</h3>
-                  <p className="mt-2 text-2xl font-black text-cyan-900 dark:text-cyan-100">+{HUB_POINTS} pts</p>
-                  <p className="mt-1 text-xs text-cyan-800/90 dark:text-cyan-300/80">Redeemable points are awarded when you publish a new promotion listing.</p>
-                </div>
-
-                <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={false} />
-              </aside>
+                  <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={false} />
+                </aside>
+              </div>
             </div>
           ) : null}
         </section>

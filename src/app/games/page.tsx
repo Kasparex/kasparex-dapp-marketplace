@@ -21,8 +21,6 @@ import { HubListingTitleRow } from '@/components/hub/HubListingTitleRow';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { GameListingFiltersBar } from '@/components/games/GameListingFiltersBar';
-import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
-
 function GamesContent() {
   const [sourceFilter, setSourceFilter] = useState<GameSourceFilter>('all');
   const [selectedGameTypes, setSelectedGameTypes] = useState<GameType[]>([]);
@@ -167,7 +165,6 @@ function GamesContent() {
 
         <div className={HUB_MAIN_COLUMN}>
           <div className={HUB_MAIN_INNER}>
-            <GamesHaloHeader />
             <GamesHeader sourceFilter={sourceFilter} onSourceFilterChange={setSourceFilter} />
 
             <div id="content" className="scroll-mt-4" />

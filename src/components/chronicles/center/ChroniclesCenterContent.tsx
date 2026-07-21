@@ -27,6 +27,14 @@ import { getExplorerTxUrl } from '@/lib/store/utils';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
 import Link from 'next/link';
 import { communityDetailHref } from '@/lib/chronicles/communityRoutes';
+import {
+  KX_DASHBOARD_TAB_SHELL,
+  KX_DASHBOARD_TAB_BTN,
+  KX_DASHBOARD_TAB_BTN_ACTIVE,
+} from '@/lib/hub/shellTokens';
+import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
@@ -118,6 +126,7 @@ export function ChroniclesCenterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state } = useKaspaWallet();
+  const { tier: krexTier } = useKREXBalance();
   const { confirm, alert } = useKxSystemDialog();
   const { items, refresh } = useChroniclesCommunitySubmissions({
     authorAddress: state.address ?? undefined,
@@ -219,13 +228,13 @@ export function ChroniclesCenterContent() {
 
       <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />
 
-      <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-8 flex-wrap rounded-2xl">
+      <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
         {(Object.keys(TAB_LABELS) as ChroniclesCenterTab[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => goTab(tab)}
-            className={`k-tab-btn rounded-xl ${activeTab === tab ? 'k-tab-btn-active' : ''}`}
+            className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === tab ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
           >
             {TAB_LABELS[tab]}
           </button>
@@ -233,11 +242,28 @@ export function ChroniclesCenterContent() {
       </div>
 
       {activeTab === 'create' ? (
-        <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+        <div id="chronicles-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <VBlogFeeCard
+            title="Chapter fee"
+            feeKas={CHRONICLES_SUBMISSION_FEES_KAS.chapter}
+            tier={krexTier}
+          />
+          <VBlogFeeCard
+            title="Article fee"
+            feeKas={CHRONICLES_SUBMISSION_FEES_KAS.article}
+            basePoints={HUB_EARN_POINTS.chroniclesArticleCreate}
+            tier={krexTier}
+          />
+          <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.chronicles} tier={krexTier} />
+        </div>
+      ) : null}
+
+      {activeTab === 'create' ? (
+        <div id="chronicles-dashboard-create" className="scroll-mt-24">
           {state.isConnected ? (
             <ChroniclesListingForm onSubmitted={refresh} />
           ) : (
-            <p className="text-center text-zinc-500 py-12">Connect your Kaspa wallet to submit community lore.</p>
+            <p className="py-12 text-center text-zinc-500">Connect your Kaspa wallet to submit community lore.</p>
           )}
         </div>
       ) : !state.isConnected ? (

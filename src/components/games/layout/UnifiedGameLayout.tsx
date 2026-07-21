@@ -1,21 +1,21 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import type { Game } from '@/lib/games/games';
 import { GameDeckPanel } from '../panels/GameDeckPanel';
 import { GameInteractionsPanel } from '../panels/GameInteractionsPanel';
 import { GameMetadataPanel } from '../panels/GameMetadataPanel';
 import { GamesPlayAdRail } from '../GamesPlayAdRail';
 import { GamesWithSidebarLayout } from './GamesWithSidebarLayout';
+import { GamesHaloHeader } from '../GamesHaloHeader';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 
 interface UnifiedGameLayoutProps {
   tabs: any[];
   currentTab: string;
   onTabChange: (id: any) => void;
   resources: any[];
-  game: {
-    name: string;
-    featuredImage?: string;
-    image?: string;
+  game: Game & {
     connections?: any[];
     categories?: any[];
     tags?: any[];
@@ -45,6 +45,7 @@ export function UnifiedGameLayout({
 }: UnifiedGameLayoutProps) {
   const sidebar = (
     <>
+      <HubBenefitsPanel variant="panel" className="w-full" />
       <GameDeckPanel
         resources={resources}
         footer={deckFooter}
@@ -68,6 +69,7 @@ export function UnifiedGameLayout({
       currentTab={currentTab}
       onTabChange={onTabChange}
       tabAlerts={tabAlerts}
+      haloHeader={<GamesHaloHeader game={game} />}
       main={children}
       sidebar={sidebar}
     />
