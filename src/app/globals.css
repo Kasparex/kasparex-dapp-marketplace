@@ -18,27 +18,14 @@
   /* Kasparex design tokens */
   --k-primary: #02abb8;
   --k-primary-hover: #02919c;
-  /* Controls sit on white/zinc-50 panels: slightly darker zinc-100 */
   --k-control-bg: rgb(244 244 245);
-  --k-control-border: rgb(212 212 216);
-  /* Form fields: zinc-50 so they read as inset on white panels */
-  --k-field-bg: rgb(249 250 251);
-  --k-field-bg-focus: rgb(255 255 255);
-  --k-field-border: rgb(228 228 231);
-  --k-menu-bg: rgb(255 255 255);
-  --k-menu-border: rgb(228 228 231);
+  --k-control-border: rgb(228 228 231);
   --k-radius-control: 0.75rem;
 }
 
 .dark {
-  /* Controls sit on zinc-900 cards / zinc-950 page: lift to zinc-800 so View/dropdowns do not merge */
-  --k-control-bg: rgb(39 39 42);
-  --k-control-border: rgb(82 82 91);
-  --k-field-bg: rgb(9 9 11 / 0.72);
-  --k-field-bg-focus: rgb(9 9 11 / 0.92);
-  --k-field-border: rgb(63 63 70 / 0.55);
-  --k-menu-bg: rgb(39 39 42);
-  --k-menu-border: rgb(82 82 91);
+  --k-control-bg: rgb(24 24 27);
+  --k-control-border: rgb(39 39 42);
 }
 
 @layer base {
@@ -100,13 +87,8 @@
   --kaspa-bg: #0a1f1c;
   --kaspa-bg-light: #0f2a26;
   --k-primary: #70C7BA;
-  --k-control-bg: rgba(22, 55, 50, 0.95);
-  --k-control-border: rgba(112, 199, 186, 0.35);
-  --k-field-bg: rgba(8, 28, 24, 0.72);
-  --k-field-bg-focus: rgba(8, 28, 24, 0.92);
-  --k-field-border: rgba(112, 199, 186, 0.28);
-  --k-menu-bg: rgba(22, 55, 50, 0.98);
-  --k-menu-border: rgba(112, 199, 186, 0.35);
+  --k-control-bg: rgba(15, 42, 38, 0.8);
+  --k-control-border: rgba(112, 199, 186, 0.2);
 }
 
 .kaspa body {
@@ -441,35 +423,21 @@
   /* zinc-500 */
 }
 
-/* Standardized Form Styling - Kasparex Ecosystem (inputs + textareas share --k-field-*) */
-.k-input,
-.k-textarea {
-  @apply w-full px-4 py-3 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all;
-  background-color: var(--k-field-bg);
-  border: 1px solid var(--k-field-border);
-}
-
-.k-input:focus,
-.k-textarea:focus {
-  background-color: var(--k-field-bg-focus);
+/* Standardized Form Styling - Kasparex Ecosystem */
+.k-input {
+  @apply w-full px-4 py-3 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
 }
 
 .k-textarea {
-  @apply min-h-[120px] resize-y;
+  @apply w-full px-4 py-3 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
 }
 
 .k-select {
-  @apply w-full px-4 py-2.5 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent transition-all appearance-none cursor-pointer;
-  background-color: var(--k-field-bg);
-  border: 1px solid var(--k-field-border);
+  @apply w-full px-4 py-2.5 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all appearance-none cursor-pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 1.25rem;
-}
-
-.k-select:focus {
-  background-color: var(--k-field-bg-focus);
 }
 
 .k-label {
@@ -658,18 +626,13 @@
 
 /* Uniform Controls (use design tokens for surface alignment with search) */
 .k-control-btn {
-  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 transition-all active:scale-[0.98];
+  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-[0.98];
   background-color: var(--k-control-bg);
   border: 1px solid var(--k-control-border);
 }
 
 .k-control-btn:hover {
   border-color: var(--hub-accent-border) !important;
-  filter: brightness(1.06);
-}
-
-.dark .k-control-btn:hover {
-  filter: brightness(1.12);
 }
 
 .k-control-icon-btn {
@@ -883,10 +846,49 @@
   }
 }
 
-/* Contrast: fields use --k-field-* (darker than zinc-900 panels). Menus/controls use lifted tokens. */
-.k-menu-surface {
-  background-color: var(--k-menu-bg);
-  border: 1px solid var(--k-menu-border);
+/* Contrast: inputs/textareas sit darker than zinc-900 panels so fields do not merge */
+.dark .bg-zinc-950 .k-input,
+.dark .bg-zinc-950 .k-textarea,
+.dark .bg-zinc-950 .k-select,
+.dark .bg-zinc-900 .k-input,
+.dark .bg-zinc-900 .k-textarea,
+.dark .bg-zinc-900 .k-select,
+.dark .bg-black .k-input,
+.dark .bg-black .k-textarea,
+.dark .bg-black .k-select,
+.kaspa body .k-input,
+.kaspa body .k-textarea,
+.kaspa body .k-select {
+  background-color: rgb(9 9 11 / 0.72) !important;
+  border-color: rgb(63 63 70 / 0.4) !important;
+}
+
+.dark .bg-zinc-950 .k-input:focus,
+.dark .bg-zinc-950 .k-textarea:focus,
+.dark .bg-zinc-950 .k-select:focus,
+.dark .bg-zinc-900 .k-input:focus,
+.dark .bg-zinc-900 .k-textarea:focus,
+.dark .bg-zinc-900 .k-select:focus,
+.dark .bg-black .k-input:focus,
+.dark .bg-black .k-textarea:focus,
+.dark .bg-black .k-select:focus {
+  background-color: rgb(9 9 11 / 0.92) !important;
+}
+
+/*
+ * Surgical contrast only: secondary controls (View, closed dropdowns) on zinc-900
+ * panels used the same fill as the card. Lift fill/border slightly; do not change
+ * global control tokens or menu/tab chrome.
+ */
+.dark .bg-zinc-900 .k-control-btn:not(.hub-cta-btn):not(.hub-sidebar-action-active),
+.dark .bg-zinc-900 .k-control-icon-btn {
+  background-color: rgb(39 39 42);
+  border-color: rgb(63 63 70);
+}
+
+.dark .bg-zinc-900 .k-control-btn:not(.hub-cta-btn):not(.hub-sidebar-action-active):hover,
+.dark .bg-zinc-900 .k-control-icon-btn:hover {
+  background-color: rgb(63 63 70);
 }
 
 /* /nodes - Leaflet OSM map: zinc surfaces, cyan accents, dark tile treatment */
@@ -1119,23 +1121,24 @@
 }
 
 .kx-quill-editor .ql-container.ql-snow {
-  border: 1px solid var(--k-field-border);
+  border: 1px solid rgb(228 228 231);
   border-radius: 0.75rem;
   font-size: 1rem;
   font-family: inherit;
-  background: var(--k-field-bg);
+  /* Match .k-input / .k-textarea light surface (zinc-50), not pure white */
+  background: rgb(249 250 251);
 }
 
 .dark .kx-quill-editor .ql-container.ql-snow {
-  border-color: var(--k-field-border);
-  background: var(--k-field-bg);
+  border-color: rgb(39 39 42);
+  background: rgb(0 0 0 / 0.3);
 }
 
 .kx-quill-editor:focus-within .ql-container.ql-snow {
   outline: none;
   border-color: transparent;
   box-shadow: 0 0 0 2px #02abb8;
-  background: var(--k-field-bg-focus);
+  background: rgb(255 255 255);
 }
 
 /* vDonate (crowdkas): emerald accent on form controls inside HubAccentScope */
@@ -1161,7 +1164,7 @@
 }
 
 .dark .kx-quill-editor:focus-within .ql-container.ql-snow {
-  background: var(--k-field-bg-focus);
+  background: rgb(24 24 27 / 0.6);
 }
 
 .kx-quill-editor .ql-editor {

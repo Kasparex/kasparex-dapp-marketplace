@@ -560,10 +560,10 @@ export default function GamesDashboardPage() {
                           {item.shortDescription}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
                             {item.gameType}
                           </span>
-                          <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
                             {item.status}
                           </span>
                         </div>
