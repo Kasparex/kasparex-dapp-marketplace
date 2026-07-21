@@ -36,6 +36,7 @@ import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { HubListingCalculationBreakdown } from '@/components/hub/HubListingCalculationBreakdown';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { HUB_DELETE_FEE_KAS_STANDARD } from '@/lib/hub/paidDelete';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { htmlToPlainText } from '@/lib/richText/html';
 import { computeEarnedHubPoints } from '@/lib/rewards/hub-points';
@@ -63,6 +64,8 @@ import {
 
 const BASE_FEE_KAS = 25;
 const PREMIUM_MODULE_FEE_KAS = 10;
+/** Edit / update action fee (same pattern as dApps directory listings). */
+const GAMES_LISTING_ACTION_FEE_KAS = 1;
 const FEATURED_IMAGE_MAX_SIZE_MB = 5;
 
 const GAME_CATEGORY_OPTIONS = [
@@ -453,14 +456,8 @@ export default function GamesDashboardPage() {
                 basePoints={HUB_EARN_POINTS.gamesPromoList}
                 tier={krexTier}
               />
-              <VBlogFeeCard title="Featured module" feeKas={PREMIUM_MODULE_FEE_KAS} tier={krexTier} />
-              <VBlogFeeCard
-                title="Hub points"
-                feeKas={0}
-                basePoints={HUB_EARN_POINTS.gamesPromoList}
-                tier={krexTier}
-                note={`Earn +${earnPoints} pts on publish at your current KREX tier.`}
-              />
+              <VBlogFeeCard title="Edit / Update" feeKas={GAMES_LISTING_ACTION_FEE_KAS} tier={krexTier} />
+              <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS_STANDARD} tier={krexTier} />
             </div>
           ) : null}
 

@@ -64,7 +64,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
           </div>
         ))}
         {quote.modulesFeeKas > 0 ? (
-          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
             <span>Modules subtotal</span>
             <span className="font-semibold tabular-nums text-[color:var(--hub-accent,#02abb8)]">
               {quote.modulesFeeKas} KAS
@@ -72,7 +72,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
           </div>
         ) : null}
         {quote.discountKas > 0 ? (
-          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-800">
             <span>Subtotal</span>
             <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
               {quote.subtotalKas} KAS
@@ -93,7 +93,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+      <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
         <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
         <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
           {quote.totalKas} KAS
@@ -113,7 +113,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
       ) : null}
 
       {hubPoints != null && hubPoints > 0 ? (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 text-xs text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
           <span>Hub points on action</span>
           <span className="inline-flex items-center gap-1.5">
             <HubPointsEarnBadge points={hubPoints} baseSpendKas={quote.subtotalKas} />

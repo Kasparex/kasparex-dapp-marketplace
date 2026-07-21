@@ -9,9 +9,10 @@ import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import { HubAccentScope } from '@/components/hub/HubAccentScope';
 import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
+import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 
 const MAGAZINE_LISTING_FEE_KAS = 50;
-const MAGAZINE_PREMIUM_MODULE_FEE_KAS = 12;
+const MAGAZINE_EDIT_FEE_KAS = 1;
 
 export default function MagazineEditorPage() {
   const { tier: krexTier } = useKREXBalance();
@@ -34,17 +35,13 @@ export default function MagazineEditorPage() {
 
           <div id="magazines-dashboard-pricing" className="mb-8 grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-3">
             <VBlogFeeCard
-              title="Issue publish fee"
+              title="Listing Fee"
               feeKas={MAGAZINE_LISTING_FEE_KAS}
               basePoints={HUB_EARN_POINTS.magazineIssuePublish}
               tier={krexTier}
             />
-            <VBlogFeeCard title="Premium module" feeKas={MAGAZINE_PREMIUM_MODULE_FEE_KAS} tier={krexTier} />
-            <VBlogFeeCard
-              title="Hub points"
-              feeKas={0}
-              note={`Earn +${HUB_EARN_POINTS.magazineIssuePublish} pts on publish`}
-            />
+            <VBlogFeeCard title="Edit / Update" feeKas={MAGAZINE_EDIT_FEE_KAS} tier={krexTier} />
+            <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.magazineIssues} tier={krexTier} />
           </div>
 
           <div id="magazines-dashboard-create" className="scroll-mt-24">

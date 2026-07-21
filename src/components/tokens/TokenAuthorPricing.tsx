@@ -3,26 +3,27 @@
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { useTokenPricing } from '@/hooks/useTokenPricing';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 
 export function TokenPricingCards({ className = '' }: { className?: string }) {
   const { createFee, editFee, tier } = useTokenPricing();
 
   return (
-    <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${className}`.trim()}>
+    <div className={`grid grid-cols-1 gap-4 md:grid-cols-3 ${className}`.trim()}>
       <VBlogFeeCard
-        title="List Token"
+        title="Listing Fee"
         feeKas={createFee}
         basePoints={HUB_EARN_POINTS.tokenListingCreate}
         tier={tier}
         note="Publish your token landing page on Kasparex Tokens."
       />
       <VBlogFeeCard
-        title="Update Page"
+        title="Edit / Update"
         feeKas={editFee}
-        basePoints={HUB_EARN_POINTS.tokenListingUpdate}
         tier={tier}
         note="Refresh on-chain metadata and landing content."
       />
+      <VBlogFeeCard title="Delete Fee" feeKas={HUB_DELETE_FEE_KAS.tokens} tier={tier} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { IconOverview, IconRewards, IconShop, IconComments, IconBoosters } from '@/components/games/icons/TabIcons';
@@ -111,6 +112,23 @@ export function GameContent({ game: baseGame }: { game: Game }) {
 
   return (
     <main className="min-w-0 flex-1 p-4 sm:p-6 lg:px-16 lg:py-12">
+      <div className="mb-6">
+        <Link
+          href="/games"
+          className="group inline-flex items-center gap-2 text-base font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        >
+          <svg
+            className="h-5 w-5 transform transition-transform group-hover:-translate-x-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Games
+        </Link>
+      </div>
       <UnifiedGameLayout
         tabs={tabsWithComments as any}
         currentTab={tab}
