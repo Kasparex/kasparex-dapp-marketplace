@@ -32,6 +32,8 @@ import {
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { KxRichTextEditor } from '@/components/ui/KxRichTextEditor';
+import { KxInFormPremiumRow } from '@/components/ui/KxInFormPremiumRow';
 
 interface EditorBlock {
   id: string;
@@ -41,6 +43,7 @@ interface EditorBlock {
 
 const MAGAZINE_LISTING_FEE_KAS = 50;
 const MAGAZINE_TREASURY = process.env.NEXT_PUBLIC_STORE_TREASURY_ADDRESS || '';
+const MAGAZINE_PREMIUM_MODULE_FEE_KAS = 12;
 
 export function MagazineEditor() {
   const { state: kaspa } = useKaspaWallet();
@@ -62,6 +65,8 @@ export function MagazineEditor() {
   ]);
   const [publishNote, setPublishNote] = useState<string | null>(null);
   const [includedVblogSlugs, setIncludedVblogSlugs] = useState<string[]>([]);
+  const [spotlightEnabled, setSpotlightEnabled] = useState(false);
+  const [collectibleCoverEnabled, setCollectibleCoverEnabled] = useState(false);
 
   const myMagazines = useMemo(() => {
     if (!kaspa.isConnected || !kaspa.address) return [];
@@ -212,6 +217,10 @@ export function MagazineEditor() {
       ],
       authoredBy: payer,
     });
+    const totalFeeKas =
+      MAGAZINE_LISTING_FEE_KAS +
+      (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
+      (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
 
     try {
       const cid = await uploadJSON(payloadJson as unknown as Record<string, unknown>);
@@ -225,7 +234,7 @@ export function MagazineEditor() {
 
       const txRes = await sendKaspaTransaction(kaspa.provider as KaspaWalletProvider, {
         to: MAGAZINE_TREASURY,
-        amount: String(kasToSompis(MAGAZINE_LISTING_FEE_KAS)),
+        amount: String(kasToSompis(totalFeeKas)),
         note: plainNote,
         payload: payloadHex,
       });
@@ -272,9 +281,13 @@ export function MagazineEditor() {
   };
 
   const busyPublish = isUploading;
+  const totalPublishKas =
+    MAGAZINE_LISTING_FEE_KAS +
+    (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
+    (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 bg-white dark:bg-zinc-950 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+    <div className="flex flex-col gap-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 lg:flex-row">
       <div className="flex-1 space-y-6">
         <div className="flex flex-col gap-4 mb-8 pb-4 border-b border-zinc-100 dark:border-zinc-800">
           <input
@@ -309,7 +322,7 @@ export function MagazineEditor() {
                   : 'bg-cyan-500 text-white hover:bg-cyan-600 shadow-cyan-500/20'
               }`}
             >
-              {busyPublish ? 'Publishing…' : `Publish (${MAGAZINE_LISTING_FEE_KAS} KAS + IPFS)`}
+              {busyPublish ? 'Publishing…' : `Publish (${totalPublishKas} KAS + IPFS)`}
             </button>
           </div>
           {publishNote ? (
@@ -349,11 +362,11 @@ export function MagazineEditor() {
                     placeholder="Section title"
                   />
                 ) : (
-                  <textarea
+                  <KxRichTextEditor
                     value={block.content}
-                    onChange={(e) => updateBlock(block.id, e.target.value)}
-                    className="w-full min-h-[100px] bg-transparent border-none focus:ring-0 text-zinc-600 dark:text-zinc-400 resize-none leading-relaxed"
-                    placeholder="Type your content…"
+                    onChange={(next) => updateBlock(block.id, next)}
+                    minRows={6}
+                    placeholder="Type your content..."
                   />
                 )}
               </div>
@@ -425,7 +438,7 @@ export function MagazineEditor() {
           onRemoveSlug={removeVblogSlug}
         />
 
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Pricing & Access</h3>
           <div className="space-y-4">
             <div>
@@ -439,6 +452,35 @@ export function MagazineEditor() {
               />
             </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl border-2 border-dashed border-amber-400/60 bg-gradient-to-b from-amber-50/70 to-white p-5 dark:border-amber-300/40 dark:from-amber-500/[0.08] dark:to-zinc-900">
+          <h3 className="mb-4 text-xs font-black uppercase tracking-widest text-zinc-500">Premium modules</h3>
+          <div className="space-y-3">
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Issue spotlight placement"
+              description="Feature this issue in highlighted discovery placements."
+              priceLabel={`+${MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS`}
+              checked={spotlightEnabled}
+              onToggle={() => setSpotlightEnabled((v) => !v)}
+            />
+            <KxInFormPremiumRow
+              flat
+              accent="hub"
+              title="Collectible cover metadata"
+              description="Enable collectible-ready cover metadata in the issue payload."
+              priceLabel={`+${MAGAZINE_PREMIUM_MODULE_FEE_KAS} KAS`}
+              checked={collectibleCoverEnabled}
+              onToggle={() => setCollectibleCoverEnabled((v) => !v)}
+            />
+          </div>
+          {spotlightEnabled || collectibleCoverEnabled ? (
+            <div className="mt-4 border-t border-zinc-200 pt-3 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+              Premium module details expand inside this container to keep the editor layout stable and consistent.
+            </div>
+          ) : null}
         </div>
 
         <div>
@@ -507,6 +549,22 @@ export function MagazineEditor() {
             {totalShare !== 100 ? (
               <p className="text-[9px] text-red-400 mt-1">Total split must equal 100%.</p>
             ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-4 dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80">
+          <h4 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-500">Calculation breakdown</h4>
+          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <div className="flex justify-between"><span>Base fee</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{MAGAZINE_LISTING_FEE_KAS} KAS</span></div>
+            <div className="flex justify-between"><span>Premium modules</span><span className="font-semibold text-zinc-900 dark:text-zinc-100">{(spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) + (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0)} KAS</span></div>
+          </div>
+          <div className="mt-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+            <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
+            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">
+              {MAGAZINE_LISTING_FEE_KAS +
+                (spotlightEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0) +
+                (collectibleCoverEnabled ? MAGAZINE_PREMIUM_MODULE_FEE_KAS : 0)} KAS
+            </p>
           </div>
         </div>
 

@@ -5,11 +5,11 @@ import { useChainId } from 'wagmi';
 import type { DApp } from '@/lib/dapps';
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress } from '@/lib/dapps/contractResolver';
-import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppInfoModal } from './DAppInfoModal';
 import { DAppEmbed } from './DAppEmbed';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { DAppVoteControls } from '@/components/dapps/DAppVoteControls';
 
 interface DAppPageHeaderActionsProps {
   dapp: DApp;
@@ -33,10 +33,7 @@ export function DAppPageHeaderActions({ dapp, contractAddress, className = '' }:
   );
   const mergedDApp = mergeDAppData(contractData, dapp);
 
-  const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
-  const likeCount = getLikeCount(mergedDApp.id);
-  const isLiked = hasLiked(mergedDApp.id);
   const isFavoriteDapp = isFavorite(mergedDApp.id);
 
   const btnClass =
@@ -77,26 +74,7 @@ export function DAppPageHeaderActions({ dapp, contractAddress, className = '' }:
           </button>
         </Tooltip>
 
-        <Tooltip content={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like this dApp') : 'Connect wallet to like'}>
-          <button
-            type="button"
-            onClick={() => {
-              if (isWalletConnectedForLikes) toggleLike(mergedDApp.id);
-            }}
-            className={`${btnClass} relative ${isLiked ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : ''}`}
-            disabled={!isWalletConnectedForLikes}
-            aria-label="Toggle like"
-          >
-            <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            {likeCount > 0 ? (
-              <span className="absolute -top-1 -right-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 rounded-full px-1">
-                {likeCount}
-              </span>
-            ) : null}
-          </button>
-        </Tooltip>
+        <DAppVoteControls dapp={mergedDApp} compact />
       </div>
 
       {showInfoModal ? (

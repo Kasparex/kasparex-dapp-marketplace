@@ -18,7 +18,7 @@
   /* Kasparex design tokens */
   --k-primary: #02abb8;
   --k-primary-hover: #02919c;
-  --k-control-bg: rgb(255 255 255);
+  --k-control-bg: rgb(244 244 245);
   --k-control-border: rgb(228 228 231);
   --k-radius-control: 0.75rem;
 }
@@ -425,15 +425,15 @@
 
 /* Standardized Form Styling - Kasparex Ecosystem */
 .k-input {
-  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
+  @apply w-full px-4 py-3 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all;
 }
 
 .k-textarea {
-  @apply w-full px-4 py-3 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
+  @apply w-full px-4 py-3 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-base leading-7 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all min-h-[120px] resize-y;
 }
 
 .k-select {
-  @apply w-full px-4 py-2.5 bg-white dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all appearance-none cursor-pointer;
+  @apply w-full px-4 py-2.5 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#02abb8] focus:border-transparent focus:bg-white dark:focus:bg-zinc-900/60 transition-all appearance-none cursor-pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a' %3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;

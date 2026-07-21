@@ -108,10 +108,10 @@ export default function MagazinesDashboardPage() {
             <div className="flex flex-1">
                 <MagazinesSidebar mode="utility" />
 
-                <main className="flex-1 w-full p-4 sm:p-6 lg:p-12 overflow-y-auto bg-white dark:bg-zinc-950">
+                <main className="flex-1 w-full overflow-y-auto bg-zinc-100/60 p-4 sm:p-6 lg:p-12 dark:bg-zinc-950">
                     <MobileDesktopOnlyGate title="Magazines Dashboard" backHref="/magazines" backLabel="Back to Magazines">
                     <div className="w-full">
-                        <div className="mb-12">
+                        <div className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
                             <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
                                 Magazines <span className="text-cyan-500">Dashboard</span>
                             </h1>
@@ -122,11 +122,11 @@ export default function MagazinesDashboardPage() {
                         </div>
 
                         {/* Dashboard Tabs */}
-                        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit mb-12 border border-zinc-200 dark:border-zinc-800">
+                        <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 rounded-2xl w-fit mb-8 border border-zinc-200 dark:border-zinc-800">
                             <button
                                 onClick={() => setActiveTab('reader')}
                                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'reader'
-                                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
                                     : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                                     }`}
                             >
@@ -135,7 +135,7 @@ export default function MagazinesDashboardPage() {
                             <button
                                 onClick={() => setActiveTab('creator')}
                                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'creator'
-                                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
                                     : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                                     }`}
                             >
@@ -144,7 +144,7 @@ export default function MagazinesDashboardPage() {
                             <button
                                 onClick={() => setActiveTab('revenue')}
                                 className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'revenue'
-                                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
                                     : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                                     }`}
                             >
@@ -153,7 +153,7 @@ export default function MagazinesDashboardPage() {
                         </div>
 
                         {/* Rewards Status Card */}
-                        <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-12 border border-zinc-800 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-8 border border-zinc-800 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div className="flex-1">
@@ -178,6 +178,21 @@ export default function MagazinesDashboardPage() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Issue fee</div>
+                            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">50 KAS</div>
+                          </div>
+                          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Premium modules</div>
+                            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">+12 KAS each</div>
+                          </div>
+                          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 dark:border-cyan-900/40 dark:bg-cyan-950/25">
+                            <div className="text-[10px] font-black text-cyan-800 uppercase tracking-widest mb-1">Hub points</div>
+                            <div className="text-2xl font-black text-cyan-900 dark:text-cyan-100">+75 pts</div>
+                          </div>
                         </div>
 
                         {isLoading ? (

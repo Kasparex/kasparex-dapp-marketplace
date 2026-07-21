@@ -6,10 +6,10 @@ import { DApp, getDAppChainIds, getDAppNetworkType, isDAppCompatibleWithChain } 
 import { useDAppFromContract, mergeDAppData } from '@/lib/dapps/contractData';
 import { getDAppContractAddress, getDAppDeployedChainIds } from '@/lib/dapps/contractResolver';
 import { DAppInfoModal } from './DAppInfoModal';
-import { useLikes } from '@/hooks/useLikes';
 import { useFavorites } from '@/hooks/useFavorites';
 import { DAppEmbed } from './DAppEmbed';
 import { getChainById } from '@/lib/wagmi';
+import { DAppVoteControls } from '@/components/dapps/DAppVoteControls';
 
 interface DAppWidgetHeaderProps {
   dapp: DApp;
@@ -53,10 +53,7 @@ export function DAppWidgetHeader({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
 
-  const { toggleLike, getLikeCount, hasLiked, isWalletConnected: isWalletConnectedForLikes } = useLikes();
   const { toggleFavorite, isFavorite, isWalletConnected: isWalletConnectedForFavorites } = useFavorites();
-  const likeCount = getLikeCount(mergedDApp.id);
-  const isLiked = hasLiked(mergedDApp.id);
   const isFavoriteDapp = isFavorite(mergedDApp.id);
 
   const handleIconClick = (e: React.MouseEvent, action: () => void) => {
@@ -287,30 +284,7 @@ export function DAppWidgetHeader({
             ) : null}
 
             {!hideHeart ? (
-              <button
-                onClick={(e) => handleIconClick(e, () => {
-                  if (isWalletConnectedForLikes) toggleLike(mergedDApp.id);
-                })}
-                className={`p-1.5 rounded-lg transition-colors relative ${
-                  isLiked
-                    ? 'text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20'
-                    : isWalletConnectedForLikes
-                      ? 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      : 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
-                }`}
-                title={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                aria-label={isWalletConnectedForLikes ? (isLiked ? 'Unlike' : 'Like') : 'Connect wallet to like'}
-                disabled={!isWalletConnectedForLikes}
-              >
-                <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {likeCount > 0 && (
-                  <span className="absolute -top-1 -right-1 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 rounded-full px-1">
-                    {likeCount}
-                  </span>
-                )}
-              </button>
+              <DAppVoteControls dapp={mergedDApp} compact />
             ) : null}
           </div>
         </div>

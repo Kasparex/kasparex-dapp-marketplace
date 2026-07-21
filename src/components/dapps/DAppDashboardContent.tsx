@@ -284,17 +284,13 @@ export function DAppDashboardContent() {
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
 
-      <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-8 flex-wrap">
+      <div className="flex items-center gap-1 p-1 k-control-group w-fit mb-8 flex-wrap rounded-2xl">
         {(Object.keys(TAB_LABELS) as DAppDashboardTab[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => goTab(tab)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              activeTab === tab
-                ? 'bg-zinc-100 dark:bg-zinc-800 text-[#02abb8] shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-            }`}
+            className={`k-tab-btn rounded-xl ${activeTab === tab ? 'k-tab-btn-active' : ''}`}
           >
             {TAB_LABELS[tab]}
           </button>
@@ -308,7 +304,7 @@ export function DAppDashboardContent() {
       ) : null}
 
       {activeTab === 'create' ? (
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+        <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
           {state.isConnected ? (
             editId && !editListing ? (
               <p className="text-center text-zinc-500 py-12">Listing not found or you do not have access.</p>

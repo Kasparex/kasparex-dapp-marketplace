@@ -73,7 +73,7 @@ export function GamesSidebar({
   onSearchChange,
   onResetFilters,
   showCategories = true,
-  backLink = { href: '/hub', label: 'Go back to Hub' },
+  backLink = { href: '/hub', label: 'Back to Hub' },
 }: GamesSidebarProps) {
   const handleGameTypeToggle = (type: GameType) => {
     const next = selectedGameTypes.includes(type)
@@ -143,9 +143,12 @@ export function GamesSidebar({
 
   return (
     <UnifiedSidebar storageKeyPrefix="games" header={header}>
-        <div className="p-4 pt-3">
+        <div className="space-y-2 p-4 pt-3">
+          <Link href="/games/dashboard" className="w-full k-control-btn justify-center">
+            Games Dashboard
+          </Link>
           <Link href="/games/connections" className="w-full k-control-btn justify-center">
-            Map
+            Games Map
           </Link>
         </div>
 
