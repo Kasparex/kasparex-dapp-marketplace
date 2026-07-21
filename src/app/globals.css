@@ -667,10 +667,23 @@
   color: var(--hub-accent-light, var(--hub-accent));
 }
 
-/* Kasparex Games tab strip legacy class (prefer scoped --hub-accent via HubAccentScope) */
+/* Kasparex Games tab strip: hover + active use HubAccentScope --hub-accent */
+.k-games-tab-btn:hover {
+  background-color: var(--hub-accent-muted) !important;
+  color: var(--hub-accent) !important;
+}
+
+.dark .k-games-tab-btn:hover {
+  color: var(--hub-accent-light, var(--hub-accent)) !important;
+}
+
 .k-games-tab-btn-active {
-  background-color: var(--hub-accent-muted);
-  color: var(--hub-accent);
+  background-color: var(--hub-accent-muted) !important;
+  color: var(--hub-accent) !important;
+}
+
+.dark .k-games-tab-btn-active {
+  color: var(--hub-accent-light, var(--hub-accent)) !important;
 }
 
 .k-tab-btn-icon {

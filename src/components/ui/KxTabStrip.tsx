@@ -17,7 +17,7 @@ export function kxTabBtnClass(active: boolean, iconOnly = false) {
 }
 
 export function kxGamesTabBtnClass(active: boolean) {
-  return `k-tab-btn shrink-0${active ? ' k-games-tab-btn-active' : ''}`;
+  return `k-tab-btn k-games-tab-btn shrink-0${active ? ' k-games-tab-btn-active' : ''}`;
 }
 
 export function KxTabStrip<T extends string>({

@@ -19,7 +19,7 @@ type Props = {
 };
 
 /**
- * Matches Tokens page stack: header (own mb-10) then equal gap-6 between tabs and content.
+ * Equal gap-6 stack: header → tabs → content (no extra header margin).
  */
 export function GamesWithSidebarLayout({
   tabs,
@@ -35,10 +35,10 @@ export function GamesWithSidebarLayout({
   return (
     <HubAccentScope projectId="kasparex-games" className="w-full min-w-0">
       <GamesLayoutProvider rightPanelOpen={rightOpen}>
-        {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
-
         <div className="flex w-full min-w-0 flex-col gap-6">
-          <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+          {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
+
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
             <div className="min-w-0 flex-1">
               <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
             </div>
@@ -48,7 +48,9 @@ export function GamesWithSidebarLayout({
               onToggle={() => setRightOpen(!rightOpen)}
             />
           </div>
+
           {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
+
           <HubPageRightPanelGrid
             panelId="kasparex-games-side-panel"
             panelTitle="Game panel"

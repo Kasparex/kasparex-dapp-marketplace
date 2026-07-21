@@ -26,6 +26,7 @@ export type HubBenefitsScope =
   | 'hub'
   | 'vblog'
   | 'games'
+  | 'gamesListing'
   | 'magazines'
   | 'chronicles'
   | 'dapps'
@@ -68,16 +69,25 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     compactFeeNoun: 'vBlog fees',
   },
   games: {
-    panelTitle: 'Creator perks',
+    panelTitle: 'Benefits',
+    headline: 'Hold KREX. Pay less in Games.',
+    feeNoun: 'Games fees',
+    earnVerb: 'Play and redeem earn',
+    earnBase: HUB_EARN_POINTS.gamesPromoList,
+    compactFeeNoun: 'Games fees',
+    extraBullets: ['Deck balances and redeemable points stack with your KREX tier'],
+  },
+  gamesListing: {
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. Pay less on Games listings.',
     feeNoun: 'Games listing fees',
     earnVerb: 'Listing earns',
     earnBase: HUB_EARN_POINTS.gamesPromoList,
     compactFeeNoun: 'Games listing fees',
-    extraBullets: ['Deck and redeemable points stack with your KREX tier'],
+    extraBullets: ['Featured placement modules also receive your KREX tier discount'],
   },
   magazines: {
-    panelTitle: 'Creator perks',
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. Publish Magazines for less.',
     feeNoun: 'Magazine issue fees',
     earnVerb: 'Publishing earns',
@@ -85,7 +95,7 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     compactFeeNoun: 'Magazine fees',
   },
   chronicles: {
-    panelTitle: 'Creator perks',
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. Submit Chronicles lore for less.',
     feeNoun: 'Chronicles submission fees',
     earnVerb: 'Submission earns',
@@ -93,7 +103,7 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     compactFeeNoun: 'Chronicles fees',
   },
   dapps: {
-    panelTitle: 'Creator perks',
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. List dApps for less.',
     feeNoun: 'dApp directory listing fees',
     earnVerb: 'Listing earns',
@@ -101,7 +111,7 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     compactFeeNoun: 'dApp listing fees',
   },
   ads: {
-    panelTitle: 'Advertiser perks',
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. Place ads for less.',
     feeNoun: 'Hub ad placement fees',
     earnVerb: 'Placement earns',
@@ -109,7 +119,7 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     compactFeeNoun: 'Ad fees',
   },
   donations: {
-    panelTitle: 'Creator perks',
+    panelTitle: 'Benefits',
     headline: 'Hold KREX. Unlock modules. Earn more.',
     feeNoun: 'CrowdKAS module fees',
     earnVerb: 'Campaign create earns',
@@ -210,6 +220,11 @@ export function HubBenefitsPanel({
   const tierLabel = KREX_TIERS[tier].label;
   const tooltipContent = useMemo(() => TIER_TOOLTIP, []);
   const buyKrexButtonClass = 'hub-cta-btn shrink-0 k-control-btn !h-auto';
+  const accentDot = 'text-[color:var(--hub-accent,#10b981)]';
+  const scopedStatusText =
+    discountPercent > 0
+      ? `${discountPercent}% off ${copy.feeNoun} at ${tierLabel}.`
+      : ui.statusText;
 
   if (variant === 'compact') {
     const feePerk =
@@ -264,7 +279,7 @@ export function HubBenefitsPanel({
       <Tooltip content={tooltipContent}>
         <aside
           className={`w-full min-w-0 max-w-full overflow-hidden rounded-xl border p-3.5 shadow-lg cursor-help ${ui.panel} ${className}`.trim()}
-          aria-label="Creator perks. Hover for KREX tier details."
+          aria-label="Benefits. Hover for KREX tier details."
         >
           <DAppSectionHeader
             title={copy.panelTitle}
@@ -278,23 +293,24 @@ export function HubBenefitsPanel({
           <h2 className="mb-2.5 text-sm font-bold leading-snug text-zinc-900 dark:text-zinc-100">{copy.headline}</h2>
           <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
             <li>
-              <span className={ui.accent}>•</span>{' '}
+              <span className={accentDot}>•</span>{' '}
               {discountPercent > 0
                 ? `${discountPercent}% off ${copy.feeNoun} (${tierLabel})`
                 : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off ${copy.feeNoun}`}
             </li>
             <li>
-              <span className={ui.accent}>•</span> {copy.earnVerb} +{publishPts} Hub Points at your tier
+              <span className={accentDot}>•</span> {copy.earnVerb} +{publishPts} Hub Points at your tier
               {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
             </li>
             {(copy.extraBullets ?? []).map((line) => (
               <li key={line}>
-                <span className={ui.accent}>•</span> {line}
+                <span className={accentDot}>•</span> {line}
               </li>
             ))}
           </ul>
           <div className={`mt-2 rounded-lg border px-2.5 py-2 text-xs leading-snug ${ui.status}`}>
-            <span className="font-semibold">{formatKrexMillions(displayBalance)} KREX held.</span> {ui.statusText}
+            <span className="font-semibold">{formatKrexMillions(displayBalance)} KREX held.</span>{' '}
+            {scopedStatusText}
           </div>
           {!hideBuyButton ? (
             <button

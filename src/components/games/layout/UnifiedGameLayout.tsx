@@ -46,16 +46,15 @@ export function UnifiedGameLayout({
 }: UnifiedGameLayoutProps) {
   const haloGame = {
     name: game.name,
-    description: game.description ?? '',
     developer: game.developer ?? 'Kasparex',
     status: game.status ?? ('active' as const),
     difficulty: game.difficulty ?? ('medium' as const),
     gameType: game.gameType ?? ('arcade' as const),
     featuredImage: game.featuredImage,
     image: game.image,
-    entryCostKAS: game.entryCostKAS ?? 0,
     version: game.version,
     publisher: game.publisher,
+    authorAddress: game.authorAddress,
     categories: game.categories,
     tags: game.tags,
   };

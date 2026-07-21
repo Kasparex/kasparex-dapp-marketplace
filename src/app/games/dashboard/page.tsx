@@ -350,7 +350,7 @@ export default function GamesDashboardPage() {
               </div>
 
               <div className={KX_FORM_STICKY_RAIL}>
-                <HubBenefitsPanel variant="panel" scope="games" />
+                <HubBenefitsPanel variant="panel" scope="gamesListing" />
                 <aside className={KX_CALCULATION_ASIDE}>
                   <HubListingCalculationBreakdown
                     quote={formQuote}
