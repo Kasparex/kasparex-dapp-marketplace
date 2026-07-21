@@ -604,7 +604,7 @@ export function MagazineEditor() {
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
-        <HubBenefitsPanel variant="panel" />
+        <HubBenefitsPanel variant="panel" scope="magazines" />
         <aside className={KX_CALCULATION_ASIDE}>
           <HubListingCalculationBreakdown
             quote={formQuote}
@@ -620,7 +620,7 @@ export function MagazineEditor() {
           <button
             type="submit"
             disabled={busyPublish || totalShare !== 100}
-            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+            className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busyPublish ? 'Publishing...' : `Publish Issue (${formQuote.totalKas} KAS)`}
           </button>

@@ -149,7 +149,7 @@ export default function MagazinesPage() {
                             countLabel="magazine"
                             countLoading={isLoading}
                             loadingText="Loading magazines..."
-                            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+                            benefits={<HubBenefitsPanel variant="compact" scope="magazines" className="w-full" />}
                         />
 
                         {/* Controls Area - FilterBar (dApps pattern) */}

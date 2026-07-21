@@ -479,7 +479,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
-        <HubBenefitsPanel variant="panel" />
+        <HubBenefitsPanel variant="panel" scope="chronicles" />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Card preview</p>
@@ -528,7 +528,7 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+            className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isProcessing ? 'Processing...' : isUploading ? 'Uploading...' : 'Create Lore Entry'}
           </button>

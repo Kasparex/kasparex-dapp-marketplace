@@ -42,7 +42,7 @@ export default function KasparexAiPage() {
             title="Available AI agents"
             count={filteredAgents.length}
             countLabel="agent"
-            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            benefits={<HubBenefitsPanel variant="compact" scope="ai" className="w-full" />}
           />
 
           <div className="mb-6 flex flex-col gap-4">

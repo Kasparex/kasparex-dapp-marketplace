@@ -12,6 +12,8 @@ import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useAccount } from 'wagmi';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 
 function VBlogDashboardPageContent() {
   const { articles, getAuthorArticles } = useVBlog();
@@ -40,11 +42,11 @@ function VBlogDashboardPageContent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+      <main className="min-h-[calc(100vh-4rem)] flex-1">
+        <HubAccentScope projectId="kasparex-vblog" className="flex h-full flex-col lg:flex-row">
           <VBlogSidebar
             articles={articles}
             selectedCategory={selectedCategory}
@@ -56,25 +58,14 @@ function VBlogDashboardPageContent() {
             dashboardAuthorArticles={authorArticles}
           />
 
-          <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
-            <div className="max-w-6xl mx-auto">
-              <div className="mb-8">
-                <p className="mb-4 text-xs font-black uppercase tracking-widest text-[#02abb8]">
-                  Author dashboard
-                </p>
-                <div className="flex items-center gap-3 mb-2">
-                  <span
-                    className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)]"
-                    aria-hidden="true"
-                  />
-                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
-                    Creator <span className="text-[#02abb8]">Center</span>
-                  </h1>
-                </div>
-                <p className="kx-body max-w-3xl">
-                  Manage your decentralized vBlog publications
-                </p>
-              </div>
+          <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 text-base sm:p-8 sm:text-lg lg:p-12 dark:border-zinc-800">
+            <div className="mx-auto max-w-6xl">
+              <HubDashboardPageHeader
+                kicker="Author dashboard"
+                title="Creator"
+                titleAccent="Center"
+                excerpt="Manage your decentralized vBlog publications"
+              />
 
               <MobileDesktopOnlyGate title="Creator Center" backHref="/vblog" backLabel="Back to vBlog">
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
@@ -89,7 +80,7 @@ function VBlogDashboardPageContent() {
               </MobileDesktopOnlyGate>
             </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

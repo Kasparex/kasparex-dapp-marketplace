@@ -174,7 +174,7 @@ function GamesContent() {
               title="Available games"
               count={filteredGames.length}
               countLabel="game"
-              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+              benefits={<HubBenefitsPanel variant="compact" scope="games" className="w-full" />}
             />
 
             <div className="mb-6 flex flex-col gap-4">

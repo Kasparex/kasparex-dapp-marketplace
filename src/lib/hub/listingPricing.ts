@@ -34,6 +34,7 @@ export type HubListingPriceQuote = {
   modulesFeeKas: number;
   moduleLines: HubListingModuleLine[];
   subtotalKas: number;
+  discountPercent: number;
   discountKas: number;
   totalKas: number;
   contentHash: string;
@@ -82,6 +83,7 @@ export function estimateHubListingQuote(args: {
       : Math.max(0.05, chunkCount * 0.01);
 
   const subtotalKas = baseFeeKas + sizeFeeKas + modulesFeeKas + networkFeeBufferKas;
+  const discountPercent = Math.min(Math.max(args.discountPercent ?? 0, 0), 90);
   const totalKas = round2(subtotalKas * (1 - discount));
   const discountKas = round2(subtotalKas - totalKas);
 
@@ -95,6 +97,7 @@ export function estimateHubListingQuote(args: {
     modulesFeeKas: round2(modulesFeeKas),
     moduleLines,
     subtotalKas: round2(subtotalKas),
+    discountPercent,
     discountKas,
     totalKas,
     contentHash: fnv1aHex(payload),

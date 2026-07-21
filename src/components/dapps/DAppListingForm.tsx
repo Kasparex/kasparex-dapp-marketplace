@@ -885,7 +885,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
       </div>
 
       <div className={KX_FORM_STICKY_RAIL}>
-        <HubBenefitsPanel variant="panel" />
+        <HubBenefitsPanel variant="panel" scope="dapps" />
         <DAppListingPreview draft={previewDraft} submitterAddress={state.address ?? 'kaspa:preview'} compact />
 
         <aside className={KX_CALCULATION_ASIDE}>
@@ -916,7 +916,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+            className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isUploading ? 'Uploading...' : isProcessing ? 'Processing...' : isEdit ? 'Save changes' : 'Create Listing'}
           </button>

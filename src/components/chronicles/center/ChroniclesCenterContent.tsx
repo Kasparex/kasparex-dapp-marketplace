@@ -32,6 +32,7 @@ import {
   KX_DASHBOARD_TAB_BTN,
   KX_DASHBOARD_TAB_BTN_ACTIVE,
 } from '@/lib/hub/shellTokens';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -217,14 +218,15 @@ export function ChroniclesCenterContent() {
       }}
     >
       <MobileDesktopOnlyGate title="Chronicles Center" backHref="/chronicles" backLabel="Back to Chronicles">
-      <div className="mb-10">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">Chronicles dashboard</p>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-          Chronicles{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
-        </h1>
-        {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
-      </div>
+      <HubDashboardPageHeader
+        kicker="Chronicles dashboard"
+        title="Chronicles"
+        titleAccent="Center"
+        excerpt="Submit community lore with modular Hub pricing, KREX discounts, and Hub Points."
+        meta={
+          state.address ? <p className="font-mono text-sm text-zinc-500">{state.address}</p> : null
+        }
+      />
 
       <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />
 

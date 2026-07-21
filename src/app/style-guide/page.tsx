@@ -1663,7 +1663,7 @@ export default function StyleGuidePage() {
               title="Design system reference"
               count={categories.length}
               countLabel="component category"
-              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+              benefits={<HubBenefitsPanel variant="compact" scope="hub" className="w-full" />}
             />
             <p className="kx-body -mt-4 mb-8 max-w-3xl">
               Complete reference guide for all UI components and styling standards used across Kasparex Hub.

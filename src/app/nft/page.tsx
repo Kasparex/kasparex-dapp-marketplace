@@ -197,7 +197,7 @@ function NFTPageContent() {
             count={0}
             countLabel="collection"
             showTilt
-            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            benefits={<HubBenefitsPanel variant="compact" scope="nft" className="w-full" />}
           />
           <p className="kx-body -mt-4 mb-6">NFTs held by your connected Kaspa address.</p>
           <UserNFTsTab />
@@ -209,7 +209,7 @@ function NFTPageContent() {
             title={heading.title}
             count={resultCount}
             countLabel="item"
-            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            benefits={<HubBenefitsPanel variant="compact" scope="nft" className="w-full" />}
           />
           <p className="kx-body max-w-3xl -mt-4 mb-6">{heading.description}</p>
 

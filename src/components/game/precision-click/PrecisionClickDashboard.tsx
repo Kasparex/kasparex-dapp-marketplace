@@ -305,7 +305,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       }
       sidebar={
         <div className="flex flex-col gap-4">
-        <HubBenefitsPanel variant="panel" className="w-full" />
+        <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
 
         <GameInteractionsPanel interactions={connections} />
         <GamePurchasesPanel>

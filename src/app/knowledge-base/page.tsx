@@ -36,7 +36,7 @@ export default function KnowledgeBasePage() {
         title="Available articles"
         count={filteredArticles.length}
         countLabel="article"
-        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        benefits={<HubBenefitsPanel variant="compact" scope="hub" className="w-full" />}
       />
       <p className="kx-body -mt-4 mb-6 max-w-3xl">Everything you need to know about the Kasparex ecosystem.</p>
 

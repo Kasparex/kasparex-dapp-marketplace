@@ -81,7 +81,7 @@ export default function KasparexAPIPage() {
             title="API documentation"
             count={7}
             countLabel="section"
-            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            benefits={<HubBenefitsPanel variant="compact" scope="dapps" className="w-full" />}
           />
 
           {/* What is the API */}

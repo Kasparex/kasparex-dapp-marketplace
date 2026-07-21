@@ -5,6 +5,7 @@ import { GameTabs } from './GameTabs';
 import { useGamesRightPanelOpen } from '@/hooks/useGamesRightPanelOpen';
 import { HubPageRightPanelGrid, HubPageRightPanelToggle } from '@/components/hub/HubPageRightPanel';
 import { GamesLayoutProvider } from './GamesLayoutContext';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
 
 type Props = {
   tabs: readonly any[];
@@ -32,35 +33,37 @@ export function GamesWithSidebarLayout({
   const [rightOpen, setRightOpen] = useGamesRightPanelOpen(true);
 
   return (
-    <GamesLayoutProvider rightPanelOpen={rightOpen}>
-      {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
+    <HubAccentScope projectId="kasparex-games" className="w-full min-w-0">
+      <GamesLayoutProvider rightPanelOpen={rightOpen}>
+        {haloHeader ? <div className="w-full min-w-0">{haloHeader}</div> : null}
 
-      <div className="flex w-full min-w-0 flex-col gap-6">
-        <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
-          <div className="min-w-0 flex-1">
-            <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
+        <div className="flex w-full min-w-0 flex-col gap-6">
+          <div className="mb-2 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+            <div className="min-w-0 flex-1">
+              <GameTabs tabs={tabs as any} value={currentTab} onChange={onTabChange} />
+            </div>
+            <HubPageRightPanelToggle
+              panelId="kasparex-games-side-panel"
+              rightOpen={rightOpen}
+              onToggle={() => setRightOpen(!rightOpen)}
+            />
           </div>
-          <HubPageRightPanelToggle
+          {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
+          <HubPageRightPanelGrid
             panelId="kasparex-games-side-panel"
+            panelTitle="Game panel"
             rightOpen={rightOpen}
             onToggle={() => setRightOpen(!rightOpen)}
-          />
+            sidebar={sidebar}
+            mainColClass="lg:col-span-8"
+            asideColClass="lg:col-span-4"
+            gridClassName="grid grid-cols-1 gap-8 xl:gap-10"
+            hideToggle
+          >
+            {main}
+          </HubPageRightPanelGrid>
         </div>
-        {tabAlerts ? <div className="w-full min-w-0">{tabAlerts}</div> : null}
-        <HubPageRightPanelGrid
-          panelId="kasparex-games-side-panel"
-          panelTitle="Game panel"
-          rightOpen={rightOpen}
-          onToggle={() => setRightOpen(!rightOpen)}
-          sidebar={sidebar}
-          mainColClass="lg:col-span-8"
-          asideColClass="lg:col-span-4"
-          gridClassName="grid grid-cols-1 gap-8 xl:gap-10"
-          hideToggle
-        >
-          {main}
-        </HubPageRightPanelGrid>
-      </div>
-    </GamesLayoutProvider>
+      </GamesLayoutProvider>
+    </HubAccentScope>
   );
 }

@@ -24,7 +24,7 @@ import { FilterBar } from '@/components/FilterBar';
 import { DAppListingFiltersBar } from '@/components/dapps/DAppListingFilters';
 import { getDAppListingCurrencies, dAppMatchesCurrencies } from '@/lib/hub/listingCurrencies';
 import { AdSlider } from '@/components/ads/AdSlider';
-import { VBlogDashboardBenefitsPanel } from '@/components/vblog/VBlogDashboardBenefitsPanel';
+import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
 import { HUB_HALO_DESKTOP_ONLY, HUB_HALO_MOBILE_FALLBACK } from '@/lib/hub/haloHeaders';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
@@ -243,7 +243,7 @@ export function DAppsHomeContent() {
               title="Available dApps"
               count={filteredDApps.length}
               countLabel="dApp"
-              benefits={<VBlogDashboardBenefitsPanel variant="compact" className="w-full" />}
+              benefits={<HubBenefitsPanel variant="compact" scope="dapps" className="w-full" />}
             />
 
             <div className="flex flex-col gap-4 mb-6">

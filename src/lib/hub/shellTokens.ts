@@ -24,10 +24,10 @@ export const KX_DASHBOARD_TAB_BTN =
   'px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300';
 
 export const KX_DASHBOARD_TAB_BTN_ACTIVE =
-  'bg-white dark:bg-zinc-800 text-[#02abb8] dark:text-[#66dfe8] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700';
+  'bg-white dark:bg-zinc-800 text-[color:var(--hub-accent,#02abb8)] dark:text-[color:var(--hub-accent-light,var(--hub-accent,#66dfe8))] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700';
 
 export const KX_CALCULATION_ASIDE =
-  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_rgba(2,171,184,0.35)] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
+  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_var(--hub-accent-shadow,rgba(2,171,184,0.35))] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
 
 /** Sticky form right rail: Benefits + calculation (matches vBlog Create Article). */
 export const KX_FORM_STICKY_RAIL = 'flex flex-col gap-4 xl:sticky xl:top-6';

@@ -12,6 +12,8 @@ import { HubFlowProgress } from '@/components/hub/HubFlowProgress';
 import { getHubFlowPreset } from '@/lib/hub/hubFlowProgress';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
@@ -40,6 +42,7 @@ import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 import { htmlToPlainText } from '@/lib/richText/html';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
 
 type GamePromoListing = {
   id: string;
@@ -183,7 +186,7 @@ export default function GamesDashboardPage() {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
-      <main className="flex flex-1 flex-col lg:flex-row">
+      <HubAccentScope projectId="kasparex-games" className="flex flex-1 flex-col lg:flex-row">
         <div className="hidden lg:block">
           <GamesSidebar
             selectedGameTypes={[]}
@@ -203,12 +206,18 @@ export default function GamesDashboardPage() {
           />
         </div>
 
-        <section className="flex-1 p-4 sm:p-6 lg:p-10">
-          <div className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="text-xs font-black uppercase tracking-widest text-emerald-600">Games dashboard</p>
-            <h1 className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">Kasparex Games Creator Center</h1>
-            {state.address ? <p className="mt-2 text-xs font-mono text-zinc-500">{state.address}</p> : null}
-          </div>
+        <section className="flex-1 border-l border-zinc-200 p-4 sm:p-6 lg:p-10 dark:border-zinc-800">
+          <HubDashboardPageHeader
+            kicker="Games dashboard"
+            title="Games"
+            titleAccent="Creator Center"
+            excerpt="List and promote game projects with modular Hub pricing, KREX discounts, and Hub Points."
+            meta={
+              state.address ? (
+                <p className="font-mono text-xs text-zinc-500">{state.address}</p>
+              ) : null
+            }
+          />
 
           <div className={`${KX_DASHBOARD_TAB_SHELL} mb-6 flex-wrap`}>
             {(['overview', 'listings', 'create'] as const).map((item) => (
@@ -241,11 +250,11 @@ export default function GamesDashboardPage() {
                 <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Published promotions</p>
                 <p className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">{listings.length}</p>
               </div>
-              <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-                <p className="text-xs font-black uppercase tracking-widest text-cyan-700 dark:text-cyan-300">Hub points</p>
-                <p className="mt-2 text-3xl font-black text-cyan-900 dark:text-cyan-100">
-                  +{HUB_EARN_POINTS.gamesPromoList} pts
-                </p>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">Hub points on publish</p>
+                <div className="mt-2">
+                  <HubPointsEarnBadge points={HUB_EARN_POINTS.gamesPromoList} size="md" showMinSpendTooltip={false} />
+                </div>
               </div>
             </div>
           ) : null}
@@ -341,7 +350,7 @@ export default function GamesDashboardPage() {
               </div>
 
               <div className={KX_FORM_STICKY_RAIL}>
-                <HubBenefitsPanel variant="panel" />
+                <HubBenefitsPanel variant="panel" scope="games" />
                 <aside className={KX_CALCULATION_ASIDE}>
                   <HubListingCalculationBreakdown
                     quote={formQuote}
@@ -371,7 +380,7 @@ export default function GamesDashboardPage() {
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={!canSubmit}
-                    className="w-full k-control-btn !border-[#02abb8] !bg-[#02abb8] !text-white hover:!bg-[#028a94] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isProcessing ? 'Processing...' : 'Publish Game Promotion'}
                   </button>
@@ -381,7 +390,7 @@ export default function GamesDashboardPage() {
             </div>
           ) : null}
         </section>
-      </main>
+      </HubAccentScope>
       <Footer />
     </div>
   );

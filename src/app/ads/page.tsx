@@ -181,7 +181,7 @@ function AdsListingPageContent() {
           title="Active campaigns"
           count={filteredAds.length}
           countLabel="campaign"
-          benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          benefits={<HubBenefitsPanel variant="compact" scope="ads" className="w-full" />}
         />
 
         <div className="flex flex-col gap-4 mb-6">

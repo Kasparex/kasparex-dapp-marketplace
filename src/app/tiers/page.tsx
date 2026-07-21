@@ -33,7 +33,7 @@ export default function TiersPage() {
         title="Hub pts and tier perks"
         count={4}
         countLabel="reward category"
-        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        benefits={<HubBenefitsPanel variant="compact" scope="rewards" className="w-full" />}
       />
       <RewardsDashboardContent filters={filters} searchQuery={searchQuery} />
     </HubDocPageShell>

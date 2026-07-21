@@ -235,7 +235,7 @@ export default function DonationsListingPage() {
               countLabel="campaign"
               countLoading={isLoading}
               loadingText="Loading campaigns..."
-              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+              benefits={<HubBenefitsPanel variant="compact" scope="donations" className="w-full" />}
             />
             <div className="flex flex-col gap-4 mb-6">
               <FilterBar

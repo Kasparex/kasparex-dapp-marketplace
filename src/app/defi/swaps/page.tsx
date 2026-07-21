@@ -28,7 +28,7 @@ function SwapsContent() {
           title="Available DEX integrations"
           count={SUPPORTED_DEXS.length}
           countLabel="integration"
-          benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+          benefits={<HubBenefitsPanel variant="compact" scope="defi" className="w-full" />}
         />
 
         <KxTabStrip

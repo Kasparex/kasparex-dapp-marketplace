@@ -27,7 +27,7 @@ export function StatsPageContent() {
         title="Available metrics"
         count={5}
         countLabel="overview panel"
-        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        benefits={<HubBenefitsPanel variant="compact" scope="stats" className="w-full" />}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

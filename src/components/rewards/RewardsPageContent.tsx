@@ -553,7 +553,7 @@ export function RewardsPageContent() {
             title="Available rewards"
             count={filtered.length}
             countLabel="offer"
-            benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+            benefits={<HubBenefitsPanel variant="compact" scope="rewards" className="w-full" />}
           />
           <div id="rewards-catalog" className="scroll-mt-24 space-y-4">
             <div id="rewards-filters" className="scroll-mt-24 flex flex-col gap-4 mb-2">

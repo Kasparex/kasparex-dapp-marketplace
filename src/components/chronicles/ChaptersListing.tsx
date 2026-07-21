@@ -104,7 +104,7 @@ export function ChaptersListing({
         title={title === 'Chapters' ? 'Available chapters' : title}
         count={filtered.length}
         countLabel={countLabel}
-        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        benefits={<HubBenefitsPanel variant="compact" scope="chronicles" className="w-full" />}
       />
 
       <div className="flex flex-col gap-4 mb-6">

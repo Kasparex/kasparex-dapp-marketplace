@@ -29,7 +29,7 @@ export default function RewardsCalculatorPage() {
         title="Reward simulator"
         count={1}
         countLabel="calculator"
-        benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+        benefits={<HubBenefitsPanel variant="compact" scope="rewards" className="w-full" />}
       />
       <div id="reward-calculator" className="scroll-mt-24">
         <RewardCalculator />

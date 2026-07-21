@@ -17,6 +17,15 @@ import { TierBadge } from '@/components/rewards/TierBadge';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { MobileDesktopOnlyGate } from '@/components/hub/MobileDesktopOnlyGate';
 import { MAGAZINES_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import {
+  KX_DASHBOARD_TAB_SHELL,
+  KX_DASHBOARD_TAB_BTN,
+  KX_DASHBOARD_TAB_BTN_ACTIVE,
+} from '@/lib/hub/shellTokens';
 
 export default function MagazinesDashboardPage() {
     const { state: walletState } = useKaspaWallet();
@@ -102,51 +111,49 @@ export default function MagazinesDashboardPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
             <Header />
 
-            <div className="flex flex-1">
+            <HubAccentScope projectId="kasparex-magazines" className="flex flex-1">
                 <MagazinesSidebar mode="utility" />
 
-                <main className="flex-1 w-full overflow-y-auto bg-zinc-100/60 p-4 sm:p-6 lg:p-12 dark:bg-zinc-950">
+                <main className="w-full flex-1 overflow-y-auto border-l border-zinc-200 bg-zinc-100/60 p-4 sm:p-6 lg:p-12 dark:border-zinc-800 dark:bg-zinc-950">
                     <MobileDesktopOnlyGate title="Magazines Dashboard" backHref="/magazines" backLabel="Back to Magazines">
                     <div className="w-full">
-                        <div className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h1 className="text-4xl font-black text-zinc-900 dark:text-zinc-100 mb-2">
-                                Magazines <span className="text-cyan-500">Dashboard</span>
-                            </h1>
-                            <div className="flex items-center gap-2 text-zinc-500 font-mono text-xs">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                {walletState.address}
-                            </div>
-                        </div>
+                        <HubDashboardPageHeader
+                            kicker="Magazines dashboard"
+                            title="Magazines"
+                            titleAccent="Creator Center"
+                            excerpt="Manage issues, reader library, and revenue splits with Magazines Hub accents and KREX perks."
+                            meta={
+                                walletState.address ? (
+                                    <div className="flex items-center gap-2 font-mono text-xs text-zinc-500">
+                                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                                        {walletState.address}
+                                    </div>
+                                ) : null
+                            }
+                        />
 
-                        {/* Dashboard Tabs */}
-                        <div className="flex items-center gap-1 p-1 bg-white dark:bg-zinc-900 rounded-2xl w-fit mb-8 border border-zinc-200 dark:border-zinc-800">
+                        <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8`}>
                             <button
+                                type="button"
                                 onClick={() => setActiveTab('reader')}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'reader'
-                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
-                                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                                    }`}
+                                className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'reader' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
                             >
                                 Reader Library
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setActiveTab('creator')}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'creator'
-                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
-                                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                                    }`}
+                                className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'creator' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
                             >
                                 Creator Center
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setActiveTab('revenue')}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'revenue'
-                                    ? 'k-tab-btn-active bg-zinc-100 dark:bg-zinc-800 shadow-sm'
-                                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                                    }`}
+                                className={`${KX_DASHBOARD_TAB_BTN} ${activeTab === 'revenue' ? KX_DASHBOARD_TAB_BTN_ACTIVE : ''}`}
                             >
                                 Revenue & Splits
                             </button>
@@ -154,7 +161,10 @@ export default function MagazinesDashboardPage() {
 
                         {/* Rewards Status Card */}
                         <div className="bg-gradient-to-br from-zinc-900 to-black text-white rounded-3xl p-8 mb-8 border border-zinc-800 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full translate-x-12 -translate-y-12"></div>
+                            <div
+                                className="absolute top-0 right-0 w-64 h-64 rounded-full translate-x-12 -translate-y-12 blur-3xl"
+                                style={{ backgroundColor: 'var(--hub-accent-muted)' }}
+                            />
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-4">
@@ -172,7 +182,7 @@ export default function MagazinesDashboardPage() {
                                     </div>
                                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
                                         <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active Assets</div>
-                                        <div className="text-2xl font-black text-cyan-400">
+                                        <div className="text-2xl font-black text-[color:var(--hub-accent-light,var(--hub-accent))]">
                                             {(nftStatus?.hasKREXPRIME || nftStatus?.hasPIXELKREX) ? 'NFT Enabled' : '0 NFTs'}
                                         </div>
                                     </div>
@@ -180,18 +190,24 @@ export default function MagazinesDashboardPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
                           <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Issue fee</div>
+                            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">Issue fee</div>
                             <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">50 KAS</div>
                           </div>
                           <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                            <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Premium modules</div>
+                            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">Premium modules</div>
                             <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100">+12 KAS each</div>
                           </div>
-                          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-                            <div className="text-[10px] font-black text-cyan-800 uppercase tracking-widest mb-1">Hub points</div>
-                            <div className="text-2xl font-black text-cyan-900 dark:text-cyan-100">+75 pts</div>
+                          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">Hub points</div>
+                            <div className="mt-1">
+                              <HubPointsEarnBadge
+                                points={HUB_EARN_POINTS.magazineIssuePublish}
+                                size="md"
+                                showMinSpendTooltip={false}
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -314,7 +330,7 @@ export default function MagazinesDashboardPage() {
                     </div>
                     </MobileDesktopOnlyGate>
                 </main>
-            </div>
+            </HubAccentScope>
 
             <Footer />
         </div>

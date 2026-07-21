@@ -18,6 +18,7 @@ import {
   KX_DASHBOARD_TAB_BTN,
   KX_DASHBOARD_TAB_BTN_ACTIVE,
 } from '@/lib/hub/shellTokens';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 import { VBlogFeeCard } from '@/components/vblog/VBlogPricingCards';
 import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
@@ -281,13 +282,15 @@ export function DAppDashboardContent() {
         totalListings: stats.totalListings,
       }}
     >
-      <div className="mb-10">
-        <p className="text-sm font-black uppercase tracking-widest text-[#02abb8] mb-2">dApp dashboard</p>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">
-          dApps <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-emerald-500">Center</span>
-        </h1>
-        {state.address ? <p className="text-sm text-zinc-500 font-mono">{state.address}</p> : null}
-      </div>
+      <HubDashboardPageHeader
+        kicker="dApp dashboard"
+        title="dApps"
+        titleAccent="Center"
+        excerpt="List your dApp in the Kasparex directory with modular pricing, KREX discounts, and Hub Points."
+        meta={
+          state.address ? <p className="font-mono text-sm text-zinc-500">{state.address}</p> : null
+        }
+      />
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
 

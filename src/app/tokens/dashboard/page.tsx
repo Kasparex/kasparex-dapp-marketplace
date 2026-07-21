@@ -7,44 +7,33 @@ import { TokensListingSidebar } from '@/components/tokens/TokensListingSidebar';
 import { TokenDeveloperDashboard } from '@/components/tokens/TokenDeveloperDashboard';
 import { HubWalletGateShell } from '@/components/hub/HubWalletGateShell';
 import { VBLOG_DASHBOARD_GATE } from '@/lib/hub/gateConfigs';
-import { TOKENS_GRADIENT_TEXT } from '@/lib/tokens/theme';
+import { HubAccentScope } from '@/components/hub/HubAccentScope';
+import { HubDashboardPageHeader } from '@/components/hub/HubDashboardPageHeader';
 
 function TokensDashboardPageContent() {
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
       <Header />
 
-      <main className="flex-1 min-h-[calc(100vh-4rem)]">
-        <div className="flex flex-col lg:flex-row h-full">
+      <main className="min-h-[calc(100vh-4rem)] flex-1">
+        <HubAccentScope projectId="kasparex-tokens" className="flex h-full flex-col lg:flex-row">
           <TokensListingSidebar backHref="/tokens" backLabel="Back to Tokens" />
 
-          <div className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 overflow-y-auto border-l border-zinc-200 dark:border-zinc-800 text-base sm:text-lg">
-            <div className="max-w-6xl mx-auto">
-              <div className="mb-8">
-                <p className="mb-4 text-xs font-black uppercase tracking-widest text-[#02abb8]">
-                  Developer dashboard
-                </p>
-                <div className="flex items-center gap-3 mb-2">
-                  <span
-                    className="h-7 w-1.5 shrink-0 rounded-full bg-[#02abb8] shadow-[0_0_10px_rgba(2,171,184,0.35)]"
-                    aria-hidden="true"
-                  />
-                  <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
-                    Token <span className={TOKENS_GRADIENT_TEXT}>Builder</span>
-                  </h1>
-                </div>
-                <p className="kx-body max-w-3xl">
-                  List your project, verify ownership on-chain, and publish modular token landing pages with Kasparex
-                  Hub utility.
-                </p>
-              </div>
+          <div className="min-w-0 flex-1 overflow-y-auto border-l border-zinc-200 p-4 text-base sm:p-8 sm:text-lg lg:p-12 dark:border-zinc-800">
+            <div className="mx-auto max-w-6xl">
+              <HubDashboardPageHeader
+                kicker="Developer dashboard"
+                title="Token"
+                titleAccent="Builder"
+                excerpt="List your project, verify ownership on-chain, and publish modular token landing pages with Kasparex Hub utility."
+              />
 
               <HubWalletGateShell mode="replace" config={VBLOG_DASHBOARD_GATE}>
                 <TokenDeveloperDashboard />
               </HubWalletGateShell>
             </div>
           </div>
-        </div>
+        </HubAccentScope>
       </main>
 
       <Footer />

@@ -590,7 +590,7 @@ export function CipherVaultsDashboard({
       }
       sidebar={
         <div className="flex flex-col gap-4">
-        <HubBenefitsPanel variant="panel" className="w-full" />
+        <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
 
         <GameInteractionsPanel interactions={interactions} />
 

@@ -1,7 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import type { HubListingPriceQuote } from '@/lib/hub/listingPricing';
 import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
+import { HubPointsEarnBadge } from '@/components/hub/HubPointsEarnBadge';
+import { TierBadge } from '@/components/rewards/TierBadge';
+import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { formatHubPointsTierLabel } from '@/lib/rewards/hub-points';
+import { KREX_TIERS } from '@/lib/rewards/types';
 
 type Props = {
   quote: HubListingPriceQuote;
@@ -11,69 +18,123 @@ type Props = {
   className?: string;
 };
 
-/** Shared Calculation breakdown rail (matches vBlog Create Article). */
+/** Shared Calculation breakdown rail (matches vBlog Create Article / Store listing). */
 export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, className }: Props) {
+  const { balance: krexBalance, tier } = useKREXBalance();
+  const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
+  const tierConfig = KREX_TIERS[tier];
+  const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
+
   return (
-    <div className={className ?? 'contents'}>
-      <DAppSectionHeader title="Calculation breakdown" className="mb-1" />
+    <div className={className ?? 'flex flex-col space-y-4'}>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <DAppSectionHeader title="Calculation breakdown" className="!mb-0" />
+        <TierBadge tier={tier} isUnlocked={krexBalance > 0} />
+      </div>
+
       <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <span>Base fee</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{quote.baseFeeKas} KAS</span>
+          <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {quote.baseFeeKas} KAS
+          </span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <span>Size fee</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{quote.sizeFeeKas} KAS</span>
+          <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {quote.sizeFeeKas} KAS
+          </span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <span>Network buffer</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{quote.networkFeeBufferKas} KAS</span>
+          <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {quote.networkFeeBufferKas} KAS
+          </span>
         </div>
         {quote.moduleLines.map((line) => (
           <div key={line.id} className="flex justify-between gap-2">
             <span className="truncate">{line.title}</span>
-            <span className="shrink-0 font-semibold text-zinc-900 dark:text-zinc-100">+{line.kas} KAS</span>
+            <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              +{line.kas} KAS
+            </span>
           </div>
         ))}
         {quote.modulesFeeKas > 0 ? (
-          <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
             <span>Modules subtotal</span>
-            <span className="font-semibold text-[#02abb8]">{quote.modulesFeeKas} KAS</span>
+            <span className="font-semibold tabular-nums text-[color:var(--hub-accent,#02abb8)]">
+              {quote.modulesFeeKas} KAS
+            </span>
           </div>
         ) : null}
         {quote.discountKas > 0 ? (
-          <div className="flex justify-between">
-            <span>KREX discount</span>
-            <span className="font-semibold text-emerald-600">-{quote.discountKas} KAS</span>
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+            <span>Subtotal</span>
+            <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {quote.subtotalKas} KAS
+            </span>
           </div>
         ) : null}
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <span>Payload bytes</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{quote.payloadBytes}</span>
+          <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {quote.payloadBytes}
+          </span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-2">
           <span>Chunk estimate</span>
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{quote.chunkCount}</span>
+          <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {quote.chunkCount}
+          </span>
         </div>
       </div>
 
       <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
         <p className="text-xs uppercase tracking-widest text-zinc-500">Total to pay</p>
-        <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{quote.totalKas} KAS</p>
+        <p className="text-2xl font-black tabular-nums text-zinc-900 dark:text-zinc-100">
+          {quote.totalKas} KAS
+        </p>
       </div>
 
       {footerNote ? (
-        <div className="rounded-xl border border-[#02abb8]/25 bg-[#02abb8]/10 p-3 text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="rounded-xl border border-[color:var(--hub-accent-border,rgba(2,171,184,0.25))] bg-[color:var(--hub-accent-muted,rgba(2,171,184,0.1))] p-3 text-sm text-zinc-700 dark:text-zinc-300">
           {footerNote}
         </div>
       ) : null}
 
-      {hubPoints != null && hubPoints > 0 ? (
-        <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 dark:border-cyan-900/40 dark:bg-cyan-950/25">
-          <p className="text-xs font-black uppercase tracking-widest text-cyan-900 dark:text-cyan-100">Hub points</p>
-          <p className="text-xl font-black text-cyan-900 dark:text-cyan-100">+{hubPoints} pts</p>
+      {quote.discountKas > 0 ? (
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+          KREX discount: -{quote.discountKas.toFixed(2)} KAS ({quote.discountPercent}% off total).
         </div>
       ) : null}
+
+      {hubPoints != null && hubPoints > 0 ? (
+        <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <span>Hub points on action</span>
+          <span className="inline-flex items-center gap-1.5">
+            <HubPointsEarnBadge points={hubPoints} baseSpendKas={quote.subtotalKas} />
+            <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+              ({tier !== 'Tier0' ? `${formatHubPointsTierLabel(tier)} multiplier` : 'base amount'})
+            </span>
+          </span>
+        </div>
+      ) : null}
+
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        Current tier: {tierConfig.label} ({tierConfig.description})
+      </p>
+
+      {showBuyKrex ? (
+        <button
+          type="button"
+          onClick={() => setIsKrexWizardOpen(true)}
+          className="w-full k-control-btn !border-emerald-500/30 !text-emerald-700 dark:!text-emerald-300"
+        >
+          Buy KREX to unlock discount
+        </button>
+      ) : null}
+
+      <KREXBuyWizard isOpen={isKrexWizardOpen} onClose={() => setIsKrexWizardOpen(false)} />
     </div>
   );
 }

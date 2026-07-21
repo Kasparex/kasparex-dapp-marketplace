@@ -164,7 +164,7 @@ export function ProtocolsHomeContent() {
               title="Available protocol families"
               count={filteredFamilies.length}
               countLabel="family"
-              benefits={<HubBenefitsPanel variant="compact" className="w-full" />}
+              benefits={<HubBenefitsPanel variant="compact" scope="protocols" className="w-full" />}
             />
 
             <div className="mb-6 flex flex-col gap-4">

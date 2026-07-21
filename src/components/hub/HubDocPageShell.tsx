@@ -76,7 +76,7 @@ export function HubStandaloneIntro(props: {
         title={title}
         count={count}
         countLabel={countLabel}
-        benefits={benefits ? <HubBenefitsPanel variant="compact" className="w-full" /> : undefined}
+        benefits={benefits ? <HubBenefitsPanel variant="compact" scope="hub" className="w-full" /> : undefined}
       />
       {description ? <p className="kx-body -mt-4 mb-8 max-w-3xl">{description}</p> : null}
     </>

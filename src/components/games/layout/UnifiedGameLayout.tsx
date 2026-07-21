@@ -62,7 +62,7 @@ export function UnifiedGameLayout({
 
   const sidebar = (
     <div className="flex flex-col gap-4">
-      <HubBenefitsPanel variant="panel" className="w-full" />
+      <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
       {belowDeck}
       <GameInteractionsPanel interactions={game.connections || []} />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
