@@ -559,7 +559,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
                   label: `${c.emoji} ${c.name}`,
                 }))}
                 ariaLabel="dApp category"
-                triggerClassName="k-control-btn w-full min-w-0"
+                triggerClassName="k-field-trigger w-full min-w-0"
                 menuClassName="w-full min-w-[12rem]"
               />
             </div>
@@ -666,7 +666,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
               options={CHAIN_OPTIONS}
               ariaLabel="Supported chains"
               placeholder="Select chains"
-              triggerClassName="k-control-btn w-full min-w-0 h-10"
+              triggerClassName="k-field-trigger w-full min-w-0 h-10"
             />
           </div>
 

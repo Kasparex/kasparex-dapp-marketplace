@@ -15,7 +15,7 @@ export function KxMultiSelectDropdown({
   placeholder = 'Select…',
   filterPlaceholder = 'Filter…',
   showFilter = false,
-  triggerClassName = 'k-control-btn min-w-[140px] h-10 w-full',
+  triggerClassName = 'k-field-trigger min-w-[140px] h-10 w-full',
   menuClassName = 'w-64',
 }: {
   values: string[];
@@ -84,7 +84,11 @@ export function KxMultiSelectDropdown({
 
       {isOpen && (
         <div
-          className={`absolute left-0 top-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden ${menuClassName}`}
+          className={`absolute left-0 top-full z-[9999] mt-1.5 overflow-hidden ${
+            triggerClassName.includes('k-field-trigger')
+              ? 'k-field-menu'
+              : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg'
+          } ${menuClassName}`}
         >
           {showFilter ? (
             <div className="p-2 border-b border-zinc-200 dark:border-zinc-800">

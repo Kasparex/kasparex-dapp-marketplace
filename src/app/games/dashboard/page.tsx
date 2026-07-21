@@ -757,7 +757,7 @@ export default function GamesDashboardPage() {
                           label: gameTypes[id].name,
                         }))}
                         ariaLabel="Game type"
-                        triggerClassName="k-control-btn w-full min-w-0"
+                        triggerClassName="k-field-trigger w-full min-w-0"
                         menuClassName="w-full min-w-[12rem]"
                       />
                     </div>
@@ -771,7 +771,7 @@ export default function GamesDashboardPage() {
                           label: difficultyLevels[id].name,
                         }))}
                         ariaLabel="Difficulty"
-                        triggerClassName="k-control-btn w-full min-w-0"
+                        triggerClassName="k-field-trigger w-full min-w-0"
                         menuClassName="w-full min-w-[12rem]"
                       />
                     </div>
@@ -782,7 +782,7 @@ export default function GamesDashboardPage() {
                         onChange={(v) => setGameStatus(v as GameStatus)}
                         options={STATUS_OPTIONS}
                         ariaLabel="Game status"
-                        triggerClassName="k-control-btn w-full min-w-0"
+                        triggerClassName="k-field-trigger w-full min-w-0"
                         menuClassName="w-full min-w-[12rem]"
                       />
                     </div>
@@ -834,7 +834,7 @@ export default function GamesDashboardPage() {
                       options={GAME_CATEGORY_OPTIONS}
                       ariaLabel="Game categories"
                       placeholder="Select categories"
-                      triggerClassName="k-control-btn h-10 w-full min-w-0"
+                      triggerClassName="k-field-trigger h-10 w-full min-w-0"
                     />
                     <p className="mt-1.5 text-xs text-zinc-500">
                       Shown on the game halo badges and Metadata panel.

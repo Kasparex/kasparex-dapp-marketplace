@@ -62,9 +62,11 @@ export function KxFilterDropdown<T extends string>({
 
       {isOpen ? (
         <div
-          className={`absolute top-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg z-[9999] overflow-hidden max-h-64 overflow-y-auto ${menuClassName} ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
+          className={`absolute top-full mt-1.5 z-[9999] overflow-hidden max-h-64 overflow-y-auto ${
+            triggerClassName.includes('k-field-trigger')
+              ? 'k-field-menu'
+              : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-lg'
+          } ${menuClassName} ${align === 'right' ? 'right-0' : 'left-0'}`}
         >
           {options.map((option) => (
             <button

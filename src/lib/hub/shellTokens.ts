@@ -50,6 +50,11 @@ export const KX_INPUT = 'k-input w-full';
 
 export const KX_TEXTAREA = 'k-textarea w-full';
 
+/** Form/editor dropdown trigger: matches input field surface (use instead of k-control-btn in forms). */
+export const KX_FIELD_TRIGGER = 'k-field-trigger w-full min-w-0';
+
+export const KX_FIELD_MENU = 'k-field-menu';
+
 export const KX_LABEL = 'k-label';
 
 export const KX_BTN_PRIMARY =

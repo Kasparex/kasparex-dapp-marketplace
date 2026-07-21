@@ -440,6 +440,29 @@
   background-size: 1.25rem;
 }
 
+/* Form/editor selector triggers: same surface as .k-input (not .k-control-btn chrome) */
+.k-field-trigger {
+  @apply h-10 px-4 flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-black/30 border border-zinc-200 dark:border-zinc-800 transition-all active:scale-[0.98];
+}
+
+.k-field-trigger:hover {
+  border-color: var(--hub-accent-border) !important;
+}
+
+.k-field-trigger:focus {
+  @apply outline-none ring-2 ring-[#02abb8] border-transparent;
+}
+
+/* Open menu panel for form field selectors */
+.k-field-menu {
+  @apply bg-white border border-zinc-200 shadow-lg rounded-xl;
+}
+
+.dark .k-field-menu {
+  background-color: rgb(9 9 11 / 0.92);
+  border-color: rgb(63 63 70 / 0.4);
+}
+
 .k-label {
   @apply block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2;
 }
@@ -850,15 +873,19 @@
 .dark .bg-zinc-950 .k-input,
 .dark .bg-zinc-950 .k-textarea,
 .dark .bg-zinc-950 .k-select,
+.dark .bg-zinc-950 .k-field-trigger,
 .dark .bg-zinc-900 .k-input,
 .dark .bg-zinc-900 .k-textarea,
 .dark .bg-zinc-900 .k-select,
+.dark .bg-zinc-900 .k-field-trigger,
 .dark .bg-black .k-input,
 .dark .bg-black .k-textarea,
 .dark .bg-black .k-select,
+.dark .bg-black .k-field-trigger,
 .kaspa body .k-input,
 .kaspa body .k-textarea,
-.kaspa body .k-select {
+.kaspa body .k-select,
+.kaspa body .k-field-trigger {
   background-color: rgb(9 9 11 / 0.72) !important;
   border-color: rgb(63 63 70 / 0.4) !important;
 }
@@ -866,12 +893,15 @@
 .dark .bg-zinc-950 .k-input:focus,
 .dark .bg-zinc-950 .k-textarea:focus,
 .dark .bg-zinc-950 .k-select:focus,
+.dark .bg-zinc-950 .k-field-trigger:focus,
 .dark .bg-zinc-900 .k-input:focus,
 .dark .bg-zinc-900 .k-textarea:focus,
 .dark .bg-zinc-900 .k-select:focus,
+.dark .bg-zinc-900 .k-field-trigger:focus,
 .dark .bg-black .k-input:focus,
 .dark .bg-black .k-textarea:focus,
-.dark .bg-black .k-select:focus {
+.dark .bg-black .k-select:focus,
+.dark .bg-black .k-field-trigger:focus {
   background-color: rgb(9 9 11 / 0.92) !important;
 }
 

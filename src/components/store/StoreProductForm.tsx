@@ -415,7 +415,7 @@ export function StoreProductForm({ product }: StoreProductFormProps) {
                 onChange={(category) => setFormData({ ...formData, category })}
                 options={categories.map((c) => ({ value: c, label: c }))}
                 ariaLabel="Product category"
-                triggerClassName="k-control-btn w-full min-w-0"
+                triggerClassName="k-field-trigger w-full min-w-0"
                 menuClassName="w-full min-w-[12rem]"
               />
             </div>
