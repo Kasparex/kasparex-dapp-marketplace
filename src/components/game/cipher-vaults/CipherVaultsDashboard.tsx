@@ -148,19 +148,10 @@ export function CipherVaultsDashboard({
 
   const deckResources: GameDeckResource[] = [
     {
-      id: 'reward_weight',
-      label: 'Reward Weight',
-      value: tickets.available.toLocaleString(),
-      subValue: `${redeemableRemaining.toLocaleString()} redeemable pts`,
-      description: 'Combined reward potential',
-      tooltip: 'Your total reward weight decides your share of GRID distribution when snapshots run. Tap this row to view details.',
-      accent: 'diamonds',
-      onClick: () => setTab('redeem'),
-    },
-    {
       id: 'tickets',
-      label: 'Cipher Tickets',
+      label: 'In-game currency',
       value: tickets.available.toLocaleString(),
+      subValue: 'Cipher Tickets',
       description: 'Run entry tickets',
       tooltip: 'Entry tickets you can spend instead of KAS to start runs. Click to open Redeem.',
       accent: 'games',
@@ -168,7 +159,7 @@ export function CipherVaultsDashboard({
     },
     {
       id: 'refinement',
-      label: 'Redeemable Points',
+      label: 'Redeem points',
       value: redeemableRemaining.toLocaleString(),
       description: 'From Diamond Veins refinement',
       tooltip: `Mine diamonds, convert them into refinement points, and redeem tickets to enter Cipher Vaults without paying KAS. (${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket). Click to open Redeem.`,

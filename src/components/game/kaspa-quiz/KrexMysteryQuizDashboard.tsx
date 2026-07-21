@@ -238,26 +238,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
     [boostersTip, boostersTone, commentsCount]
   );
 
-  const deckResources: GameDeckResource[] = [
-    {
-      id: 'tier',
-      label: 'KREX Tier',
-      value: tier,
-      description: 'Tier perks',
-      tooltip: 'Your KREX tier affects perks and hub boosts. Click to open Boosters.',
-      accent: 'krex',
-      onClick: () => setTab('boosters'),
-    },
-    {
-      id: 'mult',
-      label: 'Hub boost',
-      value: `×${boosterMult.toFixed(2)}`,
-      description: 'Tier + deck + booster',
-      tooltip: 'Your hub-wide boost factor (tier + deck + optional booster). Click to open Boosters.',
-      accent: 'games',
-      onClick: () => setTab('boosters'),
-    },
-  ];
+  const deckResources: GameDeckResource[] = [];
 
   return (
     <TooltipProvider>

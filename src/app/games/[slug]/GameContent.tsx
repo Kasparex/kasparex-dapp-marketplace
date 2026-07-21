@@ -8,9 +8,6 @@ import { GameOverviewSections } from '@/components/games/panels/GameOverviewSect
 import { RewardsRedeemSection } from '@/components/games/RewardsRedeemSection';
 import { CommentsSection } from '@/components/vblog/CommentsSection';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
-import { useKaspaWallet } from '@/lib/kaspa/context';
-import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import type { Game } from '@/lib/games/games';
 import type { UnifiedGame } from '@/lib/games/registry';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
@@ -28,9 +25,6 @@ type TabId = (typeof BASE_TABS)[number]['id'] | 'shop' | 'boosters';
 export function GameContent({ game: baseGame }: { game: Game }) {
   const game = baseGame as UnifiedGame;
   const [tab, setTab] = useState<TabId>('overview');
-  const { state: walletState } = useKaspaWallet();
-  const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
-  const { balanceInKas, isLoading: kasLoading } = useKaspaBalance();
   
   const [mockDiamonds, setMockDiamonds] = useState(0);
   const [mockPoints, setMockPoints] = useState(0);
@@ -42,35 +36,26 @@ export function GameContent({ game: baseGame }: { game: Game }) {
 
   const resources = useMemo(() => [
     {
-      id: 'reward_weight',
-      label: 'Reward Weight',
-      value: (mockDiamonds + mockPoints).toLocaleString(),
-      subValue: `${mockDiamonds.toLocaleString()} Diamonds + ${mockPoints.toLocaleString()} Points`,
-      description: 'Combined reward potential',
-      tooltip: 'Your total reward weight across Kasparex Games.',
+      id: 'diamonds',
+      label: 'In-game currency',
+      value: mockDiamonds.toLocaleString(),
+      subValue: 'Diamonds',
+      description: 'Game currency',
+      tooltip: 'Your in-game currency across Kasparex Games.',
       accent: 'diamonds' as const,
       icon: <DiamondIcon className="h-4 w-4 text-sky-400" />,
       onClick: () => setTab('rewards'),
     },
     {
-      id: 'kas',
-      label: 'KAS',
-      value: (kasLoading ? 0 : (balanceInKas ?? 0)).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-      description: 'Main fuel currency',
-      tooltip: 'Your Kaspa L1 balance.',
-      accent: 'kas' as const,
-      onClick: () => {},
+      id: 'redeem_points',
+      label: 'Redeem points',
+      value: mockPoints.toLocaleString(),
+      description: 'Redeemable points',
+      tooltip: 'Redeemable points earned from gameplay.',
+      accent: 'purple' as const,
+      onClick: () => setTab('rewards'),
     },
-    {
-      id: 'krex',
-      label: 'KREX',
-      value: krexL1Balance.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-      description: 'Utility token',
-      tooltip: `Your KREX balance. Tier: ${krexTier}`,
-      accent: 'krex' as const,
-      onClick: () => {},
-    }
-  ], [mockDiamonds, mockPoints, balanceInKas, kasLoading, krexL1Balance, krexTier]);
+  ], [mockDiamonds, mockPoints]);
 
   const hasBoosters = game.skus?.some(s => s.type === 'boost');
   const hasShop = game.shopItems?.length || game.skus?.some(s => s.type !== 'entry' && s.type !== 'boost');

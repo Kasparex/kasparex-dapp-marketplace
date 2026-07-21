@@ -109,11 +109,8 @@ export function GameDeckResourceRows({
 /** Modal explaining each Game Deck capsule as a visual flow */
 function DeckInfoModal({ onClose }: { onClose: () => void }) {
   const items = [
-    { emoji: '💎', label: 'Reward Weight', desc: 'Your accumulated in-game score (diamonds + points). Higher weight = larger share of GRID distribution.' },
-    { emoji: '🪙', label: 'GRID', desc: 'On-chain reward token (Kasplex L2). Claim it via Rewards & Points after your weight is snapshotted.' },
-    { emoji: '🔷', label: 'KREX', desc: 'Utility token. Holding KREX unlocks higher tiers with KAS discounts, shop perks, and hub boost multipliers.' },
-    { emoji: '⬡', label: 'KAS', desc: 'Kaspa L1 currency. Used to pay for slot unlocks, shop items, vault entries, and power top-ups.' },
-    { emoji: '⚡', label: 'Hub Boost', desc: 'Multiplier on your score. Comes from KREX tier, NFT deck, and optional timed boosters.' },
+    { emoji: '💎', label: 'In-game currency', desc: 'Currency earned inside the game (diamonds, tickets, score weight). Spend or refine it in-game.' },
+    { emoji: '✨', label: 'Redeem points', desc: 'Redeemable points from refining or clearing goals. Use them for tickets, hub rewards, and cross-game bridges.' },
   ];
 
   return (

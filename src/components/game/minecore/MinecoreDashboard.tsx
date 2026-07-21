@@ -208,7 +208,7 @@ export function MinecoreDashboard(_props: {
     () => [
       {
         id: 'diamonds',
-        label: 'Diamonds',
+        label: 'In-game currency',
         value: (
           <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
             <span className="text-amber-400 dark:text-amber-300">{diamondsDisplayTotal.toLocaleString()}</span>
@@ -225,7 +225,7 @@ export function MinecoreDashboard(_props: {
             <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/min (total)</span>
           </>
         ),
-        description: 'In-game currency',
+        description: 'Diamonds',
         tooltip:
           'Diamonds you earn in plants; refine into redeem points. Subtext is total live diamond yield rate (D/min) summed across plants that are actively mining right now. Opens Redeem.',
         accent: 'diamonds' as const,
@@ -247,45 +247,12 @@ export function MinecoreDashboard(_props: {
         accent: 'purple' as const,
         onClick: () => setTab('redeem' as const),
       },
-      {
-        id: 'grid_token',
-        label: 'GRID',
-        value: gridL1Balance.toLocaleString(),
-        description: 'Reward token',
-        tooltip: 'GRID tokens on-chain (Kasplex L2).',
-        accent: 'grid' as const,
-        onClick: () => setTab('redeem' as const),
-      },
-      {
-        id: 'krex',
-        label: 'KREX',
-        value: krexL1Balance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-        description: 'Utility token',
-        tooltip: `KREX on L1 - tier ${krexTier} lowers some KAS shop prices.`,
-        accent: 'krex' as const,
-        onClick: () => setKrexWizardOpen(true),
-      },
-      {
-        id: 'kas',
-        label: 'KAS',
-        value: (canPayWithL1 && kasBalanceLoading ? 0 : kasBalanceNum).toLocaleString(undefined, { maximumFractionDigits: 4 }),
-        description: 'Payment currency',
-        tooltip: 'KAS on L1 - unlocks, shop, plant refill.',
-        accent: 'kas' as const,
-        onClick: () => setTab('shop' as const),
-      },
     ],
     [
       diamondsDisplayTotal,
       deckLiveYieldPerMin,
       deckRollingCaps.capSum,
       redeemPtsUi,
-      krexL1Balance,
-      krexTier,
-      canPayWithL1,
-      kasBalanceLoading,
-      kasBalanceNum,
-      gridL1Balance,
     ]
   );
 
