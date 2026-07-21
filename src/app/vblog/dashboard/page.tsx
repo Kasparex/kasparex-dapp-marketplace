@@ -66,7 +66,6 @@ function VBlogDashboardPageContent() {
                 titleAccent="Center"
                 excerpt="Manage your decentralized vBlog publications"
                 adSlotId="HALO_VBLOG_RIGHT"
-                adFrameLabel="Article"
               />
 
               <MobileDesktopOnlyGate title="Creator Center" backHref="/vblog" backLabel="Back to vBlog">

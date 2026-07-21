@@ -20,7 +20,7 @@ type Props = {
 
 /**
  * Shared Calculation breakdown rail.
- * Matches vBlog Create Article: major blocks separated by gap-4; fee rows use space-y-2.
+ * Matches vBlog Create Article: major blocks separated by gap-4; fee rows use space-y-3.
  * Do not pass className="contents" (collapses spacing against sibling CTAs).
  */
 export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, className }: Props) {
@@ -36,7 +36,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
         <TierBadge tier={tier} isUnlocked={krexBalance > 0} />
       </div>
 
-      <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
+      <div className="space-y-3 text-xs text-zinc-600 dark:text-zinc-400">
         <div className="flex justify-between gap-2">
           <span>Base fee</span>
           <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">

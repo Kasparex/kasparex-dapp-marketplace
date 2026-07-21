@@ -15,6 +15,11 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { FilterBar } from '@/components/FilterBar';
 import { listGames } from '@/lib/games/registry';
 import {
+  GAMES_PROMO_UPDATED_EVENT,
+  listPublishedPromoGames,
+  mergeGamesWithPromos,
+} from '@/lib/games/promoListings';
+import {
   GAMES_LISTING_VOTES_CHANGED_EVENT,
   getAllGameListingVoteScores,
 } from '@/lib/games/votes';
@@ -36,8 +41,12 @@ function GamesContent() {
   const [viewMode, setViewMode] = useState<GameViewMode>('compact');
   const [displayedCount, setDisplayedCount] = useState(50);
   const [voteTick, setVoteTick] = useState(0);
+  const [promoTick, setPromoTick] = useState(0);
   const { favoritesSet } = useFavorites();
-  const allGames = useMemo(() => listGames(), []);
+  const allGames = useMemo(() => {
+    void promoTick;
+    return mergeGamesWithPromos(listGames(), listPublishedPromoGames());
+  }, [promoTick]);
   const currencyOptions = useMemo(() => getGameListingCurrencies(allGames), [allGames]);
   const voteScores = useMemo(() => {
     void voteTick;
@@ -46,8 +55,14 @@ function GamesContent() {
 
   useEffect(() => {
     const onVotes = () => setVoteTick((t) => t + 1);
+    const onPromos = () => setPromoTick((t) => t + 1);
     window.addEventListener(GAMES_LISTING_VOTES_CHANGED_EVENT, onVotes);
-    return () => window.removeEventListener(GAMES_LISTING_VOTES_CHANGED_EVENT, onVotes);
+    window.addEventListener(GAMES_PROMO_UPDATED_EVENT, onPromos);
+    setPromoTick((t) => t + 1);
+    return () => {
+      window.removeEventListener(GAMES_LISTING_VOTES_CHANGED_EVENT, onVotes);
+      window.removeEventListener(GAMES_PROMO_UPDATED_EVENT, onPromos);
+    };
   }, []);
 
   const games = useMemo(

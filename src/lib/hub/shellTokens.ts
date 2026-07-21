@@ -6,11 +6,12 @@ export const KX_PANEL =
   'rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900';
 
 export const KX_WIDGET_DETAIL_PANEL =
-  'rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6 dark:border-zinc-700 dark:bg-zinc-900';
+  'rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900';
 
-/** Primary form surface for dApp widgets and hub editors (matches vBlog Create Article). */
+/** Primary form surface for dApp widgets and hub editors (matches vBlog Create Article).
+ * Elevated vs page bg (`zinc-50` / `zinc-950`) so panels do not visually merge. */
 export const KX_FORM_PANEL =
-  'rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900';
+  'rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm dark:border-zinc-700 dark:bg-zinc-900';
 
 /** Amber dashed premium module card (matches vBlog Create Article). */
 export const KX_PREMIUM_MODULE_CARD =
@@ -18,7 +19,7 @@ export const KX_PREMIUM_MODULE_CARD =
 
 /** Dashboard pill tab strip (matches vBlog AuthorDashboard). */
 export const KX_DASHBOARD_TAB_SHELL =
-  'flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800';
+  'flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900/80 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-700';
 
 export const KX_DASHBOARD_TAB_BTN =
   'px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300';
@@ -27,7 +28,11 @@ export const KX_DASHBOARD_TAB_BTN_ACTIVE =
   'bg-white dark:bg-zinc-800 text-[color:var(--hub-accent,#02abb8)] dark:text-[color:var(--hub-accent-light,var(--hub-accent,#66dfe8))] shadow-lg shadow-black/5 border border-zinc-200 dark:border-zinc-700';
 
 export const KX_CALCULATION_ASIDE =
-  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_var(--hub-accent-shadow,rgba(2,171,184,0.35))] dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-900/80';
+  'flex flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-5 space-y-4 shadow-[0_10px_30px_-18px_var(--hub-accent-shadow,rgba(2,171,184,0.35))] dark:border-zinc-700 dark:from-zinc-900 dark:to-zinc-900/95';
+
+/** Nested inset group inside a form panel (fees blocks, grouped fields). */
+export const KX_FORM_NESTED_GROUP =
+  'space-y-4 rounded-xl border border-zinc-200 bg-zinc-50/90 p-5 dark:border-zinc-700 dark:bg-zinc-950/55';
 
 /** Sticky form right rail: Benefits + calculation (matches vBlog Create Article). */
 export const KX_FORM_STICKY_RAIL = 'flex flex-col gap-4 xl:sticky xl:top-6';

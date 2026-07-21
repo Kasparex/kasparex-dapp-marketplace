@@ -252,7 +252,6 @@ export function DAppDashboardContent() {
         excerpt="List your dApp in the Kasparex directory with modular pricing, KREX discounts, and Hub Points."
         adSlotId="HALO_DAPPS_RIGHT"
         adSlotDomId="ad-slot-dapps-dashboard"
-        adFrameLabel="dApp"
       />
 
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />

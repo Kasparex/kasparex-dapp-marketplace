@@ -27,6 +27,7 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 
 - Use `HubDashboardPageHeader`. Never put the connected wallet under the excerpt.
 - Pass the matching project halo `adSlotId` (e.g. `HALO_DAPPS_RIGHT`, `HALO_GAMES_RIGHT`) so dashboards show the same Ad Slot slider as the listing halo.
+- Ad Slot: **AdSlider only**, vertically centered (`lg:items-center`). Do not add decorative rotated frames or graphics under/behind the slider.
 
 ## My Listings / Archives
 

@@ -37,6 +37,7 @@ import {
   KX_FORM_GRID,
   KX_FORM_PANEL,
   KX_FORM_STICKY_RAIL,
+  KX_FORM_NESTED_GROUP,
   KX_CALCULATION_ASIDE,
   KX_PREMIUM_MODULE_CARD,
 } from '@/lib/hub/shellTokens';
@@ -594,7 +595,7 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             />
           </div>
 
-          <div className="space-y-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+          <div className={KX_FORM_NESTED_GROUP}>
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Fees &amp; costs (public page)</h3>
             <div className="k-form-group">
               <label className="k-label">Fees overview</label>

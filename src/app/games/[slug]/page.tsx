@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { getGameBySlugFromRegistry, getSlugRoutedGames } from '@/lib/games/registry';
-import { GameContent } from './GameContent';
+import { GameSlugResolver } from './GameSlugResolver';
 import { buildHubOpenGraphMetadata } from '@/lib/metadata/hubSocialPreview';
 
 interface PageProps {
@@ -11,7 +9,6 @@ interface PageProps {
   }>;
 }
 
-// Generate static params for all game slugs
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   return getSlugRoutedGames().map((game) => ({ slug: game.slug }));
 }
@@ -22,7 +19,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!game) {
     return buildHubOpenGraphMetadata({
-      title: 'Game Not Found - Kasparex Games',
+      title: 'Game - Kasparex Games',
       path: `/games/${slug}`,
     });
   }
@@ -37,18 +34,17 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function GamePage({ params }: PageProps) {
   const { slug } = await params;
-  const game = getGameBySlugFromRegistry(slug);
+  const registryGame = getGameBySlugFromRegistry(slug);
 
-  // Only slug-routed games belong here. Custom games use their own pages.
-  if (!game || game.route.kind !== 'slug') {
+  // Custom-route registry titles have their own pages under /games/<name>.
+  if (registryGame && registryGame.route.kind !== 'slug') {
     notFound();
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <GameContent game={game} />
-      <Footer />
-    </div>
+    <GameSlugResolver
+      slug={slug}
+      registryGame={registryGame && registryGame.route.kind === 'slug' ? registryGame : null}
+    />
   );
 }

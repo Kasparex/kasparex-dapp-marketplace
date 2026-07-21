@@ -126,7 +126,6 @@ export default function MagazinesDashboardPage() {
                             titleAccent="Creator Center"
                             excerpt="Manage issues, reader library, and revenue splits with Magazines Hub accents and KREX perks."
                             adSlotId="HALO_MAGAZINES_RIGHT"
-                            adFrameLabel="Issue"
                         />
 
                         <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8`}>

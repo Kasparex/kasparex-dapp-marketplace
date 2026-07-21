@@ -210,7 +210,6 @@ export function ChroniclesCenterContent() {
         titleAccent="Center"
         excerpt="Submit community lore with modular Hub pricing, KREX discounts, and Hub Points."
         adSlotId="HALO_CHRONICLES_RIGHT"
-        adFrameLabel="Lore"
       />
 
       <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />

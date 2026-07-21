@@ -10,7 +10,7 @@ import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { usePathname } from 'next/navigation';
 
 const GAMES_DASHBOARD_SECTIONS = [
-  { id: 'create', label: 'Game form', anchor: 'games-dashboard-create' },
+  { id: 'create', label: 'List a Game', anchor: 'games-dashboard-create' },
   { id: 'pricing', label: 'Fees & rewards', anchor: 'games-dashboard-pricing' },
   { id: 'modules', label: 'Premium modules', anchor: 'games-dashboard-modules' },
   { id: 'listings', label: 'My Listings', anchor: 'games-dashboard-listings' },

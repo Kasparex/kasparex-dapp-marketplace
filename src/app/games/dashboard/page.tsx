@@ -54,32 +54,11 @@ import {
   type GameStatus,
   type GameType,
 } from '@/lib/games/games';
+import {
+  readGamePromoListingsForWallet,
+  saveGamePromoListing,
+} from '@/lib/games/promoListings';
 
-type GamePromoListing = {
-  id: string;
-  wallet: string;
-  title: string;
-  slug: string;
-  shortDescription: string;
-  content: string;
-  instructions: string;
-  featuredImageUrl: string;
-  featuredImageCid?: string | null;
-  gameType: GameType;
-  difficulty: GameDifficulty;
-  status: GameStatus;
-  entryCostKAS: number;
-  version: string;
-  gameUrl: string;
-  categories: string[];
-  tags: string[];
-  listingStatus: 'draft' | 'published';
-  createdAt: string;
-  feeTxHash?: string;
-  feeAmountKas?: number;
-};
-
-const STORAGE_KEY = 'kasparex_games_dashboard_promotions';
 const BASE_FEE_KAS = 25;
 const PREMIUM_MODULE_FEE_KAS = 10;
 const FEATURED_IMAGE_MAX_SIZE_MB = 5;
@@ -146,26 +125,6 @@ function slugify(value: string): string {
     .slice(0, 64);
 }
 
-function readAllListings(): GamePromoListing[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as GamePromoListing[];
-  } catch {
-    return [];
-  }
-}
-
-function readListings(wallet?: string | null): GamePromoListing[] {
-  if (!wallet) return [];
-  return readAllListings().filter((x) => x.wallet.toLowerCase() === wallet.toLowerCase());
-}
-
-function saveListing(listing: GamePromoListing): void {
-  if (typeof window === 'undefined') return;
-  const all = readAllListings();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([listing, ...all]));
-}
-
 export default function GamesDashboardPage() {
   const { state } = useKaspaWallet();
   const { payActionFee, isProcessing, error, setError } = useDAppListingPayment();
@@ -193,7 +152,10 @@ export default function GamesDashboardPage() {
   const [boostEnabled, setBoostEnabled] = useState(false);
   const [listingsVersion, setListingsVersion] = useState(0);
 
-  const listings = useMemo(() => readListings(state.address), [state.address, listingsVersion]);
+  const listings = useMemo(
+    () => readGamePromoListingsForWallet(state.address),
+    [state.address, listingsVersion],
+  );
   const tags = useMemo(() => parseTags(tagsRaw), [tagsRaw]);
   const earnPoints = useMemo(
     () => computeEarnedHubPoints(HUB_EARN_POINTS.gamesPromoList, krexTier),
@@ -333,7 +295,7 @@ export default function GamesDashboardPage() {
       const feeTxHash = await payActionFee('KAS', formQuote.totalKas, commitNote);
       const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
 
-      saveListing({
+      saveGamePromoListing({
         id: `game-${Date.now()}`,
         wallet: state.address,
         title: title.trim(),
@@ -410,12 +372,11 @@ export default function GamesDashboardPage() {
             titleAccent="Studio"
             excerpt="Create and list games with the same fields the public game template uses: media, metadata, and Hub pricing."
             adSlotId="HALO_GAMES_RIGHT"
-            adFrameLabel="Game"
           />
 
           <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
             {([
-              { id: 'create' as const, label: 'Game' },
+              { id: 'create' as const, label: 'List a Game' },
               { id: 'listings' as const, label: 'My Listings' },
             ]).map((item) => (
               <button
@@ -456,7 +417,7 @@ export default function GamesDashboardPage() {
               {listings.length === 0 ? (
                 <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
                   <p className="text-sm text-zinc-500">
-                    No listings yet. Open the Game tab to publish your first title.
+                    No listings yet. Open the List a Game tab to publish your first title.
                   </p>
                 </div>
               ) : (
