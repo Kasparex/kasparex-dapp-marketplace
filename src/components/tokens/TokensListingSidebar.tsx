@@ -22,18 +22,23 @@ import {
   getTokenModuleSectionIcon,
   getTokenUtilitySectionIcon,
 } from '@/lib/tokens/sidebarIcons';
+import { HUB_DASHBOARD_NAV_ICONS } from '@/lib/hub/dashboardNavIcons';
 
 const SIDEBAR_BTN_ICON = 'w-4 h-4 shrink-0 text-zinc-800 dark:text-zinc-200';
 const SIDEBAR_BTN_ICON_ACTIVE = `${SIDEBAR_BTN_ICON} !text-white`;
 const ALL_CATEGORIES_ID = 'all';
 
-const DASHBOARD_SECTIONS: Array<{ label: string; anchor: string }> = [
-  { label: 'Create listing', anchor: 'tokens-dashboard-main' },
-  { label: 'Fees & rewards', anchor: 'tokens-dashboard-pricing' },
-  { label: 'Listing media', anchor: 'tokens-dashboard-media' },
-  { label: 'Page sections', anchor: 'tokens-dashboard-sections' },
-  { label: 'Premium modules', anchor: 'tokens-dashboard-modules' },
-  { label: 'My tokens', anchor: 'tokens-dashboard-archive' },
+const DASHBOARD_SECTIONS: Array<{
+  label: string;
+  anchor: string;
+  icon: keyof typeof HUB_DASHBOARD_NAV_ICONS;
+}> = [
+  { label: 'Create listing', anchor: 'tokens-dashboard-main', icon: 'form' },
+  { label: 'Fees & rewards', anchor: 'tokens-dashboard-pricing', icon: 'pricing' },
+  { label: 'Listing media', anchor: 'tokens-dashboard-media', icon: 'form' },
+  { label: 'Page sections', anchor: 'tokens-dashboard-sections', icon: 'listings' },
+  { label: 'Premium modules', anchor: 'tokens-dashboard-modules', icon: 'modules' },
+  { label: 'My tokens', anchor: 'tokens-dashboard-archive', icon: 'listings' },
 ];
 
 function scrollToAnchor(anchorId: string) {
@@ -148,7 +153,7 @@ export function TokensListingSidebar({
                   scrollToAnchor(item.anchor);
                 }}
                 label={item.label}
-                icon={<TokenCategoryIcon className="!h-4 !w-4" />}
+                icon={HUB_DASHBOARD_NAV_ICONS[item.icon]}
               />
             ))}
           </nav>

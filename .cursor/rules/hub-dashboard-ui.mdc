@@ -20,6 +20,8 @@ Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazi
 
 - Primary CTAs: plain `k-control-btn` by default. Apply `hub-sidebar-action-active` **only when that CTA is the current page/tab**. Never leave `hub-cta-btn` on inactive sidebar buttons.
 - Include an **"On this page"** / **"Page sections"** / **"Form navigation"** / **"Dashboard sections"** nav that scrolls to form anchors (create, pricing, modules, listings).
+- **On this page items must include icons** (use `HUB_DASHBOARD_NAV_ICONS` from `src/lib/hub/dashboardNavIcons.tsx`).
+- Back link must target the **project listing page**, not Hub home (e.g. Games → `/games` "Back to Games", dApps → `/dapps`, Chronicles → `/chronicles`, Magazines → `/magazines`, Tokens → `/tokens`, vBlog → `/vblog`).
 - **No sidebar footer** (no brand KD/KM/KC/KT footer strip) on these Hub project dashboards.
 - Do not add "Browse X" links on dashboard sidebars unless the product explicitly requires them.
 

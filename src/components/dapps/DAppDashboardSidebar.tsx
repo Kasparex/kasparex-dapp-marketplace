@@ -8,6 +8,7 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import type { DAppDashboardTab } from '@/lib/dapps/dashboardTabs';
 import { dAppDashboardTabHref } from '@/lib/dapps/dashboardTabs';
+import { HUB_DASHBOARD_NAV_ICONS } from '@/lib/hub/dashboardNavIcons';
 
 export type DAppDashboardSidebarProps = {
   dashboardTab: DAppDashboardTab;
@@ -23,11 +24,12 @@ const DASHBOARD_SECTIONS: Array<{
   label: string;
   tab: DAppDashboardTab;
   anchor?: string;
+  icon: keyof typeof HUB_DASHBOARD_NAV_ICONS;
 }> = [
-  { id: 'create', label: 'List a DApp', tab: 'create', anchor: 'dapps-dashboard-create' },
-  { id: 'pricing', label: 'Fees & rewards', tab: 'create', anchor: 'dapps-dashboard-pricing' },
-  { id: 'modules', label: 'Premium modules', tab: 'create', anchor: 'dapps-dashboard-modules' },
-  { id: 'listings', label: 'My Listings', tab: 'listings' },
+  { id: 'create', label: 'List a DApp', tab: 'create', anchor: 'dapps-dashboard-create', icon: 'form' },
+  { id: 'pricing', label: 'Fees & rewards', tab: 'create', anchor: 'dapps-dashboard-pricing', icon: 'pricing' },
+  { id: 'modules', label: 'Premium modules', tab: 'create', anchor: 'dapps-dashboard-modules', icon: 'modules' },
+  { id: 'listings', label: 'My Listings', tab: 'listings', icon: 'listings' },
 ];
 
 function scrollToAnchor(anchorId: string) {
@@ -58,7 +60,7 @@ export function DAppDashboardSidebar({
   return (
     <UnifiedSidebar
       storageKeyPrefix="dapps-dashboard"
-      header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
+      header={(onHide) => <SidebarHeader backHref="/dapps" backLabel="Back to dApps" onHide={onHide} />}
     >
       <div className="mb-6 space-y-2 px-1">
         <Link
@@ -85,6 +87,7 @@ export function DAppDashboardSidebar({
             <SidebarNavItem
               key={item.id}
               label={item.label}
+              icon={HUB_DASHBOARD_NAV_ICONS[item.icon]}
               active={
                 item.tab === dashboardTab &&
                 (item.id === 'pricing' || item.id === 'modules'

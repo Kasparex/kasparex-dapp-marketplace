@@ -9,6 +9,7 @@ import { SidebarSection } from '../sidebar/SidebarSection';
 import { SidebarCategories } from '../sidebar/SidebarCategories';
 import { SidebarTags } from '../sidebar/SidebarTags';
 import { SidebarNavItem } from '../sidebar/SidebarNavItem';
+import { HUB_DASHBOARD_NAV_ICONS } from '@/lib/hub/dashboardNavIcons';
 
 interface MagazinesSidebarProps {
   mode: 'listing' | 'issue' | 'utility';
@@ -66,6 +67,9 @@ export function MagazinesSidebar({
   const isIssue = mode === 'issue';
   const dashboardActive = pathname?.startsWith('/magazines/dashboard') ?? false;
   const editorActive = pathname?.startsWith('/magazines/editor') ?? false;
+  const backHref = dashboardActive || editorActive || isIssue ? '/magazines' : '/hub';
+  const backLabel =
+    dashboardActive || editorActive || isIssue ? 'Back to Magazines' : 'Back to Hub';
 
   const categoryItems = categories.map((cat) => ({
     id: cat,
@@ -77,7 +81,7 @@ export function MagazinesSidebar({
   return (
     <UnifiedSidebar
       storageKeyPrefix="magazines"
-      header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
+      header={(onHide) => <SidebarHeader backHref={backHref} backLabel={backLabel} onHide={onHide} />}
     >
       <div className="mb-6 space-y-2 px-1">
         <Link
@@ -109,16 +113,34 @@ export function MagazinesSidebar({
           <nav className="space-y-1">
             <SidebarNavItem
               label="Issue form"
+              icon={HUB_DASHBOARD_NAV_ICONS.form}
               active
-              onClick={() => document.getElementById('magazines-dashboard-create')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              onClick={() =>
+                document.getElementById('magazines-dashboard-create')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
             />
             <SidebarNavItem
               label="Fees & rewards"
-              onClick={() => document.getElementById('magazines-dashboard-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              icon={HUB_DASHBOARD_NAV_ICONS.pricing}
+              onClick={() =>
+                document.getElementById('magazines-dashboard-pricing')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
             />
             <SidebarNavItem
               label="Premium modules"
-              onClick={() => document.getElementById('magazines-dashboard-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              icon={HUB_DASHBOARD_NAV_ICONS.modules}
+              onClick={() =>
+                document.getElementById('magazines-dashboard-modules')?.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
             />
           </nav>
         </SidebarSection>

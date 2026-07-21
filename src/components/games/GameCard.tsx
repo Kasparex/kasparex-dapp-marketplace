@@ -66,17 +66,21 @@ export function GameCard({ game, onCategoryFilter }: GameCardProps) {
           ) : null}
           <GameDifficultyBadge difficulty={game.difficulty} size="sm" />
         </div>
-
-        <div className="absolute right-3 top-3 z-20">
-          <GameNetworkBadge capabilities={game.capabilities} size="sm" className="backdrop-blur-sm" />
-        </div>
       </KxListingCardMedia>
 
       <KxListingCardBody className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="mb-3">
-          <h3 className="mb-2 line-clamp-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">
-            {game.name}
-          </h3>
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <h3 className="min-w-0 flex-1 line-clamp-1 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              {game.name}
+            </h3>
+            <GameNetworkBadge
+              capabilities={game.capabilities}
+              size="sm"
+              compact
+              className="shrink-0"
+            />
+          </div>
           <AuthorInline
             address={authorAddress}
             displayName={game.developer}

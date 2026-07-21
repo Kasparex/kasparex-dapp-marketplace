@@ -57,6 +57,8 @@ import {
 import {
   readGamePromoListingsForWallet,
   saveGamePromoListing,
+  deleteGamePromoListing,
+  type GamePromoListing,
 } from '@/lib/games/promoListings';
 
 const BASE_FEE_KAS = 25;
@@ -151,6 +153,8 @@ export default function GamesDashboardPage() {
   const [tagsRaw, setTagsRaw] = useState('');
   const [boostEnabled, setBoostEnabled] = useState(false);
   const [listingsVersion, setListingsVersion] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const listings = useMemo(
     () => readGamePromoListingsForWallet(state.address),
@@ -270,6 +274,47 @@ export default function GamesDashboardPage() {
     setCategories([]);
     setTagsRaw('');
     setBoostEnabled(false);
+    setEditingId(null);
+  };
+
+  const loadListingIntoForm = (item: GamePromoListing) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setSlug(item.slug);
+    setShortDescription(item.shortDescription);
+    setContent(item.content);
+    setInstructions(item.instructions);
+    setFeaturedImageUrl(item.featuredImageUrl);
+    setFeaturedImageCid(item.featuredImageCid ?? null);
+    setFeaturedImageName(null);
+    setFeaturedImageSource('url');
+    setGameType(item.gameType);
+    setDifficulty(item.difficulty);
+    setGameStatus(item.status);
+    setEntryCostKAS(String(item.entryCostKAS ?? 0));
+    setVersion(item.version || '0.1.0');
+    setGameUrl(item.gameUrl);
+    setCategories(item.categories ?? []);
+    setTagsRaw((item.tags ?? []).join(', '));
+    setBoostEnabled(false);
+    setTab('create');
+    window.setTimeout(() => {
+      document.getElementById('games-dashboard-create')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
+
+  const handleDeleteListing = (id: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('Delete this game listing from your dashboard?')) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      deleteGamePromoListing(id);
+      if (editingId === id) resetForm();
+      setListingsVersion((v) => v + 1);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleSave = async () => {
@@ -285,18 +330,26 @@ export default function GamesDashboardPage() {
 
     try {
       const resolvedSlug = slug.trim() || slugify(title);
-      const commitNote = hubListingCommitNote({
-        kind: 'games-promo',
-        contentHash: formQuote.contentHash,
-        payloadBytes: formQuote.payloadBytes,
-        chunkCount: formQuote.chunkCount,
-        totalKas: formQuote.totalKas,
-      });
-      const feeTxHash = await payActionFee('KAS', formQuote.totalKas, commitNote);
-      const txNorm = extractKaspaTransactionId(feeTxHash) ?? feeTxHash;
+      const existing = editingId ? listings.find((x) => x.id === editingId) : undefined;
+
+      // Local updates keep the original fee tx; new publishes pay again.
+      let feeTxHash = existing?.feeTxHash;
+      let feeAmountKas = existing?.feeAmountKas;
+      if (!editingId) {
+        const commitNote = hubListingCommitNote({
+          kind: 'games-promo',
+          contentHash: formQuote.contentHash,
+          payloadBytes: formQuote.payloadBytes,
+          chunkCount: formQuote.chunkCount,
+          totalKas: formQuote.totalKas,
+        });
+        const paid = await payActionFee('KAS', formQuote.totalKas, commitNote);
+        feeTxHash = extractKaspaTransactionId(paid) ?? paid;
+        feeAmountKas = formQuote.totalKas;
+      }
 
       saveGamePromoListing({
-        id: `game-${Date.now()}`,
+        id: editingId ?? `game-${Date.now()}`,
         wallet: state.address,
         title: title.trim(),
         slug: resolvedSlug,
@@ -314,19 +367,21 @@ export default function GamesDashboardPage() {
         categories,
         tags,
         listingStatus: 'published',
-        createdAt: new Date().toISOString(),
-        feeTxHash: txNorm,
-        feeAmountKas: formQuote.totalKas,
+        createdAt: existing?.createdAt ?? new Date().toISOString(),
+        feeTxHash,
+        feeAmountKas,
       });
 
-      appendHubActivityEarn({
-        walletRaw: state.address,
-        source: 'games_promo_list',
-        redeemableDelta: HUB_EARN_POINTS.gamesPromoList,
-        krexBalance,
-        idempotencyKey: `games:promo:${txNorm}`,
-        meta: { title: title.trim(), slug: resolvedSlug },
-      });
+      if (!editingId && feeTxHash) {
+        appendHubActivityEarn({
+          walletRaw: state.address,
+          source: 'games_promo_list',
+          redeemableDelta: HUB_EARN_POINTS.gamesPromoList,
+          krexBalance,
+          idempotencyKey: `games:promo:${feeTxHash}`,
+          meta: { title: title.trim(), slug: resolvedSlug },
+        });
+      }
 
       resetForm();
       setListingsVersion((v) => v + 1);
@@ -355,7 +410,7 @@ export default function GamesDashboardPage() {
             onSearchChange={() => {}}
             onResetFilters={() => {}}
             showCategories={false}
-            backLink={{ href: '/hub', label: 'Back to Hub' }}
+            backLink={{ href: '/games', label: 'Back to Games' }}
             onSectionNav={(sectionId, anchor) => {
               setTab(sectionId === 'listings' ? 'listings' : 'create');
               window.setTimeout(() => {
@@ -457,6 +512,29 @@ export default function GamesDashboardPage() {
                         {item.categories?.length ? (
                           <p className="mt-2 text-xs text-zinc-400">{item.categories.join(' · ')}</p>
                         ) : null}
+                        <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                          <a
+                            href={`/games/${item.slug}`}
+                            className="k-control-btn flex-1 justify-center text-center text-sm"
+                          >
+                            View
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => loadListingIntoForm(item)}
+                            className="hub-cta-btn k-control-btn flex-1 justify-center text-sm"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            disabled={deletingId === item.id}
+                            onClick={() => handleDeleteListing(item.id)}
+                            className="k-control-btn flex-1 justify-center text-sm text-red-600 disabled:opacity-50 dark:text-red-400"
+                          >
+                            {deletingId === item.id ? '…' : 'Delete'}
+                          </button>
+                        </div>
                       </KxListingCardBody>
                     </KxListingCard>
                   ))}
@@ -472,7 +550,7 @@ export default function GamesDashboardPage() {
                   <div>
                     <DAppSectionHeader title="Main content" className="mb-3" />
                     <h3 className="mb-4 text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-                      List a Game
+                      {editingId ? 'Edit Game' : 'List a Game'}
                     </h3>
                     <p className="kx-body">
                       Fields map to the public game template (halo header, metadata panel). Estimated
@@ -721,7 +799,11 @@ export default function GamesDashboardPage() {
                     disabled={!canSubmit}
                     className="hub-cta-btn w-full k-control-btn !text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {isProcessing || isUploading ? 'Processing...' : 'Publish Game'}
+                    {isProcessing || isUploading
+                      ? 'Processing...'
+                      : editingId
+                        ? 'Update listing'
+                        : 'Publish Game'}
                   </button>
                   <HubFlowProgress steps={getHubFlowPreset('hubPublish')} busy={isProcessing || isUploading} />
                 </aside>

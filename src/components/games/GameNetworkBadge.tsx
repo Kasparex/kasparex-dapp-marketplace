@@ -22,12 +22,20 @@ export function GameNetworkBadge({
   capabilities,
   size = 'sm',
   className = '',
+  compact = false,
 }: {
   capabilities?: GameCapability[];
   size?: 'sm' | 'md';
   className?: string;
+  /** Show only L1 / L2 / L1/L2 (listing cards). */
+  compact?: boolean;
 }) {
   return (
-    <HubNetworkBadge badge={resolveGameNetworkBadge(capabilities)} size={size} className={className} />
+    <HubNetworkBadge
+      badge={resolveGameNetworkBadge(capabilities)}
+      size={size}
+      className={className}
+      compact={compact}
+    />
   );
 }

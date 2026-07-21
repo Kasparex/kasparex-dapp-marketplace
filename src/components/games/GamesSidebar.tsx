@@ -8,12 +8,13 @@ import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
 import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { usePathname } from 'next/navigation';
+import { HUB_DASHBOARD_NAV_ICONS } from '@/lib/hub/dashboardNavIcons';
 
 const GAMES_DASHBOARD_SECTIONS = [
-  { id: 'create', label: 'List a Game', anchor: 'games-dashboard-create' },
-  { id: 'pricing', label: 'Fees & rewards', anchor: 'games-dashboard-pricing' },
-  { id: 'modules', label: 'Premium modules', anchor: 'games-dashboard-modules' },
-  { id: 'listings', label: 'My Listings', anchor: 'games-dashboard-listings' },
+  { id: 'create', label: 'List a Game', anchor: 'games-dashboard-create', icon: 'form' as const },
+  { id: 'pricing', label: 'Fees & rewards', anchor: 'games-dashboard-pricing', icon: 'pricing' as const },
+  { id: 'modules', label: 'Premium modules', anchor: 'games-dashboard-modules', icon: 'modules' as const },
+  { id: 'listings', label: 'My Listings', anchor: 'games-dashboard-listings', icon: 'listings' as const },
 ] as const;
 
 function scrollToAnchor(anchorId: string) {
@@ -91,7 +92,7 @@ export function GamesSidebar({
   onSearchChange,
   onResetFilters,
   showCategories = true,
-  backLink = { href: '/hub', label: 'Back to Hub' },
+  backLink = { href: '/games', label: 'Back to Games' },
   onSectionNav,
 }: GamesSidebarProps) {
   const pathname = usePathname();
@@ -223,6 +224,7 @@ export function GamesSidebar({
                 <SidebarNavItem
                   key={item.id}
                   label={item.label}
+                  icon={HUB_DASHBOARD_NAV_ICONS[item.icon]}
                   href={`#${item.anchor}`}
                   onLinkClick={(e) => {
                     e.preventDefault();

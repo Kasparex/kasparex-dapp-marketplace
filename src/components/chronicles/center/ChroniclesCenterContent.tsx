@@ -99,9 +99,9 @@ function SubmissionCard({
             disabled={isArchiving}
             onClick={() => onArchive(item.id)}
             className="k-control-btn flex-1 justify-center text-sm text-red-600 disabled:opacity-50 dark:text-red-400"
-            title="Archive submission"
+            title="Delete submission"
           >
-            {isArchiving ? '…' : 'Archive'}
+            {isArchiving ? '…' : 'Delete'}
           </button>
         </div>
       </KxListingCardBody>

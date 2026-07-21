@@ -52,9 +52,27 @@ export function readGamePromoListingsForWallet(wallet?: string | null): GameProm
 
 export function saveGamePromoListing(listing: GamePromoListing): void {
   if (typeof window === 'undefined') return;
-  const all = readAllGamePromoListings();
+  const all = readAllGamePromoListings().filter((x) => x.id !== listing.id);
   localStorage.setItem(GAMES_PROMO_STORAGE_KEY, JSON.stringify([listing, ...all]));
   window.dispatchEvent(new Event(GAMES_PROMO_UPDATED_EVENT));
+}
+
+export function updateGamePromoListing(listing: GamePromoListing): void {
+  saveGamePromoListing(listing);
+}
+
+export function deleteGamePromoListing(id: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const all = readAllGamePromoListings();
+  const next = all.filter((x) => x.id !== id);
+  if (next.length === all.length) return false;
+  localStorage.setItem(GAMES_PROMO_STORAGE_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event(GAMES_PROMO_UPDATED_EVENT));
+  return true;
+}
+
+export function getGamePromoListingById(id: string): GamePromoListing | undefined {
+  return readAllGamePromoListings().find((x) => x.id === id);
 }
 
 export function gamePromoListingToUnified(listing: GamePromoListing): UnifiedGame {

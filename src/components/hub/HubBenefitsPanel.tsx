@@ -49,6 +49,8 @@ type ScopeCopy = {
   earnBase: number;
   compactFeeNoun: string;
   extraBullets?: string[];
+  /** Drop "at your tier (Nx multiplier)" suffix on the earn bullet. */
+  earnLineShort?: boolean;
 };
 
 const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
@@ -72,10 +74,11 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     panelTitle: 'Benefits',
     headline: 'Hold KREX. Pay less in Games.',
     feeNoun: 'Games fees',
-    earnVerb: 'Play and redeem earn',
+    earnVerb: 'Earn',
     earnBase: HUB_EARN_POINTS.gamesPromoList,
     compactFeeNoun: 'Games fees',
-    extraBullets: ['Deck balances and redeemable points stack with your KREX tier'],
+    earnLineShort: true,
+    extraBullets: ['Deck balances scale with your KREX tier'],
   },
   gamesListing: {
     panelTitle: 'Benefits',
@@ -84,7 +87,8 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     earnVerb: 'Listing earns',
     earnBase: HUB_EARN_POINTS.gamesPromoList,
     compactFeeNoun: 'Games listing fees',
-    extraBullets: ['Featured placement modules also receive your KREX tier discount'],
+    earnLineShort: true,
+    extraBullets: ['Featured modules get your KREX tier discount'],
   },
   magazines: {
     panelTitle: 'Benefits',
@@ -299,8 +303,12 @@ export function HubBenefitsPanel({
                 : `Stack 1M+ KREX for ${KREX_TIERS.Tier1.feeDiscountPercent}% off ${copy.feeNoun}`}
             </li>
             <li>
-              <span className={accentDot}>•</span> {copy.earnVerb} +{publishPts} Hub Points at your tier
-              {tier !== 'Tier0' ? ` (${formatHubPointsTierLabel(tier)} multiplier)` : ' (base amount)'}
+              <span className={accentDot}>•</span> {copy.earnVerb} +{publishPts} Hub Points
+              {copy.earnLineShort
+                ? ' at your tier'
+                : tier !== 'Tier0'
+                  ? ` at your tier (${formatHubPointsTierLabel(tier)} multiplier)`
+                  : ' at your tier (base amount)'}
             </li>
             {(copy.extraBullets ?? []).map((line) => (
               <li key={line}>

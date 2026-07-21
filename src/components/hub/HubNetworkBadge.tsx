@@ -8,15 +8,28 @@ export function HubNetworkBadge({
   badge,
   size = 'md',
   className = '',
+  /** Layer only (L1 / L2 / L1/L2). No wifi icon or network name. */
+  compact = false,
 }: {
   badge: HubNetworkBadgeConfig;
   size?: 'sm' | 'md';
   className?: string;
+  compact?: boolean;
 }) {
   const kind = hubLayerToBadgeKind(badge.layer, badge.label, badge.testnet);
   const badgeClassName = getDAppNetworkBadgeClassName(kind);
   const sizeClass = size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-xs';
   const layerLabel = badge.layer === 'either' ? 'L1/L2' : badge.layer;
+
+  if (compact) {
+    return (
+      <span
+        className={`inline-flex items-center font-semibold rounded-lg shadow-sm ${sizeClass} ${badgeClassName} ${className}`}
+      >
+        {layerLabel}
+      </span>
+    );
+  }
 
   return (
     <span
