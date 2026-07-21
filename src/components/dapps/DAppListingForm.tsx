@@ -893,7 +893,6 @@ export function DAppListingForm({ listing, onSubmitted }: DAppListingFormProps) 
             quote={formQuote}
             hubPoints={isEdit ? undefined : HUB_EARN_POINTS.dappDirectoryList}
             footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
-            className="contents"
           />
 
           <div>

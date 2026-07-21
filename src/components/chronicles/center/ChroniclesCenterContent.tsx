@@ -21,7 +21,6 @@ import {
 } from '@/lib/chronicles/communitySubmissions';
 import { useChroniclesCommunitySubmissions } from '@/hooks/useChroniclesCommunitySubmissions';
 import { ChroniclesListingForm } from '@/components/chronicles/center/ChroniclesListingForm';
-import { DAppSectionHeader } from '@/components/dapps/layout/DAppSectionHeader';
 import { KxFilterDropdown } from '@/components/ui/KxFilterDropdown';
 import { getExplorerTxUrl } from '@/lib/store/utils';
 import { ChroniclesCommunityBadge } from '@/components/chronicles/ChroniclesCommunityBadge';
@@ -42,10 +41,11 @@ import { executeHubPaidDelete, HUB_DELETE_FEE_KAS } from '@/lib/hub/paidDelete';
 import { collectChroniclesMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
+const DASHBOARD_TABS: ChroniclesCenterTab[] = ['create', 'listings'];
+
 const TAB_LABELS: Record<ChroniclesCenterTab, string> = {
-  overview: 'Overview',
-  listings: 'My Listings',
   create: 'Create lore',
+  listings: 'My Listings',
 };
 
 const KIND_OPTIONS: ChroniclesContentKind[] = ['chapter', 'article', 'character', 'location', 'vehicle'];
@@ -133,7 +133,7 @@ export function ChroniclesCenterContent() {
     authorAddress: state.address ?? undefined,
   });
 
-  const [activeTab, setActiveTab] = useState<ChroniclesCenterTab>('overview');
+  const [activeTab, setActiveTab] = useState<ChroniclesCenterTab>('create');
   const [kindFilter, setKindFilter] = useState<ChroniclesContentKind | 'all'>('all');
   const [archivingId, setArchivingId] = useState<string | null>(null);
 
@@ -231,7 +231,7 @@ export function ChroniclesCenterContent() {
       <StoreWalletBanner config={CHRONICLES_CENTER_GATE} />
 
       <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
-        {(Object.keys(TAB_LABELS) as ChroniclesCenterTab[]).map((tab) => (
+        {DASHBOARD_TABS.map((tab) => (
           <button
             key={tab}
             type="button"
@@ -276,109 +276,79 @@ export function ChroniclesCenterContent() {
         </div>
       ) : (
         <div className="space-y-8">
-          {(activeTab === 'overview' || activeTab === 'listings') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Active submissions</h3>
-                <div className="text-4xl font-black text-zinc-900 dark:text-white">
-                  {stats.totalListings} <span className="text-lg text-zinc-500">live</span>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Chapter listing fee</h3>
-                <div className="text-4xl font-black text-zinc-900 dark:text-white">
-                  {chapterFee} <span className="text-lg text-zinc-500">KAS / KREX</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'listings' && (
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
-              <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
-                  Your community submissions
-                </h2>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <KxFilterDropdown
-                    value={kindFilter}
-                    onChange={setKindFilter}
-                    options={[
-                      { value: 'all', label: 'All types' },
-                      ...KIND_OPTIONS.map((k) => ({
-                        value: k,
-                        label: CHRONICLES_CONTENT_KIND_LABELS[k],
-                      })),
-                    ]}
-                    ariaLabel="Filter by content type"
-                    triggerClassName="k-control-btn min-w-[160px]"
-                    menuClassName="w-56"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => goTab('create')}
-                    className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300 text-xs"
-                  >
-                    Create lore
-                  </button>
-                </div>
-              </div>
-
-              {filteredListings.length === 0 ? (
-                <div className="p-12 text-center text-zinc-500">
-                  <p>You haven&apos;t published any community lore yet.</p>
-                  <button
-                    type="button"
-                    onClick={() => goTab('create')}
-                    className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:from-cyan-700 hover:to-teal-700 transition-colors"
-                  >
-                    Submit first entry
-                  </button>
-                </div>
-              ) : (
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredListings.map((item) => (
-                    <SubmissionRow
-                      key={item.id}
-                      item={item}
-                      onArchive={handleArchive}
-                      isArchiving={archivingId === item.id}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'overview' && (
+          {activeTab === 'listings' ? (
             <>
-              <section>
-                <DAppSectionHeader title="Submit community lore on Krex's Chronicles" />
-                <p className="kx-body">
-                  Create chapters, articles, characters, locations, and tech entries for the community codex. Paid
-                  submissions appear in public listings with a Community badge. Official canon remains curated
-                  separately.
-                </p>
-              </section>
-
-              {stats.totalListings > 0 ? (
-                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
-                  <DAppSectionHeader title="By content type" />
-                  <div className="flex flex-wrap gap-2">
-                    {KIND_OPTIONS.filter((k) => stats.byKind[k] > 0).map((k) => (
-                      <span
-                        key={k}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300"
-                      >
-                        {CHRONICLES_CONTENT_KIND_LABELS[k]}
-                        <span className="font-bold text-[#02abb8]">{stats.byKind[k]}</span>
-                      </span>
-                    ))}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="group rounded-2xl border border-zinc-200 bg-white p-6 transition-colors hover:border-[color:var(--hub-accent-border)] dark:border-zinc-800 dark:bg-zinc-950">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Active submissions</h3>
+                  <div className="text-4xl font-black text-zinc-900 dark:text-white">
+                    {stats.totalListings} <span className="text-lg text-zinc-500">live</span>
                   </div>
                 </div>
-              ) : null}
+                <div className="group rounded-2xl border border-zinc-200 bg-white p-6 transition-colors hover:border-[color:var(--hub-accent-border)] dark:border-zinc-800 dark:bg-zinc-950">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Chapter listing fee</h3>
+                  <div className="text-4xl font-black text-zinc-900 dark:text-white">
+                    {chapterFee} <span className="text-lg text-zinc-500">KAS / KREX</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
+                  <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                    Your community submissions
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <KxFilterDropdown
+                      value={kindFilter}
+                      onChange={setKindFilter}
+                      options={[
+                        { value: 'all', label: 'All types' },
+                        ...KIND_OPTIONS.map((k) => ({
+                          value: k,
+                          label: CHRONICLES_CONTENT_KIND_LABELS[k],
+                        })),
+                      ]}
+                      ariaLabel="Filter by content type"
+                      triggerClassName="k-control-btn min-w-[160px]"
+                      menuClassName="w-56"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => goTab('create')}
+                      className="hub-cta-btn k-control-btn text-xs"
+                    >
+                      Create lore
+                    </button>
+                  </div>
+                </div>
+
+                {filteredListings.length === 0 ? (
+                  <div className="p-12 text-center text-zinc-500">
+                    <p>You haven&apos;t published any community lore yet.</p>
+                    <button
+                      type="button"
+                      onClick={() => goTab('create')}
+                      className="hub-cta-btn k-control-btn mt-4 text-sm"
+                    >
+                      Submit first entry
+                    </button>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {filteredListings.map((item) => (
+                      <SubmissionRow
+                        key={item.id}
+                        item={item}
+                        onArchive={handleArchive}
+                        isArchiving={archivingId === item.id}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
-          )}
+          ) : null}
         </div>
       )}
       </MobileDesktopOnlyGate>

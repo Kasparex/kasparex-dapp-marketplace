@@ -505,7 +505,6 @@ export function ChroniclesListingForm({ onSubmitted }: { onSubmitted?: () => voi
             quote={formQuote}
             hubPoints={kind === 'article' ? HUB_EARN_POINTS.chroniclesArticleCreate : undefined}
             footerNote="One Kaspa L1 payment covers the submission, payload size, and any enabled modules."
-            className="contents"
           />
 
           <div>

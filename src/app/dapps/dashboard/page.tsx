@@ -8,7 +8,7 @@ export default function DAppsDashboardPage() {
   return (
     <Suspense
       fallback={
-        <DAppPageShell sidebar={{ dashboardTab: 'overview' }}>
+        <DAppPageShell sidebar={{ dashboardTab: 'create' }}>
           <div className="py-20 flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500" />
           </div>

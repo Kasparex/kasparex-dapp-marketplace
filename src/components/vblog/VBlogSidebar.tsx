@@ -284,7 +284,9 @@ export function VBlogSidebar({
       <div className="mb-6 space-y-2">
         <Link
           href="/vblog/dashboard"
-          className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            dashboardActive ? 'hub-sidebar-action-active' : ''
+          }`}
         >
           <svg className={dashboardActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -293,7 +295,9 @@ export function VBlogSidebar({
         </Link>
         <Link
           href="/vblog/vault"
-          className={`k-control-btn w-full justify-center gap-2 ${vaultActive ? '!bg-cyan-600 !text-white' : ''}`}
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            vaultActive ? 'hub-sidebar-action-active' : ''
+          }`}
         >
           <svg className={vaultActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -341,7 +345,7 @@ export function VBlogSidebar({
         </SidebarSection>
       ) : activeView === 'dashboard' ? (
         <>
-          <SidebarSection title="Page sections">
+          <SidebarSection title="On this page">
             <nav className="space-y-0.5">
               {DASHBOARD_SECTIONS.map((item) => (
                 <SidebarNavItem

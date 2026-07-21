@@ -123,7 +123,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
         </p>
       ) : quote ? (
         <>
-          <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
             {quote.lines.map((line) => (
               <div key={line.label} className="flex justify-between gap-2">
                 <span className="truncate">{line.label}</span>
@@ -133,7 +133,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
               </div>
             ))}
             {quote.subtotalKas != null && quote.discountKas > 0 ? (
-              <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+              <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
                 <span>Subtotal</span>
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
                   {formatPrice(quote.subtotalKas)} {discountCurrency}
@@ -163,7 +163,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
           ) : null}
 
           {quote.hubPoints != null && quote.hubPoints > 0 ? (
-            <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
               <span>Hub points on action</span>
               <span className="inline-flex items-center gap-1.5">
                 <HubPointsEarnBadge points={quote.hubPoints} baseSpendKas={baseSpendKas} />
@@ -176,7 +176,7 @@ export const DAppCalculationBreakdownPanel = memo(function DAppCalculationBreakd
             </div>
           ) : null}
 
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             Current tier: {tierConfig.label} ({tierConfig.description})
           </p>
         </>

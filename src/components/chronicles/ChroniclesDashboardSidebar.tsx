@@ -29,15 +29,9 @@ const DASHBOARD_SECTIONS: Array<{
   { id: 'pricing', label: 'Fees & rewards', tab: 'create', anchor: 'chronicles-dashboard-pricing' },
   { id: 'modules', label: 'Premium modules', tab: 'create', anchor: 'chronicles-dashboard-modules' },
   { id: 'listings', label: 'My Listings', tab: 'listings' },
-  { id: 'overview', label: 'Overview', tab: 'overview' },
 ];
 
 const DASHBOARD_TAB_ICONS: Record<ChroniclesCenterTab | 'pricing' | 'modules', ReactNode> = {
-  overview: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    </svg>
-  ),
   listings: (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -85,45 +79,31 @@ export function ChroniclesDashboardSidebar({
     }
   };
 
-  const footer = (
-    <div className="flex items-center gap-3 border-t border-zinc-200 bg-transparent p-4 dark:border-zinc-800">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/10 text-[10px] font-black text-cyan-600 dark:text-cyan-400">
-        KC
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-          Krex&apos;s Chronicles
-        </p>
-        <p className="text-[9px] font-bold uppercase text-zinc-500">Community lore</p>
-      </div>
-    </div>
-  );
-
   return (
     <UnifiedSidebar
       storageKeyPrefix="chronicles-dashboard"
       header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
-      footer={footer}
     >
       <div className="mb-6 space-y-2 px-1">
         <Link
-          href="/chronicles/center?tab=create"
-          className={`k-control-btn w-full justify-center gap-2 ${dashboardTab === 'create' ? '!bg-cyan-600 !text-white' : ''}`}
+          href="/chronicles/center"
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            dashboardTab === 'create' ? 'hub-sidebar-action-active' : ''
+          }`}
         >
-          <svg className={dashboardTab === 'create' ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className={dashboardTab === 'create' ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Creator Dashboard
         </Link>
-        <Link href="/chronicles" className="k-control-btn w-full justify-center gap-2">
-          <svg className={SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-          </svg>
-          Browse Chronicles
-        </Link>
       </div>
 
-      <SidebarSection title="Dashboard sections">
+      <SidebarSection title="On this page">
         <nav className="space-y-1">
           {DASHBOARD_SECTIONS.map((item) => (
             <SidebarNavItem
@@ -146,7 +126,7 @@ export function ChroniclesDashboardSidebar({
         <div className="space-y-3 px-3 py-2">
           <div>
             <div className="mb-1 text-[10px] font-bold uppercase text-zinc-500">Community submissions</div>
-            <div className="text-lg font-black text-cyan-600 dark:text-cyan-400">{totalListings}</div>
+            <div className="text-lg font-black text-[color:var(--hub-accent,#06b6d4)]">{totalListings}</div>
           </div>
           <p className="text-[11px] leading-relaxed text-zinc-500">
             Paid community lore stored in your browser. Appears in listings with a Community badge.

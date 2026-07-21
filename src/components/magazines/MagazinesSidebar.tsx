@@ -74,30 +74,17 @@ export function MagazinesSidebar({
     icon: <MagazineCategoryIcon category={cat} />,
   }));
 
-  const magazinesFooter = (
-    <div className="flex items-center gap-3 border-t border-zinc-200 bg-transparent p-4 dark:border-zinc-800">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#02abb8]/10 text-[10px] font-black text-[#02abb8]">
-        KM
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-100">
-          Kasparex Mag
-        </p>
-        <p className="text-[9px] font-bold uppercase text-zinc-500">Publishing Suite</p>
-      </div>
-    </div>
-  );
-
   return (
     <UnifiedSidebar
       storageKeyPrefix="magazines"
       header={(onHide) => <SidebarHeader backHref="/hub" backLabel="Back to Hub" onHide={onHide} />}
-      footer={magazinesFooter}
     >
       <div className="mb-6 space-y-2 px-1">
         <Link
           href="/magazines/dashboard"
-          className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            dashboardActive ? 'hub-sidebar-action-active' : ''
+          }`}
         >
           <svg className={dashboardActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -106,23 +93,19 @@ export function MagazinesSidebar({
         </Link>
         <Link
           href="/magazines/editor"
-          className={`k-control-btn w-full justify-center gap-2 ${editorActive ? '!bg-cyan-600 !text-white' : ''}`}
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            editorActive ? 'hub-sidebar-action-active' : ''
+          }`}
         >
           <svg className={editorActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Create Issue
         </Link>
-        <Link href="/magazines" className="k-control-btn w-full justify-center gap-2">
-          <svg className={SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          Browse Magazines
-        </Link>
       </div>
 
       {editorActive ? (
-        <SidebarSection title="Editor sections">
+        <SidebarSection title="On this page">
           <nav className="space-y-1">
             <SidebarNavItem
               label="Issue form"

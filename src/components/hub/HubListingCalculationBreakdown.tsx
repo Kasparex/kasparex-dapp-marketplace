@@ -18,7 +18,11 @@ type Props = {
   className?: string;
 };
 
-/** Shared Calculation breakdown rail (matches vBlog Create Article / Store listing). */
+/**
+ * Shared Calculation breakdown rail.
+ * Matches vBlog Create Article: major blocks separated by gap-4; fee rows use space-y-2.
+ * Do not pass className="contents" (collapses spacing against sibling CTAs).
+ */
 export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, className }: Props) {
   const { balance: krexBalance, tier } = useKREXBalance();
   const [isKrexWizardOpen, setIsKrexWizardOpen] = useState(false);
@@ -26,13 +30,13 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
   const showBuyKrex = quote.discountPercent <= 0 && krexBalance < KREX_TIERS.Tier1.minKREX;
 
   return (
-    <div className={className ?? 'flex flex-col gap-4'}>
-      <div className="flex items-center justify-between gap-2">
+    <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>
+      <div className="mb-1 flex items-center justify-between gap-2">
         <DAppSectionHeader title="Calculation breakdown" className="!mb-0" />
         <TierBadge tier={tier} isUnlocked={krexBalance > 0} />
       </div>
 
-      <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+      <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
         <div className="flex justify-between gap-2">
           <span>Base fee</span>
           <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
@@ -60,7 +64,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
           </div>
         ))}
         {quote.modulesFeeKas > 0 ? (
-          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
             <span>Modules subtotal</span>
             <span className="font-semibold tabular-nums text-[color:var(--hub-accent,#02abb8)]">
               {quote.modulesFeeKas} KAS
@@ -68,7 +72,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
           </div>
         ) : null}
         {quote.discountKas > 0 ? (
-          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-1.5 dark:border-zinc-700">
+          <div className="flex justify-between gap-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
             <span>Subtotal</span>
             <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
               {quote.subtotalKas} KAS
@@ -109,7 +113,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
       ) : null}
 
       {hubPoints != null && hubPoints > 0 ? (
-        <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 px-3 py-2.5 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
           <span>Hub points on action</span>
           <span className="inline-flex items-center gap-1.5">
             <HubPointsEarnBadge points={hubPoints} baseSpendKas={quote.subtotalKas} />
@@ -120,7 +124,7 @@ export function HubListingCalculationBreakdown({ quote, hubPoints, footerNote, c
         </div>
       ) : null}
 
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
         Current tier: {tierConfig.label} ({tierConfig.description})
       </p>
 

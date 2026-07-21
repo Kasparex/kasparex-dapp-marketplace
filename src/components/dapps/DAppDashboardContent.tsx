@@ -43,10 +43,11 @@ import { useKxSystemDialog } from '@/hooks/useKxSystemDialog';
 import { collectDappMediaCids } from '@/lib/ipfs/cidUtils';
 import type { KaspaWalletProvider } from '@/lib/kaspa/types';
 
+const DASHBOARD_TABS: DAppDashboardTab[] = ['create', 'listings'];
+
 const TAB_LABELS: Record<DAppDashboardTab, string> = {
-  overview: 'Overview',
-  listings: 'My Listings',
   create: 'List a DApp',
+  listings: 'My Listings',
 };
 
 const LISTING_CATEGORIES = categories.filter((c) => c.id !== 'all');
@@ -181,7 +182,7 @@ export function DAppDashboardContent() {
   const { nftStatus } = useNFTStatus();
   const { confirm } = useKxSystemDialog();
 
-  const [activeTab, setActiveTab] = useState<DAppDashboardTab>('overview');
+  const [activeTab, setActiveTab] = useState<DAppDashboardTab>('create');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all');
   const [editId, setEditId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -295,7 +296,7 @@ export function DAppDashboardContent() {
       <StoreWalletBanner config={DAPPS_DASHBOARD_GATE} />
 
       <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
-        {(Object.keys(TAB_LABELS) as DAppDashboardTab[]).map((tab) => (
+        {DASHBOARD_TABS.map((tab) => (
           <button
             key={tab}
             type="button"
@@ -365,112 +366,80 @@ export function DAppDashboardContent() {
         </div>
       ) : (
         <div className="space-y-8">
-          {(activeTab === 'overview' || activeTab === 'listings') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Active listings</h3>
-                <div className="text-4xl font-black text-zinc-900 dark:text-white">
-                  {stats.totalListings}{' '}
-                  <span className="text-lg text-zinc-500">live</span>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 group hover:border-cyan-500/30 transition-colors">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">Listing fee</h3>
-                <div className="text-4xl font-black text-zinc-900 dark:text-white">
-                  {DAPP_LISTING_FEE_KAS}{' '}
-                  <span className="text-lg text-zinc-500">KAS / KREX</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'listings' && (
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
-              <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-wide">
-                  Your directory listings
-                </h2>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <KxFilterDropdown
-                    value={categoryFilter}
-                    onChange={setCategoryFilter}
-                    options={[
-                      { value: 'all', label: 'All categories' },
-                      ...LISTING_CATEGORIES.map((c) => ({
-                        value: c.id,
-                        label: `${c.emoji} ${c.name}`,
-                      })),
-                    ]}
-                    ariaLabel="Filter by category"
-                    triggerClassName="k-control-btn min-w-[160px]"
-                    menuClassName="w-56"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => goTab('create')}
-                    className="k-control-btn !border-cyan-500/30 !bg-cyan-500/10 !text-cyan-800 dark:!text-cyan-300 text-xs"
-                  >
-                    List a DApp
-                  </button>
-                </div>
-              </div>
-
-              {filteredListings.length === 0 ? (
-                <div className="p-12 text-center text-zinc-500">
-                  <p>You haven&apos;t published any directory listings yet.</p>
-                  <button
-                    type="button"
-                    onClick={() => goTab('create')}
-                    className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:from-cyan-700 hover:to-teal-700 transition-colors"
-                  >
-                    Submit first listing
-                  </button>
-                </div>
-              ) : (
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredListings.map((item) => (
-                    <ListingRow
-                      key={item.id}
-                      item={item}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      isDeleting={deletingId === item.id}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'overview' && (
+          {activeTab === 'listings' ? (
             <>
-              <section>
-                <DAppSectionHeader title="List your project on Kasparex dApps" />
-                <p className="kx-body">
-                  Submit a full project profile for the public dApps directory. Your listing gets its own page with
-                  description, links, media, and contact details. Integrated live widgets are reserved for official
-                  Kasparex dApps.
-                </p>
-              </section>
-
-              {stats.totalListings > 0 ? (
-                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6">
-                  <DAppSectionHeader title="By category" />
-                  <div className="flex flex-wrap gap-2">
-                    {LISTING_CATEGORIES.filter((c) => stats.byCategory[c.id] > 0).map((c) => (
-                      <span
-                        key={c.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300"
-                      >
-                        {c.emoji} {c.name}
-                        <span className="font-bold text-[#02abb8]">{stats.byCategory[c.id]}</span>
-                      </span>
-                    ))}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="group rounded-2xl border border-zinc-200 bg-white p-6 transition-colors hover:border-[color:var(--hub-accent-border)] dark:border-zinc-800 dark:bg-zinc-950">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Active listings</h3>
+                  <div className="text-4xl font-black text-zinc-900 dark:text-white">
+                    {stats.totalListings} <span className="text-lg text-zinc-500">live</span>
                   </div>
                 </div>
-              ) : null}
+                <div className="group rounded-2xl border border-zinc-200 bg-white p-6 transition-colors hover:border-[color:var(--hub-accent-border)] dark:border-zinc-800 dark:bg-zinc-950">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-zinc-400">Listing fee</h3>
+                  <div className="text-4xl font-black text-zinc-900 dark:text-white">
+                    {DAPP_LISTING_FEE_KAS} <span className="text-lg text-zinc-500">KAS / KREX</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
+                  <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                    Your directory listings
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <KxFilterDropdown
+                      value={categoryFilter}
+                      onChange={setCategoryFilter}
+                      options={[
+                        { value: 'all', label: 'All categories' },
+                        ...LISTING_CATEGORIES.map((c) => ({
+                          value: c.id,
+                          label: `${c.emoji} ${c.name}`,
+                        })),
+                      ]}
+                      ariaLabel="Filter by category"
+                      triggerClassName="k-control-btn min-w-[160px]"
+                      menuClassName="w-56"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => goTab('create')}
+                      className="hub-cta-btn k-control-btn text-xs"
+                    >
+                      List a DApp
+                    </button>
+                  </div>
+                </div>
+
+                {filteredListings.length === 0 ? (
+                  <div className="p-12 text-center text-zinc-500">
+                    <p>You haven&apos;t published any directory listings yet.</p>
+                    <button
+                      type="button"
+                      onClick={() => goTab('create')}
+                      className="hub-cta-btn k-control-btn mt-4 text-sm"
+                    >
+                      Submit first listing
+                    </button>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {filteredListings.map((item) => (
+                      <ListingRow
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        isDeleting={deletingId === item.id}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
-          )}
+          ) : null}
         </div>
       )}
     </DAppPageShell>

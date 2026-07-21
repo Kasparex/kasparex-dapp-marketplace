@@ -610,7 +610,6 @@ export function MagazineEditor() {
             quote={formQuote}
             hubPoints={HUB_EARN_POINTS.magazineIssuePublish}
             footerNote="One Kaspa L1 payment anchors the issue metadata (IPFS CID) on-chain."
-            className="contents"
           />
           {publishNote ? (
             <p className="text-xs text-zinc-600 dark:text-zinc-400" role="status">

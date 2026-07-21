@@ -110,16 +110,6 @@ export function TokensListingSidebar({
     [categories, tokens],
   );
 
-  const tokensFooter = (
-    <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
-      <div className="w-8 h-8 rounded-xl bg-[#02abb8]/10 text-[#02abb8] flex items-center justify-center font-black text-[10px]">KT</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-widest truncate">Kasparex Tokens</p>
-        <p className="text-[9px] font-bold text-zinc-500 uppercase">Ecosystem</p>
-      </div>
-    </div>
-  );
-
   return (
     <UnifiedSidebar
       storageKeyPrefix="tokens-listing"
@@ -131,12 +121,13 @@ export function TokensListingSidebar({
           className="bg-white dark:bg-zinc-950"
         />
       )}
-      footer={tokensFooter}
     >
       <div className="mb-6">
         <Link
           href="/tokens/dashboard"
-          className={`k-control-btn w-full justify-center gap-2 ${dashboardActive ? '!bg-cyan-600 !text-white' : ''}`}
+          className={`k-control-btn hub-cta-btn w-full justify-center gap-2 ${
+            dashboardActive ? 'hub-sidebar-action-active' : ''
+          }`}
         >
           <svg className={dashboardActive ? SIDEBAR_BTN_ICON_ACTIVE : SIDEBAR_BTN_ICON} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -146,7 +137,7 @@ export function TokensListingSidebar({
       </div>
 
       {dashboardActive ? (
-        <SidebarSection title="Form navigation" className="mb-6">
+        <SidebarSection title="On this page" className="mb-6">
           <nav className="space-y-0.5">
             {DASHBOARD_SECTIONS.map((item) => (
               <SidebarNavItem

@@ -1,17 +1,18 @@
-export type ChroniclesCenterTab = 'overview' | 'listings' | 'create';
+export type ChroniclesCenterTab = 'create' | 'listings';
 
 export function parseChroniclesCenterTab(value: string | null): ChroniclesCenterTab {
   switch (value) {
     case 'listings':
     case 'submissions':
       return 'listings';
-    case 'create':
+    case 'overview':
       return 'create';
+    case 'create':
     default:
-      return 'overview';
+      return 'create';
   }
 }
 
 export function chroniclesCenterTabHref(tab: ChroniclesCenterTab): string {
-  return tab === 'overview' ? '/chronicles/center' : `/chronicles/center?tab=${tab}`;
+  return tab === 'create' ? '/chronicles/center' : `/chronicles/center?tab=${tab}`;
 }

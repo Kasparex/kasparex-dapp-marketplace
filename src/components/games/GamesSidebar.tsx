@@ -6,7 +6,22 @@ import { UnifiedSidebar } from '@/components/UnifiedSidebar';
 import { SidebarHeader } from '@/components/sidebar/SidebarHeader';
 import { SidebarSection } from '@/components/sidebar/SidebarSection';
 import { SidebarCategories } from '@/components/sidebar/SidebarCategories';
+import { SidebarNavItem } from '@/components/sidebar/SidebarNavItem';
 import { usePathname } from 'next/navigation';
+
+const GAMES_DASHBOARD_SECTIONS = [
+  { id: 'create', label: 'Game form', anchor: 'games-dashboard-create' },
+  { id: 'pricing', label: 'Fees & rewards', anchor: 'games-dashboard-pricing' },
+  { id: 'modules', label: 'Premium modules', anchor: 'games-dashboard-modules' },
+  { id: 'listings', label: 'My Listings', anchor: 'games-dashboard-listings' },
+] as const;
+
+function scrollToAnchor(anchorId: string) {
+  if (typeof window === 'undefined') return;
+  window.requestAnimationFrame(() => {
+    document.getElementById(anchorId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
 
 interface GamesSidebarProps {
   selectedGameTypes: GameType[];
@@ -25,6 +40,8 @@ interface GamesSidebarProps {
   onResetFilters: () => void;
   showCategories?: boolean;
   backLink?: { href: string; label: string };
+  /** Dashboard "On this page" nav (when showCategories is false). */
+  onSectionNav?: (sectionId: string, anchor: string) => void;
 }
 
 function GameIcon({ id, type = 'type', className = '' }: { id: string; type?: 'type' | 'difficulty' | 'status'; className?: string }) {
@@ -75,6 +92,7 @@ export function GamesSidebar({
   onResetFilters,
   showCategories = true,
   backLink = { href: '/hub', label: 'Back to Hub' },
+  onSectionNav,
 }: GamesSidebarProps) {
   const pathname = usePathname();
   const dashboardActive = pathname?.startsWith('/games/dashboard') ?? false;
@@ -136,7 +154,7 @@ export function GamesSidebar({
           </Link>
         </div>
 
-        {showCategories && (
+        {showCategories ? (
           <>
             <SidebarCategories
               title="Game Type"
@@ -198,6 +216,23 @@ export function GamesSidebar({
               Reset Filters
             </button>
           </>
+        ) : (
+          <SidebarSection title="On this page">
+            <nav className="space-y-1">
+              {GAMES_DASHBOARD_SECTIONS.map((item) => (
+                <SidebarNavItem
+                  key={item.id}
+                  label={item.label}
+                  href={`#${item.anchor}`}
+                  onLinkClick={(e) => {
+                    e.preventDefault();
+                    if (onSectionNav) onSectionNav(item.id, item.anchor);
+                    else scrollToAnchor(item.anchor);
+                  }}
+                />
+              ))}
+            </nav>
+          </SidebarSection>
         )}
     </UnifiedSidebar>
   );

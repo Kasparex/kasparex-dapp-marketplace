@@ -1,0 +1,37 @@
+---
+description: Hub dashboard tabs, sidebars, and Calculation Breakdown standards
+alwaysApply: true
+---
+
+# Hub dashboard UI standards (do not regress)
+
+Reference implementations: **vBlog Author Dashboard / Create Article**, **Magazines dashboard**, **DApps dashboard** (tabs + forms). When updating any Hub project dashboard (dApps, Magazines, Chronicles, Games, Tokens, vBlog, Store), follow this checklist. Do not only restyle the form and leave dashboard chrome lagging.
+
+## Dashboard tabs
+
+- Use shared tokens from `src/lib/hub/shellTokens.ts`: `KX_DASHBOARD_TAB_SHELL`, `KX_DASHBOARD_TAB_BTN`, `KX_DASHBOARD_TAB_BTN_ACTIVE`.
+- Shell margin under the strip: `mb-8` (not `mb-6`).
+- Active tab color must use `var(--hub-accent)` via those tokens (inside `HubAccentScope` / `HubPageAccentLayout`). Never hardcode `!bg-cyan-600` for active dashboard tabs or sidebar CTAs.
+- **No Overview tab** on Hub creator dashboards. Tabs are create/editor first, then listings/archive (and Magazines-style extras if needed).
+- **Default tab** is always the create/editor tab (`create`, `Game`, Create Issue, etc.), never Overview.
+- Tab order: form/editor first, then My Listings / archive.
+
+## Sidebars (dashboard mode)
+
+- Primary CTAs: `k-control-btn` + `hub-cta-btn` / `hub-sidebar-action-active` (accent), not cyan hardcodes.
+- Include an **"On this page"** / **"Page sections"** / **"Form navigation"** / **"Dashboard sections"** nav that scrolls to form anchors (create, pricing, modules, listings).
+- **No sidebar footer** (no brand KD/KM/KC/KT footer strip) on these Hub project dashboards.
+- Do not add "Browse X" links on dashboard sidebars unless the product explicitly requires them.
+
+## Calculation Breakdown
+
+- Shared component: `HubListingCalculationBreakdown` (listing forms) or match vBlog Create Article rail.
+- Aside shell: `KX_CALCULATION_ASIDE` (`p-5 space-y-4`). Sticky rail: `KX_FORM_STICKY_RAIL` (`flex flex-col gap-4`).
+- **Do not use `className="contents"`** on the breakdown. Keep an internal `flex flex-col gap-4` so major blocks (fee rows, total, info note, discount, Hub points, Buy KREX) never collapse against each other.
+- Fee rows: `space-y-2 text-xs` (breathing room). Dividers: `border-t ... pt-2`.
+- Total / info / discount: each in its own `rounded-xl ... p-3` block; Hub points in a padded row, not bare text glued to the previous block.
+- Premium module expand inside forms: `mt-5 pt-5 border-t` (vBlog), not tighter `mt-4 pt-4`.
+
+## Scope reminder
+
+These rules apply to **dashboard chrome and every create/edit tab**, not only the listing form body. When the user says "update dashboards", update tabs, sidebars, headers, fee cards, benefits, and calculation rails together.

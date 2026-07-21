@@ -392,6 +392,12 @@ export default function GamesDashboardPage() {
             onResetFilters={() => {}}
             showCategories={false}
             backLink={{ href: '/hub', label: 'Back to Hub' }}
+            onSectionNav={(sectionId, anchor) => {
+              setTab(sectionId === 'listings' ? 'listings' : 'create');
+              window.setTimeout(() => {
+                document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 80);
+            }}
           />
         </div>
 
@@ -408,7 +414,7 @@ export default function GamesDashboardPage() {
             }
           />
 
-          <div className={`${KX_DASHBOARD_TAB_SHELL} mb-6 flex-wrap`}>
+          <div className={`${KX_DASHBOARD_TAB_SHELL} mb-8 flex-wrap`}>
             {([
               { id: 'create' as const, label: 'Game' },
               { id: 'listings' as const, label: 'My Listings' },
@@ -425,7 +431,7 @@ export default function GamesDashboardPage() {
           </div>
 
           {tab === 'create' ? (
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div id="games-dashboard-pricing" className="mb-8 scroll-mt-24 grid grid-cols-1 gap-4 md:grid-cols-3">
               <VBlogFeeCard
                 title="Listing Fee"
                 feeKas={BASE_FEE_KAS}
@@ -444,7 +450,10 @@ export default function GamesDashboardPage() {
           ) : null}
 
           {tab === 'listings' ? (
-            <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <div
+              id="games-dashboard-listings"
+              className="scroll-mt-24 rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+            >
               <div className="border-b border-zinc-200 p-5 dark:border-zinc-800">
                 <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">My game listings</h2>
               </div>
@@ -477,7 +486,7 @@ export default function GamesDashboardPage() {
           ) : null}
 
           {tab === 'create' ? (
-            <div className={`${KX_FORM_GRID} items-start`}>
+            <div id="games-dashboard-create" className={`${KX_FORM_GRID} scroll-mt-24 items-start`}>
               <div className="flex min-w-0 flex-col gap-6">
                 <div className={`${KX_FORM_PANEL} space-y-6`}>
                   <div>
@@ -703,7 +712,7 @@ export default function GamesDashboardPage() {
                       onToggle={() => setBoostEnabled((v) => !v)}
                     />
                     {boostEnabled ? (
-                      <div className="mt-4 border-t border-zinc-200 pt-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                      <div className="mt-5 border-t border-zinc-200 pt-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
                         Featured module is active and included in the calculation breakdown.
                       </div>
                     ) : null}
@@ -718,7 +727,6 @@ export default function GamesDashboardPage() {
                     quote={formQuote}
                     hubPoints={earnPoints}
                     footerNote="One Kaspa L1 payment covers the listing, payload size, and any enabled modules."
-                    className="contents"
                   />
 
                   {error ? (
