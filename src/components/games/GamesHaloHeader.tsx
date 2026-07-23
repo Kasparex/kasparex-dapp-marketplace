@@ -64,13 +64,13 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
       : KASPAREX_GAMES_AUTHOR_SEED);
 
   /** Max 3–4 game-related chips. No entry-cost badge. */
-  const badges: { key: string; label: string; accent?: boolean }[] = [
-    { key: 'status', label: formatStatus(game.status), accent: true },
+  const badges: { key: string; label: string; tone?: 'accent' | 'player' | 'default' }[] = [
+    { key: 'status', label: formatStatus(game.status), tone: 'accent' },
     { key: 'type', label: typeName },
     { key: 'difficulty', label: difficultyName },
   ];
   if (typeof playerLevel === 'number' && playerLevel > 0) {
-    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, accent: true });
+    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, tone: 'player' });
   }
   const extra = [...(game.categories ?? []), ...(game.tags ?? []).map((t) => `#${t}`)].filter(Boolean);
   for (const label of extra) {
@@ -110,18 +110,20 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
           />
 
           <div className="mb-5 flex flex-wrap gap-2">
-            {badges.map((b) => (
-              <span
-                key={b.key}
-                className={
-                  b.accent
+            {badges.map((b) => {
+              const tone = b.tone ?? 'default';
+              const className =
+                tone === 'player'
+                  ? 'rounded-lg border border-sky-500/35 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-800 dark:text-sky-200'
+                  : tone === 'accent'
                     ? 'rounded-lg border border-[color:var(--hub-accent-border,rgba(16,185,129,0.25))] bg-[color:var(--hub-accent-muted,rgba(16,185,129,0.1))] px-3 py-1.5 text-xs font-bold text-[color:var(--hub-accent,#10b981)]'
-                    : 'rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300'
-                }
-              >
-                {b.label}
-              </span>
-            ))}
+                    : 'rounded-lg border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-bold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-300';
+              return (
+                <span key={b.key} className={className}>
+                  {b.label}
+                </span>
+              );
+            })}
           </div>
 
           {resources.length > 0 ? (

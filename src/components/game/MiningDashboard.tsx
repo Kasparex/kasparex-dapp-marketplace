@@ -110,6 +110,7 @@ export function MiningDashboard({
     reconnectRequiredBy,
     gridLedger,
     redeemPoints,
+    profileNotice,
   } = useDiamondMining();
 
   const [tab, setTab] = useState<TabId>('overview');
@@ -202,8 +203,14 @@ export function MiningDashboard({
       <div className="flex flex-col space-y-6">
         {reconnectRequiredBy && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-800 dark:text-amber-200">
-            Mining is paused. Reconnect your wallet at least once per day to keep recording rewards. Connect with KasWare
-            to resume.
+            Mining is paused. Connect your wallet to resume. Your Diamonds, slots, and redeem points stay saved to that
+            wallet.
+          </div>
+        )}
+
+        {profileNotice && (
+          <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-3 text-sm font-medium text-sky-900 dark:text-sky-100">
+            {profileNotice}
           </div>
         )}
 
@@ -225,6 +232,7 @@ export function MiningDashboard({
           onOpenOverview={openOverview}
           deckFooter={<span>Diamonds update live while NFT workers mine.</span>}
         >
+          <div className="flex w-full min-w-0 flex-col gap-6">
           {activeBoosts.length > 0 && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
               <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Active boosts</h3>
@@ -232,9 +240,9 @@ export function MiningDashboard({
                 {activeBoosts.map((b) => {
                   const minLeft = Math.max(0, Math.ceil((b.endTime - Date.now()) / 60000));
                   return (
-                    <li key={b.id} className="flex items-center justify-between">
+                    <li key={b.id} className="flex items-center justify-between gap-3">
                       <span>{b.name ?? b.type}</span>
-                      <span>{minLeft > 0 ? `${minLeft} min left` : 'Expired'}</span>
+                      <span className="shrink-0 tabular-nums">{minLeft} min left</span>
                     </li>
                   );
                 })}
@@ -278,11 +286,11 @@ export function MiningDashboard({
               diamonds={diamonds}
               refineMinDiamonds={refineMinDiamonds}
               refining={refining}
-              onRefine={async () => {
-                if (diamonds < refineMinDiamonds || refining) return;
+              onRefine={async (amount) => {
+                if (amount < refineMinDiamonds || refining) return;
                 setRefining(true);
                 try {
-                  await refineDiamonds();
+                  await refineDiamonds(amount);
                 } finally {
                   setRefining(false);
                 }
@@ -348,7 +356,9 @@ export function MiningDashboard({
               unifiedRedeemablePoints={redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : undefined}
               hubLedgerNetPoints={redeemUnifiedMatches ? redeemBreakdown.ledgerNetRedeemable : undefined}
               localLedger={gridLedger}
-              onRefine={refineDiamonds}
+              onRefine={(amount) => {
+                void refineDiamonds(amount);
+              }}
               onRedeem={redeemPoints}
             />
           )}
@@ -356,6 +366,7 @@ export function MiningDashboard({
           {tab === 'comments' && (
             <CommentsSection articleId={gameCommentsArticleId('diamond-veins')} dappSectionHeader />
           )}
+          </div>
         </UnifiedGameLayout>
 
         <div className="mt-8 space-y-6">

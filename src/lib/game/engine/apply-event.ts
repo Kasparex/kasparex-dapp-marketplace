@@ -149,8 +149,12 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       return next;
     }
     case 'Refine': {
-      if (state.diamonds < REFINE_MIN_DIAMONDS) return state;
-      const amount = Math.floor(state.diamonds);
+      const bag = Math.floor(state.diamonds);
+      const amount =
+        typeof event.amount === 'number' && Number.isFinite(event.amount)
+          ? Math.max(0, Math.min(bag, Math.floor(event.amount)))
+          : bag;
+      if (amount < REFINE_MIN_DIAMONDS) return state;
       const timeSinceLastRefine = (event.at - state.lastRefinedAt) / 1000;
       const timeBonus = 1 + Math.min(timeSinceLastRefine / 3600, 0.5);
       const refinementPoints = Math.floor(
@@ -164,15 +168,18 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         gridCheckpointScore: refinementPoints,
         note: 'Refine checkpoint. Redeem points toward Hub Rewards.',
       };
-      next.diamonds = 0;
-      next.diamondInventory = {
-        chronoShard: 0,
-        auroraCore: 0,
-        cipherPrism: 0,
-        eonCore: 0,
-        eclipticFlame: 0,
-        rubble: 0,
-      };
+      next.diamonds = Math.max(0, state.diamonds - amount);
+      if (next.diamonds < 0.0001) {
+        next.diamonds = 0;
+        next.diamondInventory = {
+          chronoShard: 0,
+          auroraCore: 0,
+          cipherPrism: 0,
+          eonCore: 0,
+          eclipticFlame: 0,
+          rubble: 0,
+        };
+      }
       next.lastRefinedAt = event.at;
       next.refinementPointsTotal = state.refinementPointsTotal + refinementPoints;
       next.gridLedger = clampLedger([...next.gridLedger, entry]);

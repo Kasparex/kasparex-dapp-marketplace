@@ -66,7 +66,7 @@ export function MiningPanel({
   diamonds: number;
   refineMinDiamonds: number;
   refining: boolean;
-  onRefine: () => void | Promise<void>;
+  onRefine: (amount: number) => void | Promise<void>;
   slottedMetadata: Record<number, ParsedNFTMetadata>;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
   onRemove: (slotIndex: number) => void;
@@ -88,6 +88,11 @@ export function MiningPanel({
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyType, setBuyType] = useState<MiningSlotType>('worker');
   const [feedOpen, setFeedOpen] = useState<number | null>(null);
+  const [refineAmount, setRefineAmount] = useState(() => Math.max(0, Math.floor(diamonds)));
+
+  useEffect(() => {
+    setRefineAmount(Math.max(0, Math.floor(diamonds)));
+  }, [diamonds]);
 
   useEffect(() => {
     if (!buyOpen && feedOpen == null) return;
@@ -122,7 +127,7 @@ export function MiningPanel({
   };
 
   return (
-    <div className="space-y-8">
+      <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -143,7 +148,7 @@ export function MiningPanel({
             {stats.yieldPerSecond.toFixed(2)} D/s
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60 sm:col-span-1">
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Diamonds in bag
           </div>
@@ -151,6 +156,39 @@ export function MiningPanel({
             <DiamondIcon className="h-5 w-5" />
             {Math.floor(diamonds).toLocaleString()}
           </p>
+          <p className="mt-1 text-[11px] text-zinc-500">
+            Refine into Hub redeem points (min {refineMinDiamonds}).
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              type="number"
+              min={refineMinDiamonds}
+              max={Math.max(refineMinDiamonds, Math.floor(diamonds))}
+              value={refineAmount}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (!Number.isFinite(n)) return;
+                setRefineAmount(Math.max(0, Math.floor(n)));
+              }}
+              className="h-9 w-24 rounded-lg border border-zinc-200 bg-white px-2 text-sm font-semibold tabular-nums dark:border-zinc-700 dark:bg-zinc-950"
+              aria-label="Refine amount"
+            />
+            <button
+              type="button"
+              className="h-9 rounded-lg border border-zinc-200 px-2 text-[11px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              onClick={() => setRefineAmount(Math.floor(diamonds))}
+            >
+              Max
+            </button>
+            <button
+              type="button"
+              disabled={refineAmount < refineMinDiamonds || refining || diamonds < refineMinDiamonds}
+              onClick={() => void onRefine(refineAmount)}
+              className="h-9 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {refining ? 'Refining…' : 'Refine'}
+            </button>
+          </div>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -166,26 +204,9 @@ export function MiningPanel({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <div>
-          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Refine Diamonds</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Convert bag Diamonds into Hub redeem points (min {refineMinDiamonds}).
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={diamonds < refineMinDiamonds || refining}
-          onClick={() => void onRefine()}
-          className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {refining ? 'Refining…' : 'Refine'}
-        </button>
-      </div>
-
       <div className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Worker slots</h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               First Worker slot is free. Buy more slots to raise daily mining capacity. Deploy with the same NFT picker as
@@ -196,9 +217,9 @@ export function MiningPanel({
             type="button"
             disabled={!miningAllowed}
             onClick={() => miningAllowed && setBuyOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 px-4 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
           >
-            <EmptyVeinSlotPlusIcon />
+            <Icons.Plus className="h-4 w-4" />
             Buy slot · {slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
           </button>
         </div>

@@ -20,9 +20,9 @@ export function MilestonesPanel({
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Highest goals first. Keep playing to climb levels.</p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+        <span className="inline-flex items-center gap-2 rounded-full border border-sky-500/35 bg-sky-500/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-sky-800 dark:text-sky-200">
           Player level {level}
-          <span className="font-mono font-semibold text-emerald-700/80 dark:text-emerald-300/80">
+          <span className="font-mono font-semibold text-sky-700/80 dark:text-sky-300/80">
             {completedCount}/{total}
           </span>
         </span>
@@ -48,7 +48,7 @@ export function MilestonesPanel({
               rows.map((row) => (
                 <tr key={row.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 align-top">
-                    <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">
+                    <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">
                       Lv {row.level}
                     </span>
                   </td>

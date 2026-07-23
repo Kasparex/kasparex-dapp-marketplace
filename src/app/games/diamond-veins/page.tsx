@@ -35,7 +35,7 @@ function DiamondVeinsContent() {
   const featuredImage = game.featuredImage ?? '';
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="relative flex min-h-screen flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       {/* Background - theme aware */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.08),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.12),transparent_70%)] blur-[100px]" />

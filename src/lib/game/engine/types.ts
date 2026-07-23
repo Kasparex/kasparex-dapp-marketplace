@@ -127,7 +127,7 @@ export type GameEvent =
   | { type: 'DeployNFT'; slotIndex: number; nftId: number; collection: string; energyMax?: number }
   | { type: 'RemoveSlot'; slotIndex: number }
   | { type: 'AddNftDeckSlot'; slotType: MiningSlotType; at: number }
-  | { type: 'Refine'; at: number }
+  | { type: 'Refine'; at: number; amount?: number }
   | { type: 'AddBoost'; boost: ActiveBoost }
   | { type: 'StartMiningRun'; optionIndex: number; at: number; durationMs: number; mult: number }
   | { type: 'AccumulateDiamonds'; delta: number; at: number }
