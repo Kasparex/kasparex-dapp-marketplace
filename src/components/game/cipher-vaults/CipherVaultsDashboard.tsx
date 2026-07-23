@@ -14,6 +14,7 @@ import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
@@ -168,13 +169,15 @@ export function CipherVaultsDashboard({
       onClick: () => setTab('redeem'),
     },
     {
-      id: 'refinement',
-      label: 'Redeem points',
-      value: redeemableRemaining.toLocaleString(),
-      description: 'From Diamond Veins refinement',
-      tooltip: `Mine diamonds, convert them into refinement points, and redeem tickets to enter Cipher Vaults without paying KAS. (${CIPHER_TICKET_REDEEM_RATE_POINTS} pts = 1 ticket). Click to open Redeem.`,
+      id: 'refine_bridge',
+      label: 'Refine to Hub',
+      value: 'Diamond Veins',
+      description: 'Mine & refine Diamonds → Hub points',
+      tooltip: 'Cipher Vaults uses tickets. Refine Diamonds to Hub points in Diamond Veins, then redeem tickets here.',
       accent: 'diamonds',
-      onClick: () => setTab('redeem'),
+      onClick: () => {
+        window.location.href = '/games/diamond-veins';
+      },
     },
   ];
 
@@ -606,6 +609,7 @@ export function CipherVaultsDashboard({
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
+        <GamesSecurityPanel />
 
         <GamePurchasesPanel>
           <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-sm text-zinc-600 dark:text-zinc-400">

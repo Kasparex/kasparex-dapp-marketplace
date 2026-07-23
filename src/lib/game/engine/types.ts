@@ -111,6 +111,8 @@ export interface TyconGameState {
   activeBoosts: ActiveBoost[];
   lastConnectedAt: number | null;
   lastConnectedAddress: string | null;
+  /** Wall-clock ms of last idle mining tick (offline catch-up). */
+  lastIdleTickAt: number | null;
   machines: MachineTier[];
   /** Total power budget (MW). */
   powerCapMw: number;

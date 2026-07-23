@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -13,6 +13,8 @@ import { RewardsPanel } from '@/components/game/diamond-veins/panels/RewardsPane
 import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
+import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
+import { GamesNextStepsPanel } from '@/components/games/panels/GamesNextStepsPanel';
 import {
   IconComments,
   IconMilestones,
@@ -116,17 +118,14 @@ export function MiningDashboard({
   const [faqOpen, setFaqOpen] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
-  const [refineAmount, setRefineAmount] = useState(() => Math.max(0, Math.floor(diamonds)));
-
-  useEffect(() => {
-    setRefineAmount(Math.max(0, Math.floor(diamonds)));
-  }, [diamonds]);
+  const [refineAmount, setRefineAmount] = useState<number | ''>('');
 
   const runRefine = async (amount: number) => {
     if (amount < refineMinDiamonds || refining) return;
     setRefining(true);
     try {
       await refineDiamonds(amount);
+      setRefineAmount('');
     } finally {
       setRefining(false);
     }
@@ -168,6 +167,7 @@ export function MiningDashboard({
 
   const krexYieldBonus = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
   const krexShopDiscount = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
+  const activeWorkers = slots.filter((s) => s.nftId != null && (s.energy ?? 0) > 0).length;
 
   const deckResources = useMemo(
     () => [
@@ -193,54 +193,22 @@ export function MiningDashboard({
         ),
         description: 'Mined in-game · refine into Hub points',
         tooltip:
-          'Diamonds mined by NFT workers. Refine below to add Hub redeem points on /rewards. Subtext is live D/s and your KREX tier.',
+          'Diamonds mined by NFT workers. Use Refine to Hub below to credit /rewards. Subtext is live D/s and your KREX tier.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining'),
       },
-      {
-        id: 'refine',
-        label: 'Refine to Hub',
-        description: `Min ${refineMinDiamonds} Diamonds → Hub redeem points`,
-        tooltip:
-          'Converts bag Diamonds into Hub redeem points counted on /rewards. No separate in-game redeem balance to manage.',
-        value: (
-          <div
-            className="flex flex-wrap items-center justify-end gap-1.5"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            <input
-              type="number"
-              min={refineMinDiamonds}
-              max={Math.max(refineMinDiamonds, Math.floor(diamonds))}
-              value={refineAmount}
-              onChange={(e) => {
-                const n = Number(e.target.value);
-                if (!Number.isFinite(n)) return;
-                setRefineAmount(Math.max(0, Math.floor(n)));
-              }}
-              className="h-8 w-16 rounded-md border border-zinc-200 bg-white px-1.5 text-right text-xs font-semibold tabular-nums dark:border-zinc-600 dark:bg-zinc-950"
-              aria-label="Refine amount"
-            />
-            <button
-              type="button"
-              className="h-8 rounded-md border border-zinc-200 px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              onClick={() => setRefineAmount(Math.floor(diamonds))}
-            >
-              Max
-            </button>
-            <button
-              type="button"
-              disabled={refineAmount < refineMinDiamonds || refining || diamonds < refineMinDiamonds}
-              onClick={() => void runRefine(refineAmount)}
-              className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {refining ? '…' : 'Refine'}
-            </button>
-          </div>
-        ),
-      },
+      gameDeckRefineResource({
+        amount: refineAmount,
+        onAmountChange: setRefineAmount,
+        minAmount: refineMinDiamonds,
+        maxAmount: Math.floor(diamonds),
+        refining,
+        onRefine: (n) => {
+          void runRefine(n);
+        },
+        description: `Min ${refineMinDiamonds} Diamonds → Hub points on /rewards`,
+      }),
     ],
     [
       diamonds,
@@ -259,8 +227,7 @@ export function MiningDashboard({
       <div className="flex flex-col space-y-6">
         {reconnectRequiredBy && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-800 dark:text-amber-200">
-            Mining is paused. Connect your wallet to resume. Your Diamonds, slots, and Hub points stay saved to that
-            wallet.
+            Connect a Kaspa wallet once to bind this browser profile. After that, idle mining can continue when you return.
           </div>
         )}
 
@@ -287,6 +254,13 @@ export function MiningDashboard({
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Refine Diamonds into Hub points on /rewards</span>}
+          belowDeck={
+            <GamesNextStepsPanel
+              connected={Boolean(walletState.isConnected || miningAllowed)}
+              yieldPerSecond={stats.yieldPerSecond}
+              activeWorkers={activeWorkers}
+            />
+          }
         >
           <div className="flex w-full min-w-0 flex-col gap-6">
           {activeBoosts.length > 0 && (
@@ -314,14 +288,7 @@ export function MiningDashboard({
 
           {tab === 'overview' && (
             <div className="space-y-6">
-              <OverviewPanel
-                tycon={tycon}
-                stats={stats}
-                miningAllowed={miningAllowed}
-                krexTier={krexTier}
-                krexYieldBonusPct={krexYieldBonus}
-                krexShopDiscountPct={krexShopDiscount}
-              />
+              <OverviewPanel tycon={tycon} stats={stats} />
               <GameOverviewSections
                 gameName={gameName ?? 'Diamond Veins'}
                 description={gameDescription}
@@ -333,6 +300,45 @@ export function MiningDashboard({
                   'Feed exhausted workers from the Shop. Refine Diamonds from the Game Deck into Hub points on /rewards.',
                 ]}
               />
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+                <button
+                  type="button"
+                  onClick={() => setFaqOpen((o) => !o)}
+                  className="flex w-full items-center justify-between p-4 text-left text-base font-semibold text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800/50"
+                >
+                  FAQ & How rewards work
+                  <svg
+                    className={`h-5 w-5 transition-transform ${faqOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {faqOpen ? (
+                  <div className="space-y-4 border-t border-zinc-200 px-4 pb-4 pt-2 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                    <div>
+                      <p className="font-semibold text-zinc-800 dark:text-zinc-300">Tabs overview</p>
+                      <p className="mt-1">
+                        <strong>Mining</strong> holds NFT worker slots. <strong>Shop</strong> sells food, drinks, repair
+                        kits, and boosts. <strong>Rewards</strong> shows refine history toward Hub points.{' '}
+                        <strong>Milestones</strong> track long-term goals.
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-zinc-800 dark:text-zinc-300">Hub Points</p>
+                      <p className="mt-1">
+                        Refine from the Game Deck to credit{' '}
+                        <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                          Rewards & Points
+                        </Link>
+                        , same bridge as Minecore.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           )}
           {tab === 'mining' && (
@@ -412,48 +418,6 @@ export function MiningDashboard({
           )}
           </div>
         </UnifiedGameLayout>
-
-        <div className="mt-8 space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-            <button
-              type="button"
-              onClick={() => setFaqOpen((o) => !o)}
-              className="flex w-full items-center justify-between p-4 text-left text-base font-semibold text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800/50"
-            >
-              FAQ & How rewards work
-              <svg
-                className={`h-5 w-5 transition-transform ${faqOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {faqOpen && (
-              <div className="space-y-4 border-t border-zinc-200 px-4 pb-4 pt-2 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-                <div>
-                  <p className="font-semibold text-zinc-800 dark:text-zinc-300">Tabs overview</p>
-                  <p className="mt-1">
-                    <strong>Mining</strong> holds NFT worker slots and refine. <strong>Shop</strong> sells food, drinks,
-                    repair kits, and boosts. <strong>Rewards</strong> redeem Diamonds into Hub points.{' '}
-                    <strong>Milestones</strong> track long-term goals.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-zinc-800 dark:text-zinc-300">Hub Points</p>
-                  <p className="mt-1">
-                    Refining Diamonds mints redeem points that count toward{' '}
-                    <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
-                      Rewards & Points
-                    </Link>
-                    , same bridge as Minecore.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
 
         {lastRefineClaim && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

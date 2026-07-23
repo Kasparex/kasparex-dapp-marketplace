@@ -32,6 +32,7 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
     activeBoosts: [],
     lastConnectedAt: null,
     lastConnectedAddress: null,
+    lastIdleTickAt: null,
     machines: [],
     powerCapMw: DEFAULT_POWER_CAP_MW,
     automation: {

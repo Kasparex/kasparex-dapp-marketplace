@@ -145,6 +145,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         next.diamonds = state.diamonds + totalDelta;
         next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + totalDelta;
       }
+      next.lastIdleTickAt = event.at;
       next.version = state.version + 1;
       return next;
     }
@@ -278,5 +279,7 @@ export function hydrateTyconState(partial: Partial<TyconGameState> | null | unde
     gridLedger: partial.gridLedger?.length ? partial.gridLedger.map((g) => ({ ...g })) : [],
     appliedReceiptIds: partial.appliedReceiptIds?.length ? [...partial.appliedReceiptIds] : [],
     consumables: { ...EMPTY_CONSUMABLES, ...partial.consumables },
+    lastIdleTickAt:
+      typeof partial.lastIdleTickAt === 'number' ? partial.lastIdleTickAt : initial.lastIdleTickAt,
   };
 }

@@ -43,6 +43,7 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
+import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
 import * as Icons from 'lucide-react';
@@ -166,6 +167,8 @@ export function MinecoreDashboard(_props: {
   }, [state.plantSlots, miningSearch, miningCategory, miningSort]);
 
   const [redeemShowStartAllMines, setRedeemShowStartAllMines] = useState(false);
+  const [refineAmount, setRefineAmount] = useState<number | ''>('');
+  const [deckRefining, setDeckRefining] = useState(false);
 
   const bulkMiningControl = (
     <MinecoreBulkMiningButton
@@ -228,32 +231,37 @@ export function MinecoreDashboard(_props: {
         ),
         description: 'Diamonds',
         tooltip:
-          'Diamonds you earn in plants; refine into redeem points. Subtext is total live diamond yield rate (D/min) summed across plants that are actively mining right now. Opens Redeem.',
+          'Diamonds you earn in plants; refine into Hub points from the row below. Subtext is total live D/min across active plants.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('redeem' as const),
       },
-      {
-        id: 'redeem_points',
-        label: 'Redeem points',
-        value: redeemPtsUi.toLocaleString(),
-        subValue: (
-          <>
-            ~ <span className="font-semibold tabular-nums">{Math.floor(redeemPtsUi * MINECORE_GRID_PER_REFINEMENT_POINT).toLocaleString()}</span> GRID at rate
-          </>
-        ),
-        description: 'Unified redeemable',
-        tooltip:
-          'Your full redeemable balance across Kasparex Hub (gameplay-linked points plus your Rewards wallet). It updates when you redeem on Rewards. GRID and KREX swaps on this page only use points earned in this game — use Rewards for the rest.',
-        accent: 'purple' as const,
-        onClick: () => setTab('redeem' as const),
-      },
+      gameDeckRefineResource({
+        amount: refineAmount,
+        onAmountChange: setRefineAmount,
+        minAmount: 1,
+        maxAmount: Math.floor(diamondsDisplayTotal),
+        refining: deckRefining,
+        onRefine: (amount) => {
+          setDeckRefining(true);
+          try {
+            actions.refine(amount);
+            setRefineAmount('');
+            if (miningAllowed) setRedeemShowStartAllMines(true);
+          } finally {
+            setDeckRefining(false);
+          }
+        },
+        description: 'Enter amount → Hub redeem points on /rewards',
+      }),
     ],
     [
       diamondsDisplayTotal,
       deckLiveYieldPerMin,
       deckRollingCaps.capSum,
-      redeemPtsUi,
+      refineAmount,
+      deckRefining,
+      miningAllowed,
     ]
   );
 

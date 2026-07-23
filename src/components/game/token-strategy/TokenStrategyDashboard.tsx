@@ -15,6 +15,7 @@ import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 import { GamesWithSidebarLayout } from '@/components/games/layout/GamesWithSidebarLayout';
 import { GamesHaloHeader } from '@/components/games/GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
@@ -272,6 +273,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
+        <GamesSecurityPanel />
 
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">

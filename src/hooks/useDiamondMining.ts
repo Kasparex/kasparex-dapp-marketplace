@@ -105,6 +105,45 @@ function pruneExpiredBoosts(state: TyconGameState, nowMs: number): TyconGameStat
   };
 }
 
+/** Apply missed idle seconds (tab closed / wallet briefly disconnected). Caps at 8h. */
+function catchUpIdleMining(
+  state: TyconGameState,
+  krexTier: string,
+  meta: Record<number, ParsedNFTMetadata>,
+  now: number,
+): TyconGameState {
+  const last = state.lastIdleTickAt ?? state.lastConnectedAt ?? now;
+  let remaining = Math.min(Math.max(0, Math.floor((now - last) / 1000)), 8 * 3600);
+  if (remaining <= 0) {
+    return state.lastIdleTickAt == null ? { ...state, lastIdleTickAt: now } : state;
+  }
+  let s = pruneExpiredBoosts(state, now);
+  let guard = 0;
+  while (remaining > 0 && guard++ < 64) {
+    const st = computeYieldStats(s, krexTier, meta, now);
+    const slotDeltas = st.slots.map((x) => x.yieldPerSecond);
+    const energyDrains = st.slots.map((x) => (x.status === 'mining' && x.yieldPerSecond > 0 ? 1000 : 0));
+    if (slotDeltas.every((d) => d <= 0)) break;
+    let step = remaining;
+    for (let i = 0; i < s.slots.length; i++) {
+      if ((energyDrains[i] ?? 0) <= 0) continue;
+      const energy = s.slots[i]?.energy ?? 0;
+      step = Math.min(step, Math.max(1, Math.floor(energy / (energyDrains[i] ?? 1000))));
+    }
+    const next = applyEvent(s, {
+      type: 'TickIdleMining',
+      deltaSeconds: step,
+      slotDeltas,
+      energyDrains,
+      at: now,
+    });
+    if (next.version === s.version) break;
+    s = next;
+    remaining -= step;
+  }
+  return s.lastIdleTickAt === now ? s : { ...s, lastIdleTickAt: now };
+}
+
 export function useDiamondMining() {
   const { state: walletState } = useKaspaWallet();
   const { balanceInKas, refresh: refreshKasBalance, isLoading: kasBalanceHookLoading } = useKaspaBalance();
@@ -117,6 +156,8 @@ export function useDiamondMining() {
   tyconRef.current = tycon;
   const prevWalletRef = useRef('');
   const hydratedRef = useRef(false);
+  /** Last wallet that owned this browser profile (kept after disconnect so idle mining can continue). */
+  const [boundAddr, setBoundAddr] = useState('');
 
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
@@ -133,13 +174,14 @@ export function useDiamondMining() {
   /** Load wallet-scoped profile before autosave can overwrite storage (Minecore pattern). */
   useLayoutEffect(() => {
     if (!walletAddr) {
-      hydratedRef.current = false;
-      prevWalletRef.current = '';
       setProfileNotice(null);
       return undefined;
     }
+    setBoundAddr(walletAddr);
     const loaded = loadPersistedTycon(walletAddr);
-    setTycon(loaded ?? createInitialTyconState());
+    const base = loaded ?? createInitialTyconState();
+    const caught = catchUpIdleMining(base, krexTier, metaRef.current, Date.now());
+    setTycon(caught);
     hydratedRef.current = true;
     let clearTimer: number | undefined;
     if (prevWalletRef.current !== walletAddr) {
@@ -151,22 +193,26 @@ export function useDiamondMining() {
     return () => {
       if (clearTimer !== undefined) window.clearTimeout(clearTimer);
     };
+    // Catch-up uses current krexTier/meta once per wallet bind; do not re-run on tier flicker.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- walletAddr only
   }, [walletAddr]);
 
   useEffect(() => {
-    if (!walletAddr || !hydratedRef.current) return;
-    savePersistedTycon(walletAddr, tycon);
-  }, [walletAddr, tycon]);
+    const addr = walletAddr || boundAddr;
+    if (!addr || !hydratedRef.current) return;
+    savePersistedTycon(addr, tycon);
+  }, [walletAddr, boundAddr, tycon]);
 
   useEffect(() => {
-    if (!walletAddr) return;
+    const addr = walletAddr || boundAddr;
+    if (!addr) return;
     function reloadFromDisk() {
-      const loaded = loadPersistedTycon(walletAddr);
+      const loaded = loadPersistedTycon(addr);
       if (loaded) setTycon(loaded);
     }
     window.addEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, reloadFromDisk);
     return () => window.removeEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, reloadFromDisk);
-  }, [walletAddr]);
+  }, [walletAddr, boundAddr]);
 
   useEffect(() => {
     if (!canPayWithL1) return;
@@ -245,8 +291,8 @@ export function useDiamondMining() {
     [tycon.activeBoosts, tycon.version],
   );
 
-  /** Mining requires a connected L1 wallet; progress stays wallet-scoped in storage (Minecore pattern). */
-  const miningAllowed = Boolean(walletState.isConnected && walletAddr);
+  /** Idle mining continues after disconnect once a wallet profile is bound (Minecore-style). */
+  const miningAllowed = Boolean(boundAddr || tycon.lastConnectedAt);
 
   // Idle tick: prune expired boosts, then mine + drain energy
   useEffect(() => {
@@ -258,7 +304,9 @@ export function useDiamondMining() {
         const st = computeYieldStats(next, krexTier, metaRef.current, now);
         const slotDeltas = st.slots.map((x) => x.yieldPerSecond);
         const energyDrains = st.slots.map((x) => (x.status === 'mining' && x.yieldPerSecond > 0 ? 1000 : 0));
-        if (slotDeltas.every((d) => d <= 0) && energyDrains.every((d) => d <= 0)) return next;
+        if (slotDeltas.every((d) => d <= 0) && energyDrains.every((d) => d <= 0)) {
+          return next.lastIdleTickAt === now ? next : { ...next, lastIdleTickAt: now };
+        }
         return applyEvent(next, {
           type: 'TickIdleMining',
           deltaSeconds: 1,
@@ -270,6 +318,8 @@ export function useDiamondMining() {
     }, 1000);
     return () => clearInterval(interval);
   }, [miningAllowed, krexTier, tycon.slots, tycon.activeBoosts]);
+
+  const reconnectRequiredBy = !walletState.isConnected && !boundAddr && !tycon.lastConnectedAt;
 
   const deployNFT = useCallback(
     (slotIndex: number, nftId: number, collection: string) => {
@@ -652,7 +702,7 @@ export function useDiamondMining() {
     kasBalanceLoading: canPayWithL1 && kasBalanceHookLoading && balanceInKas === null,
     refreshKasBalance,
     miningAllowed,
-    reconnectRequiredBy: !miningAllowed,
+    reconnectRequiredBy,
     gridLedger: tycon.gridLedger,
     redeemPoints,
     /** @deprecated */

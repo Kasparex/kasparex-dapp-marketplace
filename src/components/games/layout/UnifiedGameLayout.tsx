@@ -8,6 +8,7 @@ import { GamesPlayAdRail } from '../GamesPlayAdRail';
 import { GamesWithSidebarLayout } from './GamesWithSidebarLayout';
 import { GamesHaloHeader } from '../GamesHaloHeader';
 import { HubBenefitsPanel } from '@/components/hub/HubBenefitsPanel';
+import { GamesSecurityPanel } from '@/components/games/panels/GamesSecurityPanel';
 
 /** Partial game payloads from play dashboards (e.g. Diamond Veins) plus full registry games. */
 export type UnifiedGameLayoutGame = Partial<Game> & {
@@ -65,6 +66,7 @@ export function UnifiedGameLayout({
     <div className="flex flex-col gap-4">
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
       {belowDeck}
+      <GamesSecurityPanel />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
       <GamesPlayAdRail />
     </div>
