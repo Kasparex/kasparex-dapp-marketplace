@@ -14,6 +14,7 @@ export function OverviewPanel({
   miningAllowed: boolean;
 }) {
   const rewardFlowGridClass = useGamesMainAdaptiveGrid({ gapClass: 'gap-4' });
+  const active = tycon.slots.filter((s) => s.nftId != null && (s.energy ?? 0) > 0).length;
 
   return (
     <div className="space-y-6">
@@ -21,33 +22,39 @@ export function OverviewPanel({
         <strong className="text-emerald-700 dark:text-emerald-400">Next steps:</strong>{' '}
         {miningAllowed ? (
           <>
-            Keep mining, assign Workers in the Workers tab, then <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">claim GRID checkpoints</Link> after refine.
+            Deploy NFTs on the Mining tab ({active} mining now at {stats.yieldPerSecond.toFixed(2)} D/s), refine Diamonds into
+            redeem points, then claim on{' '}
+            <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+              Rewards & Hub Points
+            </Link>
+            .
           </>
         ) : (
-          <>Reconnect your wallet to resume passive accrual.</>
+          <>Reconnect your wallet to resume idle mining.</>
         )}
       </div>
 
-      <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">How the reward system works</h3>
+      <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">How rewards work</h3>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Diamond Veins uses a structured reward flow designed for zero-gas accrual and bulk claiming:
+          Diamond Veins is an idle miner: assign Workers, Operators, or Foremen to paid NFT slots, keep them fed, refine
+          Diamonds into Hub redeem points.
         </p>
         <div className={rewardFlowGridClass}>
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="text-xs font-bold text-zinc-400 uppercase mb-2">Step 1</div>
-            <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">Mine & Refine</div>
-            <p className="text-xs text-zinc-500">Extract raw Diamonds and convert them to Refinement Points for free (L1).</p>
+            <div className="mb-2 text-xs font-bold uppercase text-zinc-400">Step 1</div>
+            <div className="mb-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">Slot & Mine</div>
+            <p className="text-xs text-zinc-500">Place an NFT in a slot. Higher tiers mine faster and last longer.</p>
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="text-xs font-bold text-zinc-400 uppercase mb-2">Step 2</div>
-            <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">Reward Weight</div>
-            <p className="text-xs text-zinc-500">Accumulate your Weight to grow your Kasparex Rank and ecosystem benefits.</p>
+            <div className="mb-2 text-xs font-bold uppercase text-zinc-400">Step 2</div>
+            <div className="mb-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">Feed & Refine</div>
+            <p className="text-xs text-zinc-500">Restore energy with Shop consumables, then refine Diamonds into points.</p>
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="text-xs font-bold text-zinc-400 uppercase mb-2">Step 3</div>
-            <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">L2 Claim</div>
-            <p className="text-xs text-zinc-500">Claim your Points as real GRID or KREX tokens on the L2 network whenever you want.</p>
+            <div className="mb-2 text-xs font-bold uppercase text-zinc-400">Step 3</div>
+            <div className="mb-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">Hub Rewards</div>
+            <p className="text-xs text-zinc-500">Redeem points toward Hub catalog rewards (same bridge as Minecore).</p>
           </div>
         </div>
       </div>

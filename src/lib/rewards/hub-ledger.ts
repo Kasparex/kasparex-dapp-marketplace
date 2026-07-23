@@ -17,6 +17,10 @@ import {
 } from './hub-ledger-storage';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
 import { deductMinecoreRefinementPointsPersisted } from '@/lib/game/minecore/deduct-refinement-hub';
+import {
+  deductDiamondVeinsRefinementPointsPersisted,
+  readDiamondVeinsRefinementPointsTotal,
+} from '@/lib/game/diamond-veins-hub';
 import { currentLedgerSeasonBucket } from './ledger-season';
 
 /** Client-only: dispatch after mutating persisted hub ledger */
@@ -69,8 +73,8 @@ export function appendHubLedgerEarn(args: {
 export { migrateLegacyCatalogRedemptionsOnce };
 
 /**
- * Unified catalog redemption: consumes Minecore refinement points first (persisted save), then the remainder
- * as negative hub-ledger redeemable so `minecoreRefinement + ledgerNet` drops by `costPoints` exactly once.
+ * Unified catalog redemption: consumes Minecore then Diamond Veins refinement points, then hub-ledger remainder
+ * so gameplay + ledger totals drop by `costPoints` exactly once.
  */
 export function recordUnifiedCatalogRedeem(args: {
   walletKaspaL1: string;
@@ -80,12 +84,16 @@ export function recordUnifiedCatalogRedeem(args: {
   quantity: number;
 }): HubLedgerEntry {
   const walletLedger = (args.walletKaspaL1 ?? '').trim().toLowerCase();
-  const walletMinecore = (args.walletKaspaL1 ?? '').trim();
+  const walletGameplay = (args.walletKaspaL1 ?? '').trim();
   const cost = Math.max(0, Math.floor(args.costPoints));
-  const minecoreBefore = readMinecoreRefinementPointsTotal(walletMinecore);
+  const minecoreBefore = readMinecoreRefinementPointsTotal(walletGameplay);
   const minecorePlan = Math.min(cost, minecoreBefore);
-  const minecoreApplied = deductMinecoreRefinementPointsPersisted(walletMinecore, minecorePlan);
-  const ledgerPortion = cost - minecoreApplied;
+  const minecoreApplied = deductMinecoreRefinementPointsPersisted(walletGameplay, minecorePlan);
+  const afterMinecore = cost - minecoreApplied;
+  const dvBefore = readDiamondVeinsRefinementPointsTotal(walletGameplay);
+  const dvPlan = Math.min(afterMinecore, dvBefore);
+  const dvApplied = deductDiamondVeinsRefinementPointsPersisted(walletGameplay, dvPlan);
+  const ledgerPortion = afterMinecore - dvApplied;
   const seasonId = args.seasonId ?? currentLedgerSeasonBucket();
 
   const id = `redeem:${walletLedger}:${args.catalogItemId}:${args.quantity}:${Date.now()}`;
@@ -103,6 +111,7 @@ export function recordUnifiedCatalogRedeem(args: {
       quantity: args.quantity,
       fullCostPoints: cost,
       minecoreRefinementDeducted: minecoreApplied,
+      diamondVeinsRefinementDeducted: dvApplied,
       ledgerRedeemableDeducted: ledgerPortion,
     },
   };

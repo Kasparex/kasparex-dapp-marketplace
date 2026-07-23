@@ -137,3 +137,15 @@ export function IconBot(props: { className?: string }) {
   );
 }
 
+export function IconMilestones(props: { className?: string }) {
+  return (
+    <IconBase className={props.className}>
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+        <path d="M4 20h16" strokeWidth="2" strokeLinecap="round" />
+        <path d="M6 20V8l5 2 5-3v13" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M11 10v10" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </IconBase>
+  );
+}
+

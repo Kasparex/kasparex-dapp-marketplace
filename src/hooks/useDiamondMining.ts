@@ -5,6 +5,7 @@ import { useKaspaWallet } from '@/lib/kaspa/context';
 import { useKaspaBalance } from '@/hooks/useKaspaBalance';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
 import type { BonusType } from '@/lib/game/diamond-bonuses';
+import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import {
   KREX_TIER_SHOP_DISCOUNT_PCT,
   DIAMOND_VEINS_GARAGE_ADDRESS,
@@ -13,34 +14,49 @@ import {
   KRC20_TRANSFER_TYPE,
   KREX_DECIMALS,
   SOMPI_PER_KAS,
-  MINING_RUN_OPTIONS,
+  DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS,
+  DIAMOND_VEINS_CONSUMABLES,
 } from '@/lib/game/diamond-veins-config';
+import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
-import { sendKaspaTransaction } from '@/lib/kaspa/wallet';
 import {
   applyEvent,
   applyEvents,
   computeYieldStats,
-  computeDiamondDropWeights,
   hydrateTyconState,
   createInitialTyconState,
   type TyconGameState,
   type ActiveBoost,
   type MiningSlot,
+  type MiningSlotType,
+  type DiamondVeinsConsumableId,
 } from '@/lib/game/engine';
 import { fetchDiamondVeinsServerState, pushDiamondVeinsServerSnapshot, registerGarageReceipt } from '@/lib/game/diamond-veins-api';
+import {
+  DIAMOND_VEINS_STORAGE_PREFIX,
+  diamondVeinsStorageKey,
+  broadcastDiamondVeinsExternalPersist,
+} from '@/lib/game/diamond-veins-hub';
+import { payKaspaL1, verifyKaspaL1Payment, recordL1Reward } from '@/lib/games/sdk';
+import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
+import { HUB_EARN_POINTS } from '@/lib/rewards/hub-earn-policy';
+import { extractKaspaTransactionId } from '@/lib/kaspa/transactionId';
 
 export type { MiningSlot, ActiveBoost } from '@/lib/game/engine';
 
-const DIAMOND_VEINS_STORAGE_KEY = 'diamond-veins-state';
 const RECONNECT_GRACE_MS = 24 * 60 * 60 * 1000;
 const SERVER_SYNC_MS = 2500;
+const DEFAULT_TREASURY =
+  process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS?.trim() || DIAMOND_VEINS_GARAGE_ADDRESS;
 
-function loadPersistedTycon(): TyconGameState | null {
+function loadPersistedTycon(address: string | null | undefined): TyconGameState | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(DIAMOND_VEINS_STORAGE_KEY);
+    const addr = (address ?? '').trim();
+    const raw = addr
+      ? localStorage.getItem(diamondVeinsStorageKey(addr)) ?? localStorage.getItem(DIAMOND_VEINS_STORAGE_PREFIX)
+      : localStorage.getItem(DIAMOND_VEINS_STORAGE_PREFIX);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<TyconGameState>;
     if (!parsed || typeof parsed !== 'object') return null;
@@ -50,10 +66,13 @@ function loadPersistedTycon(): TyconGameState | null {
   }
 }
 
-function savePersistedTycon(state: TyconGameState) {
+function savePersistedTycon(state: TyconGameState, address: string | null | undefined) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(DIAMOND_VEINS_STORAGE_KEY, JSON.stringify(state));
+    const addr = (address ?? '').trim();
+    const key = addr ? diamondVeinsStorageKey(addr) : DIAMOND_VEINS_STORAGE_PREFIX;
+    localStorage.setItem(key, JSON.stringify(state));
+    if (addr) broadcastDiamondVeinsExternalPersist();
   } catch {
     // ignore
   }
@@ -64,13 +83,14 @@ export function useDiamondMining() {
   const { balanceInKas, refresh: refreshKasBalance, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { balance: krexBalance, l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
 
-  const [tycon, setTycon] = useState<TyconGameState>(() => loadPersistedTycon() ?? createInitialTyconState());
+  const [tycon, setTycon] = useState<TyconGameState>(() => loadPersistedTycon(null) ?? createInitialTyconState());
   const tyconRef = useRef(tycon);
   tyconRef.current = tycon;
 
   const [slottedMetadata, setSlottedMetadata] = useState<Record<number, ParsedNFTMetadata>>({});
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
   const [lastRefineClaim, setLastRefineClaim] = useState<{ points: number; amount: number } | null>(null);
+  const [lastPaymentError, setLastPaymentError] = useState<string | null>(null);
   const metaRef = useRef(slottedMetadata);
   metaRef.current = slottedMetadata;
 
@@ -90,8 +110,15 @@ export function useDiamondMining() {
   const kasBalance = balanceInKas ?? 0;
 
   useEffect(() => {
-    savePersistedTycon(tycon);
-  }, [tycon]);
+    savePersistedTycon(tycon, walletState.address);
+  }, [tycon, walletState.address]);
+
+  useEffect(() => {
+    const addr = walletState.address?.trim();
+    if (!addr || !walletState.isConnected) return;
+    const loaded = loadPersistedTycon(addr);
+    if (loaded) setTycon(loaded);
+  }, [walletState.address, walletState.isConnected]);
 
   useEffect(() => {
     if (walletState.isConnected && walletState.address) {
@@ -101,7 +128,7 @@ export function useDiamondMining() {
           type: 'HeartbeatConnect',
           address: walletState.address!,
           at: now,
-        })
+        }),
       );
     }
   }, [walletState.isConnected, walletState.address]);
@@ -153,7 +180,7 @@ export function useDiamondMining() {
 
   const stats = useMemo(
     () => computeYieldStats(tycon, krexTier, slottedMetadata),
-    [tycon, krexTier, slottedMetadata]
+    [tycon, krexTier, slottedMetadata],
   );
 
   const miningAllowed = useMemo(() => {
@@ -162,48 +189,49 @@ export function useDiamondMining() {
     return Date.now() - tycon.lastConnectedAt <= RECONNECT_GRACE_MS;
   }, [walletState.isConnected, tycon.lastConnectedAt]);
 
+  // Idle tick: mine + drain energy only for slots with NFT + energy
   useEffect(() => {
-    if (stats.yieldPerSecond === 0 || !miningAllowed) return;
+    if (!miningAllowed) return;
     const interval = setInterval(() => {
       setTycon((s) => {
         const st = computeYieldStats(s, krexTier, metaRef.current);
-        if (st.yieldPerSecond === 0) return s;
-        const w = computeDiamondDropWeights(s, metaRef.current);
+        const slotDeltas = st.slots.map((x) => x.yieldPerSecond);
+        const energyDrains = st.slots.map((x) => (x.status === 'mining' && x.yieldPerSecond > 0 ? 1000 : 0));
+        if (slotDeltas.every((d) => d <= 0) && energyDrains.every((d) => d <= 0)) return s;
         return applyEvent(s, {
-          type: 'DistributeDiamondDelta',
-          delta: st.yieldPerSecond,
-          weights: w,
+          type: 'TickIdleMining',
+          deltaSeconds: 1,
+          slotDeltas,
+          energyDrains,
           at: Date.now(),
         });
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [stats.yieldPerSecond, miningAllowed, krexTier, tycon.slots, tycon.activeBoosts, tycon.machines, tycon.powerCapMw, tycon.miningRunEndTime, tycon.miningRunMultiplier]);
+  }, [miningAllowed, krexTier, tycon.slots, tycon.activeBoosts]);
 
-  const deployNFT = useCallback((slotIndex: number, nftId: number, collection: string) => {
-    setTycon((s) =>
-      applyEvent(s, {
-        type: 'DeployNFT',
-        slotIndex,
-        nftId,
-        collection,
-      })
-    );
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
-    }
-    (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
-      new CustomEvent('record-transaction', {
-        detail: {
-          type: 'deploy-nft',
+  const deployNFT = useCallback(
+    (slotIndex: number, nftId: number, collection: string) => {
+      const meta = metaRef.current[nftId] ?? null;
+      const tier = getNFTTier(collection, nftId, meta);
+      const slot = tyconRef.current.slots[slotIndex];
+      const role = slot?.type ?? 'worker';
+      const energyMax = resolveSlotEnergyMax(role, tier);
+      setTycon((s) =>
+        applyEvent(s, {
+          type: 'DeployNFT',
+          slotIndex,
+          nftId,
           collection,
-          id: nftId,
-          cost: 0.01,
-          status: 'completed',
-        },
-      })
-    );
-  }, []);
+          energyMax,
+        }),
+      );
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kasparex-nft-usage'));
+      }
+    },
+    [],
+  );
 
   const removeSlot = useCallback(
     (slotIndex: number) => {
@@ -222,6 +250,91 @@ export function useDiamondMining() {
     [walletState.address, walletState.isConnected],
   );
 
+  const getKasPriceAfterDiscount = useCallback(
+    (priceKas: number) => {
+      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
+      const discounted = priceKas * (1 - discountPct / 100);
+      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
+    },
+    [krexTier],
+  );
+
+  const payKasBestEffort = useCallback(
+    async (params: { amountKas: number; skuId: string; purchaseType: 'slot' | 'unlock' | 'other' }) => {
+      setLastPaymentError(null);
+      if (!walletState.isConnected || !walletState.provider || !walletState.address) {
+        setLastPaymentError('Wallet connection required');
+        return { ok: false as const };
+      }
+      if (!DEFAULT_TREASURY) {
+        setLastPaymentError('Treasury address not configured');
+        return { ok: false as const };
+      }
+
+      const pay = await payKaspaL1({
+        provider: walletState.provider,
+        fromKaspaAddress: walletState.address,
+        toKaspaAddress: DEFAULT_TREASURY,
+        amountKas: params.amountKas,
+        gameId: 'diamond-veins',
+        skuId: params.skuId,
+        purchaseType: params.purchaseType,
+      });
+      if (!pay.ok) {
+        setLastPaymentError(pay.error);
+        return { ok: false as const };
+      }
+
+      void recordL1Reward({
+        userAddress: walletState.address,
+        dappId: 'diamond-veins',
+        actionType: params.purchaseType,
+        actionValue: params.amountKas,
+        txHash: pay.txHash,
+        network: 'L1',
+      }).catch(() => {});
+
+      void verifyKaspaL1Payment({
+        txHash: pay.txHash,
+        payerKaspaAddress: walletState.address,
+        toKaspaAddress: DEFAULT_TREASURY,
+        minAmountKas: params.amountKas,
+        gameId: 'diamond-veins',
+        skuId: params.skuId,
+        purchaseType: params.purchaseType,
+        sessionId: pay.sessionId,
+      }).catch(() => {});
+
+      const txNorm = extractKaspaTransactionId(pay.txHash) ?? pay.txHash;
+      appendHubActivityEarn({
+        walletRaw: walletState.address,
+        source: 'dapp_l1_interaction',
+        redeemableDelta: HUB_EARN_POINTS.dappL1Interaction,
+        krexBalance,
+        idempotencyKey: `l1:diamond-veins:${params.skuId}:${params.purchaseType}:${txNorm}`,
+        meta: { skuId: params.skuId, purchaseType: params.purchaseType },
+      });
+
+      void refreshKasBalance();
+      return { ok: true as const, txHash: pay.txHash };
+    },
+    [walletState.isConnected, walletState.provider, walletState.address, krexBalance, refreshKasBalance],
+  );
+
+  const purchaseNftDeckSlot = useCallback(
+    async (slotType: MiningSlotType) => {
+      const paid = await payKasBestEffort({
+        amountKas: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS),
+        skuId: `diamond-veins:nft-slot:add:${slotType}`,
+        purchaseType: 'slot',
+      });
+      if (!paid.ok) return false;
+      setTycon((s) => applyEvent(s, { type: 'AddNftDeckSlot', slotType, at: Date.now() }));
+      return true;
+    },
+    [payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
   const refineDiamonds = useCallback(async (): Promise<{ points: number; amount: number } | null> => {
     const prev = tyconRef.current;
     if (prev.diamonds < REFINE_MIN_DIAMONDS) return null;
@@ -230,18 +343,6 @@ export function useDiamondMining() {
     const lastEntry = next.gridLedger[next.gridLedger.length - 1];
     const refinementPoints = lastEntry?.refinementPoints ?? 0;
     const amount = lastEntry?.diamondsRefined ?? Math.floor(prev.diamonds);
-
-    (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
-      new CustomEvent('record-transaction', {
-        detail: {
-          type: 'diamond-refine',
-          amount,
-          refinementPoints,
-          status: 'completed',
-          userAddress: walletState.address ?? undefined,
-        },
-      })
-    );
 
     const syntheticTx =
       typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function'
@@ -262,18 +363,9 @@ export function useDiamondMining() {
 
     setTycon(next);
     setLastRefineClaim({ points: refinementPoints, amount });
+    broadcastDiamondVeinsExternalPersist();
     return { points: refinementPoints, amount };
   }, [walletState.address]);
-
-  const getKasPriceAfterDiscount = useCallback(
-    (priceKas: number) => {
-      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
-      const discounted = priceKas * (1 - discountPct / 100);
-      // Keep KAS pricing stable; UI will format to 4 decimals.
-      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
-    },
-    [krexTier]
-  );
 
   const applyGaragePurchase = useCallback(
     async (
@@ -283,7 +375,7 @@ export function useDiamondMining() {
       multiplier: number,
       txHash: string,
       currency: 'KREX' | 'KAS',
-      amount: number
+      amount: number,
     ) => {
       const receiptId = `${currency}:${txHash}`;
       const boost: ActiveBoost = {
@@ -317,25 +409,19 @@ export function useDiamondMining() {
         applyEvents(s, [
           { type: 'RegisterReceipt', receiptId, at: Date.now() },
           { type: 'AddBoost', boost },
-        ])
+        ]),
       );
     },
-    [walletState.address]
+    [walletState.address],
   );
 
   const buyBoost = useCallback(
     async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
-      if (!canPayL1) {
-        console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
-        return;
-      }
-      if (krexL1Balance < priceKrex) {
-        return;
-      }
+      if (!canPayL1) return;
+      if (krexL1Balance < priceKrex) return;
 
       setBuyingItemId(itemId);
-
       try {
         const amountInSmallestUnit = Math.floor(priceKrex * Math.pow(10, KREX_DECIMALS));
         const inscribeJson = {
@@ -345,30 +431,13 @@ export function useDiamondMining() {
           amt: amountInSmallestUnit.toString(),
           to: DIAMOND_VEINS_GARAGE_ADDRESS,
         };
-        const inscribeJsonString = JSON.stringify(inscribeJson);
-        const priorityFeeKAS = 0.001;
-
         const txHash = await signKrc20Transfer(
           walletState.provider!,
-          inscribeJsonString,
+          JSON.stringify(inscribeJson),
           KRC20_TRANSFER_TYPE,
           DIAMOND_VEINS_GARAGE_ADDRESS,
-          priorityFeeKAS
+          0.001,
         );
-
-        (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
-          new CustomEvent('record-transaction', {
-            detail: {
-              type: 'garage-purchase',
-              item: name,
-              cost: priceKrex,
-              txHash,
-              revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
-              status: 'completed',
-            },
-          })
-        );
-
         await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', priceKrex);
       } catch (err) {
         console.error('[Diamond Veins] Garage purchase failed:', err);
@@ -377,48 +446,25 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, applyGaragePurchase]
+    [walletState.isConnected, canPayWithL1, walletState.provider, krexL1Balance, applyGaragePurchase],
   );
 
   const buyBoostWithKAS = useCallback(
     async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
       const priceAfterDiscountKas = getKasPriceAfterDiscount(priceKAS);
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
-      if (!canPayL1) {
-        console.warn('[Diamond Veins] Connect KasWare or Kastle (L1) for Garage purchase');
-        return;
-      }
+      if (!canPayL1) return;
       if (kasBalance < priceAfterDiscountKas) return;
 
       setBuyingItemId(itemId);
-
       try {
-        const sompi = Math.round(priceAfterDiscountKas * SOMPI_PER_KAS);
-        const to = DIAMOND_VEINS_GARAGE_ADDRESS.replace(/^kaspa:/i, '');
-        const sent = await sendKaspaTransaction(walletState.provider!, {
-          to,
-          amount: String(sompi),
+        const paid = await payKasBestEffort({
+          amountKas: priceAfterDiscountKas,
+          skuId: `diamond-veins:boost:${itemId}`,
+          purchaseType: 'other',
         });
-        if (sent.status === 'failed') {
-          throw new Error(sent.error || 'KAS transfer failed');
-        }
-        const txHash = sent.txHash;
-
-        (window as Window & { dispatchEvent: typeof window.dispatchEvent }).dispatchEvent(
-          new CustomEvent('record-transaction', {
-            detail: {
-              type: 'garage-purchase',
-              item: name,
-              costKAS: priceAfterDiscountKas,
-              txHash,
-              revenuePoolShare: GARAGE_REVENUE_TO_POOL_PCT,
-              status: 'completed',
-            },
-          })
-        );
-
-        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KAS', priceAfterDiscountKas);
-        void refreshKasBalance();
+        if (!paid.ok || !('txHash' in paid)) return;
+        await applyGaragePurchase(itemId, name, type, multiplier, paid.txHash, 'KAS', priceAfterDiscountKas);
       } catch (err) {
         console.error('[Diamond Veins] Garage KAS purchase failed:', err);
         throw err;
@@ -426,43 +472,82 @@ export function useDiamondMining() {
         setBuyingItemId(null);
       }
     },
-    [walletState.isConnected, canPayWithL1, walletState.provider, kasBalance, refreshKasBalance, applyGaragePurchase, getKasPriceAfterDiscount]
+    [
+      walletState.isConnected,
+      canPayWithL1,
+      walletState.provider,
+      kasBalance,
+      applyGaragePurchase,
+      getKasPriceAfterDiscount,
+      payKasBestEffort,
+    ],
   );
 
-  const startMiningRun = useCallback((optionIndex: number) => {
-    const opt = MINING_RUN_OPTIONS[optionIndex];
-    if (!opt) return;
-    const now = Date.now();
+  const buyConsumable = useCallback(
+    async (itemId: DiamondVeinsConsumableId, currency: 'KAS' | 'KREX') => {
+      const item = DIAMOND_VEINS_CONSUMABLES.find((c) => c.id === itemId);
+      if (!item) return false;
+      setBuyingItemId(itemId);
+      try {
+        if (currency === 'KAS') {
+          const paid = await payKasBestEffort({
+            amountKas: getKasPriceAfterDiscount(item.priceKAS),
+            skuId: `diamond-veins:consumable:${itemId}`,
+            purchaseType: 'other',
+          });
+          if (!paid.ok) return false;
+        } else {
+          if (!canPayWithL1 || !walletState.provider) return false;
+          if (krexL1Balance < item.priceKrex) return false;
+          const amountInSmallestUnit = Math.floor(item.priceKrex * Math.pow(10, KREX_DECIMALS));
+          const inscribeJson = {
+            p: 'KRC-20',
+            op: 'transfer',
+            tick: 'KREX',
+            amt: amountInSmallestUnit.toString(),
+            to: DIAMOND_VEINS_GARAGE_ADDRESS,
+          };
+          await signKrc20Transfer(
+            walletState.provider,
+            JSON.stringify(inscribeJson),
+            KRC20_TRANSFER_TYPE,
+            DIAMOND_VEINS_GARAGE_ADDRESS,
+            0.001,
+          );
+        }
+        setTycon((s) => applyEvent(s, { type: 'AddConsumables', itemId, count: 1, at: Date.now() }));
+        return true;
+      } catch {
+        return false;
+      } finally {
+        setBuyingItemId(null);
+      }
+    },
+    [payKasBestEffort, getKasPriceAfterDiscount, canPayWithL1, walletState.provider, krexL1Balance],
+  );
+
+  const feedWorker = useCallback((slotIndex: number, itemId: DiamondVeinsConsumableId) => {
+    const item = DIAMOND_VEINS_CONSUMABLES.find((c) => c.id === itemId);
+    if (!item) return false;
+    const slot = tyconRef.current.slots[slotIndex];
+    if (!slot || slot.nftId == null) return false;
+    const energyMax = Math.max(slot.energyMax ?? 0, 1);
+    const energyRestore = Math.floor(energyMax * item.restorePct);
     setTycon((s) =>
       applyEvent(s, {
-        type: 'StartMiningRun',
-        optionIndex,
-        at: now,
-        durationMs: opt.durationMs,
-        mult: opt.mult,
-      })
+        type: 'FeedWorker',
+        slotIndex,
+        itemId,
+        energyRestore,
+        at: Date.now(),
+      }),
     );
+    return true;
   }, []);
 
-  const setAutoRestartMiningRun = useCallback((enabled: boolean) => {
-    setTycon((s) => applyEvent(s, { type: 'SetAutomation', patch: { autoRestartMiningRun: enabled } }));
-  }, []);
-
-  const buyExtraDrill = useCallback(() => {
-    setTycon((s) =>
-      applyEvent(s, {
-        type: 'AddMachine',
-        machine: { id: 'surface-drill-mk1', count: 1, powerPerUnit: 2, yieldPerUnit: 0.12 },
-      })
-    );
-  }, []);
-
-  const buyPowerUpgrade = useCallback(() => {
-    setTycon((s) => applyEvent(s, { type: 'UpgradePower', addedMw: 4 }));
-  }, []);
-
-  const redeemGrid = useCallback((points: number) => {
-    setTycon((s) => applyEvent(s, { type: 'RedeemGrid', points, at: Date.now() }));
+  const redeemPoints = useCallback((points: number) => {
+    setTycon((s) => applyEvent(s, { type: 'RedeemPoints', points, at: Date.now() }));
+    broadcastDiamondVeinsExternalPersist();
   }, []);
 
   return {
@@ -472,11 +557,16 @@ export function useDiamondMining() {
     slots: tycon.slots,
     stats,
     activeBoosts: tycon.activeBoosts,
+    consumables: tycon.consumables,
     deployNFT,
     removeSlot,
+    purchaseNftDeckSlot,
+    slotPurchaseKas: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS),
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,
+    buyConsumable,
+    feedWorker,
     kasBalance,
     isConnected: walletState.isConnected,
     slottedMetadata,
@@ -489,33 +579,20 @@ export function useDiamondMining() {
     buyingItemId,
     canPayWithL1,
     refinementPointsTotal: tycon.refinementPointsTotal,
+    diamondsEarnedLifetime: tycon.diamondsEarnedLifetime ?? 0,
     lastRefineClaim,
     clearLastRefineClaim: () => setLastRefineClaim(null),
     kasBalanceLoading: canPayWithL1 && kasBalanceHookLoading && balanceInKas === null,
     refreshKasBalance,
-    miningRun:
-      tycon.miningRunEndTime > Date.now()
-        ? {
-            endTime: tycon.miningRunEndTime,
-            multiplier: tycon.miningRunMultiplier,
-            optionIndex: tycon.miningRunOptionIndex,
-            option: tycon.miningRunOptionIndex != null ? MINING_RUN_OPTIONS[tycon.miningRunOptionIndex] : null,
-          }
-        : null,
-    startMiningRun,
-    miningRunOptions: MINING_RUN_OPTIONS,
     miningAllowed,
     reconnectRequiredBy:
       tycon.lastConnectedAt != null &&
       !walletState.isConnected &&
       Date.now() - tycon.lastConnectedAt > RECONNECT_GRACE_MS,
-    machines: tycon.machines,
-    powerCapMw: tycon.powerCapMw,
-    automation: tycon.automation,
     gridLedger: tycon.gridLedger,
-    setAutoRestartMiningRun,
-    buyExtraDrill,
-    buyPowerUpgrade,
-    redeemGrid,
+    redeemPoints,
+    /** @deprecated */
+    redeemGrid: redeemPoints,
+    lastPaymentError,
   };
 }

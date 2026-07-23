@@ -89,9 +89,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Diamond Veins',
       slug: 'diamond-veins',
       description:
-        "Mine mysterious Krex Diamonds deep beneath Kaspaland. Deploy KREXPRIME Workers and PIXELKREX Elite Operators. Hold KREX for bonuses; pay with KREX or KAS in Vector's Garage to boost production. Revenue funds the rewards pool. Powered by Kasparex infrastructure.",
+        'Idle-mine Diamonds by deploying NFTs into paid worker slots. Higher tiers mine faster and last longer. Feed workers from the Shop, refine Diamonds into Hub redeem points, and chase Milestones.',
       instructions:
-        "Connect your Kaspa (KasWare) wallet. Deploy KREXPRIME as Workers and PIXELKREX as Elite Operators. Hold KREX for higher yield and shop discounts. Mine in-game diamonds, then Refine when you have at least 100 to earn refinement points.",
+        'Connect your Kaspa (KasWare) wallet. Buy or use an NFT slot, deploy a Worker / Operator / Foreman, keep energy topped up with Shop consumables, refine Diamonds into Hub points, and track Milestones.',
       gameType: 'strategy',
       difficulty: 'medium',
       entryCostKAS: 0,
@@ -105,7 +105,7 @@ export const gamesRegistry: UnifiedGame[] = [
     route: { kind: 'custom', href: '/games/diamond-veins' },
     capabilities: ['wallet_l1', 'currency_diamonds', 'nft_deck', 'leaderboard_unified'],
     categories: ['Economy', 'Mining', 'Lore'],
-    tags: ['Diamonds', 'NFT slots', 'Refinement points', 'KREX boosts'],
+    tags: ['Diamonds', 'NFT slots', 'Idle mining', 'Hub points'],
   },
   {
     ...baseGame({

@@ -19,10 +19,11 @@ import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
-import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { IconBoosters, IconComments, IconMilestones, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
+import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -37,6 +38,7 @@ const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'play', label: 'Play' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'milestones', label: 'Milestones' },
   { id: 'boosters', label: 'Boosters' },
   { id: 'comments', label: 'Comments' },
 ] as const;
@@ -112,6 +114,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
       { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
       { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
       { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
       { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
@@ -189,6 +192,16 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
         {tab === 'rewards' && (
           <RewardsPreview showLink={true} />
+        )}
+
+        {tab === 'milestones' && (
+          <MilestonesPanel
+            gameId="token-strategy"
+            progress={{
+              strategy_rounds: missionIndex + (stats.security + stats.power + stats.stealth > 0 ? 1 : 0),
+              generic_progress: score,
+            }}
+          />
         )}
 
         {tab === 'comments' && (

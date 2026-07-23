@@ -23,12 +23,14 @@ import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from 
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'vaults', label: 'Vaults' },
   { id: 'redeem', label: 'Redeem' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'milestones', label: 'Milestones' },
   { id: 'comments', label: 'Comments' },
 ] as const;
 
@@ -511,7 +513,7 @@ export function CipherVaultsDashboard({
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
               <h3 className="mb-2 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">Cipher checkpoints</h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Your verified clears are recorded as a local+server ledger. Future GRID distribution can use these checkpoints.
+                Your verified clears are recorded as a local+server ledger for Hub Rewards checkpoints.
               </p>
             </div>
             
@@ -578,6 +580,16 @@ export function CipherVaultsDashboard({
               </table>
             </div>
           </div>
+        )}
+
+        {tab === 'milestones' && (
+          <MilestonesPanel
+            gameId="cipher-vaults"
+            progress={{
+              cipher_clears: (state.ledger ?? []).length,
+              collections_complete: new Set((state.ledger ?? []).map((e) => e.tierId)).size >= 3 ? 1 : 0,
+            }}
+          />
         )}
 
         {tab === 'comments' && (

@@ -33,7 +33,7 @@ import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments, IconMilestones } from '@/components/games/icons/TabIcons';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { CrewPlantFeaturesPanel } from '@/components/game/minecore/CrewPlantFeaturesPanel';
@@ -43,6 +43,7 @@ import { KREXBuyWizard } from '@/components/rewards/KREXBuyWizard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
+import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import * as Icons from 'lucide-react';
 
 const TABS = [
@@ -53,6 +54,7 @@ const TABS = [
   { id: 'workers', label: '4. Crew', icon: <IconWorkers /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
+  { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ] as const;
 
@@ -731,6 +733,35 @@ export function MinecoreDashboard(_props: {
                 }
               />
             </div>
+          )}
+
+          {tab === 'milestones' && (
+            <MilestonesPanel
+              gameId="minecore"
+              progress={{
+                diamonds_earned: Math.floor(
+                  (state.refinementPointsEarnedLifetime ?? 0) + (state.diamondsBalance ?? 0),
+                ),
+                diamonds_balance: Math.floor(state.diamondsBalance ?? 0),
+                plants_unlocked: state.plantSlots.filter((p) => p.unlocked).length,
+                plant_tier: Math.max(
+                  0,
+                  ...state.plantSlots.map((p) => {
+                    const order = [
+                      'standard',
+                      'premium',
+                      'advanced',
+                      'industrial',
+                      'elite',
+                      'dominion',
+                    ] as const;
+                    const idx = order.indexOf(String(p.type).toLowerCase() as (typeof order)[number]);
+                    return idx >= 0 ? idx + 1 : p.unlocked ? 1 : 0;
+                  }),
+                ),
+                refinement_points: state.refinementPointsTotal,
+              }}
+            />
           )}
 
           {tab === 'comments' && (

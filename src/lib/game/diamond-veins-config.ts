@@ -56,6 +56,64 @@ export const OPERATOR_TIER_MULTIPLIERS = {
   rarest: 3,
 } as const;
 
+/** Base Diamonds/sec by role before tier + boosts (idle NFT mining). */
+export const IDLE_ROLE_BASE_DPS = {
+  worker: 0.08,
+  operator: 0.14,
+  foreman: 0.2,
+} as const;
+
+/** Tier multipliers applied to idle role base DPS. */
+export const IDLE_TIER_DPS_MULT = {
+  regular: 1,
+  diamond: 1.4,
+  rarest: 1.85,
+} as const;
+
+/**
+ * Full-energy mining duration (ms) by role × tier.
+ * Higher tiers work longer before needing food / drinks / repair kits.
+ */
+export const IDLE_ENERGY_DURATION_MS = {
+  worker: { regular: 20 * 60_000, diamond: 35 * 60_000, rarest: 50 * 60_000 },
+  operator: { regular: 30 * 60_000, diamond: 50 * 60_000, rarest: 70 * 60_000 },
+  foreman: { regular: 40 * 60_000, diamond: 65 * 60_000, rarest: 90 * 60_000 },
+} as const;
+
+/** Paid NFT slot unlock list price (same pattern as Minecore). */
+export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = 2;
+
+/** Shop consumables that restore worker energy (% of energyMax). */
+export const DIAMOND_VEINS_CONSUMABLES = [
+  {
+    id: 'field-ration' as const,
+    name: 'Field Ration',
+    desc: 'Restore 25% worker energy',
+    restorePct: 0.25,
+    priceKrex: 50,
+    priceKAS: 0.25,
+  },
+  {
+    id: 'energy-drink' as const,
+    name: 'Energy Drink',
+    desc: 'Restore 50% worker energy',
+    restorePct: 0.5,
+    priceKrex: 120,
+    priceKAS: 0.5,
+  },
+  {
+    id: 'repair-kit' as const,
+    name: 'Repair Kit',
+    desc: 'Fully restore worker energy',
+    restorePct: 1,
+    priceKrex: 250,
+    priceKAS: 1,
+  },
+] as const;
+
+/** Points per refined diamond (matches Minecore Hub redeem bridge). */
+export const DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND = 1;
+
 /** KREX tier yield bonus (on top of NFT yield). Tier0 = 0, Tier1 = 5%, etc. */
 export const KREX_TIER_YIELD_BONUS_PCT: Record<string, number> = {
   Tier0: 0,

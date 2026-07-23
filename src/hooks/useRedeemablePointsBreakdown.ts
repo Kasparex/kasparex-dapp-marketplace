@@ -4,6 +4,11 @@ import { useMemo, useState, useEffect } from 'react';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { readMinecoreRefinementPointsTotal } from '@/lib/game/minecore/read-refinement-points';
+import {
+  DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT,
+  DIAMOND_VEINS_STORAGE_PREFIX,
+  readDiamondVeinsRefinementPointsTotal,
+} from '@/lib/game/diamond-veins-hub';
 import { migrateLegacyCatalogRedemptionsOnce, sumLedgerRedeemableNet } from '@/lib/rewards/hub-ledger';
 import { KASAPEX_HUB_LEDGER_LS_PREFIX } from '@/lib/rewards/hub-ledger-storage';
 import { MINECORE_STORAGE_PREFIX } from '@/lib/game/minecore/config';
@@ -40,6 +45,7 @@ export interface UseRedeemablePointsBreakdownResult {
   /** Net redeemable tracked only in the Rewards wallet ledger (local). */
   ledgerNetRedeemable: number;
   minecoreRefinement: number;
+  diamondVeinsRefinement: number;
   /** Authoritative hub balance from API when fetch succeeded; null if unavailable. */
   serverHubBalance: number | null;
 }
@@ -66,19 +72,23 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       if (!ev.key) return;
       if (
         ev.key.startsWith(`${KASAPEX_HUB_LEDGER_LS_PREFIX}:`) ||
-        ev.key.startsWith(`${MINECORE_STORAGE_PREFIX}:`)
+        ev.key.startsWith(`${MINECORE_STORAGE_PREFIX}:`) ||
+        ev.key.startsWith(`${DIAMOND_VEINS_STORAGE_PREFIX}:`) ||
+        ev.key === DIAMOND_VEINS_STORAGE_PREFIX
       ) {
         bumpWithServerSync();
       }
     }
     window.addEventListener('kasparex-hub-ledger', bumpWithServerSync);
     window.addEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+    window.addEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
     window.addEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
     window.addEventListener('focus', bumpWithServerSync);
     window.addEventListener('storage', onStorage);
     return () => {
       window.removeEventListener('kasparex-hub-ledger', bumpWithServerSync);
       window.removeEventListener(MINECORE_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
+      window.removeEventListener(DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT, bumpWithServerSync);
       window.removeEventListener(REDEEMABLE_BREAKDOWN_REFRESH_EVENT, bumpLocal);
       window.removeEventListener('focus', bumpWithServerSync);
       window.removeEventListener('storage', onStorage);
@@ -104,23 +114,27 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
         lines: [],
         ledgerNetRedeemable: 0,
         minecoreRefinement: 0,
+        diamondVeinsRefinement: 0,
         serverHubBalance: null,
       };
     }
     const minecoreRefinement = readMinecoreRefinementPointsTotal(addr);
+    const diamondVeinsRefinement = readDiamondVeinsRefinementPointsTotal(addr);
+    const gameplayPts = minecoreRefinement + diamondVeinsRefinement;
     const ledgerNet = sumLedgerRedeemableNet(addr.toLowerCase());
-    /**
-     * One hub bucket: use the higher of server balance and local Rewards wallet net so gameplay-only
-     * ledger progress still counts when the API returns 0. When the balance API failed, use local only.
-     */
     const hubPts =
       serverHubBalance !== null ? Math.max(ledgerNet, serverHubBalance) : ledgerNet;
-    const total = Math.max(0, minecoreRefinement + hubPts);
+    const total = Math.max(0, gameplayPts + hubPts);
     const lines: RedeemableSourceLine[] = [
       {
         id: 'minecore',
-        label: 'Gameplay & experiences',
+        label: 'Minecore diamonds',
         points: minecoreRefinement,
+      },
+      {
+        id: 'diamond-veins',
+        label: 'Diamond Veins',
+        points: diamondVeinsRefinement,
       },
       {
         id: 'hub_ledger',
@@ -134,6 +148,7 @@ export function useRedeemablePointsBreakdown(): UseRedeemablePointsBreakdownResu
       lines,
       ledgerNetRedeemable: ledgerNet,
       minecoreRefinement,
+      diamondVeinsRefinement,
       serverHubBalance,
     };
   }, [addr, tick, serverHubBalance]);

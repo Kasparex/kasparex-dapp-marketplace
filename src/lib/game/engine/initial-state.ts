@@ -1,6 +1,12 @@
-import type { TyconGameState } from './types';
+import type { TyconGameState, DiamondVeinsConsumableInventory } from './types';
 
 export const DEFAULT_POWER_CAP_MW = 12;
+
+export const EMPTY_CONSUMABLES: DiamondVeinsConsumableInventory = {
+  'field-ration': 0,
+  'energy-drink': 0,
+  'repair-kit': 0,
+};
 
 export function createInitialTyconState(overrides?: Partial<TyconGameState>): TyconGameState {
   const base: TyconGameState = {
@@ -15,19 +21,20 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
       rubble: 0,
     },
     slots: [
-      { type: 'worker', nftId: null, collection: 'KREXPRIME' },
-      { type: 'operator', nftId: null, collection: 'PIXELKREX' },
-      { type: 'foreman', nftId: null, collection: 'PIXELKREX' },
+      { type: 'worker', nftId: null, collection: 'KREXPRIME', energy: 0, energyMax: 0 },
+      { type: 'operator', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
+      { type: 'foreman', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
     ],
     lastRefinedAt: Date.now(),
     refinementPointsTotal: 0,
+    diamondsEarnedLifetime: 0,
     miningRunEndTime: 0,
     miningRunMultiplier: 1,
     miningRunOptionIndex: null,
     activeBoosts: [],
     lastConnectedAt: null,
     lastConnectedAddress: null,
-    machines: [{ id: 'surface-drill-mk1', count: 1, powerPerUnit: 2, yieldPerUnit: 1 }],
+    machines: [],
     powerCapMw: DEFAULT_POWER_CAP_MW,
     automation: {
       autoRestartMiningRun: false,
@@ -38,6 +45,12 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
     },
     gridLedger: [],
     appliedReceiptIds: [],
+    consumables: { ...EMPTY_CONSUMABLES },
   };
-  return { ...base, ...overrides, diamondInventory: { ...base.diamondInventory, ...overrides?.diamondInventory } };
+  return {
+    ...base,
+    ...overrides,
+    diamondInventory: { ...base.diamondInventory, ...overrides?.diamondInventory },
+    consumables: { ...base.consumables, ...overrides?.consumables },
+  };
 }

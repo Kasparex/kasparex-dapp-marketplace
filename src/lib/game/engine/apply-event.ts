@@ -1,6 +1,6 @@
-import { REFINE_MIN_DIAMONDS } from '@/lib/game/diamond-veins-config';
-import type { DiamondCommodity, GameEvent, GridLedgerEntry, TyconGameState } from './types';
-import { createInitialTyconState } from './initial-state';
+import { DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND, IDLE_ENERGY_DURATION_MS, REFINE_MIN_DIAMONDS } from '@/lib/game/diamond-veins-config';
+import type { DiamondCommodity, DiamondVeinsConsumableId, GameEvent, GridLedgerEntry, TyconGameState } from './types';
+import { createInitialTyconState, EMPTY_CONSUMABLES } from './initial-state';
 import { migrateSlotsToTycon } from './compute-yield';
 
 function clampReceipts(ids: string[]): string[] {
@@ -15,8 +15,12 @@ function clampLedger(ledger: GridLedgerEntry[]): GridLedgerEntry[] {
   return ledger.slice(ledger.length - max);
 }
 
+function defaultCollectionForRole(type: string): string {
+  return type === 'worker' ? 'KREXPRIME' : 'PIXELKREX';
+}
+
 /**
- * Deterministic state transition for Diamond Veins Tycoon (client + server).
+ * Deterministic state transition for Diamond Veins idle mining (client + server).
  */
 export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameState {
   const next: TyconGameState = {
@@ -28,6 +32,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
     automation: { ...state.automation },
     gridLedger: [...state.gridLedger],
     appliedReceiptIds: [...state.appliedReceiptIds],
+    consumables: { ...EMPTY_CONSUMABLES, ...state.consumables },
   };
 
   switch (event.type) {
@@ -40,7 +45,17 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
     case 'DeployNFT': {
       const s = next.slots[event.slotIndex];
       if (!s) return state;
-      next.slots[event.slotIndex] = { ...s, nftId: event.nftId, collection: event.collection };
+      const energyMax = Math.max(
+        1,
+        Math.floor(event.energyMax ?? IDLE_ENERGY_DURATION_MS[s.type]?.regular ?? 20 * 60_000),
+      );
+      next.slots[event.slotIndex] = {
+        ...s,
+        nftId: event.nftId,
+        collection: event.collection,
+        energy: energyMax,
+        energyMax,
+      };
       if (s.type === 'foreman') {
         next.automation.foremanActive = true;
         next.automation.autoRestartRunsCapPerDay = Math.max(next.automation.autoRestartRunsCapPerDay, 3);
@@ -51,13 +66,31 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
     case 'RemoveSlot': {
       const s = next.slots[event.slotIndex];
       if (!s) return state;
-      const defaultCollection =
-        s.type === 'worker' ? 'KREXPRIME' : s.type === 'operator' || s.type === 'foreman' ? 'PIXELKREX' : null;
-      next.slots[event.slotIndex] = { ...s, nftId: null, collection: defaultCollection };
+      next.slots[event.slotIndex] = {
+        ...s,
+        nftId: null,
+        collection: defaultCollectionForRole(s.type),
+        energy: 0,
+        energyMax: 0,
+      };
       if (s.type === 'foreman') {
         next.automation.foremanActive = false;
         next.automation.autoRestartRunsCapPerDay = 0;
       }
+      next.version = state.version + 1;
+      return next;
+    }
+    case 'AddNftDeckSlot': {
+      next.slots = [
+        ...next.slots,
+        {
+          type: event.slotType,
+          nftId: null,
+          collection: defaultCollectionForRole(event.slotType),
+          energy: 0,
+          energyMax: 0,
+        },
+      ];
       next.version = state.version + 1;
       return next;
     }
@@ -76,12 +109,14 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
     case 'AccumulateDiamonds': {
       if (event.delta <= 0) return state;
       next.diamonds = state.diamonds + event.delta;
+      next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + event.delta;
       next.version = state.version + 1;
       return next;
     }
     case 'DistributeDiamondDelta': {
       if (event.delta <= 0) return state;
       next.diamonds = state.diamonds + event.delta;
+      next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + event.delta;
       (Object.keys(event.weights) as DiamondCommodity[]).forEach((k) => {
         const portion = event.delta * (event.weights[k] ?? 0);
         next.diamondInventory[k] = (next.diamondInventory[k] ?? 0) + portion;
@@ -89,19 +124,45 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       next.version = state.version + 1;
       return next;
     }
+    case 'TickIdleMining': {
+      if (event.deltaSeconds <= 0) return state;
+      let totalDelta = 0;
+      for (let i = 0; i < next.slots.length; i++) {
+        const slot = next.slots[i]!;
+        const dps = event.slotDeltas[i] ?? 0;
+        const drain = event.energyDrains[i] ?? 0;
+        if (dps > 0) {
+          const gained = dps * event.deltaSeconds;
+          totalDelta += gained;
+        }
+        if (drain > 0 && slot.nftId != null) {
+          const energy = Math.max(0, (slot.energy ?? 0) - drain * event.deltaSeconds);
+          next.slots[i] = { ...slot, energy };
+        }
+      }
+      if (totalDelta <= 0 && event.energyDrains.every((d) => d <= 0)) return state;
+      if (totalDelta > 0) {
+        next.diamonds = state.diamonds + totalDelta;
+        next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + totalDelta;
+      }
+      next.version = state.version + 1;
+      return next;
+    }
     case 'Refine': {
       if (state.diamonds < REFINE_MIN_DIAMONDS) return state;
       const amount = Math.floor(state.diamonds);
       const timeSinceLastRefine = (event.at - state.lastRefinedAt) / 1000;
-      const refinementPoints = Math.floor(amount * (1 + Math.min(timeSinceLastRefine / 3600, 0.5)));
-      const gridCheckpointScore = refinementPoints;
+      const timeBonus = 1 + Math.min(timeSinceLastRefine / 3600, 0.5);
+      const refinementPoints = Math.floor(
+        amount * DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND * timeBonus,
+      );
       const entry: GridLedgerEntry = {
         id: `refine_${event.at}_${Math.random().toString(36).slice(2, 9)}`,
         at: event.at,
         refinementPoints,
         diamondsRefined: amount,
-        gridCheckpointScore,
-        note: 'Refine checkpoint - claim GRID on L2 via Rewards & Points when your pool route is live.',
+        gridCheckpointScore: refinementPoints,
+        note: 'Refine checkpoint. Redeem points toward Hub Rewards.',
       };
       next.diamonds = 0;
       next.diamondInventory = {
@@ -149,9 +210,31 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       next.version = state.version + 1;
       return next;
     }
-    case 'RedeemGrid': {
+    case 'RedeemGrid':
+    case 'RedeemPoints': {
       if (state.refinementPointsTotal < event.points) return state;
       next.refinementPointsTotal = state.refinementPointsTotal - event.points;
+      next.version = state.version + 1;
+      return next;
+    }
+    case 'AddConsumables': {
+      const id = event.itemId as DiamondVeinsConsumableId;
+      const cur = next.consumables[id] ?? 0;
+      next.consumables = { ...next.consumables, [id]: cur + Math.max(1, Math.floor(event.count)) };
+      next.version = state.version + 1;
+      return next;
+    }
+    case 'FeedWorker': {
+      const slot = next.slots[event.slotIndex];
+      if (!slot || slot.nftId == null) return state;
+      const id = event.itemId as DiamondVeinsConsumableId;
+      const have = next.consumables[id] ?? 0;
+      if (have < 1) return state;
+      const energyMax = Math.max(slot.energyMax ?? 0, 1);
+      const restore = Math.max(0, event.energyRestore);
+      const energy = Math.min(energyMax, (slot.energy ?? 0) + restore);
+      next.consumables = { ...next.consumables, [id]: have - 1 };
+      next.slots[event.slotIndex] = { ...slot, energy, energyMax };
       next.version = state.version + 1;
       return next;
     }
@@ -179,11 +262,14 @@ export function hydrateTyconState(partial: Partial<TyconGameState> | null | unde
     ...partial,
     version,
     slots,
+    diamondsEarnedLifetime:
+      typeof partial.diamondsEarnedLifetime === 'number' ? partial.diamondsEarnedLifetime : initial.diamondsEarnedLifetime,
     diamondInventory: { ...initial.diamondInventory, ...partial.diamondInventory },
     machines: partial.machines?.length ? partial.machines.map((m) => ({ ...m })) : initial.machines,
     automation: { ...initial.automation, ...partial.automation },
     activeBoosts: partial.activeBoosts?.length ? partial.activeBoosts.map((b) => ({ ...b })) : [],
     gridLedger: partial.gridLedger?.length ? partial.gridLedger.map((g) => ({ ...g })) : [],
     appliedReceiptIds: partial.appliedReceiptIds?.length ? [...partial.appliedReceiptIds] : [],
+    consumables: { ...EMPTY_CONSUMABLES, ...partial.consumables },
   };
 }

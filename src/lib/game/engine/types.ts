@@ -23,6 +23,9 @@ export type MiningSlotType = 'worker' | 'operator' | 'foreman';
 /** Resolved Minecore Workers-tab perk tier (persisted so server-style events match UI cap math). */
 export type MinecoreNftPerkTier = 'regular' | 'diamond' | 'rarest';
 
+/** Shop consumable ids for Diamond Veins worker restoration. */
+export type DiamondVeinsConsumableId = 'field-ration' | 'energy-drink' | 'repair-kit';
+
 export interface MiningSlot {
   type: MiningSlotType;
   nftId: number | null;
@@ -32,6 +35,12 @@ export interface MiningSlot {
    * (needed for PIXELKREX diamonds and trait-based KREXPRIME diamonds after metadata loads).
    */
   minecorePerkTier?: MinecoreNftPerkTier;
+  /**
+   * Diamond Veins idle energy (0–energyMax). Mining only while nft is assigned and energy > 0.
+   */
+  energy?: number;
+  /** Max energy for this session (set on deploy / restore from tier duration). */
+  energyMax?: number;
 }
 
 export interface ActiveBoost {
@@ -63,15 +72,18 @@ export interface AutomationState {
   foremanActive: boolean;
 }
 
+/** Refine checkpoint row (legacy field name gridCheckpointScore = redeemable hub weight). */
 export interface GridLedgerEntry {
   id: string;
   at: number;
   refinementPoints: number;
   diamondsRefined: number;
-  /** Eligible GRID weight for L2 claim flow (off-chain score until FeeRouter). */
+  /** Hub / redeem weight from this refine (historical name kept for persisted saves). */
   gridCheckpointScore: number;
   note: string;
 }
+
+export type RefineLedgerEntry = GridLedgerEntry;
 
 export interface DiamondInventory {
   chronoShard: number;
@@ -82,6 +94,8 @@ export interface DiamondInventory {
   rubble: number;
 }
 
+export type DiamondVeinsConsumableInventory = Record<DiamondVeinsConsumableId, number>;
+
 export interface TyconGameState {
   version: number;
   diamonds: number;
@@ -89,6 +103,8 @@ export interface TyconGameState {
   slots: MiningSlot[];
   lastRefinedAt: number;
   refinementPointsTotal: number;
+  /** Lifetime diamonds mined (for milestones). */
+  diamondsEarnedLifetime: number;
   miningRunEndTime: number;
   miningRunMultiplier: number;
   miningRunOptionIndex: number | null;
@@ -99,36 +115,55 @@ export interface TyconGameState {
   /** Total power budget (MW). */
   powerCapMw: number;
   automation: AutomationState;
-  /** Server-maintained copy of GRID-related refine checkpoints (also returned from API). */
+  /** Refine checkpoints (also returned from API). */
   gridLedger: GridLedgerEntry[];
   /** Registered L1/L2 purchase receipts (tx idempotency). */
   appliedReceiptIds: string[];
+  /** Shop-bought consumables for restoring worker energy. */
+  consumables: DiamondVeinsConsumableInventory;
 }
 
 export type GameEvent =
-  | { type: 'DeployNFT'; slotIndex: number; nftId: number; collection: string }
+  | { type: 'DeployNFT'; slotIndex: number; nftId: number; collection: string; energyMax?: number }
   | { type: 'RemoveSlot'; slotIndex: number }
+  | { type: 'AddNftDeckSlot'; slotType: MiningSlotType; at: number }
   | { type: 'Refine'; at: number }
   | { type: 'AddBoost'; boost: ActiveBoost }
   | { type: 'StartMiningRun'; optionIndex: number; at: number; durationMs: number; mult: number }
   | { type: 'AccumulateDiamonds'; delta: number; at: number }
   | { type: 'DistributeDiamondDelta'; delta: number; weights: Record<DiamondCommodity, number>; at: number }
+  | { type: 'TickIdleMining'; deltaSeconds: number; slotDeltas: number[]; energyDrains: number[]; at: number }
   | { type: 'AddMachine'; machine: MachineTier }
   | { type: 'UpgradePower'; addedMw: number }
   | { type: 'SetAutomation'; patch: Partial<AutomationState> }
   | { type: 'RegisterReceipt'; receiptId: string; at: number }
+  | { type: 'RedeemPoints'; points: number; at: number }
+  /** @deprecated Prefer RedeemPoints */
   | { type: 'RedeemGrid'; points: number; at: number }
   | { type: 'HeartbeatConnect'; address: string; at: number }
-  | { type: 'SyncVersion'; version: number };
+  | { type: 'SyncVersion'; version: number }
+  | { type: 'AddConsumables'; itemId: DiamondVeinsConsumableId; count: number; at: number }
+  | { type: 'FeedWorker'; slotIndex: number; itemId: DiamondVeinsConsumableId; energyRestore: number; at: number };
+
+export interface SlotYieldInfo {
+  slotIndex: number;
+  yieldPerSecond: number;
+  energy: number;
+  energyMax: number;
+  status: 'empty' | 'mining' | 'exhausted' | 'paused';
+  remainingMs: number;
+}
 
 export interface YieldStats {
   yieldPerSecond: number;
   totalMultiplier: number;
   rawYield: number;
-  /** Effective power cap after brownout (0–1 efficiency). */
+  /** Effective power cap after brownout (0–1 efficiency). Legacy field; idle model keeps 1. */
   powerEfficiency: number;
   powerUsedMw: number;
   powerCapMw: number;
+  /** Per-slot idle mining breakdown. */
+  slots: SlotYieldInfo[];
 }
 
 export interface NFTEffectInput {

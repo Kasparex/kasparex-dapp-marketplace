@@ -20,8 +20,9 @@ import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
-import { IconBoosters, IconComments, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
+import { IconBoosters, IconComments, IconMilestones, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -36,6 +37,7 @@ const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'play', label: 'Play' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'milestones', label: 'Milestones' },
   { id: 'boosters', label: 'Boosters' },
   { id: 'comments', label: 'Comments' },
 ] as const;
@@ -88,6 +90,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
       { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
       { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
       { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
       { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
@@ -226,6 +229,10 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
 
         {tab === 'rewards' && (
           <RewardsPreview showLink={true} />
+        )}
+
+        {tab === 'milestones' && (
+          <MilestonesPanel gameId="precision-click" progress={{ precision_score: Math.max(score, Math.floor(score * booster)) }} />
         )}
 
         {tab === 'comments' && (
