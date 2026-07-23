@@ -7,7 +7,7 @@ import { HubPageAccentLayout } from '@/components/hub/HubPageAccentLayout';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export const metadata: Metadata = {
-  title: 'Rewards · Kasparex',
+  title: 'Rewards',
   description: 'Browse rewards, perks, badges, and ecosystem benefits across Kasparex Hub.',
 };
 

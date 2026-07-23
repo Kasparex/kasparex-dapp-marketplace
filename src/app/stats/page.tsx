@@ -6,7 +6,7 @@ import { statsHeadlineAccent } from '@/lib/stats/statsUi';
 import { StatsPageContent } from '@/components/stats/StatsPageContent';
 
 export const metadata: Metadata = {
-  title: 'Kasparex Stats · Treasury & Ecosystem',
+  title: 'Stats',
   description: 'Kasparex Treasury, Total Value Locked (TVL), and ecosystem statistics. Real data will replace placeholders in a future update.',
 };
 

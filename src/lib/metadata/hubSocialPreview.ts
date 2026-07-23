@@ -20,12 +20,28 @@ export function resolveHubOgImageUrl(image?: string | null): string {
 }
 
 export type HubSocialPreviewInput = {
+  /** Page label (e.g. "Games", "Minecore"). Formatted as "Kasparex Hub - {page}". */
   title: string;
   description?: string;
   image?: string | null;
   path?: string;
   type?: 'website' | 'article';
 };
+
+/** Bookmark / document title: Kasparex Hub - {page}. */
+export function formatHubDocumentTitle(page: string): string {
+  const raw = page.trim();
+  if (!raw) return 'Kasparex Hub';
+  if (/^kasparex hub$/i.test(raw)) return 'Kasparex Hub';
+  if (/^kasparex hub\s*[-–—]/i.test(raw)) {
+    return raw.replace(/^kasparex hub\s*[-–—]\s*/i, 'Kasparex Hub - ');
+  }
+  const cleaned = raw
+    .replace(/^kasparex(\s+dapps?)?\s*[-–—]\s*/i, '')
+    .replace(/^kasparex\s+/i, '')
+    .trim();
+  return cleaned ? `Kasparex Hub - ${cleaned}` : 'Kasparex Hub';
+}
 
 export function buildHubOpenGraphMetadata(input: HubSocialPreviewInput): Metadata {
   const siteUrl = getHubSiteUrl();
@@ -34,28 +50,31 @@ export function buildHubOpenGraphMetadata(input: HubSocialPreviewInput): Metadat
     input.description?.trim() ||
     'Kasparex Hub: dApps, vBlog, Chronicles, tokens, and on-chain tools for the Kaspa ecosystem.';
   const imageUrl = resolveHubOgImageUrl(input.image);
+  const title = formatHubDocumentTitle(input.title);
 
   return {
-    title: input.title,
+    title: {
+      absolute: title,
+    },
     description,
     openGraph: {
-      title: input.title,
+      title,
       description,
       url,
-      siteName: 'Kasparex',
+      siteName: 'Kasparex Hub',
       type: input.type ?? 'website',
       images: [
         {
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: input.title,
+          alt: title,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: input.title,
+      title,
       description,
       images: [imageUrl],
     },

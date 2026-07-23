@@ -282,7 +282,7 @@ export function CipherVaultsDashboard({
               loreStory={loreStory}
               tips={[
                 {
-                  title="Entry tip",
+                  title: 'Entry tip',
                   body: 'Pay with KAS per vault tier, or spend a Cipher Ticket from the Redeem tab when you have refinement points to convert.',
                 },
               ]}

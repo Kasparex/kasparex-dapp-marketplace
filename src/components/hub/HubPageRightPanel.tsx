@@ -78,8 +78,8 @@ export function HubPageRightPanelGrid({
         <div
           className={`grid w-full min-w-0 max-w-full grid-cols-1 lg:grid-cols-12 ${gapClass}`.trim()}
         >
-          <div className={`min-w-0 max-w-full overflow-hidden ${mainSpan}`}>{children}</div>
-          <aside className={`hidden min-w-0 max-w-full overflow-hidden lg:block ${asideSpan}`}>
+          <div className={`min-w-0 max-w-full overflow-x-hidden ${mainSpan}`}>{children}</div>
+          <aside className={`hidden min-w-0 max-w-full overflow-visible lg:block ${asideSpan}`}>
             {wrappedSidebar}
           </aside>
         </div>

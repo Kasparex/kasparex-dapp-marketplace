@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { NodesDashboardContent } from '@/components/nodes/NodesDashboardContent';
 
 export const metadata: Metadata = {
-  title: 'Kasparex Nodes – User Dashboard',
+  title: 'Nodes',
   description: 'Manage your KREX node: connect, monitor status, and track incentives.',
 };
 

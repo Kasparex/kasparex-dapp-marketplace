@@ -5,7 +5,7 @@ import { statsHeadlineAccent, STATS_PANEL } from '@/lib/stats/statsUi';
 import { UsageMonitor } from '@/components/stats/UsageMonitor';
 
 export const metadata: Metadata = {
-  title: 'Usage Monitor · Kasparex Stats',
+  title: 'Usage Monitor',
   description: 'Lightweight internal usage monitor for detecting request spikes.',
 };
 

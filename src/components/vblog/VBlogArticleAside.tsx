@@ -24,7 +24,7 @@ export function VBlogArticleAside({
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
-    <div className="w-full min-w-0 space-y-4 lg:sticky lg:top-6">
+    <div className="w-full min-w-0 space-y-4">
       {topContent}
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>

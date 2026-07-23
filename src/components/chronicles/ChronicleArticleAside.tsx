@@ -22,7 +22,7 @@ export function ChronicleArticleAside({
   const filtered = sections.filter((s) => s.body != null || (s.links != null && s.links.length > 0));
 
   return (
-    <aside className="min-w-0 max-w-full space-y-4 lg:sticky lg:top-6 self-start">
+    <aside className="min-w-0 max-w-full space-y-4 self-start">
       {topContent}
       {filtered.map((sec) => (
         <div key={sec.title} className={`${CHRONICLES_PANEL} p-4`}>

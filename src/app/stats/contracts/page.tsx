@@ -6,7 +6,7 @@ import { statsHeadlineAccent } from '@/lib/stats/statsUi';
 import { SmartContractsPage } from '@/components/stats/SmartContractsPage';
 
 export const metadata: Metadata = {
-  title: 'Smart Contracts · Kasparex Stats',
+  title: 'Smart Contracts',
   description: 'Tree, table, and flow view of Kasparex smart contracts: addresses, descriptions, and relationships.',
 };
 

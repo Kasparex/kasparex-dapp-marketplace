@@ -12,15 +12,20 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   ...buildHubOpenGraphMetadata({
-    title: "Kasparex dApps - Kaspa dApp Marketplace",
+    title: "Kasparex Hub",
     description:
-      "Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.",
+      "Kasparex Hub: dApps, Games, Chronicles, tokens, and on-chain tools for the Kaspa BlockDAG ecosystem.",
     path: "/",
   }),
+  title: {
+    default: "Kasparex Hub",
+    template: "Kasparex Hub - %s",
+  },
   icons: {
     icon: [
       { url: "/favicon.png", type: "image/png", sizes: "32x32" },
       { url: "/favicon.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
     shortcut: "/favicon.png",
     apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],

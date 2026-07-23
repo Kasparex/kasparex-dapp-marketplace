@@ -1,6 +1,6 @@
 'use client';
 
-import { AdSlider } from '@/components/ads/AdSlider';
+import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 import { CrowdKasDashboardBenefitsPanel } from '@/components/donations/CrowdKasDashboardBenefitsPanel';
 import { CrowdKasL1CalculationPanel, CrowdKasL2CalculationPanel } from '@/components/donations/CrowdKasCalculationPanel';
 import type { CrowdKasL1PriceQuote, CrowdKasL2PriceQuote } from '@/lib/donations/pricing';
@@ -54,7 +54,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
   } = props;
 
   return (
-    <div className="flex flex-col gap-4 xl:sticky xl:top-6">
+    <div className="flex flex-col gap-4">
       <CrowdKasDashboardBenefitsPanel />
       {props.network === 'l1' ? (
         <CrowdKasL1CalculationPanel
@@ -88,9 +88,7 @@ export function CrowdKasStudioRightPanel(props: L1PanelProps | L2PanelProps) {
           requirementsNote={requirementsNote}
         />
       )}
-      <div id="ad-slot-crowdkas-studio-rail" className="scroll-mt-24 w-full min-w-0">
-        <AdSlider slotId="HALO_DONATIONS_RIGHT" />
-      </div>
+      <PanelAdSlider slotId="HALO_DONATIONS_RIGHT" id="ad-slot-crowdkas-studio-rail" />
     </div>
   );
 }

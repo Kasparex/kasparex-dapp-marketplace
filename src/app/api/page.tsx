@@ -11,7 +11,7 @@ import { HUB_HALO_DESKTOP_ONLY } from '@/lib/hub/haloHeaders';
 import { HUB_MAIN_COLUMN, HUB_MAIN_INNER, HUB_PAGE_BG } from '@/lib/hub/hubLayout';
 
 export const metadata: Metadata = {
-  title: 'Kasparex API · api.kasparex.com',
+  title: 'API',
   description: 'The Kasparex API is a lightweight backend service that coordinates KREX Nodes, tracks uptime, calculates rewards, and provides public data for the Kasparex ecosystem.',
 };
 

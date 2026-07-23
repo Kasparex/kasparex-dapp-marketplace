@@ -1,6 +1,7 @@
 'use client';
 
 import { AdSlider } from '@/components/ads/AdSlider';
+import { PanelAdSlider } from '@/components/ads/PanelAdSlider';
 
 /** Unified Chronicles ad slot (same pool as halo headers). */
 export function ChroniclesAdSlot({
@@ -24,9 +25,5 @@ export function ChroniclesAdSlot({
     );
   }
 
-  return (
-    <div id={id} className={`flex items-center justify-center min-h-[200px] scroll-mt-24 ${className}`.trim()}>
-      <AdSlider slotId="HALO_CHRONICLES_RIGHT" relaxHaloFrame />
-    </div>
-  );
+  return <PanelAdSlider slotId="HALO_CHRONICLES_RIGHT" id={id} className={className} />;
 }
