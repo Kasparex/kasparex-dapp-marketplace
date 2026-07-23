@@ -27,7 +27,7 @@ const CONSUMABLE_ICONS: Record<DiamondVeinsConsumableId, ReactNode> = {
 export function UpgradesPanel({
   canPayWithL1,
   krexL1Balance,
-  kasBalance,
+  kasBalance: _kasBalance,
   kasBalanceLoading,
   krexTier,
   getKasPriceAfterDiscount,
@@ -47,17 +47,19 @@ export function UpgradesPanel({
   buyingItemId: string | null;
   revenuePoolPct: number;
   consumables: Record<DiamondVeinsConsumableId, number>;
-  onBuyKrex: (item: (typeof SHOP_BOOSTS)[0]) => void;
-  onBuyKas: (item: (typeof SHOP_BOOSTS)[0]) => void;
-  onBuyConsumable: (id: DiamondVeinsConsumableId, currency: 'KAS' | 'KREX') => void | Promise<boolean>;
+  onBuyKrex: (item: (typeof SHOP_BOOSTS)[0], quantity: number) => void;
+  onBuyKas: (item: (typeof SHOP_BOOSTS)[0], quantity: number) => void;
+  onBuyConsumable: (
+    id: DiamondVeinsConsumableId,
+    currency: 'KAS' | 'KREX',
+    quantity: number,
+  ) => void | Promise<boolean>;
 }) {
-  const kasValid = typeof kasBalance === 'number' && !Number.isNaN(kasBalance);
-  const kasBalanceNum = kasValid ? kasBalance : 0;
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
   const shopGridClass = useGamesMainAdaptiveWideGrid('gap-6');
-
+  void _kasBalance;
   const categories = ['supplies', 'boosts', 'yield', 'luck', 'efficiency'];
 
   type ShopRow =
@@ -156,19 +158,20 @@ export function UpgradesPanel({
                       currency: 'KAS',
                       unitPrice: kasPrice,
                       originalUnitPrice: item.priceKAS,
-                      disabled: !canPayWithL1 || kasBalanceLoading || kasBalanceNum < kasPrice,
+                      disabled: !canPayWithL1 || kasBalanceLoading,
                     },
                     {
                       currency: 'KREX',
                       unitPrice: item.priceKrex,
-                      disabled: !canPayWithL1 || krexL1Balance < item.priceKrex,
+                      disabled: !canPayWithL1,
                     },
                   ]}
                   defaultCurrency="KAS"
+                  quantitySelector={{ min: 1, max: 99 }}
                   buyDisabled={!canPayWithL1 || isBuying}
                   buyLabel={isBuying ? '…' : 'Buy'}
-                  onBuy={async ({ currency }) => {
-                    await onBuyConsumable(item.id, currency === 'KREX' ? 'KREX' : 'KAS');
+                  onBuy={async ({ currency, quantity }) => {
+                    await onBuyConsumable(item.id, currency === 'KREX' ? 'KREX' : 'KAS', quantity);
                   }}
                 />
               );
@@ -176,8 +179,6 @@ export function UpgradesPanel({
 
             const item = row.item;
             const kasPriceAfterDiscount = getKasPriceAfterDiscount(item.priceKAS);
-            const canAffordKREX = canPayWithL1 && krexL1Balance >= item.price;
-            const canAffordKAS = canPayWithL1 && !kasBalanceLoading && kasBalanceNum >= kasPriceAfterDiscount * 0.999;
             const isBuying = buyingItemId === item.id;
 
             return (
@@ -205,23 +206,24 @@ export function UpgradesPanel({
                     currency: 'KAS',
                     unitPrice: kasPriceAfterDiscount,
                     originalUnitPrice: item.priceKAS,
-                    disabled: !canAffordKAS || kasBalanceLoading,
+                    disabled: !canPayWithL1 || kasBalanceLoading,
                   },
                   {
                     currency: 'KREX',
                     unitPrice: item.price,
-                    disabled: !canAffordKREX,
+                    disabled: !canPayWithL1,
                   },
                 ]}
                 defaultCurrency="KAS"
+                quantitySelector={{ min: 1, max: 20 }}
                 buyDisabled={!canPayWithL1 || isBuying}
                 buyLabel={isBuying ? '…' : 'Buy'}
-                onBuy={async ({ currency }) => {
+                onBuy={async ({ currency, quantity }) => {
                   if (currency === 'KREX') {
-                    await onBuyKrex(item);
+                    await onBuyKrex(item, quantity);
                     return;
                   }
-                  await onBuyKas(item);
+                  await onBuyKas(item, quantity);
                 }}
               />
             );

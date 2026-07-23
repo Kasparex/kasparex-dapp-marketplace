@@ -491,14 +491,16 @@ export function useDiamondMining() {
       txHash: string,
       currency: 'KREX' | 'KAS',
       amount: number,
+      quantity = 1,
     ) => {
+      const qty = Math.max(1, Math.floor(quantity));
       const receiptId = `${currency}:${txHash}`;
       const boost: ActiveBoost = {
         id: `${itemId}-${Date.now()}`,
         type,
         multiplier,
-        endTime: Date.now() + 3600000,
-        name,
+        endTime: Date.now() + 3600000 * qty,
+        name: qty > 1 ? `${name} ×${qty}` : name,
         pendingVerification: true,
         txHash,
       };
@@ -531,14 +533,23 @@ export function useDiamondMining() {
   );
 
   const buyBoost = useCallback(
-    async (itemId: string, name: string, priceKrex: number, type: BonusType, multiplier: number) => {
+    async (
+      itemId: string,
+      name: string,
+      priceKrex: number,
+      type: BonusType,
+      multiplier: number,
+      quantity = 1,
+    ) => {
+      const qty = Math.max(1, Math.floor(quantity));
+      const totalKrex = priceKrex * qty;
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) return;
-      if (krexL1Balance < priceKrex) return;
+      if (krexL1Balance < totalKrex) return;
 
       setBuyingItemId(itemId);
       try {
-        const amountInSmallestUnit = Math.floor(priceKrex * Math.pow(10, KREX_DECIMALS));
+        const amountInSmallestUnit = Math.floor(totalKrex * Math.pow(10, KREX_DECIMALS));
         const inscribeJson = {
           p: 'KRC-20',
           op: 'transfer',
@@ -553,9 +564,9 @@ export function useDiamondMining() {
           DIAMOND_VEINS_GARAGE_ADDRESS,
           0.001,
         );
-        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', priceKrex);
+        await applyGaragePurchase(itemId, name, type, multiplier, txHash, 'KREX', totalKrex, qty);
       } catch (err) {
-        console.error('[Diamond Veins] Garage purchase failed:', err);
+        console.error('[Diamond Veins] Shop purchase failed:', err);
         throw err;
       } finally {
         setBuyingItemId(null);
@@ -565,8 +576,16 @@ export function useDiamondMining() {
   );
 
   const buyBoostWithKAS = useCallback(
-    async (itemId: string, name: string, priceKAS: number, type: BonusType, multiplier: number) => {
-      const priceAfterDiscountKas = getKasPriceAfterDiscount(priceKAS);
+    async (
+      itemId: string,
+      name: string,
+      priceKAS: number,
+      type: BonusType,
+      multiplier: number,
+      quantity = 1,
+    ) => {
+      const qty = Math.max(1, Math.floor(quantity));
+      const priceAfterDiscountKas = getKasPriceAfterDiscount(priceKAS) * qty;
       const canPayL1 = walletState.isConnected && canPayWithL1 && walletState.provider;
       if (!canPayL1) return;
       if (kasBalance < priceAfterDiscountKas) return;
@@ -579,9 +598,9 @@ export function useDiamondMining() {
           purchaseType: 'other',
         });
         if (!paid.ok || !('txHash' in paid)) return;
-        await applyGaragePurchase(itemId, name, type, multiplier, paid.txHash, 'KAS', priceAfterDiscountKas);
+        await applyGaragePurchase(itemId, name, type, multiplier, paid.txHash, 'KAS', priceAfterDiscountKas, qty);
       } catch (err) {
-        console.error('[Diamond Veins] Garage KAS purchase failed:', err);
+        console.error('[Diamond Veins] Shop KAS purchase failed:', err);
         throw err;
       } finally {
         setBuyingItemId(null);
@@ -599,22 +618,24 @@ export function useDiamondMining() {
   );
 
   const buyConsumable = useCallback(
-    async (itemId: DiamondVeinsConsumableId, currency: 'KAS' | 'KREX') => {
+    async (itemId: DiamondVeinsConsumableId, currency: 'KAS' | 'KREX', quantity = 1) => {
       const item = DIAMOND_VEINS_CONSUMABLES.find((c) => c.id === itemId);
       if (!item) return false;
+      const qty = Math.max(1, Math.floor(quantity));
       setBuyingItemId(itemId);
       try {
         if (currency === 'KAS') {
           const paid = await payKasBestEffort({
-            amountKas: getKasPriceAfterDiscount(item.priceKAS),
+            amountKas: getKasPriceAfterDiscount(item.priceKAS) * qty,
             skuId: `diamond-veins:consumable:${itemId}`,
             purchaseType: 'other',
           });
           if (!paid.ok) return false;
         } else {
           if (!canPayWithL1 || !walletState.provider) return false;
-          if (krexL1Balance < item.priceKrex) return false;
-          const amountInSmallestUnit = Math.floor(item.priceKrex * Math.pow(10, KREX_DECIMALS));
+          const totalKrex = item.priceKrex * qty;
+          if (krexL1Balance < totalKrex) return false;
+          const amountInSmallestUnit = Math.floor(totalKrex * Math.pow(10, KREX_DECIMALS));
           const inscribeJson = {
             p: 'KRC-20',
             op: 'transfer',
@@ -630,7 +651,7 @@ export function useDiamondMining() {
             0.001,
           );
         }
-        setTycon((s) => applyEvent(s, { type: 'AddConsumables', itemId, count: 1, at: Date.now() }));
+        setTycon((s) => applyEvent(s, { type: 'AddConsumables', itemId, count: qty, at: Date.now() }));
         return true;
       } catch {
         return false;

@@ -151,11 +151,9 @@ export const MINING_RUN_OPTIONS = [
 ] as const;
 
 /**
- * Refinement time bonus: points = amount * (1 + min(secondsSinceRefine/3600, 0.5)).
- * Best refinement: wait at least REFINE_TIME_BONUS_CAP_MINUTES after last refine to get
- * full 1.5x multiplier on points. Refining at 100+ is fine for frequent claims.
+ * @deprecated Time bonus removed. Refine is always 1 diamond = 1 Hub redeem point.
  */
-export const REFINE_TIME_BONUS_CAP_MINUTES = 30;
+export const REFINE_TIME_BONUS_CAP_MINUTES = 0;
 
 /** KRC-20 transfer type (KasWare: 4 = transfer). */
 export const KRC20_TRANSFER_TYPE = 4;

@@ -7,7 +7,7 @@ import { MINECORE_REFINE_POINTS_PER_DIAMOND } from '@/lib/game/minecore/config';
 const PANEL = 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6';
 const LABEL = 'text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-1.5 block';
 const INPUT =
-  'no-k-style h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 pr-14 text-left text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
+  'no-k-style h-11 w-full rounded-lg border border-zinc-300/50 dark:border-zinc-700/70 bg-zinc-50 dark:bg-zinc-800 px-4 pr-14 text-left text-sm font-semibold outline-none focus:border-zinc-400/70 dark:focus:border-zinc-600 dark:text-white transition-colors appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 
 export type MinecoreRedeemExtras = {
   /** Budget window + pending totals for transparency (game redeem flows). */
@@ -60,8 +60,7 @@ export function RewardsRedeemSection({
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Diamond Refinement</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Each diamond adds {MINECORE_REFINE_POINTS_PER_DIAMOND} Hub redeem point before crew bonuses apply. Spend on
-              the{' '}
+              Rate is 1:1: each diamond becomes {MINECORE_REFINE_POINTS_PER_DIAMOND} Hub redeem point. Spend on the{' '}
               <a href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
                 Rewards
               </a>{' '}

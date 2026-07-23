@@ -156,18 +156,15 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
           ? Math.max(0, Math.min(bag, Math.floor(event.amount)))
           : bag;
       if (amount < REFINE_MIN_DIAMONDS) return state;
-      const timeSinceLastRefine = (event.at - state.lastRefinedAt) / 1000;
-      const timeBonus = 1 + Math.min(timeSinceLastRefine / 3600, 0.5);
-      const refinementPoints = Math.floor(
-        amount * DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND * timeBonus,
-      );
+      /** 1 diamond = 1 Hub redeem point (no hidden time multipliers). */
+      const refinementPoints = Math.floor(amount * DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND);
       const entry: GridLedgerEntry = {
         id: `refine_${event.at}_${Math.random().toString(36).slice(2, 9)}`,
         at: event.at,
         refinementPoints,
         diamondsRefined: amount,
         gridCheckpointScore: refinementPoints,
-        note: 'Refine checkpoint. Redeem points toward Hub Rewards.',
+        note: 'Refine checkpoint. 1 diamond = 1 Hub redeem point.',
       };
       next.diamonds = Math.max(0, state.diamonds - amount);
       if (next.diamonds < 0.0001) {

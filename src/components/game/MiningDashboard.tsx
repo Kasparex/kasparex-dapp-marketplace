@@ -347,26 +347,26 @@ export function MiningDashboard({
               buyingItemId={buyingItemId}
               revenuePoolPct={revenuePoolPct}
               consumables={consumables}
-              onBuyKrex={async (item) => {
+              onBuyKrex={async (item, quantity) => {
                 try {
-                  await buyBoost(item.id, item.name, item.price, item.type, item.mult);
+                  await buyBoost(item.id, item.name, item.price, item.type, item.mult, quantity);
                   setPurchaseSuccess(item.name);
                   setTimeout(() => setPurchaseSuccess(null), 5000);
                 } catch {
                   /* */
                 }
               }}
-              onBuyKas={async (item) => {
+              onBuyKas={async (item, quantity) => {
                 try {
-                  await buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult);
+                  await buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult, quantity);
                   setPurchaseSuccess(item.name);
                   setTimeout(() => setPurchaseSuccess(null), 5000);
                 } catch {
                   /* */
                 }
               }}
-              onBuyConsumable={async (id, currency) => {
-                const ok = await buyConsumable(id, currency);
+              onBuyConsumable={async (id, currency, quantity) => {
+                const ok = await buyConsumable(id, currency, quantity);
                 if (ok) {
                   setPurchaseSuccess(id);
                   setTimeout(() => setPurchaseSuccess(null), 4000);
@@ -406,14 +406,17 @@ export function MiningDashboard({
               <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-100">Refinement claimed</h3>
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 You earned{' '}
-                <strong className="text-emerald-600 dark:text-emerald-400">
+                <strong className="text-blue-500 dark:text-blue-400">
                   {lastRefineClaim.points.toLocaleString()} redeem points
                 </strong>{' '}
-                from {lastRefineClaim.amount.toLocaleString()} in-game diamonds.
+                from {lastRefineClaim.amount.toLocaleString()} in-game diamonds
+                {lastRefineClaim.points === lastRefineClaim.amount
+                  ? ' (1 diamond = 1 point).'
+                  : '.'}
               </p>
               <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-500">
                 Redeem on the{' '}
-                <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                <Link href="/rewards" className="font-semibold text-blue-500 underline dark:text-blue-400">
                   Rewards & Points
                 </Link>{' '}
                 page.
@@ -421,7 +424,7 @@ export function MiningDashboard({
               <button
                 type="button"
                 onClick={clearLastRefineClaim}
-                className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-colors hover:bg-emerald-600"
+                className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
               >
                 Done
               </button>
