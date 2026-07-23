@@ -32,7 +32,7 @@ import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
-import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments, IconMilestones } from '@/components/games/icons/TabIcons';
+import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments } from '@/components/games/icons/TabIcons';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { WorkersPanel } from '@/components/game/minecore/WorkersPanel';
 import { CrewPlantFeaturesPanel } from '@/components/game/minecore/CrewPlantFeaturesPanel';
@@ -57,18 +57,16 @@ type TabId =
   | 'workers'
   | 'shop'
   | 'redeem'
-  | 'milestones'
   | 'comments';
 
 const TABS: GameTab<TabId>[] = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
-  { id: 'mining', label: '1. Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
-  { id: 'fabrication', label: '2. Build', icon: <IconBoosters /> },
-  { id: 'power', label: '3. Power', icon: <IconPower /> },
-  { id: 'workers', label: '4. Crew', icon: <IconWorkers /> },
+  { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
+  { id: 'fabrication', label: 'Build', icon: <IconBoosters /> },
+  { id: 'power', label: 'Power', icon: <IconPower /> },
+  { id: 'workers', label: 'Crew', icon: <IconWorkers /> },
   { id: 'shop', label: 'Shop', icon: <IconShop /> },
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
-  { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
 ];
 
@@ -433,8 +431,15 @@ export function MinecoreDashboard(_props: {
           showDeckInfoButton={false}
         >
           {tab === 'overview' && (
-            <div className="space-y-6">
+            <div className="space-y-10">
               <MinecoreArticle gameName={_props.gameName} hint={_props.gameDescription} />
+              <MilestonesPanel
+                gameId="minecore"
+                progress={milestoneProgress}
+                kicker="Progress"
+                title="Milestones"
+                subtitle="Plant unlocks, upgrades, and Diamond earnings raise your Player level."
+              />
             </div>
           )}
 
@@ -830,8 +835,6 @@ export function MinecoreDashboard(_props: {
               />
             </div>
           )}
-
-          {tab === 'milestones' && <MilestonesPanel gameId="minecore" progress={milestoneProgress} />}
 
           {tab === 'comments' && (
             <CommentsSection articleId={gameCommentsArticleId('minecore')} dappSectionHeader />

@@ -16,14 +16,14 @@ For centuries these crystals remained undiscovered, quietly forming within the u
 KREX DIAMONDS
 After months of analysis, Krex discovered that these crystals were not ordinary minerals. They were formed from BlockDAG energy flows traveling through the Kaspa network itself. These rare crystals became known as Krex Diamonds.
 
-POWER AND EXTRACTION
-Each diamond contains condensed fragments of network energy. When processed through special machines built by Vector, and monitored by the AI system ARIA, these diamonds can be converted into usable digital power that fuels the Kasparex infrastructure. Extracting them is not easy. The diamond veins are scattered throughout massive underground caverns beneath Kaspaland. Specialized operators, machines, and advanced technology are required to locate and safely extract them.
+IDLE EXTRACTION
+Each diamond contains condensed fragments of network energy. In Diamond Veins, trusted operators deploy Kasparex NFTs into Worker, Operator, and Foreman slots. While a slot still has session energy, it idle-mines Diamonds that can be refined into Hub points. Shop consumables restore energy; boosts extend sessions and raise live flow.
 
 YOUR ROLE
-To expand the operation, Krex opened the underground mining network to trusted operators across the ecosystem. This is where you come in. By deploying PixelKrex workers, KrexPrime operators, and other specialized units, you help Krex explore deeper sections of the underground network and extract these powerful crystals. The in-game diamonds you mine can be refined and converted into refinement points, helping to power the expanding Kasparex infrastructure.
+By deploying PIXELKREX and KREXPRIME units, including Diamond and Rarest tiers, you help Krex explore deeper sections of the underground network. Session bonuses from Premium collections and NFT tiers keep crews mining longer between feeds.
 
 THE DEPTHS
-The deeper the mining operations go, the more mysterious the diamond veins become. Some miners whisper about rare crystal chambers, hidden cores of energy, and ancient veins that glow with unimaginable power. No one knows how deep the diamond network truly goes.
+The deeper the mining operations go, the more mysterious the diamond veins become. Some miners whisper about rare crystal chambers and ancient veins that glow with unimaginable power. No one knows how deep the diamond network truly goes.
 
 The Diamond Veins of Kaspaland are only beginning to reveal their secrets.`;
 

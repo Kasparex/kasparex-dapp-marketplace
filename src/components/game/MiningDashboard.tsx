@@ -271,13 +271,21 @@ export function MiningDashboard({
               <OverviewPanel tycon={tycon} stats={stats} />
               <GameOverviewSections
                 gameName={gameName ?? 'Diamond Veins'}
+                kicker="Game guide"
+                subtitle="Idle NFT mining powered by Kaspa BlockDAG energy veins."
                 description={gameDescription}
                 loreStory={loreStory}
-                featuredImage={featuredImage || undefined}
+                tips={[
+                  {
+                    title: 'Mining tip',
+                    body: 'Energy only refills from Shop Feed / Quick feed. Re-inserting an NFT never grants a free full session.',
+                  },
+                ]}
                 flow={[
-                  'Deploy an NFT into your free starter Worker slot to begin idle Diamond mining.',
-                  'Buy extra slots to scale capacity. Higher NFT tiers and KREX tiers mine faster.',
-                  'Feed exhausted workers from the Shop. Refine Diamonds from the Game Deck into Hub points on /rewards.',
+                  'Deploy a Kasparex NFT into your free starter Worker slot (or buy Operator / Foreman slots).',
+                  'Idle-mine while energy lasts. Higher NFT tiers and active Shop boosts raise Diamond flow and Session max.',
+                  'Feed Exhausted workers from the Shop. Refine Diamonds from the Game Deck into Hub points on Rewards.',
+                  'Track Milestones to raise your Player level as Diamonds and slots grow.',
                 ]}
               />
               <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/40">

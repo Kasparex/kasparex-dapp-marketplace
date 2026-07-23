@@ -234,14 +234,21 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Token Strategy'}
+              kicker="Game guide"
+              subtitle="Defend Kasparex networks with Security, Power, and Stealth choices."
               description={props.gameDescription}
               loreStory={props.loreStory}
-              featuredImage={props.featuredImage || undefined}
+              tips={[
+                {
+                  title: 'Mission tip',
+                  body: 'Balance Security, Power, and Stealth across rounds. Null Gang pressure punishes lopsided builds more than steady ones.',
+                },
+              ]}
               flow={[
-                'Pay entry once to start the mission chain.',
-                'Pick choices to shape Security/Power/Stealth stats.',
-                'Boosters (tier/deck/optional) multiply outcomes.',
-                'Claim rewards later via Rewards & Points.',
+                'Pay the KAS mission entry to open the defense chain.',
+                'Each round, pick responses that reshape Security, Power, and Stealth.',
+                'Optional KREX boosters and NFT deck bonuses multiply final outcomes.',
+                'Claim rewards later via Rewards & Points when Hub pools allow.',
               ]}
             />
           </div>

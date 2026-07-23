@@ -332,14 +332,21 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Mystery Quiz'}
+              kicker="Game guide"
+              subtitle="Ten Chronicle levels, five lore questions each."
               description={props.gameDescription}
               loreStory={props.loreStory}
-              featuredImage={props.featuredImage || undefined}
+              tips={[
+                {
+                  title: 'Lore tip',
+                  body: 'Read Krex’s Chronicles articles and character dossiers between levels. Clues in Hub lore often match quiz answers.',
+                },
+              ]}
               flow={[
-                'Pay entry once to begin the case run.',
-                'Answer questions across levels to build score.',
-                'Boosters (tier/deck/optional) multiply results.',
-                'Claim rewards later via Rewards & Points.',
+                'Pay the KAS case entry once to begin the run.',
+                'Clear 5 questions per level across up to 10 Chronicle levels.',
+                'Optional KREX boosters and NFT deck bonuses multiply your score.',
+                'Claim rewards later via Rewards & Points when Hub pools allow.',
               ]}
             />
           </div>

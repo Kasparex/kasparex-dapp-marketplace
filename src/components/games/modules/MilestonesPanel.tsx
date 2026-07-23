@@ -2,14 +2,25 @@
 
 import { useGameMilestones, type GameMilestoneProgressInput } from '@/hooks/useGameMilestones';
 
+/** Same blue chip as GamesHaloHeader Player Lv badge. */
+const LEVEL_BADGE_CLS =
+  'inline-flex items-center gap-2 rounded-full border border-sky-500/35 bg-sky-500/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-sky-800 dark:text-sky-200';
+
+const LEVEL_PILL_CLS =
+  'inline-flex rounded-full border border-sky-500/35 bg-sky-500/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-sky-800 dark:text-sky-200';
+
 export function MilestonesPanel({
   gameId,
   progress,
   title = 'Milestones',
+  kicker = 'Progress',
+  subtitle = 'Complete goals in order to raise your Player level.',
 }: {
   gameId: string;
   progress: GameMilestoneProgressInput;
   title?: string;
+  kicker?: string;
+  subtitle?: string;
 }) {
   const { rows, level, completedCount, total } = useGameMilestones(gameId, progress);
 
@@ -17,10 +28,11 @@ export function MilestonesPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
+          <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[#02abb8]">{kicker}</span>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Highest goals first. Keep playing to climb levels.</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-sky-500/35 bg-sky-500/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-sky-800 dark:text-sky-200">
+        <span className={LEVEL_BADGE_CLS}>
           Player level {level}
           <span className="font-mono font-semibold text-sky-700/80 dark:text-sky-300/80">
             {completedCount}/{total}
@@ -48,9 +60,7 @@ export function MilestonesPanel({
               rows.map((row) => (
                 <tr key={row.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 align-top">
-                    <span className="inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-800 dark:text-amber-300">
-                      Lv {row.level}
-                    </span>
+                    <span className={LEVEL_PILL_CLS}>Lv {row.level}</span>
                   </td>
                   <td className="p-3 align-top">
                     <div className="font-semibold text-zinc-900 dark:text-zinc-100">{row.name}</div>

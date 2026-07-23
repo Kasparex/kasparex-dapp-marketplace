@@ -255,14 +255,21 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
 
             <GameOverviewSections
               gameName={props.gameName ?? 'Precision Click'}
+              kicker="Game guide"
+              subtitle="ARIA Lock reflex training with scored target runs."
               description={props.gameDescription}
               loreStory={props.loreStory}
-              featuredImage={props.featuredImage || undefined}
+              tips={[
+                {
+                  title: 'Accuracy tip',
+                  body: 'Smaller targets award more points. Too many misses end the session early, so prioritize precision over raw click speed.',
+                },
+              ]}
               flow={[
-                'Pay entry once to unlock the training run.',
-                'Play 30-second sessions and aim for a high score.',
-                'Boosters (tier/deck/optional) multiply final score.',
-                'Claim rewards later via Rewards & Points.',
+                'Pay the KAS training entry once to unlock play.',
+                'Complete timed target sessions and chase a high score.',
+                'Optional KREX boosters and NFT deck bonuses multiply your final score.',
+                'Claim rewards later via Rewards & Points when Hub pools allow.',
               ]}
             />
           </div>

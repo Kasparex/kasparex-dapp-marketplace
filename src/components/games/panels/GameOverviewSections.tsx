@@ -1,6 +1,8 @@
 'use client';
 
-import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
+import type { ReactNode } from 'react';
+import { KX_PREMIUM_MODULE_CARD } from '@/lib/hub/shellTokens';
+import { KX_PANEL_LABEL, KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 function normalizeLore(raw: string): string {
   const t = raw.replace(/\r\n/g, '\n').trim();
@@ -80,12 +82,66 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   return expanded.length ? expanded : [{ type: 'p', text: t }];
 }
 
+/** Small uppercase title kicker above Overview headings (Chronicles / Hub style). */
+export const GAME_OVERVIEW_KICKER = `${KX_PANEL_LABEL} mb-2 block`;
+
+export const GAME_OVERVIEW_SUBTITLE =
+  'mt-2 mb-6 text-base font-medium leading-7 text-zinc-500 dark:text-zinc-400';
+
 /** Chronicles-style section heading for game Overview articles. */
 export const GAME_OVERVIEW_H2 =
-  'text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-4 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-3 leading-snug first:mt-0';
+  'text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-snug';
 
 export const GAME_OVERVIEW_H3 =
-  'text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-10 mb-3 leading-snug';
+  'text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-2 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-3 leading-snug';
+
+export function GameOverviewTitleBlock(props: {
+  kicker?: string;
+  title: string;
+  subtitle?: string;
+  /** Use h2 for page hero title, h3 for in-article sections. */
+  as?: 'h2' | 'h3';
+  className?: string;
+  /** Compact title for light boxed panels (no large top margin / border). */
+  compact?: boolean;
+}) {
+  const Tag = props.as ?? 'h2';
+  const titleCls = props.compact
+    ? 'text-lg font-semibold text-zinc-900 dark:text-zinc-100 leading-snug'
+    : Tag === 'h2'
+      ? GAME_OVERVIEW_H2
+      : GAME_OVERVIEW_H3;
+  const wrapCls =
+    props.className ??
+    (props.compact ? 'mb-1' : Tag === 'h2' ? 'mb-6' : 'mt-12 mb-4 first:mt-0');
+  return (
+    <header className={wrapCls}>
+      {props.kicker?.trim() ? <span className={GAME_OVERVIEW_KICKER}>{props.kicker.trim()}</span> : null}
+      <Tag className={titleCls}>{props.title}</Tag>
+      {props.subtitle?.trim() ? (
+        <p className={props.compact ? 'mt-1 text-sm text-zinc-500 dark:text-zinc-400' : GAME_OVERVIEW_SUBTITLE}>
+          {props.subtitle.trim()}
+        </p>
+      ) : null}
+    </header>
+  );
+}
+
+/** Amber dashed tip box (same Hub premium-module styling). */
+export function GameOverviewTip(props: { title?: string; children: ReactNode }) {
+  return (
+    <aside className={`${KX_PREMIUM_MODULE_CARD} my-8`}>
+      {props.title?.trim() ? (
+        <p className="mb-2 text-xs font-black uppercase tracking-widest text-amber-800 dark:text-amber-200">
+          {props.title.trim()}
+        </p>
+      ) : (
+        <p className="mb-2 text-xs font-black uppercase tracking-widest text-amber-800 dark:text-amber-200">Quick tip</p>
+      )}
+      <div className="text-base leading-7 text-amber-950/90 dark:text-amber-50/90">{props.children}</div>
+    </aside>
+  );
+}
 
 /**
  * Shared game Overview body: Chronicles Hub article typography (open prose, no featured hero).
@@ -93,27 +149,40 @@ export const GAME_OVERVIEW_H3 =
  */
 export function GameOverviewSections(props: {
   gameName: string;
+  /** Uppercase kicker above the main title. */
+  kicker?: string;
+  /** Short line under the main title. */
+  subtitle?: string;
   description?: string;
   loreStory?: string;
   flow?: string[];
+  tips?: Array<{ title?: string; body: string }>;
   /** @deprecated Featured image lives on the Game header; ignored in Overview. */
   featuredImage?: string;
 }) {
   const flow = props.flow ?? [];
   const loreBlocks = props.loreStory ? splitLoreIntoBlocks(props.loreStory) : [];
+  const tips = props.tips ?? [];
 
   return (
     <div className="space-y-10">
       <article className={KX_PROSE}>
-        <h2 className={GAME_OVERVIEW_H2}>{props.gameName}</h2>
+        <GameOverviewTitleBlock
+          as="h2"
+          kicker={props.kicker ?? 'Game guide'}
+          title={props.gameName}
+          subtitle={props.subtitle}
+        />
         {props.description?.trim() ? <p className={KX_PROSE_PARAGRAPH}>{props.description.trim()}</p> : null}
+
+        {tips[0] ? (
+          <GameOverviewTip title={tips[0].title}>{tips[0].body}</GameOverviewTip>
+        ) : null}
 
         {loreBlocks.length > 0 ? (
           loreBlocks.map((b, idx) =>
             b.type === 'heading' ? (
-              <h3 key={`${b.type}-${idx}`} className={GAME_OVERVIEW_H3}>
-                {b.text}
-              </h3>
+              <GameOverviewTitleBlock key={`${b.type}-${idx}`} as="h3" kicker="Lore" title={b.text} />
             ) : (
               <p key={`${b.type}-${idx}`} className={KX_PROSE_PARAGRAPH}>
                 {b.text}
@@ -123,11 +192,22 @@ export function GameOverviewSections(props: {
         ) : !props.description?.trim() ? (
           <p className={KX_PROSE_PARAGRAPH}>Not available.</p>
         ) : null}
+
+        {tips.slice(1).map((tip, i) => (
+          <GameOverviewTip key={`tip-${i}`} title={tip.title}>
+            {tip.body}
+          </GameOverviewTip>
+        ))}
       </article>
 
       <section className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-6">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Game flow</h3>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Core loop at a glance.</p>
+        <GameOverviewTitleBlock
+          as="h3"
+          compact
+          kicker="Operations"
+          title="Game flow"
+          subtitle="Core loop at a glance."
+        />
         {flow.length > 0 ? (
           <ul className={`mt-4 list-disc pl-5 ${KX_PROSE_LIST}`}>
             {flow.map((s) => (
@@ -142,8 +222,13 @@ export function GameOverviewSections(props: {
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-6">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Game info</h3>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Links and mechanics.</p>
+        <GameOverviewTitleBlock
+          as="h3"
+          compact
+          kicker="Details"
+          title="Game info"
+          subtitle="Links and mechanics."
+        />
         <ul className="mt-4 space-y-0">
           <li className="flex items-center justify-between border-b border-zinc-200/80 py-3 dark:border-zinc-800">
             <span className="text-base text-zinc-600 dark:text-zinc-400">Game</span>

@@ -89,9 +89,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Diamond Veins',
       slug: 'diamond-veins',
       description:
-        'Idle-mine Diamonds by deploying NFTs into paid worker slots. Higher tiers mine faster and last longer. Feed workers from the Shop, refine Diamonds into Hub redeem points, and chase Milestones.',
+        'Idle-mine Diamonds by deploying Kasparex NFTs into Worker, Operator, and Foreman slots. Keep energy topped up from the Shop, use boosts to extend sessions, refine Diamonds into Hub points, and climb Milestones.',
       instructions:
-        'Connect your Kaspa (KasWare) wallet. Buy or use an NFT slot, deploy a Worker / Operator / Foreman, keep energy topped up with Shop consumables, refine Diamonds into Hub points, and track Milestones.',
+        'Connect your Kaspa wallet. Use the free starter Worker slot or buy more roles, deploy an NFT, Feed when Exhausted, refine Diamonds from the Game Deck into Hub points, and track Milestones.',
       gameType: 'strategy',
       difficulty: 'medium',
       entryCostKAS: 0,
@@ -113,9 +113,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Minecore',
       slug: 'minecore',
       description:
-        'Operate a diamond mining complex beneath Kaspaland. Craft parts, build mining plants, run timed extraction cycles, refine diamonds, and redeem output into GRID as the ecosystem expands.',
+        'Operate mining plants beneath Kaspaland. Craft parts, unlock plants with KAS, assign Crew NFTs, run timed extraction cycles, then refine Diamonds into GRID or KREX on Redeem.',
       instructions:
-        'Connect your Kaspa wallet. Unlock a plant slot with KAS, install machine and power, assign workers and modules, then start a mining cycle. Extract diamonds when complete and refine output for ecosystem rewards.',
+        'Connect your Kaspa wallet. Buy ingredients in Shop, craft on Build, unlock a plant on Mining, install machine + power + Crew, start a run, then refine Diamonds on Redeem.',
       gameType: 'strategy',
       difficulty: 'easy',
       entryCostKAS: 0,
@@ -155,9 +155,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: "Krex’s Cipher Vaults",
       slug: 'cipher-vaults',
       description:
-        'Decode Krex’s encrypted vaults scattered across Kaspaland. Pay a small KAS entry (or redeem Diamond Veins refinement) to attempt a cipher run and earn GRID checkpoints.',
+        'Decode Krex’s encrypted vaults across Kaspaland. Pay a small KAS entry (or spend a Cipher Ticket from Redeem) to solve the Cipher Grid and bank checkpoint clears for later GRID.',
       instructions:
-        'Connect your Kaspa wallet. Start a vault run (pay with KAS or redeem Cipher Tickets). Solve the Cipher Grid and submit your solution to record a checkpoint.',
+        'Connect your Kaspa wallet. Pick a vault tier, pay entry with KAS or a Cipher Ticket, solve the Cipher Grid within the move limit, then redeem refinement points into more tickets when you need them.',
       gameType: 'puzzle',
       difficulty: 'easy',
       entryCostKAS: 0.5,
@@ -189,9 +189,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Token Strategy: Kasparex Defense',
       slug: 'token-strategy',
       description:
-        "A lightweight strategy run inside Krex’s network defense. Choose responses, stack security, and outplay Null Gang interference.",
+        'A short strategy mission in Krex’s network defense. Choose responses that shape Security, Power, and Stealth, stack boosters, and outplay Null Gang interference.',
       instructions:
-        'Pay entry to start. Pick mission actions to improve Security/Power/Stealth. Boosters (KREX + NFT deck + optional KREX booster) increase your final score.',
+        'Pay the KAS entry to start. Pick mission choices each round to raise Security, Power, and Stealth. Optional KREX boosters and NFT deck bonuses multiply your final score.',
       gameType: 'strategy',
       difficulty: 'hard',
       entryCostKAS: 0.5,
@@ -217,9 +217,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: "Krex's Chronicles: Mystery Quiz",
       slug: 'kaspa-quiz',
       description:
-        "A mysterious 10-level quiz run through Krex's Chronicles. Each level contains 5 lore questions - clear them to unlock deeper chapters.",
+        'A 10-level mystery quiz through Krex’s Chronicles. Each level has 5 lore questions; clear them to unlock deeper chapters and raise your score.',
       instructions:
-        "Pay the entry fee to start. Answer 5 questions per level. Use boosters (KREX tier + NFTs) to increase your score multiplier.",
+        'Pay the KAS case entry once. Answer 5 questions per level across up to 10 levels. KREX boosters and NFT deck bonuses multiply your score.',
       gameType: 'trivia',
       difficulty: 'easy',
       entryCostKAS: 0.2,
@@ -245,9 +245,9 @@ export const gamesRegistry: UnifiedGame[] = [
       name: 'Precision Click: ARIA Lock',
       slug: 'precision-click',
       description:
-        'Test your reflexes and precision in this skill-based clicking game. Accuracy is key!',
+        'ARIA Lock precision training. Hit timed targets in short skill runs; smaller targets score higher. Miss too many and the run ends.',
       instructions:
-        'Click targets as they appear. Smaller targets give more points. Miss too many and the game ends.',
+        'Pay the KAS training entry. Click targets as they appear in each session. Boosters multiply your final score; claim Hub rewards later via Rewards & Points.',
       gameType: 'skill',
       difficulty: 'expert',
       entryCostKAS: 0.3,

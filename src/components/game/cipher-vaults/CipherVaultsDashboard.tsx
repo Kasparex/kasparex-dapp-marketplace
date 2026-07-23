@@ -276,14 +276,21 @@ export function CipherVaultsDashboard({
 
             <GameOverviewSections
               gameName={gameName ?? "Krex's Cipher Vaults"}
+              kicker="Game guide"
+              subtitle="Solve Cipher Grids, bank vault clears, redeem tickets."
               description={gameDescription}
               loreStory={loreStory}
-              featuredImage={featuredImage || undefined}
+              tips={[
+                {
+                  title="Entry tip",
+                  body: 'Pay with KAS per vault tier, or spend a Cipher Ticket from the Redeem tab when you have refinement points to convert.',
+                },
+              ]}
               flow={[
-                'Start a vault run (KAS or a Cipher Ticket).',
-                'Solve the Cipher Grid within the move limit to clear a vault.',
-                'Clears record checkpoints and contribute to later GRID distribution.',
-                'Redeem refinement points into tickets via the Redeem tab.',
+                'Choose a vault tier and start a run with KAS or a Cipher Ticket.',
+                'Solve the Cipher Grid within the move limit to clear the vault.',
+                'Clears record checkpoints that feed later GRID distribution.',
+                'On Redeem, convert refinement points into more Cipher Tickets when you need them.',
               ]}
             />
           </div>

@@ -77,11 +77,25 @@ export const GAME_MILESTONES: Record<string, GameMilestoneDef[]> = {
       level: 1,
     },
     {
+      id: 'mc-unlock-slot',
+      name: 'Unlock the next plant slot',
+      metric: 'plants_unlocked',
+      target: 2,
+      level: 2,
+    },
+    {
+      id: 'mc-next-plant',
+      name: 'Upgrade a plant past Standard',
+      metric: 'plant_tier',
+      target: 2,
+      level: 3,
+    },
+    {
       id: 'mc-100k',
       name: 'Mine your first 100,000 Diamonds',
       metric: 'diamonds_earned',
       target: 100_000,
-      level: 3,
+      level: 4,
     },
     {
       id: 'mc-million',
@@ -89,20 +103,6 @@ export const GAME_MILESTONES: Record<string, GameMilestoneDef[]> = {
       metric: 'diamonds_earned',
       target: 1_000_000,
       level: 5,
-    },
-    {
-      id: 'mc-next-plant',
-      name: 'Upgrade your next plant',
-      metric: 'plant_tier',
-      target: 2,
-      level: 2,
-    },
-    {
-      id: 'mc-unlock-slot',
-      name: 'Unlock the next plant slot',
-      metric: 'plants_unlocked',
-      target: 2,
-      level: 2,
     },
   ],
   'cipher-vaults': [
@@ -211,11 +211,11 @@ export function resolveMilestoneRows(
       const progressPct = d.target > 0 ? Math.min(100, (current / d.target) * 100) : 0;
       return { ...d, current, completed, progressPct };
     })
-    .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name));
+    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
 }
 
 export function playerLevelFromMilestones(rows: GameMilestoneRow[]): number {
   const completed = rows.filter((r) => r.completed);
-  if (completed.length === 0) return 1;
-  return Math.max(...completed.map((r) => r.level), 1);
+  if (completed.length === 0) return 0;
+  return Math.max(...completed.map((r) => r.level));
 }
