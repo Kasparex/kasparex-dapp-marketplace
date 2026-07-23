@@ -110,11 +110,7 @@ export const IDLE_ENERGY_DURATION_MS = {
 } as const;
 
 /** Paid NFT slot unlock list price by role (KAS before KREX fee discount). */
-export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = {
-  worker: 10,
-  operator: 15,
-  foreman: 25,
-} as const;
+export { NFT_DECK_SLOT_UNLOCK_COST_KAS as DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS } from '@/lib/game/nft-deck-slots';
 
 /** Human-readable base session length for slot purchase UI. */
 export const DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL = {

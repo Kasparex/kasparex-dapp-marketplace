@@ -1,10 +1,8 @@
 'use client';
 
-import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
 
 function normalizeLore(raw: string): string {
-  // Convert obvious sentence-run text into paragraph-ish blocks.
-  // Keep existing newlines if present.
   const t = raw.replace(/\r\n/g, '\n').trim();
   if (!t) return '';
   return t;
@@ -22,8 +20,10 @@ function toTitleCase(s: string): string {
 function splitSentences(text: string): string[] {
   const t = text.trim().replace(/\s+/g, ' ');
   if (!t) return [];
-  // Reasonable heuristic; avoids over-splitting on abbreviations by requiring a space after punctuation.
-  return t.split(/(?<=[.!?])\s+/g).map((s) => s.trim()).filter(Boolean);
+  return t
+    .split(/(?<=[.!?])\s+/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function chunkSentences(sentences: string[], perParagraph = 2): string[] {
@@ -38,7 +38,6 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   const t = normalizeLore(raw);
   if (!t) return [];
 
-  // If author already inserted blank lines, respect them as paragraphs.
   const hasParas = /\n\s*\n/.test(t);
   if (hasParas) {
     return t
@@ -48,10 +47,7 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
       .map((p) => ({ type: 'p' as const, text: p }));
   }
 
-  // Otherwise, try to promote ALL-CAPS markers into headings.
-  // Example patterns seen in Diamond Veins: "THE DISCOVERY", "KREX DIAMONDS", "YOUR ROLE", "THE DEPTHS"
   const parts: Array<{ type: 'heading' | 'p'; text: string }> = [];
-  // Allow markers at start-of-string or after newline/space (previous version missed markers at the beginning).
   const re = /(^|[\s\n])([A-Z][A-Z0-9’'\- ]{6,})(?=\s)/gm;
   let lastIndex = 0;
   let m: RegExpExecArray | null;
@@ -67,9 +63,7 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   const rest = t.slice(lastIndex).trim();
   if (rest) parts.push({ type: 'p', text: rest });
 
-  // Fallback: if we failed to find headings, keep as single paragraph.
   if (parts.length === 1 && parts[0]?.type === 'p') return parts;
-  // Expand large paragraphs into multiple readable paragraphs (2 sentences each).
   const expanded: Array<{ type: 'heading' | 'p'; text: string }> = [];
   for (const p of parts) {
     if (p.type === 'heading') {
@@ -86,90 +80,87 @@ function splitLoreIntoBlocks(raw: string): Array<{ type: 'heading' | 'p'; text: 
   return expanded.length ? expanded : [{ type: 'p', text: t }];
 }
 
+/** Chronicles-style section heading for game Overview articles. */
+export const GAME_OVERVIEW_H2 =
+  'text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-12 mb-4 tracking-tight border-b border-zinc-200 dark:border-zinc-800 pb-3 leading-snug first:mt-0';
+
+export const GAME_OVERVIEW_H3 =
+  'text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-10 mb-3 leading-snug';
+
+/**
+ * Shared game Overview body: Chronicles Hub article typography (open prose, no featured hero).
+ * Game flow / Game info stay in light boxed panels only.
+ */
 export function GameOverviewSections(props: {
   gameName: string;
   description?: string;
   loreStory?: string;
   flow?: string[];
+  /** @deprecated Featured image lives on the Game header; ignored in Overview. */
   featuredImage?: string;
 }) {
   const flow = props.flow ?? [];
   const loreBlocks = props.loreStory ? splitLoreIntoBlocks(props.loreStory) : [];
-  const introParas: string[] = [];
-  const restBlocks: Array<{ type: 'heading' | 'p'; text: string }> = [];
-  let seenHeading = false;
-  for (const b of loreBlocks) {
-    if (b.type === 'heading') seenHeading = true;
-    if (!seenHeading && b.type === 'p' && introParas.length < 2) introParas.push(b.text);
-    else restBlocks.push(b);
-  }
+
   return (
-    <div className="space-y-6">
-      <GamePanelCard title={props.gameName} hint={props.description?.trim() ? props.description : undefined}>
-        {props.featuredImage ? (
-          <div className="mb-6 grid gap-5 md:grid-cols-2">
-            <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={props.featuredImage} alt={props.gameName} className="aspect-video w-full object-cover" />
-            </div>
-            <div className="flex items-center">
-              <div className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-3">
-                {introParas.length > 0 ? (
-                  introParas.map((p, idx) => <p key={idx}>{p}</p>)
-                ) : (
-                  <p>{props.description?.trim() ? props.description : 'Not available.'}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : null}
+    <div className="space-y-10">
+      <article className={KX_PROSE}>
+        <h2 className={GAME_OVERVIEW_H2}>{props.gameName}</h2>
+        {props.description?.trim() ? <p className={KX_PROSE_PARAGRAPH}>{props.description.trim()}</p> : null}
 
         {loreBlocks.length > 0 ? (
-          <article className="prose prose-zinc max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:my-4 prose-headings:tracking-tight">
-            {(props.featuredImage ? restBlocks : loreBlocks).map((b, idx) =>
-              b.type === 'heading' ? (
-                <h3 key={`${b.type}-${idx}`} className="mt-8 mb-2 text-base font-black tracking-tight">
-                  {b.text}
-                </h3>
-              ) : (
-                <p key={`${b.type}-${idx}`}>{b.text}</p>
-              )
-            )}
-          </article>
-        ) : (
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{props.description?.trim() ? props.description : 'Not available.'}</p>
-        )}
-      </GamePanelCard>
+          loreBlocks.map((b, idx) =>
+            b.type === 'heading' ? (
+              <h3 key={`${b.type}-${idx}`} className={GAME_OVERVIEW_H3}>
+                {b.text}
+              </h3>
+            ) : (
+              <p key={`${b.type}-${idx}`} className={KX_PROSE_PARAGRAPH}>
+                {b.text}
+              </p>
+            ),
+          )
+        ) : !props.description?.trim() ? (
+          <p className={KX_PROSE_PARAGRAPH}>Not available.</p>
+        ) : null}
+      </article>
 
-      <GamePanelCard title="Game flow" hint="Core loop at a glance.">
+      <section className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-6">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Game flow</h3>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Core loop at a glance.</p>
         {flow.length > 0 ? (
-          <ul className="list-disc pl-5 kx-body space-y-1">
+          <ul className={`mt-4 list-disc pl-5 ${KX_PROSE_LIST}`}>
             {flow.map((s) => (
-              <li key={s}>{s}</li>
+              <li key={s} className={KX_PROSE_LIST_ITEM}>
+                {s}
+              </li>
             ))}
           </ul>
         ) : (
-          <p className="kx-body">Not available.</p>
+          <p className={`mt-4 ${KX_PROSE_PARAGRAPH}`}>Not available.</p>
         )}
-      </GamePanelCard>
+      </section>
 
-      <GamePanelCard title="Game info" hint="Links and mechanics.">
-        <ul className="space-y-0">
-          <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
-            <span className="kx-body">Game</span>
-            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{props.gameName}</span>
+      <section className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-6">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Game info</h3>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Links and mechanics.</p>
+        <ul className="mt-4 space-y-0">
+          <li className="flex items-center justify-between border-b border-zinc-200/80 py-3 dark:border-zinc-800">
+            <span className="text-base text-zinc-600 dark:text-zinc-400">Game</span>
+            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{props.gameName}</span>
           </li>
-          <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800">
-            <span className="kx-body">Rewards</span>
-            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Claim later via Rewards &amp; Points</span>
+          <li className="flex items-center justify-between border-b border-zinc-200/80 py-3 dark:border-zinc-800">
+            <span className="text-base text-zinc-600 dark:text-zinc-400">Rewards</span>
+            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+              Claim later via Rewards &amp; Points
+            </span>
           </li>
-          <li className="flex justify-between items-center py-2.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-            <span className="kx-body">Network</span>
-            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kaspa (L1) + Kasplex (L2)</span>
+          <li className="flex items-center justify-between py-3">
+            <span className="text-base text-zinc-600 dark:text-zinc-400">Network</span>
+            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Kaspa (L1) + Kasplex (L2)</span>
           </li>
         </ul>
-      </GamePanelCard>
+      </section>
     </div>
   );
 }
-

@@ -2,237 +2,252 @@
 
 /**
  * Structured overview copy (synced with repo root Minecore.md).
- * One GamePanelCard per section - matches Overview “Game flow” styling.
+ * Chronicles Hub article typography: open prose, minimal boxes.
  */
-import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
+import { KX_PROSE, KX_PROSE_LIST, KX_PROSE_LIST_ITEM, KX_PROSE_PARAGRAPH } from '@/lib/ui/kxTypography';
+import { GAME_OVERVIEW_H2, GAME_OVERVIEW_H3 } from '@/components/games/panels/GameOverviewSections';
 
-export function MinecoreArticle(props: { featuredImage?: string; gameName?: string; hint?: string }) {
+export function MinecoreArticle(props: {
+  /** @deprecated Featured image lives on the Game header; ignored in Overview. */
+  featuredImage?: string;
+  gameName?: string;
+  hint?: string;
+}) {
   const name = props.gameName ?? 'Minecore';
-  const body = 'space-y-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400';
-  const ulFlow = 'list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400';
 
   return (
-    <div className="space-y-6">
-      {props.featuredImage ? (
-        <GamePanelCard title={name} hint={props.hint}>
-          <div className="grid gap-5 md:grid-cols-2">
-            <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950/40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={props.featuredImage} alt={name} className="aspect-video w-full object-cover" />
-            </div>
-            <div className={`flex flex-col justify-center ${body}`}>
-              {props.hint ? <p className="font-medium text-zinc-700 dark:text-zinc-300">{props.hint}</p> : null}
-              <p>Use the tabs to craft parts, run power plants, assign NFT crew on the Crew tab (Worker / Operator / Foreman roles), then refine and redeem.</p>
-            </div>
-          </div>
-        </GamePanelCard>
-      ) : null}
+    <div className="space-y-10">
+      <article className={KX_PROSE}>
+        <h2 className={GAME_OVERVIEW_H2}>{name}</h2>
+        {props.hint?.trim() ? <p className={KX_PROSE_PARAGRAPH}>{props.hint.trim()}</p> : null}
+        <p className={KX_PROSE_PARAGRAPH}>
+          Use the tabs to craft parts, run power plants, assign NFT crew on the Crew tab (Worker / Operator / Foreman
+          roles), then refine and redeem.
+        </p>
 
-      <GamePanelCard title="Introduction">
-        <div className={body}>
-          <p>
-            Minecore is the central diamond mining system located deep beneath Kaspaland. It is a structured underground network of sectors and energy veins where Diamonds are formed from condensed BlockDAG
-            energy and can be extracted, refined, and used across the Kasparex ecosystem.
-          </p>
-          <p>
-            The system was not built from scratch. It was discovered during early Kasparex development, when Krex detected abnormal energy patterns beneath the city while working on top of the Kaspa BlockDAG.
-            Further analysis revealed a hidden underground structure that behaved like a fully operational extraction system embedded within the deeper layers of the network.
-          </p>
-          <p>Players enter Minecore as operators, building and managing mining plants to extract Diamonds and expand deeper into the system.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Introduction</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Minecore is the central diamond mining system located deep beneath Kaspaland. It is a structured underground
+          network of sectors and energy veins where Diamonds are formed from condensed BlockDAG energy and can be
+          extracted, refined, and used across the Kasparex ecosystem.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          The system was not built from scratch. It was discovered during early Kasparex development, when Krex detected
+          abnormal energy patterns beneath the city while working on top of the Kaspa BlockDAG. Further analysis revealed
+          a hidden underground structure that behaved like a fully operational extraction system embedded within the
+          deeper layers of the network.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Players enter Minecore as operators, building and managing mining plants to extract Diamonds and expand deeper
+          into the system.
+        </p>
 
-      <GamePanelCard title="The environment">
-        <div className={body}>
-          <p>Minecore consists of layered underground zones connected by energy veins. These veins carry compressed network energy that naturally crystallizes into Diamonds.</p>
-          <p>
-            The structure does not follow standard geological rules. Some sectors appear stable and predictable, while others behave dynamically, shifting output, stability, or response depending on how they are
-            used. Deeper layers introduce higher yield, but also instability and unknown behaviors.
-          </p>
-          <p>ARIA has mapped only the upper layers. Beyond that, the system becomes increasingly difficult to interpret.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>The environment</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Minecore consists of layered underground zones connected by energy veins. These veins carry compressed network
+          energy that naturally crystallizes into Diamonds.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          The structure does not follow standard geological rules. Some sectors appear stable and predictable, while
+          others behave dynamically, shifting output, stability, or response depending on how they are used. Deeper
+          layers introduce higher yield, but also instability and unknown behaviors.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          ARIA has mapped only the upper layers. Beyond that, the system becomes increasingly difficult to interpret.
+        </p>
 
-      <GamePanelCard title="Diamond formation">
-        <div className={body}>
-          <p>Diamonds are not ordinary minerals. They are formed when BlockDAG energy flows compress and stabilize into physical form within the underground veins.</p>
-          <p>
-            Each Diamond contains condensed fragments of network activity, making it both a resource and a unit of stored energy. This allows Diamonds to be refined and converted into usable output across the
-            ecosystem.
-          </p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Diamond formation</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Diamonds are not ordinary minerals. They are formed when BlockDAG energy flows compress and stabilize into
+          physical form within the underground veins.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Each Diamond contains condensed fragments of network activity, making it both a resource and a unit of stored
+          energy. This allows Diamonds to be refined and converted into usable output across the ecosystem.
+        </p>
 
-      <GamePanelCard title="Mining plants">
-        <div className={body}>
-          <p>Mining plants are the core operational units inside Minecore. They act as controlled interfaces between the operator and the underground system.</p>
-          <p>Each plant is assembled from multiple components:</p>
-          <ul className={ulFlow}>
-            <li>Machine: defines extraction capability and base output</li>
-            <li>Power system: supplies energy required for operation</li>
-            <li>NFT crew decks: Worker / Operator / Foreman roles (assign matching KREXPRIME or PIXELKREX NFTs on the Crew tab; each plant links deck rows for bonuses)</li>
-            <li>Modules: enhance stability, output, or introduce special effects</li>
-            <li>Boost layer: adds multipliers powered by KREX or supported by KAS</li>
-            <li>Ingredients: required to craft and maintain all components</li>
-          </ul>
-          <p>Vector designed the first machines capable of interacting with the veins. His ongoing work continues to expand the available tools and upgrades.</p>
-          <p>A plant becomes active only when all required components are installed and powered.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Mining plants</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Mining plants are the core operational units inside Minecore. They act as controlled interfaces between the
+          operator and the underground system.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>Each plant is assembled from multiple components:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Machine: defines extraction capability and base output</li>
+          <li className={KX_PROSE_LIST_ITEM}>Power system: supplies energy required for operation</li>
+          <li className={KX_PROSE_LIST_ITEM}>
+            NFT crew decks: Worker / Operator / Foreman roles (assign matching KREXPRIME or PIXELKREX NFTs on the Crew
+            tab; each plant links deck rows for bonuses)
+          </li>
+          <li className={KX_PROSE_LIST_ITEM}>Modules: enhance stability, output, or introduce special effects</li>
+          <li className={KX_PROSE_LIST_ITEM}>Boost layer: adds multipliers powered by KREX or supported by KAS</li>
+          <li className={KX_PROSE_LIST_ITEM}>Ingredients: required to craft and maintain all components</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Vector designed the first machines capable of interacting with the veins. His ongoing work continues to expand
+          the available tools and upgrades.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          A plant becomes active only when all required components are installed and powered.
+        </p>
 
-      <GamePanelCard title="Operation flow">
-        <div className={body}>
-          <p>Craft | Build | Mine | Diamonds credit | Refine | Redeem (GRID / KREX) | Expand</p>
-          <p>
-            Gather materials, craft components, build plants, run mining cycles. Finished runs add diamonds to your balance automatically; refine them into points on Redeem, redeem output into GRID or KREX (within
-            caps), then reinvest.
-          </p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Operation flow</h3>
+        <p className={KX_PROSE_PARAGRAPH}>Craft | Build | Mine | Diamonds credit | Refine | Redeem (GRID / KREX) | Expand</p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Gather materials, craft components, build plants, run mining cycles. Finished runs add diamonds to your balance
+          automatically; refine them into points on Redeem, redeem output into GRID or KREX (within caps), then reinvest.
+        </p>
 
-      <GamePanelCard title="Timers and production">
-        <div className={body}>
-          <p>Each mining plant runs on timed extraction cycles.</p>
-          <p>During an active cycle:</p>
-          <ul className={ulFlow}>
-            <li>A progress bar tracks completion</li>
-            <li>A timer displays remaining duration</li>
-            <li>Output is calculated dynamically</li>
-          </ul>
-          <p>When the cycle ends or the battery is exhausted, mined diamonds credit to your refineable balance automatically; start the next run when you are ready.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Timers and production</h3>
+        <p className={KX_PROSE_PARAGRAPH}>Each mining plant runs on timed extraction cycles.</p>
+        <p className={KX_PROSE_PARAGRAPH}>During an active cycle:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>A progress bar tracks completion</li>
+          <li className={KX_PROSE_LIST_ITEM}>A timer displays remaining duration</li>
+          <li className={KX_PROSE_LIST_ITEM}>Output is calculated dynamically</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>
+          When the cycle ends or the battery is exhausted, mined diamonds credit to your refineable balance
+          automatically; start the next run when you are ready.
+        </p>
 
-      <GamePanelCard title="Materials and crafting">
-        <div className={body}>
-          <p>Minecore includes a fabrication layer where raw materials are transformed into usable components.</p>
-          <p>Materials include:</p>
-          <ul className={ulFlow}>
-            <li>Crystal Dust</li>
-            <li>Alloy Plates</li>
-            <li>Circuit Mesh</li>
-            <li>Energy Cells</li>
-            <li>Core Shards</li>
-            <li>Cooling materials</li>
-            <li>Advanced components</li>
-          </ul>
-          <p>These are used to craft machines, modules, power systems, and upgrades.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Materials and crafting</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Minecore includes a fabrication layer where raw materials are transformed into usable components.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>Materials include:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Crystal Dust</li>
+          <li className={KX_PROSE_LIST_ITEM}>Alloy Plates</li>
+          <li className={KX_PROSE_LIST_ITEM}>Circuit Mesh</li>
+          <li className={KX_PROSE_LIST_ITEM}>Energy Cells</li>
+          <li className={KX_PROSE_LIST_ITEM}>Core Shards</li>
+          <li className={KX_PROSE_LIST_ITEM}>Cooling materials</li>
+          <li className={KX_PROSE_LIST_ITEM}>Advanced components</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>These are used to craft machines, modules, power systems, and upgrades.</p>
 
-      <GamePanelCard title="Power and fuel">
-        <div className={body}>
-          <p>All mining operations require energy to function.</p>
-          <ul className={ulFlow}>
-            <li>KAS acts as the primary fuel</li>
-            <li>Energy components support stability and efficiency</li>
-          </ul>
-          <p>ARIA manages power distribution across accessible sectors, but not all zones can be fully stabilized.</p>
-          <p>Without sufficient power, mining cannot begin.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Power and fuel</h3>
+        <p className={KX_PROSE_PARAGRAPH}>All mining operations require energy to function.</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>KAS acts as the primary fuel</li>
+          <li className={KX_PROSE_LIST_ITEM}>Energy components support stability and efficiency</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>
+          ARIA manages power distribution across accessible sectors, but not all zones can be fully stabilized.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>Without sufficient power, mining cannot begin.</p>
 
-      <GamePanelCard title="Boosts and multipliers">
-        <div className={body}>
-          <p>KREX introduces a boost layer that enhances mining performance.</p>
-          <p>Boosts can:</p>
-          <ul className={ulFlow}>
-            <li>Increase output</li>
-            <li>Reduce cycle time</li>
-            <li>Improve efficiency</li>
-            <li>Unlock advanced configurations</li>
-          </ul>
-          <p>Combined with workers and modules, they create strong multiplier effects.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Boosts and multipliers</h3>
+        <p className={KX_PROSE_PARAGRAPH}>KREX introduces a boost layer that enhances mining performance.</p>
+        <p className={KX_PROSE_PARAGRAPH}>Boosts can:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Increase output</li>
+          <li className={KX_PROSE_LIST_ITEM}>Reduce cycle time</li>
+          <li className={KX_PROSE_LIST_ITEM}>Improve efficiency</li>
+          <li className={KX_PROSE_LIST_ITEM}>Unlock advanced configurations</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>Combined with workers and modules, they create strong multiplier effects.</p>
 
-      <GamePanelCard title="Refining and output">
-        <div className={body}>
-          <p>Use the Redeem tab to convert diamonds into refinement points, then redeem points toward GRID or KREX within the published caps and pools.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Refining and output</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Use the Redeem tab to convert diamonds into refinement points, then redeem points toward GRID or KREX within the
+          published caps and pools.
+        </p>
 
-      <GamePanelCard title="External interference">
-        <div className={body}>
-          <p>Certain sectors show signs of interference linked to the Null Gang.</p>
-          <p>These zones may contain:</p>
-          <ul className={ulFlow}>
-            <li>Unstable outputs</li>
-            <li>Corrupted materials</li>
-            <li>Increased machine degradation</li>
-          </ul>
-          <p>While risky, they often provide higher rewards.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>External interference</h3>
+        <p className={KX_PROSE_PARAGRAPH}>Certain sectors show signs of interference linked to the Null Gang.</p>
+        <p className={KX_PROSE_PARAGRAPH}>These zones may contain:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Unstable outputs</li>
+          <li className={KX_PROSE_LIST_ITEM}>Corrupted materials</li>
+          <li className={KX_PROSE_LIST_ITEM}>Increased machine degradation</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>While risky, they often provide higher rewards.</p>
 
-      <GamePanelCard title="The deeper layer">
-        <div className={body}>
-          <p>Beyond mapped sectors, Minecore exhibits patterns that cannot be fully explained.</p>
-          <p>Operators have reported:</p>
-          <ul className={ulFlow}>
-            <li>Unexpected efficiency spikes</li>
-            <li>Hidden sector access</li>
-            <li>Unexplained system responses</li>
-          </ul>
-          <p>These behaviors are associated with a deeper system logic, often referred to as The Silent Protocol.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>The deeper layer</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Beyond mapped sectors, Minecore exhibits patterns that cannot be fully explained.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>Operators have reported:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Unexpected efficiency spikes</li>
+          <li className={KX_PROSE_LIST_ITEM}>Hidden sector access</li>
+          <li className={KX_PROSE_LIST_ITEM}>Unexplained system responses</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>
+          These behaviors are associated with a deeper system logic, often referred to as The Silent Protocol.
+        </p>
 
-      <GamePanelCard title="Expansion">
-        <div className={body}>
-          <p>Minecore is designed as a scalable system.</p>
-          <p>Players expand by:</p>
-          <ul className={ulFlow}>
-            <li>Unlocking new sectors</li>
-            <li>Building additional plants</li>
-            <li>Upgrading infrastructure</li>
-            <li>Optimizing configurations</li>
-          </ul>
-          <p>As operations grow, the system reveals new behaviors and deeper layers.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Expansion</h3>
+        <p className={KX_PROSE_PARAGRAPH}>Minecore is designed as a scalable system.</p>
+        <p className={KX_PROSE_PARAGRAPH}>Players expand by:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Unlocking new sectors</li>
+          <li className={KX_PROSE_LIST_ITEM}>Building additional plants</li>
+          <li className={KX_PROSE_LIST_ITEM}>Upgrading infrastructure</li>
+          <li className={KX_PROSE_LIST_ITEM}>Optimizing configurations</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>As operations grow, the system reveals new behaviors and deeper layers.</p>
 
-      <GamePanelCard title="System integration">
-        <div className={body}>
-          <p>Diamonds mined in Minecore are used across other Kasparex Games.</p>
-          <p>They act as a universal in-game currency for:</p>
-          <ul className={ulFlow}>
-            <li>Unlocking content</li>
-            <li>Entering game modes</li>
-            <li>Activating systems</li>
-            <li>Accessing rewards</li>
-          </ul>
-          <p>Minecore serves as the production layer powering the entire ecosystem.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>System integration</h3>
+        <p className={KX_PROSE_PARAGRAPH}>Diamonds mined in Minecore are used across other Kasparex Games.</p>
+        <p className={KX_PROSE_PARAGRAPH}>They act as a universal in-game currency for:</p>
+        <ul className={`list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Unlocking content</li>
+          <li className={KX_PROSE_LIST_ITEM}>Entering game modes</li>
+          <li className={KX_PROSE_LIST_ITEM}>Activating systems</li>
+          <li className={KX_PROSE_LIST_ITEM}>Accessing rewards</li>
+        </ul>
+        <p className={KX_PROSE_PARAGRAPH}>Minecore serves as the production layer powering the entire ecosystem.</p>
 
-      <GamePanelCard title="How the reward system works">
-        <div className={body}>
-          <p>Minecore uses a multi-layered reward system designed for gas efficiency and cross-game synergy:</p>
-          <ul className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
-            <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">1. Mining credit</strong>
-              When a run completes, diamonds are banked to your profile balance (same flow you see in the game deck), ready to refine on the Redeem tab.
-            </li>
-            <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">2. Refine</strong>
-              On Redeem, convert diamonds into refinement points at the configured rate (plus any in-game Worker / module bonuses).
-            </li>
-            <li>
-              <strong className="block text-zinc-900 dark:text-zinc-100">3. Redeem tokens</strong>
-              Spend refinement points toward GRID or KREX subject to daily caps and pool display on that tab; L2 distribution follows the wider Kasparex rewards setup.
-            </li>
-          </ul>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>How the reward system works</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Minecore uses a multi-layered reward system designed for gas efficiency and cross-game synergy:
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          <strong className="text-zinc-900 dark:text-zinc-100">1. Mining credit.</strong> When a run completes, diamonds
+          are banked to your profile balance (same flow you see in the game deck), ready to refine on the Redeem tab.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          <strong className="text-zinc-900 dark:text-zinc-100">2. Refine.</strong> On Redeem, convert diamonds into
+          refinement points at the configured rate (plus any in-game Worker / module bonuses).
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          <strong className="text-zinc-900 dark:text-zinc-100">3. Redeem tokens.</strong> Spend refinement points toward
+          GRID or KREX subject to daily caps and pool display on that tab; L2 distribution follows the wider Kasparex
+          rewards setup.
+        </p>
 
-      <GamePanelCard title="Summary">
-        <div className={body}>
-          <p>Minecore is a system of building, managing, and optimizing mining operations within a discovered underground network powered by BlockDAG energy.</p>
-          <p>Operators construct infrastructure, run timed production cycles, and scale their systems to reach deeper and more powerful layers.</p>
-          <p>The deeper the operation goes, the greater the rewards, and the more complex the system becomes.</p>
-        </div>
-      </GamePanelCard>
+        <h3 className={GAME_OVERVIEW_H3}>Summary</h3>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Minecore is a system of building, managing, and optimizing mining operations within a discovered underground
+          network powered by BlockDAG energy.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          Operators construct infrastructure, run timed production cycles, and scale their systems to reach deeper and
+          more powerful layers.
+        </p>
+        <p className={KX_PROSE_PARAGRAPH}>
+          The deeper the operation goes, the greater the rewards, and the more complex the system becomes.
+        </p>
+      </article>
+
+      <section className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-900/40 sm:p-6">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Game flow</h3>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Core loop at a glance.</p>
+        <ul className={`mt-4 list-disc pl-5 ${KX_PROSE_LIST}`}>
+          <li className={KX_PROSE_LIST_ITEM}>Craft parts and modules from ingredients.</li>
+          <li className={KX_PROSE_LIST_ITEM}>
+            Activate a plant slot with KAS and install machine, power, workers, and modules.
+          </li>
+          <li className={KX_PROSE_LIST_ITEM}>
+            Start a run; when the cycle or battery ends, diamonds credit automatically to your refineable balance.
+          </li>
+          <li className={KX_PROSE_LIST_ITEM}>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
+          <li className={KX_PROSE_LIST_ITEM}>Expand slots and upgrade parts to grow your mining complex.</li>
+        </ul>
+      </section>
     </div>
   );
 }

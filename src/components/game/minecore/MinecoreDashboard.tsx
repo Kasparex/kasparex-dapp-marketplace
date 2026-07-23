@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { TooltipProvider, Tooltip } from '@/components/ui/Tooltip';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
@@ -27,7 +26,7 @@ import { MinecoreRewardsPanel } from '@/components/game/minecore/MinecoreRewards
 import { MinecoreMiningTabFooter } from '@/components/game/minecore/MinecoreMiningSections';
 import { MinecoreMaintenanceCostsPanel } from '@/components/game/minecore/MinecoreMaintenanceCostsPanel';
 import { MinecoreBulkMiningButton } from '@/components/game/minecore/MinecoreBulkMiningButton';
-import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
+import { MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
@@ -122,6 +121,7 @@ export function MinecoreDashboard(_props: {
     dismissLastPaymentError,
     dismissLastSetupError,
     getKasPriceAfterDiscount,
+    slotPurchaseKasByType,
     slottedMetadata,
     minecoreComputeContext,
     wallet,
@@ -434,16 +434,7 @@ export function MinecoreDashboard(_props: {
         >
           {tab === 'overview' && (
             <div className="space-y-6">
-              <MinecoreArticle featuredImage={_props.featuredImage} gameName={_props.gameName} hint={_props.gameDescription} />
-              <GamePanelCard title="Game flow" hint="Core loop at a glance.">
-                <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
-                  <li>Craft parts and modules from ingredients.</li>
-                  <li>Activate a plant slot with KAS and install machine, power, workers, and modules.</li>
-                  <li>Start a run; when the cycle or battery ends, diamonds credit automatically to your refineable balance.</li>
-                  <li>Refine diamonds into points, then redeem output into GRID (V1 rules).</li>
-                  <li>Expand slots and upgrade parts to grow your mining complex.</li>
-                </ul>
-              </GamePanelCard>
+              <MinecoreArticle gameName={_props.gameName} hint={_props.gameDescription} />
             </div>
           )}
 
@@ -660,7 +651,7 @@ export function MinecoreDashboard(_props: {
                 onDeploy={actions.deployNFT}
                 onRemove={(slotIndex) => actions.removeNFT(slotIndex)}
                 onPurchaseExtraSlot={actions.purchaseNftDeckSlot}
-                slotPurchaseKas={getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS)}
+                slotPurchaseKasByType={slotPurchaseKasByType}
                 miningAllowed={miningAllowed}
               />
               <CrewPlantFeaturesPanel />

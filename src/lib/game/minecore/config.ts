@@ -15,6 +15,16 @@ export const MINECORE_DEFAULT_PLANT_SLOTS = 4;
 export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 10;
 export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 
+/** Paid Crew NFT deck slot unlock list price by role (same platform pricing as Diamond Veins). */
+export { NFT_DECK_SLOT_UNLOCK_COST_KAS as MINECORE_NFT_SLOT_UNLOCK_COST_KAS } from '@/lib/game/nft-deck-slots';
+
+/** Short role badges for Minecore Add NFT Slot modal. */
+export const MINECORE_NFT_SLOT_ROLE_BADGE = {
+  worker: 'Rolling cap',
+  operator: 'Higher cap',
+  foreman: 'Auto plant',
+} as const;
+
 /** 24h window for diamonds/day and cycle scaling. */
 export const MINECORE_DAY_MS = 24 * 60 * 60 * 1000;
 

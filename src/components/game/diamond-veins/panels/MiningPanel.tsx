@@ -26,7 +26,8 @@ import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { useKaspaWallet } from '@/lib/kaspa/context';
-import { KxMultiSelectDropdown, type KxMultiSelectOption } from '@/components/ui/KxMultiSelectDropdown';
+import { AddNftSlotModal } from '@/components/game/AddNftSlotModal';
+import { nftCrewRoleBadgeClass } from '@/lib/game/nft-crew-role-styles';
 import { KxBadge } from '@/components/ui/KxBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { gameTooltipRich } from '@/components/games/gameTooltipRich';
@@ -63,17 +64,6 @@ function statusBadge(status: string) {
       return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-400/30';
     default:
       return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-400/30';
-  }
-}
-
-function roleBadgeCls(type: MiningSlotType) {
-  switch (type) {
-    case 'operator':
-      return 'border-sky-500/40 bg-sky-500/15 text-sky-800 dark:text-sky-300';
-    case 'foreman':
-      return 'border-violet-500/40 bg-violet-500/15 text-violet-800 dark:text-violet-300';
-    default:
-      return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300';
   }
 }
 
@@ -146,7 +136,6 @@ export function MiningPanel({
 
   const [selected, setSelected] = useState<number | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
-  const [buyTypes, setBuyTypes] = useState<MiningSlotType[]>(['worker']);
   const [feedOpen, setFeedOpen] = useState<number | null>(null);
 
   useEffect(() => {
@@ -181,7 +170,7 @@ export function MiningPanel({
     return null;
   };
 
-  const slotTypeOptions: KxMultiSelectOption[] = useMemo(
+  const slotTypeOptions = useMemo(
     () =>
       MINECORE_NFT_CREW_ROLES_ORDER.map((t) => ({
         value: t,
@@ -189,11 +178,6 @@ export function MiningPanel({
         badge: `${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[t]} · ${DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS[t]} KAS`,
       })),
     [],
-  );
-
-  const buyTotalKas = useMemo(
-    () => buyTypes.reduce((sum, t) => sum + (slotPurchaseKasByType[t] ?? 0), 0),
-    [buyTypes, slotPurchaseKasByType],
   );
 
   const buyFromKas = slotPurchaseKasByType.worker;
@@ -261,7 +245,6 @@ export function MiningPanel({
             disabled={!miningAllowed}
             onClick={() => {
               if (!miningAllowed) return;
-              setBuyTypes(['worker']);
               setBuyOpen(true);
             }}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
@@ -315,7 +298,7 @@ export function MiningPanel({
                     >
                       <div className="relative flex h-full w-full flex-col items-center justify-center pt-6">
                         <span
-                          className={`absolute left-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${roleBadgeCls(slot.type)}`}
+                          className={`absolute left-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${nftCrewRoleBadgeClass(slot.type)}`}
                         >
                           {roleLabel}
                           {idx === 0 ? ' · Free' : ''}
@@ -608,66 +591,15 @@ export function MiningPanel({
         </div>
       </div>
 
-      {buyOpen ? (
-        <div
-          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setBuyOpen(false)}
-          role="presentation"
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Add NFT mining slot</h3>
-              <button
-                type="button"
-                onClick={() => setBuyOpen(false)}
-                className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                aria-label="Close"
-              >
-                <Icons.X className="h-5 w-5" />
-              </button>
-            </div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-wide text-zinc-500">
-              Slot type
-            </label>
-            <div className="mb-2 w-full">
-              <KxMultiSelectDropdown
-                values={buyTypes}
-                onChange={(next) =>
-                  setBuyTypes(next.filter((v): v is MiningSlotType => MINECORE_NFT_CREW_ROLES_ORDER.includes(v as MiningSlotType)))
-                }
-                options={slotTypeOptions}
-                ariaLabel="Slot types to purchase"
-                placeholder="Select slot types…"
-                triggerClassName="k-field-trigger h-11 w-full min-w-0"
-                menuClassName="w-full min-w-[280px]"
-              />
-            </div>
-            <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
-              Select one or more roles. Worker {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.worker} (
-              {DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.worker} KAS), Operator{' '}
-              {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.operator} ({DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.operator} KAS),
-              Foreman {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.foreman} ({DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.foreman}{' '}
-              KAS). KREX tier discount applies at checkout.
-            </p>
-            <button
-              type="button"
-              disabled={!miningAllowed || buyTypes.length === 0}
-              onClick={async () => {
-                const ok = await onPurchaseExtraSlot(buyTypes);
-                if (ok) setBuyOpen(false);
-              }}
-              className="h-11 w-full rounded-xl bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {buyTypes.length === 0
-                ? 'Select at least one slot type'
-                : `Pay ${buyTotalKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS · ${buyTypes.length} slot${buyTypes.length === 1 ? '' : 's'}`}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <AddNftSlotModal
+        open={buyOpen}
+        onClose={() => setBuyOpen(false)}
+        options={slotTypeOptions}
+        priceByType={slotPurchaseKasByType}
+        miningAllowed={miningAllowed}
+        onPurchase={onPurchaseExtraSlot}
+        description={`Select one or more roles. Worker ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.worker} (${DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.worker} KAS), Operator ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.operator} (${DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.operator} KAS), Foreman ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.foreman} (${DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.foreman} KAS). KREX tier discount applies at checkout.`}
+      />
 
       {feedOpen != null ? (
         <div

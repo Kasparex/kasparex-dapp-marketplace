@@ -16,6 +16,8 @@ import {
 } from '@/lib/game/minecore/asset-usage';
 import { MINECORE_BATTERIES, MINECORE_MACHINES, MINECORE_MODULES, MINECORE_POWER_NODES, MINECORE_PLANT_PRESETS } from '@/lib/game/minecore/config';
 import { useGamesMainAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { nftCrewRoleBadgeClass } from '@/lib/game/nft-crew-role-styles';
+import type { MiningSlotType } from '@/lib/game/engine';
 
 const INGREDIENT_LABELS: Record<(typeof MINECORE_INGREDIENT_KEYS)[number], string> = {
   crystalDust: 'Crystal Dust',
@@ -179,7 +181,7 @@ export function MinecoreOwnedAssetsPanel(props: { state: MinecoreState }) {
   );
 }
 
-function NftDeckCapsule(props: { label: string; filled: number; capacity: number }) {
+function NftDeckCapsule(props: { role: MiningSlotType; label: string; filled: number; capacity: number }) {
   const accent = props.filled > 0;
   const tooltipContent = (
     <div className="space-y-2">
@@ -194,7 +196,7 @@ function NftDeckCapsule(props: { label: string; filled: number; capacity: number
       <div className="flex cursor-help flex-col gap-0.5 rounded-xl border border-zinc-100 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950/30">
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`font-medium ${accent ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-500'}`}
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${nftCrewRoleBadgeClass(props.role)}`}
           >
             {props.label}
           </span>
@@ -221,7 +223,15 @@ export function MinecoreOwnedWorkersPanel(props: {
       <div className={crewGridClass}>
         {MINECORE_NFT_CREW_ROLES_ORDER.map((role) => {
           const { filled, capacity } = nftTabSlotDeployments(nft, role);
-          return <NftDeckCapsule key={role} label={nftDeckRoleLabel(role)} filled={filled} capacity={capacity} />;
+          return (
+            <NftDeckCapsule
+              key={role}
+              role={role}
+              label={nftDeckRoleLabel(role)}
+              filled={filled}
+              capacity={capacity}
+            />
+          );
         })}
       </div>
     </GamePanelCard>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { MiningSlot, MiningSlotType } from '@/lib/game/engine';
 import { nftTabSlotDeployments, MINECORE_NFT_CREW_ROLES_ORDER, nftCrewRoleLabel } from '@/lib/game/minecore/asset-usage';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
@@ -20,6 +20,12 @@ import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-coll
 import { minecoreDeckBenefits } from '@/lib/game/minecore/nft-deck-benefits';
 import { formatMinecoreGlobalDeckBonusLine } from '@/lib/game/minecore/nft-deck-benefits';
 import { useGamesNftSlotsAdaptiveGrid } from '@/components/games/layout/GamesLayoutContext';
+import { AddNftSlotModal } from '@/components/game/AddNftSlotModal';
+import { nftCrewRoleBadgeClass } from '@/lib/game/nft-crew-role-styles';
+import {
+  MINECORE_NFT_SLOT_ROLE_BADGE,
+  MINECORE_NFT_SLOT_UNLOCK_COST_KAS,
+} from '@/lib/game/minecore/config';
 
 function collectionAllowlistForMinecoreDeckSlot(_slot: MiningSlot | null | undefined): string[] | undefined {
   return getMinecoreDeckCollectionAllowlist();
@@ -55,9 +61,9 @@ export function WorkersPanel(props: {
   slottedMetadata: Record<number, ParsedNFTMetadata>;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
   onRemove: (slotIndex: number) => void;
-  /** Paid KAS (after tier discount) to append one NFT deck slot of chosen type. */
-  onPurchaseExtraSlot?: (slotType: MiningSlotType) => void | Promise<boolean>;
-  slotPurchaseKas?: number;
+  /** Paid KAS (after tier discount) to append one or more NFT deck slots. */
+  onPurchaseExtraSlot?: (slotTypes: MiningSlotType[]) => void | Promise<boolean>;
+  slotPurchaseKasByType?: Record<MiningSlotType, number>;
   miningAllowed?: boolean;
 }) {
   const { state: wallet } = useKaspaWallet();
@@ -70,7 +76,6 @@ export function WorkersPanel(props: {
 
   const [selected, setSelected] = useState<number | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
-  const [buyType, setBuyType] = useState<MiningSlotType>('worker');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -96,14 +101,18 @@ export function WorkersPanel(props: {
     };
   }, [props.slots]);
 
-  useEffect(() => {
-    if (!buyOpen) return;
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape') setBuyOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [buyOpen]);
+  const slotTypeOptions = useMemo(
+    () =>
+      MINECORE_NFT_CREW_ROLES_ORDER.map((t) => ({
+        value: t,
+        label: nftCrewRoleLabel(t),
+        badge: `${MINECORE_NFT_SLOT_ROLE_BADGE[t]} · ${MINECORE_NFT_SLOT_UNLOCK_COST_KAS[t]} KAS`,
+      })),
+    [],
+  );
+
+  const buyFromKas = props.slotPurchaseKasByType?.worker ?? 0;
+  const canBuySlots = props.onPurchaseExtraSlot != null && props.slotPurchaseKasByType != null;
 
   const globalDeckBonusLine = useMemo(
     () => formatMinecoreGlobalDeckBonusLine(props.slots, { nftMetadataByDeckIndex: props.slottedMetadata }),
@@ -133,7 +142,6 @@ export function WorkersPanel(props: {
       if (statusFilter === 'Foreman') list = list.filter((s) => s.type === 'foreman');
     }
 
-    // Recommended is original index
     if (sortBy === 'price_asc') {
       list.sort((a, b) => (a.nftId ?? 0) - (b.nftId ?? 0));
     } else if (sortBy === 'price_desc') {
@@ -160,6 +168,30 @@ export function WorkersPanel(props: {
         </p>
       ) : null}
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Crew slots</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Buy Worker, Operator, or Foreman deck rows, then deploy Premium or Partner NFTs. Bind Foremen to plants on
+            Mining for AUTO.
+          </p>
+        </div>
+        {canBuySlots ? (
+          <button
+            type="button"
+            disabled={!props.miningAllowed}
+            onClick={() => {
+              if (!props.miningAllowed) return;
+              setBuyOpen(true);
+            }}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
+          >
+            <Icons.Plus className="h-4 w-4" />
+            Buy slots · from {buyFromKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
+          </button>
+        ) : null}
+      </div>
+
       <CardsFilterBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -172,25 +204,6 @@ export function WorkersPanel(props: {
       />
 
       <div className={slotGridClass}>
-        {props.onPurchaseExtraSlot != null && props.slotPurchaseKas != null ? (
-          <div className="flex aspect-square items-stretch">
-            <button
-              type="button"
-              disabled={!props.miningAllowed}
-              onClick={() => props.miningAllowed && setBuyOpen(true)}
-              className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 p-4 text-center transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
-            >
-              <EmptyVeinSlotPlusIcon />
-              <div>
-                <h3 className="text-base font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">Buy / Add slot</h3>
-                <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
-                  {props.slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Choose worker role · wallet checkout</p>
-              </div>
-            </button>
-          </div>
-        ) : null}
         {filteredSlots.map((slot) => {
           const idx = slot.originalIndex;
           const crewSlot: MiningSlot = {
@@ -207,7 +220,9 @@ export function WorkersPanel(props: {
           return (
             <EmptyVeinSlotFrame key={idx} onClick={() => setSelected(idx)} frameClassName="aspect-square">
               <div className="relative flex h-full min-h-[200px] w-full flex-col items-center justify-center pt-9">
-                <span className="absolute left-4 top-3 z-[1] rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800 shadow-sm dark:bg-emerald-500/10 dark:text-emerald-300">
+                <span
+                  className={`absolute left-4 top-3 z-[1] rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide shadow-sm ${nftCrewRoleBadgeClass(slot.type)}`}
+                >
                   {roleLabel}
                 </span>
                 {slot.nftId != null ? (
@@ -224,13 +239,11 @@ export function WorkersPanel(props: {
                   </button>
                 ) : null}
                 {!slot.nftId ? (
-                  <div className="flex flex-col items-center gap-4 text-center px-2">
+                  <div className="flex flex-col items-center gap-4 px-2 text-center">
                     <EmptyVeinSlotPlusIcon />
                     <div>
                       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        {slot.type === 'worker'
-                          ? 'Deploy Premium or Partner'
-                          : 'Deploy PIXELKREX'}
+                        {slot.type === 'worker' ? 'Deploy Premium or Partner' : 'Deploy PIXELKREX'}
                       </p>
                     </div>
                   </div>
@@ -254,7 +267,9 @@ export function WorkersPanel(props: {
                       +{perk.capBonus.toLocaleString()} rolling cap D/24h
                       {slot.type === 'foreman' ? ' · auto infra when equipped' : ''}
                     </p>
-                    <p className="mt-2 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-500">Locked · active</p>
+                    <p className="mt-2 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-500">
+                      Locked · active
+                    </p>
                     <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Click to manage · X clears</p>
                   </div>
                 )}
@@ -264,54 +279,16 @@ export function WorkersPanel(props: {
         })}
       </div>
 
-      {buyOpen && props.onPurchaseExtraSlot ? (
-        <div
-          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setBuyOpen(false)}
-          role="presentation"
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Add NFT slot</h3>
-              <button
-                type="button"
-                onClick={() => setBuyOpen(false)}
-                className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                aria-label="Close"
-              >
-                <Icons.X className="h-5 w-5" />
-              </button>
-            </div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Slot type
-            </label>
-            <select
-              value={buyType}
-              onChange={(e) => setBuyType(e.target.value as MiningSlotType)}
-              className="mb-4 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-950"
-            >
-              {MINECORE_NFT_CREW_ROLES_ORDER.map((t) => (
-                <option key={t} value={t}>
-                  {nftCrewRoleLabel(t)}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              disabled={!props.miningAllowed}
-              onClick={async () => {
-                const ok = await props.onPurchaseExtraSlot!(buyType);
-                if (ok) setBuyOpen(false);
-              }}
-              className="h-11 w-full rounded-xl bg-emerald-600 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-            >
-              Pay {props.slotPurchaseKas?.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
-            </button>
-          </div>
-        </div>
+      {canBuySlots && props.slotPurchaseKasByType && props.onPurchaseExtraSlot ? (
+        <AddNftSlotModal
+          open={buyOpen}
+          onClose={() => setBuyOpen(false)}
+          options={slotTypeOptions}
+          priceByType={props.slotPurchaseKasByType}
+          miningAllowed={props.miningAllowed}
+          onPurchase={props.onPurchaseExtraSlot}
+          description={`Select one or more roles. Worker ${MINECORE_NFT_SLOT_ROLE_BADGE.worker} (${MINECORE_NFT_SLOT_UNLOCK_COST_KAS.worker} KAS), Operator ${MINECORE_NFT_SLOT_ROLE_BADGE.operator} (${MINECORE_NFT_SLOT_UNLOCK_COST_KAS.operator} KAS), Foreman ${MINECORE_NFT_SLOT_ROLE_BADGE.foreman} (${MINECORE_NFT_SLOT_UNLOCK_COST_KAS.foreman} KAS). KREX tier discount applies at checkout.`}
+        />
       ) : null}
 
       {selected !== null && modalCopy && modalSlot ? (

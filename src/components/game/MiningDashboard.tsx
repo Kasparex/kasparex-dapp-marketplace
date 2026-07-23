@@ -280,11 +280,11 @@ export function MiningDashboard({
                   'Feed exhausted workers from the Shop. Refine Diamonds from the Game Deck into Hub points on /rewards.',
                 ]}
               />
-              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <button
                   type="button"
                   onClick={() => setFaqOpen((o) => !o)}
-                  className="flex w-full items-center justify-between p-4 text-left text-base font-semibold text-zinc-900 transition-colors hover:bg-zinc-100 dark:text-zinc-100 dark:hover:bg-zinc-800/50"
+                  className="flex w-full items-center justify-between p-5 text-left text-lg font-semibold text-zinc-900 transition-colors hover:bg-zinc-100/80 dark:text-zinc-100 dark:hover:bg-zinc-800/50 sm:p-6"
                 >
                   FAQ & How rewards work
                   <svg
@@ -297,20 +297,22 @@ export function MiningDashboard({
                   </svg>
                 </button>
                 {faqOpen ? (
-                  <div className="space-y-4 border-t border-zinc-200 px-4 pb-4 pt-2 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                  <div className="space-y-5 border-t border-zinc-200 px-5 pb-5 pt-4 text-lg leading-8 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400 sm:px-6">
                     <div>
-                      <p className="font-semibold text-zinc-800 dark:text-zinc-300">Tabs overview</p>
-                      <p className="mt-1">
-                        <strong>Mining</strong> holds NFT worker slots. <strong>Shop</strong> sells food, drinks, repair
-                        kits, and boosts. <strong>Rewards</strong> shows refine history toward Hub points.{' '}
-                        <strong>Milestones</strong> track long-term goals.
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100">Tabs overview</p>
+                      <p className="mt-2">
+                        <strong className="text-zinc-900 dark:text-zinc-100">Mining</strong> holds NFT worker slots.{' '}
+                        <strong className="text-zinc-900 dark:text-zinc-100">Shop</strong> sells food, drinks, repair
+                        kits, and boosts. <strong className="text-zinc-900 dark:text-zinc-100">Rewards</strong> shows
+                        refine history toward Hub points.{' '}
+                        <strong className="text-zinc-900 dark:text-zinc-100">Milestones</strong> track long-term goals.
                       </p>
                     </div>
                     <div>
-                      <p className="font-semibold text-zinc-800 dark:text-zinc-300">Hub Points</p>
-                      <p className="mt-1">
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100">Hub Points</p>
+                      <p className="mt-2">
                         Refine from the Game Deck to credit{' '}
-                        <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                        <Link href="/rewards" className="font-semibold text-[#02abb8] hover:underline">
                           Rewards & Points
                         </Link>
                         , same bridge as Minecore.

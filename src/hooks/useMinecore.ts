@@ -24,6 +24,7 @@ import {
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import {
   MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS,
+  MINECORE_NFT_SLOT_UNLOCK_COST_KAS,
   MINECORE_STORAGE_PREFIX,
   MINECORE_KREX_PER_KAS,
   MINECORE_PLANT_REPAIR_KAS,
@@ -32,6 +33,7 @@ import {
   MINECORE_KREX_BOOST_SHOP_KAS,
   MINECORE_KAS_OVERCLOCK_SHOP_KAS,
 } from '@/lib/game/minecore/config';
+import type { MiningSlotType } from '@/lib/game/engine';
 import {
   MINECORE_EXTERNAL_PERSIST_EVENT,
   REDEEMABLE_BREAKDOWN_REFRESH_EVENT,
@@ -43,7 +45,6 @@ import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import type { KREXTier } from '@/lib/rewards/types';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
-import type { MiningSlotType } from '@/lib/game/engine';
 import { explainPlantSetupBlock, nextPlantSetupAfterInstallPart } from '@/lib/game/minecore/asset-usage';
 import { enforcePlantInventoryInvariants } from '@/lib/game/minecore/inventory-invariants';
 import type { MinecoreComputeContext } from '@/lib/game/minecore/compute-context';
@@ -519,17 +520,33 @@ export function useMinecore() {
   );
 
   const purchaseNftDeckSlot = useCallback(
-    async (slotType: MiningSlotType) => {
+    async (slotTypes: MiningSlotType | MiningSlotType[]) => {
+      const types = (Array.isArray(slotTypes) ? slotTypes : [slotTypes]).filter(Boolean);
+      if (types.length === 0) return false;
+      const listPrice = types.reduce((sum, t) => sum + MINECORE_NFT_SLOT_UNLOCK_COST_KAS[t], 0);
       const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS),
-        skuId: `minecore:nft-slot:add:${slotType}`,
+        amountKas: getKasPriceAfterDiscount(listPrice),
+        skuId: `minecore:nft-slot:add:${types.join('+')}`,
         purchaseType: 'slot',
       });
       if (!paid.ok) return false;
-      dispatch({ type: 'AddNftDeckSlot', at: Date.now(), slotType });
+      const at = Date.now();
+      for (const slotType of types) {
+        dispatch({ type: 'AddNftDeckSlot', at, slotType });
+      }
       return true;
     },
-    [dispatch, payKasBestEffort, getKasPriceAfterDiscount]
+    [dispatch, payKasBestEffort, getKasPriceAfterDiscount],
+  );
+
+  const slotPurchaseKasByType = useMemo(
+    () =>
+      ({
+        worker: getKasPriceAfterDiscount(MINECORE_NFT_SLOT_UNLOCK_COST_KAS.worker),
+        operator: getKasPriceAfterDiscount(MINECORE_NFT_SLOT_UNLOCK_COST_KAS.operator),
+        foreman: getKasPriceAfterDiscount(MINECORE_NFT_SLOT_UNLOCK_COST_KAS.foreman),
+      }) as Record<MiningSlotType, number>,
+    [getKasPriceAfterDiscount],
   );
 
   const installMachine = useCallback((slotIndex: number, id: PlantSlotState['setup']['machineId']) => {
@@ -1077,6 +1094,7 @@ export function useMinecore() {
       purchaseKrexBoostChargesWithKREX,
     },
     getKasPriceAfterDiscount,
+    slotPurchaseKasByType,
     nowTick,
   };
 }
