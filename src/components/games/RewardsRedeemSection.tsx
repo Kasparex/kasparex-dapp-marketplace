@@ -70,8 +70,8 @@ export function RewardsRedeemSection({
           </div>
           <div className="flex w-full flex-shrink-0 flex-col items-stretch gap-3 sm:w-auto sm:items-end sm:text-right">
             <div>
-              <div className="text-[10px] font-semibold text-amber-400">Available</div>
-              <div className="text-xl font-bold tabular-nums text-amber-400 dark:text-amber-300">
+              <div className="text-[10px] font-semibold text-[#02abb8]">Available</div>
+              <div className="text-xl font-bold tabular-nums text-[#02abb8] dark:text-[#5eead4]">
                 {diamondsBalance.toLocaleString()} D
               </div>
             </div>

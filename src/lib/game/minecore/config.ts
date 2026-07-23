@@ -12,7 +12,7 @@ import type {
 export const MINECORE_STORAGE_PREFIX = 'minecore-state';
 
 export const MINECORE_DEFAULT_PLANT_SLOTS = 4;
-export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 2;
+export const MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS = 10;
 export const MINECORE_DEFAULT_NEXT_SLOT_COST_KAS = 50;
 
 /** 24h window for diamonds/day and cycle scaling. */

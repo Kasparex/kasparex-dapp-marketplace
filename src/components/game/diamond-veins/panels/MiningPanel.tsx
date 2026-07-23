@@ -139,7 +139,7 @@ export function MiningPanel({
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Diamonds in bag
           </div>
-          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-amber-400 dark:text-amber-300">
+          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-[#02abb8] dark:text-[#5eead4]">
             <DiamondIcon className="h-5 w-5" />
             {Math.floor(diamonds).toLocaleString()}
           </p>

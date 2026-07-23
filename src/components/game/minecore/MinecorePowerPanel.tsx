@@ -112,7 +112,7 @@ export function MinecorePowerPanel(props: {
                     disabled={!hasInstalledBattery(p.setup, p.type)}
                     className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-bold text-sky-800 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-200 dark:hover:bg-sky-500/15"
                   >
-                    Recharge ({rechargeList.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS)
+                    Recharge ({props.getKasPriceAfterDiscount(rechargeList).toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS)
                   </button>
                 </div>
               ) : (

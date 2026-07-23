@@ -517,7 +517,7 @@ function DailyCapBar(props: {
     <Tooltip content={counterTip}>
       <span className="inline-flex cursor-help flex-wrap items-baseline justify-end gap-x-0 gap-y-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
         <DiamondIcon className="mr-0.5 inline-block h-4 w-4 shrink-0 translate-y-px text-sky-400" title="" />
-        <span className="text-amber-400 dark:text-amber-300">{displayMined.toLocaleString()}</span>
+        <span className="text-[#02abb8] dark:text-[#5eead4]">{displayMined.toLocaleString()}</span>
         <span className={`px-1 text-sm font-bold ${counterSepCls}`}>of</span>
         <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
         <span className={`pl-1.5 text-sm font-bold ${counterSepCls}`}>/ 24h</span>
@@ -559,7 +559,7 @@ function DailyCapBar(props: {
               className={`h-full w-full rounded-full transition-[width] duration-700 ${
                 props.forceZeroDisplay
                   ? 'bg-zinc-400 dark:bg-zinc-600'
-                  : 'bg-amber-400 dark:bg-amber-400'
+                  : 'bg-[#02abb8] dark:bg-[#02abb8]'
               }`}
             />
           </div>
@@ -1294,15 +1294,17 @@ export function PlantSlotCard(props: {
     if (workerFilled < needWorkers) return `${workerFilled}/${needWorkers} · ${summary || '-'}`;
     return summary || `${workerFilled}/${needWorkers}`;
   }, [workerSetupDisplay, workerFilled, needWorkers]);
-  const refillListKasRange = useMemo(() => {
+  const discountKas = props.getKasPriceAfterDiscount ?? ((x: number) => x);
+  const refillPayKasRange = useMemo(() => {
     if (!s.unlocked || installedBatteryIndices.length === 0) {
-      return { min: MINECORE_PLANT_RECHARGE_COST_KAS, max: MINECORE_PLANT_RECHARGE_COST_KAS };
+      const one = discountKas(MINECORE_PLANT_RECHARGE_COST_KAS);
+      return { min: one, max: one };
     }
     const prices = installedBatteryIndices.map((bi) =>
-      listKasForBatterySlotRecharge(props.minecoreState, s, bi, ctx),
+      discountKas(listKasForBatterySlotRecharge(props.minecoreState, s, bi, ctx)),
     );
     return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [s, props.minecoreState, ctx, installedBatteryIndices]);
+  }, [s, props.minecoreState, ctx, installedBatteryIndices, props.getKasPriceAfterDiscount]);
 
   function openBatteryRefillModal(prefSlot?: number) {
     if (installedBatteryIndices.length === 0) return;
@@ -1322,17 +1324,18 @@ export function PlantSlotCard(props: {
     setBatteryRefillModalOpen(false);
   }
 
+  const fmtKas = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 4 });
+
   let actionLabel: string;
   if (!s.unlocked) {
-    actionLabel = `Activate ${s.unlockCostKas.toLocaleString()} KAS`;
+    actionLabel = `Activate ${fmtKas(discountKas(s.unlockCostKas))} KAS`;
   } else if (s.status === 'SetupIncomplete') {
     actionLabel = 'Complete setup';
   } else if (s.status === 'NeedsRepair') {
-    actionLabel = `Repair - ${MINECORE_PLANT_REPAIR_KAS} KAS`;
+    actionLabel = `Repair - ${fmtKas(discountKas(MINECORE_PLANT_REPAIR_KAS))} KAS`;
   } else if (batteryDeadInRun || s.status === 'NeedsPower') {
-    const rk = refillListKasRange;
-    const refillHint =
-      rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
+    const rk = refillPayKasRange;
+    const refillHint = rk.min === rk.max ? `${fmtKas(rk.min)} KAS` : `${fmtKas(rk.min)}-${fmtKas(rk.max)} KAS`;
     actionLabel = `Refill battery: ${refillHint}`;
   } else if (
     s.status === 'ReadyToMine' &&
@@ -1340,9 +1343,8 @@ export function PlantSlotCard(props: {
     hasInstalledBattery(s.setup, s.type) &&
     s.setup.machineId
   ) {
-    const rk = refillListKasRange;
-    const refillHint =
-      rk.min === rk.max ? `${rk.min.toLocaleString()} KAS` : `${rk.min.toLocaleString()}–${rk.max.toLocaleString()} KAS`;
+    const rk = refillPayKasRange;
+    const refillHint = rk.min === rk.max ? `${fmtKas(rk.min)} KAS` : `${fmtKas(rk.min)}-${fmtKas(rk.max)} KAS`;
     actionLabel = `Refill battery: ${refillHint}`;
   } else if (s.status === 'InsufficientPower') {
     actionLabel = 'Improve power balance';
@@ -2236,7 +2238,7 @@ export function PlantSlotCard(props: {
                     <span
                       className={`font-mono text-sm font-bold tabular-nums ${rowLockedMuted ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-800 dark:text-zinc-100'}`}
                     >
-                      {p.costKas <= 0 ? '-' : `${p.costKas.toLocaleString()} KAS`}
+                      {p.costKas <= 0 ? '-' : `${discountKas(p.costKas).toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS`}
                     </span>
                   </div>
                   <div className="flex min-w-[3.5rem] flex-col items-end">

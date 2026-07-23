@@ -81,7 +81,7 @@ export const IDLE_ENERGY_DURATION_MS = {
 } as const;
 
 /** Paid NFT slot unlock list price (same pattern as Minecore). */
-export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = 2;
+export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = 10;
 
 /** Shop consumables that restore worker energy (% of energyMax). */
 export const DIAMOND_VEINS_CONSUMABLES = [
