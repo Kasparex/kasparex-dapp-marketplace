@@ -428,15 +428,35 @@ export function useDiamondMining() {
     [walletState.isConnected, walletState.provider, walletState.address, krexBalance, refreshKasBalance],
   );
 
+  const slotPurchaseKasByType = useMemo(
+    () =>
+      ({
+        worker: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.worker),
+        operator: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.operator),
+        foreman: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.foreman),
+      }) as Record<MiningSlotType, number>,
+    [getKasPriceAfterDiscount],
+  );
+
   const purchaseNftDeckSlot = useCallback(
-    async (slotType: MiningSlotType) => {
+    async (slotTypes: MiningSlotType | MiningSlotType[]) => {
+      const types = (Array.isArray(slotTypes) ? slotTypes : [slotTypes]).filter(Boolean);
+      if (types.length === 0) return false;
+      const listPrice = types.reduce((sum, t) => sum + DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS[t], 0);
       const paid = await payKasBestEffort({
-        amountKas: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS),
-        skuId: `diamond-veins:nft-slot:add:${slotType}`,
+        amountKas: getKasPriceAfterDiscount(listPrice),
+        skuId: `diamond-veins:nft-slot:add:${types.join('+')}`,
         purchaseType: 'slot',
       });
       if (!paid.ok) return false;
-      setTycon((s) => applyEvent(s, { type: 'AddNftDeckSlot', slotType, at: Date.now() }));
+      const at = Date.now();
+      setTycon((s) => {
+        let next = s;
+        for (const slotType of types) {
+          next = applyEvent(next, { type: 'AddNftDeckSlot', slotType, at });
+        }
+        return next;
+      });
       return true;
     },
     [payKasBestEffort, getKasPriceAfterDiscount],
@@ -696,7 +716,8 @@ export function useDiamondMining() {
     deployNFT,
     removeSlot,
     purchaseNftDeckSlot,
-    slotPurchaseKas: getKasPriceAfterDiscount(DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS),
+    slotPurchaseKasByType,
+    slotPurchaseKas: slotPurchaseKasByType.worker,
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,

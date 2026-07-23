@@ -61,13 +61,15 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       if (!s) return state;
       const energyMax = Math.max(
         1,
-        Math.floor(event.energyMax ?? IDLE_ENERGY_DURATION_MS[s.type]?.regular ?? 20 * 60_000),
+        Math.floor(event.energyMax ?? IDLE_ENERGY_DURATION_MS[s.type]?.regular ?? 30 * 60_000),
       );
+      /** Keep remaining energy; only Feed / Quick feed refill. Never grant a free session on insert. */
+      const energy = Math.min(Math.max(0, s.energy ?? 0), energyMax);
       next.slots[event.slotIndex] = {
         ...s,
         nftId: event.nftId,
         collection: event.collection,
-        energy: energyMax,
+        energy,
         energyMax,
       };
       if (s.type === 'foreman') {
@@ -84,8 +86,9 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         ...s,
         nftId: null,
         collection: defaultCollectionForRole(s.type),
-        energy: 0,
-        energyMax: 0,
+        /** Preserve energy / session max so reinsert does not refill. */
+        energy: Math.max(0, s.energy ?? 0),
+        energyMax: Math.max(0, s.energyMax ?? 0),
       };
       if (s.type === 'foreman') {
         next.automation.foremanActive = false;

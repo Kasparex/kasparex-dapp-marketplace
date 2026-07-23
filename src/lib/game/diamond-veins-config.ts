@@ -72,16 +72,27 @@ export const IDLE_TIER_DPS_MULT = {
 
 /**
  * Full-energy mining duration (ms) by role × tier.
- * Higher tiers work longer before needing food / drinks / repair kits.
+ * Base (regular): Worker 30m, Operator 1h, Foreman 3h. Higher tiers work longer.
  */
 export const IDLE_ENERGY_DURATION_MS = {
-  worker: { regular: 20 * 60_000, diamond: 35 * 60_000, rarest: 50 * 60_000 },
-  operator: { regular: 30 * 60_000, diamond: 50 * 60_000, rarest: 70 * 60_000 },
-  foreman: { regular: 40 * 60_000, diamond: 65 * 60_000, rarest: 90 * 60_000 },
+  worker: { regular: 30 * 60_000, diamond: 50 * 60_000, rarest: 75 * 60_000 },
+  operator: { regular: 60 * 60_000, diamond: 100 * 60_000, rarest: 140 * 60_000 },
+  foreman: { regular: 180 * 60_000, diamond: 300 * 60_000, rarest: 405 * 60_000 },
 } as const;
 
-/** Paid NFT slot unlock list price (same pattern as Minecore). */
-export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = 10;
+/** Paid NFT slot unlock list price by role (KAS before KREX fee discount). */
+export const DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS = {
+  worker: 10,
+  operator: 15,
+  foreman: 25,
+} as const;
+
+/** Human-readable base session length for slot purchase UI. */
+export const DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL = {
+  worker: '30m base',
+  operator: '1h base',
+  foreman: '3h base',
+} as const;
 
 /** Shop consumables that restore worker energy (% of energyMax). */
 export const DIAMOND_VEINS_CONSUMABLES = [

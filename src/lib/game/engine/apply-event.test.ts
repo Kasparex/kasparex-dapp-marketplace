@@ -41,6 +41,35 @@ assert.equal(s.activeBoosts.length, 1);
 assert.ok(s.slots.length >= 2);
 assert.equal(s.slots[0]!.nftId, 1);
 assert.equal(s.consumables['field-ration'], 2);
+/** Deploy must not auto-fill energy; only Feed / Quick feed restore. */
+assert.equal(s.slots[0]!.energy, 0);
+assert.equal(s.slots[0]!.energyMax, 60_000);
+
+s = applyEvent(s, {
+  type: 'FeedWorker',
+  slotIndex: 0,
+  itemId: 'field-ration',
+  energyRestore: 15_000,
+  at: Date.now(),
+});
+assert.equal(s.slots[0]!.energy, 15_000);
+assert.equal(s.consumables['field-ration'], 1);
+
+const energyBeforeRemove = s.slots[0]!.energy;
+s = applyEvent(s, { type: 'RemoveSlot', slotIndex: 0 });
+assert.equal(s.slots[0]!.nftId, null);
+assert.equal(s.slots[0]!.energy, energyBeforeRemove);
+assert.equal(s.slots[0]!.energyMax, 60_000);
+
+s = applyEvent(s, {
+  type: 'DeployNFT',
+  slotIndex: 0,
+  nftId: 2,
+  collection: 'KREXPRIME',
+  energyMax: 60_000,
+});
+assert.equal(s.slots[0]!.nftId, 2);
+assert.equal(s.slots[0]!.energy, energyBeforeRemove);
 
 s = applyEvent(s, {
   type: 'TickIdleMining',
@@ -51,6 +80,6 @@ s = applyEvent(s, {
 });
 assert.equal(s.diamonds, 1);
 assert.ok((s.diamondDust ?? 0) >= 0.4);
-assert.ok((s.slots[0]!.energy ?? 0) < 60_000);
+assert.ok((s.slots[0]!.energy ?? 0) < energyBeforeRemove);
 
 console.log('apply-event tests OK');

@@ -22,8 +22,6 @@ import {
 } from '@/components/games/icons/TabIcons';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
-import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
-import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
 import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
@@ -65,17 +63,6 @@ export function MiningDashboard({
   gameName,
 }: MiningDashboardProps) {
   const { state: walletState } = useKaspaWallet();
-  const redeemBreakdown = useRedeemablePointsBreakdown();
-  const redeemUnifiedMatches = useMemo(() => {
-    const w = walletState.address?.trim();
-    if (!w || !redeemBreakdown.address) return false;
-    try {
-      return normalizeKaspaAddress(w) === redeemBreakdown.address;
-    } catch {
-      const nw = w.startsWith('kaspa:') ? w : `kaspa:${w}`;
-      return nw.toLowerCase() === redeemBreakdown.address.toLowerCase();
-    }
-  }, [walletState.address, redeemBreakdown.address]);
 
   const {
     tycon,
@@ -86,7 +73,7 @@ export function MiningDashboard({
     deployNFT,
     removeSlot,
     purchaseNftDeckSlot,
-    slotPurchaseKas,
+    slotPurchaseKasByType,
     refineDiamonds,
     buyBoost,
     buyBoostWithKAS,
@@ -329,7 +316,7 @@ export function MiningDashboard({
               onDeploy={deployNFT}
               onRemove={removeSlot}
               onPurchaseExtraSlot={purchaseNftDeckSlot}
-              slotPurchaseKas={slotPurchaseKas}
+              slotPurchaseKasByType={slotPurchaseKasByType}
               miningAllowed={miningAllowed}
               consumables={consumables}
               onFeedWorker={feedWorker}
@@ -378,14 +365,7 @@ export function MiningDashboard({
           {tab === 'rewards' && (
             <RewardsPanel
               address={walletState.address ?? undefined}
-              diamondsBalance={diamonds}
-              refinementPointsTotal={refinementPointsTotal}
-              unifiedRedeemablePoints={redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : undefined}
-              hubLedgerNetPoints={redeemUnifiedMatches ? redeemBreakdown.ledgerNetRedeemable : undefined}
               localLedger={gridLedger}
-              onRefine={(amount) => {
-                void runRefine(amount);
-              }}
             />
           )}
           {tab === 'milestones' && <MilestonesPanel gameId="diamond-veins" progress={milestoneProgress} />}

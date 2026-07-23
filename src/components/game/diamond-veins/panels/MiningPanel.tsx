@@ -9,7 +9,7 @@ import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { nftCrewRoleLabel, MINECORE_NFT_CREW_ROLES_ORDER } from '@/lib/game/minecore/asset-usage';
-import { DIAMOND_VEINS_CONSUMABLES } from '@/lib/game/diamond-veins-config';
+import { DIAMOND_VEINS_CONSUMABLES, DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS, DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL } from '@/lib/game/diamond-veins-config';
 import * as Icons from 'lucide-react';
 import {
   KasparexNftSlotSelector,
@@ -19,6 +19,7 @@ import { useKasparexGlobalNftUsage } from '@/hooks/useKasparexGlobalNftUsage';
 import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { useKaspaWallet } from '@/lib/kaspa/context';
+import { KxMultiSelectDropdown, type KxMultiSelectOption } from '@/components/ui/KxMultiSelectDropdown';
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -83,7 +84,7 @@ export function MiningPanel({
   onDeploy,
   onRemove,
   onPurchaseExtraSlot,
-  slotPurchaseKas,
+  slotPurchaseKasByType,
   miningAllowed,
   consumables,
   onFeedWorker,
@@ -95,8 +96,8 @@ export function MiningPanel({
   slottedMetadata: Record<number, ParsedNFTMetadata>;
   onDeploy: (slotIndex: number, nftId: number, collection: string) => void;
   onRemove: (slotIndex: number) => void;
-  onPurchaseExtraSlot: (slotType: MiningSlotType) => void | Promise<boolean>;
-  slotPurchaseKas: number;
+  onPurchaseExtraSlot: (slotTypes: MiningSlotType[]) => void | Promise<boolean>;
+  slotPurchaseKasByType: Record<MiningSlotType, number>;
   miningAllowed?: boolean;
   consumables: TyconGameState['consumables'];
   onFeedWorker: (slotIndex: number, itemId: DiamondVeinsConsumableId) => boolean;
@@ -110,7 +111,7 @@ export function MiningPanel({
 
   const [selected, setSelected] = useState<number | null>(null);
   const [buyOpen, setBuyOpen] = useState(false);
-  const [buyType, setBuyType] = useState<MiningSlotType>('worker');
+  const [buyTypes, setBuyTypes] = useState<MiningSlotType[]>(['worker']);
   const [feedOpen, setFeedOpen] = useState<number | null>(null);
 
   useEffect(() => {
@@ -144,6 +145,23 @@ export function MiningPanel({
     void slotIndex;
     return null;
   };
+
+  const slotTypeOptions: KxMultiSelectOption[] = useMemo(
+    () =>
+      MINECORE_NFT_CREW_ROLES_ORDER.map((t) => ({
+        value: t,
+        label: nftCrewRoleLabel(t),
+        badge: `${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[t]} · ${DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS[t]} KAS`,
+      })),
+    [],
+  );
+
+  const buyTotalKas = useMemo(
+    () => buyTypes.reduce((sum, t) => sum + (slotPurchaseKasByType[t] ?? 0), 0),
+    [buyTypes, slotPurchaseKasByType],
+  );
+
+  const buyFromKas = slotPurchaseKasByType.worker;
 
   return (
       <div className="space-y-6">
@@ -204,11 +222,15 @@ export function MiningPanel({
           <button
             type="button"
             disabled={!miningAllowed}
-            onClick={() => miningAllowed && setBuyOpen(true)}
+            onClick={() => {
+              if (!miningAllowed) return;
+              setBuyTypes(['worker']);
+              setBuyOpen(true);
+            }}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-800 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-emerald-200"
           >
             <Icons.Plus className="h-4 w-4" />
-            Buy slot · {slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
+            Buy slots · from {buyFromKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
           </button>
         </div>
 
@@ -376,7 +398,7 @@ export function MiningPanel({
                       type="button"
                       disabled={slot.nftId == null}
                       onClick={() => setFeedOpen(idx)}
-                      className="k-cta-games shrink-0 !h-auto rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-40"
+                      className="k-cta-games h-9 shrink-0 rounded-xl px-4 text-xs font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {status === 'exhausted' ? 'Restore' : 'Feed'}
                     </button>
@@ -389,7 +411,7 @@ export function MiningPanel({
                       <button
                         type="button"
                         onClick={() => onFeedWorker(idx, feedId)}
-                        className="shrink-0 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-200"
+                        className="inline-flex h-9 shrink-0 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 text-xs font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200"
                       >
                         Quick feed
                       </button>
@@ -426,27 +448,38 @@ export function MiningPanel({
             <label className="mb-2 block text-[10px] font-bold uppercase tracking-wide text-zinc-500">
               Slot type
             </label>
-            <select
-              value={buyType}
-              onChange={(e) => setBuyType(e.target.value as MiningSlotType)}
-              className="mb-4 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-950"
-            >
-              {MINECORE_NFT_CREW_ROLES_ORDER.map((t) => (
-                <option key={t} value={t}>
-                  {nftCrewRoleLabel(t)}
-                </option>
-              ))}
-            </select>
+            <div className="mb-2 w-full">
+              <KxMultiSelectDropdown
+                values={buyTypes}
+                onChange={(next) =>
+                  setBuyTypes(next.filter((v): v is MiningSlotType => MINECORE_NFT_CREW_ROLES_ORDER.includes(v as MiningSlotType)))
+                }
+                options={slotTypeOptions}
+                ariaLabel="Slot types to purchase"
+                placeholder="Select slot types…"
+                triggerClassName="k-field-trigger h-11 w-full min-w-0"
+                menuClassName="w-full min-w-[280px]"
+              />
+            </div>
+            <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+              Select one or more roles. Worker {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.worker} (
+              {DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.worker} KAS), Operator{' '}
+              {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.operator} ({DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.operator} KAS),
+              Foreman {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL.foreman} ({DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS.foreman}{' '}
+              KAS). KREX tier discount applies at checkout.
+            </p>
             <button
               type="button"
-              disabled={!miningAllowed}
+              disabled={!miningAllowed || buyTypes.length === 0}
               onClick={async () => {
-                const ok = await onPurchaseExtraSlot(buyType);
+                const ok = await onPurchaseExtraSlot(buyTypes);
                 if (ok) setBuyOpen(false);
               }}
               className="h-11 w-full rounded-xl bg-emerald-600 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              Pay {slotPurchaseKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS
+              {buyTypes.length === 0
+                ? 'Select at least one slot type'
+                : `Pay ${buyTotalKas.toLocaleString(undefined, { maximumFractionDigits: 4 })} KAS · ${buyTypes.length} slot${buyTypes.length === 1 ? '' : 's'}`}
             </button>
           </div>
         </div>
