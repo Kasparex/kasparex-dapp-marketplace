@@ -36,7 +36,6 @@ import {
   DIAMOND_VEINS_STORAGE_PREFIX,
   DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT,
   diamondVeinsStorageKey,
-  broadcastDiamondVeinsExternalPersist,
 } from '@/lib/game/diamond-veins-hub';
 import { payKaspaL1, verifyKaspaL1Payment, recordL1Reward } from '@/lib/games/sdk';
 import { appendHubActivityEarn } from '@/lib/rewards/appendHubActivityEarn';
@@ -79,7 +78,10 @@ function savePersistedTycon(address: string, state: TyconGameState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(walletStorageKey(address), JSON.stringify(state));
-    broadcastDiamondVeinsExternalPersist();
+    // Refresh hub points UI only. Do not broadcast DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT here:
+    // this hook also listens for that event to reload from disk (external Hub writes), and
+    // broadcasting on every autosave would recurse into Maximum update depth.
+    window.dispatchEvent(new Event('kasparex-redeemable-breakdown-refresh'));
   } catch {
     // ignore
   }
@@ -420,7 +422,6 @@ export function useDiamondMining() {
 
       setTycon(next);
       setLastRefineClaim({ points: refinementPoints, amount: refinedAmount });
-      if (walletAddr) savePersistedTycon(walletAddr, next);
       return { points: refinementPoints, amount: refinedAmount };
     },
     [walletAddr],
@@ -606,7 +607,6 @@ export function useDiamondMining() {
 
   const redeemPoints = useCallback((points: number) => {
     setTycon((s) => applyEvent(s, { type: 'RedeemPoints', points, at: Date.now() }));
-    broadcastDiamondVeinsExternalPersist();
   }, []);
 
   return {

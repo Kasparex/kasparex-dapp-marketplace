@@ -144,14 +144,12 @@ export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel 
         <div className="relative min-h-[220px] w-full border-t border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 lg:min-h-full lg:w-1/2 lg:border-l lg:border-t-0">
           <Tooltip
             content={
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <p className="font-bold text-zinc-900 dark:text-zinc-50">{game.name}</p>
                 {game.description?.trim() ? (
-                  <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                    {game.description.trim()}
-                  </p>
+                  <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-300">{game.description.trim()}</p>
                 ) : (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">No intro description yet.</p>
+                  <p className="text-xs leading-snug text-zinc-500 dark:text-zinc-400">No intro description yet.</p>
                 )}
               </div>
             }
