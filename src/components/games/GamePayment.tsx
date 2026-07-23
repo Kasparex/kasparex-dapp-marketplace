@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Game } from '@/lib/games/games';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { isValidKaspaAddress } from '@/lib/kaspa/sdk';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { getEntrySku, type UnifiedGame } from '@/lib/games/registry';
+import { useKREXBalance } from '@/hooks/useKREXBalance';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 
 interface GamePaymentProps {
   game: Game;
@@ -13,6 +16,7 @@ interface GamePaymentProps {
 
 export function GamePayment({ game }: GamePaymentProps) {
   const { state, connect } = useKaspaWallet();
+  const { tier: krexTier } = useKREXBalance();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -21,7 +25,12 @@ export function GamePayment({ game }: GamePaymentProps) {
 
   const entrySku = getEntrySku(game as UnifiedGame);
   const entryCurrency = entrySku?.currency ?? 'KAS';
-  const entryAmount = typeof entrySku?.amount === 'number' ? entrySku.amount : game.entryCostKAS;
+  const listAmount = typeof entrySku?.amount === 'number' ? entrySku.amount : game.entryCostKAS;
+  const discountPct = entryCurrency === 'KAS' ? krexTierDiscountPercent(krexTier) : 0;
+  const entryAmount = useMemo(
+    () => (entryCurrency === 'KAS' ? applyKrexFeeDiscount(listAmount, krexTier) : listAmount),
+    [entryCurrency, listAmount, krexTier],
+  );
   const kasTreasuryAddress =
     entrySku?.currency === 'KAS'
       ? (entrySku.kasTreasuryAddress || process.env.NEXT_PUBLIC_GAME_TREASURY_ADDRESS || '')
@@ -178,11 +187,16 @@ export function GamePayment({ game }: GamePaymentProps) {
         <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="kx-body">Entry Cost:</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                {entryAmount}
-              </span>
-              <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{entryCurrency}</span>
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{entryAmount}</span>
+                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{entryCurrency}</span>
+              </div>
+              {discountPct > 0 && listAmount !== entryAmount ? (
+                <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                  {krexTier}: -{discountPct}% off {listAmount} {entryCurrency}
+                </span>
+              ) : null}
             </div>
           </div>
           {game.rewardConfig && (

@@ -30,7 +30,7 @@ import { MinecoreBulkMiningButton } from '@/components/game/minecore/MinecoreBul
 import { MINECORE_DEFAULT_SLOT_UNLOCK_COST_KAS, MINECORE_GRID_PER_REFINEMENT_POINT, MINECORE_REFINE_POINTS_PER_DIAMOND, minecoreKrexFromDiscountedKas } from '@/lib/game/minecore/config';
 import { CALC_INGREDIENT_KAS, CALC_INGREDIENT_GRID } from '@/lib/game/minecore/calculator';
 import type { MinecoreIngredient } from '@/lib/game/minecore';
-import { KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
 import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel';
 import { GameMetadataPanel } from '@/components/games/panels/GameMetadataPanel';
 import { IconOverview, IconShop, IconWorkers, IconRewards, IconBoosters, IconPower, IconComments, IconMilestones } from '@/components/games/icons/TabIcons';
@@ -110,7 +110,7 @@ export function MinecoreDashboard(_props: {
   const redeemPtsUi = redeemUnifiedMatches ? redeemBreakdown.totalRedeemable : Math.floor(state.refinementPointsTotal);
   const { balanceInKas, isLoading: kasBalanceHookLoading } = useKaspaBalance();
   const { l1Balance: krexL1Balance, tier: krexTier } = useKREXBalance();
-  const krexDiscountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as keyof typeof KREX_TIER_SHOP_DISCOUNT_PCT] ?? 0;
+  const krexDiscountPct = krexTierDiscountPercent(krexTier);
   const [tab, setTab] = useState<TabId>('overview');
   const [krexWizardOpen, setKrexWizardOpen] = useState(false);
   // Using a simplified mock/hook call for GRID token

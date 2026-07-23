@@ -1,10 +1,10 @@
 /**
  * Diamond Veins of Kaspaland – central game config
- * Garage address, NFT diamond/rarest IDs, KREX tier bonuses, revenue pool.
+ * Shop treasury address, NFT diamond/rarest IDs, KREX fee discounts, revenue pool.
  */
 
 /**
- * L1 recipient for Diamond Veins payments (Garage / boosts).
+ * L1 recipient for Diamond Veins payments (Shop / boosts).
  * Override via `NEXT_PUBLIC_DIAMOND_VEINS_TREASURY_ADDRESS`.
  */
 export const DIAMOND_VEINS_GARAGE_ADDRESS =
@@ -56,18 +56,18 @@ export const OPERATOR_TIER_MULTIPLIERS = {
   rarest: 3,
 } as const;
 
-/** Base Diamonds/sec by role before tier + boosts (idle NFT mining). */
+/** Base Diamonds/sec by role before tier + boosts (idle NFT mining). Tuned slow for progression. */
 export const IDLE_ROLE_BASE_DPS = {
-  worker: 0.08,
-  operator: 0.14,
-  foreman: 0.2,
+  worker: 0.008,
+  operator: 0.014,
+  foreman: 0.02,
 } as const;
 
 /** Tier multipliers applied to idle role base DPS. */
 export const IDLE_TIER_DPS_MULT = {
   regular: 1,
-  diamond: 1.4,
-  rarest: 1.85,
+  diamond: 1.25,
+  rarest: 1.55,
 } as const;
 
 /**
@@ -114,25 +114,28 @@ export const DIAMOND_VEINS_CONSUMABLES = [
 /** Points per refined diamond (matches Minecore Hub redeem bridge). */
 export const DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND = 1;
 
-/** KREX tier yield bonus (on top of NFT yield). Tier0 = 0, Tier1 = 5%, etc. */
+/** @deprecated Yield no longer scales with KREX tier; kept empty for legacy imports. */
 export const KREX_TIER_YIELD_BONUS_PCT: Record<string, number> = {
+  Tier0: 0,
+  Tier1: 0,
+  Tier2: 0,
+  Tier3: 0,
+  Tier4: 0,
+};
+
+/**
+ * KREX tier shop / fee discount (percent off total KAS price).
+ * Matches Hub / vBlog `KREX_TIERS[].feeDiscountPercent` (Tier4 = 80%).
+ */
+export const KREX_TIER_SHOP_DISCOUNT_PCT: Record<string, number> = {
   Tier0: 0,
   Tier1: 5,
   Tier2: 10,
-  Tier3: 15,
-  Tier4: 20,
+  Tier3: 50,
+  Tier4: 80,
 };
 
-/** KREX tier shop discount (percent off). */
-export const KREX_TIER_SHOP_DISCOUNT_PCT: Record<string, number> = {
-  Tier0: 0,
-  Tier1: 0,
-  Tier2: 5,
-  Tier3: 7,
-  Tier4: 10,
-};
-
-/** Share of Garage revenue that goes to Diamond Veins rewards pool (0–1). */
+/** Share of Shop revenue that goes to Diamond Veins rewards pool (0–1). */
 export const GARAGE_REVENUE_TO_POOL_PCT = 0.8;
 
 /** Minimum diamonds to refine. */

@@ -56,7 +56,6 @@ export function MiningPanel({
   consumables,
   onFeedWorker,
   krexTier = 'Tier0',
-  krexYieldBonusPct = 0,
 }: {
   tycon: TyconGameState;
   stats: YieldStats;
@@ -70,7 +69,6 @@ export function MiningPanel({
   consumables: TyconGameState['consumables'];
   onFeedWorker: (slotIndex: number, itemId: DiamondVeinsConsumableId) => boolean;
   krexTier?: string;
-  krexYieldBonusPct?: number;
 }) {
   const { state: wallet } = useKaspaWallet();
   const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
@@ -141,7 +139,7 @@ export function MiningPanel({
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Diamonds in bag
           </div>
-          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-sky-600 dark:text-sky-400">
+          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-amber-400 dark:text-amber-300">
             <DiamondIcon className="h-5 w-5" />
             {Math.floor(diamonds).toLocaleString()}
           </p>
@@ -157,8 +155,7 @@ export function MiningPanel({
             {activeWorkers} / {tycon.slots.length}
           </p>
           <p className="mt-1 text-xs text-zinc-500">
-            Higher NFT tiers mine faster · KREX {krexTier}
-            {krexYieldBonusPct > 0 ? ` (+${krexYieldBonusPct}% yield)` : ''}
+            Higher NFT tiers mine faster · KREX {krexTier} fee discount on Shop prices
           </p>
         </div>
       </div>

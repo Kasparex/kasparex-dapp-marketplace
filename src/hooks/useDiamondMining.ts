@@ -7,7 +7,6 @@ import { useKREXBalance } from '@/hooks/useKREXBalance';
 import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import {
-  KREX_TIER_SHOP_DISCOUNT_PCT,
   DIAMOND_VEINS_GARAGE_ADDRESS,
   REFINE_MIN_DIAMONDS,
   GARAGE_REVENUE_TO_POOL_PCT,
@@ -16,6 +15,8 @@ import {
   DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS,
   DIAMOND_VEINS_CONSUMABLES,
 } from '@/lib/game/diamond-veins-config';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import type { KREXTier } from '@/lib/rewards/types';
 import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
@@ -361,11 +362,7 @@ export function useDiamondMining() {
   );
 
   const getKasPriceAfterDiscount = useCallback(
-    (priceKas: number) => {
-      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
-      const discounted = priceKas * (1 - discountPct / 100);
-      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
-    },
+    (priceKas: number) => applyKrexFeeDiscount(priceKas, krexTier as KREXTier),
     [krexTier],
   );
 

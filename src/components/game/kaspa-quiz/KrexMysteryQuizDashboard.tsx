@@ -93,7 +93,7 @@ function buildLevels(): Level[] {
       theme: 'Engineering, hacks, systems thinking',
       questions: [
         { id: 'L3Q1', prompt: 'Vector is best described as…', options: ['A master hacker', 'A cartoon mascot', 'A miner foreman', 'A protocol lawyer'], answerIndex: 0 },
-        { id: 'L3Q2', prompt: 'In Diamond Veins, boosts are bought in…', options: ['Vector’s Garage', 'Kaspa Blocks Shop', 'Cipher Vault lobby', 'Krex’s Court'], answerIndex: 0 },
+        { id: 'L3Q2', prompt: 'In Diamond Veins, boosts are bought in…', options: ['The Shop', 'Kaspa Blocks Shop', 'Cipher Vault lobby', 'Krex’s Court'], answerIndex: 0 },
         { id: 'L3Q3', prompt: 'A sustainable reward system avoids…', options: ['Idempotency', 'Hard caps', 'Infinite free minting', 'Verification'], answerIndex: 2 },
         { id: 'L3Q4', prompt: 'A “multiplier” is usually applied to…', options: ['Score / rewards', 'Screen brightness', 'Network latency', 'Font size'], answerIndex: 0 },
         { id: 'L3Q5', prompt: 'Node-first means reads should…', options: ['Always hit origin', 'Prefer edge/mirror nodes', 'Require login', 'Be write-heavy'], answerIndex: 1 },
@@ -429,7 +429,6 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-        <GamesSecurityPanel />
 
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -445,6 +444,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
           </div>
         </GamePurchasesPanel>
         <GameMetadataPanel categories={categories} tags={tags} />
+        <GamesSecurityPanel />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>

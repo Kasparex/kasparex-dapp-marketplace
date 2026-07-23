@@ -20,23 +20,19 @@ export type MinecoreRedeemExtras = {
 
 export function RewardsRedeemSection({
   diamondsBalance,
-  refinementPointsBalance,
-  unifiedRedeemablePoints,
-  hubLedgerNetPoints,
-  balanceSplitFootnote,
   onRefine,
   diamondRefinementHeaderTrailing,
   diamondRefinementFooter,
   children,
 }: {
   diamondsBalance: number;
-  /** Points earned in this game (shown in Hub Rewards). */
-  refinementPointsBalance: number;
-  /** When set, Balance shows full hub total. */
+  /** @deprecated Kept for call-site compatibility; Hub totals live on /rewards. */
+  refinementPointsBalance?: number;
+  /** @deprecated Kept for call-site compatibility. */
   unifiedRedeemablePoints?: number;
-  /** Optional Rewards-wallet credits shown beside game balance. */
+  /** @deprecated Kept for call-site compatibility. */
   hubLedgerNetPoints?: number;
-  /** With `unifiedRedeemablePoints`, shows hub vs game split. */
+  /** @deprecated Kept for call-site compatibility. */
   balanceSplitFootnote?: boolean;
   onRefine?: (amount: number) => void;
   /** @deprecated In-game GRID/KREX swap removed; spend on /rewards. */
@@ -56,7 +52,6 @@ export function RewardsRedeemSection({
     typeof refineAmount === 'number' ? refineAmount * MINECORE_REFINE_POINTS_PER_DIAMOND : 0;
 
   const walletConnected = kaspaWalletState.isConnected && Boolean(kaspaWalletState.address);
-  const pointsShown = unifiedRedeemablePoints ?? refinementPointsBalance;
 
   return (
     <div className="space-y-4">
@@ -65,8 +60,8 @@ export function RewardsRedeemSection({
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Diamond Refinement</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Each diamond adds {MINECORE_REFINE_POINTS_PER_DIAMOND} redeem point before crew bonuses apply. Spend redeem
-              points on the{' '}
+              Each diamond adds {MINECORE_REFINE_POINTS_PER_DIAMOND} Hub redeem point before crew bonuses apply. Spend on
+              the{' '}
               <a href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
                 Rewards
               </a>{' '}
@@ -75,31 +70,10 @@ export function RewardsRedeemSection({
           </div>
           <div className="flex w-full flex-shrink-0 flex-col items-stretch gap-3 sm:w-auto sm:items-end sm:text-right">
             <div>
-              <div className="text-[10px] font-semibold text-amber-500">Available</div>
-              <div className="text-xl font-bold tabular-nums text-amber-500">{diamondsBalance.toLocaleString()} D</div>
-            </div>
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
-                Redeem points
+              <div className="text-[10px] font-semibold text-amber-400">Available</div>
+              <div className="text-xl font-bold tabular-nums text-amber-400 dark:text-amber-300">
+                {diamondsBalance.toLocaleString()} D
               </div>
-              <div className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400">
-                {pointsShown.toLocaleString()}
-              </div>
-              {unifiedRedeemablePoints != null && balanceSplitFootnote ? (
-                <p className="mt-1 max-w-[240px] text-right text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 sm:ml-auto">
-                  Hub total · game balance{' '}
-                  <span className="font-semibold tabular-nums text-zinc-600 dark:text-zinc-300">
-                    {refinementPointsBalance.toLocaleString()}
-                  </span>
-                  {hubLedgerNetPoints != null && hubLedgerNetPoints !== 0 ? (
-                    <>
-                      {' '}
-                      · Rewards wallet{' '}
-                      <span className="font-semibold tabular-nums">{hubLedgerNetPoints.toLocaleString()}</span>
-                    </>
-                  ) : null}
-                </p>
-              ) : null}
             </div>
             {diamondRefinementHeaderTrailing ? (
               <div className="flex w-full justify-end">{diamondRefinementHeaderTrailing}</div>
@@ -120,7 +94,7 @@ export function RewardsRedeemSection({
                   )
                 }
                 placeholder="0"
-                className={INPUT}
+                className={`${INPUT} text-left`}
               />
               <button
                 type="button"

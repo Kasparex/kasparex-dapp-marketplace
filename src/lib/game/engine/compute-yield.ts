@@ -3,7 +3,6 @@ import {
   IDLE_ENERGY_DURATION_MS,
   IDLE_ROLE_BASE_DPS,
   IDLE_TIER_DPS_MULT,
-  KREX_TIER_YIELD_BONUS_PCT,
 } from '@/lib/game/diamond-veins-config';
 import type { MiningSlot, MiningSlotType, SlotYieldInfo, TyconGameState, YieldStats } from './types';
 import type { NFTTier } from '@/lib/game/diamond-bonuses';
@@ -29,7 +28,7 @@ export function resolveSlotEnergyMax(
 export function computeSlotYieldPerSecond(
   slot: MiningSlot,
   meta: ParsedNFTMetadata | null | undefined,
-  krexTier: string,
+  _krexTier: string,
   globalBoostMult: number,
 ): number {
   if (slot.nftId == null || !slot.collection) return 0;
@@ -46,8 +45,6 @@ export function computeSlotYieldPerSecond(
     if (bonus?.type === 'speed') dps *= 1 + bonus.value * 0.25;
   });
 
-  const krexBonusPct = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
-  dps *= 1 + krexBonusPct / 100;
   dps *= globalBoostMult;
   return dps;
 }

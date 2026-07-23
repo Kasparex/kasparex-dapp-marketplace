@@ -78,7 +78,6 @@ const SCOPE_COPY: Record<HubBenefitsScope, ScopeCopy> = {
     earnBase: HUB_EARN_POINTS.gamesPromoList,
     compactFeeNoun: 'Games fees',
     earnLineShort: true,
-    extraBullets: ['Deck balances scale with your KREX tier'],
   },
   gamesListing: {
     panelTitle: 'Benefits',

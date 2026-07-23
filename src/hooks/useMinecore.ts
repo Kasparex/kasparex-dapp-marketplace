@@ -38,7 +38,9 @@ import {
 } from '@/lib/game/minecore/deduct-refinement-hub';
 import { payKaspaL1, recordL1Reward, verifyKaspaL1Payment } from '@/lib/games/sdk';
 import { useKREXBalance } from '@/hooks/useKREXBalance';
-import { KRC20_TRANSFER_TYPE, KREX_DECIMALS, KREX_TIER_SHOP_DISCOUNT_PCT } from '@/lib/game/diamond-veins-config';
+import { KRC20_TRANSFER_TYPE, KREX_DECIMALS } from '@/lib/game/diamond-veins-config';
+import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
+import type { KREXTier } from '@/lib/rewards/types';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import type { MiningSlotType } from '@/lib/game/engine';
@@ -385,11 +387,7 @@ export function useMinecore() {
   );
 
   const getKasPriceAfterDiscount = useCallback(
-    (unitPriceKas: number) => {
-      const discountPct = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier as any] ?? 0;
-      const discounted = unitPriceKas * (1 - discountPct / 100);
-      return Math.max(0, Math.round(discounted * 10_000) / 10_000);
-    },
+    (unitPriceKas: number) => applyKrexFeeDiscount(unitPriceKas, krexTier as KREXTier),
     [krexTier]
   );
 

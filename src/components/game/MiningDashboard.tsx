@@ -10,11 +10,9 @@ import { OverviewPanel } from '@/components/game/diamond-veins/panels/OverviewPa
 import { MiningPanel } from '@/components/game/diamond-veins/panels/MiningPanel';
 import { UpgradesPanel } from '@/components/game/diamond-veins/panels/UpgradesPanel';
 import { RewardsPanel } from '@/components/game/diamond-veins/panels/RewardsPanel';
-import type { BonusType } from '@/lib/game/diamond-bonuses';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
-import { GamesNextStepsPanel } from '@/components/games/panels/GamesNextStepsPanel';
 import {
   IconComments,
   IconMilestones,
@@ -28,7 +26,8 @@ import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdo
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
-import { KREX_TIER_SHOP_DISCOUNT_PCT, KREX_TIER_YIELD_BONUS_PCT } from '@/lib/game/diamond-veins-config';
+import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
+import type { KREXTier } from '@/lib/rewards/types';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -131,15 +130,6 @@ export function MiningDashboard({
     }
   };
 
-  const garageItem = (item: {
-    id: string;
-    name: string;
-    price: number;
-    priceKAS: number;
-    type: BonusType;
-    mult: number;
-  }) => ({ ...item });
-
   const categories = (game?.categories ?? []) as string[];
   const tags = (game?.tags ?? []) as string[];
 
@@ -165,9 +155,7 @@ export function MiningDashboard({
   );
   const { level: playerLevel } = useGameMilestones('diamond-veins', milestoneProgress);
 
-  const krexYieldBonus = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
-  const krexShopDiscount = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
-  const activeWorkers = slots.filter((s) => s.nftId != null && (s.energy ?? 0) > 0).length;
+  const krexShopDiscount = krexTierDiscountPercent(krexTier as KREXTier);
 
   const deckResources = useMemo(
     () => [
@@ -175,7 +163,7 @@ export function MiningDashboard({
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="text-lg font-black tabular-nums tracking-tight text-amber-500 sm:text-xl">
+          <span className="text-lg font-black tabular-nums tracking-tight text-amber-400 dark:text-amber-300 sm:text-xl">
             {diamonds < 100 ? diamonds.toFixed(2) : Math.floor(diamonds).toLocaleString()}
           </span>
         ),
@@ -186,14 +174,13 @@ export function MiningDashboard({
             <span className="font-bold text-zinc-500 dark:text-zinc-400">
               {' '}
               · KREX {krexTier}
-              {krexYieldBonus > 0 ? ` +${krexYieldBonus}%` : ''}
-              {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% shop` : ''}
+              {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% off` : ''}
             </span>
           </>
         ),
         description: 'Mined in-game · refine into Hub points',
         tooltip:
-          'Diamonds mined by NFT workers. Use Refine to Hub below to credit /rewards. Subtext is live D/s and your KREX tier.',
+          'Diamonds mined by NFT workers. Use Refine to Hub below to credit /rewards. Subtext is live D/s and your KREX fee discount.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining'),
@@ -214,7 +201,6 @@ export function MiningDashboard({
       diamonds,
       stats.yieldPerSecond,
       krexTier,
-      krexYieldBonus,
       krexShopDiscount,
       refineMinDiamonds,
       refineAmount,
@@ -254,13 +240,6 @@ export function MiningDashboard({
           }}
           onOpenOverview={openOverview}
           deckFooter={<span>Refine Diamonds into Hub points on /rewards</span>}
-          belowDeck={
-            <GamesNextStepsPanel
-              connected={Boolean(walletState.isConnected || miningAllowed)}
-              yieldPerSecond={stats.yieldPerSecond}
-              activeWorkers={activeWorkers}
-            />
-          }
         >
           <div className="flex w-full min-w-0 flex-col gap-6">
           {activeBoosts.length > 0 && (
@@ -355,7 +334,6 @@ export function MiningDashboard({
               consumables={consumables}
               onFeedWorker={feedWorker}
               krexTier={krexTier}
-              krexYieldBonusPct={krexYieldBonus}
             />
           )}
           {tab === 'upgrades' && (
@@ -370,20 +348,18 @@ export function MiningDashboard({
               revenuePoolPct={revenuePoolPct}
               consumables={consumables}
               onBuyKrex={async (item) => {
-                const g = garageItem(item);
                 try {
-                  await buyBoost(g.id, g.name, g.price, g.type, g.mult);
-                  setPurchaseSuccess(g.name);
+                  await buyBoost(item.id, item.name, item.price, item.type, item.mult);
+                  setPurchaseSuccess(item.name);
                   setTimeout(() => setPurchaseSuccess(null), 5000);
                 } catch {
                   /* */
                 }
               }}
               onBuyKas={async (item) => {
-                const g = garageItem(item);
                 try {
-                  await buyBoostWithKAS(g.id, g.name, g.priceKAS, g.type, g.mult);
-                  setPurchaseSuccess(g.name);
+                  await buyBoostWithKAS(item.id, item.name, item.priceKAS, item.type, item.mult);
+                  setPurchaseSuccess(item.name);
                   setTimeout(() => setPurchaseSuccess(null), 5000);
                 } catch {
                   /* */

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 
 const CTRL =
-  'h-8 rounded-lg border border-zinc-200 bg-white text-xs font-semibold dark:border-zinc-600 dark:bg-zinc-950';
+  'box-border h-8 rounded-lg border border-zinc-200 bg-white text-xs font-semibold leading-none dark:border-zinc-600 dark:bg-zinc-950';
 
 /** Compact amount + Max + Refine controls for Game Deck (does not auto-fill live balance). */
 export function GameDeckRefineControls({
@@ -46,12 +46,12 @@ export function GameDeckRefineControls({
           if (!Number.isFinite(parsed)) return;
           onAmountChange(Math.max(0, Math.floor(parsed)));
         }}
-        className={`${CTRL} w-14 px-1.5 text-right tabular-nums font-medium`}
+        className={`${CTRL} w-14 px-2 text-left tabular-nums font-medium`}
         aria-label="Refine amount"
       />
       <button
         type="button"
-        className={`${CTRL} px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800`}
+        className={`${CTRL} inline-flex items-center px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800`}
         onClick={() => onAmountChange(Math.max(0, Math.floor(maxAmount)))}
       >
         Max
@@ -62,7 +62,7 @@ export function GameDeckRefineControls({
         onClick={() => {
           if (typeof amount === 'number') onRefine(amount);
         }}
-        className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="box-border inline-flex h-8 items-center rounded-lg bg-emerald-600 px-3 text-xs font-bold leading-none text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {refining ? '…' : 'Refine'}
       </button>

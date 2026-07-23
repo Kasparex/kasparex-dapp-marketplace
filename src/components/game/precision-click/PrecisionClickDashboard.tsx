@@ -311,7 +311,6 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-        <GamesSecurityPanel />
 
         <GamePurchasesPanel>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -327,6 +326,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
           </div>
         </GamePurchasesPanel>
         <GameMetadataPanel categories={categories} tags={tags} />
+        <GamesSecurityPanel />
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/60">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Entry</h3>

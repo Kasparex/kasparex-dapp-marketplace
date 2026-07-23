@@ -609,7 +609,6 @@ export function CipherVaultsDashboard({
       sidebar={
         <div className="flex flex-col gap-4">
         <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-        <GamesSecurityPanel />
 
         <GamePurchasesPanel>
           <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-sm text-zinc-600 dark:text-zinc-400">
@@ -619,6 +618,7 @@ export function CipherVaultsDashboard({
         </GamePurchasesPanel>
 
         <GameMetadataPanel categories={categories} tags={tags} />
+        <GamesSecurityPanel />
 
         <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
           <button

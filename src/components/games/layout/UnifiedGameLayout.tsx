@@ -29,7 +29,6 @@ interface UnifiedGameLayoutProps {
   deckFooter?: ReactNode;
   deckFeaturedTooltip?: string;
   showDeckInfoButton?: boolean;
-  belowDeck?: ReactNode;
   /** Milestone player level shown in the game header badge row. */
   playerLevel?: number;
 }
@@ -41,7 +40,6 @@ export function UnifiedGameLayout({
   resources,
   game,
   children,
-  belowDeck,
   deckFooter,
   playerLevel,
 }: UnifiedGameLayoutProps) {
@@ -65,9 +63,8 @@ export function UnifiedGameLayout({
   const sidebar = (
     <div className="flex flex-col gap-4">
       <HubBenefitsPanel variant="panel" scope="games" className="w-full" />
-      {belowDeck}
-      <GamesSecurityPanel />
       <GameMetadataPanel categories={game.categories || []} tags={game.tags || []} />
+      <GamesSecurityPanel />
       <GamesPlayAdRail />
     </div>
   );
