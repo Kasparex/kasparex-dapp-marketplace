@@ -10,12 +10,18 @@ import { buildHubOpenGraphMetadata } from "@/lib/metadata/hubSocialPreview";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = buildHubOpenGraphMetadata({
-  title: "Kasparex dApps - Kaspa dApp Marketplace",
-  description:
-    "Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.",
-  path: "/",
-});
+export const metadata: Metadata = {
+  ...buildHubOpenGraphMetadata({
+    title: "Kasparex dApps - Kaspa dApp Marketplace",
+    description:
+      "Super simple and fast EVM-compatible dApp marketplace for Kaspa, supporting both Layer 1 and Layer 2 solutions.",
+    path: "/",
+  }),
+  icons: {
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+  },
+};
 
 export default function RootLayout({
   children,

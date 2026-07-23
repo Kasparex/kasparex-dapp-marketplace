@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { GridLedgerEntry } from '@/lib/game/engine';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 
@@ -29,6 +29,26 @@ export function RewardsPanel({
       cancelled = true;
     };
   }, [address]);
+
+  const rows = useMemo(() => {
+    let list = [...(remote?.length ? remote : localLedger)];
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (e) =>
+          e.id.toLowerCase().includes(q) ||
+          new Date(e.at).toLocaleString().toLowerCase().includes(q),
+      );
+    }
+    if (sortBy === 'price_asc') {
+      list.sort((a, b) => a.diamondsRefined - b.diamondsRefined);
+    } else if (sortBy === 'price_desc') {
+      list.sort((a, b) => b.diamondsRefined - a.diamondsRefined);
+    } else {
+      list.sort((a, b) => b.at - a.at);
+    }
+    return list;
+  }, [remote, localLedger, searchQuery, sortBy]);
 
   return (
     <div className="space-y-6">
@@ -64,35 +84,14 @@ export function RewardsPanel({
             </tr>
           </thead>
           <tbody>
-            {(() => {
-              let list = [...(remote?.length ? remote : localLedger)];
-              if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                list = list.filter(
-                  (e) =>
-                    e.id.toLowerCase().includes(q) ||
-                    new Date(e.at).toLocaleString().toLowerCase().includes(q),
-                );
-              }
-              if (sortBy === 'price_asc') {
-                list.sort((a, b) => a.diamondsRefined - b.diamondsRefined);
-              } else if (sortBy === 'price_desc') {
-                list.sort((a, b) => b.diamondsRefined - a.diamondsRefined);
-              } else {
-                list.sort((a, b) => b.at - a.at);
-              }
-
-              if (list.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                      No refine checkpoints yet. Mine and refine Diamonds from the Game Deck to earn Hub points.
-                    </td>
-                  </tr>
-                );
-              }
-
-              return list.map((e) => (
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
+                  No refine checkpoints yet. Mine and refine Diamonds from the Game Deck to earn Hub points.
+                </td>
+              </tr>
+            ) : (
+              rows.map((e) => (
                 <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800">
                   <td className="p-3 text-zinc-600 dark:text-zinc-400">{new Date(e.at).toLocaleString()}</td>
                   <td className="p-3 tabular-nums text-zinc-800 dark:text-zinc-200">
@@ -105,8 +104,8 @@ export function RewardsPanel({
                     {e.gridCheckpointScore.toLocaleString()}
                   </td>
                 </tr>
-              ))}
-            })()}
+              ))
+            )}
           </tbody>
         </table>
       </div>
