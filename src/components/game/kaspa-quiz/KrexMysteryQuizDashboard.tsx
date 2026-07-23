@@ -26,6 +26,8 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -221,19 +223,56 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const tabs = useMemo(
+  const playHealth: GameActivityHealth = finished
+    ? 'exhausted'
+    : questionIndex > 0 || selected !== null || score > 0
+      ? 'active'
+      : 'inactive';
+
+  const tabs: GameTab<TabId>[] = useMemo(
     () => [
-      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
-      { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
-      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
-      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+      {
+        id: 'play',
+        label: 'Play',
+        icon: <IconPlay />,
+        rightAdornment: (
+          <GameActivityStatusDot
+            health={playHealth}
+            title={finished ? 'Level finished' : playHealth === 'active' ? 'Quiz in progress' : 'Idle'}
+          />
+        ),
+      },
+      { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
+      { id: 'boosters', label: 'Boosters', icon: <IconBoosters /> },
+      { id: 'comments', label: 'Comments', icon: <IconComments /> },
     ],
-    []
+    [playHealth, finished],
   );
 
-  const deckResources: GameDeckResource[] = [];
+  const deckResources: GameDeckResource[] = useMemo(
+    () => [
+      {
+        id: 'score',
+        label: 'Score',
+        value: (
+          <span className="inline-flex items-center gap-2">
+            {Math.floor(score * boosterMult).toLocaleString()}
+            <GameActivityStatusDot
+              health={playHealth}
+              title={finished ? 'Level finished' : playHealth === 'active' ? 'Quiz in progress' : 'Idle'}
+            />
+          </span>
+        ),
+        description: 'In-game currency',
+        subValue: `Level ${levelIndex + 1}/10`,
+        accent: 'games',
+        onClick: () => setTab('play'),
+      },
+    ],
+    [score, boosterMult, playHealth, finished, levelIndex],
+  );
   const milestoneProgress = useMemo(() => ({ quiz_levels: levelIndex }), [levelIndex]);
   const { level: playerLevel } = useGameMilestones('kaspa-quiz', milestoneProgress);
 

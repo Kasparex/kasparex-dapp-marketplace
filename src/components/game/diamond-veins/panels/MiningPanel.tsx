@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ActiveBoost, MiningSlotType, TyconGameState, YieldStats, DiamondVeinsConsumableId } from '@/lib/game/engine';
 import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
-import { getNFTTier } from '@/lib/game/diamond-bonuses';
+import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
 import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
@@ -26,6 +26,9 @@ import { nftRefKey } from '@/lib/nft/kasparexMergedGlobalNftRefs';
 import { getMinecoreDeckCollectionAllowlist } from '@/lib/nft/minecore-deck-collections';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import { KxMultiSelectDropdown, type KxMultiSelectOption } from '@/components/ui/KxMultiSelectDropdown';
+import { KxBadge } from '@/components/ui/KxBadge';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { gameTooltipRich } from '@/components/games/gameTooltipRich';
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -36,6 +39,18 @@ function formatDuration(ms: number): string {
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
+
+function formatDurationShort(ms: number): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
+  if (m > 0) return `${m}m`;
+  return `${totalSec}s`;
+}
+
+const STAT_BADGE_COMPACT =
+  'inline-flex max-h-[14px] items-center !py-0 !px-1.5 !text-[9px] !leading-none !rounded-full normal-case tracking-normal tabular-nums';
 
 function statusBadge(status: string) {
   switch (status) {
@@ -190,7 +205,7 @@ export function MiningPanel({
             Flow rate
             <GameTooltip
               title="Flow rate"
-              description="Total Diamonds per second from all NFT workers that still have energy."
+              description="Total Diamonds per minute from all NFT workers that still have energy."
             >
               <button
                 type="button"
@@ -201,7 +216,9 @@ export function MiningPanel({
             </GameTooltip>
           </div>
           <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-            {stats.yieldPerSecond.toFixed(2)} D/s
+            {stats.yieldPerSecond > 0
+              ? `${(stats.yieldPerSecond * 60).toFixed(2)} D/min`
+              : '0.00 D/min'}
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -339,12 +356,12 @@ export function MiningPanel({
                       <p className="text-lg font-bold tabular-nums">
                         <GameTooltip
                           title="Flow rate"
-                          description="Diamonds this worker produces per second while it still has energy. Higher NFT tiers mine faster."
+                          description="Diamonds this worker produces per minute while it still has energy. Higher NFT tiers mine faster."
                         >
                           <span className="cursor-help text-zinc-900 dark:text-zinc-100">Flow Rate: </span>
                         </GameTooltip>
                         <span className="text-emerald-600 dark:text-emerald-400">
-                          {(info?.yieldPerSecond ?? 0).toFixed(2)} D/s
+                          {((info?.yieldPerSecond ?? 0) * 60).toFixed(2)} D/min
                         </span>
                       </p>
                       <GameTooltip {...statusTooltip(status)}>
@@ -399,51 +416,97 @@ export function MiningPanel({
                     {meta?.name ? (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">{meta.name}</p>
                     ) : null}
-                    <div className="flex flex-wrap gap-1.5">
-                      <GameTooltip
-                        title="Base session"
-                        description={`${roleLabel} slots restore to a ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]} full run on regular NFTs. Higher tiers last longer.`}
-                      >
-                        <span className="cursor-help rounded-full border border-zinc-300/70 bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                          {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]}
-                        </span>
-                      </GameTooltip>
-                      {sessionBonusMs > 0 ? (
-                        <GameTooltip
-                          title="Session bonus"
-                          description="Extra mining time from NFT tier or role capacity above the regular base."
-                        >
-                          <span className="cursor-help rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
-                            +{formatDuration(sessionBonusMs)} session
-                          </span>
-                        </GameTooltip>
-                      ) : null}
-                      {energy > 0 ? (
-                        <GameTooltip
-                          title="Energy remaining"
-                          description="This worker still has mining energy. Feed anytime to top up without stopping."
-                        >
-                          <span className="cursor-help rounded-full border border-lime-500/35 bg-lime-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-lime-800 dark:text-lime-200">
-                            +{formatDuration(energy)} energy
-                          </span>
-                        </GameTooltip>
-                      ) : null}
-                      {liveBoosts.map((b) => {
-                        const pctBoost = Math.round((b.multiplier ?? 0) * 100);
-                        return (
-                          <GameTooltip
-                            key={b.id}
-                            title={b.name ?? b.type}
-                            description={`Active Shop ${b.type} boost${pctBoost > 0 ? ` (+${pctBoost}%)` : ''}. Applies to Diamond flow while this timer is running.`}
-                          >
-                            <span className="cursor-help rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-                              {b.name ?? b.type}
-                              {pctBoost > 0 ? ` +${pctBoost}%` : ''}
-                            </span>
-                          </GameTooltip>
-                        );
-                      })}
-                    </div>
+                    {(() => {
+                      const traitBoosts: { key: string; label: string; title: string; detail: string; variant: 'emerald' | 'cyan' | 'violet' | 'sky' }[] = [];
+                      meta?.traits?.forEach((trait, ti) => {
+                        const bonus = getBonusForTrait(String(trait.value));
+                        if (!bonus) return;
+                        if (bonus.type === 'yield') {
+                          traitBoosts.push({
+                            key: `trait-yield-${ti}`,
+                            label: `+${Math.round(bonus.value * 100)}%`,
+                            title: String(trait.value),
+                            detail: 'NFT trait yield bonus applied to this worker’s Diamond flow.',
+                            variant: 'emerald',
+                          });
+                        } else if (bonus.type === 'efficiency') {
+                          traitBoosts.push({
+                            key: `trait-eff-${ti}`,
+                            label: `+${Math.round(bonus.value * 100)}%`,
+                            title: String(trait.value),
+                            detail: 'NFT trait efficiency bonus applied to this worker’s Diamond flow.',
+                            variant: 'cyan',
+                          });
+                        } else if (bonus.type === 'speed') {
+                          traitBoosts.push({
+                            key: `trait-spd-${ti}`,
+                            label: `+${Math.round(bonus.value * 0.25 * 100)}%`,
+                            title: String(trait.value),
+                            detail: 'NFT trait speed bonus applied to this worker’s Diamond flow.',
+                            variant: 'sky',
+                          });
+                        }
+                      });
+                      const showSession = sessionBonusMs > 0;
+                      const showBoosts = liveBoosts.length > 0 || traitBoosts.length > 0 || showSession;
+                      if (!showBoosts) return null;
+                      return (
+                        <div className="flex flex-wrap items-center gap-1">
+                          {showSession ? (
+                            <Tooltip
+                              content={gameTooltipRich(
+                                'Session bonus',
+                                `+${formatDuration(sessionBonusMs)} full-session time above the ${roleLabel} regular base (${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]}). Higher NFT tiers unlock this.`,
+                              )}
+                            >
+                              <span className="cursor-help">
+                                <KxBadge variant="sky" className={STAT_BADGE_COMPACT}>
+                                  +{formatDurationShort(sessionBonusMs)}
+                                </KxBadge>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {traitBoosts.map((t) => (
+                            <Tooltip key={t.key} content={gameTooltipRich(t.title, t.detail)}>
+                              <span className="cursor-help">
+                                <KxBadge variant={t.variant} className={STAT_BADGE_COMPACT}>
+                                  {t.label}
+                                </KxBadge>
+                              </span>
+                            </Tooltip>
+                          ))}
+                          {liveBoosts.map((b) => {
+                            const pctBoost = Math.round((b.multiplier ?? 0) * 100);
+                            const label =
+                              b.type === 'luck'
+                                ? pctBoost > 0
+                                  ? `+${pctBoost}%`
+                                  : 'BOOST'
+                                : pctBoost > 0
+                                  ? `+${pctBoost}%`
+                                  : 'BOOST';
+                            return (
+                              <Tooltip
+                                key={b.id}
+                                content={gameTooltipRich(
+                                  b.name ?? b.type,
+                                  `Active Shop ${b.type} boost${pctBoost > 0 ? ` (+${pctBoost}%)` : ''}. Multiplies Diamond flow while the timer runs.`,
+                                )}
+                              >
+                                <span className="cursor-help">
+                                  <KxBadge
+                                    variant={b.type === 'yield' ? 'emerald' : b.type === 'luck' ? 'amber' : 'violet'}
+                                    className={STAT_BADGE_COMPACT}
+                                  >
+                                    {label}
+                                  </KxBadge>
+                                </span>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

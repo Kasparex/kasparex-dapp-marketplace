@@ -46,9 +46,22 @@ import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { gameDeckRefineResource } from '@/components/games/panels/GameDeckRefineControls';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 import * as Icons from 'lucide-react';
 
-const TABS = [
+type TabId =
+  | 'overview'
+  | 'mining'
+  | 'fabrication'
+  | 'power'
+  | 'workers'
+  | 'shop'
+  | 'redeem'
+  | 'milestones'
+  | 'comments';
+
+const TABS: GameTab<TabId>[] = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
   { id: 'mining', label: '1. Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" /> },
   { id: 'fabrication', label: '2. Build', icon: <IconBoosters /> },
@@ -58,7 +71,33 @@ const TABS = [
   { id: 'redeem', label: 'Redeem', icon: <IconRewards /> },
   { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
-] as const;
+];
+
+function resolveMinecoreHealth(
+  plantSlots: { unlocked: boolean; status: string }[],
+  miningAllowed: boolean,
+): GameActivityHealth {
+  if (!miningAllowed) return 'inactive';
+  const unlocked = plantSlots.filter((p) => p.unlocked);
+  if (unlocked.length === 0) return 'inactive';
+  if (unlocked.some((p) => p.status === 'MiningActive')) return 'active';
+  const attention = new Set([
+    'MiningPaused',
+    'CreditingReady',
+    'ReadyToMine',
+    'InsufficientPower',
+    'BatteryEmpty',
+    'DailyCapReached',
+    'NeedsRepair',
+    'NeedsPower',
+    'SetupIncomplete',
+  ]);
+  if (unlocked.some((p) => attention.has(p.status))) return 'exhausted';
+  return 'inactive';
+}
+
+const MINECORE_DECK_FEATURED_TOOLTIP =
+  'Beneath the neon spine of Kaspaland, Diamond Veins pulse with raw energy. Minecore, built and controlled by Krex and his crew, drills into these unstable depths to extract Diamonds from the heart of the network. This is not just mining, it is tapping into the force that powers Kaspaland.';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -68,11 +107,6 @@ const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection
     </div>
   ),
 });
-
-type TabId = (typeof TABS)[number]['id'];
-
-const MINECORE_DECK_FEATURED_TOOLTIP =
-  'Beneath the neon spine of Kaspaland, Diamond Veins pulse with raw energy. Minecore, built and controlled by Krex and his crew, drills into these unstable depths to extract Diamonds from the heart of the network. This is not just mining, it is tapping into the force that powers Kaspaland.';
 
 export function MinecoreDashboard(_props: {
   featuredImage?: string;
@@ -208,19 +242,36 @@ export function MinecoreDashboard(_props: {
     }
   };
 
+  const miningHealth = useMemo(
+    () => resolveMinecoreHealth(state.plantSlots, miningAllowed),
+    [state.plantSlots, miningAllowed],
+  );
+
   const resources = useMemo(
     () => [
       {
         id: 'diamonds',
-        label: 'In-game currency',
+        label: 'Diamonds',
         value: (
-          <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
-            <span className="text-blue-500 dark:text-blue-400">{diamondsDisplayTotal.toLocaleString()}</span>
-            <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
-            <span className="text-emerald-600 dark:text-emerald-400">
-              {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}
+          <span className="inline-flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-lg font-black tabular-nums tracking-tight sm:text-xl">
+            <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0">
+              <span className="text-blue-500 dark:text-blue-400">{diamondsDisplayTotal.toLocaleString()}</span>
+              <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
+              <span className="text-emerald-600 dark:text-emerald-400">
+                {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}
+              </span>
+              <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
             </span>
-            <span className="pl-1.5 text-sm font-bold text-zinc-500 dark:text-zinc-400">/ 24h</span>
+            <GameActivityStatusDot
+              health={miningHealth}
+              title={
+                miningHealth === 'active'
+                  ? 'Mining active'
+                  : miningHealth === 'exhausted'
+                    ? 'Plants need attention'
+                    : 'Mining inactive'
+              }
+            />
           </span>
         ),
         subValue: (
@@ -229,12 +280,12 @@ export function MinecoreDashboard(_props: {
             <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/min (total)</span>
           </>
         ),
-        description: 'Diamonds',
+        description: 'In-game currency',
         tooltip:
-          'Diamonds you earn in plants; refine into Hub points from the row below. Subtext is total live D/min across active plants.',
+          'Diamonds you earn in plants; refine into Hub points from the row below. Status dot: green = mining, orange = needs attention, red = inactive.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
-        onClick: () => setTab('redeem' as const),
+        onClick: () => setTab('mining' as const),
       },
       gameDeckRefineResource({
         amount: refineAmount,
@@ -262,10 +313,35 @@ export function MinecoreDashboard(_props: {
       refineAmount,
       deckRefining,
       miningAllowed,
+      miningHealth,
+      actions,
     ]
   );
 
-  const tabsWithComments = useGameCommentsTabs(TABS, 'minecore');
+  const tabsBase = useGameCommentsTabs(TABS, 'minecore');
+  const tabsWithComments = useMemo(
+    () =>
+      tabsBase.map((t) =>
+        t.id === 'mining'
+          ? {
+              ...t,
+              rightAdornment: (
+                <GameActivityStatusDot
+                  health={miningHealth}
+                  title={
+                    miningHealth === 'active'
+                      ? 'Mining active'
+                      : miningHealth === 'exhausted'
+                        ? 'Plants need attention'
+                        : 'Mining inactive'
+                  }
+                />
+              ),
+            }
+          : t,
+      ),
+    [tabsBase, miningHealth],
+  );
 
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];

@@ -24,6 +24,8 @@ import { IconComments, IconMilestones, IconOverview, IconRedeem, IconRewards, Ic
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
 
@@ -144,27 +146,63 @@ export function CipherVaultsDashboard({
     }
   };
 
-  const baseTabs = useMemo(
+  const vaultHealth: GameActivityHealth = hasActiveRunOnServer
+    ? canPlayGrid
+      ? 'active'
+      : 'exhausted'
+    : 'inactive';
+
+  const baseTabs: GameTab<'overview' | 'vaults' | 'redeem' | 'rewards' | 'milestones' | 'comments'>[] = useMemo(
     () => [
-      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
-      { id: 'vaults' as const, label: 'Vaults', icon: <IconVaults /> },
-      { id: 'redeem' as const, label: 'Redeem', icon: <IconRedeem /> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
-      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+      {
+        id: 'vaults',
+        label: 'Vaults',
+        icon: <IconVaults />,
+        rightAdornment: (
+          <GameActivityStatusDot
+            health={vaultHealth}
+            title={
+              vaultHealth === 'active'
+                ? 'Vault run active'
+                : vaultHealth === 'exhausted'
+                  ? 'Run loading'
+                  : 'No active vault'
+            }
+          />
+        ),
+      },
+      { id: 'redeem', label: 'Redeem', icon: <IconRedeem /> },
+      { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
+      { id: 'comments', label: 'Comments', icon: <IconComments /> },
     ],
-    [],
+    [vaultHealth],
   );
   const tabs = useGameCommentsTabs(baseTabs, 'cipher-vaults');
 
   const deckResources: GameDeckResource[] = [
     {
       id: 'tickets',
-      label: 'In-game currency',
-      value: tickets.available.toLocaleString(),
-      subValue: 'Cipher Tickets',
-      description: 'Run entry tickets',
-      tooltip: 'Entry tickets you can spend instead of KAS to start runs. Click to open Redeem.',
+      label: 'Cipher Tickets',
+      value: (
+        <span className="inline-flex items-center gap-2">
+          {tickets.available.toLocaleString()}
+          <GameActivityStatusDot
+            health={vaultHealth}
+            title={
+              vaultHealth === 'active'
+                ? 'Vault run active'
+                : vaultHealth === 'exhausted'
+                  ? 'Run loading'
+                  : 'No active vault'
+            }
+          />
+        </span>
+      ),
+      subValue: canPlayGrid ? 'Run in progress' : hasActiveRunOnServer ? 'Loading puzzle' : 'Ready',
+      description: 'In-game currency',
+      tooltip: 'Entry tickets you can spend instead of KAS to start runs. Status dot tracks vault activity.',
       accent: 'games',
       onClick: () => setTab('redeem'),
     },

@@ -38,10 +38,9 @@ export function GameContent({ game: baseGame }: { game: Game }) {
   const resources = useMemo(() => [
     {
       id: 'diamonds',
-      label: 'In-game currency',
+      label: 'Diamonds',
       value: mockDiamonds.toLocaleString(),
-      subValue: 'Diamonds',
-      description: 'Game currency',
+      description: 'In-game currency',
       tooltip: 'Your in-game currency across Kasparex Games.',
       accent: 'diamonds' as const,
       icon: <DiamondIcon className="h-4 w-4 text-sky-400" />,
@@ -51,7 +50,7 @@ export function GameContent({ game: baseGame }: { game: Game }) {
       id: 'redeem_points',
       label: 'Redeem points',
       value: mockPoints.toLocaleString(),
-      description: 'Redeemable points',
+      description: 'Hub redeem bridge',
       tooltip: 'Redeemable points earned from gameplay.',
       accent: 'purple' as const,
       onClick: () => setTab('rewards'),
@@ -201,17 +200,12 @@ export function GameContent({ game: baseGame }: { game: Game }) {
         )}
 
         {tab === 'rewards' && (
-          <RewardsRedeemSection
-            diamondsBalance={mockDiamonds}
-            refinementPointsBalance={mockPoints}
-            onRefine={(amt) => {
-              setMockDiamonds(d => d - amt);
-              setMockPoints(p => p + amt);
-            }}
-            onRedeem={(pts) => {
-              setMockPoints(p => p - pts);
-            }}
-          />
+          <RewardsRedeemSection diamondsBalance={mockDiamonds}>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              Demo game: refine from the Game Deck when this template is wired to live state. Demo balance:{' '}
+              {mockDiamonds.toLocaleString()} Diamonds · {mockPoints.toLocaleString()} points.
+            </p>
+          </RewardsRedeemSection>
         )}
 
         {tab === 'comments' && (

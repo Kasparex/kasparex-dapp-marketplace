@@ -58,8 +58,11 @@ export function MinecoreRewardsPanel({
   return (
     <div className="space-y-6">
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        <span className="font-semibold text-zinc-800 dark:text-zinc-200">1.</span> Turn diamonds into redeem points.&nbsp;
-        <span className="font-semibold text-zinc-800 dark:text-zinc-200">2.</span> Swap points for GRID or KREX. Activity table below.
+        Refine Diamonds from the Game Deck above, then review checkpoints here. Spend Hub points on{' '}
+        <a href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+          Rewards
+        </a>
+        .
       </p>
       <RewardsRedeemSection
         diamondsBalance={diamondsBalance}
@@ -87,7 +90,7 @@ export function MinecoreRewardsPanel({
             {rowsNewestFirst.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-6 text-center text-zinc-500 dark:text-zinc-400">
-                  No refine checkpoints yet. Refine diamonds above to add ledger rows.
+                  No refine checkpoints yet. Refine Diamonds from the Game Deck to add ledger rows.
                 </td>
               </tr>
             ) : (

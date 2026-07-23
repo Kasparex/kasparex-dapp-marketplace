@@ -25,6 +25,8 @@ import { IconBoosters, IconComments, IconMilestones, IconOverview, IconPlay, Ico
 import { gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -87,19 +89,56 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const tabs = useMemo(
+  const playHealth: GameActivityHealth = running
+    ? 'active'
+    : timeLeftMs <= 0 && (hits > 0 || misses > 0)
+      ? 'exhausted'
+      : 'inactive';
+
+  const tabs: GameTab<TabId>[] = useMemo(
     () => [
-      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
-      { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
-      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
-      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+      {
+        id: 'play',
+        label: 'Play',
+        icon: <IconPlay />,
+        rightAdornment: (
+          <GameActivityStatusDot
+            health={playHealth}
+            title={running ? 'Round active' : playHealth === 'exhausted' ? 'Round finished' : 'Idle'}
+          />
+        ),
+      },
+      { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
+      { id: 'boosters', label: 'Boosters', icon: <IconBoosters /> },
+      { id: 'comments', label: 'Comments', icon: <IconComments /> },
     ],
-    []
+    [playHealth, running],
   );
 
-  const deckResources: GameDeckResource[] = [];
+  const deckResources: GameDeckResource[] = useMemo(
+    () => [
+      {
+        id: 'score',
+        label: 'Score',
+        value: (
+          <span className="inline-flex items-center gap-2">
+            {Math.floor(score * booster).toLocaleString()}
+            <GameActivityStatusDot
+              health={playHealth}
+              title={running ? 'Round active' : playHealth === 'exhausted' ? 'Round finished' : 'Idle'}
+            />
+          </span>
+        ),
+        description: 'In-game currency',
+        subValue: running ? `${Math.ceil(timeLeftMs / 1000)}s left` : hits + misses > 0 ? `${hits} hits` : 'Ready',
+        accent: 'games',
+        onClick: () => setTab('play'),
+      },
+    ],
+    [score, booster, playHealth, running, timeLeftMs, hits, misses],
+  );
   const milestoneProgress = useMemo(
     () => ({ precision_score: Math.max(score, Math.floor(score * booster)) }),
     [score, booster],

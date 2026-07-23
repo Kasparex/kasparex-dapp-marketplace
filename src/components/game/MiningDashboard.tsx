@@ -25,38 +25,16 @@ import type { GameTab } from '@/components/games/layout/GameTabs';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
 
-type MiningHealth = 'active' | 'exhausted' | 'inactive';
-
-function resolveMiningHealth(stats: { slots: { status: string }[] }, slots: { nftId: number | null }[]): MiningHealth {
+function resolveMiningHealth(
+  stats: { slots: { status: string }[] },
+  slots: { nftId: number | null }[],
+): GameActivityHealth {
   const hasWorker = slots.some((s) => s.nftId != null);
   if (!hasWorker) return 'inactive';
   if (stats.slots.some((s) => s.status === 'mining')) return 'active';
   return 'exhausted';
-}
-
-function MiningStatusDot({
-  health,
-  title,
-}: {
-  health: MiningHealth;
-  title?: string;
-}) {
-  const color =
-    health === 'active'
-      ? 'bg-emerald-500'
-      : health === 'exhausted'
-        ? 'bg-orange-500'
-        : 'bg-red-500';
-  const label =
-    health === 'active' ? 'Mining active' : health === 'exhausted' ? 'Workers exhausted' : 'Mining inactive';
-  return (
-    <span
-      className={`inline-block h-2 w-2 shrink-0 rounded-full ${color}`}
-      title={title ?? label}
-      aria-label={title ?? label}
-    />
-  );
 }
 
 type TabId = 'overview' | 'mining' | 'upgrades' | 'rewards' | 'milestones' | 'comments';
@@ -171,7 +149,18 @@ export function MiningDashboard({
         t.id === 'mining'
           ? {
               ...t,
-              rightAdornment: <MiningStatusDot health={miningHealth} />,
+              rightAdornment: (
+                <GameActivityStatusDot
+                  health={miningHealth}
+                  title={
+                    miningHealth === 'active'
+                      ? 'Mining active'
+                      : miningHealth === 'exhausted'
+                        ? 'Workers exhausted'
+                        : 'Mining inactive'
+                  }
+                />
+              ),
             }
           : t,
       ),
@@ -197,18 +186,27 @@ export function MiningDashboard({
         value: (
           <span className="inline-flex items-center gap-2 text-lg font-black tabular-nums tracking-tight text-blue-500 dark:text-blue-400 sm:text-xl">
             {Math.floor(diamonds).toLocaleString()}
-            <MiningStatusDot health={miningHealth} />
+            <GameActivityStatusDot
+              health={miningHealth}
+              title={
+                miningHealth === 'active'
+                  ? 'Mining active'
+                  : miningHealth === 'exhausted'
+                    ? 'Workers exhausted'
+                    : 'Mining inactive'
+              }
+            />
           </span>
         ),
         subValue: (
           <>
-            <span className="font-semibold tabular-nums">{stats.yieldPerSecond.toFixed(2)}</span>
-            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/s</span>
+            <span className="font-semibold tabular-nums">{(stats.yieldPerSecond * 60).toFixed(2)}</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/min</span>
           </>
         ),
-        description: 'Mined in-game · refine into Hub points',
+        description: 'In-game currency',
         tooltip:
-          'Diamonds mined by NFT workers. Status dot: green = mining, orange = exhausted, red = inactive. Subtext is live total D/s.',
+          'Diamonds mined by NFT workers. Status dot: green = mining, orange = exhausted, red = inactive. Subtext is live total D/min.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining'),

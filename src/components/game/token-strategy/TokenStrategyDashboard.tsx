@@ -26,6 +26,8 @@ import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { GameActivityStatusDot, type GameActivityHealth } from '@/components/games/GameActivityStatusDot';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -111,19 +113,69 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   const categories = (props.game?.categories ?? []) as string[];
   const tags = (props.game?.tags ?? []) as string[];
 
-  const tabs = useMemo(
+  const playHealth: GameActivityHealth =
+    missionIndex > 0 || stats.security + stats.power + stats.stealth > 0
+      ? missionIndex >= missions.length - 1 && stats.security + stats.power + stats.stealth > 0
+        ? 'exhausted'
+        : 'active'
+      : 'inactive';
+
+  const tabs: GameTab<TabId>[] = useMemo(
     () => [
-      { id: 'overview' as const, label: 'Overview', icon: <IconOverview /> },
-      { id: 'play' as const, label: 'Play', icon: <IconPlay /> },
-      { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
-      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
-      { id: 'boosters' as const, label: 'Boosters', icon: <IconBoosters /> },
-      { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
+      { id: 'overview', label: 'Overview', icon: <IconOverview /> },
+      {
+        id: 'play',
+        label: 'Play',
+        icon: <IconPlay />,
+        rightAdornment: (
+          <GameActivityStatusDot
+            health={playHealth}
+            title={
+              playHealth === 'active'
+                ? 'Mission in progress'
+                : playHealth === 'exhausted'
+                  ? 'Mission chain complete'
+                  : 'Idle'
+            }
+          />
+        ),
+      },
+      { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
+      { id: 'boosters', label: 'Boosters', icon: <IconBoosters /> },
+      { id: 'comments', label: 'Comments', icon: <IconComments /> },
     ],
-    []
+    [playHealth],
   );
 
-  const deckResources: GameDeckResource[] = [];
+  const deckResources: GameDeckResource[] = useMemo(
+    () => [
+      {
+        id: 'score',
+        label: 'Score',
+        value: (
+          <span className="inline-flex items-center gap-2">
+            {score.toLocaleString()}
+            <GameActivityStatusDot
+              health={playHealth}
+              title={
+                playHealth === 'active'
+                  ? 'Mission in progress'
+                  : playHealth === 'exhausted'
+                    ? 'Mission chain complete'
+                    : 'Idle'
+              }
+            />
+          </span>
+        ),
+        description: 'In-game currency',
+        subValue: `Mission ${missionIndex + 1}/${missions.length}`,
+        accent: 'games',
+        onClick: () => setTab('play'),
+      },
+    ],
+    [score, playHealth, missionIndex, missions.length],
+  );
   const milestoneProgress = useMemo(
     () => ({
       strategy_rounds: missionIndex + (stats.security + stats.power + stats.stealth > 0 ? 1 : 0),
