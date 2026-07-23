@@ -1,6 +1,13 @@
 {
   "updates": [
     {
+      "id": "deploy-1784838409-4c267d8",
+      "title": "Deployment to main",
+      "description": "Website deployed successfully. Commit: Fix RewardsPanel build syntax error and set Kasparex K logo as favicon. (by Kasparex)",
+      "date": "2026-07-23T22:26:29+02:00",
+      "type": "deployment"
+    },
+    {
       "id": "deploy-1784664847-8fdc7d3",
       "title": "Deployment to main",
       "description": "Website deployed successfully. Commit: Sync hub content: 2026-07-21T20:13:51.107Z (by Kasparex)",
