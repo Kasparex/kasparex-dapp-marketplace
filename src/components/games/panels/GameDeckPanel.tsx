@@ -63,7 +63,7 @@ export function GameDeckResourceRows({
                 <span className="truncate font-medium">{r.label}</span>
               </div>
               {r.description ? (
-                <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-500">{r.description}</div>
+                <div className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-500">{r.description}</div>
               ) : null}
             </div>
             <div className="ml-auto flex min-w-0 flex-shrink-0 flex-col items-end text-right">
@@ -75,14 +75,14 @@ export function GameDeckResourceRows({
                 {r.value}
               </div>
               {r.subValue ? (
-                <div className="mt-0.5 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
+                <div className="mt-0.5 text-[11px] leading-snug font-semibold text-zinc-500 dark:text-zinc-400">{r.subValue}</div>
               ) : null}
             </div>
           </>
         );
 
         const rowClassName = [
-          'w-full flex items-start justify-between gap-3 py-2.5 px-3 text-left transition-colors',
+          'w-full flex items-center justify-between gap-3 py-2 px-3 text-left transition-colors',
           clickable ? 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg' : '',
         ].join(' ');
 

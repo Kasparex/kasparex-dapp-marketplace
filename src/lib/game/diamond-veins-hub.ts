@@ -15,15 +15,14 @@ export function broadcastDiamondVeinsExternalPersist(): void {
 
 /**
  * Lightweight read of Diamond Veins refinement points from wallet-scoped save.
+ * These points feed Hub /rewards totals; they are not a separate spendable in-game currency.
  */
 export function readDiamondVeinsRefinementPointsTotal(kaspaAddress: string): number {
   if (typeof window === 'undefined') return 0;
   const addr = (kaspaAddress ?? '').trim();
   if (!addr) return 0;
   try {
-    const raw =
-      localStorage.getItem(diamondVeinsStorageKey(addr)) ??
-      localStorage.getItem(DIAMOND_VEINS_STORAGE_PREFIX);
+    const raw = localStorage.getItem(diamondVeinsStorageKey(addr));
     if (!raw) return 0;
     const state = hydrateTyconState(JSON.parse(raw));
     const n = state.refinementPointsTotal;
@@ -43,7 +42,7 @@ export function deductDiamondVeinsRefinementPointsPersisted(kaspaAddress: string
   if (!addr || d <= 0 || typeof window === 'undefined') return 0;
   const key = diamondVeinsStorageKey(addr);
   try {
-    const raw = localStorage.getItem(key) ?? localStorage.getItem(DIAMOND_VEINS_STORAGE_PREFIX);
+    const raw = localStorage.getItem(key);
     if (!raw) return 0;
     const state = hydrateTyconState(JSON.parse(raw));
     const cur = Math.max(0, Math.floor(state.refinementPointsTotal ?? 0));

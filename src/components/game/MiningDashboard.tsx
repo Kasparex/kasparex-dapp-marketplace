@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useKaspaWallet } from '@/lib/kaspa/context';
@@ -109,7 +109,6 @@ export function MiningDashboard({
     miningAllowed,
     reconnectRequiredBy,
     gridLedger,
-    redeemPoints,
     profileNotice,
   } = useDiamondMining();
 
@@ -117,6 +116,21 @@ export function MiningDashboard({
   const [faqOpen, setFaqOpen] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
   const [refining, setRefining] = useState(false);
+  const [refineAmount, setRefineAmount] = useState(() => Math.max(0, Math.floor(diamonds)));
+
+  useEffect(() => {
+    setRefineAmount(Math.max(0, Math.floor(diamonds)));
+  }, [diamonds]);
+
+  const runRefine = async (amount: number) => {
+    if (amount < refineMinDiamonds || refining) return;
+    setRefining(true);
+    try {
+      await refineDiamonds(amount);
+    } finally {
+      setRefining(false);
+    }
+  };
 
   const garageItem = (item: {
     id: string;
@@ -168,34 +182,76 @@ export function MiningDashboard({
         subValue: (
           <>
             <span className="font-semibold tabular-nums">{stats.yieldPerSecond.toFixed(2)}</span>
-            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/s live</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/s</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400">
+              {' '}
+              · KREX {krexTier}
+              {krexYieldBonus > 0 ? ` +${krexYieldBonus}%` : ''}
+              {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% shop` : ''}
+            </span>
           </>
         ),
-        description: 'Mined in-game currency',
+        description: 'Mined in-game · refine into Hub points',
         tooltip:
-          'Diamonds mined by NFT workers. Refine into Hub redeem points. Subtext is your live Diamonds-per-second flow.',
+          'Diamonds mined by NFT workers. Refine below to add Hub redeem points on /rewards. Subtext is live D/s and your KREX tier.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining'),
       },
       {
-        id: 'redeem_points',
-        label: 'Redeem points',
-        value: Math.floor(refinementPointsTotal ?? 0).toLocaleString(),
-        subValue: (
-          <>
-            KREX {krexTier}
-            {krexYieldBonus > 0 ? ` · +${krexYieldBonus}% yield` : ''}
-            {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% shop off` : ''}
-          </>
+        id: 'refine',
+        label: 'Refine to Hub',
+        description: `Min ${refineMinDiamonds} Diamonds → Hub redeem points`,
+        tooltip:
+          'Converts bag Diamonds into Hub redeem points counted on /rewards. No separate in-game redeem balance to manage.',
+        value: (
+          <div
+            className="flex flex-wrap items-center justify-end gap-1.5"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <input
+              type="number"
+              min={refineMinDiamonds}
+              max={Math.max(refineMinDiamonds, Math.floor(diamonds))}
+              value={refineAmount}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (!Number.isFinite(n)) return;
+                setRefineAmount(Math.max(0, Math.floor(n)));
+              }}
+              className="h-8 w-16 rounded-md border border-zinc-200 bg-white px-1.5 text-right text-xs font-semibold tabular-nums dark:border-zinc-600 dark:bg-zinc-950"
+              aria-label="Refine amount"
+            />
+            <button
+              type="button"
+              className="h-8 rounded-md border border-zinc-200 px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              onClick={() => setRefineAmount(Math.floor(diamonds))}
+            >
+              Max
+            </button>
+            <button
+              type="button"
+              disabled={refineAmount < refineMinDiamonds || refining || diamonds < refineMinDiamonds}
+              onClick={() => void runRefine(refineAmount)}
+              className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {refining ? '…' : 'Refine'}
+            </button>
+          </div>
         ),
-        description: 'Refinement points',
-        tooltip: 'Redeemable points from refining Diamonds. Your KREX tier boosts mining yield and shop discounts.',
-        accent: 'purple' as const,
-        onClick: () => setTab('rewards'),
       },
     ],
-    [diamonds, stats.yieldPerSecond, refinementPointsTotal, krexTier, krexYieldBonus, krexShopDiscount],
+    [
+      diamonds,
+      stats.yieldPerSecond,
+      krexTier,
+      krexYieldBonus,
+      krexShopDiscount,
+      refineMinDiamonds,
+      refineAmount,
+      refining,
+    ],
   );
 
   return (
@@ -203,7 +259,7 @@ export function MiningDashboard({
       <div className="flex flex-col space-y-6">
         {reconnectRequiredBy && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm font-medium text-amber-800 dark:text-amber-200">
-            Mining is paused. Connect your wallet to resume. Your Diamonds, slots, and redeem points stay saved to that
+            Mining is paused. Connect your wallet to resume. Your Diamonds, slots, and Hub points stay saved to that
             wallet.
           </div>
         )}
@@ -230,7 +286,7 @@ export function MiningDashboard({
             tags,
           }}
           onOpenOverview={openOverview}
-          deckFooter={<span>Diamonds update live while NFT workers mine.</span>}
+          deckFooter={<span>Refine Diamonds into Hub points on /rewards</span>}
         >
           <div className="flex w-full min-w-0 flex-col gap-6">
           {activeBoosts.length > 0 && (
@@ -274,7 +330,7 @@ export function MiningDashboard({
                 flow={[
                   'Deploy an NFT into your free starter Worker slot to begin idle Diamond mining.',
                   'Buy extra slots to scale capacity. Higher NFT tiers and KREX tiers mine faster.',
-                  'Feed exhausted workers from the Shop, refine Diamonds into Hub redeem points.',
+                  'Feed exhausted workers from the Shop. Refine Diamonds from the Game Deck into Hub points on /rewards.',
                 ]}
               />
             </div>
@@ -284,17 +340,6 @@ export function MiningDashboard({
               tycon={tycon}
               stats={stats}
               diamonds={diamonds}
-              refineMinDiamonds={refineMinDiamonds}
-              refining={refining}
-              onRefine={async (amount) => {
-                if (amount < refineMinDiamonds || refining) return;
-                setRefining(true);
-                try {
-                  await refineDiamonds(amount);
-                } finally {
-                  setRefining(false);
-                }
-              }}
               slottedMetadata={slottedMetadata}
               onDeploy={deployNFT}
               onRemove={removeSlot}
@@ -357,9 +402,8 @@ export function MiningDashboard({
               hubLedgerNetPoints={redeemUnifiedMatches ? redeemBreakdown.ledgerNetRedeemable : undefined}
               localLedger={gridLedger}
               onRefine={(amount) => {
-                void refineDiamonds(amount);
+                void runRefine(amount);
               }}
-              onRedeem={redeemPoints}
             />
           )}
           {tab === 'milestones' && <MilestonesPanel gameId="diamond-veins" progress={milestoneProgress} />}

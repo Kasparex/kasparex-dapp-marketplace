@@ -55,20 +55,22 @@ function walletStorageKey(address: string): string {
 function loadPersistedTycon(address: string): TyconGameState | null {
   if (typeof window === 'undefined') return null;
   try {
-    const key = walletStorageKey(address);
-    let raw = localStorage.getItem(key);
-    // One-time migrate legacy guest bucket into this wallet if wallet key is empty.
-    if (!raw) {
-      const legacy = localStorage.getItem(DIAMOND_VEINS_STORAGE_PREFIX);
-      if (legacy) {
-        raw = legacy;
-        localStorage.setItem(key, legacy);
-      }
-    }
+    const raw = localStorage.getItem(walletStorageKey(address));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<TyconGameState>;
     if (!parsed || typeof parsed !== 'object') return null;
-    return hydrateTyconState(parsed);
+    const state = hydrateTyconState(parsed);
+    const owner = (state.lastConnectedAddress ?? '').trim();
+    // Reject foreign / legacy guest dumps copied onto this wallet key.
+    if (owner && owner !== address.trim()) return null;
+    if (
+      !owner &&
+      (state.diamondsEarnedLifetime ?? 0) <= 0 &&
+      (state.diamonds > 0 || (state.refinementPointsTotal ?? 0) > 0)
+    ) {
+      return null;
+    }
+    return state;
   } catch {
     return null;
   }
@@ -78,6 +80,12 @@ function savePersistedTycon(address: string, state: TyconGameState) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(walletStorageKey(address), JSON.stringify(state));
+    // Drop legacy guest bucket so it cannot seed other wallets or Hub point reads.
+    try {
+      localStorage.removeItem(DIAMOND_VEINS_STORAGE_PREFIX);
+    } catch {
+      // ignore
+    }
     // Refresh hub points UI only. Do not broadcast DIAMOND_VEINS_EXTERNAL_PERSIST_EVENT here:
     // this hook also listens for that event to reload from disk (external Hub writes), and
     // broadcasting on every autosave would recurse into Maximum update depth.

@@ -13,7 +13,6 @@ export function RewardsPanel({
   hubLedgerNetPoints,
   localLedger,
   onRefine,
-  onRedeem,
 }: {
   address: string | undefined;
   diamondsBalance: number;
@@ -22,7 +21,6 @@ export function RewardsPanel({
   hubLedgerNetPoints?: number;
   localLedger: GridLedgerEntry[];
   onRefine?: (amount: number) => void;
-  onRedeem?: (points: number) => void;
 }) {
   const [remote, setRemote] = useState<GridLedgerEntry[] | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,7 +50,6 @@ export function RewardsPanel({
         hubLedgerNetPoints={hubLedgerNetPoints}
         balanceSplitFootnote={unifiedRedeemablePoints != null}
         onRefine={onRefine}
-        onRedeem={onRedeem}
       >
         <CardsFilterBar
           searchQuery={searchQuery}
@@ -70,7 +67,7 @@ export function RewardsPanel({
               <tr>
                 <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">When</th>
                 <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Diamonds</th>
-                <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Redeem points</th>
+                <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Hub points</th>
                 <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Hub weight</th>
               </tr>
             </thead>
