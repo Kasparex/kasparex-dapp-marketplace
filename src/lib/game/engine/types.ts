@@ -99,6 +99,11 @@ export type DiamondVeinsConsumableInventory = Record<DiamondVeinsConsumableId, n
 export interface TyconGameState {
   version: number;
   diamonds: number;
+  /**
+   * Fractional mining progress toward the next whole diamond (0 <= dust < 1).
+   * Diamonds in bag are always whole numbers.
+   */
+  diamondDust: number;
   diamondInventory: DiamondInventory;
   slots: MiningSlot[];
   lastRefinedAt: number;

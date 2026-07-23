@@ -45,11 +45,12 @@ assert.equal(s.consumables['field-ration'], 2);
 s = applyEvent(s, {
   type: 'TickIdleMining',
   deltaSeconds: 1,
-  slotDeltas: s.slots.map((_, i) => (i === 0 ? 0.1 : 0)),
+  slotDeltas: s.slots.map((_, i) => (i === 0 ? 1.5 : 0)),
   energyDrains: s.slots.map((_, i) => (i === 0 ? 1000 : 0)),
   at: Date.now(),
 });
-assert.ok(s.diamonds > 0);
+assert.equal(s.diamonds, 1);
+assert.ok((s.diamondDust ?? 0) >= 0.4);
 assert.ok((s.slots[0]!.energy ?? 0) < 60_000);
 
 console.log('apply-event tests OK');

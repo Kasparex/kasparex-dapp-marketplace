@@ -12,6 +12,7 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
   const base: TyconGameState = {
     version: 1,
     diamonds: 0,
+    diamondDust: 0,
     diamondInventory: {
       chronoShard: 0,
       auroraCore: 0,

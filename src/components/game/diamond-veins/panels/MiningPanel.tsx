@@ -43,6 +43,38 @@ function statusBadge(status: string) {
   }
 }
 
+function energyBarFillCls(pct: number, status: string): string {
+  if (status === 'exhausted' || pct <= 0) return 'bg-rose-600';
+  if (pct <= 25) return 'bg-red-500';
+  if (pct <= 50) return 'bg-orange-500';
+  if (pct <= 75) return 'bg-lime-400 dark:bg-lime-500';
+  return 'bg-emerald-500';
+}
+
+function statusTooltip(status: string): { title: string; description: string } {
+  switch (status) {
+    case 'mining':
+      return {
+        title: 'Mining',
+        description:
+          'This NFT still has energy and is producing Diamonds. Use Feed or Quick feed anytime to top up energy without stopping the run.',
+      };
+    case 'exhausted':
+      return {
+        title: 'Exhausted',
+        description:
+          'Energy is empty, so mining paused. Buy Field Rations, Energy Drinks, or Repair Kits in the Shop, then Restore or Quick feed this worker.',
+      };
+    case 'empty':
+      return {
+        title: 'Empty slot',
+        description: 'Deploy a Kasparex NFT into this slot to start idle mining.',
+      };
+    default:
+      return { title: status, description: 'Worker slot status.' };
+  }
+}
+
 export function MiningPanel({
   tycon,
   stats,
@@ -143,7 +175,7 @@ export function MiningPanel({
             <DiamondIcon className="h-5 w-5" />
             {Math.floor(diamonds).toLocaleString()}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-zinc-500">
+          <p className="mt-1 text-xs text-zinc-500">
             Refine from the Game Deck above to credit Hub points on /rewards.
           </p>
         </div>
@@ -252,36 +284,65 @@ export function MiningPanel({
 
                   <div className="min-w-0 flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                        Flow Rate: {(info?.yieldPerSecond ?? 0).toFixed(2)} D/s
-                      </p>
-                      <span
-                        className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide ${statusBadge(status)}`}
-                      >
-                        {status}
-                      </span>
-                      {tier && tier !== 'regular' ? (
-                        <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
-                          {tier}
+                      <p className="text-lg font-bold tabular-nums">
+                        <GameTooltip
+                          title="Flow rate"
+                          description="Diamonds this worker produces per second while it still has energy. Higher NFT tiers mine faster."
+                        >
+                          <span className="cursor-help text-zinc-900 dark:text-zinc-100">Flow Rate: </span>
+                        </GameTooltip>
+                        <span className="text-emerald-600 dark:text-emerald-400">
+                          {(info?.yieldPerSecond ?? 0).toFixed(2)} D/s
                         </span>
+                      </p>
+                      <GameTooltip {...statusTooltip(status)}>
+                        <span
+                          className={`cursor-help rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide ${statusBadge(status)}`}
+                        >
+                          {status}
+                        </span>
+                      </GameTooltip>
+                      {tier && tier !== 'regular' ? (
+                        <GameTooltip
+                          title={`${tier} tier`}
+                          description="Higher NFT tiers last longer and mine faster than regular workers."
+                        >
+                          <span className="cursor-help rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                            {tier}
+                          </span>
+                        </GameTooltip>
                       ) : null}
                     </div>
                     <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-400 sm:grid-cols-2">
-                      <p>
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> {roleLabel}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
-                        {slot.collection ?? '—'}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">Energy left:</span>{' '}
-                        {formatDuration(energy)}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">Session max:</span>{' '}
-                        {formatDuration(energyMax)}
-                      </p>
+                      <GameTooltip title="Role" description="Worker, Operator, or Foreman lane for this NFT slot.">
+                        <p className="cursor-help">
+                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">Role:</span> {roleLabel}
+                        </p>
+                      </GameTooltip>
+                      <GameTooltip title="Collection" description="Kasparex NFT collection assigned to this slot.">
+                        <p className="cursor-help">
+                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">Collection:</span>{' '}
+                          {slot.collection ?? '-'}
+                        </p>
+                      </GameTooltip>
+                      <GameTooltip
+                        title="Energy left"
+                        description="Remaining mining time before this worker is exhausted. Feed from the Shop to restore energy."
+                      >
+                        <p className="cursor-help">
+                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">Energy left:</span>{' '}
+                          {formatDuration(energy)}
+                        </p>
+                      </GameTooltip>
+                      <GameTooltip
+                        title="Session max"
+                        description="Full-energy mining duration for this role and NFT tier after a full restore."
+                      >
+                        <p className="cursor-help">
+                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">Session max:</span>{' '}
+                          {formatDuration(energyMax)}
+                        </p>
+                      </GameTooltip>
                     </div>
                     {meta?.name ? (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">{meta.name}</p>
@@ -292,34 +353,47 @@ export function MiningPanel({
                 <div className="flex items-center gap-3 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                      <span>Mining time remaining</span>
+                      <GameTooltip
+                        title="Mining time remaining"
+                        description="Energy bar for this worker. Green is healthy; orange and red mean feed soon from the Shop."
+                      >
+                        <span className="cursor-help">Mining time remaining</span>
+                      </GameTooltip>
                       <span className="tabular-nums">{pct.toFixed(0)}%</span>
                     </div>
                     <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                       <div
-                        className={`h-full rounded-full transition-all ${
-                          status === 'exhausted' ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`}
+                        className={`h-full rounded-full transition-all ${energyBarFillCls(pct, status)}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    disabled={slot.nftId == null || status === 'mining'}
-                    onClick={() => setFeedOpen(idx)}
-                    className="k-cta-games shrink-0 !h-auto rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-40"
+                  <GameTooltip
+                    title={status === 'exhausted' ? 'Restore' : 'Feed'}
+                    description="Open the consumables picker. Buy supplies in the Shop if your inventory is empty."
                   >
-                    {status === 'exhausted' ? 'Restore' : status === 'mining' ? 'Mining' : 'Feed'}
-                  </button>
-                  {feedId && status === 'exhausted' ? (
                     <button
                       type="button"
-                      onClick={() => onFeedWorker(idx, feedId)}
-                      className="shrink-0 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-200"
+                      disabled={slot.nftId == null}
+                      onClick={() => setFeedOpen(idx)}
+                      className="k-cta-games shrink-0 !h-auto rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      Quick feed
+                      {status === 'exhausted' ? 'Restore' : 'Feed'}
                     </button>
+                  </GameTooltip>
+                  {feedId && slot.nftId != null ? (
+                    <GameTooltip
+                      title="Quick feed"
+                      description="Instantly use your best owned supply (Repair Kit, Energy Drink, or Field Ration) on this worker, including while mining."
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onFeedWorker(idx, feedId)}
+                        className="shrink-0 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-200"
+                      >
+                        Quick feed
+                      </button>
+                    </GameTooltip>
                   ) : null}
                 </div>
               </div>

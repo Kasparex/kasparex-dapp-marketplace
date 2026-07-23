@@ -19,6 +19,20 @@ function defaultCollectionForRole(type: string): string {
   return type === 'worker' ? 'KREXPRIME' : 'PIXELKREX';
 }
 
+/** Credit only whole diamonds; keep sub-diamond progress in diamondDust (0..1). */
+function applyDiamondGain(state: TyconGameState, next: TyconGameState, rawGain: number): void {
+  if (!(rawGain > 0)) return;
+  const bag = Math.max(0, Math.floor(state.diamonds));
+  const dust = Math.max(0, state.diamondDust ?? (state.diamonds % 1));
+  const pooled = dust + rawGain;
+  const whole = Math.floor(pooled);
+  next.diamonds = bag + whole;
+  next.diamondDust = pooled - whole;
+  if (whole > 0) {
+    next.diamondsEarnedLifetime = Math.floor(state.diamondsEarnedLifetime ?? 0) + whole;
+  }
+}
+
 /**
  * Deterministic state transition for Diamond Veins idle mining (client + server).
  */
@@ -108,15 +122,13 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
     }
     case 'AccumulateDiamonds': {
       if (event.delta <= 0) return state;
-      next.diamonds = state.diamonds + event.delta;
-      next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + event.delta;
+      applyDiamondGain(state, next, event.delta);
       next.version = state.version + 1;
       return next;
     }
     case 'DistributeDiamondDelta': {
       if (event.delta <= 0) return state;
-      next.diamonds = state.diamonds + event.delta;
-      next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + event.delta;
+      applyDiamondGain(state, next, event.delta);
       (Object.keys(event.weights) as DiamondCommodity[]).forEach((k) => {
         const portion = event.delta * (event.weights[k] ?? 0);
         next.diamondInventory[k] = (next.diamondInventory[k] ?? 0) + portion;
@@ -132,8 +144,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         const dps = event.slotDeltas[i] ?? 0;
         const drain = event.energyDrains[i] ?? 0;
         if (dps > 0) {
-          const gained = dps * event.deltaSeconds;
-          totalDelta += gained;
+          totalDelta += dps * event.deltaSeconds;
         }
         if (drain > 0 && slot.nftId != null) {
           const energy = Math.max(0, (slot.energy ?? 0) - drain * event.deltaSeconds);
@@ -141,10 +152,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         }
       }
       if (totalDelta <= 0 && event.energyDrains.every((d) => d <= 0)) return state;
-      if (totalDelta > 0) {
-        next.diamonds = state.diamonds + totalDelta;
-        next.diamondsEarnedLifetime = (state.diamondsEarnedLifetime ?? 0) + totalDelta;
-      }
+      if (totalDelta > 0) applyDiamondGain(state, next, totalDelta);
       next.lastIdleTickAt = event.at;
       next.version = state.version + 1;
       return next;
@@ -166,8 +174,9 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
         gridCheckpointScore: refinementPoints,
         note: 'Refine checkpoint. 1 diamond = 1 Hub redeem point.',
       };
-      next.diamonds = Math.max(0, state.diamonds - amount);
-      if (next.diamonds < 0.0001) {
+      next.diamonds = bag - amount;
+      next.diamondDust = 0;
+      if (next.diamonds <= 0) {
         next.diamonds = 0;
         next.diamondInventory = {
           chronoShard: 0,
@@ -262,13 +271,27 @@ export function hydrateTyconState(partial: Partial<TyconGameState> | null | unde
   if (!partial || typeof partial !== 'object') return initial;
   const slots = migrateSlotsToTycon((partial.slots as TyconGameState['slots']) ?? initial.slots);
   const version = typeof partial.version === 'number' && partial.version >= 1 ? partial.version : initial.version;
+  const rawDiamonds = typeof partial.diamonds === 'number' ? partial.diamonds : initial.diamonds;
+  let wholeDiamonds = Math.max(0, Math.floor(rawDiamonds));
+  const dustFromBag = Math.max(0, rawDiamonds - wholeDiamonds);
+  const pooledDust =
+    (typeof partial.diamondDust === 'number' && Number.isFinite(partial.diamondDust)
+      ? Math.max(0, partial.diamondDust)
+      : 0) + dustFromBag;
+  const dustWhole = Math.floor(pooledDust);
+  wholeDiamonds += dustWhole;
+  const diamondDust = pooledDust - dustWhole;
+
   return {
     ...initial,
     ...partial,
     version,
     slots,
-    diamondsEarnedLifetime:
+    diamonds: wholeDiamonds,
+    diamondDust,
+    diamondsEarnedLifetime: Math.floor(
       typeof partial.diamondsEarnedLifetime === 'number' ? partial.diamondsEarnedLifetime : initial.diamondsEarnedLifetime,
+    ),
     diamondInventory: { ...initial.diamondInventory, ...partial.diamondInventory },
     machines: partial.machines?.length ? partial.machines.map((m) => ({ ...m })) : initial.machines,
     automation: { ...initial.automation, ...partial.automation },
