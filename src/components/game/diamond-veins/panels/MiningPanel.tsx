@@ -58,6 +58,8 @@ export function MiningPanel({
   miningAllowed,
   consumables,
   onFeedWorker,
+  krexTier = 'Tier0',
+  krexYieldBonusPct = 0,
 }: {
   tycon: TyconGameState;
   stats: YieldStats;
@@ -73,6 +75,8 @@ export function MiningPanel({
   miningAllowed?: boolean;
   consumables: TyconGameState['consumables'];
   onFeedWorker: (slotIndex: number, itemId: DiamondVeinsConsumableId) => boolean;
+  krexTier?: string;
+  krexYieldBonusPct?: number;
 }) {
   const { state: wallet } = useKaspaWallet();
   const { usageByRef, inUseRefs } = useKasparexGlobalNftUsage({
@@ -155,7 +159,10 @@ export function MiningPanel({
           <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
             {activeWorkers} / {tycon.slots.length}
           </p>
-          <p className="mt-1 text-xs text-zinc-500">Higher tiers mine faster and last longer</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Higher NFT tiers mine faster · KREX {krexTier}
+            {krexYieldBonusPct > 0 ? ` (+${krexYieldBonusPct}% yield)` : ''}
+          </p>
         </div>
       </div>
 
@@ -181,7 +188,8 @@ export function MiningPanel({
           <div>
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Worker slots</h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Deploy an NFT to start idle mining. Feed exhausted workers from the Shop.
+              First Worker slot is free. Buy more slots to raise daily mining capacity. Deploy with the same NFT picker as
+              Minecore.
             </p>
           </div>
           <button
@@ -226,6 +234,7 @@ export function MiningPanel({
                       <div className="relative flex h-full w-full flex-col items-center justify-center pt-6">
                         <span className="absolute left-2 top-2 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
                           {roleLabel}
+                          {idx === 0 ? ' · Free' : ''}
                         </span>
                         {slot.nftId != null ? (
                           <button
@@ -432,7 +441,7 @@ export function MiningPanel({
         <KasparexNftSlotSelector
           isOpen={true}
           title={`${nftCrewRoleLabel(modalSlot.type)} slot`}
-          description="Deploy a Premium or Partner NFT. Higher tiers mine Diamonds faster and work longer before needing food or repair kits."
+          description="Deploy a Premium or Partner NFT (same shared Kasparex NFT picker as Minecore). Higher tiers mine Diamonds faster and work longer before needing food or repair kits."
           currentValue={currentRef}
           inUseRefs={inUseRefs}
           usageByRef={usageByRef}
@@ -442,7 +451,7 @@ export function MiningPanel({
             slotIndex: selected,
           }}
           collectionAllowlist={getMinecoreDeckCollectionAllowlist()}
-          footerNotice="Deployments save to Diamond Veins in this browser. NFTs used in Minecore or Chronicles show as locked."
+          footerNotice="Assignments save to Diamond Veins in this browser. NFTs used in Minecore show as locked here."
           onClose={() => setSelected(null)}
           onSelect={(ref) => {
             const p = kasparexNftRefToCollectionAndId(ref);

@@ -23,6 +23,7 @@ import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { IconBoosters, IconComments, IconMilestones, IconOverview, IconPlay, IconRewards } from '@/components/games/icons/TabIcons';
 import { gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -98,6 +99,11 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
   );
 
   const deckResources: GameDeckResource[] = [];
+  const milestoneProgress = useMemo(
+    () => ({ precision_score: Math.max(score, Math.floor(score * booster)) }),
+    [score, booster],
+  );
+  const { level: playerLevel } = useGameMilestones('precision-click', milestoneProgress);
 
   function spawnTarget() {
     const el = arenaRef.current;
@@ -172,6 +178,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
           game={props.game}
           resources={deckResources}
           deckFooter="Values update live as you train and boost."
+          playerLevel={playerLevel}
         />
       }
       main={
@@ -232,7 +239,7 @@ export function PrecisionClickDashboard(props: { featuredImage?: string; loreSto
         )}
 
         {tab === 'milestones' && (
-          <MilestonesPanel gameId="precision-click" progress={{ precision_score: Math.max(score, Math.floor(score * booster)) }} />
+          <MilestonesPanel gameId="precision-click" progress={milestoneProgress} />
         )}
 
         {tab === 'comments' && (

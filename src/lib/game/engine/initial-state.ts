@@ -22,8 +22,6 @@ export function createInitialTyconState(overrides?: Partial<TyconGameState>): Ty
     },
     slots: [
       { type: 'worker', nftId: null, collection: 'KREXPRIME', energy: 0, energyMax: 0 },
-      { type: 'operator', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
-      { type: 'foreman', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
     ],
     lastRefinedAt: Date.now(),
     refinementPointsTotal: 0,

@@ -324,7 +324,7 @@ export function WorkersPanel(props: {
           usageByRef={usageByRef}
           currentContext={{ entityType: 'minecore', entityId: 'workers', slotIndex: selected }}
           collectionAllowlist={collectionAllowlistForMinecoreDeckSlot(modalSlot)}
-          footerNotice="Assignments save to your Minecore profile in this browser. NFTs used in Chronicles or Diamond Mining show as locked here."
+          footerNotice="Assignments save to your Minecore profile in this browser. NFTs used in Diamond Veins show as locked here."
           onClose={() => setSelected(null)}
           onSelect={(ref) => {
             const parsed = kasparexNftRefToCollectionAndId(ref);

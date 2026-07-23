@@ -144,12 +144,14 @@ export function computeDiamondDropWeights(
 }
 
 export function migrateSlotsToTycon(slots: MiningSlot[]): MiningSlot[] {
-  const defaults: MiningSlot[] = [
-    { type: 'worker', nftId: null, collection: 'KREXPRIME', energy: 0, energyMax: 0 },
-    { type: 'operator', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
-    { type: 'foreman', nftId: null, collection: 'PIXELKREX', energy: 0, energyMax: 0 },
-  ];
-  if (!slots?.length) return defaults.map((s) => ({ ...s }));
+  const freeDefault: MiningSlot = {
+    type: 'worker',
+    nftId: null,
+    collection: 'KREXPRIME',
+    energy: 0,
+    energyMax: 0,
+  };
+  if (!slots?.length) return [{ ...freeDefault }];
 
   const lane = (t: string): 'worker' | 'operator' | 'foreman' | null => {
     if (t === 'engineer') return 'worker';
@@ -185,13 +187,7 @@ export function migrateSlotsToTycon(slots: MiningSlot[]): MiningSlot[] {
     })
     .filter(Boolean) as MiningSlot[];
 
-  if (mapped.length >= 3) return mapped;
-  // Ensure at least the three default roles exist for older saves with fewer rows.
-  const have = new Set(mapped.map((m) => m.type));
-  for (const d of defaults) {
-    if (!have.has(d.type)) mapped.push({ ...d });
-  }
-  return mapped;
+  return mapped.length > 0 ? mapped : [{ ...freeDefault }];
 }
 
 /** @deprecated Legacy helper retained for imports; idle model uses IDLE_* constants. */

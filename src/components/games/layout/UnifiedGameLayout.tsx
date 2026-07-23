@@ -29,6 +29,8 @@ interface UnifiedGameLayoutProps {
   deckFeaturedTooltip?: string;
   showDeckInfoButton?: boolean;
   belowDeck?: ReactNode;
+  /** Milestone player level shown in the game header badge row. */
+  playerLevel?: number;
 }
 
 export function UnifiedGameLayout({
@@ -40,6 +42,7 @@ export function UnifiedGameLayout({
   children,
   belowDeck,
   deckFooter,
+  playerLevel,
 }: UnifiedGameLayoutProps) {
   const haloGame = {
     name: game.name,
@@ -72,7 +75,9 @@ export function UnifiedGameLayout({
       tabs={tabs}
       currentTab={currentTab}
       onTabChange={onTabChange}
-      haloHeader={<GamesHaloHeader game={haloGame} resources={resources} deckFooter={deckFooter} />}
+      haloHeader={
+        <GamesHaloHeader game={haloGame} resources={resources} deckFooter={deckFooter} playerLevel={playerLevel} />
+      }
       main={children}
       sidebar={sidebar}
     />

@@ -19,11 +19,12 @@ import { GamePurchasesPanel } from '@/components/games/panels/GamePurchasesPanel
 import { GamesPlayAdRail } from '@/components/games/GamesPlayAdRail';
 import { GameOverviewSections } from '@/components/games/panels/GameOverviewSections';
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
-import { IconComments, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
+import { IconComments, IconMilestones, IconOverview, IconRedeem, IconRewards, IconVaults } from '@/components/games/icons/TabIcons';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -148,6 +149,7 @@ export function CipherVaultsDashboard({
       { id: 'vaults' as const, label: 'Vaults', icon: <IconVaults /> },
       { id: 'redeem' as const, label: 'Redeem', icon: <IconRedeem /> },
       { id: 'rewards' as const, label: 'Rewards', icon: <IconRewards /> },
+      { id: 'milestones' as const, label: 'Milestones', icon: <IconMilestones /> },
       { id: 'comments' as const, label: 'Comments', icon: <IconComments /> },
     ],
     [],
@@ -176,6 +178,15 @@ export function CipherVaultsDashboard({
     },
   ];
 
+  const milestoneProgress = useMemo(
+    () => ({
+      cipher_clears: (state.ledger ?? []).length,
+      collections_complete: new Set((state.ledger ?? []).map((e) => e.tierId)).size >= 3 ? 1 : 0,
+    }),
+    [state.ledger],
+  );
+  const { level: playerLevel } = useGameMilestones('cipher-vaults', milestoneProgress);
+
   return (
     <TooltipProvider>
     <GamesWithSidebarLayout
@@ -187,6 +198,7 @@ export function CipherVaultsDashboard({
           game={haloGame}
           resources={deckResources}
           deckFooter="Values update live as you earn tickets and clear vaults."
+          playerLevel={playerLevel}
         />
       }
       main={
@@ -583,13 +595,7 @@ export function CipherVaultsDashboard({
         )}
 
         {tab === 'milestones' && (
-          <MilestonesPanel
-            gameId="cipher-vaults"
-            progress={{
-              cipher_clears: (state.ledger ?? []).length,
-              collections_complete: new Set((state.ledger ?? []).map((e) => e.tierId)).size >= 3 ? 1 : 0,
-            }}
-          />
+          <MilestonesPanel gameId="cipher-vaults" progress={milestoneProgress} />
         )}
 
         {tab === 'comments' && (

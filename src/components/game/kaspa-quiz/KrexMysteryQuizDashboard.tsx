@@ -24,6 +24,7 @@ import { gameCommentsArticleId } from '@/components/games/comments/gameComments'
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -232,6 +233,8 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
   );
 
   const deckResources: GameDeckResource[] = [];
+  const milestoneProgress = useMemo(() => ({ quiz_levels: levelIndex }), [levelIndex]);
+  const { level: playerLevel } = useGameMilestones('kaspa-quiz', milestoneProgress);
 
   return (
     <TooltipProvider>
@@ -244,6 +247,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
           game={props.game}
           resources={deckResources}
           deckFooter="Values update live as you clear levels."
+          playerLevel={playerLevel}
         />
       }
       main={
@@ -321,7 +325,7 @@ export function KrexMysteryQuizDashboard(props: { featuredImage?: string; loreSt
         )}
 
         {tab === 'milestones' && (
-          <MilestonesPanel gameId="kaspa-quiz" progress={{ quiz_levels: levelIndex }} />
+          <MilestonesPanel gameId="kaspa-quiz" progress={milestoneProgress} />
         )}
 
         {tab === 'comments' && (

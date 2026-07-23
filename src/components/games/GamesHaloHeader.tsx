@@ -38,6 +38,8 @@ type GamesHaloHeaderProps = {
   resources?: GameDeckResource[];
   /** Optional footer under deck rows (e.g. live update hint). */
   deckFooter?: ReactNode;
+  /** Milestone player level badge in the header chip row. */
+  playerLevel?: number;
 };
 
 function formatStatus(status: Game['status']): string {
@@ -51,7 +53,7 @@ function formatStatus(status: Game['status']): string {
  * Two-column game header (above tabs).
  * Left: kicker + tilt title, author, badges, Game Deck. Right: featured cover only.
  */
-export function GamesHaloHeader({ game, resources = [], deckFooter }: GamesHaloHeaderProps) {
+export function GamesHaloHeader({ game, resources = [], deckFooter, playerLevel }: GamesHaloHeaderProps) {
   const typeName = gameTypes[game.gameType]?.name ?? game.gameType;
   const difficultyName = difficultyLevels[game.difficulty]?.name ?? game.difficulty;
   const cover = game.featuredImage || game.image;
@@ -67,9 +69,12 @@ export function GamesHaloHeader({ game, resources = [], deckFooter }: GamesHaloH
     { key: 'type', label: typeName },
     { key: 'difficulty', label: difficultyName },
   ];
+  if (typeof playerLevel === 'number' && playerLevel > 0) {
+    badges.splice(1, 0, { key: 'player-level', label: `Player Lv ${playerLevel}`, accent: true });
+  }
   const extra = [...(game.categories ?? []), ...(game.tags ?? []).map((t) => `#${t}`)].filter(Boolean);
   for (const label of extra) {
-    if (badges.length >= 4) break;
+    if (badges.length >= 5) break;
     badges.push({ key: `extra-${label}`, label });
   }
 

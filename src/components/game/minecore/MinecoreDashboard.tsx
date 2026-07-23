@@ -44,6 +44,7 @@ import { CardsFilterBar } from '@/components/games/CardsFilterBar';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { GameCurrencyMenu } from '@/components/games/shop/GameCurrencyMenu';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
 import * as Icons from 'lucide-react';
 
 const TABS = [
@@ -261,6 +262,25 @@ export function MinecoreDashboard(_props: {
   const categories = (_props.game?.categories ?? []) as string[];
   const tags = (_props.game?.tags ?? []) as string[];
 
+  const milestoneProgress = useMemo(
+    () => ({
+      diamonds_earned: Math.floor((state.refinementPointsEarnedLifetime ?? 0) + (state.diamondsBalance ?? 0)),
+      diamonds_balance: Math.floor(state.diamondsBalance ?? 0),
+      plants_unlocked: state.plantSlots.filter((p) => p.unlocked).length,
+      plant_tier: Math.max(
+        0,
+        ...state.plantSlots.map((p) => {
+          const order = ['standard', 'premium', 'advanced', 'industrial', 'elite', 'dominion'] as const;
+          const idx = order.indexOf(String(p.type).toLowerCase() as (typeof order)[number]);
+          return idx >= 0 ? idx + 1 : p.unlocked ? 1 : 0;
+        }),
+      ),
+      refinement_points: state.refinementPointsTotal,
+    }),
+    [state.refinementPointsEarnedLifetime, state.diamondsBalance, state.plantSlots, state.refinementPointsTotal],
+  );
+  const { level: playerLevel } = useGameMilestones('minecore', milestoneProgress);
+
   return (
     <TooltipProvider>
       <KREXBuyWizard isOpen={krexWizardOpen} onClose={() => setKrexWizardOpen(false)} />
@@ -313,6 +333,7 @@ export function MinecoreDashboard(_props: {
           currentTab={tab}
           onTabChange={setTab}
           resources={resources}
+          playerLevel={playerLevel}
           game={{
             ...(_props.game ?? {}),
             name: _props.gameName ?? _props.game?.name ?? 'Minecore',
@@ -735,34 +756,7 @@ export function MinecoreDashboard(_props: {
             </div>
           )}
 
-          {tab === 'milestones' && (
-            <MilestonesPanel
-              gameId="minecore"
-              progress={{
-                diamonds_earned: Math.floor(
-                  (state.refinementPointsEarnedLifetime ?? 0) + (state.diamondsBalance ?? 0),
-                ),
-                diamonds_balance: Math.floor(state.diamondsBalance ?? 0),
-                plants_unlocked: state.plantSlots.filter((p) => p.unlocked).length,
-                plant_tier: Math.max(
-                  0,
-                  ...state.plantSlots.map((p) => {
-                    const order = [
-                      'standard',
-                      'premium',
-                      'advanced',
-                      'industrial',
-                      'elite',
-                      'dominion',
-                    ] as const;
-                    const idx = order.indexOf(String(p.type).toLowerCase() as (typeof order)[number]);
-                    return idx >= 0 ? idx + 1 : p.unlocked ? 1 : 0;
-                  }),
-                ),
-                refinement_points: state.refinementPointsTotal,
-              }}
-            />
-          )}
+          {tab === 'milestones' && <MilestonesPanel gameId="minecore" progress={milestoneProgress} />}
 
           {tab === 'comments' && (
             <CommentsSection articleId={gameCommentsArticleId('minecore')} dappSectionHeader />

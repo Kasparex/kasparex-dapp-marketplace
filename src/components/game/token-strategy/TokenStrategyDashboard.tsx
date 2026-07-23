@@ -24,6 +24,7 @@ import { gameCommentsArticleId } from '@/components/games/comments/gameComments'
 import { GamePanelCard } from '@/components/games/layout/GamePanelCard';
 import { GamesAdaptiveGrid } from '@/components/games/layout/GamesAdaptiveGrid';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -122,6 +123,14 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
   );
 
   const deckResources: GameDeckResource[] = [];
+  const milestoneProgress = useMemo(
+    () => ({
+      strategy_rounds: missionIndex + (stats.security + stats.power + stats.stealth > 0 ? 1 : 0),
+      generic_progress: score,
+    }),
+    [missionIndex, stats.security, stats.power, stats.stealth, score],
+  );
+  const { level: playerLevel } = useGameMilestones('token-strategy', milestoneProgress);
 
   return (
     <TooltipProvider>
@@ -134,6 +143,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
           game={props.game}
           resources={deckResources}
           deckFooter="Values update live as you complete missions."
+          playerLevel={playerLevel}
         />
       }
       main={
@@ -195,13 +205,7 @@ export function TokenStrategyDashboard(props: { featuredImage?: string; loreStor
         )}
 
         {tab === 'milestones' && (
-          <MilestonesPanel
-            gameId="token-strategy"
-            progress={{
-              strategy_rounds: missionIndex + (stats.security + stats.power + stats.stealth > 0 ? 1 : 0),
-              generic_progress: score,
-            }}
-          />
+          <MilestonesPanel gameId="token-strategy" progress={milestoneProgress} />
         )}
 
         {tab === 'comments' && (

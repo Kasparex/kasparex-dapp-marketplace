@@ -204,12 +204,14 @@ export function resolveMilestoneRows(
   progress: GameMilestoneProgressInput,
 ): GameMilestoneRow[] {
   const defs = GAME_MILESTONES[gameId] ?? [];
-  return defs.map((d) => {
-    const current = Math.max(0, Number(progress[d.metric] ?? 0));
-    const completed = current >= d.target;
-    const progressPct = d.target > 0 ? Math.min(100, (current / d.target) * 100) : 0;
-    return { ...d, current, completed, progressPct };
-  });
+  return defs
+    .map((d) => {
+      const current = Math.max(0, Number(progress[d.metric] ?? 0));
+      const completed = current >= d.target;
+      const progressPct = d.target > 0 ? Math.min(100, (current / d.target) * 100) : 0;
+      return { ...d, current, completed, progressPct };
+    })
+    .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name));
 }
 
 export function playerLevelFromMilestones(rows: GameMilestoneRow[]): number {

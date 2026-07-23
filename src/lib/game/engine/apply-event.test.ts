@@ -38,7 +38,7 @@ s = applyEvents(s, [
 ]);
 assert.ok(s.appliedReceiptIds.includes('KAS:testhash123456789012345678901234567890123456789012345678901234'));
 assert.equal(s.activeBoosts.length, 1);
-assert.ok(s.slots.length >= 4);
+assert.ok(s.slots.length >= 2);
 assert.equal(s.slots[0]!.nftId, 1);
 assert.equal(s.consumables['field-ration'], 2);
 

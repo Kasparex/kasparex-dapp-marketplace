@@ -493,6 +493,3 @@ export function KasparexNftSlotSelector({
 export function kasparexNftRefToCollectionAndId(ref: string): { collection: string; tokenId: number } | null {
   return parseNftRef(ref);
 }
-
-/** @deprecated Use {@link kasparexNftRefToCollectionAndId} */
-export const chroniclesNftRefToCollectionAndId = kasparexNftRefToCollectionAndId;

@@ -25,6 +25,8 @@ import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/c
 import { useRedeemablePointsBreakdown } from '@/hooks/useRedeemablePointsBreakdown';
 import { normalizeKaspaAddress } from '@/lib/kaspa/sdk';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
+import { useGameMilestones } from '@/hooks/useGameMilestones';
+import { KREX_TIER_SHOP_DISCOUNT_PCT, KREX_TIER_YIELD_BONUS_PCT } from '@/lib/game/diamond-veins-config';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
@@ -147,6 +149,53 @@ export function MiningDashboard({
     }),
     [diamondsEarnedLifetime, diamonds, slots.length, refinementPointsTotal],
   );
+  const { level: playerLevel } = useGameMilestones('diamond-veins', milestoneProgress);
+
+  const krexYieldBonus = KREX_TIER_YIELD_BONUS_PCT[krexTier] ?? 0;
+  const krexShopDiscount = KREX_TIER_SHOP_DISCOUNT_PCT[krexTier] ?? 0;
+
+  const deckResources = useMemo(
+    () => [
+      {
+        id: 'diamonds',
+        label: 'Diamonds',
+        value: (
+          <span className="text-lg font-black tabular-nums tracking-tight text-amber-500 sm:text-xl">
+            {diamonds < 100 ? diamonds.toFixed(2) : Math.floor(diamonds).toLocaleString()}
+          </span>
+        ),
+        subValue: (
+          <>
+            <span className="font-semibold tabular-nums">{stats.yieldPerSecond.toFixed(2)}</span>
+            <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/s live</span>
+          </>
+        ),
+        description: 'Mined in-game currency',
+        tooltip:
+          'Diamonds mined by NFT workers. Refine into Hub redeem points. Subtext is your live Diamonds-per-second flow.',
+        accent: 'diamonds' as const,
+        icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
+        onClick: () => setTab('mining'),
+      },
+      {
+        id: 'redeem_points',
+        label: 'Redeem points',
+        value: Math.floor(refinementPointsTotal ?? 0).toLocaleString(),
+        subValue: (
+          <>
+            KREX {krexTier}
+            {krexYieldBonus > 0 ? ` · +${krexYieldBonus}% yield` : ''}
+            {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% shop off` : ''}
+          </>
+        ),
+        description: 'Refinement points',
+        tooltip: 'Redeemable points from refining Diamonds. Your KREX tier boosts mining yield and shop discounts.',
+        accent: 'purple' as const,
+        onClick: () => setTab('rewards'),
+      },
+    ],
+    [diamonds, stats.yieldPerSecond, refinementPointsTotal, krexTier, krexYieldBonus, krexShopDiscount],
+  );
 
   return (
     <GameTooltipProvider>
@@ -162,28 +211,8 @@ export function MiningDashboard({
           tabs={tabsWithComments as any}
           currentTab={tab}
           onTabChange={setTab}
-          resources={[
-            {
-              id: 'diamonds',
-              label: 'In-game currency',
-              value: Math.floor(diamonds).toLocaleString(),
-              subValue: 'Diamonds in bag',
-              description: 'Mined diamonds',
-              tooltip: 'Diamonds you have mined. Refine them into Hub redeem points. Click to open Mining.',
-              accent: 'diamonds',
-              icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
-              onClick: () => setTab('mining'),
-            },
-            {
-              id: 'redeem_points',
-              label: 'Redeem points',
-              value: Math.floor(refinementPointsTotal ?? 0).toLocaleString(),
-              description: 'Refinement points',
-              tooltip: 'Redeemable refinement points earned from refining diamonds. Used across Kasparex Games.',
-              accent: 'purple',
-              onClick: () => setTab('rewards'),
-            },
-          ]}
+          playerLevel={playerLevel}
+          resources={deckResources}
           game={{
             ...(game ?? {}),
             name: gameName ?? game?.name ?? 'Diamond Veins',
@@ -194,7 +223,7 @@ export function MiningDashboard({
             tags,
           }}
           onOpenOverview={openOverview}
-          deckFooter={<span>Values update live as NFT workers mine Diamonds.</span>}
+          deckFooter={<span>Diamonds update live while NFT workers mine.</span>}
         >
           {activeBoosts.length > 0 && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
@@ -221,16 +250,23 @@ export function MiningDashboard({
 
           {tab === 'overview' && (
             <div className="space-y-6">
-              <OverviewPanel tycon={tycon} stats={stats} miningAllowed={miningAllowed} />
+              <OverviewPanel
+                tycon={tycon}
+                stats={stats}
+                miningAllowed={miningAllowed}
+                krexTier={krexTier}
+                krexYieldBonusPct={krexYieldBonus}
+                krexShopDiscountPct={krexShopDiscount}
+              />
               <GameOverviewSections
                 gameName={gameName ?? 'Diamond Veins'}
                 description={gameDescription}
                 loreStory={loreStory}
                 featuredImage={featuredImage || undefined}
                 flow={[
-                  'Deploy an NFT into a paid worker slot to start idle Diamond mining.',
-                  'Higher-tier NFTs mine faster and last longer before needing food or repair kits.',
-                  'Refine Diamonds into Hub redeem points and claim on Rewards.',
+                  'Deploy an NFT into your free starter Worker slot to begin idle Diamond mining.',
+                  'Buy extra slots to scale capacity. Higher NFT tiers and KREX tiers mine faster.',
+                  'Feed exhausted workers from the Shop, refine Diamonds into Hub redeem points.',
                 ]}
               />
             </div>
@@ -259,6 +295,8 @@ export function MiningDashboard({
               miningAllowed={miningAllowed}
               consumables={consumables}
               onFeedWorker={feedWorker}
+              krexTier={krexTier}
+              krexYieldBonusPct={krexYieldBonus}
             />
           )}
           {tab === 'upgrades' && (

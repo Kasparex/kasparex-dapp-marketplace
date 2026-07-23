@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState, type ReactNode } from 'react';
-import { payKaspaL1 } from '@/lib/games/sdk';
 import { useKaspaWallet } from '@/lib/kaspa/context';
 import {
   MINECORE_DAILY_GRID_POINTS_CAP,
@@ -13,7 +12,6 @@ import {
   MINECORE_REFINE_POINTS_PER_DIAMOND,
 } from '@/lib/game/minecore/config';
 import { minecoreUtcDayKey } from '@/lib/game/minecore/plant-economy';
-import * as Icons from 'lucide-react';
 
 const PANEL = 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6';
 const LABEL = 'text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-1.5 block';
@@ -64,9 +62,6 @@ export function RewardsRedeemSection({
   const [refineAmount, setRefineAmount] = useState<number | ''>('');
   const [redeemPoints, setRedeemPoints] = useState<number | ''>('');
   const [targetToken, setTargetToken] = useState<'GRID' | 'KREX'>('GRID');
-  const [l2Address, setL2Address] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
 
   const { state: kaspaWalletState } = useKaspaWallet();
 
@@ -83,32 +78,6 @@ export function RewardsRedeemSection({
     };
   }, [minecoreExtras, todayKey]);
 
-  const handleVerify = async () => {
-    if (!l2Address.startsWith('kaspa:') && !l2Address.startsWith('0x')) {
-      alert('Please enter a valid L2 address (0x... or kaspa:...)');
-      return;
-    }
-    setIsVerifying(true);
-    try {
-      if (!kaspaWalletState.isConnected || !kaspaWalletState.address || !kaspaWalletState.provider) {
-        alert('Please connect your Kaspa wallet first.');
-        return;
-      }
-      const result = await payKaspaL1({
-        provider: kaspaWalletState.provider,
-        fromKaspaAddress: kaspaWalletState.address,
-        toKaspaAddress: 'kaspa:qre2h08c3wqyyd8d227z54nvzex4028wz3nvf4xy226jry9d5uqpqxdfwxfn2',
-        amountKas: 0.1,
-      });
-      if (result.ok) setIsVerified(true);
-      else alert('Verification failed.');
-    } catch {
-      alert('Verification failed.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   const refineOutput =
     typeof refineAmount === 'number' ? refineAmount * MINECORE_REFINE_POINTS_PER_DIAMOND : 0;
   const redeemOutput =
@@ -122,7 +91,6 @@ export function RewardsRedeemSection({
 
   return (
     <div className="space-y-4">
-      {/* ── Diamond Refinement ── */}
       <div className={PANEL}>
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
@@ -204,13 +172,16 @@ export function RewardsRedeemSection({
         ) : null}
       </div>
 
-      {/* ── Token Redemption ── */}
       <div className={PANEL}>
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Redeem Points</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Swap points earned in this experience for GRID or KREX. Spend any remaining hub balance on the main Rewards page.
+              Swap points earned in this experience for GRID or KREX. Link L2 and spend hub balance on{' '}
+              <a href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+                Rewards
+              </a>
+              .
             </p>
           </div>
           <div className="text-right">
@@ -264,42 +235,9 @@ export function RewardsRedeemSection({
         ) : null}
 
         <div className="space-y-4">
-          <div className={`rounded-lg border p-4 transition-colors ${isVerified ? 'border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50'}`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className={LABEL} style={{ marginBottom: 0 }}>
-                1. Link L2 Wallet
-              </span>
-              {isVerified && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                  <Icons.CheckCircle2 className="w-3 h-3" /> Linked
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2 mt-2">
-              <input
-                type="text"
-                placeholder="kaspa:... or 0x..."
-                value={l2Address}
-                onChange={(e) => setL2Address(e.target.value)}
-                disabled={isVerified}
-                className={INPUT + ' flex-1 disabled:opacity-50'}
-              />
-              {!isVerified && (
-                <button
-                  type="button"
-                  onClick={handleVerify}
-                  disabled={isVerifying || !l2Address}
-                  className="px-4 h-11 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold uppercase transition-colors disabled:opacity-40"
-                >
-                  {isVerifying ? 'Wait…' : 'Verify'}
-                </button>
-              )}
-            </div>
-          </div>
-
           <div className="grid gap-3 sm:grid-cols-2 items-end">
             <div>
-              <label className={LABEL}>2. Select Token</label>
+              <label className={LABEL}>Select Token</label>
               <div className="grid grid-cols-2 gap-2">
                 {(['GRID', 'KREX'] as const).map((t) => (
                   <button
@@ -319,7 +257,7 @@ export function RewardsRedeemSection({
             </div>
 
             <div>
-              <label className={LABEL}>3. Amount</label>
+              <label className={LABEL}>Amount</label>
               <div className="relative">
                 <input
                   type="number"
@@ -354,12 +292,9 @@ export function RewardsRedeemSection({
               }}
               disabled={Boolean(
                 !walletConnected ||
-                  !isVerified ||
                   !redeemPoints ||
                   redeemPoints <= 0 ||
-                  (dailyRemaining &&
-                    targetToken === 'GRID' &&
-                    redeemPoints > dailyRemaining.grid) ||
+                  (dailyRemaining && targetToken === 'GRID' && redeemPoints > dailyRemaining.grid) ||
                   (dailyRemaining && targetToken === 'KREX' && redeemPoints > dailyRemaining.krex),
               )}
               className="k-cta-games h-11 w-full text-sm disabled:opacity-40"
@@ -367,7 +302,10 @@ export function RewardsRedeemSection({
               {redeemPoints ? `Receive ${redeemOutput.toLocaleString()} ${targetToken}` : 'Redeem Points'}
             </button>
             <p className="mt-2 text-center text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              Rate: 1 point = {targetToken === 'GRID' ? `${MINECORE_GRID_PER_REFINEMENT_POINT} GRID` : `${MINECORE_KREX_PER_REFINEMENT_POINT} KREX`}
+              Rate: 1 point ={' '}
+              {targetToken === 'GRID'
+                ? `${MINECORE_GRID_PER_REFINEMENT_POINT} GRID`
+                : `${MINECORE_KREX_PER_REFINEMENT_POINT} KREX`}
             </p>
             {!walletConnected ? (
               <p className="mt-1 text-center text-[11px] text-amber-600 dark:text-amber-400">
