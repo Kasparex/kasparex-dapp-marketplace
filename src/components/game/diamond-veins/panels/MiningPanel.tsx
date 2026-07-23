@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { MiningSlotType, TyconGameState, YieldStats, DiamondVeinsConsumableId } from '@/lib/game/engine';
+import type { ActiveBoost, MiningSlotType, TyconGameState, YieldStats, DiamondVeinsConsumableId } from '@/lib/game/engine';
+import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
 import { getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
@@ -9,7 +10,12 @@ import type { ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { GameTooltip } from '@/components/game/diamond-veins/GameTooltip';
 import { DiamondIcon } from '@/components/games/icons/DiamondIcon';
 import { nftCrewRoleLabel, MINECORE_NFT_CREW_ROLES_ORDER } from '@/lib/game/minecore/asset-usage';
-import { DIAMOND_VEINS_CONSUMABLES, DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS, DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL } from '@/lib/game/diamond-veins-config';
+import {
+  DIAMOND_VEINS_CONSUMABLES,
+  DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS,
+  DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL,
+  IDLE_ENERGY_DURATION_MS,
+} from '@/lib/game/diamond-veins-config';
 import * as Icons from 'lucide-react';
 import {
   KasparexNftSlotSelector,
@@ -36,11 +42,22 @@ function statusBadge(status: string) {
     case 'mining':
       return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
     case 'exhausted':
-      return 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30';
+      return 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/40';
     case 'empty':
       return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-400/30';
     default:
       return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-400/30';
+  }
+}
+
+function roleBadgeCls(type: MiningSlotType) {
+  switch (type) {
+    case 'operator':
+      return 'border-sky-500/40 bg-sky-500/15 text-sky-800 dark:text-sky-300';
+    case 'foreman':
+      return 'border-violet-500/40 bg-violet-500/15 text-violet-800 dark:text-violet-300';
+    default:
+      return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300';
   }
 }
 
@@ -88,6 +105,7 @@ export function MiningPanel({
   miningAllowed,
   consumables,
   onFeedWorker,
+  activeBoosts = [],
   krexTier = 'Tier0',
 }: {
   tycon: TyconGameState;
@@ -101,6 +119,7 @@ export function MiningPanel({
   miningAllowed?: boolean;
   consumables: TyconGameState['consumables'];
   onFeedWorker: (slotIndex: number, itemId: DiamondVeinsConsumableId) => boolean;
+  activeBoosts?: ActiveBoost[];
   krexTier?: string;
 }) {
   const { state: wallet } = useKaspaWallet();
@@ -244,11 +263,20 @@ export function MiningPanel({
               ? getBestGatewayUrl(String(meta.image).replace('ipfs://', ''))
               : null;
             const roleLabel = nftCrewRoleLabel(slot.type);
-            const energyMax = info?.energyMax ?? slot.energyMax ?? 0;
+            const resolvedTier = tier ?? 'regular';
+            const catalogSessionMax = resolveSlotEnergyMax(slot.type, resolvedTier);
+            const energyMax = info?.energyMax && info.energyMax > 0
+              ? info.energyMax
+              : slot.energyMax && slot.energyMax > 0
+                ? slot.energyMax
+                : catalogSessionMax;
             const energy = info?.energy ?? slot.energy ?? 0;
             const pct = energyMax > 0 ? Math.max(0, Math.min(100, (energy / energyMax) * 100)) : 0;
             const status = info?.status ?? (slot.nftId == null ? 'empty' : energy > 0 ? 'mining' : 'exhausted');
             const feedId = bestConsumable(idx);
+            const baseSessionMs = IDLE_ENERGY_DURATION_MS[slot.type].regular;
+            const sessionBonusMs = Math.max(0, energyMax - baseSessionMs);
+            const liveBoosts = activeBoosts.filter((b) => b.endTime > Date.now());
 
             return (
               <div
@@ -263,7 +291,9 @@ export function MiningPanel({
                       className="!p-3"
                     >
                       <div className="relative flex h-full w-full flex-col items-center justify-center pt-6">
-                        <span className="absolute left-2 top-2 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
+                        <span
+                          className={`absolute left-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${roleBadgeCls(slot.type)}`}
+                        >
                           {roleLabel}
                           {idx === 0 ? ' · Free' : ''}
                         </span>
@@ -358,7 +388,7 @@ export function MiningPanel({
                       </GameTooltip>
                       <GameTooltip
                         title="Session max"
-                        description="Full-energy mining duration for this role and NFT tier after a full restore."
+                        description="Full-energy mining duration for this role and NFT tier after a full restore. Always shown so you know the slot capacity."
                       >
                         <p className="cursor-help">
                           <span className="font-semibold text-zinc-800 dark:text-zinc-200">Session max:</span>{' '}
@@ -369,6 +399,51 @@ export function MiningPanel({
                     {meta?.name ? (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">{meta.name}</p>
                     ) : null}
+                    <div className="flex flex-wrap gap-1.5">
+                      <GameTooltip
+                        title="Base session"
+                        description={`${roleLabel} slots restore to a ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]} full run on regular NFTs. Higher tiers last longer.`}
+                      >
+                        <span className="cursor-help rounded-full border border-zinc-300/70 bg-zinc-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          {DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]}
+                        </span>
+                      </GameTooltip>
+                      {sessionBonusMs > 0 ? (
+                        <GameTooltip
+                          title="Session bonus"
+                          description="Extra mining time from NFT tier or role capacity above the regular base."
+                        >
+                          <span className="cursor-help rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+                            +{formatDuration(sessionBonusMs)} session
+                          </span>
+                        </GameTooltip>
+                      ) : null}
+                      {energy > 0 ? (
+                        <GameTooltip
+                          title="Energy remaining"
+                          description="This worker still has mining energy. Feed anytime to top up without stopping."
+                        >
+                          <span className="cursor-help rounded-full border border-lime-500/35 bg-lime-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-lime-800 dark:text-lime-200">
+                            +{formatDuration(energy)} energy
+                          </span>
+                        </GameTooltip>
+                      ) : null}
+                      {liveBoosts.map((b) => {
+                        const pctBoost = Math.round((b.multiplier ?? 0) * 100);
+                        return (
+                          <GameTooltip
+                            key={b.id}
+                            title={b.name ?? b.type}
+                            description={`Active Shop ${b.type} boost${pctBoost > 0 ? ` (+${pctBoost}%)` : ''}. Applies to Diamond flow while this timer is running.`}
+                          >
+                            <span className="cursor-help rounded-full border border-amber-500/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                              {b.name ?? b.type}
+                              {pctBoost > 0 ? ` +${pctBoost}%` : ''}
+                            </span>
+                          </GameTooltip>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 

@@ -21,22 +21,54 @@ import {
   IconShop,
 } from '@/components/games/icons/TabIcons';
 import { UnifiedGameLayout } from '@/components/games/layout/UnifiedGameLayout';
+import type { GameTab } from '@/components/games/layout/GameTabs';
 import { useGameCommentsTabs, gameCommentsArticleId } from '@/components/games/comments/gameComments';
 import { MilestonesPanel } from '@/components/games/modules/MilestonesPanel';
 import { useGameMilestones } from '@/hooks/useGameMilestones';
-import { krexTierDiscountPercent } from '@/lib/chronicles/vault/pricing';
-import type { KREXTier } from '@/lib/rewards/types';
 
-const TABS = [
+type MiningHealth = 'active' | 'exhausted' | 'inactive';
+
+function resolveMiningHealth(stats: { slots: { status: string }[] }, slots: { nftId: number | null }[]): MiningHealth {
+  const hasWorker = slots.some((s) => s.nftId != null);
+  if (!hasWorker) return 'inactive';
+  if (stats.slots.some((s) => s.status === 'mining')) return 'active';
+  return 'exhausted';
+}
+
+function MiningStatusDot({
+  health,
+  title,
+}: {
+  health: MiningHealth;
+  title?: string;
+}) {
+  const color =
+    health === 'active'
+      ? 'bg-emerald-500'
+      : health === 'exhausted'
+        ? 'bg-orange-500'
+        : 'bg-red-500';
+  const label =
+    health === 'active' ? 'Mining active' : health === 'exhausted' ? 'Workers exhausted' : 'Mining inactive';
+  return (
+    <span
+      className={`inline-block h-2 w-2 shrink-0 rounded-full ${color}`}
+      title={title ?? label}
+      aria-label={title ?? label}
+    />
+  );
+}
+
+type TabId = 'overview' | 'mining' | 'upgrades' | 'rewards' | 'milestones' | 'comments';
+
+const TABS: GameTab<TabId>[] = [
   { id: 'overview', label: 'Overview', icon: <IconOverview /> },
   { id: 'mining', label: 'Mining', icon: <DiamondIcon className="h-4 w-4 text-sky-400" /> },
   { id: 'upgrades', label: 'Shop', icon: <IconShop /> },
   { id: 'rewards', label: 'Rewards', icon: <IconRewards /> },
   { id: 'milestones', label: 'Milestones', icon: <IconMilestones /> },
   { id: 'comments', label: 'Comments', icon: <IconComments /> },
-] as const;
-
-type TabId = (typeof TABS)[number]['id'];
+];
 
 const CommentsSection = dynamic(() => import('@/components/vblog/CommentsSection').then((m) => m.CommentsSection), {
   ssr: false,
@@ -129,7 +161,22 @@ export function MiningDashboard({
     }
   };
 
-  const tabsWithComments = useGameCommentsTabs(TABS, 'diamond-veins');
+  const tabsBase = useGameCommentsTabs(TABS, 'diamond-veins');
+
+  const miningHealth = useMemo(() => resolveMiningHealth(stats, slots), [stats, slots]);
+
+  const tabsWithComments = useMemo(
+    () =>
+      tabsBase.map((t) =>
+        t.id === 'mining'
+          ? {
+              ...t,
+              rightAdornment: <MiningStatusDot health={miningHealth} />,
+            }
+          : t,
+      ),
+    [tabsBase, miningHealth],
+  );
 
   const milestoneProgress = useMemo(
     () => ({
@@ -142,32 +189,26 @@ export function MiningDashboard({
   );
   const { level: playerLevel } = useGameMilestones('diamond-veins', milestoneProgress);
 
-  const krexShopDiscount = krexTierDiscountPercent(krexTier as KREXTier);
-
   const deckResources = useMemo(
     () => [
       {
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="text-lg font-black tabular-nums tracking-tight text-blue-500 dark:text-blue-400 sm:text-xl">
+          <span className="inline-flex items-center gap-2 text-lg font-black tabular-nums tracking-tight text-blue-500 dark:text-blue-400 sm:text-xl">
             {Math.floor(diamonds).toLocaleString()}
+            <MiningStatusDot health={miningHealth} />
           </span>
         ),
         subValue: (
           <>
             <span className="font-semibold tabular-nums">{stats.yieldPerSecond.toFixed(2)}</span>
             <span className="font-bold text-zinc-500 dark:text-zinc-400"> D/s</span>
-            <span className="font-bold text-zinc-500 dark:text-zinc-400">
-              {' '}
-              · KREX {krexTier}
-              {krexShopDiscount > 0 ? ` · ${krexShopDiscount}% off` : ''}
-            </span>
           </>
         ),
         description: 'Mined in-game · refine into Hub points',
         tooltip:
-          'Diamonds mined by NFT workers. Use Refine to Hub below to credit /rewards. Subtext is live D/s and your KREX fee discount.',
+          'Diamonds mined by NFT workers. Status dot: green = mining, orange = exhausted, red = inactive. Subtext is live total D/s.',
         accent: 'diamonds' as const,
         icon: <DiamondIcon className="h-4 w-4 text-sky-400" title="Diamonds" />,
         onClick: () => setTab('mining'),
@@ -184,15 +225,7 @@ export function MiningDashboard({
         description: `Min ${refineMinDiamonds} Diamonds → Hub points on /rewards`,
       }),
     ],
-    [
-      diamonds,
-      stats.yieldPerSecond,
-      krexTier,
-      krexShopDiscount,
-      refineMinDiamonds,
-      refineAmount,
-      refining,
-    ],
+    [diamonds, stats.yieldPerSecond, miningHealth, refineMinDiamonds, refineAmount, refining],
   );
 
   return (
@@ -231,7 +264,10 @@ export function MiningDashboard({
           <div className="flex w-full min-w-0 flex-col gap-6">
           {activeBoosts.length > 0 && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Active boosts</h3>
+              <h3 className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Active boosts</h3>
+              <p className="mb-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                Shop boosts multiply live Diamond flow while their timer is running.
+              </p>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
                 {activeBoosts.map((b) => {
                   const minLeft = Math.max(0, Math.ceil((b.endTime - Date.now()) / 60000));
@@ -320,6 +356,7 @@ export function MiningDashboard({
               miningAllowed={miningAllowed}
               consumables={consumables}
               onFeedWorker={feedWorker}
+              activeBoosts={activeBoosts}
               krexTier={krexTier}
             />
           )}
@@ -386,7 +423,7 @@ export function MiningDashboard({
               <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-100">Refinement claimed</h3>
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 You earned{' '}
-                <strong className="text-blue-500 dark:text-blue-400">
+                <strong className="text-emerald-600 dark:text-emerald-400">
                   {lastRefineClaim.points.toLocaleString()} redeem points
                 </strong>{' '}
                 from {lastRefineClaim.amount.toLocaleString()} in-game diamonds
@@ -396,7 +433,7 @@ export function MiningDashboard({
               </p>
               <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-500">
                 Redeem on the{' '}
-                <Link href="/rewards" className="font-semibold text-blue-500 underline dark:text-blue-400">
+                <Link href="/rewards" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
                   Rewards & Points
                 </Link>{' '}
                 page.
@@ -404,7 +441,7 @@ export function MiningDashboard({
               <button
                 type="button"
                 onClick={clearLastRefineClaim}
-                className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="k-cta-games w-full rounded-xl py-3 font-semibold"
               >
                 Done
               </button>
