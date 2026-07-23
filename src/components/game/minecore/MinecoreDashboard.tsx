@@ -215,7 +215,7 @@ export function MinecoreDashboard(_props: {
         label: 'In-game currency',
         value: (
           <span className="inline-flex flex-wrap items-baseline justify-end gap-x-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
-            <span className="text-[#02abb8] dark:text-[#5eead4]">{diamondsDisplayTotal.toLocaleString()}</span>
+            <span className="text-blue-500 dark:text-blue-400">{diamondsDisplayTotal.toLocaleString()}</span>
             <span className="px-1 text-sm font-bold text-zinc-500 dark:text-zinc-400">of</span>
             <span className="text-emerald-600 dark:text-emerald-400">
               {Math.max(0, Math.floor(deckRollingCaps.capSum)).toLocaleString()}

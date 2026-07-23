@@ -3,24 +3,24 @@
 import type { ReactNode } from 'react';
 import type { GameDeckResource } from '@/components/games/panels/GameDeckPanel';
 
-/** Shared shell: fixed 32px box so input focus never grows past Max / Refine. */
-const SHELL =
-  'box-border inline-flex h-8 min-h-8 max-h-8 shrink-0 items-center rounded-lg border text-xs font-semibold leading-none';
+const ROW = 'flex h-8 flex-nowrap items-center justify-end gap-1.5';
 
-const FIELD =
-  `${SHELL} w-14 border-zinc-200 bg-white px-2 py-0 text-left tabular-nums font-medium text-zinc-900 outline-none ring-0 ` +
+const INPUT_WRAP = 'relative box-border inline-flex h-8 w-[5.75rem] shrink-0 items-center';
+
+const INPUT =
+  'no-k-style box-border h-8 w-full rounded-lg border border-zinc-200 bg-white py-0 pl-2 pr-9 text-left text-xs font-medium tabular-nums leading-none text-zinc-900 outline-none ' +
   'appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ' +
   'focus:border-zinc-400 focus:outline-none focus:ring-0 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-400';
 
-const MAX_BTN =
-  `${SHELL} border-zinc-200 bg-white px-2 text-[10px] font-bold uppercase tracking-wide text-zinc-600 ` +
-  'hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800';
+const MAX_INSIDE =
+  'absolute right-1 top-1/2 z-10 inline-flex h-6 -translate-y-1/2 items-center rounded px-1.5 text-[10px] font-bold uppercase tracking-wide ' +
+  'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600';
 
 const REFINE_BTN =
-  `${SHELL} border-emerald-600 bg-emerald-600 px-3 font-bold text-white hover:border-emerald-700 hover:bg-emerald-700 ` +
-  'disabled:cursor-not-allowed disabled:opacity-50';
+  'box-border inline-flex h-8 shrink-0 items-center rounded-lg border border-emerald-600 bg-emerald-600 px-3 text-xs font-bold leading-none text-white ' +
+  'hover:border-emerald-700 hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50';
 
-/** Compact amount + Max + Refine controls for Game Deck (does not auto-fill live balance). */
+/** Compact amount + Max-inside + Refine for Game Deck (does not auto-fill live balance). */
 export function GameDeckRefineControls({
   amount,
   onAmountChange,
@@ -42,34 +42,36 @@ export function GameDeckRefineControls({
   const canRefine = !disabled && !refining && n >= minAmount && n <= maxAmount && maxAmount >= minAmount;
 
   return (
-    <div className="flex h-8 flex-nowrap items-center justify-end gap-1.5">
-      <input
-        type="number"
-        inputMode="numeric"
-        min={minAmount}
-        max={Math.max(minAmount, maxAmount)}
-        placeholder="0"
-        value={amount === '' ? '' : amount}
-        onChange={(e) => {
-          const raw = e.target.value;
-          if (raw === '') {
-            onAmountChange('');
-            return;
-          }
-          const parsed = Number(raw);
-          if (!Number.isFinite(parsed)) return;
-          onAmountChange(Math.max(0, Math.floor(parsed)));
-        }}
-        className={FIELD}
-        aria-label="Refine amount"
-      />
-      <button
-        type="button"
-        className={MAX_BTN}
-        onClick={() => onAmountChange(Math.max(0, Math.floor(maxAmount)))}
-      >
-        Max
-      </button>
+    <div className={ROW}>
+      <div className={INPUT_WRAP}>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={minAmount}
+          max={Math.max(minAmount, maxAmount)}
+          placeholder="0"
+          value={amount === '' ? '' : amount}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === '') {
+              onAmountChange('');
+              return;
+            }
+            const parsed = Number(raw);
+            if (!Number.isFinite(parsed)) return;
+            onAmountChange(Math.max(0, Math.floor(parsed)));
+          }}
+          className={INPUT}
+          aria-label="Refine amount"
+        />
+        <button
+          type="button"
+          className={MAX_INSIDE}
+          onClick={() => onAmountChange(Math.max(0, Math.floor(maxAmount)))}
+        >
+          Max
+        </button>
+      </div>
       <button
         type="button"
         disabled={!canRefine}

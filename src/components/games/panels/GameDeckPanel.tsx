@@ -22,7 +22,7 @@ function accentValueClass(accent?: GameDeckResource['accent']) {
   if (accent === 'kas') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'krex') return 'text-emerald-700 dark:text-emerald-300';
   if (accent === 'grid') return 'text-emerald-700 dark:text-emerald-300';
-  if (accent === 'diamonds') return 'text-[#02abb8] dark:text-[#5eead4]';
+  if (accent === 'diamonds') return 'text-blue-500 dark:text-blue-400';
   if (accent === 'purple') return 'text-purple-500 dark:text-purple-400';
   return 'text-emerald-700 dark:text-emerald-300';
 }

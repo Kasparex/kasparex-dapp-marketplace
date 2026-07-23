@@ -517,7 +517,7 @@ function DailyCapBar(props: {
     <Tooltip content={counterTip}>
       <span className="inline-flex cursor-help flex-wrap items-baseline justify-end gap-x-0 gap-y-0 text-lg font-black tabular-nums tracking-tight sm:text-xl">
         <DiamondIcon className="mr-0.5 inline-block h-4 w-4 shrink-0 translate-y-px text-sky-400" title="" />
-        <span className="text-[#02abb8] dark:text-[#5eead4]">{displayMined.toLocaleString()}</span>
+        <span className="text-blue-500 dark:text-blue-400">{displayMined.toLocaleString()}</span>
         <span className={`px-1 text-sm font-bold ${counterSepCls}`}>of</span>
         <span className="text-emerald-600 dark:text-emerald-400">{displayCap.toLocaleString()}</span>
         <span className={`pl-1.5 text-sm font-bold ${counterSepCls}`}>/ 24h</span>
@@ -559,7 +559,7 @@ function DailyCapBar(props: {
               className={`h-full w-full rounded-full transition-[width] duration-700 ${
                 props.forceZeroDisplay
                   ? 'bg-zinc-400 dark:bg-zinc-600'
-                  : 'bg-[#02abb8] dark:bg-[#02abb8]'
+                  : 'bg-blue-500 dark:bg-blue-500'
               }`}
             />
           </div>

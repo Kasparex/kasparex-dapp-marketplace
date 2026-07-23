@@ -7,7 +7,7 @@ import { MINECORE_REFINE_POINTS_PER_DIAMOND } from '@/lib/game/minecore/config';
 const PANEL = 'rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6';
 const LABEL = 'text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-1.5 block';
 const INPUT =
-  'h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors';
+  'no-k-style h-11 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 pr-14 text-left text-sm font-semibold outline-none focus:border-sky-500 dark:text-white transition-colors appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 
 export type MinecoreRedeemExtras = {
   /** Budget window + pending totals for transparency (game redeem flows). */
@@ -70,8 +70,8 @@ export function RewardsRedeemSection({
           </div>
           <div className="flex w-full flex-shrink-0 flex-col items-stretch gap-3 sm:w-auto sm:items-end sm:text-right">
             <div>
-              <div className="text-[10px] font-semibold text-[#02abb8]">Available</div>
-              <div className="text-xl font-bold tabular-nums text-[#02abb8] dark:text-[#5eead4]">
+              <div className="text-[10px] font-semibold text-blue-500">Available</div>
+              <div className="text-xl font-bold tabular-nums text-blue-500 dark:text-blue-400">
                 {diamondsBalance.toLocaleString()} D
               </div>
             </div>
@@ -94,12 +94,12 @@ export function RewardsRedeemSection({
                   )
                 }
                 placeholder="0"
-                className={`${INPUT} text-left`}
+                className={`${INPUT}`}
               />
               <button
                 type="button"
                 onClick={() => setRefineAmount(diamondsBalance)}
-                className="absolute right-2 top-2 h-7 rounded px-2 text-[10px] font-bold uppercase bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                className="absolute right-2 top-1/2 h-7 -translate-y-1/2 rounded px-2 text-[10px] font-bold uppercase bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
               >
                 Max
               </button>

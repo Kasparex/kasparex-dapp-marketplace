@@ -139,7 +139,7 @@ export function MiningPanel({
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Diamonds in bag
           </div>
-          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-[#02abb8] dark:text-[#5eead4]">
+          <p className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums text-blue-500 dark:text-blue-400">
             <DiamondIcon className="h-5 w-5" />
             {Math.floor(diamonds).toLocaleString()}
           </p>
@@ -308,7 +308,7 @@ export function MiningPanel({
                     type="button"
                     disabled={slot.nftId == null || status === 'mining'}
                     onClick={() => setFeedOpen(idx)}
-                    className="shrink-0 rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="k-cta-games shrink-0 !h-auto rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {status === 'exhausted' ? 'Restore' : status === 'mining' ? 'Mining' : 'Feed'}
                   </button>

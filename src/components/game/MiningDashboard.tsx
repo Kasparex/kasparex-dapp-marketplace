@@ -163,7 +163,7 @@ export function MiningDashboard({
         id: 'diamonds',
         label: 'Diamonds',
         value: (
-          <span className="text-lg font-black tabular-nums tracking-tight text-[#02abb8] dark:text-[#5eead4] sm:text-xl">
+          <span className="text-lg font-black tabular-nums tracking-tight text-blue-500 dark:text-blue-400 sm:text-xl">
             {diamonds < 100 ? diamonds.toFixed(2) : Math.floor(diamonds).toLocaleString()}
           </span>
         ),
