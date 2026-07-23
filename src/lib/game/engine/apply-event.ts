@@ -1,4 +1,4 @@
-import { DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND, IDLE_ENERGY_DURATION_MS, REFINE_MIN_DIAMONDS } from '@/lib/game/diamond-veins-config';
+import { DIAMOND_VEINS_REFINE_POINTS_PER_DIAMOND, IDLE_ENERGY_BASE_MS, REFINE_MIN_DIAMONDS } from '@/lib/game/diamond-veins-config';
 import type { DiamondCommodity, DiamondVeinsConsumableId, GameEvent, GridLedgerEntry, TyconGameState } from './types';
 import { createInitialTyconState, EMPTY_CONSUMABLES } from './initial-state';
 import { migrateSlotsToTycon } from './compute-yield';
@@ -61,7 +61,7 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       if (!s) return state;
       const energyMax = Math.max(
         1,
-        Math.floor(event.energyMax ?? IDLE_ENERGY_DURATION_MS[s.type]?.regular ?? 30 * 60_000),
+        Math.floor(event.energyMax ?? IDLE_ENERGY_BASE_MS[s.type] ?? 30 * 60_000),
       );
       /** Keep remaining energy; only Feed / Quick feed refill. Never grant a free session on insert. */
       const energy = Math.min(Math.max(0, s.energy ?? 0), energyMax);
@@ -247,7 +247,10 @@ export function applyEvent(state: TyconGameState, event: GameEvent): TyconGameSt
       const id = event.itemId as DiamondVeinsConsumableId;
       const have = next.consumables[id] ?? 0;
       if (have < 1) return state;
-      const energyMax = Math.max(slot.energyMax ?? 0, 1);
+      const energyMax = Math.max(
+        1,
+        Math.floor(typeof event.energyMax === 'number' && event.energyMax > 0 ? event.energyMax : (slot.energyMax ?? 0)),
+      );
       const restore = Math.max(0, event.energyRestore);
       const energy = Math.min(energyMax, (slot.energy ?? 0) + restore);
       next.consumables = { ...next.consumables, [id]: have - 1 };

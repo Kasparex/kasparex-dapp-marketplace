@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { ActiveBoost, MiningSlotType, TyconGameState, YieldStats, DiamondVeinsConsumableId } from '@/lib/game/engine';
-import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
+import { resolveSlotSessionBreakdown } from '@/lib/game/engine/compute-yield';
 import { getBonusForTrait, getNFTTier } from '@/lib/game/diamond-bonuses';
 import { getBestGatewayUrl } from '@/lib/ipfs/gateway';
 import { EmptyVeinSlotFrame, EmptyVeinSlotPlusIcon } from '@/components/game/EmptyVeinSlotFrame';
@@ -14,7 +14,8 @@ import {
   DIAMOND_VEINS_CONSUMABLES,
   DIAMOND_VEINS_NFT_SLOT_UNLOCK_COST_KAS,
   DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL,
-  IDLE_ENERGY_DURATION_MS,
+  IDLE_ENERGY_BASE_MS,
+  IDLE_SESSION_BONUS_PCT,
 } from '@/lib/game/diamond-veins-config';
 import * as Icons from 'lucide-react';
 import {
@@ -57,7 +58,7 @@ function statusBadge(status: string) {
     case 'mining':
       return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
     case 'exhausted':
-      return 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/40';
+      return 'bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/40';
     case 'empty':
       return 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-400/30';
     default:
@@ -281,19 +282,24 @@ export function MiningPanel({
               : null;
             const roleLabel = nftCrewRoleLabel(slot.type);
             const resolvedTier = tier ?? 'regular';
-            const catalogSessionMax = resolveSlotEnergyMax(slot.type, resolvedTier);
-            const energyMax = info?.energyMax && info.energyMax > 0
-              ? info.energyMax
-              : slot.energyMax && slot.energyMax > 0
-                ? slot.energyMax
-                : catalogSessionMax;
-            const energy = info?.energy ?? slot.energy ?? 0;
+            const sessionBreakdown = resolveSlotSessionBreakdown(slot.type, resolvedTier, {
+              collection: slot.collection,
+              activeBoosts,
+              nowMs: Date.now(),
+            });
+            const energyMax =
+              info?.energyMax && info.energyMax > 0
+                ? info.energyMax
+                : sessionBreakdown.energyMax;
+            const energy = Math.min(info?.energy ?? slot.energy ?? 0, energyMax);
             const pct = energyMax > 0 ? Math.max(0, Math.min(100, (energy / energyMax) * 100)) : 0;
             const status = info?.status ?? (slot.nftId == null ? 'empty' : energy > 0 ? 'mining' : 'exhausted');
             const feedId = bestConsumable(idx);
-            const baseSessionMs = IDLE_ENERGY_DURATION_MS[slot.type].regular;
-            const sessionBonusMs = Math.max(0, energyMax - baseSessionMs);
             const liveBoosts = activeBoosts.filter((b) => b.endTime > Date.now());
+            const shopSessionExtraMs =
+              sessionBreakdown.shopMult > 1.0001
+                ? Math.max(0, energyMax - Math.floor(sessionBreakdown.baseMs * (1 + sessionBreakdown.nftBonusPct)))
+                : 0;
 
             return (
               <div
@@ -396,7 +402,7 @@ export function MiningPanel({
                       </GameTooltip>
                       <GameTooltip
                         title="Energy left"
-                        description="Remaining mining time before this worker is exhausted. Feed from the Shop to restore energy."
+                        description="Remaining mining time after NFT tier, Premium, and active Shop boosts. Feed restores against the full Session max."
                       >
                         <p className="cursor-help">
                           <span className="font-semibold text-zinc-800 dark:text-zinc-200">Energy left:</span>{' '}
@@ -405,7 +411,7 @@ export function MiningPanel({
                       </GameTooltip>
                       <GameTooltip
                         title="Session max"
-                        description="Full-energy mining duration for this role and NFT tier after a full restore. Always shown so you know the slot capacity."
+                        description={`Full session for this ${roleLabel} slot after Diamond/Rarest/Premium and active Shop boosts. Base is ${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]}.`}
                       >
                         <p className="cursor-help">
                           <span className="font-semibold text-zinc-800 dark:text-zinc-200">Session max:</span>{' '}
@@ -447,21 +453,68 @@ export function MiningPanel({
                           });
                         }
                       });
-                      const showSession = sessionBonusMs > 0;
-                      const showBoosts = liveBoosts.length > 0 || traitBoosts.length > 0 || showSession;
+                      const showBoosts =
+                        liveBoosts.length > 0 ||
+                        traitBoosts.length > 0 ||
+                        sessionBreakdown.diamondPct > 0 ||
+                        sessionBreakdown.rarestPct > 0 ||
+                        sessionBreakdown.premiumPct > 0 ||
+                        shopSessionExtraMs > 0;
                       if (!showBoosts) return null;
                       return (
                         <div className="flex flex-wrap items-center gap-1">
-                          {showSession ? (
+                          {sessionBreakdown.diamondPct > 0 ? (
                             <Tooltip
                               content={gameTooltipRich(
-                                'Session bonus',
-                                `+${formatDuration(sessionBonusMs)} full-session time above the ${roleLabel} regular base (${DIAMOND_VEINS_SLOT_BASE_SESSION_LABEL[slot.type]}). Higher NFT tiers unlock this.`,
+                                'Diamond NFT',
+                                `+${Math.round(IDLE_SESSION_BONUS_PCT.diamond * 100)}% session max on role base (${formatDuration(IDLE_ENERGY_BASE_MS[slot.type])}).`,
                               )}
                             >
                               <span className="cursor-help">
                                 <KxBadge variant="sky" className={STAT_BADGE_COMPACT}>
-                                  +{formatDurationShort(sessionBonusMs)}
+                                  +{Math.round(sessionBreakdown.diamondPct * 100)}%
+                                </KxBadge>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {sessionBreakdown.rarestPct > 0 ? (
+                            <Tooltip
+                              content={gameTooltipRich(
+                                'Rarest NFT',
+                                `+${Math.round(IDLE_SESSION_BONUS_PCT.rarest * 100)}% session max on role base (${formatDuration(IDLE_ENERGY_BASE_MS[slot.type])}).`,
+                              )}
+                            >
+                              <span className="cursor-help">
+                                <KxBadge variant="violet" className={STAT_BADGE_COMPACT}>
+                                  +{Math.round(sessionBreakdown.rarestPct * 100)}%
+                                </KxBadge>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {sessionBreakdown.premiumPct > 0 ? (
+                            <Tooltip
+                              content={gameTooltipRich(
+                                'KREX Premium',
+                                `+${Math.round(IDLE_SESSION_BONUS_PCT.premiumCollection * 100)}% session max for KREXPRIME / PIXELKREX NFTs.`,
+                              )}
+                            >
+                              <span className="cursor-help">
+                                <KxBadge variant="cyan" className={STAT_BADGE_COMPACT}>
+                                  +{Math.round(sessionBreakdown.premiumPct * 100)}%
+                                </KxBadge>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {shopSessionExtraMs > 0 ? (
+                            <Tooltip
+                              content={gameTooltipRich(
+                                'Shop session boost',
+                                `Active Shop boosts extend session max by +${formatDuration(shopSessionExtraMs)} (×${sessionBreakdown.shopMult.toFixed(2)}).`,
+                              )}
+                            >
+                              <span className="cursor-help">
+                                <KxBadge variant="amber" className={STAT_BADGE_COMPACT}>
+                                  +{formatDurationShort(shopSessionExtraMs)}
                                 </KxBadge>
                               </span>
                             </Tooltip>
@@ -477,20 +530,13 @@ export function MiningPanel({
                           ))}
                           {liveBoosts.map((b) => {
                             const pctBoost = Math.round((b.multiplier ?? 0) * 100);
-                            const label =
-                              b.type === 'luck'
-                                ? pctBoost > 0
-                                  ? `+${pctBoost}%`
-                                  : 'BOOST'
-                                : pctBoost > 0
-                                  ? `+${pctBoost}%`
-                                  : 'BOOST';
+                            const label = pctBoost > 0 ? `+${pctBoost}%` : 'BOOST';
                             return (
                               <Tooltip
                                 key={b.id}
                                 content={gameTooltipRich(
                                   b.name ?? b.type,
-                                  `Active Shop ${b.type} boost${pctBoost > 0 ? ` (+${pctBoost}%)` : ''}. Multiplies Diamond flow while the timer runs.`,
+                                  `Active Shop ${b.type} boost${pctBoost > 0 ? ` (+${pctBoost}%)` : ''}. Extends session max and multiplies Diamond flow while the timer runs.`,
                                 )}
                               >
                                 <span className="cursor-help">

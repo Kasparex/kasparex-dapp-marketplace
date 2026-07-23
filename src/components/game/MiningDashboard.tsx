@@ -260,26 +260,6 @@ export function MiningDashboard({
           deckFooter={<span>Refine Diamonds into Hub points on /rewards</span>}
         >
           <div className="flex w-full min-w-0 flex-col gap-6">
-          {activeBoosts.length > 0 && (
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-              <h3 className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Active boosts</h3>
-              <p className="mb-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                Shop boosts multiply live Diamond flow while their timer is running.
-              </p>
-              <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                {activeBoosts.map((b) => {
-                  const minLeft = Math.max(0, Math.ceil((b.endTime - Date.now()) / 60000));
-                  return (
-                    <li key={b.id} className="flex items-center justify-between gap-3">
-                      <span>{b.name ?? b.type}</span>
-                      <span className="shrink-0 tabular-nums">{minLeft} min left</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
           {purchaseSuccess && (
             <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/20 p-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
               Purchase complete. &quot;{purchaseSuccess}&quot; is now active.

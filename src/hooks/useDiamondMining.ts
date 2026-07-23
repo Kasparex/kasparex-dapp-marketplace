@@ -17,7 +17,7 @@ import {
 } from '@/lib/game/diamond-veins-config';
 import { applyKrexFeeDiscount } from '@/lib/hub/applyKrexFeeDiscount';
 import type { KREXTier } from '@/lib/rewards/types';
-import { resolveSlotEnergyMax } from '@/lib/game/engine/compute-yield';
+import { resolveSlotEnergyMax, syncDiamondVeinsEnergyCaps } from '@/lib/game/engine/compute-yield';
 import { fetchNFTMetadata, type ParsedNFTMetadata } from '@/lib/nft/metadata';
 import { signKrc20Transfer } from '@/lib/kaspa/l1WalletActions';
 import {
@@ -302,6 +302,7 @@ export function useDiamondMining() {
       setTycon((s) => {
         const now = Date.now();
         let next = pruneExpiredBoosts(s, now);
+        next = syncDiamondVeinsEnergyCaps(next, metaRef.current, now);
         const st = computeYieldStats(next, krexTier, metaRef.current, now);
         const slotDeltas = st.slots.map((x) => x.yieldPerSecond);
         const energyDrains = st.slots.map((x) => (x.status === 'mining' && x.yieldPerSecond > 0 ? 1000 : 0));
@@ -328,7 +329,11 @@ export function useDiamondMining() {
       const tier = getNFTTier(collection, nftId, meta);
       const slot = tyconRef.current.slots[slotIndex];
       const role = slot?.type ?? 'worker';
-      const energyMax = resolveSlotEnergyMax(role, tier);
+      const energyMax = resolveSlotEnergyMax(role, tier, {
+        collection,
+        activeBoosts: tyconRef.current.activeBoosts,
+        nowMs: Date.now(),
+      });
       setTycon((s) =>
         applyEvent(s, {
           type: 'DeployNFT',
@@ -686,8 +691,14 @@ export function useDiamondMining() {
     const item = DIAMOND_VEINS_CONSUMABLES.find((c) => c.id === itemId);
     if (!item) return false;
     const slot = tyconRef.current.slots[slotIndex];
-    if (!slot || slot.nftId == null) return false;
-    const energyMax = Math.max(slot.energyMax ?? 0, 1);
+    if (!slot || slot.nftId == null || !slot.collection) return false;
+    const meta = metaRef.current[slot.nftId] ?? null;
+    const tier = getNFTTier(slot.collection, slot.nftId, meta);
+    const energyMax = resolveSlotEnergyMax(slot.type, tier, {
+      collection: slot.collection,
+      activeBoosts: tyconRef.current.activeBoosts,
+      nowMs: Date.now(),
+    });
     const energyRestore = Math.floor(energyMax * item.restorePct);
     setTycon((s) =>
       applyEvent(s, {
@@ -695,6 +706,7 @@ export function useDiamondMining() {
         slotIndex,
         itemId,
         energyRestore,
+        energyMax,
         at: Date.now(),
       }),
     );

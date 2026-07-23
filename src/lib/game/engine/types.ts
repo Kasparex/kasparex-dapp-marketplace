@@ -150,7 +150,7 @@ export type GameEvent =
   | { type: 'HeartbeatConnect'; address: string; at: number }
   | { type: 'SyncVersion'; version: number }
   | { type: 'AddConsumables'; itemId: DiamondVeinsConsumableId; count: number; at: number }
-  | { type: 'FeedWorker'; slotIndex: number; itemId: DiamondVeinsConsumableId; energyRestore: number; at: number };
+  | { type: 'FeedWorker'; slotIndex: number; itemId: DiamondVeinsConsumableId; energyRestore: number; at: number; energyMax?: number };
 
 export interface SlotYieldInfo {
   slotIndex: number;

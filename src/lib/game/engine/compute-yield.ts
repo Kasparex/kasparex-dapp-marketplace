@@ -1,10 +1,11 @@
 import { BASE_YIELDS, getBonusForTrait, getNFTTier, type ParsedNFTMetadata } from '@/lib/game/diamond-bonuses';
 import {
-  IDLE_ENERGY_DURATION_MS,
+  IDLE_ENERGY_BASE_MS,
   IDLE_ROLE_BASE_DPS,
+  IDLE_SESSION_BONUS_PCT,
   IDLE_TIER_DPS_MULT,
 } from '@/lib/game/diamond-veins-config';
-import type { MiningSlot, MiningSlotType, SlotYieldInfo, TyconGameState, YieldStats } from './types';
+import type { ActiveBoost, MiningSlot, MiningSlotType, SlotYieldInfo, TyconGameState, YieldStats } from './types';
 import type { NFTTier } from '@/lib/game/diamond-bonuses';
 
 function boostMultiplier(state: TyconGameState, nowMs: number): number {
@@ -17,12 +18,93 @@ function boostMultiplier(state: TyconGameState, nowMs: number): number {
   return m;
 }
 
+/** KREXPRIME / PIXELKREX count as Premium collections for session bonus. */
+export function isDiamondVeinsPremiumCollection(collection: string | null | undefined): boolean {
+  const c = (collection ?? '').trim().toUpperCase();
+  return c === 'KREXPRIME' || c === 'PIXELKREX';
+}
+
+export type SlotEnergyResolveOpts = {
+  collection?: string | null;
+  activeBoosts?: ActiveBoost[];
+  nowMs?: number;
+};
+
+export type SlotSessionBonusBreakdown = {
+  baseMs: number;
+  energyMax: number;
+  nftBonusPct: number;
+  shopMult: number;
+  diamondPct: number;
+  rarestPct: number;
+  premiumPct: number;
+};
+
+/** Resolve full session length including NFT tier / Premium / active Shop boosts. */
 export function resolveSlotEnergyMax(
   type: MiningSlotType,
   tier: NFTTier,
+  opts?: SlotEnergyResolveOpts,
 ): number {
-  const byRole = IDLE_ENERGY_DURATION_MS[type];
-  return byRole[tier];
+  return resolveSlotSessionBreakdown(type, tier, opts).energyMax;
+}
+
+export function resolveSlotSessionBreakdown(
+  type: MiningSlotType,
+  tier: NFTTier,
+  opts?: SlotEnergyResolveOpts,
+): SlotSessionBonusBreakdown {
+  const baseMs = IDLE_ENERGY_BASE_MS[type];
+  let diamondPct = 0;
+  let rarestPct = 0;
+  let premiumPct = 0;
+  if (tier === 'diamond') diamondPct = IDLE_SESSION_BONUS_PCT.diamond;
+  if (tier === 'rarest') rarestPct = IDLE_SESSION_BONUS_PCT.rarest;
+  if (isDiamondVeinsPremiumCollection(opts?.collection)) {
+    premiumPct = IDLE_SESSION_BONUS_PCT.premiumCollection;
+  }
+  const nftBonusPct = diamondPct + rarestPct + premiumPct;
+  let shopMult = 1;
+  const now = opts?.nowMs ?? Date.now();
+  for (const boost of opts?.activeBoosts ?? []) {
+    if (boost.endTime <= now) continue;
+    if (boost.type === 'yield' || boost.type === 'efficiency') shopMult *= 1 + boost.multiplier;
+    if (boost.type === 'speed') shopMult *= 1 + boost.multiplier * 0.5;
+  }
+  const energyMax = Math.max(1, Math.floor(baseMs * (1 + nftBonusPct) * shopMult));
+  return { baseMs, energyMax, nftBonusPct, shopMult, diamondPct, rarestPct, premiumPct };
+}
+
+/** Keep persisted energyMax in sync with live NFT + Shop session bonuses. */
+export function syncDiamondVeinsEnergyCaps(
+  state: TyconGameState,
+  slottedMetadata: Record<number, ParsedNFTMetadata>,
+  nowMs: number = Date.now(),
+): TyconGameState {
+  let changed = false;
+  const slots = state.slots.map((slot) => {
+    if (slot.nftId == null || !slot.collection) return slot;
+    const meta = slottedMetadata[slot.nftId] ?? null;
+    const tier = getNFTTier(slot.collection, slot.nftId, meta);
+    const energyMax = resolveSlotEnergyMax(slot.type, tier, {
+      collection: slot.collection,
+      activeBoosts: state.activeBoosts,
+      nowMs,
+    });
+    const prevMax = Math.max(0, slot.energyMax ?? 0);
+    const prevEnergy = Math.max(0, slot.energy ?? 0);
+    /** When session max grows (Shop / NFT bonuses), scale remaining energy so Energy left extends with it. */
+    let energy = prevEnergy;
+    if (prevMax > 0 && energyMax > prevMax && prevEnergy > 0) {
+      energy = Math.floor(prevEnergy * (energyMax / prevMax));
+    }
+    energy = Math.min(energy, energyMax);
+    if (energyMax === prevMax && energy === prevEnergy) return slot;
+    changed = true;
+    return { ...slot, energyMax, energy };
+  });
+  if (!changed) return state;
+  return { ...state, slots, version: state.version + 1 };
 }
 
 export function computeSlotYieldPerSecond(
@@ -58,20 +140,30 @@ export function computeYieldStats(
   slottedMetadata: Record<number, ParsedNFTMetadata>,
   nowMs: number = Date.now(),
 ): YieldStats {
-  const globalBoost = boostMultiplier(state, nowMs);
-  const slots: SlotYieldInfo[] = state.slots.map((slot, slotIndex) => {
+  const synced = syncDiamondVeinsEnergyCaps(state, slottedMetadata, nowMs);
+  const globalBoost = boostMultiplier(synced, nowMs);
+  const slots: SlotYieldInfo[] = synced.slots.map((slot, slotIndex) => {
     if (slot.nftId == null || !slot.collection) {
       return {
         slotIndex,
         yieldPerSecond: 0,
         energy: 0,
-        energyMax: 0,
+        energyMax: resolveSlotEnergyMax(slot.type, 'regular', {
+          collection: null,
+          activeBoosts: synced.activeBoosts,
+          nowMs,
+        }),
         status: 'empty' as const,
         remainingMs: 0,
       };
     }
     const meta = slottedMetadata[slot.nftId] ?? slottedMetadata[slotIndex];
-    const energyMax = Math.max(0, slot.energyMax ?? 0);
+    const tier = getNFTTier(slot.collection, slot.nftId, meta ?? null);
+    const energyMax = resolveSlotEnergyMax(slot.type, tier, {
+      collection: slot.collection,
+      activeBoosts: synced.activeBoosts,
+      nowMs,
+    });
     const energy = Math.max(0, Math.min(energyMax, slot.energy ?? 0));
     const yieldPerSecond =
       energy > 0 ? computeSlotYieldPerSecond({ ...slot, energy, energyMax }, meta, krexTier, globalBoost) : 0;
@@ -94,7 +186,7 @@ export function computeYieldStats(
     rawYield: yieldPerSecond,
     powerEfficiency: 1,
     powerUsedMw: 0,
-    powerCapMw: state.powerCapMw,
+    powerCapMw: synced.powerCapMw,
     slots,
   };
 }
@@ -165,7 +257,7 @@ export function migrateSlotsToTycon(slots: MiningSlot[]): MiningSlot[] {
         typeof s.energyMax === 'number' && s.energyMax > 0
           ? s.energyMax
           : s.nftId != null
-            ? IDLE_ENERGY_DURATION_MS[type].regular
+            ? IDLE_ENERGY_BASE_MS[type]
             : 0;
       const energy =
         typeof s.energy === 'number'

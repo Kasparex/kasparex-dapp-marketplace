@@ -71,13 +71,42 @@ export const IDLE_TIER_DPS_MULT = {
 } as const;
 
 /**
- * Full-energy mining duration (ms) by role × tier.
- * Base (regular): Worker 30m, Operator 1h, Foreman 3h. Higher tiers work longer.
+ * Full-energy mining duration base (ms) by role.
+ * Diamond / Rarest / Premium collection bonuses multiply this (see IDLE_SESSION_BONUS_PCT).
  */
+export const IDLE_ENERGY_BASE_MS = {
+  worker: 30 * 60_000,
+  operator: 60 * 60_000,
+  foreman: 180 * 60_000,
+} as const;
+
+/**
+ * Additive session-length bonuses on role base.
+ * Diamond +15%, Rarest +25%, any KREX Premium collection (KREXPRIME / PIXELKREX) +5%.
+ */
+export const IDLE_SESSION_BONUS_PCT = {
+  diamond: 0.15,
+  rarest: 0.25,
+  premiumCollection: 0.05,
+} as const;
+
+/** @deprecated Prefer IDLE_ENERGY_BASE_MS + resolveSlotEnergyMax bonuses. */
 export const IDLE_ENERGY_DURATION_MS = {
-  worker: { regular: 30 * 60_000, diamond: 50 * 60_000, rarest: 75 * 60_000 },
-  operator: { regular: 60 * 60_000, diamond: 100 * 60_000, rarest: 140 * 60_000 },
-  foreman: { regular: 180 * 60_000, diamond: 300 * 60_000, rarest: 405 * 60_000 },
+  worker: {
+    regular: IDLE_ENERGY_BASE_MS.worker,
+    diamond: Math.floor(IDLE_ENERGY_BASE_MS.worker * (1 + IDLE_SESSION_BONUS_PCT.diamond + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+    rarest: Math.floor(IDLE_ENERGY_BASE_MS.worker * (1 + IDLE_SESSION_BONUS_PCT.rarest + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+  },
+  operator: {
+    regular: IDLE_ENERGY_BASE_MS.operator,
+    diamond: Math.floor(IDLE_ENERGY_BASE_MS.operator * (1 + IDLE_SESSION_BONUS_PCT.diamond + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+    rarest: Math.floor(IDLE_ENERGY_BASE_MS.operator * (1 + IDLE_SESSION_BONUS_PCT.rarest + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+  },
+  foreman: {
+    regular: IDLE_ENERGY_BASE_MS.foreman,
+    diamond: Math.floor(IDLE_ENERGY_BASE_MS.foreman * (1 + IDLE_SESSION_BONUS_PCT.diamond + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+    rarest: Math.floor(IDLE_ENERGY_BASE_MS.foreman * (1 + IDLE_SESSION_BONUS_PCT.rarest + IDLE_SESSION_BONUS_PCT.premiumCollection)),
+  },
 } as const;
 
 /** Paid NFT slot unlock list price by role (KAS before KREX fee discount). */
